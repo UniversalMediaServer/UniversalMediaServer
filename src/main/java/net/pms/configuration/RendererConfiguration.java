@@ -5,43 +5,28 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.StringTokenizer;
-import java.util.regex.Matcher;
+import java.util.*;
 import java.util.concurrent.Future;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.TreeSet;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.LibMediaInfoParser;
-import net.pms.dlna.RootFolder;
+import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
-import net.pms.util.PropertiesUtil;
 import net.pms.newgui.StatusTab;
+import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.Charsets;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -415,6 +400,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * by its address in later requests.
 	 *
 	 * @param sa The IP address to associate.
+	 * @return whether the device at this address is a renderer.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
 	public boolean associateIP(InetAddress sa) {
@@ -426,8 +412,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
 
 		addressAssociation.put(sa, this);
-		if ((pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) &&
-				!(sa.isLoopbackAddress() || sa.isAnyLocalAddress())) {
+		if (
+			(
+				pmsConfiguration.isAutomaticMaximumBitrate() ||
+				pmsConfiguration.isSpeedDbg()
+			) &&
+			!(
+				sa.isLoopbackAddress() ||
+				sa.isAnyLocalAddress()
+			)
+		) {
 			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 		}
 		return true;
@@ -451,7 +445,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return r;
 	}
 
-
 	/**
 	 * Tries to find a matching renderer configuration based on the given collection of
 	 * request headers
@@ -460,7 +453,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param ia The request's origin address.
 	 * @return The matching renderer configuration or <code>null</code>
 	 */
-	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String,String>> headers, InetAddress ia) {
+	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String, String>> headers, InetAddress ia) {
 		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers), ia);
 	}
 
@@ -468,7 +461,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		RendererConfiguration r = null;
 		RendererConfiguration ref = getRendererConfigurationByHeaders(sortedHeaders);
 		if (ref != null) {
-			boolean isNew = ! addressAssociation.containsKey(ia);
+			boolean isNew = !addressAssociation.containsKey(ia);
 			r = resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
@@ -536,14 +529,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
 		DeviceConfiguration r = null;
 		if (ref == null) {
-		   ref = getDefaultConf();
+			ref = getDefaultConf();
 		}
 		try {
 			if (addressAssociation.containsKey(ia)) {
 				// Already seen, finish configuration if required
-				r = (DeviceConfiguration)addressAssociation.get(ia);
+				r = (DeviceConfiguration) addressAssociation.get(ia);
 				boolean higher = ref.getLoadingPriority() > r.getLoadingPriority() && ref != defaultConf;
-				if (! r.loaded || higher) {
+				if (!r.loaded || higher) {
 					if (higher) {
 						LOGGER.debug("Switching to higher priority renderer: " + ref.getRendererName());
 					}
@@ -551,7 +544,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					// update gui
 					PMS.get().updateRenderer(r);
 				}
-			} else if (! UPNPHelper.isNonRenderer(ia)) {
+			} else if (!UPNPHelper.isNonRenderer(ia)) {
 				// It's brand new
 				r = new DeviceConfiguration(ref, ia);
 				if (r.associateIP(ia)) {
@@ -582,7 +575,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public File getUsableFile() {
 		File f = getFile();
 		if (f == null || f.equals(NOFILE)) {
-		   f = new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf");
+			f = new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf");
 		}
 		return f;
 	}
@@ -614,8 +607,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
 				boolean header = true;
 				for (String line : FileUtils.readLines(ref, Charsets.UTF_8)) {
-					if (skip.reset(line).matches() ||
-							(header && (line.startsWith("#") || StringUtils.isBlank(line)))) {
+					if (
+						skip.reset(line).matches() ||
+						(
+							header &&
+							(
+								line.startsWith("#") ||
+								StringUtils.isBlank(line)
+							)
+						)
+					) {
 						continue;
 					}
 					header = false;
@@ -771,7 +772,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean load(File f) throws ConfigurationException {
 		if (f != null && !f.equals(NOFILE) && (configuration instanceof PropertiesConfiguration)) {
-			((PropertiesConfiguration)configuration).load(f);
+			((PropertiesConfiguration) configuration).load(f);
 
 			// Set up the header matcher
 			SortedHeaderMap searchMap = new SortedHeaderMap();
@@ -788,7 +789,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public void init(File f) throws ConfigurationException {
 		rootFolder = null;
-		if (! loaded) {
+		if (!loaded) {
 			configuration.clear();
 			loaded = load(f);
 		}
@@ -1199,7 +1200,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Whether offline.
 	 */
 	public boolean isOffline() {
-		return ! (uuid == null ? hasAssociatedAddress() : UPNPHelper.isActive(uuid, instanceID));
+		return !(uuid == null ? hasAssociatedAddress() : UPNPHelper.isActive(uuid, instanceID));
 	}
 
 	/**
@@ -1259,7 +1260,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public UPNPHelper.Player getPlayer() {
 		if (player == null && isUpnpControllable()) {
-			player = new UPNPHelper.Player((DeviceConfiguration)this);
+			player = new UPNPHelper.Player((DeviceConfiguration) this);
 		}
 		return player;
 	}
@@ -1276,7 +1277,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	@Override
 	public void alert() {
 		if (gui != null) {
-			gui.icon.setGrey(! isUpnpConnected());
+			gui.icon.setGrey(!isUpnpConnected());
 		}
 		super.alert();
 	}
@@ -1768,7 +1769,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getInt(AUTO_PLAY_TMO, 5000);
 	}
 
-
 	public String getCustomFFmpegOptions() {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
 	}
@@ -1781,7 +1781,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * This addresses a bug in some renderers (like Panasonic TVs) where
 	 * they stretch videos that are not 16/9.
 	 *
-	 * @return 
+	 * @return
 	 */
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
@@ -1796,7 +1796,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * poor-quality upscaling, since we will use more CPU and network
 	 * bandwidth when it is false.
 	 *
-	 * @return 
+	 * @return
 	 */
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
@@ -1964,7 +1964,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public String getOutput3DFormat() {
 		return getString(OUTPUT_3D_FORMAT, "");
-	}	
+	}
 
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
@@ -2064,7 +2064,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return True if the pattern matches or false if no match, no headers, or no matcher.
 	 */
 	public boolean match(SortedHeaderMap headers) {
-		if (headers !=null && ! headers.isEmpty() && sortedHeaderMatcher != null) {
+		if (headers != null && !headers.isEmpty() && sortedHeaderMatcher != null) {
 			return sortedHeaderMatcher.reset(headers.joined()).find();
 		}
 		return false;

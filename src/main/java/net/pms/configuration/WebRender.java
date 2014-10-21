@@ -1,7 +1,7 @@
 package net.pms.configuration;
 
-import java.net.InetAddress;
 import java.io.File;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,14 +33,14 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private boolean isTouchDevice = false;
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
-	private static final Format[] supportedFormats ={
+	private static final Format[] supportedFormats = {
 		new GIF(),
 		new JPG(),
 		new MP3(),
 		new PNG()
 	};
 
-	public static final String umsInfoScript = StringUtils.join(new String[] {
+	public static final String umsInfoScript = StringUtils.join(new String[]{
 		"<script>",
 		"if ((' '+document.cookie).indexOf(' UMSINFO=')==-1) {",
 			"var isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);",
@@ -99,7 +99,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 		if (ua.contains("chrome")) {
 			browser = CHROME;
-		} else  if (ua.contains("msie")) {
+		} else if (ua.contains("msie")) {
 			browser = MSIE;
 		} else if (ua.contains("firefox")) {
 			browser = FIREFOX;
@@ -205,8 +205,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			// note here if we get a low speed then calcspeed
 			// will return -1 which will ALWAYS be less that the configed value.
 			slow = getInt(calculatedSpeed(), 0) < pmsConfiguration.getWebLowSpeed();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 		}
 		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
 	}
@@ -325,7 +324,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("mp4");
 	}
 
-	private void chromeCmd(List<String> cmdList)  {
+	private void chromeCmd(List<String> cmdList) {
 		//-c:v libx264 -profile:v high -level 4.1 -map 0:a -c:a libmp3lame -ac 2 -preset ultrafast -b:v 35000k -bufsize 35000k -f matroska
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
@@ -369,10 +368,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("HLS");
 	}
 
-
 	public static boolean supportedFormat(Format f) {
-		for(Format f1 : supportedFormats) {
-			if(f.getIdentifier() == f1.getIdentifier()) {
+		for (Format f1 : supportedFormats) {
+			if (f.getIdentifier() == f1.getIdentifier()) {
 				return true;
 			}
 		}

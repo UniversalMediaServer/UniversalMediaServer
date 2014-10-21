@@ -20,8 +20,8 @@ package net.pms.dlna;
 
 import java.io.*;
 import java.net.InetAddress;
-import java.net.URLEncoder;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -46,11 +46,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
-import net.pms.util.DLNAList;
-import net.pms.util.FileUtil;
-import net.pms.util.ImagesUtil;
-import net.pms.util.Iso639;
-import net.pms.util.MpegUtil;
+import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -322,7 +318,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			res.add(0, tmp.getId());
 			tmp = tmp.getParent();
 		}
-		pathId = StringUtils.join(res,'.');
+		pathId = StringUtils.join(res, '.');
 		return pathId;
 	}
 
@@ -450,7 +446,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Recursive function that searches through all of the children until it finds
-	 * a {@link DLNAResource} that matches the name.<p> Only used by
+	 * a {@link DLNAResource} that matches the name.<p>
+	 * Only used by
 	 * {@link net.pms.dlna.RootFolder#addWebFolder(File webConf)
 	 * addWebFolder(File webConf)} while parsing the web.conf file.
 	 *
@@ -472,7 +469,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param renderer Renderer for which to check if file is supported.
 	 * @return true if the given {@link net.pms.configuration.RendererConfiguration
 	 *		RendererConfiguration} can understand type of media. Also returns true
-	 *		if this DLNAResource is a container.
+	 * if this DLNAResource is a container.
 	 */
 	public boolean isCompatible(RendererConfiguration renderer) {
 		return format == null
@@ -498,7 +495,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * as possible.
 	 *
 	 * @param child
-	 *            DLNAResource to add to a container type.
+	 * DLNAResource to add to a container type.
 	 */
 	public void addChild(DLNAResource child) {
 		addChild(child, true);
@@ -528,7 +525,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			String code = PMS.get().codeDb().getCode(child);
 			if (StringUtils.isNotEmpty(code)) {
 				DLNAResource cobj = child.isCoded();
-				if(cobj == null || !((CodeEnter) cobj).getCode().equals(code)) {
+				if (cobj == null || !((CodeEnter) cobj).getCode().equals(code)) {
 					LOGGER.debug("Resource " + child + " is coded add code folder");
 					CodeEnter ce = new CodeEnter(child);
 					ce.parent = this;
@@ -962,7 +959,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		/*setLastChildId(getLastChildId() + 1);
 		child.setIndexId(getLastChildId());*/
 		PMS.getGlobalRepo().add(child);
-		if(defaultRenderer != null) {
+		if (defaultRenderer != null) {
 			defaultRenderer.cachePut(child);
 		}
 	}
@@ -1056,7 +1053,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			dlna = search(ids, renderer);
 			//dlna = search(objectId, count, renderer, searchStr);
 		}
-
 
 		if (dlna != null) {
 			if (!(dlna instanceof CodeEnter) && !isCodeValid(dlna)) {
@@ -1233,10 +1229,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
-
 	private DLNAResource search(String[] ids, RendererConfiguration r) {
 		DLNAResource dlna;
-		for(String id : ids) {
+		for (String id : ids) {
 			if (id.equals("0")) {
 				dlna = r.getRootFolder();
 			} else {
@@ -1444,7 +1439,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			!isFolder()
 		) {
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
-				RealFile rf = (RealFile)this;
+				RealFile rf = (RealFile) this;
 				displayName = FileUtil.getFileNameWithRewriting(displayName, rf.getFile());
 			} else {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
@@ -1496,7 +1491,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				audioLanguage = "";
 			}
 
-			displayName = player != null ? ("[" + player.name() + "]") : ""; 
+			displayName = player != null ? ("[" + player.name() + "]") : "";
 			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
 		}
 
@@ -1519,9 +1514,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "");
 			if (subsAreValidForStreaming) {
-				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription +  "}";
+				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription + "}";
 			} else {
-				nameSuffix += " {" + subsDescription +  "}";
+				nameSuffix += " {" + subsDescription + "}";
 			}
 		}
 
@@ -1700,7 +1695,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			openTag(sb, "container");
 		}
 
-		addAttribute(sb, "id",  getResourceId());
+		addAttribute(sb, "id", getResourceId());
 
 		if (isFolder()) {
 			if (!isDiscovered() && childrenNumber() == 0) {
@@ -2234,7 +2229,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							try {
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
-							if(!quietPlay()) {
+							if (!quietPlay()) {
 								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
 								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 							}
@@ -2309,7 +2304,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									try {
 										rendererName = renderer.getRendererName();
 									} catch (NullPointerException e) { }
-									if(!quietPlay()) {
+									if (!quietPlay()) {
 										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
 										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 									}
@@ -2359,6 +2354,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	private long lastStart;
+
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
@@ -2459,7 +2455,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			if(System.currentTimeMillis() - lastStart < 500) {
+			if (System.currentTimeMillis() - lastStart < 500) {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
@@ -2669,7 +2665,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else if (defaultRenderer != null && defaultRenderer.isForceJPGThumbnails()) {
 			defaultThumbnailImage = "images/thumbnail-video-120.jpg";
 		}
-		LOGGER.debug("use def thumb "+defaultThumbnailImage);
+		LOGGER.debug("use def thumb " + defaultThumbnailImage);
 		return getResourceInputStream(defaultThumbnailImage);
 	}
 
@@ -3190,7 +3186,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.50
 	 */
 	protected void setChildren(List<DLNAResource> children) {
-		this.children = (DLNAList)children;
+		this.children = (DLNAList) children;
 	}
 
 	/**
@@ -3454,12 +3450,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// Returns the index of the given child resource id, or -1 if not found
-
 	public int indexOf(String objectId) {
 		// Use the index id string only, omitting any trailing filename
 		String resourceId = StringUtils.substringBefore(objectId, "/");
 		if (resourceId != null) {
-			for (int i=0; i < children.size(); i++) {
+			for (int i = 0; i < children.size(); i++) {
 				if (resourceId.equals(children.get(i).getResourceId())) {
 					return i;
 				}
@@ -3470,7 +3465,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	// Attempts to automatically create the appropriate container for
 	// the given uri. Defaults to mpeg video for indeterminate local uris.
-
 	public static DLNAResource autoMatch(String uri, String name) {
 		uri = URLDecoder.decode(uri);
 		boolean isweb = uri.matches("\\S+://.+");
@@ -3495,12 +3489,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// A general-purpose free-floating folder
-
 	public static class unattachedFolder extends VirtualFolder {
 		public unattachedFolder(String name) {
 			super(name, null);
 			setId(name);
 		}
+
 		public DLNAResource add(DLNAResource d) {
 			if (d != null) {
 				addChild(d);
@@ -3509,9 +3503,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 			return null;
 		}
+
 		public DLNAResource add(String uri, String name) {
 			return add(autoMatch(uri, name));
 		}
+
 		public int getIndex(String objectId) {
 			int index = indexOf(objectId);
 			if (index == -1) {
@@ -3519,16 +3515,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 			return index;
 		}
+
 		public DLNAResource get(String objectId) {
 			int index = getIndex(objectId);
 			return index > -1 ? getChildren().get(index) : null;
 		}
+
 		public List<DLNAResource> asList(String objectId) {
 			int index = getIndex(objectId);
-			return index > -1 ? getChildren().subList(index, index+1) : null;
+			return index > -1 ? getChildren().subList(index, index + 1) : null;
 		}
+
 		// Try to recreate a lost item from a previous session
 		// using its objectId's trailing uri, if any
+
 		public DLNAResource recreate(String objectId, String name) {
 			try {
 				return add(StringUtils.substringAfter(objectId, "/"), name);
@@ -3539,30 +3539,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// A temp folder for non-xmb items
-
 	public static unattachedFolder Temp = new unattachedFolder("Temp");
 
 	// Returns whether the url appears to be ours
-
 	public static boolean isResourceUrl(String url) {
 		return url != null && url.startsWith(PMS.get().getServer().getURL() + "/get/");
 	}
 
 	// Returns the url's resourceId (i.e. index without trailing filename) if any or null
-
 	public static String parseResourceId(String url) {
 		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", "get/", "/") : null;
 	}
 
 	// Returns the url's objectId (i.e. index including trailing filename) if any or null
-
 	public static String parseObjectId(String url) {
 		return isResourceUrl(url) ? StringUtils.substringAfter(url, "get/") : null;
 	}
 
 	// Returns the DLNAResource pointed to by the uri if it exists
 	// or else a new Temp item (or null)
-
 	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration r) {
 		String objectId = parseObjectId(uri);
 		if (objectId != null) {
@@ -3586,7 +3581,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// Returns the uri if it's ours and exists or else the url of new Temp item (or null)
-
 	public static String getValidResourceURL(String uri, String name) {
 		if (isResourceUrl(uri)) {
 			// Check existence
@@ -3601,7 +3595,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public void updateRender(RendererConfiguration r) {
-		Player pl=null;
+		Player pl = null;
 		String name = getName();
 
 		for (Player p : PlayerFactory.getPlayers()) {
@@ -3618,7 +3612,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if(this.format.isCompatible(this.media, r)) {
+		if (this.format.isCompatible(this.media, r)) {
 			// transcode the stuff
 			LOGGER.debug("updating renderer to '{}' from '{}'", r, getDefaultRenderer());
 			setDefaultRenderer(r);
@@ -3636,8 +3630,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public DLNAResource isCoded() {
 		DLNAResource tmp = this;
-		while(tmp != null) {
-			if(tmp instanceof CodeEnter) {
+		while (tmp != null) {
+			if (tmp instanceof CodeEnter) {
 				return tmp;
 			}
 			tmp = tmp.getParent();
@@ -3648,7 +3642,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isCodeValid(DLNAResource r) {
 		DLNAResource res = r.isCoded();
 		if (res != null) {
-			if(res instanceof CodeEnter) {
+			if (res instanceof CodeEnter) {
 				return ((CodeEnter) res).validCode(r);
 			}
 		}
@@ -3656,5 +3650,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	public boolean quietPlay() { return false; }
+	public boolean quietPlay() {
+		return false;
+	}
 }

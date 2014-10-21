@@ -3,15 +3,15 @@ package net.pms.configuration;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import net.pms.PMS;
+import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,14 +107,14 @@ public class DeviceConfiguration extends PmsConfiguration {
 	}
 
 	public PropertiesConfiguration getConfiguration(int index) {
-		CompositeConfiguration c = (CompositeConfiguration)configuration;
-		return (PropertiesConfiguration)c.getConfiguration(index);
+		CompositeConfiguration c = (CompositeConfiguration) configuration;
+		return (PropertiesConfiguration) c.getConfiguration(index);
 	}
 
 	@Override
 	public File getFile() {
 		if (loaded) {
-			CompositeConfiguration c = (CompositeConfiguration)configuration;
+			CompositeConfiguration c = (CompositeConfiguration) configuration;
 			File f = getConfiguration(DEVICE).getFile();
 			return (f != null && !f.equals(NOFILE)) ? f : getConfiguration(RENDERER).getFile();
 		}
@@ -122,7 +122,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	}
 
 	public File getParentFile() {
-		CompositeConfiguration c = (CompositeConfiguration)configuration;
+		CompositeConfiguration c = (CompositeConfiguration) configuration;
 		return getConfiguration(RENDERER).getFile();
 	}
 
@@ -130,7 +130,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		if (loaded) {
 			File f = getConfiguration(DEVICE).getFile();
 			if (f != null) {
-				if (! f.exists()) {
+				if (!f.exists()) {
 					// Reset
 					getConfiguration(DEVICE).setFile(NOFILE);
 					getConfiguration(DEVICE).clear();
@@ -146,7 +146,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	public boolean isCustomized() {
 		if (isValid()) {
 			File f = getConfiguration(DEVICE).getFile();
-			return f != null && ! f.equals(NOFILE);
+			return f != null && !f.equals(NOFILE);
 		}
 		return false;
 	}
@@ -187,7 +187,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 
 	public static String getDefaultFilename(DeviceConfiguration r) {
 		String id = r.getId();
-		return r.getName() + "-" + (id.startsWith("uuid:") ? id.substring(5,11) : id) + ".conf";
+		return r.getName() + "-" + (id.startsWith("uuid:") ? id.substring(5, 11) : id) + ".conf";
 	}
 
 	public static File createDeviceFile(DeviceConfiguration r, String filename, boolean load) {
@@ -195,7 +195,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		try {
 			if (StringUtils.isBlank(filename)) {
 				filename = getDefaultFilename(r);
-			} else if (! filename.endsWith(".conf")) {
+			} else if (!filename.endsWith(".conf")) {
 				filename += ".conf";
 			}
 			file = new File(deviceDir, filename);

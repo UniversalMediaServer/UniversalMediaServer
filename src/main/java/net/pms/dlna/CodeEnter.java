@@ -7,7 +7,6 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class CodeEnter extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CodeEnter.class);
 
@@ -23,18 +22,21 @@ public class CodeEnter extends VirtualFolder {
 
 	private abstract class CodeAction extends VirtualVideoAction {
 		public CodeAction(String name, boolean enable) {
-			super(name,enable);
+			super(name, enable);
 		}
 
-		public boolean quietPlay() { return true; }
+		@Override
+		public boolean quietPlay() {
+			return true;
+		}
 	}
 
 	public CodeEnter(DLNAResource r) {
-		super(r.getName(),r.getThumbnailURL());
+		super(r.getName(), r.getThumbnailURL());
 		resource = r;
 		code = "";
 		enteredCode = "";
-		changed=0;
+		changed = 0;
 		commitTime = 0;
 	}
 
@@ -42,7 +44,7 @@ public class CodeEnter extends VirtualFolder {
 		// Normally changed is 0 and 0+15000 is never larger
 		// then now.
 		int tmo;
-		if(getDefaultRenderer() != null) {
+		if (getDefaultRenderer() != null) {
 			tmo = getDefaultRenderer().getAutoPlayTmo();
 		} else {
 			tmo = 5000;
@@ -58,12 +60,15 @@ public class CodeEnter extends VirtualFolder {
 		enteredCode = str;
 	}
 
-	public String getCode() { return code; }
+	public String getCode() {
+		return code;
+	}
 
 	private void addCharVVA(final String ch) {
-		super.addChild(new CodeAction(ch,true) {
+		super.addChild(new CodeAction(ch, true) {
+			@Override
 			public boolean enable() {
-				if(preventAutoPlay()) {
+				if (preventAutoPlay()) {
 					return false;
 				}
 				enteredCode += ch;
@@ -73,10 +78,12 @@ public class CodeEnter extends VirtualFolder {
 		});
 	}
 
+	@Override
 	public void discoverChildren(String str) {
 		discoverChildren();
 	}
 
+	@Override
 	public void discoverChildren() {
 		super.addChild(resource);
 		int charset = configuration.getCodeCharSet();
@@ -88,13 +95,14 @@ public class CodeEnter extends VirtualFolder {
 		}
 		if (charset == DIGITS || charset == BOTH) {
 			// then the digits
-			for(int i = 0; i < 10;i++) {
+			for (int i = 0; i < 10; i++) {
 				addCharVVA(String.valueOf(i));
 			}
 		}
 		super.addChild(new CodeAction(Messages.getString("TracesTab.3"), true) {
+			@Override
 			public boolean enable() {
-				if(preventAutoPlay()) {
+				if (preventAutoPlay()) {
 					return false;
 				}
 				setEnteredCode("");
@@ -104,6 +112,7 @@ public class CodeEnter extends VirtualFolder {
 		});
 	}
 
+	@Override
 	public void doRefreshChildren() {
 		doRefreshChildren(null);
 	}
@@ -117,23 +126,23 @@ public class CodeEnter extends VirtualFolder {
 	}
 
 	public boolean validCode(DLNAResource r) {
-		if (r != null  && r instanceof CodeAction) {
+		if (r != null && r instanceof CodeAction) {
 			// always ok
 			return true;
 		}
 		String realCode = PMS.get().codeDb().lookup(code);
-		LOGGER.debug("valid code "+commitTime);
-		if(!enteredCode.equalsIgnoreCase(realCode)) {
+		LOGGER.debug("valid code " + commitTime);
+		if (!enteredCode.equalsIgnoreCase(realCode)) {
 			// bad code
 			return false;
 		}
-		if(commitTime == 0) {
+		if (commitTime == 0) {
 			// 1st commit
 			commitTime = System.currentTimeMillis();
 			return true;
 		}
 		boolean res = (System.currentTimeMillis() - commitTime) < configuration.getCodeValidTmo();
-		if(!res) {
+		if (!res) {
 			// clear entered code
 			setEnteredCode("");
 			commitTime = 0;
@@ -143,7 +152,8 @@ public class CodeEnter extends VirtualFolder {
 		return res;
 	}
 
+	@Override
 	public String toString() {
-		return "CODE "+code;
+		return "CODE " + code;
 	}
 }
