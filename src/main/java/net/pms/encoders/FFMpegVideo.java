@@ -758,7 +758,7 @@ public class FFMpegVideo extends Player {
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
-			cmdList.add(String.valueOf((int) params.timeseek));
+			cmdList.add(String.valueOf(params.timeseek));
 		}
 
 		// Decoder threads
@@ -1150,7 +1150,7 @@ public class FFMpegVideo extends Player {
 			ffAudio.runInNewThread();
 		}
 
-		pw.runInNewThread();
+		pw.runInNewThread(dlna);
 		return pw;
 	}
 

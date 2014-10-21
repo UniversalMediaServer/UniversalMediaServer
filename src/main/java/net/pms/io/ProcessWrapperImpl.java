@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.pms.PMS;
+import net.pms.dlna.DLNAResource;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	private boolean keepStderr;
 	private static int processCounter = 0;
 	private boolean success;
+	private DLNAResource dlna;
 
 	@Override
 	public String toString() {
@@ -162,6 +164,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			// pb.redirectErrorStream(true);
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);
+			if (dlna!= null) {
+				PMS.servingMedia.add(dlna);
+			}
 
 			if (stderrConsumer == null) {
 				stderrConsumer = keepStderr
@@ -260,6 +265,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					}
 				}
 			}
+			PMS.servingMedia.remove(dlna);
 			PMS.get().currentProcesses.remove(process);
 		}
 	}
@@ -271,6 +277,11 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	 */
 	@Override
 	public void runInNewThread() {
+		this.start();
+	}
+
+	public void runInNewThread(DLNAResource dlna) {
+		this.dlna = dlna;
 		this.start();
 	}
 

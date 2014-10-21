@@ -62,7 +62,7 @@ public class RemotePlayHandler implements HttpHandler {
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer(), null);
 		if (res == null || res.isEmpty()) {
 			LOGGER.debug("Bad id in web if " + id);
 			throw new IOException("Bad Id");

@@ -185,7 +185,7 @@ public class VideoLanVideoStreaming extends Player {
 		} catch (InterruptedException e) {
 		}
 
-		pw.runInNewThread();
+		pw.runInNewThread(dlna);
 		return pw;
 	}
 

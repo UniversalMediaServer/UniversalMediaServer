@@ -74,6 +74,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
+	private InetAddress ip;
+	
+	public InetAddress getIp() {
+		return ip;
+	}
 
 	/**
 	 * The name displayed on the renderer. Cached the first time getDisplayName(RendererConfiguration) is called.
@@ -934,18 +939,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param start
 	 * @param count
 	 * @param renderer Renderer for which to do the actions.
+	 * @param ip the renderer IP address
 	 * @return List of DLNAResource items.
 	 * @throws IOException
 	 */
-	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean children, int start, int count, RendererConfiguration renderer) throws IOException {
-		return getDLNAResources(objectId, children, start, count, renderer, null);
+	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean children, int start, int count, RendererConfiguration renderer, InetAddress ip) throws IOException {
+		return getDLNAResources(objectId, children, start, count, renderer, null, ip);
 	}
 
-	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
+	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr, InetAddress ip) throws IOException {
 		ArrayList<DLNAResource> resources = new ArrayList<>();
 		DLNAResource dlna = search(objectId, count, renderer, searchStr);
 
 		if (dlna != null) {
+			dlna.ip = ip;
 			String systemName = dlna.getSystemName();
 			dlna.setDefaultRenderer(renderer);
 

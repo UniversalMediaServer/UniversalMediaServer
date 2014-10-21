@@ -53,6 +53,7 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.StatusTab;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
@@ -1472,4 +1473,6 @@ public class PMS {
 	public static boolean isReady() {
 		return get().ready;
 	}
+
+	public static ServingMediaList servingMedia = new ServingMediaList();
 }

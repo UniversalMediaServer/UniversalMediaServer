@@ -30,7 +30,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		RootFolder root = parent.getRoot(user, true, t);
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
-		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
+		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search, null);
 		if (StringUtils.isNotEmpty(search)) {
 			UMSUtils.postSearch(res, search);
 		}
