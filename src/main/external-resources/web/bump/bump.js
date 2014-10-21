@@ -16,6 +16,7 @@ var bump = (function() {
 	var selindex = -1;
 	var here = null;
 	var img = null;
+	var sliding = false;
 
 	function start(address, uri, title) {
 		if (! enabled) {
@@ -37,7 +38,11 @@ var bump = (function() {
 			.click(function(){bump.edited(1);})
 			.blur(function(){bump.edited(0);});
 		$('#brenderers').change(function(){bump.setRenderer();});
-		$('#bumpvol').attr('type','range').attr('max',100)
+		$('#bumpvol').attr('type','range').attr('max',100);
+		$('#bumpvol').keyup(function(){bump.sliding(false);})
+			.mouseup(function(){bump.sliding(false);})
+			.keydown(function(){bump.sliding(true);})
+			.mousedown(function(){bump.sliding(true);})
 			.change(function(){bump.setVol(this.value);})
 			.on('input',function(){bump.setVol(this.value);});
 		$('#bumppos').click(function(){bump.settings();});
@@ -124,7 +129,9 @@ var bump = (function() {
 		if (state.playback != last) {
 			setButtons();
 		}
-		$('#bumpvol').val(state.volume);
+		if (!sliding) {
+			$('#bumpvol').val(state.volume);
+		}
 		$('#bumpvol').attr('disabled', state.mute === 'true');
 		$('#bumppos').html(state.position+(state.duration == '0:00' ? "" : (' / '+state.duration)));
 		status();
@@ -231,6 +238,9 @@ var bump = (function() {
 		},
 		exit: function () {
 			exit();
+		},
+		sliding: function (bool) {
+			sliding = bool;
 		},
 	}
 }());
