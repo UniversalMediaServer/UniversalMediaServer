@@ -16,7 +16,6 @@ import net.pms.formats.*;
 import net.pms.io.OutputParams;
 import net.pms.remote.RemoteUtil;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,6 +186,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return defaultMime;
 	}
 
+	@Override
 	public int getAutoPlayTmo() {
 		return 0;
 	}
@@ -213,16 +213,19 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 					fflashCmds(cmdList, media);
 				} else {
 					String mime = getVideoMimeType();
-					if (mime.equals(RemoteUtil.MIME_OGG)) {
-						ffoggCmd(cmdList);
-					} else if (mime.equals(RemoteUtil.MIME_MP4)) {
-						ffmp4Cmd(cmdList);
-					} else if (mime.equals(RemoteUtil.MIME_WEBM)) {
-						if (isChromeTrick()) {
-							chromeCmd(cmdList);
-						} else {
-							// nothing here yet
-						}
+					switch (mime) {
+						case RemoteUtil.MIME_OGG:
+							ffoggCmd(cmdList);
+							break;
+						case RemoteUtil.MIME_MP4:
+							ffmp4Cmd(cmdList);
+							break;
+						case RemoteUtil.MIME_WEBM:
+							if (isChromeTrick()) {
+								chromeCmd(cmdList);
+							} else {
+								// nothing here yet
+							}	break;
 					}
 				}
 				if (isLowBitrate()) {
@@ -385,18 +388,22 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return "scale=" + getVideoWidth() + ":" + getVideoHeight();
 	}
 
+	@Override
 	public boolean isTranscodeToMPEGTSH264AC3() {
 		return true;
 	}
 
+	@Override
 	public boolean isTranscodeToMPEGTSH264AAC() {
 		return true;
 	}
 
+	@Override
 	public boolean nox264() {
 		return true;
 	}
 
+	@Override
 	public boolean addSubtitles() {
 		return true;
 	}
