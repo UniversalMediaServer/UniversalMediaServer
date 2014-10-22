@@ -40,13 +40,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		new PNG()
 	};
 
-	public static final String umsInfoScript = StringUtils.join(new String[]{
-		"<script>",
-		"if ((' '+document.cookie).indexOf(' UMSINFO=')==-1) {",
-			"var isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);",
-			"document.cookie='UMSINFO=platform='+navigator.platform+'&width='+screen.width+'&height='+screen.height+'&isTouchDevice='+isTouchDevice+';Path=/';",
-		"}",
-		"</script>"}, "\r\n");
 	private static final Matcher umsInfo = Pattern.compile("platform=(.+)&width=(.+)&height=(.+)&isTouchDevice=(.+)").matcher("");
 
 	protected static final int CHROME = 1;
