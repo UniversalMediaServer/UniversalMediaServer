@@ -177,7 +177,7 @@ public class UMSUtils {
 		}
 		w = img.getWidth();
 		h = img.getHeight();
-		if (StringUtils.isNotEmpty(r.getThumbSize())) {
+		if (StringUtils.isNotEmpty(ts)) {
 			// size limit thumbnail
 			w = getHW(ts.split("x"), 0);
 			h = getHW(ts.split("x"), 1);
