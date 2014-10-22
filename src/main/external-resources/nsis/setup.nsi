@@ -154,7 +154,7 @@ Function AdvancedSettings
 	${NSD_CreateText} 3% 30% 10% 12u $MaximumMemoryJava
 	Pop $Text
 
-	${NSD_CreateLabel} 0 50% 100% 20u "This allows you to take advantage of improved defaults. It deletes the UMS configuration directory, the UMS program directory and font caches."
+	${NSD_CreateLabel} 0 50% 100% 20u "This allows you to take advantage of improved defaults. It deletes the UMS configuration directory, the UMS program directory and font cache."
 	Pop $DescCleanInstall
 
 	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
