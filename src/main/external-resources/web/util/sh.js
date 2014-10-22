@@ -37,6 +37,7 @@ SyntaxHighlighter.brushes.debug_log = function() {
 		{ css: 'plain',   regex: /with class .+\"/g },
 		{ css: 'tags',    regex: /(INFO|DEBUG|WARN|TRACE) [^\[]+(\[(?!ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])?/g },
 		{ css: 'cmd',     regex: /(?:\[(ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])(.+)/g },
+		{ css: 'setting', regex: /Reading [^:]+: [^\(]+/g },
 	]);
 };
 SyntaxHighlighter.brushes.debug_log.prototype = new SyntaxHighlighter.Highlighter();
