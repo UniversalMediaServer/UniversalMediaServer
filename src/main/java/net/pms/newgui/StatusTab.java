@@ -91,7 +91,7 @@ public class StatusTab {
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, 63dlu, 3dlu, p, 3dlu, p, 15dlu, p, 9dlu, p"
+			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, 54dlu, 3dlu, p, 3dlu, p, 9dlu, p, 9dlu, p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -158,7 +158,7 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
-		rsp.setPreferredSize(new Dimension(0, 160));
+		rsp.setPreferredSize(new Dimension(0, 187));
 
 		builder.add(rsp, cc.xyw(1, 19, 5));
 
