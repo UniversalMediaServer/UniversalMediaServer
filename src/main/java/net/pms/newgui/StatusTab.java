@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.util.FormLayoutUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +49,8 @@ public class StatusTab {
 	public static class RendererItem {
 		public ImagePanel icon;
 		public JLabel label;
+		public JLabel ip;
+		public JLabel playing;
 		public JFrame frame;
 		public RendererPanel panel;
 	}
@@ -91,7 +95,7 @@ public class StatusTab {
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, 63dlu, 3dlu, p, 3dlu, p, 15dlu, p, 9dlu, p"
+			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, 63dlu, 3dlu, p, 3dlu, p, 15dlu, p"//, 9dlu, p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -135,10 +139,10 @@ public class StatusTab {
 		jpb.setStringPainted(true);
 		jpb.setString(Messages.getString("StatusTab.5"));
 
-		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
-		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(1, 15, 2), colSpec, orientation));
+		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(1, 13, 2), colSpec, orientation));
 
-		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 17, 5), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 15, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -148,7 +152,7 @@ public class StatusTab {
 //		);
 		layoutRenderer = new FormLayout(
 			"pref",
-			"pref, 3dlu, pref"
+			"pref, 3dlu, pref, 2dlu,pref, 2dlu,pref"
 		);
 		rendererBuilder = new PanelBuilder(layoutRenderer);
 		rendererBuilder.opaque(true);
@@ -158,9 +162,9 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
-		rsp.setPreferredSize(new Dimension(0, 160));
+		rsp.setPreferredSize(new Dimension(0, 200));
 
-		builder.add(rsp, cc.xyw(1, 19, 5));
+		builder.add(rsp, cc.xyw(1, 17, 5));
 
 		JPanel panel = builder.getPanel();
 
@@ -217,8 +221,13 @@ public class StatusTab {
 		rendererBuilder.add(r.icon, cc.xy(i + 2, 1));
 		r.label = new JLabel(renderer.getRendererName());
 		rendererBuilder.add(r.label, cc.xy(i + 2, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
+		r.ip = new JLabel("");
+		rendererBuilder.add(r.ip, cc.xy(i + 2, 5));
+		r.playing = new JLabel("");
+		rendererBuilder.add(r.playing, cc.xy(i + 2, 7));
 
 		renderer.setGuiComponents(r);
+		updateIP(renderer);
 		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
 
@@ -255,12 +264,20 @@ public class StatusTab {
 			public void run() {
 				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
 				renderer.gui.label.setText(renderer.getRendererName());
+				updateIP(renderer);
 				// Update the popup panel if it's been opened
 				if (renderer.gui.panel != null) {
 					renderer.gui.panel.update();
 				}
 			}
 		});
+	}
+
+	private static void updateIP(RendererConfiguration renderer) {
+		InetAddress ip = renderer.getAddress();
+		if(ip != null) {
+			renderer.gui.ip.setText(ip.getHostAddress());
+		}
 	}
 
 	public static ImagePanel addRendererIcon(String icon) {

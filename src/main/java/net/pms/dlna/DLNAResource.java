@@ -2227,6 +2227,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
 							String rendererName = "unknown renderer";
 							try {
+								renderer.gui.playing.setText(getDisplayName());
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
 							if (!quietPlay()) {
@@ -2302,6 +2303,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
 									String rendererName = "unknown renderer";
 									try {
+										renderer.gui.playing.setText("");
 										rendererName = renderer.getRendererName();
 									} catch (NullPointerException e) { }
 									if (!quietPlay()) {
