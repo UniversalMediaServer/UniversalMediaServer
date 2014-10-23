@@ -333,11 +333,10 @@ public class RequestV2 extends HTTPResource {
 					}
 				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
-					RendererConfiguration orig = dlna.getDefaultRenderer();
-					boolean rendererChanged = !mediaRenderer.equals(orig);
-					if (rendererChanged) {
-						// change render and update player details
-						dlna.updateRender(mediaRenderer);
+					DLNAResource.Rendering origRendering = null;
+					if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
+						// Adjust rendering details for this renderer
+						origRendering = dlna.updateRendering(mediaRenderer);
 					}
 					// If range has not been initialized yet and the DLNAResource has its
 					// own start and end defined, initialize range with those values before
@@ -476,9 +475,9 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 					}
-					if (rendererChanged) {
-						// put the orig render back
-						dlna.updateRender(orig);
+					if (origRendering != null) {
+						// Restore original rendering details
+						dlna.updateRendering(origRendering);
 					}
 				}
 			}

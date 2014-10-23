@@ -3624,38 +3624,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
-	public void updateRender(RendererConfiguration r) {
-		Player pl = null;
-		String name = getName();
-
-		for (Player p : PlayerFactory.getPlayers()) {
-			String end = "[" + p.id() + "]";
-
-			if (name.endsWith(end)) {
-				//nametruncate = name.lastIndexOf(end);
-				pl = p;
-				break;
-			} else if (getParent() != null && getParent().getName().endsWith(end)) {
-				//getParent().nametruncate = getParent().getName().lastIndexOf(end);
-				pl = p;
-				break;
-			}
+	public static class Rendering {
+		RendererConfiguration r;
+		Player p;
+		DLNAMediaSubtitle s;
+		Rendering(DLNAResource d) {
+			r = d.getDefaultRenderer();
+			p = d.getPlayer();
+			s = d.getMediaSubtitle();
 		}
+	}
 
-		if (this.format.isCompatible(this.media, r)) {
-			// transcode the stuff
-			LOGGER.debug("updating renderer to '{}' from '{}'", r, getDefaultRenderer());
-			setDefaultRenderer(r);
-			setPlayer(null);
-			return;
-		}
+	public Rendering updateRendering(RendererConfiguration r) {
+		Rendering rendering = new Rendering(this);
+		Player p = resolvePlayer(r);
+		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", r, p, rendering.r, rendering.p);
+		setDefaultRenderer(r);
+		setPlayer(p);
+		return rendering;
+	}
 
-		if (pl == null) {
-			LOGGER.debug("updating renderer to '{}' from '{}'", r, getDefaultRenderer());
-			setDefaultRenderer(r);
-			pl = PlayerFactory.getPlayer(this);
-		}
-		setPlayer(pl);
+	public void updateRendering(Rendering rendering) {
+		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", rendering.r, rendering.p, getDefaultRenderer(), getPlayer());
+		setDefaultRenderer(rendering.r);
+		setPlayer(rendering.p);
+		media_subtitle = rendering.s;
 	}
 
 	public DLNAResource isCoded() {
