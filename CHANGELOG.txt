@@ -1,4 +1,9 @@
-5.0.0-a1 - 2014-10-??
+5.0.0-a2 - 2014-10-??
+	Changes unique to 5.0.0-a2:
+		General:
+			
+
+5.0.0-a1 - 2014-10-23
 
 	Changes unique to 5.0.0-a1:
 		General:
