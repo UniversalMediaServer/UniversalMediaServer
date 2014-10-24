@@ -277,7 +277,7 @@ public class StatusTab {
 	private static void updateIP(RendererConfiguration renderer) {
 		InetAddress ip = renderer.getAddress();
 		if(ip != null) {
-			renderer.gui.ip.setText(ip.getHostAddress());
+			renderer.gui.ip.setText("<html><font color=gray>" + ip.getHostAddress() + "</font></html>");
 		}
 	}
 
