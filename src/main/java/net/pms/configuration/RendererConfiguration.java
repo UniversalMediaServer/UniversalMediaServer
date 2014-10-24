@@ -2118,4 +2118,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		return bitrates;
 	}
+
+	DLNAResource playingRes;
+
+	public DLNAResource getPlayingRes() {
+		return playingRes;
+	}
+
+	public void setPlayingRes(DLNAResource dlna) {
+		playingRes = dlna;
+	}
 }

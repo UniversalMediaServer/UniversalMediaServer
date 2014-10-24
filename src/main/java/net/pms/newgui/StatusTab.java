@@ -31,15 +31,21 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.text.DateFormatter;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
 import net.pms.util.FormLayoutUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +57,10 @@ public class StatusTab {
 		public JLabel label;
 		public JLabel ip;
 		public JLabel playing;
+		public JLabel time;
 		public JFrame frame;
 		public RendererPanel panel;
+		public Thread thread;
 	}
 
 	private PanelBuilder rendererBuilder;
@@ -153,7 +161,7 @@ public class StatusTab {
 //		);
 		layoutRenderer = new FormLayout(
 			"pref",
-			"pref, 3dlu, pref, 2dlu,pref, 2dlu,pref"
+			"pref, 3dlu, pref, 2dlu,pref, 2dlu,pref, 2dlu, pref"
 		);
 		rendererBuilder = new PanelBuilder(layoutRenderer);
 		rendererBuilder.opaque(true);
@@ -163,7 +171,7 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
-		rsp.setPreferredSize(new Dimension(0, 200));
+		rsp.setPreferredSize(new Dimension(0, 220));
 
 		builder.add(rsp, cc.xyw(1, 17, 5));
 
@@ -226,6 +234,8 @@ public class StatusTab {
 		rendererBuilder.add(r.ip, cc.xy(i + 2, 5));
 		r.playing = new JLabel("");
 		rendererBuilder.add(r.playing, cc.xy(i + 2, 7));
+		r.time = new JLabel("");
+		rendererBuilder.add(r.time, cc.xy(i + 2, 9));
 
 		renderer.setGuiComponents(r);
 		updateIP(renderer);
@@ -274,10 +284,47 @@ public class StatusTab {
 		});
 	}
 
+	private static void clearRenderGui(RendererConfiguration r) {
+		r.gui.ip.setText("");
+		r.gui.playing.setText("");
+		r.gui.time.setText("");
+	}
+
+	private static Thread launchThread(final RendererConfiguration render) {
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				while(render.getPlayingRes() != null) {
+					updateRenderer(render);
+					try {
+						Thread.sleep(5000);
+					} catch (Exception e) {
+					}
+				}
+				render.gui.thread = null;
+			}
+		};
+		return new Thread(r);
+	}
+
 	private static void updateIP(RendererConfiguration renderer) {
+		clearRenderGui(renderer);
 		InetAddress ip = renderer.getAddress();
 		if(ip != null) {
 			renderer.gui.ip.setText("<html><font color=gray>" + ip.getHostAddress() + "</font></html>");
+		}
+		DLNAResource res = renderer.getPlayingRes();
+		if(res != null) {
+
+			String title = res.getDisplayName();
+			long elapsed = System.currentTimeMillis() - res.getStartTime();
+			renderer.gui.time.setText(DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss"));
+			renderer.gui.playing.setText(title.substring(0, title.length() < 25 ? title.length() : 25));
+			if(renderer.gui.thread == null) {
+				renderer.gui.thread = launchThread(renderer);
+				renderer.gui.thread.start();
+			}
+
 		}
 	}
 
