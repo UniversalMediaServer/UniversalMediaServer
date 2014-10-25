@@ -1,6 +1,9 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -19,7 +22,9 @@ import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.StatusTab;
+import net.pms.util.BasicPlayer;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -31,7 +36,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RendererConfiguration extends UPNPHelper.Renderer {
+import javax.swing.*;
+
+public class RendererConfiguration extends UPNPHelper.Renderer implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
 	protected static ArrayList<String> allRenderersNames = new ArrayList<>();
@@ -2119,7 +2126,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return bitrates;
 	}
 
-	DLNAResource playingRes;
+	private DLNAResource playingRes;
 
 	public DLNAResource getPlayingRes() {
 		return playingRes;
@@ -2127,5 +2134,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public void setPlayingRes(DLNAResource dlna) {
 		playingRes = dlna;
+	}
+
+	@Override
+	public void actionPerformed(final ActionEvent e) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
+				if (state.playback == BasicPlayer.STOPPED) {
+					return;
+				}
+				if (gui != null) {
+					gui.time.setText(UMSUtils.playedDurationStr(state.position, state.duration));
+				}
+			}
+		});
 	}
 }

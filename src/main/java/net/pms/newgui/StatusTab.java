@@ -43,7 +43,10 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
@@ -295,7 +298,14 @@ public class StatusTab {
 			@Override
 			public void run() {
 				while(render.getPlayingRes() != null) {
-					updateRenderer(render);
+					DLNAResource res = render.getPlayingRes();
+					long elapsed = System.currentTimeMillis() - res.getStartTime();
+					String dur = "????";
+					if (res.getMedia() != null) {
+						dur = StringUtil.shortTime(res.getMedia().getDurationString(), 4);
+					}
+					String estr = StringUtil.shortTime(DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss"), 2);
+					render.gui.time.setText(UMSUtils.playedDurationStr(estr, dur));
 					try {
 						Thread.sleep(5000);
 					} catch (Exception e) {
@@ -315,14 +325,16 @@ public class StatusTab {
 		}
 		DLNAResource res = renderer.getPlayingRes();
 		if(res != null) {
-
 			String title = res.getDisplayName();
-			long elapsed = System.currentTimeMillis() - res.getStartTime();
-			renderer.gui.time.setText(DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss"));
 			renderer.gui.playing.setText(title.substring(0, title.length() < 25 ? title.length() : 25));
-			if(renderer.gui.thread == null) {
-				renderer.gui.thread = launchThread(renderer);
-				renderer.gui.thread.start();
+			if(renderer.isUpnpControllable()) {
+				renderer.getPlayer().connect(renderer);
+			}
+			else {
+				if(renderer.gui.thread == null) {
+					renderer.gui.thread = launchThread(renderer);
+					renderer.gui.thread.start();
+				}
 			}
 
 		}
