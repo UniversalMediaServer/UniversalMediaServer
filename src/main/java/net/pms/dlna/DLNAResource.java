@@ -2235,7 +2235,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @see StartStopListener
 	 */
-	public void startPlaying(final String rendererId) {
+	public void startPlaying(final String rendererId, final RendererConfiguration render) {
 		final String requestId = getRequestId(rendererId);
 		synchronized (requestIdToRefcount) {
 			Integer temp = requestIdToRefcount.get(requestId);
@@ -2252,7 +2252,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						InetAddress rendererIp;
 						try {
 							rendererIp = InetAddress.getByName(rendererId);
-							RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							RendererConfiguration renderer;
+							if (render == null) {
+								renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							} else {
+								renderer = render;
+							}
 							String rendererName = "unknown renderer";
 							try {
 								renderer.setPlayingRes(self);
@@ -2299,7 +2304,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @see StartStopListener
 	 */
-	public void stopPlaying(final String rendererId) {
+	public void stopPlaying(final String rendererId, final RendererConfiguration render) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
 		Runnable defer = new Runnable() {
@@ -2329,7 +2334,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								InetAddress rendererIp;
 								try {
 									rendererIp = InetAddress.getByName(rendererId);
-									RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+									RendererConfiguration renderer;
+									if (render == null) {
+										renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+									} else {
+										renderer = render;
+									}
 									String rendererName = "unknown renderer";
 									try {
 										renderer.setPlayingRes(null);

@@ -178,7 +178,6 @@ public class StatusTab {
 		rsp.setPreferredSize(new Dimension(0, 240));
 		rsp.getHorizontalScrollBar().setLocation(0,230);
 
-
 		builder.add(rsp, cc.xyw(1, 13, 5));
 
 		JPanel panel = builder.getPanel();
