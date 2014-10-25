@@ -80,7 +80,6 @@ public class StatusTab {
 	private long rc = 0;
 	private long peak;
 	private DecimalFormat formatter = new DecimalFormat("#,###");
-	private JScrollPane renders;
 
 	StatusTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -174,9 +173,11 @@ public class StatusTab {
 			rendererBuilder.getPanel(),
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+//			//	JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
-		rsp.setPreferredSize(new Dimension(0, 220));
-		renders = rsp;
+		rsp.setPreferredSize(new Dimension(0, 240));
+		rsp.getHorizontalScrollBar().setLocation(0,230);
+
 
 		builder.add(rsp, cc.xyw(1, 13, 5));
 
@@ -187,7 +188,8 @@ public class StatusTab {
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+			//JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
