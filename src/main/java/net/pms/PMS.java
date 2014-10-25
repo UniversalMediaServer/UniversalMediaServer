@@ -79,6 +79,8 @@ public class PMS {
 
 	private boolean ready = false;
 
+	private static FileWatcher fileWatcher;
+
 	private GlobalIdRepo globalRepo;
 
 	public static final String AVS_SEPARATOR = "\1";
@@ -516,6 +518,8 @@ public class PMS {
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
+
+		fileWatcher = new FileWatcher();
 
 		globalRepo = new GlobalIdRepo();
 
@@ -1550,5 +1554,9 @@ public class PMS {
 
 	public boolean masterCodeValid() {
 		return (masterCode != null && masterCode.validCode(null));
+	}
+
+	public static FileWatcher getFileWatcher() {
+		return fileWatcher;
 	}
 }

@@ -23,6 +23,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
+import net.pms.util.FileWatcher;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.Configuration;
@@ -787,7 +788,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 			String re = searchMap.toRegex();
 			sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
 
+			boolean addWatch = file != f;
 			file = f;
+			if (addWatch) {
+				PMS.getFileWatcher().add(new FileWatcher.Watch(getFile().getPath(), reloader, this));
+			}
 			return true;
 		}
 		return false;
@@ -876,6 +881,22 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 
 		if (isMediaParserV2()) {
 			formatConfiguration = new FormatConfiguration(configuration.getList(SUPPORTED));
+		}
+	}
+
+	public void reset() {
+		File f = getFile();
+		try {
+			LOGGER.info("Reloading renderer configuration: {}", f);
+			loaded = false;
+			init(f);
+			// update gui
+			for (RendererConfiguration d : DeviceConfiguration.getInheritors(this)) {
+				PMS.get().updateRenderer(d);
+			}
+		} catch (Exception e) {
+			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
+			e.printStackTrace();
 		}
 	}
 
@@ -2151,4 +2172,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 			}
 		});
 	}
+
+	/**
+	 * Automatic reloading
+	 */
+	public static FileWatcher.Listener reloader = new FileWatcher.Listener() {
+		@Override
+		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+			RendererConfiguration r = (RendererConfiguration) watch.getItem();
+			if (r != null && r.getFile().equals(new File(filename))) {
+				r.reset();
+			}
+		}
+	};
 }
