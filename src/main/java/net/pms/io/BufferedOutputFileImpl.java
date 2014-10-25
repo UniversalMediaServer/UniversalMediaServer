@@ -818,7 +818,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 						// Go upwards
 						while (currentBufferPercentage > oldBufferPercentage) {
 							oldBufferPercentage += 1;
-							PMS.get().getFrame().setValue(r, oldBufferPercentage, formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
+							PMS.get().getFrame().setValue(r, oldBufferPercentage, bufferInMBs);
 							try {
 								Thread.sleep(20);
 							} catch (InterruptedException e) {
@@ -828,7 +828,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 						// Go downwards
 						while (currentBufferPercentage < oldBufferPercentage) {
 							oldBufferPercentage -= 1;
-							PMS.get().getFrame().setValue(r, oldBufferPercentage, formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
+							PMS.get().getFrame().setValue(r, oldBufferPercentage, bufferInMBs);
 							try {
 								Thread.sleep(20);
 							} catch (InterruptedException e) {
@@ -904,7 +904,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			// Make the buffer progress bar decrease gradually
 			while (currentBufferPercentage < oldBufferPercentage) {
 				oldBufferPercentage -= 1;
-				PMS.get().getFrame().setValue(attachedRender, oldBufferPercentage, Messages.getString("StatusTab.5"));
+				PMS.get().getFrame().setValue(attachedRender, oldBufferPercentage, -1);
 				try {
 					Thread.sleep(20);
 				} catch (InterruptedException e) {

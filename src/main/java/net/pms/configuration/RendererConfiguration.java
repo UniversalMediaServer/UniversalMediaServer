@@ -753,6 +753,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 
 		renderCache = new HashMap<>();
 		player = null;
+		buffer = 0;
 
 		init(f);
 	}
@@ -2185,4 +2186,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 			}
 		}
 	};
+
+	private long buffer;
+
+	public void setBuffer(long b) {
+		buffer = b;
+	}
+
+	public long getBuffer() {
+		return buffer;
+	}
 }

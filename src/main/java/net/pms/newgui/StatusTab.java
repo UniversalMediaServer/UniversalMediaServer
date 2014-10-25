@@ -32,6 +32,7 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import javax.imageio.ImageIO;
@@ -87,8 +88,25 @@ public class StatusTab {
 		rendererCount = 0;
 	}
 
-	public JProgressBar getJpb(RendererConfiguration r) {
-		return (r == null ? jpb : r.gui.jpb);
+	public JProgressBar getJpb() {
+		return jpb;
+	}
+
+	public void updateTotalBuffer() {
+		long total = 0;
+	   	for (RendererConfiguration r : PMS.get().getRenders()) {
+			total += r.getBuffer();
+	   	}
+		if(total > 0) {
+			int percent = (int) (100 * total / configuration.getMaxMemoryBufferSize());
+			String msg = formatter.format(total) + " " + Messages.getString("StatusTab.12");
+			jpb.setValue(percent);
+			jpb.setString(msg);
+		}
+		else {
+			jpb.setValue(0);
+			jpb.setString(Messages.getString("StatusTab.5"));
+		}
 	}
 
 	public JLabel getJl() {
@@ -297,9 +315,9 @@ public class StatusTab {
 	}
 
 	private static void clearRenderGui(RendererConfiguration r) {
-		r.gui.ip.setText("");
-		r.gui.playing.setText("");
-		r.gui.time.setText("");
+		//r.gui.ip.setText("");
+		r.gui.playing.setText("----");
+		r.gui.time.setText("00:00/00:00");
 	}
 
 	private static Thread launchThread(final RendererConfiguration render) {
