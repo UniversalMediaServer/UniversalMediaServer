@@ -62,6 +62,7 @@ public class StatusTab {
 		public JLabel playing;
 		public JLabel time;
 		public JFrame frame;
+		public JProgressBar jpb;
 		public RendererPanel panel;
 		public Thread thread;
 	}
@@ -86,8 +87,8 @@ public class StatusTab {
 		rendererCount = 0;
 	}
 
-	public JProgressBar getJpb() {
-		return jpb;
+	public JProgressBar getJpb(RendererConfiguration r) {
+		return (r == null ? jpb : r.gui.jpb);
 	}
 
 	public JLabel getJl() {
@@ -164,7 +165,7 @@ public class StatusTab {
 //		);
 		layoutRenderer = new FormLayout(
 			"pref",
-			"pref, 3dlu, pref, 2dlu,pref, 2dlu,pref, 2dlu, pref"
+			"pref, 3dlu, pref, 2dlu,pref, 2dlu,pref, 2dlu, pref, 2dlu, pref"
 		);
 		rendererBuilder = new PanelBuilder(layoutRenderer);
 		rendererBuilder.opaque(true);
@@ -175,8 +176,8 @@ public class StatusTab {
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 //			//	JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
-		rsp.setPreferredSize(new Dimension(0, 240));
-		rsp.getHorizontalScrollBar().setLocation(0,230);
+		rsp.setPreferredSize(new Dimension(0, 260));
+		rsp.getHorizontalScrollBar().setLocation(0,250);
 
 		builder.add(rsp, cc.xyw(1, 13, 5));
 
@@ -242,6 +243,11 @@ public class StatusTab {
 		rendererBuilder.add(r.playing, cc.xy(i + 2, 7));
 		r.time = new JLabel("");
 		rendererBuilder.add(r.time, cc.xy(i + 2, 9));
+		r.jpb = new JProgressBar(0, 45);
+		r.jpb.setStringPainted(true);
+		r.jpb.setForeground(new Color(75, 140, 181));
+		r.jpb.setString(Messages.getString("StatusTab.5"));
+		rendererBuilder.add(r.jpb, cc.xy(i + 2, 11));
 
 		renderer.setGuiComponents(r);
 		updateIP(renderer);

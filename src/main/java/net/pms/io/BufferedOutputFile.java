@@ -18,6 +18,8 @@
  */
 package net.pms.io;
 
+import net.pms.configuration.RendererConfiguration;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -39,7 +41,7 @@ public interface BufferedOutputFile {
 
 	public abstract void write(int b) throws IOException;
 
-	public abstract void attachThread(ProcessWrapper thread);
+	public abstract void attachThread(ProcessWrapper thread, RendererConfiguration r);
 
 	public abstract void reset();
 

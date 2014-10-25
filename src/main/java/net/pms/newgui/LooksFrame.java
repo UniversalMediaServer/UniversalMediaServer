@@ -492,9 +492,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setValue(int v, String msg) {
-		st.getJpb().setValue(v);
-		st.getJpb().setString(msg);
+	public void setValue(RendererConfiguration r, int v, String msg) {
+		st.getJpb(r).setValue(v);
+		st.getJpb(r).setString(msg);
+		if (r != null) {
+			st.getJpb(null).setValue(v);
+			st.getJpb(null).setString(msg);
+		}
 	}
 
 	/**

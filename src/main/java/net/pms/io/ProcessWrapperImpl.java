@@ -187,7 +187,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					stdoutConsumer = new OutputBufferConsumer(is, params);
 					bo = stdoutConsumer.getBuffer();
 				}
-				bo.attachThread(this);
+				bo.attachThread(this, params.mediaRenderer);
 				new OutputTextLogger(process.getInputStream(), this).start();
 			} else if (params.log) {
 				stdoutConsumer = keepStdout
@@ -196,7 +196,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			} else {
 				stdoutConsumer = new OutputBufferConsumer(process.getInputStream(), params);
 				bo = stdoutConsumer.getBuffer();
-				bo.attachThread(this);
+				bo.attachThread(this, params.mediaRenderer);
 			}
 
 			if (stdoutConsumer != null) {

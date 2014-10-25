@@ -30,6 +30,8 @@ import java.util.TimerTask;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.network.UPNPControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +87,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private double timeend;
 	private long packetpos = 0;
 	private int currentBufferPercentage = 0;
+	private RendererConfiguration attachedRender;
 
 	/**
 	 * Try to increase the size of a memory buffer, while retaining its
@@ -777,17 +780,18 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	}
 
 	@Override
-	public void attachThread(ProcessWrapper thread) {
+	public void attachThread(ProcessWrapper thread, RendererConfiguration r) {
 		if (attachedThread != null) {
 			throw new RuntimeException("BufferedOutputFile is already attached to a Thread: " + attachedThread);
 		}
 
 		LOGGER.debug("Attaching thread: " + thread);
 		attachedThread = thread;
-		startTimer();
+		attachedRender = r;
+		startTimer(r);
 	}
 
-	private void startTimer() {
+	private void startTimer(final RendererConfiguration r) {
 		if (!hidebuffer && maxMemorySize > (15 * 1048576)) {
 			timer = new Timer(attachedThread + "-Timer");
 			timer.schedule(new TimerTask() {
@@ -814,7 +818,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 						// Go upwards
 						while (currentBufferPercentage > oldBufferPercentage) {
 							oldBufferPercentage += 1;
-							PMS.get().getFrame().setValue(oldBufferPercentage, formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
+							PMS.get().getFrame().setValue(r, oldBufferPercentage, formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
 							try {
 								Thread.sleep(20);
 							} catch (InterruptedException e) {
@@ -824,7 +828,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 						// Go downwards
 						while (currentBufferPercentage < oldBufferPercentage) {
 							oldBufferPercentage -= 1;
-							PMS.get().getFrame().setValue(oldBufferPercentage, formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
+							PMS.get().getFrame().setValue(r, oldBufferPercentage, formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
 							try {
 								Thread.sleep(20);
 							} catch (InterruptedException e) {
@@ -900,7 +904,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			// Make the buffer progress bar decrease gradually
 			while (currentBufferPercentage < oldBufferPercentage) {
 				oldBufferPercentage -= 1;
-				PMS.get().getFrame().setValue(oldBufferPercentage, Messages.getString("StatusTab.5"));
+				PMS.get().getFrame().setValue(attachedRender, oldBufferPercentage, Messages.getString("StatusTab.5"));
 				try {
 					Thread.sleep(20);
 				} catch (InterruptedException e) {

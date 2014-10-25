@@ -37,7 +37,7 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
-	public void setValue(int v, String msg) {
+	public void setValue(RendererConfiguration r, int v, String msg) {
 	}
 
 	@Override
