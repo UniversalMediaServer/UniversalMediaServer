@@ -80,6 +80,7 @@ public class StatusTab {
 	private long rc = 0;
 	private long peak;
 	private DecimalFormat formatter = new DecimalFormat("#,###");
+	private JScrollPane renders;
 
 	StatusTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -106,7 +107,7 @@ public class StatusTab {
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, 63dlu, 3dlu, p, 3dlu, p, 15dlu, p"//, 9dlu, p"
+			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 15dlu, p,15dlu, p,15dlu,p,p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -119,42 +120,42 @@ public class StatusTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		jl = new JLabel(Messages.getString("StatusTab.3"));
-		builder.add(jl, FormLayoutUtil.flip(cc.xyw(1, 3, 2, "center, top"), colSpec, orientation));
+		builder.add(jl, FormLayoutUtil.flip(cc.xy(1, 3,  "center, top"), colSpec, orientation));
 		jl.setFont(new Font("Dialog", 1, 18));
 		jl.setForeground(new Color(68, 68, 68));
 
 		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
-		builder.add(imagePanel, FormLayoutUtil.flip(cc.xywh(1, 5, 2, 8, "center, fill"), colSpec, orientation));
+		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
 		JSeparator x = new JSeparator(SwingConstants.VERTICAL);
 		x.setPreferredSize(new Dimension(3, 215));
-		builder.add(x, FormLayoutUtil.flip(cc.xywh(3, 4, 1, 12, "center, top"), colSpec, orientation));
+		builder.add(x, FormLayoutUtil.flip(cc.xywh(3, 3, 1, 10, "center, top"), colSpec, orientation));
 
 		currentBitrateLabel = new JLabel(Messages.getString("StatusTab.8") + " (" + Messages.getString("StatusTab.11") + ")");
-		builder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xyw(4, 5, 2, "left, top"), colSpec, orientation));
+		builder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xyw(4, 3, 2, "left, top"), colSpec, orientation));
 
 		currentBitrate = new JLabel("0");
 		currentBitrate.setFont(new Font("Dialog", 1, 50));
 		currentBitrate.setForeground(new Color(68, 68, 68));
-		builder.add(currentBitrate, FormLayoutUtil.flip(cc.xyw(4, 7, 2, "left, top"), colSpec, orientation));
+		builder.add(currentBitrate, FormLayoutUtil.flip(cc.xyw(4, 5, 2, "left, top"), colSpec, orientation));
 
 		peakBitrateLabel = new JLabel(Messages.getString("StatusTab.10") + " (" + Messages.getString("StatusTab.11") + ")");
-		builder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xyw(4, 9, 2, "left, top"), colSpec, orientation));
+		builder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xyw(4, 7, 2, "left, top"), colSpec, orientation));
 
 		peakBitrate = new JLabel("0");
 		peakBitrate.setFont(new Font("Dialog", 1, 50));
 		peakBitrate.setForeground(new Color(68, 68, 68));
-		builder.add(peakBitrate, FormLayoutUtil.flip(cc.xyw(4, 11, 2, "left, top"), colSpec, orientation));
+		builder.add(peakBitrate, FormLayoutUtil.flip(cc.xyw(4, 9, 2, "left, top"), colSpec, orientation));
 
 		jpb = new JProgressBar(0, 100);
 		jpb.setStringPainted(true);
 		jpb.setForeground(new Color(75, 140, 181));
 		jpb.setString(Messages.getString("StatusTab.5"));
 
-		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
-		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(1, 13, 2), colSpec, orientation));
+		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
 
-		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 15, 5), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 11, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -175,8 +176,9 @@ public class StatusTab {
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
 		rsp.setPreferredSize(new Dimension(0, 220));
+		renders = rsp;
 
-		builder.add(rsp, cc.xyw(1, 17, 5));
+		builder.add(rsp, cc.xyw(1, 13, 5));
 
 		JPanel panel = builder.getPanel();
 
