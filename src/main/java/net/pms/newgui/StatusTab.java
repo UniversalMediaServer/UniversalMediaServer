@@ -106,6 +106,7 @@ public class StatusTab {
 		else {
 			jpb.setValue(0);
 			jpb.setString(Messages.getString("StatusTab.5"));
+			currentBitrate.setText("0");
 		}
 	}
 
