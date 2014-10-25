@@ -41,7 +41,7 @@ public interface BufferedOutputFile {
 
 	public abstract void write(int b) throws IOException;
 
-	public abstract void attachThread(ProcessWrapper thread, RendererConfiguration r);
+	public abstract void attachThread(ProcessWrapper thread);
 
 	public abstract void reset();
 

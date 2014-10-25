@@ -26,7 +26,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
@@ -60,7 +59,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	protected static final Dimension PREFERRED_SIZE = new Dimension(1000, 750);
 	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
 	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
-	private DecimalFormat formatter = new DecimalFormat("#,###");
 
 	/**
 	 * List of context sensitive help pages URLs. These URLs should be
@@ -494,22 +492,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setValue(RendererConfiguration r, int v, long bufferInMBs) {
-		String msg = formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12");
-		if (bufferInMBs < 0) {
-			msg = Messages.getString("StatusTab.5");
-			bufferInMBs = 0;
-		}
-		if (r != null) {
-			r.gui.jpb.setValue(v);
-			r.gui.jpb.setString(msg);
-			r.setBuffer(bufferInMBs);
-			st.updateTotalBuffer();
-		}
-		else {
-			st.getJpb().setValue(v);
-			st.getJpb().setString(msg);
-		}
+	public void updateBuffer() {
+		st.updateTotalBuffer();
 	}
 
 	/**

@@ -10,19 +10,19 @@ public class StartStopListenerDelegate {
 	private DLNAResource dlna;
 	private boolean started = false;
 	private boolean stopped = false;
-	private RendererConfiguration render;
+	private RendererConfiguration renderer;
 
 	public StartStopListenerDelegate(String rendererId) {
 		this.rendererId = rendererId;
-		render = null;
+		renderer = null;
 	}
 
-	public void setRender(RendererConfiguration r) {
-		render = r;
+	public void setRenderer(RendererConfiguration r) {
+		renderer = r;
 	}
 
-	public RendererConfiguration getRender() {
-		return render;
+	public RendererConfiguration getRenderer() {
+		return renderer;
 	}
 
 	// technically, these don't need to be synchronized as there should be
@@ -33,14 +33,14 @@ public class StartStopListenerDelegate {
 		Format ext = dlna.getFormat();
 		// only trigger the start/stop events for audio and video
 		if (!started && ext != null && (ext.isVideo() || ext.isAudio())) {
-			dlna.startPlaying(rendererId, render);
+			dlna.startPlaying(rendererId, renderer);
 			started = true;
 		}
 	}
 
 	public synchronized void stop() {
 		if (started && !stopped) {
-			dlna.stopPlaying(rendererId, render);
+			dlna.stopPlaying(rendererId, renderer);
 			stopped = true;
 		}
 	}
