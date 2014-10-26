@@ -2261,7 +2261,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							String rendererName = "unknown renderer";
 							try {
 								renderer.setPlayingRes(self);
-								PMS.get().getFrame().updateRenderer(renderer);
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
 							if (!quietPlay()) {
@@ -2343,7 +2342,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									String rendererName = "unknown renderer";
 									try {
 										renderer.setPlayingRes(null);
-										PMS.get().getFrame().updateRenderer(renderer);
 										rendererName = renderer.getRendererName();
 									} catch (NullPointerException e) { }
 									if (!quietPlay()) {
@@ -3636,31 +3634,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
-	public static class Rendering {
-		RendererConfiguration r;
-		Player p;
-		DLNAMediaSubtitle s;
-		Rendering(DLNAResource d) {
-			r = d.getDefaultRenderer();
-			p = d.getPlayer();
-			s = d.getMediaSubtitle();
-		}
-	}
-
-	public Rendering updateRendering(RendererConfiguration r) {
-		Rendering rendering = new Rendering(this);
-		Player p = resolvePlayer(r);
-		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", r, p, rendering.r, rendering.p);
+	public void updateRendering(RendererConfiguration r) {
+		RendererConfiguration r0 = getDefaultRenderer();
+		Player p0 = getPlayer();
 		setDefaultRenderer(r);
-		setPlayer(p);
-		return rendering;
-	}
-
-	public void updateRendering(Rendering rendering) {
-		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", rendering.r, rendering.p, getDefaultRenderer(), getPlayer());
-		setDefaultRenderer(rendering.r);
-		setPlayer(rendering.p);
-		media_subtitle = rendering.s;
+		DLNAResource parent = getParent();
+		if (parent != null) {
+			parent.updateChild(this);
+		}
+		LOGGER.debug("Switched rendering context to '{} [{}]' from '{} [{}]'", r, getPlayer(), r0, p0);
 	}
 
 	public DLNAResource isCoded() {

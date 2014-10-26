@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
@@ -25,6 +26,7 @@ import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -34,12 +36,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 
-public class RendererConfiguration extends UPNPHelper.Renderer implements ActionListener {
+public class RendererConfiguration extends UPNPHelper.Renderer /*implements ActionListener*/ {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
 	protected static ArrayList<String> allRenderersNames = new ArrayList<>();
@@ -58,7 +61,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 
 	public StatusTab.RendererItem gui;
 	public boolean loaded, fileless = false;
-	protected UPNPHelper.Player player;
+	protected BasicPlayer player;
 
 	public static File NOFILE = new File("NOFILE");
 
@@ -1286,9 +1289,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 	 *
 	 * @return a player or null.
 	 */
-	public UPNPHelper.Player getPlayer() {
-		if (player == null && isUpnpControllable()) {
-			player = new UPNPHelper.Player((DeviceConfiguration) this);
+	public BasicPlayer getPlayer() {
+		if (player == null) {
+			player = isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
+				new PlaybackTimer((DeviceConfiguration) this);
 		}
 		return player;
 	}
@@ -2148,32 +2152,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 		return bitrates;
 	}
 
-	private DLNAResource playingRes;
-
-	public DLNAResource getPlayingRes() {
-		return playingRes;
-	}
-
-	public void setPlayingRes(DLNAResource dlna) {
-		playingRes = dlna;
-	}
-
-	@Override
-	public void actionPerformed(final ActionEvent e) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
-				if (state.playback == BasicPlayer.STOPPED) {
-					return;
-				}
-				if (gui != null) {
-					gui.time.setText(UMSUtils.playedDurationStr(state.position, state.duration));
-				}
-			}
-		});
-	}
-
 	/**
 	 * Automatic reloading
 	 */
@@ -2187,13 +2165,134 @@ public class RendererConfiguration extends UPNPHelper.Renderer implements Action
 		}
 	};
 
+	private DLNAResource playingRes;
+
+	public DLNAResource getPlayingRes() {
+		return playingRes;
+	}
+
+	public void setPlayingRes(DLNAResource dlna) {
+		playingRes = dlna;
+		if (dlna != null && (player instanceof PlaybackTimer)) {
+			getPlayer();
+			((PlaybackTimer)player).start();
+		}
+	}
+
 	private long buffer;
 
-	public void setBuffer(long b) {
-		buffer = b;
+	public void setBuffer(long mb) {
+		buffer = mb < 0 ? 0 : mb;
+		getPlayer().setBuffer(mb);
+		PMS.get().getFrame().updateBuffer();
 	}
 
 	public long getBuffer() {
 		return buffer;
+	}
+
+	public static class PlaybackTimer implements BasicPlayer {
+
+		final public DeviceConfiguration renderer;
+		private BasicPlayer.State state;
+		private LinkedHashSet<ActionListener> listeners;
+
+		public PlaybackTimer(DeviceConfiguration renderer) {
+			this.renderer = renderer;
+			state = new State();
+			listeners = new LinkedHashSet();
+			connect(renderer.gui);
+			reset();
+			refresh();
+			LOGGER.debug("Created playback timer for " + renderer.getRendererName());
+		}
+
+		public void start() {
+			final DLNAResource res = renderer.getPlayingRes();
+			state.name = res.getDisplayName();
+			if (res.getMedia() != null) {
+				state.duration = StringUtil.shortTime(res.getMedia().getDurationString(), 4);
+			}
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					state.playback = BasicPlayer.PLAYING;
+					while(renderer.getPlayingRes() != null) {
+						long elapsed = System.currentTimeMillis() - res.getStartTime();
+						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
+						refresh();
+						try {
+							Thread.sleep(1000);
+						} catch (Exception e) {
+						}
+					}
+					reset();
+				}
+			};
+			new Thread(r).start();
+		}
+
+		private void reset() {
+			state.playback = BasicPlayer.STOPPED;
+			state.position = "";
+			state.duration = "";
+			state.name = " ";
+			state.buffer = 0;
+			refresh();
+		}
+
+		@Override
+		public void connect(ActionListener listener) {
+			listeners.add(listener);
+		}
+
+		@Override
+		public void disconnect(ActionListener listener) {
+			listeners.remove(listener);
+			if (listeners.isEmpty()) {
+				close();
+			}
+		}
+
+		@Override
+		public void refresh() {
+			for (ActionListener l : listeners) {
+				l.actionPerformed(new ActionEvent(this, 0, null));
+			}
+		}
+
+		@Override
+		public BasicPlayer.State getState() {
+			return state;
+		}
+
+		@Override
+		public void close() {
+			listeners.clear();
+			renderer.setPlayer(null);
+		}
+
+		@Override
+		public void setBuffer(long mb) {
+			state.buffer = mb;
+			refresh();
+		}
+
+		public void setURI(String uri, String metadata) {}
+		public void pressPlay(String uri, String metadata) {}
+		public void play() {}
+		public void pause() {}
+		public void stop() {}
+		public void next() {}
+		public void prev() {}
+		public void forward() {}
+		public void rewind() {}
+		public void mute() {}
+		public void setVolume(int volume) {}
+		public void add(int index, String uri, String name, String metadata, boolean select) {}
+		public void remove(String uri) {}
+		public int getControls() { return 0; }
+		public DefaultComboBoxModel getPlaylist() { return null; }
+		public void actionPerformed(final ActionEvent e) {}
 	}
 }

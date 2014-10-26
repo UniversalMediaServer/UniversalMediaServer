@@ -697,6 +697,7 @@ public class UPNPHelper extends UPNPControl {
 			playlist = new Playlist(this);
 			listeners = new LinkedHashSet();
 			lasturi = null;
+			connect(renderer.gui);
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
 			refresh();
 		}
@@ -710,6 +711,7 @@ public class UPNPHelper extends UPNPControl {
 				} else if ((item = playlist.get(uri)) != null) {
 					// We've played it before
 					metadata = item.metadata;
+					state.name = item.name;
 				} else {
 					// It's new to us, find or create the resource as required.
 					// Note: here metadata (if any) is actually the resource name
@@ -718,6 +720,7 @@ public class UPNPHelper extends UPNPControl {
 					if (d != null) {
 						uri = d.getURL("", true);
 						metadata = d.getDidlString(renderer);
+						state.name = d.getDisplayName();
 					}
 				}
 				UPNPControl.setAVTransportURI(dev, instanceID, uri, metadata);
@@ -738,6 +741,7 @@ public class UPNPHelper extends UPNPControl {
 					if (item != null) {
 						uri = item.uri;
 						metadata = item.metadata;
+						state.name = item.name;
 					}
 					if (uri != null && !uri.equals(state.uri)) {
 						setURI(uri, metadata);
@@ -825,6 +829,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void refresh() {
+			state.buffer = renderer.getBuffer();
 			String s = data.get("TransportState");
 			state.playback = "STOPPED".equals(s) ? BasicPlayer.STOPPED :
 				"PLAYING".equals(s) ? BasicPlayer.PLAYING :
@@ -853,6 +858,12 @@ public class UPNPHelper extends UPNPControl {
 		@Override
 		public BasicPlayer.State getState() {
 			return state;
+		}
+
+		@Override
+		public void setBuffer(long mb) {
+			state.buffer = mb;
+			alert();
 		}
 
 		@Override

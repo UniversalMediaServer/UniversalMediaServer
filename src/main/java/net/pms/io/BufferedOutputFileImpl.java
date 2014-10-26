@@ -86,8 +86,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private double timeseek;
 	private double timeend;
 	private long packetpos = 0;
-	private int currentBufferPercentage = 0;
-	private RendererConfiguration attachedRender;
+	private final RendererConfiguration renderer;
 
 	/**
 	 * Try to increase the size of a memory buffer, while retaining its
@@ -182,6 +181,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	 */
 	public BufferedOutputFileImpl(OutputParams params) {
 		configuration = PMS.getConfiguration(params);
+		this.renderer = params.mediaRenderer;
 		this.forcefirst = (configuration.getTrancodeBlocksMultipleConnections() && configuration.getTrancodeKeepFirstConnections());
 		this.minMemorySize = (int) (1048576 * params.minBufferSize);
 		this.maxMemorySize = (int) (1048576 * params.maxBufferSize);
@@ -780,18 +780,17 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	}
 
 	@Override
-	public void attachThread(ProcessWrapper thread, RendererConfiguration r) {
+	public void attachThread(ProcessWrapper thread) {
 		if (attachedThread != null) {
 			throw new RuntimeException("BufferedOutputFile is already attached to a Thread: " + attachedThread);
 		}
 
 		LOGGER.debug("Attaching thread: " + thread);
 		attachedThread = thread;
-		attachedRender = r;
-		startTimer(r);
+		startTimer();
 	}
 
-	private void startTimer(final RendererConfiguration r) {
+	private void startTimer() {
 		if (!hidebuffer && maxMemorySize > (15 * 1048576)) {
 			timer = new Timer(attachedThread + "-Timer");
 			timer.schedule(new TimerTask() {
@@ -809,32 +808,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 					// There are 1048576 bytes in a megabyte
 					long bufferInMBs = space / 1048576;
-
-					int oldBufferPercentage = currentBufferPercentage;
-					currentBufferPercentage = (int) (100 * space / maxMemorySize);
-
-					// Make the buffer progress bar increase and decrease gradually
-					if (currentBufferPercentage > oldBufferPercentage) {
-						// Go upwards
-						while (currentBufferPercentage > oldBufferPercentage) {
-							oldBufferPercentage += 1;
-							PMS.get().getFrame().setValue(r, oldBufferPercentage, bufferInMBs);
-							try {
-								Thread.sleep(20);
-							} catch (InterruptedException e) {
-							}
-						}
-					} else {
-						// Go downwards
-						while (currentBufferPercentage < oldBufferPercentage) {
-							oldBufferPercentage -= 1;
-							PMS.get().getFrame().setValue(r, oldBufferPercentage, bufferInMBs);
-							try {
-								Thread.sleep(20);
-							} catch (InterruptedException e) {
-							}
-						}
-					}
+					renderer.setBuffer(bufferInMBs);
 				}
 			}, 0, 2000);
 		}
@@ -896,20 +870,6 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		}
 
 		buffered = false;
-
-		if (!hidebuffer && maxMemorySize != 1048576) {
-			int oldBufferPercentage = currentBufferPercentage;
-			currentBufferPercentage = 0;
-
-			// Make the buffer progress bar decrease gradually
-			while (currentBufferPercentage < oldBufferPercentage) {
-				oldBufferPercentage -= 1;
-				PMS.get().getFrame().setValue(attachedRender, oldBufferPercentage, -1);
-				try {
-					Thread.sleep(20);
-				} catch (InterruptedException e) {
-				}
-			}
-		}
+		renderer.setBuffer(0);
 	}
 }

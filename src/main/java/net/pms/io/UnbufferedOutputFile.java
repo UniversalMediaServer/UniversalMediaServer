@@ -164,7 +164,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	 */
 	@Deprecated
 	@Override
-	public void attachThread(ProcessWrapper thread, RendererConfiguration r) {
+	public void attachThread(ProcessWrapper thread) {
 	}
 	
 	/**

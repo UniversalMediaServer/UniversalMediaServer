@@ -39,6 +39,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.text.DateFormatter;
 
+import java.awt.event.ActionListener;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -56,16 +57,52 @@ import org.slf4j.LoggerFactory;
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
 
-	public static class RendererItem {
+	public static class RendererItem implements ActionListener{
 		public ImagePanel icon;
 		public JLabel label;
 		public JLabel ip;
 		public JLabel playing;
 		public JLabel time;
 		public JFrame frame;
-		public JProgressBar jpb;
+		public SmoothProgressBar jpb;
 		public RendererPanel panel;
-		public Thread thread;
+		public String name = " ";
+
+		@Override
+		public void actionPerformed(final ActionEvent e) {
+			BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
+			time.setText(state.playback == BasicPlayer.STOPPED ? " " :
+				UMSUtils.playedDurationStr(state.position, state.duration));
+			jpb.setValue((int) (100 * state.buffer / bufferSize));
+			jpb.setString(formatter.format(state.buffer) + " " + Messages.getString("StatusTab.12"));
+			String n = state.playback == BasicPlayer.STOPPED ? " " : state.name;
+			if (!name.equals(n)) {
+				name = n;
+				playing.setText(name.substring(0, name.length() < 25 ? name.length() : 25));
+			}
+		}
+	}
+
+	class SmoothProgressBar extends JProgressBar {
+		SmoothProgressBar(int min, int max) {
+			super(min, max);
+		}
+
+		public void setValue(int n) {
+			int v = getValue();
+			if (n != v) {
+				int step = n > v ? 1 : -1;
+				n += step;
+				try {
+					for (; v != n; v += step) {
+						super.setValue(v);
+						repaint();
+						Thread.sleep(20);
+					}
+				} catch (InterruptedException e) {
+				}
+			}
+		}
 	}
 
 	private PanelBuilder rendererBuilder;
@@ -81,11 +118,13 @@ public class StatusTab {
 	private JLabel peakBitrateLabel;
 	private long rc = 0;
 	private long peak;
-	private DecimalFormat formatter = new DecimalFormat("#,###");
+	private static DecimalFormat formatter = new DecimalFormat("#,###");
+	private static int bufferSize;
 
 	StatusTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
 		rendererCount = 0;
+		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
 	public JProgressBar getJpb() {
@@ -94,11 +133,11 @@ public class StatusTab {
 
 	public void updateTotalBuffer() {
 		long total = 0;
-	   	for (RendererConfiguration r : PMS.get().getRenders()) {
+		for (RendererConfiguration r : PMS.get().getRenders()) {
 			total += r.getBuffer();
-	   	}
+		}
 		if(total > 0) {
-			int percent = (int) (100 * total / configuration.getMaxMemoryBufferSize());
+			int percent = (int) (100 * total / bufferSize);
 			String msg = formatter.format(total) + " " + Messages.getString("StatusTab.12");
 			jpb.setValue(percent);
 			jpb.setString(msg);
@@ -166,7 +205,7 @@ public class StatusTab {
 		peakBitrate.setForeground(new Color(68, 68, 68));
 		builder.add(peakBitrate, FormLayoutUtil.flip(cc.xyw(4, 9, 2, "left, top"), colSpec, orientation));
 
-		jpb = new JProgressBar(0, 100);
+		jpb = new SmoothProgressBar(0, 100);
 		jpb.setStringPainted(true);
 		jpb.setForeground(new Color(75, 140, 181));
 		jpb.setString(Messages.getString("StatusTab.5"));
@@ -208,7 +247,7 @@ public class StatusTab {
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			//JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
@@ -258,11 +297,11 @@ public class StatusTab {
 		rendererBuilder.add(r.label, cc.xy(i + 2, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
 		r.ip = new JLabel("");
 		rendererBuilder.add(r.ip, cc.xy(i + 2, 5));
-		r.playing = new JLabel("");
+		r.playing = new JLabel(" ");
 		rendererBuilder.add(r.playing, cc.xy(i + 2, 7));
 		r.time = new JLabel("");
 		rendererBuilder.add(r.time, cc.xy(i + 2, 9));
-		r.jpb = new JProgressBar(0, 45);
+		r.jpb = new SmoothProgressBar(0, 100);
 		r.jpb.setStringPainted(true);
 		r.jpb.setForeground(new Color(75, 140, 181));
 		r.jpb.setString(Messages.getString("StatusTab.5"));
@@ -315,56 +354,10 @@ public class StatusTab {
 		});
 	}
 
-	private static void clearRenderGui(RendererConfiguration r) {
-		//r.gui.ip.setText("");
-		r.gui.playing.setText("----");
-		r.gui.time.setText("00:00/00:00");
-	}
-
-	private static Thread launchThread(final RendererConfiguration render) {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				while(render.getPlayingRes() != null) {
-					DLNAResource res = render.getPlayingRes();
-					long elapsed = System.currentTimeMillis() - res.getStartTime();
-					String dur = "????";
-					if (res.getMedia() != null) {
-						dur = StringUtil.shortTime(res.getMedia().getDurationString(), 4);
-					}
-					String estr = StringUtil.shortTime(DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss"), 2);
-					render.gui.time.setText(UMSUtils.playedDurationStr(estr, dur));
-					try {
-						Thread.sleep(5000);
-					} catch (Exception e) {
-					}
-				}
-				render.gui.thread = null;
-			}
-		};
-		return new Thread(r);
-	}
-
 	private static void updateIP(RendererConfiguration renderer) {
-		clearRenderGui(renderer);
 		InetAddress ip = renderer.getAddress();
 		if(ip != null) {
 			renderer.gui.ip.setText("<html><font color=gray>" + ip.getHostAddress() + "</font></html>");
-		}
-		DLNAResource res = renderer.getPlayingRes();
-		if(res != null) {
-			String title = res.getDisplayName();
-			renderer.gui.playing.setText(title.substring(0, title.length() < 25 ? title.length() : 25));
-			if(renderer.isUpnpControllable()) {
-				renderer.getPlayer().connect(renderer);
-			}
-			else {
-				if(renderer.gui.thread == null) {
-					renderer.gui.thread = launchThread(renderer);
-					renderer.gui.thread.start();
-				}
-			}
-
 		}
 	}
 

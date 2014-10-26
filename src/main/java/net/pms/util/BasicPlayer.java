@@ -9,7 +9,8 @@ public interface BasicPlayer extends ActionListener {
 		public boolean mute;
 		public int volume;
 		public String position, duration;
-		public String uri, metadata;
+		public String name, uri, metadata;
+		public long buffer;
 	}
 
 	final static int STOPPED = 0;
@@ -43,6 +44,8 @@ public interface BasicPlayer extends ActionListener {
 	public void add(int index, String uri, String name, String metadata, boolean select);
 
 	public void remove(String uri);
+
+	public void setBuffer(long mb);
 
 	public State getState();
 
