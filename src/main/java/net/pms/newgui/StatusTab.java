@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
 
-	public static class RendererItem implements ActionListener{
+	public static class RendererItem implements ActionListener {
 		public ImagePanel icon;
 		public JLabel label;
 		public JLabel playing;
@@ -72,7 +72,7 @@ public class StatusTab {
 			icon.enableRollover();
 			label = new JLabel(r.getRendererName());
 			playing = new JLabel(" ");
-			time = new JLabel("");
+			time = new JLabel(" ");
 			jpb = new SmoothProgressBar(0, 100);
 			jpb.setStringPainted(true);
 			jpb.setBorderPainted(false);
@@ -86,7 +86,7 @@ public class StatusTab {
 			time.setText(state.playback == BasicPlayer.STOPPED ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			jpb.setValue((int) (100 * state.buffer / bufferSize));
-			String n = state.playback == BasicPlayer.STOPPED ? " " : state.name;
+			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
 			if (!name.equals(n)) {
 				name = n;
 				playing.setText(name.substring(0, name.length() < 25 ? name.length() : 25));
@@ -99,6 +99,7 @@ public class StatusTab {
 			super(min, max);
 		}
 
+		@Override
 		public void setValue(int n) {
 			int v = getValue();
 			if (n != v) {
