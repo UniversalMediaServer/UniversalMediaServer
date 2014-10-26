@@ -829,7 +829,6 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void refresh() {
-			state.buffer = renderer.getBuffer();
 			String s = data.get("TransportState");
 			state.playback = "STOPPED".equals(s) ? BasicPlayer.STOPPED :
 				"PLAYING".equals(s) ? BasicPlayer.PLAYING :
