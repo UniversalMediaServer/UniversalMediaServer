@@ -46,7 +46,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
 	@Override
     public ChannelPipeline getPipeline() throws Exception {
-		LOGGER.trace("Creating new pipeline");
+//		LOGGER.trace("Creating new pipeline");
 		// Create a default pipeline implementation.
 		ChannelPipeline pipeline = pipeline();
 		pipeline.addLast("decoder", new HttpRequestDecoder());

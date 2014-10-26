@@ -25,8 +25,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import net.pms.util.DTSAudioOutputStream;
 import net.pms.util.H264AnnexBInputStream;
-import net.pms.util.PCMAudioOutputStream;
 import net.pms.util.IEC61937AudioOutputStream;
+import net.pms.util.PCMAudioOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

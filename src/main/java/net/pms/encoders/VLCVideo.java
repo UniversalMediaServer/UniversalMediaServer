@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 import net.pms.Messages;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -67,7 +68,7 @@ import org.slf4j.LoggerFactory;
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
 	public static final String ID = "vlctranscoder";
 	protected JTextField scale;
 	protected JCheckBox experimentalCodecs;
@@ -425,6 +426,8 @@ public class VLCVideo extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		boolean isWindows = Platform.isWindows();
 		if (params.aid == null) {
@@ -590,6 +593,7 @@ public class VLCVideo extends Player {
 		}
 
 		pw.runInNewThread();
+		configuration = prev;
 		return pw;
 	}
 
@@ -629,81 +633,6 @@ public class VLCVideo extends Player {
 			}
 		});
 		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-
-		// Developer stuff. Theoretically temporary
-		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 7, 5), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		// Add scale as a subpanel because it has an awkward layout
-		/**
-		mainPanel.append(Messages.getString("VlcTrans.11"));
-		FormLayout scaleLayout = new FormLayout("pref,3dlu,pref", "");
-		DefaultFormBuilder scalePanel = new DefaultFormBuilder(scaleLayout);
-		double startingScale = Double.valueOf(configuration.getVlcScale());
-		scalePanel.append(scale = new JTextField(String.valueOf(startingScale)));
-		final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL, 0, 10, (int) (startingScale * 10));
-		scalePanel.append(scaleSlider);
-		scaleSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent ce) {
-				String value = String.valueOf((double) scaleSlider.getValue() / 10);
-				scale.setText(value);
-				configuration.setVlcScale(value);
-			}
-		});
-		scale.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				String typed = scale.getText();
-				if (!typed.matches("\\d\\.\\d")) {
-					return;
-				}
-				double value = Double.parseDouble(typed);
-				scaleSlider.setValue((int) (value * 10));
-				configuration.setVlcScale(String.valueOf(value));
-			}
-		});
-		mainPanel.append(scalePanel.getPanel(), 3);
-
-		// Audio sample rate
-		FormLayout sampleRateLayout = new FormLayout("right:pref, 3dlu, right:pref, 3dlu, right:pref, 3dlu, left:pref", "");
-		DefaultFormBuilder sampleRatePanel = new DefaultFormBuilder(sampleRateLayout);
-		sampleRateOverride = new JCheckBox(Messages.getString("VlcTrans.17"), configuration.getVlcSampleRateOverride());
-		sampleRatePanel.append(Messages.getString("VlcTrans.18"), sampleRateOverride);
-		sampleRate = new JTextField(configuration.getVlcSampleRate(), 8);
-		sampleRate.setEnabled(configuration.getVlcSampleRateOverride());
-		sampleRate.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setVlcSampleRate(sampleRate.getText());
-			}
-		});
-		sampleRatePanel.append(Messages.getString("VlcTrans.19"), sampleRate);
-		sampleRateOverride.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				boolean checked = e.getStateChange() == ItemEvent.SELECTED;
-				configuration.setVlcSampleRateOverride(checked);
-				sampleRate.setEnabled(checked);
-			}
-		});
-
-		mainPanel.nextLine();
-		mainPanel.append(sampleRatePanel.getPanel(), 7);
-
-		// Extra options
-		mainPanel.nextLine();
-		*/
-		builder.addLabel(Messages.getString("VlcTrans.20"), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
-		extraParams = new JTextField(configuration.getFont());
-		extraParams.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setFont(extraParams.getText());
-			}
-		});
-		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 9, 3), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 

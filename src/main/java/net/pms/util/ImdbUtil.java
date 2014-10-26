@@ -11,7 +11,6 @@ public class ImdbUtil {
 
 	public static String cleanName(String str) {
 		return str.replaceAll(IMDB_REG, "").replaceAll(HASH_REG, "");
-
 	}
 
 	public static String extractOSHash(File file) {
@@ -35,5 +34,9 @@ public class ImdbUtil {
 			ret = m.group(1);
 		}
 		return ret;
+	}
+
+	public static String ensureTT(String s) {
+		return (s.startsWith("tt") ? s : "tt" + s);
 	}
 }

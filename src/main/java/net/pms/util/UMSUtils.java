@@ -1,17 +1,26 @@
 package net.pms.util;
 
-import java.io.File;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.lang.reflect.Field;
 import java.text.Collator;
-import java.util.Collections;
-import java.util.Comparator;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
+import javax.imageio.ImageIO;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UMSUtils {
 	private static final Collator collator;
+	private static final Logger LOGGER = LoggerFactory.getLogger(UMSUtils.class);
 
 	static {
 		collator = Collator.getInstance();
@@ -121,5 +130,83 @@ public class UMSUtils {
 				});
 				break;
 		}
+	}
+
+	public static String logFormat(String msg) {
+		DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss");
+		Date date = new Date();
+
+		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
+		return dateFormat.format(date) + " " + messageDisplay[1];
+	}
+
+	private static int getHW(String[] s, int pos) {
+		if (pos > s.length - 1) {
+			return 0;
+		}
+		try {
+			return Integer.parseInt(s[pos].trim());
+		} catch (NumberFormatException e) {
+			return 0;
+		}
+	}
+
+	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
+		if (in == null) {
+			return in;
+		}
+		String ts = r.getThumbSize();
+		if (StringUtils.isEmpty(ts) && StringUtils.isEmpty(r.getThumbBG())) {
+			// no need to convert here
+			return in;
+		}
+		int w;
+		int h;
+		Color col = null;
+		BufferedImage img;
+		try {
+			img = ImageIO.read(in);
+		} catch (Exception e) {
+			// catch whatever is thrown at us
+			// we can at least log it
+			LOGGER.debug("couldn't read thumb to manipulate it " + e);
+			img = null; // to make sure
+		}
+		if (img == null) {
+			return in;
+		}
+		w = img.getWidth();
+		h = img.getHeight();
+		if (StringUtils.isNotEmpty(ts)) {
+			// size limit thumbnail
+			w = getHW(ts.split("x"), 0);
+			h = getHW(ts.split("x"), 1);
+			if (w == 0 || h == 0) {
+				LOGGER.debug("bad thumb size {} skip scaling", ts);
+				w = h = 0; // just to make sure
+			}
+		}
+		if (StringUtils.isNotEmpty(r.getThumbBG())) {
+			try {
+				Field field = Color.class.getField(r.getThumbBG());
+				col = (Color) field.get(null);
+			} catch (Exception e) {
+				LOGGER.debug("bad color name " + r.getThumbBG());
+			}
+		}
+		if (w == 0 && h == 0 && col == null) {
+			return in;
+		}
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		BufferedImage img1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = img1.createGraphics();
+		if (col != null) {
+			g.setColor(col);
+		}
+		g.fillRect(0, 0, w, h);
+		g.drawImage(img, 0, 0, w, h, null);
+		ImageIO.write(img1, "jpeg", out);
+		out.flush();
+		return new ByteArrayInputStream(out.toByteArray());
 	}
 }

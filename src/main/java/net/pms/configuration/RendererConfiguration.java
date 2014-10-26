@@ -2,157 +2,186 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.Future;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import java.util.TreeSet;
+import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.LibMediaInfoParser;
-import net.pms.dlna.RootFolder;
+import net.pms.dlna.*;
+import net.pms.encoders.Player;
 import net.pms.formats.Format;
+import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
+import net.pms.network.UPNPHelper;
+import net.pms.newgui.StatusTab;
 import net.pms.util.PropertiesUtil;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.io.Charsets;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RendererConfiguration {
+public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	private static TreeSet<RendererConfiguration> enabledRendererConfs;
-	private static ArrayList<String> allRenderersNames = new ArrayList<String>();
-	private static PmsConfiguration pmsConfiguration;
-	private static RendererConfiguration defaultConf;
-	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<InetAddress, RendererConfiguration>();
+	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
+	protected static ArrayList<String> allRenderersNames = new ArrayList<String>();
+	protected static PmsConfiguration _pmsConfiguration = PMS.getConfiguration();
+	protected static RendererConfiguration defaultConf;
+	protected static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<InetAddress, RendererConfiguration>();
 
-	private RootFolder rootFolder;
-	private final PropertiesConfiguration configuration;
-	private final ConfigurationReader configurationReader;
-	private FormatConfiguration formatConfiguration;
-	private int rank;
-	private Matcher sortedHeaderMatcher;
+	protected RootFolder rootFolder;
+	protected File file;
+	protected Configuration configuration;
+	protected PmsConfiguration pmsConfiguration = _pmsConfiguration;
+	protected ConfigurationReader configurationReader;
+	protected FormatConfiguration formatConfiguration;
+	protected int rank;
+	protected Matcher sortedHeaderMatcher;
+
+	public StatusTab.RendererItem gui;
+	public boolean loaded, fileless = false;
+	protected UPNPHelper.Player player;
+
+	public static File NOFILE = new File("NOFILE");
+
+	public interface OutputOverride {
+		/**
+		 * Override a player's default output formatting.
+		 * To be invoked by the player after input and filter options are complete.
+		 *
+		 * @param cmdList the command so far
+		 * @param dlna the media item
+		 * @param player the player
+		 * @param params the output parameters
+		 *
+		 * @return whether the options have been finalized
+		 */
+		public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params);
+
+		public boolean addSubtitles();
+	}
 
 	// Holds MIME type aliases
-	private final Map<String, String> mimes;
+	protected Map<String, String> mimes;
 
-	private final Map<String, String> charMap;
-	private final Map<String, String> DLNAPN;
+	protected Map<String, String> charMap;
+	protected Map<String, String> DLNAPN;
+
+	// Cache for the tree
+	protected Map<String, DLNAResource> renderCache;
 
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
 	protected String inset, dots;
 
 	// property values
-	private static final String LPCM = "LPCM";
-	private static final String MP3 = "MP3";
-	private static final String WAV = "WAV";
-	private static final String WMV = "WMV";
+	protected static final String LPCM = "LPCM";
+	protected static final String MP3 = "MP3";
+	protected static final String WAV = "WAV";
+	protected static final String WMV = "WMV";
 
 	// Old video transcoding options
 	@Deprecated
-	private static final String DEPRECATED_MPEGAC3 = "MPEGAC3";
+	protected static final String DEPRECATED_MPEGAC3 = "MPEGAC3";
 
 	@Deprecated
-	private static final String DEPRECATED_MPEGPSAC3 = "MPEGPSAC3";
+	protected static final String DEPRECATED_MPEGPSAC3 = "MPEGPSAC3";
 
 	@Deprecated
-	private static final String DEPRECATED_MPEGTSAC3 = "MPEGTSAC3";
+	protected static final String DEPRECATED_MPEGTSAC3 = "MPEGTSAC3";
 
 	@Deprecated
-	private static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
+	protected static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
 
 	// Current video transcoding options
-	private static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
-	private static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
-	private static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
-	private static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
+	protected static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
+	protected static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
+	protected static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
+	protected static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
 
 	// property names
-	private static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
-	private static final String AUDIO = "Audio";
-	private static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
-	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
-	private static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
-	private static final String CHARMAP = "CharMap";
-	private static final String CHUNKED_TRANSFER = "ChunkedTransfer";
-	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
-	private static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
-	private static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
-	private static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
-	private static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
-	private static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
-	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
-	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
-	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
-	private static final String LIMIT_FOLDERS = "LimitFolders";
-	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
-	private static final String H264_L41_LIMITED = "H264Level41Limited";
-	private static final String IMAGE = "Image";
-	private static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
-	private static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
-	private static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
-	private static final String MAX_VIDEO_HEIGHT = "MaxVideoHeight";
-	private static final String MAX_VIDEO_WIDTH = "MaxVideoWidth";
-	private static final String MEDIAPARSERV2 = "MediaInfo";
-	private static final String MEDIAPARSERV2_THUMB = "MediaParserV2_ThumbnailGeneration";
-	private static final String MIME_TYPES_CHANGES = "MimeTypesChanges";
-	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
-	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
-	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
-	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
-	private static final String OUTPUT_3D_FORMAT = "Output3DFormat";
-	private static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
-	private static final String LOADING_PRIORITY = "LoadingPriority";
-	private static final String RENDERER_ICON = "RendererIcon";
-	private static final String RENDERER_NAME = "RendererName";
-	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
-	private static final String SEEK_BY_TIME = "SeekByTime";
-	private static final String SEND_DATE_METADATA = "SendDateMetadata";
-	private static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
-	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
-	private static final String SHOW_SUB_METADATA = "ShowSubMetadata";
-	private static final String STREAM_EXT = "StreamExtensions";
-	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
-	private static final String SUPPORTED = "Supported";
-	private static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
-	private static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
-	private static final String TEXTWRAP = "TextWrap";
-	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
-	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
-	private static final String TRANSCODE_AUDIO = "TranscodeAudio";
-	private static final String TRANSCODE_EXT = "TranscodeExtensions";
-	private static final String TRANSCODE_FAST_START = "TranscodeFastStart";
-	private static final String TRANSCODE_VIDEO = "TranscodeVideo";
-	private static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
-	private static final String TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE = "TranscodedVideoAudioSampleRate";
-	private static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
-	private static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
-	private static final String USER_AGENT = "UserAgentSearch";
-	private static final String USE_CLOSED_CAPTION = "UseClosedCaption";
-	private static final String USE_SAME_EXTENSION = "UseSameExtension";
-	private static final String VIDEO = "Video";
-	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
-	private static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
+	protected static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
+	protected static final String AUDIO = "Audio";
+	protected static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
+	protected static final String AUTO_PLAY_TMO = "AutoPlayTmo";
+	protected static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
+	protected static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
+	protected static final String CHARMAP = "CharMap";
+	protected static final String CHUNKED_TRANSFER = "ChunkedTransfer";
+	protected static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
+	protected static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
+	protected static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
+	protected static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
+	protected static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
+	protected static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
+	protected static final String DLNA_ORGPN_USE = "DLNAOrgPN";
+	protected static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
+	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
+	protected static final String LIMIT_FOLDERS = "LimitFolders";
+	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
+	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
+	protected static final String H264_L41_LIMITED = "H264Level41Limited";
+	protected static final String IMAGE = "Image";
+	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
+	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
+	protected static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
+	protected static final String MAX_VIDEO_HEIGHT = "MaxVideoHeight";
+	protected static final String MAX_VIDEO_WIDTH = "MaxVideoWidth";
+	protected static final String MEDIAPARSERV2 = "MediaInfo";
+	protected static final String MEDIAPARSERV2_THUMB = "MediaParserV2_ThumbnailGeneration";
+	protected static final String MIME_TYPES_CHANGES = "MimeTypesChanges";
+	protected static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
+	protected static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
+	protected static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
+	protected static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
+	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
+	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
+	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
+	protected static final String LOADING_PRIORITY = "LoadingPriority";
+	protected static final String RENDERER_ICON = "RendererIcon";
+	protected static final String RENDERER_NAME = "RendererName";
+	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
+	protected static final String SEEK_BY_TIME = "SeekByTime";
+	protected static final String SEND_DATE_METADATA = "SendDateMetadata";
+	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
+	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
+	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
+	protected static final String STREAM_EXT = "StreamExtensions";
+	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
+	protected static final String SUPPORTED = "Supported";
+	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
+	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
+	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
+	protected static final String TEXTWRAP = "TextWrap";
+	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
+	protected static final String THUMBNAIL_SIZE = "ThumbnailSize";
+	protected static final String THUMBNAIL_BG = "ThumbnailBackground";
+	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
+	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
+	protected static final String TRANSCODE_EXT = "TranscodeExtensions";
+	protected static final String TRANSCODE_FAST_START = "TranscodeFastStart";
+	protected static final String TRANSCODE_VIDEO = "TranscodeVideo";
+	protected static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
+	protected static final String TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE = "TranscodedVideoAudioSampleRate";
+	protected static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
+	protected static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
+	protected static final String USER_AGENT = "UserAgentSearch";
+	protected static final String UPNP_DETAILS = "UpnpDetailsSearch";
+	protected static final String USE_CLOSED_CAPTION = "UseClosedCaption";
+	protected static final String USE_SAME_EXTENSION = "UseSameExtension";
+	protected static final String VIDEO = "Video";
+	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
+	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 
 	private static int maximumBitrateTotal = 0;
 
@@ -166,7 +195,7 @@ public class RendererConfiguration {
 	 * @param pmsConf
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
-		pmsConfiguration = pmsConf;
+		_pmsConfiguration = pmsConf;
 		enabledRendererConfs = new TreeSet<RendererConfiguration>(rendererLoadingPriorityComparator);
 
 		try {
@@ -183,7 +212,7 @@ public class RendererConfiguration {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
-			List<String> ignoredRenderers = pmsConfiguration.getIgnoredRenderers();
+			List<String> ignoredRenderers = pmsConf.getIgnoredRenderers();
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
@@ -209,7 +238,7 @@ public class RendererConfiguration {
 
 		if (enabledRendererConfs.size() > 0) {
 			// See if a different default configuration was configured
-			String rendererFallback = pmsConfiguration.getRendererDefault();
+			String rendererFallback = pmsConf.getRendererDefault();
 
 			if (StringUtils.isNotBlank(rendererFallback)) {
 				RendererConfiguration fallbackConf = getRendererConfigurationByName(rendererFallback);
@@ -220,6 +249,7 @@ public class RendererConfiguration {
 				}
 			}
 		}
+		DeviceConfiguration.loadDeviceConfigurations(pmsConf);
 	}
 
 	private static void loadRenderersNames() {
@@ -242,35 +272,33 @@ public class RendererConfiguration {
 		}
 	}
 
-	private int getInt(String key, int def) {
+	public int getInt(String key, int def) {
 		return configurationReader.getInt(key, def);
 	}
 
-	private long getLong(String key, int def) {
+	public long getLong(String key, int def) {
 		return configurationReader.getLong(key, def);
 	}
 
-	private boolean getBoolean(String key, boolean def) {
+	public boolean getBoolean(String key, boolean def) {
 		return configurationReader.getBoolean(key, def);
 	}
 
-	/**
-	 * Return the <code>String</code> value for a given configuration key if the
-	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
-	 * Otherwise return the supplied default value.
-	 * The value is returned with leading and trailing whitespace removed in both cases.
-	 *
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private String getString(String key, String def) {
-		return configurationReader.getString(key, def);
+	public String getString(String key, String def) {
+		return configurationReader.getNonBlankConfigurationString(key, def);
+	}
+
+	public List<String> getStringList(String key, String def) {
+		return configurationReader.getStringList(key, def);
 	}
 
 	@Deprecated
 	public static ArrayList<RendererConfiguration> getAllRendererConfigurations() {
 		return getEnabledRenderersConfigurations();
+	}
+
+	public boolean nox264() {
+		return false;
 	}
 
 	/**
@@ -283,10 +311,29 @@ public class RendererConfiguration {
 	}
 
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
-		return addressAssociation.values();
+		// We need to check both upnp and http sides to ensure a complete list
+		HashSet<RendererConfiguration> renderers = new HashSet<RendererConfiguration>(UPNPHelper.getRenderers(UPNPHelper.ANY));
+		renderers.addAll(addressAssociation.values());
+		return renderers;
 	}
 
-	protected static File getRenderersDir() {
+	public static boolean hasConnectedAVTransportPlayers() {
+		return UPNPHelper.hasRenderer(UPNPHelper.AVT);
+	}
+
+	public static List<RendererConfiguration> getConnectedAVTransportPlayers() {
+		return UPNPHelper.getRenderers(UPNPHelper.AVT);
+	}
+
+	public static boolean hasConnectedControlPlayers() {
+		return UPNPHelper.hasRenderer(UPNPHelper.ANY);
+	}
+
+	public static List<RendererConfiguration> getConnectedControlPlayers() {
+		return UPNPHelper.getRenderers(UPNPHelper.ANY);
+	}
+
+	public static File getRenderersDir() {
 		final String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
 
 		for (String path : pathList) {
@@ -307,14 +354,19 @@ public class RendererConfiguration {
 	}
 
 	public static void resetAllRenderers() {
-		for (RendererConfiguration rc : enabledRendererConfs) {
-			rc.rootFolder = null;
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			r.rootFolder = null;
+		}
+		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since 
+		// these are now for reference only and never actually populate their root folders.
+		for (RendererConfiguration r : enabledRendererConfs) {
+			r.rootFolder = null;
 		}
 	}
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			ArrayList<String> tags = new ArrayList();
+			ArrayList<String> tags = new ArrayList<String>();
 			tags.add(getRendererName());
 			for (InetAddress sa : addressAssociation.keySet()) {
 				if (addressAssociation.get(sa) == this) {
@@ -347,16 +399,31 @@ public class RendererConfiguration {
 	 * by its address in later requests.
 	 *
 	 * @param sa The IP address to associate.
+	 * @return whether the device at this address is a renderer.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
-	public void associateIP(InetAddress sa) {
-		addressAssociation.put(sa, this);
-		if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
-			return;
+	public boolean associateIP(InetAddress sa) {
+		if (UPNPHelper.isNonRenderer(sa)) {
+			// TODO: remove it if already added unknowingly
+			return false;
 		}
-		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
+
+		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
+
+		addressAssociation.put(sa, this);
+		if (
+			(
+				pmsConfiguration.isAutomaticMaximumBitrate() ||
+				pmsConfiguration.isSpeedDbg()
+			) &&
+			!(
+				sa.isLoopbackAddress() ||
+				sa.isAnyLocalAddress()
+			)
+		) {
 			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 		}
+		return true;
 	}
 
 	public static void calculateAllSpeeds() {
@@ -382,14 +449,28 @@ public class RendererConfiguration {
 	 * request headers
 	 *
 	 * @param headers The headers.
+	 * @param ia The request's origin address.
 	 * @return The matching renderer configuration or <code>null</code>
 	 */
-	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String, String>> headers) {
-		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers));
+	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String, String>> headers, InetAddress ia) {
+		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers), ia);
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders, InetAddress ia) {
+		RendererConfiguration r = null;
+		RendererConfiguration ref = getRendererConfigurationByHeaders(sortedHeaders);
+		if (ref != null) {
+			boolean isNew = !addressAssociation.containsKey(ia);
+			r = resolve(ia, ref);
+			if (r != null) {
+				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+			}
+		}
+		return r;
 	}
 
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
-		if (pmsConfiguration.isRendererForceDefault()) {
+		if (_pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
@@ -424,16 +505,156 @@ public class RendererConfiguration {
 		return null;
 	}
 
+	public static RendererConfiguration getRendererConfigurationByUUID(String uuid) {
+		for (RendererConfiguration conf : getConnectedRenderersConfigurations()) {
+			if (conf.getUUID().equals(uuid)) {
+				return conf;
+			}
+		}
+
+		return null;
+	}
+
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details/*, InetAddress ia, String uuid*/) {
+		for (RendererConfiguration r : enabledRendererConfs) {
+			if (r.matchUPNPDetails(details)) {
+				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
+				return r;
+			}
+		}
+		return null;
+	}
+
+	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
+		DeviceConfiguration r = null;
+		if (ref == null) {
+			ref = getDefaultConf();
+		}
+		try {
+			if (addressAssociation.containsKey(ia)) {
+				// Already seen, finish configuration if required
+				r = (DeviceConfiguration) addressAssociation.get(ia);
+				boolean higher = ref.getLoadingPriority() > r.getLoadingPriority() && ref != defaultConf;
+				if (!r.loaded || higher) {
+					if (higher) {
+						LOGGER.debug("Switching to higher priority renderer: " + ref.getRendererName());
+					}
+					r.inherit(ref);
+					// update gui
+					PMS.get().updateRenderer(r);
+				}
+			} else if (!UPNPHelper.isNonRenderer(ia)) {
+				// It's brand new
+				r = new DeviceConfiguration(ref, ia);
+				if (r.associateIP(ia)) {
+					PMS.get().setRendererFound(r);
+				}
+			}
+		} catch (Exception e) {
+		}
+		return r;
+	}
+
 	public FormatConfiguration getFormatConfiguration() {
 		return formatConfiguration;
 	}
 
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
+	public PmsConfiguration getPmsConfiguration() {
+		return pmsConfiguration;
+	}
+
 	public File getFile() {
-		return configuration.getFile();
+		return file;
+	}
+
+	public File getUsableFile() {
+		File f = getFile();
+		if (f == null || f.equals(NOFILE)) {
+			f = new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf");
+		}
+		return f;
+	}
+
+	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
+		try {
+			ArrayList<String> conf = new ArrayList<String>();
+			String name = r.getRendererName().split("\\(")[0].trim();
+			Map<String, String> details = r.getUpnpDetails();
+			String detailmatcher = details == null ? "" :
+				(details.get("manufacturer") + " , " + details.get("modelName"));
+
+			// Add the header and identifiers
+			conf.add("#----------------------------------------------------------------------------");
+			conf.add("# Auto-generated profile for " + name);
+			conf.add("#" + (ref == null ? "" : " Based on " + ref.getName()));
+			conf.add("# See PS3.conf for a description of all possible configuration options.");
+			conf.add("#");
+			conf.add("");
+			conf.add(RENDERER_NAME + " = " + name);
+			conf.add(UPNP_DETAILS + " = " + detailmatcher);
+			conf.add("");
+			// TODO: Set more properties automatically from UPNP info
+
+			if (ref != null) {
+				// Copy the reference file, skipping its header and identifiers
+				Matcher skip = Pattern.compile(".*(" + RENDERER_ICON + "|" + RENDERER_NAME + "|" +
+					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
+					USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
+				boolean header = true;
+				for (String line : FileUtils.readLines(ref, Charsets.UTF_8)) {
+					if (
+						skip.reset(line).matches() ||
+						(
+							header &&
+							(
+								line.startsWith("#") ||
+								StringUtils.isBlank(line)
+							)
+						)
+					) {
+						continue;
+					}
+					header = false;
+					conf.add(line);
+				}
+			}
+
+			FileUtils.writeLines(file, "utf-8", conf, "\r\n");
+
+			if (load) {
+				try {
+					r.init(file);
+				} catch (ConfigurationException ce) {
+					LOGGER.debug("Error initializing renderer configuration: " + ce);
+				}
+			}
+		} catch (IOException ie) {
+			LOGGER.debug("Error creating renderer configuration file: " + ie);
+		}
+	}
+
+	public boolean isFileless() {
+		return fileless;
+	}
+
+	public void setFileless(boolean b) {
+		fileless = b;
 	}
 
 	public int getRank() {
 		return rank;
+	}
+
+	public String getThumbSize() {
+		return getString(THUMBNAIL_SIZE, "");
+	}
+
+	public String getThumbBG() {
+		return getString(THUMBNAIL_BG, "");
 	}
 
 	/**
@@ -494,16 +715,46 @@ public class RendererConfiguration {
 		return getBoolean(SHOW_DVD_TITLE_DURATION, false);
 	}
 
-	RendererConfiguration() throws ConfigurationException {
-		this((File) null);
+	public RendererConfiguration() throws ConfigurationException {
+		this(null, null);
+	}
+
+	public RendererConfiguration(String uuid) throws ConfigurationException {
+		this(null, uuid);
+	}
+
+	public RendererConfiguration(int ignored) {
+		// Just instantiate minimally, full initialization will happen later
+		configuration = createPropertiesConfiguration();
+		configurationReader = new ConfigurationReader(configuration, true); // true: log
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
-		configuration = new PropertiesConfiguration();
+		this(f, null);
+	}
 
+	public RendererConfiguration(File f, String uuid) throws ConfigurationException {
+		super(uuid);
+
+		configuration = createPropertiesConfiguration();
+
+		// false: don't log overrides (every renderer conf
+		// overrides multiple settings)
+		configurationReader = new ConfigurationReader(configuration, false);
+		pmsConfiguration = _pmsConfiguration;
+
+		renderCache = new HashMap<String, DLNAResource>();
+		player = null;
+
+		init(f);
+	}
+
+	public static PropertiesConfiguration createPropertiesConfiguration() {
+		PropertiesConfiguration conf = new PropertiesConfiguration();
+		conf.setListDelimiter((char) 0);
 		// Treat backslashes in the conf as literal while also supporting double-backslash syntax, i.e.
 		// ensure that typical raw regex strings (and unescaped Windows file paths) are read correctly.
-		configuration.setIOFactory(new PropertiesConfiguration.DefaultIOFactory() {
+		conf.setIOFactory(new PropertiesConfiguration.DefaultIOFactory() {
 			@Override
 			public PropertiesConfiguration.PropertiesReader createPropertiesReader(final Reader in, final char delimiter) {
 				return new PropertiesConfiguration.PropertiesReader(in, delimiter) {
@@ -515,23 +766,32 @@ public class RendererConfiguration {
 				};
 			}
 		});
+		return conf;
+	}
 
-		// false: don't log overrides (every renderer conf
-		// overrides multiple settings)
-		configurationReader = new ConfigurationReader(configuration, false);
+	public boolean load(File f) throws ConfigurationException {
+		if (f != null && !f.equals(NOFILE) && (configuration instanceof PropertiesConfiguration)) {
+			((PropertiesConfiguration) configuration).load(f);
 
-		configuration.setListDelimiter((char) 0);
+			// Set up the header matcher
+			SortedHeaderMap searchMap = new SortedHeaderMap();
+			searchMap.put("User-Agent", getUserAgent());
+			searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
+			String re = searchMap.toRegex();
+			sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
 
-		if (f != null) {
-			configuration.load(f);
+			file = f;
+			return true;
 		}
+		return false;
+	}
 
-		// Set up the header matcher
-		SortedHeaderMap searchMap = new SortedHeaderMap();
-		searchMap.put("User-Agent", getUserAgent());
-		searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
-		String re = searchMap.toRegex();
-		sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
+	public void init(File f) throws ConfigurationException {
+		rootFolder = null;
+		if (!loaded) {
+			configuration.clear();
+			loaded = load(f);
+		}
 
 		mimes = new HashMap<String, String>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
@@ -835,6 +1095,19 @@ public class RendererConfiguration {
 		return matchedMimeType;
 	}
 
+	public boolean matchUPNPDetails(String details) {
+		String upnpDetails = getUpnpDetailsString();
+		Pattern pattern;
+
+		if (StringUtils.isNotBlank(upnpDetails)) {
+			String p = StringUtils.join(upnpDetails.split(" , "), ".*");
+			pattern = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
+			return pattern.matcher(details.replace("\n", " ")).find();
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * Returns the pattern to match the User-Agent header to as defined in the
 	 * renderer configuration. Default value is "".
@@ -846,6 +1119,177 @@ public class RendererConfiguration {
 	}
 
 	/**
+	 * Returns the unique upnp details of this renderer as defined in the
+	 * renderer configuration. Default value is "".
+	 *
+	 * @return The detail string.
+	 */
+	public String getUpnpDetailsString() {
+		return getString(UPNP_DETAILS, "");
+	}
+
+	/**
+	 * Returns the upnp details of this renderer as broadcast by itself, if known.
+	 * Default value is null.
+	 *
+	 * @return The detail map.
+	 */
+	public Map<String, String> getUpnpDetails() {
+		return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
+	}
+
+	/**
+	 * Returns the current upnp state variables of this renderer, if known. Default value is null.
+	 *
+	 * @return The data.
+	 */
+	public Map<String, String> getUPNPData() {
+		return UPNPHelper.getData(uuid, instanceID);
+	}
+
+	/**
+	 * Returns the upnp services of this renderer.
+	 * Default value is null.
+	 *
+	 * @return The list of service names.
+	 */
+	public List<String> getUpnpServices() {
+		return UPNPHelper.getServiceNames(UPNPHelper.getDevice(uuid));
+	}
+
+	/**
+	 * Returns the uuid of this renderer, if known. Default value is null.
+	 *
+	 * @return The uuid.
+	 */
+	public String getUUID() {
+		return uuid;
+	}
+
+	/**
+	 * Sets the uuid of this renderer.
+	 *
+	 * @param uuid The uuid.
+	 */
+	public void setUUID(String uuid) {
+		this.uuid = uuid;
+	}
+
+	/**
+	 * Returns the upnp instance id of this renderer, if known. Default value is null.
+	 *
+	 * @return The instance id.
+	 */
+	public String getInstanceID() {
+		return instanceID;
+	}
+
+	/**
+	 * Sets the upnp instance id of this renderer.
+	 *
+	 * @param id The instance id.
+	 */
+	public void setInstanceID(String id) {
+		instanceID = id;
+	}
+
+	/**
+	 * Returns whether this renderer is known to be offline.
+	 *
+	 * @return Whether offline.
+	 */
+	public boolean isOffline() {
+		return !(uuid == null ? hasAssociatedAddress() : UPNPHelper.isActive(uuid, instanceID));
+	}
+
+	/**
+	 * Returns whether this renderer is currently connected via upnp.
+	 *
+	 * @return Whether connected.
+	 */
+	public boolean isUpnpConnected() {
+		return uuid != null ? UPNPHelper.isActive(uuid, instanceID) : false;
+	}
+
+	/**
+	 * Returns whether this renderer has an associated address.
+	 *
+	 * @return Has address.
+	 */
+	public boolean hasAssociatedAddress() {
+		return addressAssociation.values().contains(this);
+	}
+
+	/**
+	 * Returns this renderer's associated address.
+	 *
+	 * @return The address.
+	 */
+	public InetAddress getAddress() {
+		// If we have a uuid look up the upnp device address, which is always
+		// correct even if another device has overwritten our association
+		if (uuid != null) {
+			InetAddress address = UPNPHelper.getAddress(uuid);
+			if (address != null) {
+				return address;
+			}
+		}
+		// Otherwise check the address association
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (addressAssociation.get(sa) == this) {
+				return sa;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns whether this renderer provides upnp control services.
+	 *
+	 * @return Whether controllable.
+	 */
+	public boolean isUpnpControllable() {
+		return UPNPHelper.isUpnpControllable(uuid);
+	}
+
+	/**
+	 * Returns a upnp player for this renderer if upnp control is supported.
+	 *
+	 * @return a player or null.
+	 */
+	public UPNPHelper.Player getPlayer() {
+		if (player == null && isUpnpControllable()) {
+			player = new UPNPHelper.Player((DeviceConfiguration) this);
+		}
+		return player;
+	}
+
+	/**
+	 * Sets the upnp player.
+	 *
+	 * @param the player.
+	 */
+	public void setPlayer(UPNPHelper.Player player) {
+		this.player = player;
+	}
+
+	@Override
+	public void alert() {
+		if (gui != null) {
+			gui.icon.setGrey(!isUpnpConnected());
+		}
+		super.alert();
+	}
+
+	public void setGuiComponents(StatusTab.RendererItem item) {
+		gui = item;
+	}
+
+	public StatusTab.RendererItem getGuiComponents() {
+		return gui;
+	}
+
+	/**
 	 * RendererName: Determines the name that is displayed in the PMS user
 	 * interface when this renderer connects. Default value is "Unknown
 	 * renderer".
@@ -853,7 +1297,11 @@ public class RendererConfiguration {
 	 * @return The renderer name.
 	 */
 	public String getRendererName() {
-		return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		try {
+			return UPNPHelper.getFriendlyName(uuid);
+		} catch (Exception e) {
+			return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		}
 	}
 
 	/**
@@ -863,7 +1311,12 @@ public class RendererConfiguration {
 	 * @return The renderer icon.
 	 */
 	public String getRendererIcon() {
-		return getString(RENDERER_ICON, "unknown.png");
+		String icon = getString(RENDERER_ICON, "unknown.png");
+		String deviceIcon = null;
+		if (icon.equals("unknown.png")) {
+			deviceIcon = UPNPHelper.getDeviceIcon(this, 140);
+		}
+		return deviceIcon == null ? icon : deviceIcon;
 	}
 
 	/**
@@ -1292,8 +1745,8 @@ public class RendererConfiguration {
 		if (format != null) {
 			String noTranscode = "";
 
-			if (PMS.getConfiguration() != null) {
-				noTranscode = PMS.getConfiguration().getDisableTranscodeForExtensions();
+			if (PMS.getConfiguration(this) != null) {
+				noTranscode = PMS.getConfiguration(this).getDisableTranscodeForExtensions();
 			}
 
 			// Is the format among the ones to be streamed?
@@ -1302,6 +1755,10 @@ public class RendererConfiguration {
 			// Not natively supported.
 			return false;
 		}
+	}
+
+	public int getAutoPlayTmo() {
+		return getInt(AUTO_PLAY_TMO, 5000);
 	}
 
 	public String getCustomFFmpegOptions() {
@@ -1316,7 +1773,7 @@ public class RendererConfiguration {
 	 * This addresses a bug in some renderers (like Panasonic TVs) where
 	 * they stretch videos that are not 16/9.
 	 *
-	 * @return 
+	 * @return
 	 */
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
@@ -1331,7 +1788,7 @@ public class RendererConfiguration {
 	 * poor-quality upscaling, since we will use more CPU and network
 	 * bandwidth when it is false.
 	 *
-	 * @return 
+	 * @return
 	 */
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
@@ -1425,11 +1882,11 @@ public class RendererConfiguration {
 	}
 
 	public String getSupportedExternalSubtitles() {
-		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS , "");
+		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS, "");
 	}
 
 	public String getSupportedEmbeddedSubtitles() {
-		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS , "");
+		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS, "");
 	}
 
 	public boolean useClosedCaption() {
@@ -1499,13 +1956,13 @@ public class RendererConfiguration {
 
 	public String getOutput3DFormat() {
 		return getString(OUTPUT_3D_FORMAT, "");
-	}	
+	}
 
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
 	}
 
-	private String calculatedSpeed() throws Exception {
+	public String calculatedSpeed() throws Exception {
 		String max = getString(MAX_VIDEO_BITRATE, "");
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
@@ -1526,6 +1983,14 @@ public class RendererConfiguration {
 			}
 		}
 		return max;
+	}
+
+	public void cachePut(DLNAResource res) {
+		renderCache.put(res.getResourceId(), res);
+	}
+
+	public DLNAResource cacheGet(String id) {
+		return renderCache.get(id);
 	}
 
 	/**
@@ -1591,7 +2056,7 @@ public class RendererConfiguration {
 	 * @return True if the pattern matches or false if no match, no headers, or no matcher.
 	 */
 	public boolean match(SortedHeaderMap headers) {
-		if (!headers.isEmpty() && sortedHeaderMatcher != null) {
+		if (headers != null && !headers.isEmpty() && sortedHeaderMatcher != null) {
 			return sortedHeaderMatcher.reset(headers.joined()).find();
 		}
 		return false;

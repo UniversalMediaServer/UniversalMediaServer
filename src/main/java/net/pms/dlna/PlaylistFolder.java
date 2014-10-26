@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 public class PlaylistFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private String name;
 	private String uri;
 	private boolean valid = true;

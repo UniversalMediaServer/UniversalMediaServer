@@ -1,3 +1,27 @@
+5.0.0-a1 - 2014-10-??
+
+	Changes unique to 5.0.0-a1:
+		General:
+			Added support for UPnP connections and playback
+			Added the option to use info from IMDB with filename prettifying
+			Added HTML5 video support to the web interface
+			Minor tweaks to the GUI
+
+	Changes from the 4.x release branch:
+		General:
+			Increased speed of FFmpeg transcoding to H.264
+			Updated UMS.conf
+			Improved filename prettifying
+			Re-added "Force default renderer" option to the GUI
+			Minor GUI fixes and improvements
+			Fontconfig caches are not generated if subtitles are disabled
+		Renderers:
+			Added support for Panasonic SC-BTT Blu-ray Disc Home Theater Sound Systems
+			Improved support for Panasonic TVs
+			Improved support for Xbox One
+		Languages:
+			Updated French translation (thanks, Kirvx!)
+
 4.2.0 - 2014-10-17
 
 	General:

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<title>{{name}}</title>
+	</head>
+	<body id="ContentPage">
+		<script>
+{{#prevId}}
+			function prev() {window.location.replace('/play/{{prevId}}');}
+{{/prevId}}
+{{#nextId}}
+			function next() {window.location.replace('/play/{{nextId}}');}
+{{/nextId}}
+{{#isVideo}}
+			function flash() {window.location.replace('/play/{{id1}}?flash=1');}
+{{/isVideo}}
+		</script>
+		<div id="Container">
+			<div id="Menu">
+				<a href="/browse/0" id="HomeButton"></a>
+				<a href="/doc" id="DocButton" title="Documentation"></a>
+			</div>
+
+			<div id="VideoContainer">
+{{^isVideo}}
+				<img height=256 width=256 src="/thumb/{{id1}}" alt=""><br>
+				<h2>{{name}}</h2><br>
+{{/isVideo}}
+				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
+					<source src="/media/{{id1}}" type="{{mime}}">
+{{#sub}}
+					<track kind="subtitles" src="/files/{{this}}" default>
+{{/sub}}
+				</{{mediaType}}>
+				<div id="toolbar">
+					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+					<button id="next" onclick="next()"{{nextAttr}}>>></button>
+{{#isVideo}}
+					<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>
+{{/isVideo}}
+				</div>
+			</div>
+			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
+		</div>
+{{#autoContinue}}
+		<script>
+			document.getElementById('player').addEventListener('ended', next);
+		</script>
+{{/autoContinue}}
+	</body>
+</html>
+

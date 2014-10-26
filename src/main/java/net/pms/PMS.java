@@ -20,21 +20,22 @@
 package net.pms;
 
 import com.sun.jna.Platform;
+import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RootFolder;
+import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -55,14 +56,7 @@ import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
-import net.pms.util.FileUtil;
-import net.pms.util.OpenSubtitle;
-import net.pms.util.ProcessUtil;
-import net.pms.util.PropertiesUtil;
-import net.pms.util.SystemErrWrapper;
-import net.pms.util.TaskRunner;
-import net.pms.util.TempFileMgr;
-import net.pms.util.Version;
+import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -84,6 +78,8 @@ public class PMS {
 	public static String VERSION;
 
 	private boolean ready = false;
+
+	private GlobalIdRepo globalRepo;
 
 	public static final String AVS_SEPARATOR = "\1";
 
@@ -172,10 +168,16 @@ public class PMS {
 	 */
 	public void setRendererFound(RendererConfiguration renderer) {
 		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+			LOGGER.debug("Adding status button for " + renderer.getRendererName());
 			foundRenderers.add(renderer);
-			frame.addRendererIcon(renderer.getRank(), renderer.getRendererName(), renderer.getRendererIcon());
+			frame.addRenderer(renderer);
 			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
 		}
+	}
+
+	public void updateRenderer(RendererConfiguration renderer) {
+		LOGGER.debug("Updating status button for " + renderer.getRendererName());
+		frame.updateRenderer(renderer);
 	}
 
 	/**
@@ -282,6 +284,7 @@ public class PMS {
 	}
 
 	private void displayBanner() throws IOException {
+		LOGGER.debug("");
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
 		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
 		LOGGER.info("http://www.universalmediaserver.com");
@@ -381,6 +384,10 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+
+		// call this as early as possible
+		displayBanner();
+
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
 			// Ask the user if they want to run the wizard
@@ -510,8 +517,7 @@ public class PMS {
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
 
-		// call this as early as possible
-		displayBanner();
+		globalRepo = new GlobalIdRepo();
 
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
@@ -558,9 +564,18 @@ public class PMS {
 			}
 		});
 
-		RendererConfiguration.loadRendererConfigurations(configuration);
+		// Web stuff
+		if (configuration.useWebInterface()) {
+			web = new RemoteWeb(configuration.getWebPort());
+		}
 
-		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
+		infoDb = new InfoDb();
+		codes = new CodeDb();
+		masterCode = null;
+
+		RendererConfiguration.loadRendererConfigurations(configuration);
+		// Now that renderer confs are all loaded, we can start searching for renderers
+		UPNPHelper.getInstance().init();
 
 		OutputParams outputParams = new OutputParams(configuration);
 
@@ -570,18 +585,23 @@ public class PMS {
 		// Make sure buffer is destroyed
 		outputParams.cleanup = true;
 
-		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
-		mplayer.runInNewThread();
+		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
+		if (!configuration.isDisableSubtitles()) {
+			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
-		/**
-		 * Note: This can be needed in case MPlayer and FFmpeg have been
-		 * compiled with a different version of fontconfig.
-		 * Since it's unpredictable on Linux we should always run this
-		 * on Linux, but it may be possible to sync versions on OS X.
-		 */
-		if (!Platform.isWindows()) {
-			ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
-			ffmpeg.runInNewThread();
+			ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
+			mplayer.runInNewThread();
+
+			/**
+			 * Note: This can be needed in case MPlayer and FFmpeg have been
+			 * compiled with a different version of fontconfig.
+			 * Since it's unpredictable on Linux we should always run this
+			 * on Linux, but it may be possible to sync versions on OS X.
+			 */
+			if (!Platform.isWindows()) {
+				ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
+				ffmpeg.runInNewThread();
+			}
 		}
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
@@ -698,11 +718,6 @@ public class PMS {
 
 		if (!binding) {
 			return false;
-		}
-
-		// Web stuff
-		if (configuration.useWebInterface()) {
-			web = new RemoteWeb(configuration.getWebPort());
 		}
 
 		// initialize the cache
@@ -823,7 +838,7 @@ public class PMS {
 	 */
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
-		return getSharedFoldersArray(false);
+		return getSharedFoldersArray(false, getConfiguration());
 	}
 
 	/**
@@ -831,7 +846,7 @@ public class PMS {
 	 */
 	@Deprecated
 	public File[] getFoldersConf() {
-		return getSharedFoldersArray(false);
+		return getSharedFoldersArray(false, getConfiguration());
 	}
 
 	/**
@@ -841,16 +856,20 @@ public class PMS {
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, null);
+		return getSharedFoldersArray(monitored, null, getConfiguration());
 	}
 
-	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags) {
+	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
+		return getSharedFoldersArray(monitored, null, configuration);
+	}
+
+	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
 		String folders;
 
 		if (monitored) {
-			folders = getConfiguration().getFoldersMonitored();
+			folders = configuration.getFoldersMonitored();
 		} else {
-			folders = getConfiguration().getFolders(tags);
+			folders = configuration.getFolders(tags);
 		}
 
 		if (folders == null || folders.length() == 0) {
@@ -1125,13 +1144,15 @@ public class PMS {
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
 			LoggingConfigFileLoader.load();
 
+			LOGGER.debug(new Date().toString());
+
 			try {
 				getConfiguration().initCred();
 			} catch (IOException e) {
 				LOGGER.debug("Error initializing plugin credentials: " + e);
 			}
 
-			if (getConfiguration().getSingle()) {
+			if (getConfiguration().isRunSingleInstance()) {
 				killOld();
 			}
 
@@ -1161,6 +1182,10 @@ public class PMS {
 		return server;
 	}
 
+	public HttpServer getWebServer() {
+		return web.getServer();
+	}
+
 	public void save() {
 		try {
 			configuration.save();
@@ -1184,6 +1209,28 @@ public class PMS {
 	 */
 	public static PmsConfiguration getConfiguration() {
 		return configuration;
+	}
+
+	/**
+	 * Retrieves the composite {@link net.pms.configuration.DeviceConfiguration DeviceConfiguration} object
+	 * that applies to this device, which acts as its {@link net.pms.configuration.PmsConfiguration PmsConfiguration}.
+	 *
+	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
+	 * is known or can be determined.
+	 *
+	 * @return The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 */
+	public static PmsConfiguration getConfiguration(RendererConfiguration r) {
+		return (r != null && (r instanceof DeviceConfiguration)) ? (DeviceConfiguration)r : configuration;
+	}
+
+	public static PmsConfiguration getConfiguration(OutputParams params) {
+		return getConfiguration(params != null ? params.mediaRenderer : null);
+	}
+
+	// Note: this should be used only when no RendererConfiguration or OutputParams is available
+	public static PmsConfiguration getConfiguration(DLNAResource dlna) {
+		return getConfiguration(dlna != null ? dlna.getDefaultRenderer() : null);
 	}
 
 	/**
@@ -1469,5 +1516,37 @@ public class PMS {
 
 	public static boolean isReady() {
 		return get().ready;
+	}
+
+	public List<RendererConfiguration> getRenders() {
+		return foundRenderers;
+	}
+
+	public static GlobalIdRepo getGlobalRepo() {
+		return get().globalRepo;
+	}
+
+	private InfoDb infoDb;
+	private CodeDb codes;
+	private CodeEnter masterCode;
+
+	public void infoDbAdd(File f, String formattedName) {
+		infoDb.backgroundAdd(f, formattedName);
+	}
+
+	public InfoDb infoDb() {
+		return infoDb;
+	}
+
+	public CodeDb codeDb() {
+		return codes;
+	}
+
+	public void setMasterCode(CodeEnter ce) {
+		masterCode = ce;
+	}
+
+	public boolean masterCodeValid() {
+		return (masterCode != null && masterCode.validCode(null));
 	}
 }

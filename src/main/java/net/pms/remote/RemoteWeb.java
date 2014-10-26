@@ -7,7 +7,7 @@ import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import javax.net.ssl.*;
@@ -17,6 +17,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.newgui.DbgPacker;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ public class RemoteWeb {
 	private HashMap<String, String> users;
 	private HashMap<String, String> tags;
 	private HashMap<String, RootFolder> roots;
+	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RemoteWeb() {
@@ -47,6 +49,12 @@ public class RemoteWeb {
 		users = new HashMap<String, String>();
 		tags = new HashMap<String, String>();
 		roots = new HashMap<String, RootFolder>();
+		// Add "classpaths" for resolving web resources
+		resources = new RemoteUtil.ResourceManager(
+			"file:" + configuration.getProfileDirectory() + "/web/",
+			"jar:file:" + configuration.getProfileDirectory() + "/web.zip!/",
+			"file:" + configuration.getWebPath() + "/"
+		);
 
 		try {
 			readCred();
@@ -64,15 +72,15 @@ public class RemoteWeb {
 			int threads = configuration.getWebThreads();
 
 			// Add context handlers
-			addCtx("/", new RemoteStartHandler());
+			addCtx("/", new RemoteStartHandler(this));
 			addCtx("/browse", new RemoteBrowseHandler(this));
 			addCtx("/play", new RemotePlayHandler(this));
 			addCtx("/media", new RemoteMediaHandler(this));
 			addCtx("/fmedia", new RemoteMediaHandler(this, true));
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
-			addCtx("/files", new RemoteFileHandler());
-			addCtx("/subs", new RemoteFileHandler());
+			addCtx("/files", new RemoteFileHandler(this));
+			addCtx("/doc", new RemoteDocHandler(this));
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		} catch (Exception e) {
@@ -123,43 +131,33 @@ public class RemoteWeb {
 		return server;
 	}
 
-	public String getTag(String name) {
-		String tag = tags.get(name);
+	public String getTag(String user) {
+		String tag = tags.get(user);
 		if (tag == null) {
-			return name;
+			return user;
 		}
 		return tag;
 	}
 
-	private String getCookie(String cstr) {
-		if (StringUtils.isEmpty(cstr)) {
-			return null;
-		}
-		String[] tmp = cstr.split(";");
-		for (String str: tmp) {
-			str = str.trim();
-			if (str.startsWith("UMS=")) {
-				return str.substring(4);
-			}
-		}
-		return null;
+	public String getAddress() {
+		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	public RootFolder getRoot(String name, HttpExchange t) {
-		return getRoot(name, false, t);
+	public RootFolder getRoot(String user, HttpExchange t) {
+		return getRoot(user, false, t);
 	}
 
-	public RootFolder getRoot(String name, boolean create, HttpExchange t) {
-		String groupTag = getTag(name);
-		String cookie = getCookie(t.getRequestHeaders().getFirst("Cookie"));
+	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
+		String groupTag = getTag(user);
+		String cookie = RemoteUtil.getCookie("UMS", t);
 		RootFolder root = roots.get(cookie);
 		if (!create || (root != null)) {
 			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
 			return root;
 		}
 		ArrayList<String> tag = new ArrayList<String>();
-		tag.add(name);
-		if (!groupTag.equals(name)) {
+		tag.add(user);
+		if (!groupTag.equals(user)) {
 			tag.add(groupTag);
 		}
 
@@ -167,11 +165,13 @@ public class RemoteWeb {
 		tag.add("web");
 		root = new RootFolder(tag);
 		try {
-			WebRender render = new WebRender(name);
+			WebRender render = new WebRender(user);
 			root.setDefaultRenderer(render);
+			render.setRootFolder(root);
 			render.associateIP(t.getRemoteAddress().getAddress());
 			render.associatePort(t.getRemoteAddress().getPort());
-			render.setUA(t.getRequestHeaders().getFirst("User-agent"));
+//			render.setUA(t.getRequestHeaders().getFirst("User-agent"));
+			render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 			PMS.get().setRendererFound(render);
 		} catch (ConfigurationException e) {
 			root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -243,6 +243,10 @@ public class RemoteWeb {
 		in.close();
 	}
 
+	public HttpServer getServer() {
+		return server;
+	}
+
 	static class RemoteThumbHandler implements HttpHandler {
 		private RemoteWeb parent;
 
@@ -267,19 +271,25 @@ public class RemoteWeb {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
 			}
-			final List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
-			if (res.size() != 1) {
+			final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
+			if (r == null) {
 				// another error
-				LOGGER.debug("media unkonwn");
+				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
-			DLNAResource r = res.get(0);
-			r.checkThumbnail();
+			InputStream in;
+			if (!configuration.isShowCodeThumbs() && !r.isCodeValid(r)) {
+				// we shouldn't show the thumbs for coded objects
+				// unless the code is entered
+				in = r.getGenericThumbnailInputStream(null);
+			} else {
+				r.checkThumbnail();
+				in = r.getThumbnailInputStream();
+			}
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Content-Type", r.getThumbnailContentType());
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
-			InputStream in = r.getThumbnailInputStream();
 			t.sendResponseHeaders(200, in.available());
 			OutputStream os = t.getResponseBody();
 			LOGGER.debug("input is " + in + " out " + os);
@@ -288,46 +298,81 @@ public class RemoteWeb {
 	}
 
 	static class RemoteFileHandler implements HttpHandler {
+		private RemoteWeb parent;
+
+		public RemoteFileHandler(RemoteWeb parent) {
+			this.parent = parent;
+		}
+
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("file req " + t.getRequestURI());
-			if (t.getRequestURI().getPath().contains("crossdomain.xml")) {
-				String data = "<?xml version=\"1.0\"?>" +
+
+			String path = t.getRequestURI().getPath();
+			String response = null;
+			String mime = null;
+			int status = 200;
+
+			if (path.contains("crossdomain.xml")) {
+				response = "<?xml version=\"1.0\"?>" +
 					"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
 					"<cross-domain-policy>" +
 					"<allow-access-from domain=\"*\" />" +
 					"</cross-domain-policy>";
-				t.sendResponseHeaders(200, data.length());
-				OutputStream os = t.getResponseBody();
-					os.write(data.getBytes());
-				os.close();
-				return;
-			}
-			if (t.getRequestURI().getPath().startsWith("/files/")) {
-				// Add content type headers for IE
-				// Thx to speedy8754
-				if( t.getRequestURI().getPath().endsWith(".css") ) {
-					Headers hdr = t.getResponseHeaders();
-					hdr.add("Content-Type", "text/css");
+				mime = "text/xml";
+
+			} else if (path.startsWith("/files/log/")) {
+				String filename = path.substring(11);
+				if (filename.equals("info")) {
+					String log = PMS.get().getFrame().getLog();
+					log = log.replaceAll("\n", "<br>");
+					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
+					String x = fullLink + log;
+					if (StringUtils.isNotEmpty(log)) {
+						x = x + fullLink;
+					}
+					response = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
+				} else {
+					File file = parent.getResources().getFile(filename);
+					if (file != null) {
+						filename = file.getName();
+						HashMap<String, Object> vars = new HashMap<String, Object>();
+						vars.put("title", filename);
+						vars.put("brush", filename.endsWith("debug.log") ? "debug_log" :
+							filename.endsWith(".log") ? "log" : "conf");
+						vars.put("log", RemoteUtil.read(file).replace("<", "&lt;"));
+						response = parent.getResources().getTemplate("util/log.html").execute(vars);
+					} else {
+						status = 404;
+					}
 				}
-				else if( t.getRequestURI().getPath().endsWith(".js") ) {
-					Headers hdr = t.getResponseHeaders();
-					hdr.add("Content-Type", "text/javascript");
-				}
-				File f = configuration.getWebFile(t.getRequestURI().getPath().substring(7));
-				RemoteUtil.dumpFile(f, t);
+				mime = "text/html";
+
+			} else if (parent.getResources().write(path.substring(7), t)) {
+				// The resource manager found and sent the file, all done.
 				return;
+
+			} else {
+				status = 404;
 			}
-			if (t.getRequestURI().getPath().startsWith("/subs/")) {
-				File f = new File(t.getRequestURI().getPath().substring(6));
-				RemoteUtil.dumpFile(f, t);
+
+			if (status == 404 && response == null) {
+				response = "<html><body>404 - File Not Found: " + path + "</body></html>";
+				mime = "text/html";
 			}
+
+			RemoteUtil.respond(t, response, status, mime);
 		}
 	}
 
 	static class RemoteStartHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
 		private final static String CRLF = "\r\n";
+		private RemoteWeb parent;
+
+		public RemoteStartHandler(RemoteWeb parent) {
+			this.parent = parent;
+		}
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -340,38 +385,68 @@ public class RemoteWeb {
 				return;
 			}
 
-			// Front page HTML
-			StringBuilder sb = new StringBuilder();
-			sb.append("<!DOCTYPE html>").append(CRLF);
-				sb.append("<head>").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
-					sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
-					sb.append("<title>Universal Media Server</title>").append(CRLF);
-				sb.append("</head>").append(CRLF);
-				sb.append("<body id=\"FrontPage\">").append(CRLF);
-					sb.append("<div id=\"Container\">").append(CRLF);
-						sb.append("<div id=\"Menu\">").append(CRLF);
-							sb.append("<a href=\"/browse/0\" id=\"Logo\" title=\"Browse Media\">").append(CRLF);
-								sb.append("<h3>");
-									sb.append("Browse the media on ").append(configuration.getProfileName());
-								sb.append("</h3>");
-							sb.append("</a>").append(CRLF);
-						sb.append("</div>").append(CRLF);
-					sb.append("</div>");
-				sb.append("</body>");
-			sb.append("</html>");
+			HashMap<String, Object> vars = new HashMap<String, Object>();
+			vars.put("serverName", configuration.getServerName());
+			vars.put("profileName", configuration.getProfileName());
 
-			String response = sb.toString();
-			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type", "text/html");
-			t.sendResponseHeaders(200, response.length());
-			OutputStream os = t.getResponseBody();
-				os.write(response.getBytes());
-			os.close();
+			String response = parent.getResources().getTemplate("start.html").execute(vars);
+			RemoteUtil.respond(t, response, 200, "text/html");
 		}
+	}
+
+	static class RemoteDocHandler implements HttpHandler {
+		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDocHandler.class);
+		private final static String CRLF = "\r\n";
+
+		private RemoteWeb parent;
+
+		public RemoteDocHandler(RemoteWeb parent) {
+			this.parent = parent;
+			// Make sure logs are available right away
+			getLogs(false);
+		}
+
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			LOGGER.debug("root req " + t.getRequestURI());
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			if (t.getRequestURI().getPath().contains("favicon")) {
+				RemoteUtil.sendLogo(t);
+				return;
+			}
+
+			HashMap<String, Object> vars = new HashMap<String, Object>();
+			vars.put("logs", getLogs(true));
+			if (configuration.getUseCache()) {
+				vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
+			}
+
+			String response = parent.getResources().getTemplate("doc.html").execute(vars);
+			RemoteUtil.respond(t, response, 200, "text/html");
+		}
+
+		private ArrayList<HashMap<String, String>> getLogs(boolean asList) {
+			Set<File> files = new DbgPacker().getItems();
+			ArrayList<HashMap<String, String>> logs = asList ? new ArrayList<HashMap<String, String>>() : null;
+			for (File f : files) {
+				if (f.exists()) {
+					String id = String.valueOf(parent.getResources().add(f));
+					if (asList) {
+						HashMap<String, String> item = new HashMap<String, String>();
+						item.put("filename", f.getName());
+						item.put("id", id);
+						logs.add(item);
+					}
+				}
+			}
+			return logs;
+		}
+	}
+
+	public RemoteUtil.ResourceManager getResources() {
+		return resources;
 	}
 
 	public String getUrl() {

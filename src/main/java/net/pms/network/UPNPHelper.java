@@ -19,13 +19,28 @@
  */
 package net.pms.network;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingUtilities;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
+import static net.pms.dlna.DLNAResource.Temp;
+import net.pms.util.BasicPlayer;
+import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.fourthline.cling.model.meta.Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * and http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.1-AnnexA.pdf
  * for the specifications.
  */
-public class UPNPHelper {
+public class UPNPHelper extends UPNPControl {
 	// Logger instance to write messages to the logs.
 	private static final Logger LOGGER = LoggerFactory.getLogger(UPNPHelper.class);
 
@@ -69,10 +84,39 @@ public class UPNPHelper {
 
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
+	private static final UPNPHelper instance = new UPNPHelper();
+	private static PlayerControlHandler httpControlHandler;
+
 	/**
 	 * This utility class is not meant to be instantiated.
 	 */
-	private UPNPHelper() { }
+	private UPNPHelper() {
+		rendererMap = new DeviceMap<DeviceConfiguration>(DeviceConfiguration.class);
+	}
+
+	public static UPNPHelper getInstance() {
+		return instance;
+	}
+
+	@Override
+	public void init() {
+		super.init();
+		getHttpControlHandler();
+	}
+
+	public static PlayerControlHandler getHttpControlHandler() {
+		if (
+			httpControlHandler == null &&
+			PMS.get().getWebServer() != null &&
+			!"false".equals(configuration.getBumpAddress().toLowerCase())
+		) {
+			httpControlHandler = new PlayerControlHandler(PMS.get().getWebInterface());
+			LOGGER.debug("Attached http player control handler to web server");
+		}
+		return httpControlHandler;
+	}
+
+	private static String lastSearch = null;
 
 	/**
 	 * Send UPnP discovery search message to discover devices of interest on
@@ -109,7 +153,16 @@ public class UPNPHelper {
 		discovery.append("USN: ").append(usn).append(st).append(CRLF);
 		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
 
-		sendReply(host, port, discovery.toString());
+		String msg = discovery.toString();
+
+		if (st.equals(lastSearch)) {
+			LOGGER.trace("Resending last discovery [" + host + ":" + port + "]");
+		} else {
+			LOGGER.trace("Sending discovery [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+		}
+
+		sendReply(host, port, msg);
+		lastSearch = st;
 	}
 
 	/**
@@ -125,9 +178,6 @@ public class UPNPHelper {
 			DatagramSocket datagramSocket = new DatagramSocket();
 			InetAddress inetAddr = InetAddress.getByName(host);
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
-
-			LOGGER.trace("Sending this reply [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
-
 			datagramSocket.send(dgmPacket);
 			datagramSocket.close();
 		} catch (Exception e) {
@@ -169,6 +219,8 @@ public class UPNPHelper {
 			}
 		}
 	}
+
+	static boolean multicastLog = true;
 
 	/**
 	 * Gets the new multicast socket.
@@ -217,12 +269,15 @@ public class UPNPHelper {
 		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
 		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
 		ssdpSocket.setReuseAddress(true);
-
-		LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
-		LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
 		ssdpSocket.setTimeToLive(32);
-		LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
-		LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+
+		if (multicastLog) {
+			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
+			LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
+			LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
+			LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+			multicastLog = false;
+		}
 		return ssdpSocket;
 	}
 
@@ -238,7 +293,7 @@ public class UPNPHelper {
 			multicastSocket = getNewMulticastSocket();
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
-	
+
 			sendMessage(multicastSocket, "upnp:rootdevice", BYEBYE);
 			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
 			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
@@ -266,7 +321,7 @@ public class UPNPHelper {
 	 *
 	 * @param delay the delay
 	 */
-	private static void sleep(int delay) {
+	public static void sleep(int delay) {
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) { }
@@ -302,7 +357,7 @@ public class UPNPHelper {
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
-	 * to listen for responses. 
+	 * to listen for responses.
 	 *
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
@@ -320,14 +375,14 @@ public class UPNPHelper {
 					// the second delay is for 20 seconds. From then on, all other
 					// delays are for 180 seconds.
 					switch (delay) {
-					case 10000:
-						delay = 20000;
-						break;
-					case 20000:
-						delay = 180000;
-						break;
-					default:
-						break;
+						case 10000:
+							delay = 20000;
+							break;
+						case 20000:
+							delay = 180000;
+							break;
+						default:
+							break;
 					}
 				}
 			}
@@ -361,10 +416,10 @@ public class UPNPHelper {
 							 * configurations will not listen at all.
 							 */
 							if (ni != null) {
-									multicastSocket.setNetworkInterface(ni);
+								multicastSocket.setNetworkInterface(ni);
 							} else if (PMS.get().getServer().getNetworkInterface() != null) {
-									multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
-									LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
+								multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+								LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
 							}
 						} catch (SocketException e) {
 							// Not setting the network interface will work just fine on Mac OS X.
@@ -375,21 +430,29 @@ public class UPNPHelper {
 						InetAddress upnpAddress = getUPNPAddress();
 						multicastSocket.joinGroup(upnpAddress);
 
+						int M_SEARCH = 1, NOTIFY = 2;
+						InetAddress lastAddress = null;
+						int lastPacketType = 0;
+
 						while (true) {
 							byte[] buf = new byte[1024];
 							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 							multicastSocket.receive(receivePacket);
 
-							String s = new String(receivePacket.getData());
+							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
 							InetAddress address = receivePacket.getAddress();
+							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
-							if (s.startsWith("M-SEARCH")) {
-								String remoteAddr = address.getHostAddress();
-								int remotePort = receivePacket.getPort();
+							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
 
+							if (packetType == M_SEARCH) {
 								if (configuration.getIpFiltering().allowed(address)) {
-									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+									String remoteAddr = address.getHostAddress();
+									int remotePort = receivePacket.getPort();
+									if (!redundant) {
+										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
 										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
@@ -411,12 +474,12 @@ public class UPNPHelper {
 										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 									}
 								}
-							} else if (s.startsWith("NOTIFY")) {
-								String remoteAddr = address.getHostAddress();
-								int remotePort = receivePacket.getPort();
-
-								LOGGER.trace("Receiving a NOTIFY from [" + remoteAddr + ":" + remotePort + "]");
+							// Don't log redundant notify messages
+							} else if (packetType == NOTIFY && !redundant) {
+								LOGGER.trace("Receiving a NOTIFY from [" + address.getHostAddress() + ":" + receivePacket.getPort() + "]");
 							}
+							lastAddress = address;
+							lastPacketType = packetType;
 						}
 					} catch (BindException e) {
 						if (!bindErrorReported) {
@@ -457,6 +520,7 @@ public class UPNPHelper {
 	 * Shut down the threads that send ALIVE messages and listen to responses.
 	 */
 	public static void shutDownListener() {
+		instance.shutdown();
 		listenerThread.interrupt();
 		aliveThread.interrupt();
 	}
@@ -508,5 +572,463 @@ public class UPNPHelper {
 	 */
 	private static InetAddress getUPNPAddress() throws IOException {
 		return InetAddress.getByName(IPV4_UPNP_HOST);
+	}
+
+	@Override
+	protected Renderer rendererFound(Device d, String uuid) {
+		// Create or retrieve an instance
+		try {
+			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
+			DeviceConfiguration r = (DeviceConfiguration) RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+			RendererConfiguration ref = configuration.isRendererForceDefault() ?
+				null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+
+			// FIXME: when UpnpDetailsSearch is missing from the conf a upnp-advertising
+			// renderer could register twice if the http server sees it first
+			if (r != null && r.matchUPNPDetails(getDeviceDetailsString(d))) {
+				// Already seen by the http server
+				if (
+					ref != null &&
+					!ref.getUpnpDetailsString().equals(r.getUpnpDetailsString()) &&
+					ref.getLoadingPriority() >= r.getLoadingPriority()
+				) {
+					// The upnp-matched reference conf is different from the previous
+					// http-matched conf and has equal or higher priority, so update.
+					LOGGER.debug("Switching to preferred renderer: " + ref.getRendererName());
+					r.inherit(ref);
+				}
+				// Make sure it's mapped
+				rendererMap.put(uuid, "0", r);
+				// Update gui
+				PMS.get().updateRenderer(r);
+				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + getDeviceDetails(d));
+			} else {
+				// It's brand new
+				r = (DeviceConfiguration) rendererMap.get(uuid, "0");
+				if (ref != null) {
+					r.inherit(ref);
+				} else {
+					// It's unrecognized: temporarily assign the default renderer but mark it as unloaded
+					// so actual recognition can happen later once the http server receives a request.
+					// This is to allow initiation of upnp playback before http recognition has occurred.
+					r.inherit(r.getDefaultConf());
+					r.loaded = false;
+				}
+				if (r.associateIP(socket)) {
+					PMS.get().setRendererFound(r);
+					LOGGER.debug("New renderer found: " + r.getRendererName() + ": " + getDeviceDetails(d));
+				}
+			}
+			return r;
+		} catch (Exception e) {
+			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
+		}
+		return null;
+	}
+
+	public static InetAddress getAddress(String uuid) {
+		try {
+			return InetAddress.getByName(getURL(getDevice(uuid)).getHost());
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
+	public static boolean hasRenderer(int type) {
+		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
+			Renderer r = (Renderer) item.get("0");
+			if ((r.controls & type) != 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static List<RendererConfiguration> getRenderers(int type) {
+		ArrayList<RendererConfiguration> renderers = new ArrayList<RendererConfiguration>();
+		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
+			Renderer r = (Renderer) item.get("0");
+			if (r.active && (r.controls & type) != 0) {
+				renderers.add((RendererConfiguration) r);
+			}
+		}
+		return renderers;
+	}
+
+	@Override
+	protected void rendererReady(String uuid) {
+	}
+
+	public static void play(String uri, String name, DeviceConfiguration r) {
+		DLNAResource d = DLNAResource.getValidResource(uri, name, r);
+		if (d != null) {
+			play(d, r);
+		}
+	}
+
+	public static void play(DLNAResource d, DeviceConfiguration r) {
+		DLNAResource d1 = d.getParent() == null ? Temp.add(d) : d;
+		if (d1 != null) {
+			Device dev = getDevice(r.getUUID());
+			String id = r.getInstanceID();
+			setAVTransportURI(dev, id, d1.getURL(""), d1.getDidlString(r));
+			play(dev, id);
+		}
+	}
+
+	// A player state-machine to manage upnp playback
+	public static class Player implements BasicPlayer {
+		private Device dev;
+		private String uuid;
+		private String instanceID;
+		public DeviceConfiguration renderer;
+		private Map<String, String> data;
+		private LinkedHashSet<ActionListener> listeners;
+		private BasicPlayer.State state;
+		public Playlist playlist;
+		private String lasturi;
+
+
+		public Player(DeviceConfiguration renderer) {
+			uuid = renderer.getUUID();
+			instanceID = renderer.getInstanceID();
+			this.renderer = renderer;
+			dev = getDevice(uuid);
+			data = rendererMap.get(uuid, instanceID).connect(this);
+			state = new State();
+			playlist = new Playlist(this);
+			listeners = new LinkedHashSet();
+			lasturi = null;
+			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
+			refresh();
+		}
+
+		@Override
+		public void setURI(String uri, String metadata) {
+			Playlist.Item item;
+			if (uri != null) {
+				if (metadata != null && metadata.startsWith("<DIDL")) {
+					// If it looks real assume it's valid
+				} else if ((item = playlist.get(uri)) != null) {
+					// We've played it before
+					metadata = item.metadata;
+				} else {
+					// It's new to us, find or create the resource as required.
+					// Note: here metadata (if any) is actually the resource name
+					LOGGER.debug("Validating uri " + uri);
+					DLNAResource d = DLNAResource.getValidResource(uri, metadata, renderer);
+					if (d != null) {
+						uri = d.getURL("", true);
+						metadata = d.getDidlString(renderer);
+					}
+				}
+				UPNPControl.setAVTransportURI(dev, instanceID, uri, metadata);
+			}
+		}
+
+		@Override
+		public void pressPlay(String uri, String metadata) {
+			if (state.playback == -1) {
+				// unknown state, we assume it's stopped
+				state.playback = STOPPED;
+			}
+			if (state.playback == PLAYING) {
+				pause();
+			} else {
+				if (state.playback == STOPPED) {
+					Playlist.Item item = playlist.resolve(uri);
+					if (item != null) {
+						uri = item.uri;
+						metadata = item.metadata;
+					}
+					if (uri != null && !uri.equals(state.uri)) {
+						setURI(uri, metadata);
+					}
+				}
+				play();
+			}
+		}
+
+		@Override
+		public void add(int index, String uri, String name, String metadata, boolean select) {
+			if (!StringUtils.isBlank(uri)) {
+				playlist.add(index, uri, name, metadata, select);
+			}
+		}
+
+		@Override
+		public void remove(String uri) {
+			if (!StringUtils.isBlank(uri)) {
+				playlist.remove(uri);
+			}
+		}
+
+		@Override
+		public void play() {
+			UPNPControl.play(dev, instanceID);
+		}
+
+		@Override
+		public void pause() {
+			UPNPControl.pause(dev, instanceID);
+		}
+
+		@Override
+		public void stop() {
+			UPNPControl.stop(dev, instanceID);
+		}
+
+		@Override
+		public void next() {
+			step(1);
+		}
+
+		@Override
+		public void prev() {
+			step(-1);
+		}
+
+		@Override
+		public void forward() {
+			UPNPControl.seek(dev, instanceID, REL_TIME, jump(60));
+		}
+
+		@Override
+		public void rewind() {
+			UPNPControl.seek(dev, instanceID, REL_TIME, jump(-60));
+		}
+
+		@Override
+		public void mute() {
+			UPNPControl.setMute(dev, instanceID, !state.mute);
+		}
+
+		public void setVolume(int volume) {
+			UPNPControl.setVolume(dev, instanceID, volume);
+		}
+
+		@Override
+		public void connect(ActionListener listener) {
+			listeners.add(listener);
+		}
+
+		@Override
+		public void disconnect(ActionListener listener) {
+			listeners.remove(listener);
+			if (listeners.isEmpty()) {
+				close();
+			}
+		}
+
+		@Override
+		public void actionPerformed(final ActionEvent e) {
+			refresh();
+		}
+
+		@Override
+		public void refresh() {
+			String s = data.get("TransportState");
+			state.playback = "STOPPED".equals(s) ? BasicPlayer.STOPPED :
+				"PLAYING".equals(s) ? BasicPlayer.PLAYING :
+				"PAUSED_PLAYBACK".equals(s) ? BasicPlayer.PAUSED: -1;
+			state.mute = "0".equals(data.get("Mute")) ? false : true;
+			s = data.get("Volume");
+			state.volume = s == null ? 0 : Integer.valueOf(s);
+			state.position = data.get("RelTime");
+			state.duration = data.get("CurrentMediaDuration");
+			state.uri = data.get("AVTransportURI");
+			state.metadata = data.get("AVTransportURIMetaData");
+			// update playlist only if uri has changed
+			if (!StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi)) {
+				playlist.set(state.uri, null, state.metadata);
+			}
+			lasturi = state.uri;
+			alert();
+		}
+
+		public void alert() {
+			for (ActionListener l : listeners) {
+				l.actionPerformed(new ActionEvent(this, 0, null));
+			}
+		}
+
+		@Override
+		public BasicPlayer.State getState() {
+			return state;
+		}
+
+		@Override
+		public int getControls() {
+			return renderer.controls;
+		}
+
+		@Override
+		public void close() {
+			listeners.clear();
+			rendererMap.get(uuid, instanceID).disconnect(this);
+			renderer.setPlayer(null);
+		}
+
+		public DefaultComboBoxModel getPlaylist() {
+			return playlist;
+		}
+
+		public String jump(double seconds) {
+			double t = StringUtil.convertStringToTime(state.position) + seconds;
+			return t > 0 ? StringUtil.convertTimeToString(t, "%02d:%02d:%02.0f") : "00:00:00";
+		}
+
+		public void step(int n) {
+			if (state.playback != STOPPED) {
+				stop();
+			}
+			playlist.step(n);
+			state.playback = STOPPED;
+			pressPlay(null, null);
+		}
+
+		public static class Playlist extends DefaultComboBoxModel {
+			private static final long serialVersionUID = 5934677633834195753L;
+
+			Player player;
+
+			public Playlist(Player p) {
+				player = p;
+			}
+
+			public Item get(String uri) {
+				int index = getIndexOf(new Item(uri, null, null));
+				if (index > -1) {
+					return (Item) getElementAt(index);
+				}
+				return null;
+			}
+
+			public Item resolve(String uri) {
+				Item item = null;
+				try {
+					Object selected = getSelectedItem();
+					Item selectedItem = selected instanceof Item ? (Item) selected : null;
+					String selectedName = selectedItem != null ? selectedItem.name : null;
+					// See if we have a matching item for the "uri", which could be:
+					item = (Item) (
+						// An alias for the currently selected item
+						StringUtils.isBlank(uri) || uri.equals(selectedName) ? selectedItem :
+						// An item index, e.g. '$i$4'
+						uri.startsWith("$i$") ? getElementAt(Integer.valueOf(uri.substring(3))) :
+						// Or an actual uri
+						get(uri));
+				} catch (Exception e) {
+				}
+				return (item != null && isValid(item, player.renderer)) ? item : null;
+			}
+
+			public static boolean isValid(Item item, DeviceConfiguration renderer) {
+				if (DLNAResource.isResourceUrl(item.uri)) {
+					// Check existence for resource uris
+					if (PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
+						return true;
+					}
+					// Repair the item if possible
+					DLNAResource d = DLNAResource.getValidResource(item.uri, item.name, renderer);
+					if (d != null) {
+						item.uri = d.getURL("", true);
+						item.metadata = d.getDidlString(renderer);
+						return true;
+					}
+					return false;
+				}
+				// Assume non-resource uris are valid
+				return true;
+			}
+
+			public void validate() {
+				for (int i = getSize() - 1; i > -1; i--) {
+					if (!isValid((Item) getElementAt(i), player.renderer)) {
+						removeElementAt(i);
+					}
+				}
+			}
+
+			public void set(String uri, String name, String metadata) {
+				add(0, uri, name, metadata, true);
+			}
+
+			public void add(final int index, final String uri, final String name, final String metadata, final boolean select) {
+				if (!StringUtils.isBlank(uri)) {
+					// TODO: check headless mode (should work according to https://java.net/bugzilla/show_bug.cgi?id=2568)
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							Item item = resolve(uri);
+							if (item == null) {
+								item = new Item(uri, name, metadata);
+								insertElementAt(item, index > -1 ? index : getSize());
+							}
+							if (select) {
+								setSelectedItem(item);
+							}
+						}
+					});
+				}
+			}
+
+			public void remove(final String uri) {
+				if (!StringUtils.isBlank(uri)) {
+					// TODO: check headless mode
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							Item item = resolve(uri);
+							if (item != null) {
+								removeElement(item);
+							}
+						}
+					});
+				}
+			}
+
+			public void step(int n) {
+				int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
+				setSelectedItem(getElementAt(i));
+			}
+
+			public static class Item {
+
+				public String name, uri, metadata;
+				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
+
+				public Item(String uri, String name, String metadata) {
+					this.uri = uri;
+					this.name = name;
+					this.metadata = metadata;
+				}
+
+				@Override
+				public String toString() {
+					if (StringUtils.isBlank(name)) {
+						name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
+							dctitle.group(1) :
+							new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
+					}
+					return name;
+				}
+
+				@Override
+				public boolean equals(Object other) {
+					return other == null ? false :
+						other == this ? true :
+						other instanceof Item ? ((Item)other).uri.equals(uri) :
+						other.toString().equals(uri);
+				}
+
+				@Override
+				public int hashCode() {
+					return uri.hashCode();
+				}
+			}
+		}
+	}
+
+	public static String unescape(String s) {
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s)));
 	}
 }

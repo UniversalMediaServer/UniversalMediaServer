@@ -32,7 +32,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.MapFileConfiguration;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -42,6 +41,7 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.newgui.IFrame;
+import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -54,7 +54,6 @@ import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
@@ -124,7 +123,7 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (configuration.getFolderLimit() && getDefaultRenderer().isLimitFolders()) {
+		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
 			lim = new FolderLimit();
 			addChild(lim);
 		}
@@ -257,8 +256,8 @@ public class RootFolder extends DLNAResource {
 
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
 		List<RealFile> res = new ArrayList<RealFile>();
-		File[] files = PMS.get().getSharedFoldersArray(false, tags);
-		String s = PMS.getConfiguration().getFoldersIgnored(tags);
+		File[] files = PMS.get().getSharedFoldersArray(false, tags, configuration);
+		String s = configuration.getFoldersIgnored(tags);
 		String[] skips = null;
 
 		if (s != null) {
@@ -1183,6 +1182,25 @@ public class RootFolder extends DLNAResource {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
 			res.addChild(vfSub);
+
+			if (configuration.useCode() && !PMS.get().masterCodeValid() &&
+				StringUtils.isNotEmpty(PMS.get().codeDb().lookup(CodeDb.MASTER))) {
+				// if the master code is valid we don't add this
+				VirtualVideoAction vva = new VirtualVideoAction("MasterCode", true) {
+					@Override
+					public boolean enable() {
+						CodeEnter ce = (CodeEnter) getParent();
+						if (ce.validCode(this)) {
+							PMS.get().setMasterCode(ce);
+							return true;
+						}
+						return false;
+					}
+				};
+				CodeEnter ce1 = new CodeEnter(vva);
+				ce1.setCode(CodeDb.MASTER);
+				res.addChild(ce1);
+			}
 
 			res.addChild(new VirtualVideoAction(Messages.getString("PMS.3"), configuration.isMencoderNoOutOfSync()) {
 				@Override

@@ -22,12 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.virtual.TranscodeVirtualFolder;
-import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
@@ -44,7 +39,6 @@ import org.slf4j.LoggerFactory;
  */
 public class MapFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private List<File> discoverable;
 	private String forcedName;
 
@@ -273,7 +267,7 @@ public class MapFile extends DLNAResource {
 			}
 		}
 
-		return (getLastRefreshTime() < modified);
+		return (getLastRefreshTime() < modified) || (configuration.getSortMethod(getPath()) == UMSUtils.SORT_RANDOM);
 	}
 
 	@Override
@@ -283,7 +277,7 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void doRefreshChildren(String str) {
-		List<File> files = getFileList();
+		/*List<File> files = getFileList();
 		List<File> addedFiles = new ArrayList<File>();
 		List<DLNAResource> removedFiles = new ArrayList<DLNAResource>();
 
@@ -311,7 +305,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		// false: don't create the folder if it doesn't exist i.e. find the folder
-		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false);
+		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false, configuration);
 
 		for (DLNAResource f : removedFiles) {
 			getChildren().remove(f);
@@ -331,7 +325,11 @@ public class MapFile extends DLNAResource {
 
 		for (MapFileConfiguration f : this.getConf().getChildren()) {
 			addChild(new MapFile(f));
-		}
+		} */
+		getChildren().clear();
+		discoverable = null;
+		discoverChildren(str);
+		analyzeChildren(-1);
 	}
 
 	private boolean foundInList(List<File> files, DLNAResource dlna) {

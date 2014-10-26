@@ -1,16 +1,6 @@
 package net.pms.util;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -94,7 +84,7 @@ public class OpenSubtitle {
 		connection.setDefaultUseCaches(false);
 		connection.setRequestProperty("Content-Type", "text/xml");
 		connection.setRequestProperty("Content-Length", "" + query.length());
-		((HttpURLConnection)connection).setRequestMethod("POST");
+		((HttpURLConnection) connection).setRequestMethod("POST");
 		//LOGGER.debug("opensub query "+query);
 		// open up the output stream of the connection
 		if (!StringUtils.isEmpty(query)) {
@@ -122,7 +112,7 @@ public class OpenSubtitle {
 		return ((now - tokenAge) < TOKEN_AGE_TIME);
 	}
 
-	private static void login() throws IOException {
+	private static synchronized void login() throws IOException {
 		if ((token != null) && tokenIsYoung()) {
 			return;
 		}
@@ -147,22 +137,39 @@ public class OpenSubtitle {
 
 	public static String fetchImdbId(String hash) throws IOException {
 		LOGGER.debug("fetch imdbid for hash " + hash);
+		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		String info = checkMovieHash(hash);
+		LOGGER.debug("info is " + info);
+		Matcher m = re.matcher(info);
+		if (m.find()) {
+			return m.group(1);
+		}
+		return "";
+	}
+
+	private static String checkMovieHash(String hash) throws IOException {
 		login();
 		if (token == null) {
 			return "";
 		}
 		URL url = new URL(OPENSUBS_URL);
-		String req = "<methodCall>\n<methodName>CheckMovieHash2</methodName>\n" +
-			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-			"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
-			"</data>\n</array>\n</value>\n</param>" +
-			"</params>\n</methodCall>\n";
-		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
-		Matcher m = re.matcher(postPage(url.openConnection(), req));
-		if (m.find()) {
-			return m.group(1);
+		String req = "<methodCall>\n<methodName>CheckMovieHash</methodName>\n" +
+				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+				"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
+				"</data>\n</array>\n</value>\n</param>" +
+				"</params>\n</methodCall>\n";
+		LOGGER.debug("req " + req);
+		return postPage(url.openConnection(), req);
+	}
+
+	public static String getMovieInfo(File f) throws IOException {
+		String info = checkMovieHash(getHash(f));
+		if (StringUtils.isEmpty(info)) {
+			return "";
 		}
-		return "";
+		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		LOGGER.debug("info is " + info);
+		return info;
 	}
 
 	public static String getHash(File f) throws IOException {
@@ -244,6 +251,110 @@ public class OpenSubtitle {
 		return res;
 	}
 
+	/**
+	 * Feeds the correct parameters to getInfo below.
+	 *
+	 * @see #getInfo(java.lang.String, long, java.lang.String, java.lang.String)
+	 *
+	 * @param f the file to lookup
+	 * @param formattedName the name to use in the name search
+	 *
+	 * @return
+	 * @throws IOException
+	 */
+	public static String[] getInfo(File f, String formattedName) throws IOException {
+		String[] res = getInfo(getHash(f), f.length(), null, null);
+		if (res == null || res.length == 0) { // no good on hash! try imdb
+			String imdb = ImdbUtil.extractImdb(f);
+			res = getInfo(null, 0, imdb, null);
+		}
+		if (res == null || res.length == 0) { // final try, use the name
+			if (StringUtils.isNotEmpty(formattedName)) {
+				res = getInfo(null, 0, null, formattedName);
+			} else {
+				res = getInfo(null, 0, null, f.getName());
+			}
+		}
+		return res;
+	}
+
+	/**
+	 * Attempt to return information from IMDB about the file based on information
+	 * from the filename; either the hash, the IMDB ID or the filename itself.
+	 *
+	 * It's only called for TV shows right now, but it will also find information
+	 * about films if used for that.
+	 *
+	 * @param hash  the movie hash
+	 * @param size  the bytesize to be used with the hash
+	 * @param imdb  the IMDB ID
+	 * @param query the string to search IMDB for
+	 *
+	 * @return a string array including the IMDB ID, episode title, season number,
+	 *         episode number relative to the season, and the show name, or null
+	 *         if we couldn't find it on IMDB.
+	 *
+	 * @throws IOException
+	 */
+	private static String[] getInfo(String hash, long size, String imdb, String query) throws IOException {
+		login();
+		if (token == null) {
+			return null;
+		}
+		String lang = iso639(PMS.getConfiguration().getSubtitlesLanguages());
+		URL url = new URL(OPENSUBS_URL);
+		String hashStr = "";
+		String imdbStr = "";
+		String qStr = "";
+		if (!StringUtils.isEmpty(hash)) {
+			hashStr = "<member><name>moviehash</name><value><string>" + hash + "</string></value></member>\n" +
+					"<member><name>moviebytesize</name><value><double>" + size + "</double></value></member>\n";
+		} else if (!StringUtils.isEmpty(imdb)) {
+			imdbStr = "<member><name>imdbid</name><value><string>" + imdb + "</string></value></member>\n";
+		} else if (!StringUtils.isEmpty(query)) {
+			qStr = "<member><name>query</name><value><string>" + query + "</string></value></member>\n";
+		} else {
+			return null;
+		}
+		String req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
+				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+				"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
+				"</name><value><string>" + lang + "</string></value></member>" +
+				hashStr + imdbStr + qStr + "\n" +
+				"</struct></value></data>\n</array>\n</value>\n</param>" +
+				"</params>\n</methodCall>\n";
+		Pattern re = Pattern.compile(
+				".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" + "" +
+				"MovieName</name>.*?<string>([^<]+)</string>.*?" +
+				"MovieYear</name>.*?<string>([^<]+)</string>.*?" +
+				"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
+				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?",
+				Pattern.DOTALL
+		);
+		String page = postPage(url.openConnection(), req);
+		Matcher m = re.matcher(page);
+		if (m.find()) {
+			LOGGER.debug("match " + m.group(1) + " " + m.group(2) + " " + m.group(3) + " " + m.group(4) + " " + m.group(5));
+			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
+			String name = m.group(2);
+			Matcher m1 = re1.matcher(name);
+			String eptit = "";
+			if (m1.find()) {
+				eptit = m1.group(2).trim();
+				name = m1.group(1).trim();
+			}
+			return new String[]{
+				ImdbUtil.ensureTT(m.group(1).trim()),
+				eptit,
+				m.group(3).trim(),
+				m.group(4).trim(),
+				m.group(5).trim(),
+				name
+			};
+		}
+		return null;
+	}
+
 	private static String iso639(String s) {
 		String[] tmp = s.split(",");
 		StringBuilder res = new StringBuilder();
@@ -259,7 +370,7 @@ public class OpenSubtitle {
 	}
 
 	public static String subFile(String name) {
-		String dir = PMS.getConfiguration().getDataFile(SUB_DIR); 
+		String dir = PMS.getConfiguration().getDataFile(SUB_DIR);
 		File path = new File(dir);
 		if (!path.exists()) {
 			path.mkdirs();
