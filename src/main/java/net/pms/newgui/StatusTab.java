@@ -18,6 +18,7 @@
  */
 package net.pms.newgui;
 
+import com.sun.jna.Platform;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
@@ -72,8 +73,11 @@ public class StatusTab {
 			icon.enableRollover();
 			label = new JLabel(r.getRendererName());
 			playing = new JLabel(" ");
+			playing.setForeground(Color.gray);
 			time = new JLabel(" ");
+			timetime.setForeground(Color.gray);
 			jpb = new SmoothProgressBar(0, 100);
+			jpb.setUI(new SimpleProgressUI(Color.white, Color.gray));
 			jpb.setStringPainted(true);
 			jpb.setBorderPainted(false);
 			jpb.setForeground(new Color(75, 140, 181));
@@ -108,11 +112,56 @@ public class StatusTab {
 				try {
 					for (; v != n; v += step) {
 						super.setValue(v);
-						Thread.sleep(20);
+						Thread.sleep(10);
 					}
 				} catch (InterruptedException e) {
 				}
 			}
+		}
+	}
+
+	// A simple flat borderless progress bar painter,
+	// required for Windows where setBorderPainted etc are ignored by the default laf
+	private static class SimpleProgressUI extends javax.swing.plaf.basic.BasicProgressBarUI {
+		Color fg, bg;
+
+		public SimpleProgressUI() {
+			this(null, null);
+		}
+
+		public SimpleProgressUI(Color fg, Color bg) {
+			this.fg = fg != null ? fg : super.getSelectionForeground();
+			this.bg = bg != null ? bg : super.getSelectionBackground();
+		}
+
+		@Override
+		protected void paintDeterminate(Graphics g, JComponent c) {
+			Insets b = progressBar.getInsets();
+			int w = progressBar.getWidth() - (b.right + b.left);
+			int h = progressBar.getHeight() - (b.top + b.bottom);
+			if (w < 1 || h < 1) {
+				return;
+			}
+			// Draw a continuous horizontal left-to-right bar
+			int filled = getAmountFull(b, w, h);
+			Graphics2D g2 = (Graphics2D)g;
+			g2.setColor(progressBar.getForeground());
+			g2.setStroke(new BasicStroke((float)h, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+			g2.drawLine(b.left, (h/2) + b.top, filled + b.left, (h/2) + b.top);
+			// Draw the string, if any
+			if (progressBar.isStringPainted()) {
+				paintString(g, b.left, b.top, w, h, filled, b);
+			}
+		}
+
+		@Override
+		protected Color getSelectionForeground() {
+			return fg;
+		}
+
+		@Override
+		protected Color getSelectionBackground() {
+			return bg;
 		}
 	}
 
