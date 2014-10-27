@@ -75,7 +75,7 @@ public class StatusTab {
 			playing = new JLabel(" ");
 			playing.setForeground(Color.gray);
 			time = new JLabel(" ");
-			timetime.setForeground(Color.gray);
+			time.setForeground(Color.gray);
 			jpb = new SmoothProgressBar(0, 100);
 			jpb.setUI(new SimpleProgressUI(Color.white, Color.gray));
 			jpb.setStringPainted(true);
