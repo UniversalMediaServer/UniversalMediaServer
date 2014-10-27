@@ -758,6 +758,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public Player resolvePlayer(RendererConfiguration renderer) {
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
+		Player player = null;
 
 		if (media == null) {
 			media = new DLNAMediaInfo();
@@ -769,8 +770,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			setFormat(f != null ? f : FormatFactory.getAssociatedFormat(".mpg"));
 		}
 
-		// Try to determine a player to use for transcoding.
-		Player player = PlayerFactory.getPlayer(this);
+		// Check if we're a transcode folder item
+		if (isNoName() && (getParent() instanceof FileTranscodeVirtualFolder)) {
+			// Yes, leave everything as-is
+			player = getPlayer();
+			LOGGER.trace("Selecting player {} based on transcode item settings", player);
+			return player;
+		}
+
+		// Try to match a player based on media information and format.
+		player = PlayerFactory.getPlayer(this);
 
 		if (player != null) {
 			String configurationForceExtensions = configuration.getForceTranscodeForExtensions();
@@ -3634,15 +3643,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
-	public void updateRendering(RendererConfiguration r) {
-		RendererConfiguration r0 = getDefaultRenderer();
-		Player p0 = getPlayer();
-		setDefaultRenderer(r);
-		DLNAResource parent = getParent();
-		if (parent != null) {
-			parent.updateChild(this);
+	public static class Rendering {
+		RendererConfiguration r;
+		Player p;
+		DLNAMediaSubtitle s;
+		Rendering(DLNAResource d) {
+			r = d.getDefaultRenderer();
+			p = d.getPlayer();
+			s = d.getMediaSubtitle();
 		}
-		LOGGER.debug("Switched rendering context to '{} [{}]' from '{} [{}]'", r, getPlayer(), r0, p0);
+	}
+
+	public Rendering updateRendering(RendererConfiguration r) {
+		Rendering rendering = new Rendering(this);
+		Player p = resolvePlayer(r);
+		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", r, p, rendering.r, rendering.p);
+		setDefaultRenderer(r);
+		setPlayer(p);
+		return rendering;
+	}
+
+	public void updateRendering(Rendering rendering) {
+		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", rendering.r, rendering.p, getDefaultRenderer(), getPlayer());
+		setDefaultRenderer(rendering.r);
+		setPlayer(rendering.p);
+		media_subtitle = rendering.s;
 	}
 
 	public DLNAResource isCoded() {

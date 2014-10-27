@@ -331,11 +331,10 @@ public class Request extends HTTPResource {
 					}
 				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
-					RendererConfiguration orig = dlna.getDefaultRenderer();
-					boolean rendererChanged = !mediaRenderer.equals(orig);
-					if (rendererChanged) {
-						// change render and update player details
-						dlna.updateRendering(mediaRenderer);
+					DLNAResource.Rendering origRendering = null;
+					if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
+						// Adjust rendering details for this renderer
+						origRendering = dlna.updateRendering(mediaRenderer);
 					}
 					String name = dlna.getDisplayName(mediaRenderer);
 					if (dlna.isNoName()) {
@@ -434,9 +433,9 @@ public class Request extends HTTPResource {
 
 						output(output, "Connection: keep-alive");
 					}
-					if (rendererChanged) {
-						// put the orig render back
-						dlna.updateRendering(orig);
+					if (origRendering != null) {
+						// Restore original rendering details
+						dlna.updateRendering(origRendering);
 					}
 				}
 			}
