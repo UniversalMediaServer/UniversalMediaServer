@@ -294,7 +294,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		this.setTitle(title);
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		Dimension screenSize = getToolkit().getScreenSize();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 		if (screenSize.width < MINIMUM_SIZE.width || screenSize.height < MINIMUM_SIZE.height) {
 			setMinimumSize(screenSize);
