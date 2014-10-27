@@ -808,7 +808,10 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 					// There are 1048576 bytes in a megabyte
 					long bufferInMBs = space / 1048576;
-					renderer.setBuffer(bufferInMBs);
+					if (renderer != null) {
+						renderer.setBuffer(bufferInMBs);
+					}
+					PMS.get().getFrame().updateBuffer();
 				}
 			}, 0, 2000);
 		}
@@ -870,6 +873,12 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		}
 
 		buffered = false;
-		renderer.setBuffer(0);
+
+		if (renderer != null) {
+			renderer.setBuffer(0);
+		}
+		if (!hidebuffer && maxMemorySize != 1048576) {
+			PMS.get().getFrame().updateBuffer();
+		}
 	}
 }

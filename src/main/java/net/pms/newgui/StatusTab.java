@@ -60,7 +60,6 @@ public class StatusTab {
 	public static class RendererItem implements ActionListener{
 		public ImagePanel icon;
 		public JLabel label;
-		public JLabel ip;
 		public JLabel playing;
 		public JLabel time;
 		public JFrame frame;
@@ -68,13 +67,25 @@ public class StatusTab {
 		public RendererPanel panel;
 		public String name = " ";
 
+		public RendererItem(RendererConfiguration r) {
+			icon = addRendererIcon(r.getRendererIcon());
+			icon.enableRollover();
+			label = new JLabel(r.getRendererName());
+			playing = new JLabel(" ");
+			time = new JLabel("");
+			jpb = new SmoothProgressBar(0, 100);
+			jpb.setStringPainted(true);
+			jpb.setBorderPainted(false);
+			jpb.setForeground(new Color(75, 140, 181));
+			jpb.setString(r.getAddress().getHostAddress());
+		}
+
 		@Override
 		public void actionPerformed(final ActionEvent e) {
 			BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
 			time.setText(state.playback == BasicPlayer.STOPPED ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			jpb.setValue((int) (100 * state.buffer / bufferSize));
-			jpb.setString(formatter.format(state.buffer) + " " + Messages.getString("StatusTab.12"));
 			String n = state.playback == BasicPlayer.STOPPED ? " " : state.name;
 			if (!name.equals(n)) {
 				name = n;
@@ -83,8 +94,8 @@ public class StatusTab {
 		}
 	}
 
-	class SmoothProgressBar extends JProgressBar {
-		SmoothProgressBar(int min, int max) {
+	public static class SmoothProgressBar extends JProgressBar {
+		public SmoothProgressBar(int min, int max) {
 			super(min, max);
 		}
 
@@ -96,7 +107,6 @@ public class StatusTab {
 				try {
 					for (; v != n; v += step) {
 						super.setValue(v);
-						repaint();
 						Thread.sleep(20);
 					}
 				} catch (InterruptedException e) {
@@ -287,28 +297,16 @@ public class StatusTab {
 
 		layoutRenderer.appendColumn(ColumnSpec.decode("center:pref"));
 
-		final RendererItem r = new RendererItem();
-		r.icon = addRendererIcon(renderer.getRendererIcon());
-		r.icon.enableRollover();
+		final RendererItem r = new RendererItem(renderer);
 		CellConstraints cc = new CellConstraints();
 		int i = rendererCount++;
 		rendererBuilder.add(r.icon, cc.xy(i + 2, 1));
-		r.label = new JLabel(renderer.getRendererName());
 		rendererBuilder.add(r.label, cc.xy(i + 2, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
-		r.ip = new JLabel("");
-		rendererBuilder.add(r.ip, cc.xy(i + 2, 5));
-		r.playing = new JLabel(" ");
+		rendererBuilder.add(r.jpb, cc.xy(i + 2, 5));
 		rendererBuilder.add(r.playing, cc.xy(i + 2, 7));
-		r.time = new JLabel("");
 		rendererBuilder.add(r.time, cc.xy(i + 2, 9));
-		r.jpb = new SmoothProgressBar(0, 100);
-		r.jpb.setStringPainted(true);
-		r.jpb.setForeground(new Color(75, 140, 181));
-		r.jpb.setString(Messages.getString("StatusTab.5"));
-		rendererBuilder.add(r.jpb, cc.xy(i + 2, 11));
 
 		renderer.setGuiComponents(r);
-		updateIP(renderer);
 		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
 
@@ -345,20 +343,12 @@ public class StatusTab {
 			public void run() {
 				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
 				renderer.gui.label.setText(renderer.getRendererName());
-				updateIP(renderer);
 				// Update the popup panel if it's been opened
 				if (renderer.gui.panel != null) {
 					renderer.gui.panel.update();
 				}
 			}
 		});
-	}
-
-	private static void updateIP(RendererConfiguration renderer) {
-		InetAddress ip = renderer.getAddress();
-		if(ip != null) {
-			renderer.gui.ip.setText("<html><font color=gray>" + ip.getHostAddress() + "</font></html>");
-		}
 	}
 
 	public static ImagePanel addRendererIcon(String icon) {

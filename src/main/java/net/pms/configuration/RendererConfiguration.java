@@ -2184,7 +2184,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 	public void setBuffer(long mb) {
 		buffer = mb < 0 ? 0 : mb;
 		getPlayer().setBuffer(mb);
-		PMS.get().getFrame().updateBuffer();
 	}
 
 	public long getBuffer() {
