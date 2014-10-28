@@ -678,8 +678,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								VirtualFolder vf = getSubSelector(true);
 								if (vf != null) {
 									DLNAResource newChild = child.clone();
-									newChild.setPlayer(player);
-									newChild.setMedia(child.media);
+									newChild.player = player;
+									newChild.media = child.media;
 									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player);
 
 									vf.addChild(new SubSelFile(newChild));
