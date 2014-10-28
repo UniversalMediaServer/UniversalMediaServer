@@ -61,7 +61,8 @@ public class StatusTab {
 	public static class RendererItem implements ActionListener {
 		public ImagePanel icon;
 		public JLabel label;
-		public JLabel playing;
+		public MarqueeLabel playingLabel;
+		public FixedPanel playing;
 		public JLabel time;
 		public JFrame frame;
 		public SmoothProgressBar jpb;
@@ -72,8 +73,12 @@ public class StatusTab {
 			icon = addRendererIcon(r.getRendererIcon());
 			icon.enableRollover();
 			label = new JLabel(r.getRendererName());
-			playing = new JLabel(" ");
-			playing.setForeground(Color.gray);
+			int w = icon.getSource().getWidth() - 20;
+			playingLabel = new MarqueeLabel(" ", w);
+			playingLabel.setForeground(Color.gray);
+			int h = (int)playingLabel.getSize().getHeight();
+			playing = new FixedPanel(w, h);
+			playing.add(playingLabel);
 			time = new JLabel(" ");
 			time.setForeground(Color.gray);
 			jpb = new SmoothProgressBar(0, 100);
@@ -93,7 +98,7 @@ public class StatusTab {
 			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
 			if (!name.equals(n)) {
 				name = n;
-				playing.setText(name.substring(0, name.length() < 25 ? name.length() : 25));
+				playingLabel.setText(name);
 			}
 		}
 	}
@@ -162,6 +167,61 @@ public class StatusTab {
 		@Override
 		protected Color getSelectionBackground() {
 			return bg;
+		}
+	}
+
+	// A fixed-size horizontal content-centering panel.
+	public static class FixedPanel extends JPanel {
+		public FixedPanel(int w, int h) {
+			super();
+			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+			setMaximumSize(new Dimension(w, h));
+			setPreferredSize(new Dimension(w, h));
+			super.add(Box.createGlue());
+		}
+
+		@Override
+		public Component add(Component comp) {
+			super.add(comp);
+			super.add(Box.createGlue());
+			return comp;
+		}
+	}
+
+	// A label that automatically scrolls its text if
+	// wider than a specified maximum.
+	public static class MarqueeLabel extends JLabel {
+		public int speed, spacer, dir, max_w, interval = 30;
+
+		public MarqueeLabel(String text, int width) {
+			this(text, width, 30, -1, 10);
+		}
+
+		public MarqueeLabel(String text, int width, int speed, int dir, int spacer) {
+			super(text);
+			this.max_w = width;
+			this.speed = speed;
+			this.dir = dir;
+			this.spacer = spacer;
+			setSize(getPreferredSize());
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			int w = getWidth();
+			if (w <= max_w) {
+				// Static
+				super.paintComponent(g);
+			} else {
+				// Wraparound scrolling
+				w += spacer;
+				int offset = (int)((System.currentTimeMillis() / speed) % w);
+				g.translate(dir * offset, 0);
+				super.paintComponent(g);
+				g.translate(-dir * w, 0);
+				super.paintComponent(g);
+				repaint(interval);
+			}
 		}
 	}
 
@@ -283,7 +343,7 @@ public class StatusTab {
 //		);
 		layoutRenderer = new FormLayout(
 			"pref",
-			"pref, 3dlu, pref, 2dlu,pref, 2dlu,pref, 2dlu, pref, 2dlu, pref"
+			"pref, 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
 		);
 		rendererBuilder = new PanelBuilder(layoutRenderer);
 		rendererBuilder.opaque(true);
@@ -353,7 +413,7 @@ public class StatusTab {
 		rendererBuilder.add(r.icon, cc.xy(i + 2, 1));
 		rendererBuilder.add(r.label, cc.xy(i + 2, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
 		rendererBuilder.add(r.jpb, cc.xy(i + 2, 5));
-		rendererBuilder.add(r.playing, cc.xy(i + 2, 7));
+		rendererBuilder.add(r.playing, cc.xy(i + 2, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
 		rendererBuilder.add(r.time, cc.xy(i + 2, 9));
 
 		renderer.setGuiComponents(r);
