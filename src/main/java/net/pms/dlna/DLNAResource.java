@@ -653,7 +653,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 						child.setPlayer(player);
 
-						if (player != null && !allChildrenAreFolders) {
+						if (!allChildrenAreFolders) {
 							child.setDefaultRenderer(defaultRenderer);
 
 							// Should the child be added to the #--TRANSCODE--# folder?
@@ -668,7 +668,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									newChild.player = player;
 									newChild.media = child.media;
 									fileTranscodeFolder.addChildInternal(newChild);
-									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player.toString());
+									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player);
 
 									transcodeFolder.updateChild(fileTranscodeFolder);
 								}
@@ -680,7 +680,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									DLNAResource newChild = child.clone();
 									newChild.setPlayer(player);
 									newChild.setMedia(child.media);
-									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player.toString());
+									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player);
 
 									vf.addChild(new SubSelFile(newChild));
 								}
