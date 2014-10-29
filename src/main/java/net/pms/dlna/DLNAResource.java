@@ -1006,7 +1006,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
-			return Temp.get(objectId);
+			return Temp.get(objectId, renderer);
 		}
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
@@ -3553,21 +3553,42 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
-		public DLNAResource add(String uri, String name) {
-			return add(autoMatch(uri, name));
+		public DLNAResource add(String uri, String name, RendererConfiguration r) {
+			DLNAResource  d = autoMatch(uri, name);
+			if (d != null) {
+				add(d);
+				// Pretend to be a parent with the same renderer
+				RendererConfiguration prev = getDefaultRenderer();
+				setDefaultRenderer(r);
+				// Resolve the new item's rendering details
+				d.setDefaultRenderer(r);
+				d.resolve();
+				d.setPlayer(d.resolvePlayer(r));
+				// Restore our previous renderer
+				setDefaultRenderer(prev);
+		}
+			return d;
 		}
 
 		public int getIndex(String objectId) {
+			return getIndex(objectId, null);
+		}
+
+		public int getIndex(String objectId, RendererConfiguration r) {
 			int index = indexOf(objectId);
-			if (index == -1) {
-				index = indexOf(recreate(objectId, null).getResourceId());
+			if (index == -1 && r != null) {
+				index = indexOf(recreate(objectId, null, r).getResourceId());
 			}
 			return index;
 		}
 
-		public DLNAResource get(String objectId) {
-			int index = getIndex(objectId);
-			return index > -1 ? getChildren().get(index) : null;
+		public DLNAResource get(String objectId, RendererConfiguration r) {
+			int index = getIndex(objectId, r);
+			DLNAResource d = index > -1 ? getChildren().get(index) : null;
+			if (d != null && r != null && ! r.equals(d.getDefaultRenderer())) {
+				d.updateRendering(r);
+			}
+			return d;
 		}
 
 		public List<DLNAResource> asList(String objectId) {
@@ -3578,9 +3599,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Try to recreate a lost item from a previous session
 		// using its objectId's trailing uri, if any
 
-		public DLNAResource recreate(String objectId, String name) {
+		public DLNAResource recreate(String objectId, String name, RendererConfiguration r) {
 			try {
-				return add(StringUtils.substringAfter(objectId, "/"), name);
+				return add(StringUtils.substringAfter(objectId, "/"), name, r);
 			} catch (Exception e) {
 				return null;
 			}
@@ -3612,7 +3633,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (objectId != null) {
 			if (objectId.startsWith("Temp$")) {
 				int index = Temp.indexOf(objectId);
-				return index > -1 ? Temp.getChildren().get(index) : Temp.recreate(objectId, name);
+				return index > -1 ? Temp.getChildren().get(index) : Temp.recreate(objectId, name, r);
 			} else {
 				if (r == null) {
 					r = RendererConfiguration.getDefaultConf();
@@ -3625,17 +3646,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			}
 		} else {
-			return Temp.add(uri, name);
+			return Temp.add(uri, name, r);
 		}
 	}
 
 	// Returns the uri if it's ours and exists or else the url of new Temp item (or null)
-	public static String getValidResourceURL(String uri, String name) {
+	public static String getValidResourceURL(String uri, String name, RendererConfiguration r) {
 		if (isResourceUrl(uri)) {
 			// Check existence
 			return PMS.get().getGlobalRepo().exists(parseResourceId(uri)) ? uri : null; // TODO: attempt repair
 		} else {
-			DLNAResource d = Temp.add(uri, name);
+			DLNAResource d = Temp.add(uri, name, r);
 			if (d != null) {
 				return d.getURL("", true);
 			}
