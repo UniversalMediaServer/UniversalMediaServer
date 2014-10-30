@@ -32,11 +32,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAResource;
 import net.pms.util.FormLayoutUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +62,7 @@ public class StatusTab {
 	private long rc = 0;
 	private long peak;
 	private DecimalFormat formatter = new DecimalFormat("#,###");
+	private static JTable servingTable;
 
 	StatusTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -97,12 +101,15 @@ public class StatusTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		jl = new JLabel(Messages.getString("StatusTab.3"));
-		builder.add(jl, FormLayoutUtil.flip(cc.xyw(1, 3, 2, "center, top"), colSpec, orientation));
+		builder.add(jl, FormLayoutUtil.flip(cc.xy(1, 3, "right, top"), colSpec, orientation));
 		jl.setFont(new Font("Dialog", 1, 18));
 		jl.setForeground(new Color(68, 68, 68));
 
 		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
-		builder.add(imagePanel, FormLayoutUtil.flip(cc.xywh(1, 5, 2, 8, "center, fill"), colSpec, orientation));
+		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+
+		servingTable = new JTable(12, 5);
+		builder.add(servingTable, FormLayoutUtil.flip(cc.xywh(1, 6, 2, 5), colSpec, orientation));
 
 		JSeparator x = new JSeparator(SwingConstants.VERTICAL);
 		x.setPreferredSize(new Dimension(3, 215));
@@ -250,5 +257,26 @@ public class StatusTab {
         }
 		rendererLabels[numRenderers].setText(msg);
 		numRenderers++;
+	}
+
+	public static void refreshServingTable() {
+		ArrayList<DLNAResource> servingMedia = PMS.servingMedia;
+		for (int row = 0; row < servingTable.getRowCount(); row++) {
+			if (row < servingMedia.size()) {
+				DLNAResource media = servingMedia.get(row);
+				servingTable.setValueAt(media.getName(), row, 0);
+				servingTable.setValueAt(media.getMedia().getDurationString(), row, 1);
+				servingTable.setValueAt(media.getPlayer(), row, 2);
+				servingTable.setValueAt(media.getDefaultRenderer(), row, 3);
+				servingTable.setValueAt(media.getIp().getHostAddress(), row, 4);
+			} else {
+				servingTable.setValueAt(null, row, 0);
+				servingTable.setValueAt(null, row, 1);
+				servingTable.setValueAt(null, row, 2);
+				servingTable.setValueAt(null, row, 3);
+				servingTable.setValueAt(null, row, 4);
+			}
+		} 
+		
 	}
 }

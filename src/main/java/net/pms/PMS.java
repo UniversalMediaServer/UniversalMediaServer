@@ -1466,4 +1466,6 @@ public class PMS {
 	public static boolean isReady() {
 		return get().ready;
 	}
+
+	public static ServingMediaList servingMedia = new ServingMediaList();
 }

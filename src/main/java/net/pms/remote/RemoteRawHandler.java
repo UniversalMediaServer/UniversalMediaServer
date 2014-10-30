@@ -36,7 +36,7 @@ public class RemoteRawHandler implements HttpHandler {
 		String id;
 		id = RemoteUtil.strip(RemoteUtil.getId("raw/", t));
 		LOGGER.debug("raw id " + id);
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer(), null);
 		if (res.size() != 1) {
 			// another error
 			LOGGER.debug("media unkonwn");

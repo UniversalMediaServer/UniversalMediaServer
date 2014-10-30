@@ -164,7 +164,7 @@ public class FFmpegDVRMSRemux extends Player {
 		);
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.runInNewThread();
+		pw.runInNewThread(dlna);
 
 		return pw;
 	}

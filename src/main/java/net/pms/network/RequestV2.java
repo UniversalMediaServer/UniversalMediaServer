@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
@@ -71,6 +72,7 @@ public class RequestV2 extends HTTPResource {
 	private int startingIndex;
 	private int requestCount;
 	private String browseFlag;
+	private InetAddress ip;
 
 	/**
 	 * When sending an input stream, the lowRange indicates which byte to start from.
@@ -180,10 +182,12 @@ public class RequestV2 extends HTTPResource {
 	 * @param method The {@link String} that defines the HTTP method to be used.
 	 * @param argument The {@link String} containing instructions for PMS. It contains a command,
 	 * 		a unique resource id and a resource name, all separated by slashes.
+	 * @param ia 
 	 */
-	public RequestV2(String method, String argument) {
+	public RequestV2(String method, String argument, InetAddress ia) {
 		this.method = method;
 		this.argument = argument;
+		this.ip = ia;
 	}
 
 	public String getSoapaction() {
@@ -277,7 +281,7 @@ public class RequestV2 extends HTTPResource {
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(id, false, 0, 0, mediaRenderer);
+			List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(id, false, 0, 0, mediaRenderer, ip);
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);
@@ -667,7 +671,8 @@ public class RequestV2 extends HTTPResource {
 					startingIndex,
 					requestCount,
 					mediaRenderer,
-					searchCriteria
+					searchCriteria,
+					ip
 				);
 
 				if (searchCriteria != null && files != null) {

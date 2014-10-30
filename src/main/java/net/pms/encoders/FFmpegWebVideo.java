@@ -305,7 +305,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 
 		// Launch the transcode command...
-		pw.runInNewThread();
+		pw.runInNewThread(dlna);
 		// ...and wait briefly to allow it to start
 		try {
 			Thread.sleep(200);

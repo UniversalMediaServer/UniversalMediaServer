@@ -281,7 +281,7 @@ public class Request extends HTTPResource {
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(id, false, 0, 0, mediaRenderer);
+			List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(id, false, 0, 0, mediaRenderer, null);
 
 			if (transferMode != null) {
 				output(output, "TransferMode.DLNA.ORG: " + transferMode);
@@ -619,7 +619,8 @@ public class Request extends HTTPResource {
 					startingIndex,
 					requestCount,
 					mediaRenderer,
-					searchCriteria
+					searchCriteria,
+					null
 				);
 
 				if (searchCriteria != null && files != null) {

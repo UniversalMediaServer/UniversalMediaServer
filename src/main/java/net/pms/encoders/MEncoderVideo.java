@@ -2441,7 +2441,7 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		pw.runInNewThread();
+		pw.runInNewThread(dlna);
 
 		try {
 			Thread.sleep(100);

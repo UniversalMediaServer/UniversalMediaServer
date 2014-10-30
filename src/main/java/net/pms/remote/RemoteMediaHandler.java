@@ -61,7 +61,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		if (render == null) {
 			r = root.getDefaultRenderer();
 		}
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, r);
+		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, r, this.render.getRootFolder().getIp());
 		if (res.size() != 1) {
 			// another error
 			LOGGER.debug("media unkonwn");

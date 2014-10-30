@@ -125,7 +125,7 @@ public class MEncoderWebVideo extends Player {
 
 		pipe.deleteLater();
 
-		pw.runInNewThread();
+		pw.runInNewThread(dlna);
 
 		// Not sure what good this 50ms wait will do for the calling method.
 		try {
