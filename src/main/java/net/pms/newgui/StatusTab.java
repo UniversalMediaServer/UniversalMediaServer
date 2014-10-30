@@ -275,7 +275,7 @@ public class StatusTab {
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 15dlu, p,15dlu, p,15dlu,p,p"
+			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 15dlu, p, 15dlu, p, 15dlu, p, p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
