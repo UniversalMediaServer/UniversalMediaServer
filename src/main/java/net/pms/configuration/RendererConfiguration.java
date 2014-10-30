@@ -725,8 +725,11 @@ public class RendererConfiguration {
 		return getBoolean(TRANSCODE_AUDIO_441KHZ, false);
 	}
 
+	/**
+	 * @return whether to transcode H.264 video if it exceeds level 4.1
+	 */
 	public boolean isH264Level41Limited() {
-		return getBoolean(H264_L41_LIMITED, false);
+		return getBoolean(H264_L41_LIMITED, true);
 	}
 
 	public boolean isTranscodeFastStart() {
