@@ -66,7 +66,7 @@ public class StatusTab {
 			int w = icon.getSource().getWidth() - 20;
 			playingLabel = new MarqueeLabel(" ", w);
 			playingLabel.setForeground(Color.gray);
-			int h = (int)playingLabel.getSize().getHeight();
+			int h = (int) playingLabel.getSize().getHeight();
 			playing = new FixedPanel(w, h);
 			playing.add(playingLabel);
 			time = new JLabel(" ");
@@ -246,13 +246,12 @@ public class StatusTab {
 		for (RendererConfiguration r : PMS.get().getRenders()) {
 			total += r.getBuffer();
 		}
-		if(total > 0) {
+		if (total > 0) {
 			int percent = (int) (100 * total / bufferSize);
 			String msg = formatter.format(total) + " " + Messages.getString("StatusTab.12");
 			jpb.setValue(percent);
 			jpb.setString(msg);
-		}
-		else {
+		} else {
 			jpb.setValue(0);
 			jpb.setString(Messages.getString("StatusTab.5"));
 			currentBitrate.setText("0");
