@@ -34,6 +34,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -498,6 +499,8 @@ public class RendererConfiguration {
 		this((File) null);
 	}
 
+	static UnicodeUnescaper unicodeUnescaper = new UnicodeUnescaper();
+
 	public RendererConfiguration(File f) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
 
@@ -509,8 +512,10 @@ public class RendererConfiguration {
 				return new PropertiesConfiguration.PropertiesReader(in, delimiter) {
 					@Override
 					protected void parseProperty(final String line) {
-						// Unescape any double-backslashes, then escape all backslashes before parsing
-						super.parseProperty(line.replace("\\\\", "\\").replace("\\", "\\\\"));
+						// Decode any backslashed unicode escapes, e.g. '\u005c', from the
+						// ISO 8859-1 (aka Latin 1) encoded java Properties file, then
+						// unescape any double-backslashes, then escape all backslashes before parsing
+						super.parseProperty(unicodeUnescaper.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
 					}
 				};
 			}
