@@ -18,40 +18,30 @@
  */
 package net.pms.newgui;
 
-import com.sun.jna.Platform;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.text.DateFormatter;
-
-import java.awt.event.ActionListener;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
-import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -423,6 +413,7 @@ public class StatusTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {
+					@Override
 					public void run() {
 						if (r.frame == null) {
 							JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
@@ -450,6 +441,7 @@ public class StatusTab {
 
 	public static void updateRenderer(final RendererConfiguration renderer) {
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
 				renderer.gui.label.setText(renderer.getRendererName());
