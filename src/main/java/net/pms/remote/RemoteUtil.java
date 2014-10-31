@@ -20,6 +20,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.FileWatcher;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -400,11 +401,29 @@ public class RemoteUtil {
 			Template t = null;
 			if (templates.containsKey(filename)) {
 				t = templates.get(filename);
-			} else if (findResource(filename) != null) {
-				t = compile(getInputStream(filename));
-				templates.put(filename, t);
+			} else {
+				URL url = findResource(filename);
+				if (url != null) {
+					t = compile(getInputStream(filename));
+					templates.put(filename, t);
+					PMS.getFileWatcher().add(new FileWatcher.Watch(url.getFile(), recompiler));
+				}
 			}
 			return t;
 		}
+
+		/**
+		 * Automatic recompiling
+		 */
+		FileWatcher.Listener recompiler = new FileWatcher.Listener() {
+			@Override
+			public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+				String path = watch.fspec.startsWith("web/") ? watch.fspec.substring(4) : watch.fspec;
+				if (templates.containsKey(path)) {
+					templates.put(path, compile(getInputStream(path)));
+					LOGGER.info("Recompiling template: {}", path);
+				}
+			}
+		};
 	}
 }

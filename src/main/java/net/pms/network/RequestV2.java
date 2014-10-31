@@ -333,11 +333,10 @@ public class RequestV2 extends HTTPResource {
 					}
 				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
-					RendererConfiguration orig = dlna.getDefaultRenderer();
-					boolean rendererChanged = !mediaRenderer.equals(orig);
-					if (rendererChanged) {
-						// change render and update player details
-						dlna.updateRender(mediaRenderer);
+					DLNAResource.Rendering origRendering = null;
+					if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
+						// Adjust rendering details for this renderer
+						origRendering = dlna.updateRendering(mediaRenderer);
 					}
 					// If range has not been initialized yet and the DLNAResource has its
 					// own start and end defined, initialize range with those values before
@@ -476,9 +475,9 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 					}
-					if (rendererChanged) {
-						// put the orig render back
-						dlna.updateRender(orig);
+					if (origRendering != null) {
+						// Restore original rendering details
+						dlna.updateRendering(origRendering);
 					}
 				}
 			}
@@ -616,7 +615,7 @@ public class RequestV2 extends HTTPResource {
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
 					containerID = getEnclosingValue(content, "<ContainerID", "</ContainerID>");
-					if (containerID == null || !containerID.contains("$")) {
+					if (containerID == null) {
 						objectID = "0";
 					} else {
 						objectID = containerID;
@@ -688,6 +687,18 @@ public class RequestV2 extends HTTPResource {
 					mediaRenderer,
 					searchCriteria
 				);
+
+				if(xbox360 && files.size() == 0) {
+					// do it again...
+					files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
+							"0",
+							browseDirectChildren,
+							startingIndex,
+							requestCount,
+							mediaRenderer,
+							searchCriteria
+					);
+				}
 
 				if (searchCriteria != null && files != null) {
 					UMSUtils.postSearch(files, searchCriteria);

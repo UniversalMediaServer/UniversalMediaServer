@@ -61,6 +61,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,8 @@ public class PMS {
 	public static String VERSION;
 
 	private boolean ready = false;
+
+	private static FileWatcher fileWatcher;
 
 	private GlobalIdRepo globalRepo;
 
@@ -517,6 +520,8 @@ public class PMS {
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
 
+		fileWatcher = new FileWatcher();
+
 		globalRepo = new GlobalIdRepo();
 
 		AutoUpdater autoUpdater = null;
@@ -886,6 +891,7 @@ public class PMS {
 			// Windows path separators:
 			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
 			folder = folder.replaceAll("&comma;", ",");
+			folder =  new UnicodeUnescaper().translate(folder);
 
 			// this is called *way* too often
 			// so log it so we can fix it.
@@ -1548,5 +1554,9 @@ public class PMS {
 
 	public boolean masterCodeValid() {
 		return (masterCode != null && masterCode.validCode(null));
+	}
+
+	public static FileWatcher getFileWatcher() {
+		return fileWatcher;
 	}
 }

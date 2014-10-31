@@ -30,6 +30,8 @@ import java.util.TimerTask;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.network.UPNPControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +86,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private double timeseek;
 	private double timeend;
 	private long packetpos = 0;
-	private int currentBufferPercentage = 0;
+	private final RendererConfiguration renderer;
 
 	/**
 	 * Try to increase the size of a memory buffer, while retaining its
@@ -179,6 +181,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	 */
 	public BufferedOutputFileImpl(OutputParams params) {
 		configuration = PMS.getConfiguration(params);
+		this.renderer = params.mediaRenderer;
 		this.forcefirst = (configuration.getTrancodeBlocksMultipleConnections() && configuration.getTrancodeKeepFirstConnections());
 		this.minMemorySize = (int) (1048576 * params.minBufferSize);
 		this.maxMemorySize = (int) (1048576 * params.maxBufferSize);
@@ -805,32 +808,10 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 					// There are 1048576 bytes in a megabyte
 					long bufferInMBs = space / 1048576;
-
-					int oldBufferPercentage = currentBufferPercentage;
-					currentBufferPercentage = (int) (100 * space / maxMemorySize);
-
-					// Make the buffer progress bar increase and decrease gradually
-					if (currentBufferPercentage > oldBufferPercentage) {
-						// Go upwards
-						while (currentBufferPercentage > oldBufferPercentage) {
-							oldBufferPercentage += 1;
-							PMS.get().getFrame().setValue(oldBufferPercentage, formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
-							try {
-								Thread.sleep(20);
-							} catch (InterruptedException e) {
-							}
-						}
-					} else {
-						// Go downwards
-						while (currentBufferPercentage < oldBufferPercentage) {
-							oldBufferPercentage -= 1;
-							PMS.get().getFrame().setValue(oldBufferPercentage, formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
-							try {
-								Thread.sleep(20);
-							} catch (InterruptedException e) {
-							}
-						}
+					if (renderer != null) {
+						renderer.setBuffer(bufferInMBs);
 					}
+					PMS.get().getFrame().updateBuffer();
 				}
 			}, 0, 2000);
 		}
@@ -893,19 +874,11 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		buffered = false;
 
+		if (renderer != null) {
+			renderer.setBuffer(0);
+		}
 		if (!hidebuffer && maxMemorySize != 1048576) {
-			int oldBufferPercentage = currentBufferPercentage;
-			currentBufferPercentage = 0;
-
-			// Make the buffer progress bar decrease gradually
-			while (currentBufferPercentage < oldBufferPercentage) {
-				oldBufferPercentage -= 1;
-				PMS.get().getFrame().setValue(oldBufferPercentage, Messages.getString("StatusTab.5"));
-				try {
-					Thread.sleep(20);
-				} catch (InterruptedException e) {
-				}
-			}
+			PMS.get().getFrame().updateBuffer();
 		}
 	}
 }

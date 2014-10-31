@@ -501,9 +501,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setValue(int v, String msg) {
-		st.getJpb().setValue(v);
-		st.getJpb().setString(msg);
+	public void updateBuffer() {
+		st.updateTotalBuffer();
 	}
 
 	/**
@@ -557,14 +556,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void setStatusLine(String line) {
-		if (line == null || "".equals(line)) {
+		/*if (line == null || "".equals(line)) {
 			line = "";
 			status.setBorder(BorderFactory.createEmptyBorder());
 		} else {
 			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
 		}
 
-		status.setText(line);
+		status.setText(line);*/
 	}
 
 	@Override

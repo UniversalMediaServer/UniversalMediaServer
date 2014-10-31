@@ -152,7 +152,7 @@ public class PlayerControlHandler implements HttpHandler {
 		if (player == null) {
 			try {
 				RendererConfiguration r = (RendererConfiguration) UPNPHelper.getRenderer(uuid);
-				player = r.getPlayer();
+				player = (UPNPHelper.Player)r.getPlayer();
 				players.put(uuid, player);
 			} catch (Exception e) {
 				LOGGER.debug("Error retrieving player " + uuid + ": " + e);

@@ -12,6 +12,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 
 public class PlayerControlPanel extends JPanel implements ActionListener {
@@ -313,9 +314,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			rewind.setEnabled(playing);
 			update();
 			// update position
-			String pos = StringUtil.shortTime(state.position, 4);
-			String dur = StringUtil.shortTime(state.duration, 4);
-			position.setText(pos + (dur.equals("0:00") ? "" : (" / " + dur)));
+			position.setText(UMSUtils.playedDurationStr(state.position, state.duration));
 			// update uris only if meaningfully new
 			boolean isNew = !StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi);
 			lasturi = state.uri;

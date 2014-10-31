@@ -1,4 +1,34 @@
-5.0.0-a1 - 2014-10-??
+5.0.0-a2 - 2014-10-??
+	Changes unique to 5.0.0-a2:
+		General:
+			
+
+4.2.1 - 2014-10-??
+	General:
+		Increased speed of FFmpeg transcoding to H.264
+		Updated UMS.conf
+		Improved filename prettifying
+		Re-added "Force default renderer" option to the GUI
+		Minor GUI fixes and improvements
+		Fontconfig caches are not generated if subtitles are disabled
+		Renamed most renderer config files
+	Renderers:
+		Added support for LG WebOS TVs
+		Added support for Panasonic SC-BTT Blu-ray Disc Home Theater Sound Systems
+		Added support for Technisat S1+
+		Improved support for Panasonic TVs
+		Improved support for Xbox One
+		Fixed seeking on Samsung E+ Series TVs
+	Languages:
+		Updated French translation (thanks, Kirvx!)
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB60, which:
+			Improves H.264 transcoding
+			Improves H.265 support
+			Improves support for many containers and codecs
+			Fixes bugs
+
+5.0.0-a1 - 2014-10-23
 
 	Changes unique to 5.0.0-a1:
 		General:

@@ -53,6 +53,11 @@ body {
 	color: #99001A !important;
 }
 
+.syntaxhighlighter .setting {
+	color: #800055 !important;
+	font-weight: bold !important;
+}
+
 .syntaxhighlighter a {
 	font-weight: normal !important;
 }
