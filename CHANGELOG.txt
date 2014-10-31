@@ -1,4 +1,4 @@
-4.2.1 - 2014-10-??
+4.2.1 - 2014-11-01
 
 	General:
 		Increased speed of FFmpeg transcoding to H.264
