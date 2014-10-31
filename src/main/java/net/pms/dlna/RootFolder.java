@@ -65,7 +65,7 @@ public class RootFolder extends DLNAResource {
 	public RootFolder(ArrayList<String> tags) {
 		setIndexId(0);
 		this.tags = tags;
-		webFolders = new ArrayList<>();
+		webFolders = new ArrayList<DLNAResource>();
 	}
 
 	public RootFolder() {

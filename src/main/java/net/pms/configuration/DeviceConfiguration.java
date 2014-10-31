@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import net.pms.PMS;
+import net.pms.dlna.DLNAResource;
 import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
@@ -245,7 +246,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	}
 
 	public static ArrayList<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
-		ArrayList<RendererConfiguration> devices = new ArrayList<>();
+		ArrayList<RendererConfiguration> devices = new ArrayList<RendererConfiguration>();
 		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration)renderer).ref : renderer;
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
 			if ((r instanceof DeviceConfiguration) && ((DeviceConfiguration)r).ref == ref) {
@@ -263,7 +264,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			File f = new File(filename);
 			PropertiesConfiguration conf = null;
-			HashSet<String> ids = new HashSet<>();
+			HashSet<String> ids = new HashSet<String>();
 			for (Iterator<String> iterator = deviceConfs.keySet().iterator(); iterator.hasNext();) {
 				String id = iterator.next();
 				PropertiesConfiguration c = deviceConfs.get(id);
