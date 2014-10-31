@@ -1,30 +1,27 @@
 package net.pms.util;
 
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.*;
 import java.lang.ref.WeakReference;
-import static java.nio.file.LinkOption.*;
+import java.nio.file.*;
 import static java.nio.file.FileVisitOption.*;
 import static java.nio.file.StandardWatchEventKinds.*;
+import java.nio.file.attribute.*;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system
  * file-change notifications as opposed to directly polling or examining files.
  */
-
 public class FileWatcher {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileWatcher.class);
 
@@ -43,7 +40,6 @@ public class FileWatcher {
 	/**
 	 * A file watchpoint.
 	 */
-
 	public static class Watch {
 		public String fspec;
 		private WeakReference<Listener> listener;
@@ -105,10 +101,10 @@ public class FileWatcher {
 
 		@Override
 		public boolean equals(Object o) {
-			if (o == null || ! (o instanceof Watch)) {
+			if (o == null || !(o instanceof Watch)) {
 				return false;
 			}
-			Watch other = (Watch)o;
+			Watch other = (Watch) o;
 			return listener.get() == other.listener.get() &&
 				(fspec == other.fspec || fspec.equals(other.fspec)) &&
 				(item.get() == other.item.get() || item.get().equals(other.item.get())) &&
@@ -122,7 +118,7 @@ public class FileWatcher {
 
 		public static boolean isRecursive(Watch w) {
 			// FIXME: How to detect recursion in 'regex:' syntax?
-			return w.fspec.contains("**") && ! w.fspec.startsWith("regex:");
+			return w.fspec.contains("**") && !w.fspec.startsWith("regex:");
 		}
 
 		public static boolean isValid(Watch w) {
@@ -166,7 +162,7 @@ public class FileWatcher {
 	 */
 	static class WatchMap extends HashMap<WatchKey, ArrayList<Watch>> {
 		public void put(WatchKey k, Watch w) {
-			if (! containsKey(k)) {
+			if (!containsKey(k)) {
 				put(k, new ArrayList<Watch>());
 			}
 			get(k).add(w);
@@ -250,15 +246,15 @@ public class FileWatcher {
 						for (WatchEvent<?> e : key.pollEvents()) {
 							final WatchEvent.Kind<?> kind = e.kind();
 							if (kind != OVERFLOW) {
-								WatchEvent<Path> event = (WatchEvent<Path>)e;
+								WatchEvent<Path> event = (WatchEvent<Path>) e;
 								// Determine the actual file
-								Path dir = (Path)key.watchable();
+								Path dir = (Path) key.watchable();
 								final Path filename = dir.resolve(event.context());
 								final boolean isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/);
 								// See if we're watching for this specific file
 								for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
 									final Watch w = iterator.next();
-									if (! Watch.isValid(w)) {
+									if (!Watch.isValid(w)) {
 										LOGGER.debug("Deleting expired file watch at {}: {}", dir, w.fspec);
 										iterator.remove();
 										continue;
@@ -280,10 +276,10 @@ public class FileWatcher {
 							}
 						}
 						// Reset and clean up
-						if (! key.reset()) {
+						if (!key.reset()) {
 							keys.remove(key);
 						}
-					} while (! keys.isEmpty());
+					} while (!keys.isEmpty());
 				} catch (Exception e) {
 					LOGGER.debug("Event process error: " + e);
 					e.printStackTrace();
@@ -316,10 +312,10 @@ public class FileWatcher {
 
 		@Override
 		public boolean equals(Object o) {
-			if (o == null || ! (o instanceof Notice)) {
+			if (o == null || !(o instanceof Notice)) {
 				return false;
 			}
-			Notice other = (Notice)o;
+			Notice other = (Notice) o;
 			return filename.equals(other.filename) && kind.equals(other.kind) && watch.equals(other.watch);
 		}
 
@@ -351,7 +347,7 @@ public class FileWatcher {
 		 * sending 1000s of ENTRY_MODIFY notices during a file copy in linux, for instance.
 		 *
 		 * @param notice The notice.
-		 * @param  delay The delay in milliseconds.
+		 * @param delay The delay in milliseconds.
 		 */
 		public void schedule(Notice notice, long delay) {
 			// Put the notice in the queue
@@ -366,4 +362,3 @@ public class FileWatcher {
 
 	static private Notifier notifier = new Notifier("File event");
 }
-
