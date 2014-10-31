@@ -8,14 +8,12 @@ Every configuration profile serves two purposes:
   - Allow UMS to recognize a specific renderer when it tries to connect
   - Define the possibilities of that renderer
 
-For a detailed description of all available options in a configuration file,
-examine "DefaultRenderer.conf".
+All available options are in "DefaultRenderer.conf".
 
-FAQ
----
+The naming convention for the files is BrandName-ProductName-AppName.conf
+with all parts being optional; sometimes products don't have brands, sometimes
+a config is for multiple products from one brand, and usually the config won't
+be app-specific.
 
-Problem: My device is not supported by UMS. How can I create a custom renderer
-config to make UMS recognize my device?
-
-The answer to this question can be found in the FAQ on our forum:
+For instructions on how to create a custom renderer config, see our FAQ:
 http://www.universalmediaserver.com/faq/#RendererSupport1

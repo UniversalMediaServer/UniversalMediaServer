@@ -48,25 +48,15 @@ import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
-import net.pms.newgui.DbgPacker;
-import net.pms.newgui.DummyFrame;
-import net.pms.newgui.IFrame;
-import net.pms.newgui.LooksFrame;
-import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.*;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
-import net.pms.util.FileUtil;
-import net.pms.util.OpenSubtitle;
-import net.pms.util.ProcessUtil;
-import net.pms.util.PropertiesUtil;
-import net.pms.util.SystemErrWrapper;
-import net.pms.util.TaskRunner;
-import net.pms.util.TempFileMgr;
-import net.pms.util.Version;
+import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -557,8 +547,6 @@ public class PMS {
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
-		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
-
 		OutputParams outputParams = new OutputParams(configuration);
 
 		// Prevent unwanted GUI buffer artifacts (and runaway timers)
@@ -567,18 +555,23 @@ public class PMS {
 		// Make sure buffer is destroyed
 		outputParams.cleanup = true;
 
-		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
-		mplayer.runInNewThread();
+		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
+		if (!configuration.isDisableSubtitles()) {
+			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
-		/**
-		 * Note: This can be needed in case MPlayer and FFmpeg have been
-		 * compiled with a different version of fontconfig.
-		 * Since it's unpredictable on Linux we should always run this
-		 * on Linux, but it may be possible to sync versions on OS X.
-		 */
-		if (!Platform.isWindows()) {
-			ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
-			ffmpeg.runInNewThread();
+			ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
+			mplayer.runInNewThread();
+
+			/**
+			 * Note: This can be needed in case MPlayer and FFmpeg have been
+			 * compiled with a different version of fontconfig.
+			 * Since it's unpredictable on Linux we should always run this
+			 * on Linux, but it may be possible to sync versions on OS X.
+			 */
+			if (!Platform.isWindows()) {
+				ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
+				ffmpeg.runInNewThread();
+			}
 		}
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
@@ -864,6 +857,7 @@ public class PMS {
 			// Windows path separators:
 			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
 			folder = folder.replaceAll("&comma;", ",");
+			folder = new UnicodeUnescaper().translate(folder);
 
 			// this is called *way* too often
 			// so log it so we can fix it.
@@ -1133,7 +1127,7 @@ public class PMS {
 				LOGGER.debug("Error initializing plugin credentials: " + e);
 			}
 
-			if (getConfiguration().getSingle()) {
+			if (getConfiguration().isRunSingleInstance()) {
 				killOld();
 			}
 

@@ -1,3 +1,37 @@
+4.2.1 - 2014-11-01
+
+	General:
+		Increased speed of FFmpeg transcoding to H.264
+		Updated UMS.conf
+		Improved filename prettifying
+		Re-added "Force default renderer" option to the GUI
+		Minor GUI fixes and improvements
+		Fontconfig caches are not generated if subtitles are disabled
+		Renamed most renderer config files
+		Fixed special characters in folder names not displaying correctly
+	Renderers:
+		Added support for LG WebOS TVs
+		Added support for Panasonic SC-BTT Blu-ray Disc Home Theater Sound Systems
+		Added support for Samsung ES8000 TVs
+		Added support for Samsung F5900 Blu-ray Disc players
+		Added support for Technisat S1+
+		Improved detection of Windows Media Player
+		Improved support for H.264 videos on some renderers
+		Improved support for Cambridge Audio Azur BD players
+		Improved support for Samsung WiseLink renderers
+		Improved support for subtitles on Sony Bravia EX TVs (thanks, master-nevi!)
+		Improved support for Panasonic TVs
+		Improved support for Xbox One
+		Fixed seeking on Samsung E+ Series TVs
+	Languages:
+		Updated French translation (thanks, Kirvx!)
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB60, which:
+			Improves H.264 transcoding
+			Improves H.265 support
+			Improves support for many containers and codecs
+			Fixes bugs
+
 4.2.0 - 2014-10-17
 
 	General:
