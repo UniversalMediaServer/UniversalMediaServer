@@ -249,7 +249,7 @@ public class StatusTab {
 		if (total == 0) {
 			currentBitrate.setText("0");
 		}
-		long free = Runtime.getRuntime().freeMemory();
+		long free = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		int percent = (int) (100 * free / Runtime.getRuntime().maxMemory());
 		String msg = formatter.format(free / 1048576) + " " + Messages.getString("StatusTab.12");
 		jpb.setForeground(new Color(75, 140, 181));
