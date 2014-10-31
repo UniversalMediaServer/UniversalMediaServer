@@ -21,7 +21,9 @@ package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.util.*;
-import static net.pms.configuration.RendererConfiguration.*;
+import net.pms.configuration.RendererConfiguration.SortedHeaderMap;
+import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByHeaders;
+import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,8 +35,6 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
-	private final Map<String, String> testCases = new HashMap<String, String>();
-
 	@Before
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
@@ -114,7 +114,7 @@ public class RendererConfigurationTest {
 		testHeaders("Samsung AllShare C/D", "User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UN55D6050/1.0");
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_ Family TV/1.0");
 		testHeaders("Samsung AllShare", "User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0");
-		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
+		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50");
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50");
 
