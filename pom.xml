@@ -155,6 +155,14 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+
+		<repository>
+			<id>4thline-repo</id>
+			<url>http://4thline.org/m2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 	<dependencies>
 		<!-- TODO this can be removed when MEncoder is removed -->
