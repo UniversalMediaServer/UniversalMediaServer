@@ -246,16 +246,23 @@ public class StatusTab {
 		for (RendererConfiguration r : PMS.get().getRenders()) {
 			total += r.getBuffer();
 		}
-		if (total > 0) {
-			int percent = (int) (100 * total / bufferSize);
-			String msg = formatter.format(total) + " " + Messages.getString("StatusTab.12");
-			jpb.setValue(percent);
-			jpb.setString(msg);
-		} else {
-			jpb.setValue(0);
-			jpb.setString(Messages.getString("StatusTab.5"));
+		if (total == 0) {
 			currentBitrate.setText("0");
 		}
+		long free = Runtime.getRuntime().freeMemory();
+		int percent = (int) (100 * free / Runtime.getRuntime().maxMemory());
+		String msg = formatter.format(free / 1048576) + " " + Messages.getString("StatusTab.12");
+		jpb.setForeground(new Color(75, 140, 181));
+		if (percent > 70) {
+			jpb.setForeground(new Color(250, 177, 54));
+			LOGGER.info("Your memory consumption is high");
+		}
+		if (percent > 90) {
+			jpb.setForeground(new Color(255, 1, 18));
+			LOGGER.info("Your memory consumption is alarmingly high");
+		}
+		jpb.setValue(percent);
+		jpb.setString(msg);
 	}
 
 	public JLabel getJl() {
@@ -359,6 +366,7 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		updateTotalBuffer();
 		return scrollPane;
 	}
 
