@@ -778,7 +778,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 						// Decode any backslashed unicode escapes, e.g. '\u005c', from the
 						// ISO 8859-1 (aka Latin 1) encoded java Properties file, then
 						// unescape any double-backslashes, then escape all backslashes before parsing
-						super.parseProperty(unicodeUnescaper.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
+						//super.parseProperty(unicodeUnescaper.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
+						super.parseProperty(line.replace("\\\\", "\\").replace("\\", "\\\\"));
 					}
 				};
 			}
