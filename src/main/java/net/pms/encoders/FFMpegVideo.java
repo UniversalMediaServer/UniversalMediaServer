@@ -184,7 +184,7 @@ public class FFMpegVideo extends Player {
 			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 
-		if (!isDisableSubtitles(params) && !params.sid.isStreamable() && !(dlna.getPlayer() instanceof WebPlayer)) {
+		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;
@@ -388,7 +388,7 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-preset");
-				transcodeOptions.add("superfast");
+				transcodeOptions.add("ultrafast");
 				transcodeOptions.add("-level");
 				transcodeOptions.add("31");
 				transcodeOptions.add("-pix_fmt");
