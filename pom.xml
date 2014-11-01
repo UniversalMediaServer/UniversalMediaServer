@@ -156,6 +156,17 @@
 			</snapshots>
 		</repository>
 
+		<!-- for jai-imageio-core-standalone, which is used by Thumbnailator -->
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>mygrid-repository</id>
+			<name>myGrid Repository</name>
+			<url>http://www.mygrid.org.uk/maven/repository</url>
+		</repository>
+
 		<repository>
 			<id>4thline-repo</id>
 			<url>http://4thline.org/m2</url>
