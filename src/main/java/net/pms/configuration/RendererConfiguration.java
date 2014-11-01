@@ -2176,7 +2176,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 	public void setPlayingRes(DLNAResource dlna) {
 		playingRes = dlna;
 		getPlayer().getState().name = dlna.getDisplayName();
-		if (dlna != null && (player instanceof PlaybackTimer)) {
+		if (player instanceof PlaybackTimer) {
 			((PlaybackTimer)player).start();
 		}
 	}
