@@ -168,7 +168,7 @@ public class StringUtil {
 
 	/**
 	 * A unicode unescaper that translates unicode escapes, e.g. '\u005c', while leaving
-	 * intact any '\u' sequences that can't be interpreted as escaped unicode.
+	 * intact any  sequences that can't be interpreted as escaped unicode.
 	 *
 	 * The code is verbatim from UnicodeUnescaper source except for exception throwing.
 	 */
