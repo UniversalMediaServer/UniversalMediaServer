@@ -47,6 +47,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int SAFARI = 4;
 	protected static final int PS4 = 5;
 	protected static final int XBOX1 = 6;
+	protected static final int OPERA = 7;
 
 	public WebRender(String user) throws ConfigurationException {
 		super(NOFILE, null);
@@ -83,6 +84,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public void setUA(String ua) {
+		LOGGER.debug("Setting web client ua: {}", ua);
 		this.ua = ua.toLowerCase();
 	}
 
@@ -91,7 +93,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 		if (ua.contains("chrome")) {
 			browser = CHROME;
-		} else if (ua.contains("msie")) {
+		} else if (ua.contains("msie") || ua.contains("trident")) {
 			browser = MSIE;
 		} else if (ua.contains("firefox")) {
 			browser = FIREFOX;
@@ -101,6 +103,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			browser = PS4;
 		} else if (ua.contains("xbox one")) {
 			browser = XBOX1;
+		}  else if (ua.contains("opera")) {
+			browser = OPERA;
 		}
 		if (info != null && umsInfo.reset(info).find()) {
 			platform = umsInfo.group(1).toLowerCase();
@@ -123,6 +127,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case SAFARI:  return s + "Safari";
 			case PS4:     return s + "Playstation 4";
 			case XBOX1:   return s + "Xbox One";
+			case OPERA:   return s + "Opera";
 			default:      return s + Messages.getString("PMS.142");
 		}
 	}
@@ -136,6 +141,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 //			case SAFARI:  return "safari.png"; // TODO
 			case PS4:     return "ps4.png";
 			case XBOX1:   return "xbox-one.png";
+			case OPERA:   return "opera.png";
 			default:      return super.getRendererIcon();
 		}
 	}
