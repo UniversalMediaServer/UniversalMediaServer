@@ -510,7 +510,7 @@ public class StatusTab {
 		return bi;
 	}
 
-	private void updateMemoryUsage() {
+	public void updateMemoryUsage() {
 		long used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		int percent = (int) (100 * used / Runtime.getRuntime().maxMemory());
 		String msg = formatter.format(used / 1048576) + " " + Messages.getString("StatusTab.12");
