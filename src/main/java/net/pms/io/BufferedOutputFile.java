@@ -18,8 +18,6 @@
  */
 package net.pms.io;
 
-import net.pms.configuration.RendererConfiguration;
-
 import java.io.IOException;
 import java.io.InputStream;
 

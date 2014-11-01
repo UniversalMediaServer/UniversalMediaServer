@@ -11,7 +11,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.util.BasicPlayer;
-import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 

@@ -11,7 +11,6 @@ import java.util.Iterator;
 import net.pms.PMS;
 import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
