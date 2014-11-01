@@ -517,11 +517,11 @@ public class StatusTab {
 		jpb.setForeground(new Color(75, 140, 181));
 		if (percent > 70) {
 			jpb.setForeground(new Color(250, 177, 54));
-			LOGGER.info("Your memory consumption is high");
+			//LOGGER.info("Your memory consumption is high");
 		}
 		if (percent > 90) {
 			jpb.setForeground(new Color(255, 1, 18));
-			LOGGER.info("Your memory consumption is alarmingly high");
+			//LOGGER.info("Your memory consumption is alarmingly high");
 		}
 		jpb.setValue(percent);
 		jpb.setString(msg);
