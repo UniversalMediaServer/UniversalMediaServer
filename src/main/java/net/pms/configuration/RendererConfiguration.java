@@ -37,7 +37,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -762,7 +761,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 		init(f);
 	}
 
-	static UnicodeUnescaper unicodeUnescaper = new UnicodeUnescaper();
+	static StringUtil.LaxUnicodeUnescaper laxUnicodeUnescaper = new StringUtil.LaxUnicodeUnescaper();
 
 	public static PropertiesConfiguration createPropertiesConfiguration() {
 		PropertiesConfiguration conf = new PropertiesConfiguration();
@@ -778,8 +777,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 						// Decode any backslashed unicode escapes, e.g. '\u005c', from the
 						// ISO 8859-1 (aka Latin 1) encoded java Properties file, then
 						// unescape any double-backslashes, then escape all backslashes before parsing
-						//super.parseProperty(unicodeUnescaper.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
-						super.parseProperty(line.replace("\\\\", "\\").replace("\\", "\\\\"));
+						super.parseProperty(laxUnicodeUnescaper.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
 					}
 				};
 			}
