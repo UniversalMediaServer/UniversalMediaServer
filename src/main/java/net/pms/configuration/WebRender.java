@@ -413,4 +413,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	public boolean addSubtitles() {
 		return true;
 	}
+
+	public boolean isUpnpControllable() {
+		return true;
+	}
 }
