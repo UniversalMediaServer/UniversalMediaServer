@@ -241,7 +241,7 @@ public class StatusTab {
 		return jpb;
 	}
 
-	public void updateTotalBuffer() {
+	public void updateCurrentBitrate() {
 		long total = 0;
 		for (RendererConfiguration r : PMS.get().getRenders()) {
 			total += r.getBuffer();
@@ -249,20 +249,6 @@ public class StatusTab {
 		if (total == 0) {
 			currentBitrate.setText("0");
 		}
-		long free = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-		int percent = (int) (100 * free / Runtime.getRuntime().maxMemory());
-		String msg = formatter.format(free / 1048576) + " " + Messages.getString("StatusTab.12");
-		jpb.setForeground(new Color(75, 140, 181));
-		if (percent > 70) {
-			jpb.setForeground(new Color(250, 177, 54));
-			LOGGER.info("Your memory consumption is high");
-		}
-		if (percent > 90) {
-			jpb.setForeground(new Color(255, 1, 18));
-			LOGGER.info("Your memory consumption is alarmingly high");
-		}
-		jpb.setValue(percent);
-		jpb.setString(msg);
 	}
 
 	public JLabel getJl() {
@@ -366,7 +352,7 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-		updateTotalBuffer();
+		startMemoryUpdater();
 		return scrollPane;
 	}
 
@@ -522,5 +508,39 @@ public class StatusTab {
 			}
 		}
 		return bi;
+	}
+
+	private void updateMemoryUsage() {
+		long used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+		int percent = (int) (100 * used / Runtime.getRuntime().maxMemory());
+		String msg = formatter.format(used / 1048576) + " " + Messages.getString("StatusTab.12");
+		jpb.setForeground(new Color(75, 140, 181));
+		if (percent > 70) {
+			jpb.setForeground(new Color(250, 177, 54));
+			LOGGER.info("Your memory consumption is high");
+		}
+		if (percent > 90) {
+			jpb.setForeground(new Color(255, 1, 18));
+			LOGGER.info("Your memory consumption is alarmingly high");
+		}
+		jpb.setValue(percent);
+		jpb.setString(msg);
+	}
+
+	private void startMemoryUpdater() {
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				for(;;) {
+					updateMemoryUsage();
+					try {
+						Thread.sleep(20000);
+					} catch (Exception e) {
+						return;
+					}
+				}
+			}
+		};
+		new Thread(r).start();
 	}
 }

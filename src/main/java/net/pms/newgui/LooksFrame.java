@@ -493,7 +493,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void updateBuffer() {
-		st.updateTotalBuffer();
+		st.updateCurrentBitrate();
 	}
 
 	/**
