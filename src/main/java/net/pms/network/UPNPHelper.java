@@ -682,7 +682,7 @@ public class UPNPHelper extends UPNPControl {
 		public DeviceConfiguration renderer;
 		private Map<String, String> data;
 		private LinkedHashSet<ActionListener> listeners;
-		private BasicPlayer.State state;
+		private State state;
 		public Playlist playlist;
 		private String lasturi;
 
@@ -805,6 +805,7 @@ public class UPNPHelper extends UPNPControl {
 			UPNPControl.setMute(dev, instanceID, !state.mute);
 		}
 
+		@Override
 		public void setVolume(int volume) {
 			UPNPControl.setVolume(dev, instanceID, volume);
 		}
@@ -830,9 +831,9 @@ public class UPNPHelper extends UPNPControl {
 		@Override
 		public void refresh() {
 			String s = data.get("TransportState");
-			state.playback = "STOPPED".equals(s) ? BasicPlayer.STOPPED :
-				"PLAYING".equals(s) ? BasicPlayer.PLAYING :
-				"PAUSED_PLAYBACK".equals(s) ? BasicPlayer.PAUSED: -1;
+			state.playback = "STOPPED".equals(s) ? STOPPED :
+				"PLAYING".equals(s) ? PLAYING :
+				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
 			state.mute = "0".equals(data.get("Mute")) ? false : true;
 			s = data.get("Volume");
 			state.volume = s == null ? 0 : Integer.valueOf(s);
@@ -848,6 +849,16 @@ public class UPNPHelper extends UPNPControl {
 			alert();
 		}
 
+
+		@Override
+		public void start() {
+		}
+
+
+		@Override
+		public void reset() {
+		}
+
 		public void alert() {
 			for (ActionListener l : listeners) {
 				l.actionPerformed(new ActionEvent(this, 0, null));
@@ -855,7 +866,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		@Override
-		public BasicPlayer.State getState() {
+		public State getState() {
 			return state;
 		}
 
@@ -877,6 +888,7 @@ public class UPNPHelper extends UPNPControl {
 			renderer.setPlayer(null);
 		}
 
+		@Override
 		public DefaultComboBoxModel getPlaylist() {
 			return playlist;
 		}

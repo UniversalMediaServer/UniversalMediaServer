@@ -47,18 +47,28 @@
 			</div>
 			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
 		</div>
-{{#autoContinue}}
 		<script>
-			document.getElementById('player').addEventListener('ended', next);			
-		</script>
-{{/autoContinue}}
-		<script>
-			document.getElementById('player').addEventListener('timeupdate', timeCB);
-			function timeCB() {				
+			var state = {};
+			var player = document.getElementById('player');
+
+			function status(k,v) {
+				console.log('STATUS '+k+': '+v);
+				state[k] = v;
 				var xmlhttp = new XMLHttpRequest();
-				xmlhttp.open("GET", "/time/{{id1}}?val=" + document.getElementById('player').currentTime, true);
-				xmlhttp.send();
+				xmlhttp.open("POST", "/playerstatus/");
+				xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+				xmlhttp.send(JSON.stringify(state));
 			}
+
+			player.addEventListener('playing', function(){status('playback', 'PLAYING');});
+			player.addEventListener('pause', function(){status('playback', 'PAUSED');});
+			player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
+			player.addEventListener('ended', function(){status('playback', 'STOPPED');});
+			player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
+{{#autoContinue}}
+			player.addEventListener('ended', next, false);
+{{/autoContinue}}
+			window.onbeforeunload = function(){status('playback','STOPPED');}
 		</script>
 	</body>
 </html>

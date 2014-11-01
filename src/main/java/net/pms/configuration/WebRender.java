@@ -1,8 +1,10 @@
 package net.pms.configuration;
 
+import com.google.gson.Gson;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.List;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -15,7 +17,10 @@ import net.pms.encoders.Player;
 import net.pms.formats.*;
 import net.pms.io.OutputParams;
 import net.pms.remote.RemoteUtil;
+import net.pms.util.BasicPlayer;
+import net.pms.util.StringUtil;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -414,7 +419,43 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return true;
 	}
 
-	public boolean isUpnpControllable() {
-		return true;
+	@Override
+	public BasicPlayer getPlayer() {
+		if (player == null) {
+			player = new PlaybackNotifier((DeviceConfiguration) this);
+		}
+		return player;
+	}
+
+	public static class PlaybackNotifier extends BasicPlayer.Minimal {
+		private HashMap<String, String> data;
+		private Gson gson;
+
+		public PlaybackNotifier(DeviceConfiguration renderer) {
+			super(renderer);
+			data = new HashMap<>();
+			gson = new Gson();
+			LOGGER.debug("Created playback notifier for " + renderer.getRendererName());
+		}
+
+		@Override
+		public void start() {
+			DLNAResource d = renderer.getPlayingRes();
+			state.name = d.getDisplayName();
+			if (d.getMedia() != null) {
+				state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
+			}
+		}
+
+		public void setData(String jsonData) {
+			data = gson.fromJson(jsonData, data.getClass());
+			String s = data.get("playback");
+			state.playback = "STOPPED".equals(s) ? STOPPED :
+				"PLAYING".equals(s) ? PLAYING :
+				"PAUSED".equals(s) ? PAUSED : -1;
+			long seconds = Integer.valueOf(data.get("position"));
+			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
+			refresh();
+		}
 	}
 }

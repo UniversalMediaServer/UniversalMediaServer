@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 
-public class RendererConfiguration extends UPNPHelper.Renderer /*implements ActionListener*/ {
+public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
 	protected static ArrayList<String> allRenderersNames = new ArrayList<>();
@@ -2175,9 +2175,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 
 	public void setPlayingRes(DLNAResource dlna) {
 		playingRes = dlna;
-		getPlayer().getState().name = dlna.getDisplayName();
-		if (player instanceof PlaybackTimer) {
-			((PlaybackTimer)player).start();
+		getPlayer();
+		if (dlna != null) {
+			player.getState().name = dlna.getDisplayName();
+			player.start();
+		} else if (player instanceof PlaybackTimer) {
+			player.getState().playback = BasicPlayer.STOPPED;
+			player.refresh();
 		}
 	}
 
@@ -2192,22 +2196,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 		return buffer;
 	}
 
-	public static class PlaybackTimer implements BasicPlayer {
-
-		final public DeviceConfiguration renderer;
-		private BasicPlayer.State state;
-		private LinkedHashSet<ActionListener> listeners;
+	public static class PlaybackTimer extends BasicPlayer.Minimal {
 
 		public PlaybackTimer(DeviceConfiguration renderer) {
-			this.renderer = renderer;
-			state = new State();
-			listeners = new LinkedHashSet();
-			connect(renderer.gui);
-			reset();
-			refresh();
+			super(renderer);
 			LOGGER.debug("Created playback timer for " + renderer.getRendererName());
 		}
 
+		@Override
 		public void start() {
 			final DLNAResource res = renderer.getPlayingRes();
 			state.name = res.getDisplayName();
@@ -2217,7 +2213,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
-					state.playback = BasicPlayer.PLAYING;
+					state.playback = PLAYING;
 					while(renderer.getPlayingRes() != null) {
 						long elapsed = System.currentTimeMillis() - res.getStartTime();
 						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
@@ -2232,68 +2228,5 @@ public class RendererConfiguration extends UPNPHelper.Renderer /*implements Acti
 			};
 			new Thread(r).start();
 		}
-
-		private void reset() {
-			state.playback = BasicPlayer.STOPPED;
-			state.position = "";
-			state.duration = "";
-			state.name = " ";
-			state.buffer = 0;
-			refresh();
-		}
-
-		@Override
-		public void connect(ActionListener listener) {
-			listeners.add(listener);
-		}
-
-		@Override
-		public void disconnect(ActionListener listener) {
-			listeners.remove(listener);
-			if (listeners.isEmpty()) {
-				close();
-			}
-		}
-
-		@Override
-		public void refresh() {
-			for (ActionListener l : listeners) {
-				l.actionPerformed(new ActionEvent(this, 0, null));
-			}
-		}
-
-		@Override
-		public BasicPlayer.State getState() {
-			return state;
-		}
-
-		@Override
-		public void close() {
-			listeners.clear();
-			renderer.setPlayer(null);
-		}
-
-		@Override
-		public void setBuffer(long mb) {
-			state.buffer = mb;
-			refresh();
-		}
-
-		public void setURI(String uri, String metadata) {}
-		public void pressPlay(String uri, String metadata) {}
-		public void play() {}
-		public void pause() {}
-		public void stop() {}
-		public void next() {}
-		public void prev() {}
-		public void forward() {}
-		public void rewind() {}
-		public void mute() {}
-		public void setVolume(int volume) {}
-		public void add(int index, String uri, String name, String metadata, boolean select) {}
-		public void remove(String uri) {}
-		public int getControls() { return 0; }
-		public DefaultComboBoxModel getPlaylist() { return null; }
-		public void actionPerformed(final ActionEvent e) {}
 	}
 }
