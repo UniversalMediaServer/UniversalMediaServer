@@ -49,17 +49,9 @@
 		</div>
 {{#autoContinue}}
 		<script>
-			document.getElementById('player').addEventListener('ended', next);			
+			document.getElementById('player').addEventListener('ended', next);
 		</script>
 {{/autoContinue}}
-		<script>
-			document.getElementById('player').addEventListener('timeupdate', timeCB);
-			function timeCB() {				
-				var xmlhttp = new XMLHttpRequest();
-				xmlhttp.open("GET", "/time/{{id1}}?val=" + document.getElementById('player').currentTime, true);
-				xmlhttp.send();
-			}
-		</script>
 	</body>
 </html>
 

@@ -19,12 +19,8 @@ import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
-import net.pms.network.UPNPHelper;
-import net.pms.util.BasicPlayer;
-import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -196,62 +192,12 @@ public class RemotePlayHandler implements HttpHandler {
 		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
-	private void handleTimeUpdate(String id, HttpExchange t) throws IOException{
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-		if (root == null) {
-			LOGGER.debug("root not found");
-			throw new IOException("Unknown root");
-		}
-		WebRender renderer = (WebRender) root.getDefaultRenderer();
-		if (renderer.getPlayer() == null) {
-			// this is bad
-			LOGGER.debug("unknown player in web");
-			throw new IOException("Bad player");
-		}
-		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
-		DLNAResource r = root.getDLNAResource(id, renderer);
-		if (r == null) {
-			LOGGER.debug("Bad id in web if " + id);
-			throw new IOException("Bad Id");
-		}
-		String time = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "val");
-		if(StringUtils.isEmpty(time)) {
-			return;
-		}
-		BasicPlayer.State state = renderer.getPlayer().getState();
-		if (renderer.getPlayingRes() == null) {
-			// clear the whole lot
-			state.playback = BasicPlayer.STOPPED;
-		} else {
-			if (r.getMedia() != null) {
-				state.duration = StringUtil.shortTime(r.getMedia().getDurationString(), 4);
-			}
-			state.playback = BasicPlayer.PLAYING;
-			state.name = r.getDisplayName(renderer);
-			state.position = DurationFormatUtils.formatDuration((long) getTs(time), "HH:mm:ss");
-		}
-		((UPNPHelper.Player) renderer.getPlayer()).alert();
-	}
-
-	private double getTs(String s) {
-		try {
-			return Double.parseDouble(s) * 1000;
-		} catch (NumberFormatException e) {
-			return 0;
-		}
-	}
-
 	@Override
 	public void handle(HttpExchange t) throws IOException {
+		LOGGER.debug("got a play request " + t.getRequestURI());
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}
-		if(t.getRequestURI().getPath().contains("time/")) {
-			handleTimeUpdate(RemoteUtil.getId("time/", t), t);
-			RemoteUtil.respond(t, "", 200, "text/html");
-			return;
-		}
-		LOGGER.debug("got a play request " + t.getRequestURI());
 		String id = RemoteUtil.getId("play/", t);
 		String response = mkPage(id, t);
 		LOGGER.debug("play page " + response);
