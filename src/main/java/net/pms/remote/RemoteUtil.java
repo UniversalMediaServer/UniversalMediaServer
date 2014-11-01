@@ -78,11 +78,11 @@ public class RemoteUtil {
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-	public static void dump(InputStream in, OutputStream os) throws IOException {
+	public static void dump(InputStream in, OutputStream os) {
 		dump(in, os, null);
 	}
 
-	public static void dump(final InputStream in, final OutputStream os, final StartStopListenerDelegate start) throws IOException {
+	public static void dump(final InputStream in, final OutputStream os, final StartStopListenerDelegate start) {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {

@@ -53,7 +53,7 @@ public class BlockerFileInputStream extends UnusedInputStream {
 		}
 	}
 
-	private boolean checkAvailability() throws IOException {
+	private boolean checkAvailability() {
 		if (readCount > file.length()) {
 			LOGGER.debug("File " + file.getAbsolutePath() + " is not that long!: " + readCount);
 			return false;

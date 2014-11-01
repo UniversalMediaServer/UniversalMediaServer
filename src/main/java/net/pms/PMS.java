@@ -1089,7 +1089,7 @@ public class PMS {
 		return FormatFactory.getAssociatedFormat(filename);
 	}
 
-	public static void main(String args[]) throws IOException, ConfigurationException {
+	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
 		boolean headless = true;
 

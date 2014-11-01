@@ -999,7 +999,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) throws IOException {
+	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) {
 		// this method returns exactly ONE (1) DLNAResource
 		// it's used when someone requests playback of media. The media must
 		// first have been discovered by someone first (unless it's a Temp item)
@@ -1065,7 +1065,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return getDLNAResources(objectId, children, start, count, renderer, null);
 	}
 
-	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
+	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) {
 		ArrayList<DLNAResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
@@ -3636,11 +3636,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (r == null) {
 					r = RendererConfiguration.getDefaultConf();
 				}
-				try {
-					return PMS.get().getRootFolder(r).getDLNAResource(objectId, r);
-				} catch (IOException e) {
-					return null;
-				}
+				return PMS.get().getRootFolder(r).getDLNAResource(objectId, r);
 
 			}
 		} else {

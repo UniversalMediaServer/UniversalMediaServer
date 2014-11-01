@@ -30,7 +30,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	private static HashMap<String, PropertiesConfiguration> deviceConfs;
 	private static File deviceDir;
 
-	public DeviceConfiguration() throws ConfigurationException {
+	public DeviceConfiguration() {
 		super(0);
 	}
 
@@ -111,7 +111,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return uuid != null ? uuid : getAddress().toString().substring(1);
 	}
 
-	public PropertiesConfiguration initConfiguration(InetAddress ia) throws ConfigurationException {
+	public PropertiesConfiguration initConfiguration(InetAddress ia) {
 		String id = uuid != null ? uuid : ia != null ? ia.toString().substring(1) : null;
 		if (id != null && deviceConfs.containsKey(id)) {
 			deviceConf = deviceConfs.get(id);
