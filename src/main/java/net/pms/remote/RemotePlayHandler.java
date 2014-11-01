@@ -19,6 +19,7 @@ import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -194,13 +195,28 @@ public class RemotePlayHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
-		LOGGER.debug("got a play request " + t.getRequestURI());
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}
-		String id = RemoteUtil.getId("play/", t);
-		String response = mkPage(id, t);
-		LOGGER.debug("play page " + response);
-		RemoteUtil.respond(t, response, 200, "text/html");
+		String p = t.getRequestURI().getPath();
+		if (p.contains("/play/")) {
+			LOGGER.debug("got a play request " + t.getRequestURI());
+			String id = RemoteUtil.getId("play/", t);
+			String response = mkPage(id, t);
+			LOGGER.debug("play page " + response);
+			RemoteUtil.respond(t, response, 200, "text/html");
+		} else if (p.contains("/playerstatus/")) {
+			String json = IOUtils.toString(t.getRequestBody(), "UTF-8");
+			LOGGER.debug("got player status: " + json);
+			RemoteUtil.respond(t, "", 200, "text/html");
+
+			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+			if (root == null) {
+				LOGGER.debug("root not found");
+				throw new IOException("Unknown root");
+			}
+			WebRender renderer = (WebRender) root.getDefaultRenderer();
+			((WebRender.PlaybackNotifier)renderer.getPlayer()).setData(json);
+		}
 	}
 }
