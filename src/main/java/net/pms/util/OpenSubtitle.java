@@ -86,7 +86,7 @@ public class OpenSubtitle {
 		connection.setRequestProperty("Content-Type", "text/xml");
 		connection.setRequestProperty("Content-Length", "" + query.length());
 		((HttpURLConnection) connection).setRequestMethod("POST");
-		LOGGER.debug("opensub query "+query);
+		//LOGGER.debug("opensub query "+query);
 		// open up the output stream of the connection
 		if (!StringUtils.isEmpty(query)) {
 			try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
@@ -104,7 +104,7 @@ public class OpenSubtitle {
 				page.append("\n");
 			}
 		}
-		LOGGER.debug("opensubs result page "+page.toString());
+		//LOGGER.debug("opensubs result page "+page.toString());
 		return page.toString();
 	}
 
