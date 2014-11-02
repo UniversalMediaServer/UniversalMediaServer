@@ -448,6 +448,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 
 		public void setData(String jsonData) {
+			start();
 			data = gson.fromJson(jsonData, data.getClass());
 			String s = data.get("playback");
 			state.playback = "STOPPED".equals(s) ? STOPPED :
