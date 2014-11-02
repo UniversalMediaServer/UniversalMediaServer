@@ -83,6 +83,7 @@ public class RendererConfiguration {
 	private static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
 
 	// Current video transcoding options
+	private static final String MP4H264AAC = "MP4-H264-AAC";
 	private static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
 	private static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
 	private static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
@@ -675,6 +676,10 @@ public class RendererConfiguration {
 		return getVideoTranscode().equals(MPEGTSH264AAC);
 	}
 
+	public boolean isTranscodeToMP4H264AAC() {
+		return getVideoTranscode().equals(MP4H264AAC);
+	}
+
 	/**
 	 * @return whether to use the AC-3 audio codec for transcoded video
 	 */
@@ -686,14 +691,14 @@ public class RendererConfiguration {
 	 * @return whether to use the AAC audio codec for transcoded video
 	 */
 	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMP4H264AAC();
 	}
 
 	/**
 	 * @return whether to use the H.264 video codec for transcoded video
 	 */
 	public boolean isTranscodeToH264() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMP4H264AAC();
 	}
 
 	/**

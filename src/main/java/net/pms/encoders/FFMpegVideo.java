@@ -404,6 +404,8 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("mpeg2video");
 			} else if (renderer.isTranscodeToMPEGTS()) {
 				transcodeOptions.add("mpegts");
+			} else if (renderer.isTranscodeToMP4H264AAC()) {
+				transcodeOptions.add("mp4");
 			} else {
 				transcodeOptions.add("vob");
 			}
