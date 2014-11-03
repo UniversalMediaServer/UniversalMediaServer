@@ -156,19 +156,14 @@ public class VLCVideo extends Player {
 			codecConfig.container = "asf";
 		} else if (renderer.isTranscodeToH264()) {
 			codecConfig.videoCodec = "h264";
+			codecConfig.container = "ts";
 			videoRemux = true;
 
 			if (renderer.isTranscodeToMPEGTSH264AC3()) {
 				LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
-				codecConfig.container = "ts";
 				codecConfig.audioCodec = "a52";
 			} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
 				LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
-				codecConfig.container = "ts";
-				codecConfig.audioCodec = "mp4a";
-			} else if (renderer.isTranscodeToMP4H264AAC()) {
-				LOGGER.debug("Using H.264 and AAC with MP4 container");
-				codecConfig.container = "mp4";
 				codecConfig.audioCodec = "mp4a";
 			}
 		} else {
