@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
 	public static final String ID = "vlctranscoder";
 	protected JTextField scale;
 	protected JCheckBox experimentalCodecs;
@@ -140,50 +140,37 @@ public class VLCVideo extends Player {
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
+		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		if (
 			(
 				renderer.isTranscodeToWMV() &&
 				!renderer.isXbox360()
 			) ||
-			(
-				renderer.isXboxOne() &&
-				purpose() == VIDEO_WEBSTREAM_PLAYER
-			)
+			isXboxOneWebVideo
 		) {
 			// Assume WMV = Xbox 360 = all media renderers with this flag
 			LOGGER.debug("Using XBox 360 WMV codecs");
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
-		} else if (renderer.isTranscodeToMPEGTSH264AC3()) {
-			LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
+		} else if (renderer.isTranscodeToH264()) {
 			codecConfig.videoCodec = "h264";
-
-			/**
-			 * XXX a52 (AC-3) causes the audio to cut out after
-			 * a while (5, 10, and 45 minutes have been spotted)
-			 * with versions as recent as 2.0.5. MP2 works without
-			 * issue, so we use that as a workaround for now.
-			 * codecConfig.audioCodec = "a52";
-			 */
-			codecConfig.audioCodec = "a52";
-
 			codecConfig.container = "ts";
-
 			videoRemux = true;
-		} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
-			LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
-			codecConfig.videoCodec = "h264";
-			codecConfig.audioCodec = "mp4a";
-			codecConfig.container = "ts";
 
-			videoRemux = true;
+			if (renderer.isTranscodeToMPEGTSH264AC3()) {
+				LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
+				codecConfig.audioCodec = "a52";
+			} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
+				LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
+				codecConfig.audioCodec = "mp4a";
+			}
 		} else {
 			codecConfig.videoCodec = "mp2v";
 			codecConfig.audioCodec = "mp2a";
 
-			if (renderer.isTranscodeToMPEGTSMPEG2AC3()) {
+			if (renderer.isTranscodeToMPEGTS()) {
 				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
 				codecConfig.container = "ts";
 			} else {
@@ -246,9 +233,11 @@ public class VLCVideo extends Player {
 		// Video scaling
 		args.put("scale", "1.0");
 
+		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
 		// Audio Channels
 		int channels = 2;
-		if (params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
+		if (!isXboxOneWebVideo && params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
 			channels = 6;
 		}
 		args.put("channels", channels);
@@ -307,6 +296,8 @@ public class VLCVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
+		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
 		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
@@ -334,7 +325,7 @@ public class VLCVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+			if (!isXboxOneWebVideo && params.mediaRenderer.isTranscodeToH264()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -381,7 +372,7 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -632,81 +623,6 @@ public class VLCVideo extends Player {
 			}
 		});
 		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-
-		// Developer stuff. Theoretically temporary
-		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 7, 5), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		// Add scale as a subpanel because it has an awkward layout
-		/**
-		mainPanel.append(Messages.getString("VlcTrans.11"));
-		FormLayout scaleLayout = new FormLayout("pref,3dlu,pref", "");
-		DefaultFormBuilder scalePanel = new DefaultFormBuilder(scaleLayout);
-		double startingScale = Double.valueOf(configuration.getVlcScale());
-		scalePanel.append(scale = new JTextField(String.valueOf(startingScale)));
-		final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL, 0, 10, (int) (startingScale * 10));
-		scalePanel.append(scaleSlider);
-		scaleSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent ce) {
-				String value = String.valueOf((double) scaleSlider.getValue() / 10);
-				scale.setText(value);
-				configuration.setVlcScale(value);
-			}
-		});
-		scale.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				String typed = scale.getText();
-				if (!typed.matches("\\d\\.\\d")) {
-					return;
-				}
-				double value = Double.parseDouble(typed);
-				scaleSlider.setValue((int) (value * 10));
-				configuration.setVlcScale(String.valueOf(value));
-			}
-		});
-		mainPanel.append(scalePanel.getPanel(), 3);
-
-		// Audio sample rate
-		FormLayout sampleRateLayout = new FormLayout("right:pref, 3dlu, right:pref, 3dlu, right:pref, 3dlu, left:pref", "");
-		DefaultFormBuilder sampleRatePanel = new DefaultFormBuilder(sampleRateLayout);
-		sampleRateOverride = new JCheckBox(Messages.getString("VlcTrans.17"), configuration.getVlcSampleRateOverride());
-		sampleRatePanel.append(Messages.getString("VlcTrans.18"), sampleRateOverride);
-		sampleRate = new JTextField(configuration.getVlcSampleRate(), 8);
-		sampleRate.setEnabled(configuration.getVlcSampleRateOverride());
-		sampleRate.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setVlcSampleRate(sampleRate.getText());
-			}
-		});
-		sampleRatePanel.append(Messages.getString("VlcTrans.19"), sampleRate);
-		sampleRateOverride.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				boolean checked = e.getStateChange() == ItemEvent.SELECTED;
-				configuration.setVlcSampleRateOverride(checked);
-				sampleRate.setEnabled(checked);
-			}
-		});
-
-		mainPanel.nextLine();
-		mainPanel.append(sampleRatePanel.getPanel(), 7);
-
-		// Extra options
-		mainPanel.nextLine();
-		*/
-		builder.addLabel(Messages.getString("VlcTrans.20"), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
-		extraParams = new JTextField(configuration.getFont());
-		extraParams.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setFont(extraParams.getText());
-			}
-		});
-		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 9, 3), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 

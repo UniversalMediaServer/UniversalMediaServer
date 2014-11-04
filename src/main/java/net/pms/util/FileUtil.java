@@ -19,6 +19,7 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+import org.codehaus.plexus.util.StringUtils;
 import static org.mozilla.universalchardet.Constants.*;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
@@ -198,7 +199,7 @@ public class FileUtil {
 
 		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*|[\\s\\.]READNFO.*";
 		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]WEBRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*|.*[\\s\\.]READNFO.*";
-		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER.*|[\\s\\.]iNTERNAL.*|[\\s\\.]LIMITED.*|[\\s\\.]LiMiTED.*|[\\s\\.]FESTiVAL.*|[\\s\\.]NORDIC.*|[\\s\\.]REAL.*|[\\s\\.]SUBBED.*|[\\s\\.]RETAIL.*";
+		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER[\\s\\.].*|[\\s\\.]iNTERNAL[\\s\\.].*|[\\s\\.]LIMITED[\\s\\.].*|[\\s\\.]LiMiTED[\\s\\.].*|[\\s\\.]FESTiVAL[\\s\\.].*|[\\s\\.]NORDIC[\\s\\.].*|[\\s\\.]REAL[\\s\\.].*|[\\s\\.]SUBBED[\\s\\.].*|[\\s\\.]RETAIL[\\s\\.].*";
 
 		String commonFileMiddle = "(?i)(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|Extended|IMAX[\\s\\.]Edition)";
 
@@ -219,6 +220,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons that are double episodes
 
@@ -235,6 +241,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
 
@@ -252,6 +263,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons
 
@@ -268,6 +284,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 
@@ -283,6 +304,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
 			// This matches scene and most p2p movies
 

@@ -278,6 +278,12 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
+	public boolean embeddedFontExists = false;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
 	public String stereoscopy;
 
 	private boolean gen_thumb;
@@ -1836,6 +1842,22 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @return whether the file container has custom fonts attached.
+	 */
+	public boolean isEmbeddedFontExists() {
+		return embeddedFontExists;
+	}
+
+	/**
+	 * Sets whether the file container has custom fonts attached.
+	 *
+	 * @param exists true if at least one attached font exists
+	 */
+	public void setEmbeddedFontExists(boolean exists) {
+		this.embeddedFontExists = exists;
+	}
+
+	/**
 	 * @return the bitsPerPixel
 	 * @since 1.50.0
 	 */
@@ -2225,8 +2247,32 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return whether the video track is 3D
 	 */
 	public boolean is3d() {
-		if (!"".equals(stereoscopy)) {
-			return true;
+		return StringUtils.isNotBlank(stereoscopy);
+	}
+
+	/**
+	 * The significance of this is that the aspect ratio should not be kept
+	 * in this case when transcoding.
+	 * Example: 3840x1080 should be resized to 1920x1080, not 1920x540.
+	 *
+	 * @return whether the video track is full SBS or OU 3D
+	 */
+	public boolean is3dFullSbsOrOu() {
+		if (!is3d()) {
+			return false;
+		}
+
+		switch (stereoscopy) {
+			case "overunderrt":
+			case "OULF":
+			case "OURF":
+			case "SBSLF":
+			case "SBSRF":
+			case "top-bottom (left eye first)":
+			case "top-bottom (right eye first)":
+			case "side by side (left eye first)":
+			case "side by side (right eye first)":
+				return true;
 		}
 
 		return false;
@@ -2254,6 +2300,95 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setStereoscopy(String stereoscopy) {
 		this.stereoscopy = stereoscopy;
+	}
+
+	/**
+	 * Used by FFmpeg for 3D video format naming
+	 */
+	public enum Mode3D {
+		SBSL,
+		SBSR,
+		HSBSL,
+		OUL,
+		OUR,
+		HOUL,
+		ARCG,
+		ARCH,
+		ARCC,
+		ARCD,
+		AGMG,
+		AGMH,
+		AGMC,
+		AGMD,
+		AYBG,
+		AYBH,
+		AYBC,
+		AYBD
+	};
+
+	public Mode3D get3DLayout() {
+		if (!is3d()) {
+			return null;
+		}
+
+		isAnaglyph = true;
+		switch (stereoscopy) {
+			case "overunderrt":
+			case "OULF":
+			case "top-bottom (left eye first)":
+				isAnaglyph = false;
+				return Mode3D.OUL;
+			case "OURF":
+			case "top-bottom (right eye first)":
+				isAnaglyph = false;
+				return Mode3D.OUR;
+			case "SBSLF":
+			case "side by side (left eye first)":
+				isAnaglyph = false;
+				return Mode3D.SBSL;
+			case "SBSRF":
+			case "side by side (right eye first)":
+				isAnaglyph = false;
+				return Mode3D.SBSR;
+			case "half top-bottom (left eye first)":
+				isAnaglyph = false;
+				return Mode3D.HOUL;
+			case "half side by side (left eye first)":
+				isAnaglyph = false;
+				return Mode3D.HSBSL;
+			case "ARCG":
+				return Mode3D.ARCG;
+			case "ARCH":
+				return Mode3D.ARCH;
+			case "ARCC":
+				return Mode3D.ARCC;
+			case "ARCD":
+				return Mode3D.ARCD;
+			case "AGMG":
+				return Mode3D.AGMG;
+			case "AGMH":
+				return Mode3D.AGMH;
+			case "AGMC":
+				return Mode3D.AGMC;
+			case "AGMD":
+				return Mode3D.AGMD;
+			case "AYBG":
+				return Mode3D.AYBG;
+			case "AYBH":
+				return Mode3D.AYBH;
+			case "AYBC":
+				return Mode3D.AYBC;
+			case "AYBD":
+				return Mode3D.AYBD;
+		}
+
+		return null;
+	}
+	
+	private boolean isAnaglyph;
+	
+	public boolean stereoscopyIsAnaglyph() {
+		return isAnaglyph;
 	}
 
 	public boolean isDVDResolution() {
