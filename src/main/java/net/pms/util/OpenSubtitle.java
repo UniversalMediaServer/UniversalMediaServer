@@ -408,7 +408,13 @@ public class OpenSubtitle {
 		}
 		out.close();
 		if (!PMS.getConfiguration().isLiveSubtitlesKeep()) {
-			PMS.get().addTempFile(f);
+			int tmo = PMS.getConfiguration().getLiveSubtitlesTimeout();
+			if (tmo <= 0) {
+				PMS.get().addTempFile(f);
+			}
+			else {
+				PMS.get().addTempFile(f, tmo);
+			}
 		}
 		return f.getAbsolutePath();
 	}

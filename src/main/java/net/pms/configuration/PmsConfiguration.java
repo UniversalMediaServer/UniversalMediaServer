@@ -196,6 +196,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
+	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
 	protected static final String KEY_PING_PATH = "ping_path";
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
@@ -2937,6 +2938,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	
 	public boolean isLiveSubtitlesKeep() {
 		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
+	}
+
+	public int getLiveSubtitlesTimeout() {
+		return getInt(KEY_LIVE_SUBTITLES_TMO, 0) * 24 * 3600 * 1000;
+	}
+
+	public void setLiveSubtitlesTimeout(int t) {
+		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
 	}
 
 	public boolean isVlcUseHardwareAccel() {
