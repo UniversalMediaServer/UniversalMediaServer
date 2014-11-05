@@ -1,7 +1,6 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -32,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -734,6 +734,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		configurationReader = new ConfigurationReader(configuration, true); // true: log
 	}
 
+	static UnicodeUnescaper unicodeUnescaper = new UnicodeUnescaper();
+
 	public RendererConfiguration(File f) throws ConfigurationException {
 		this(f, null);
 	}
@@ -771,7 +773,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						// Decode any backslashed unicode escapes, e.g. '\u005c', from the
 						// ISO 8859-1 (aka Latin 1) encoded java Properties file, then
 						// unescape any double-backslashes, then escape all backslashes before parsing
-						super.parseProperty(laxUnicodeUnescaper.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
+						super.parseProperty(unicodeUnescaper.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
 					}
 				};
 			}
@@ -1015,8 +1017,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(TRANSCODE_AUDIO_441KHZ, false);
 	}
 
+	/**
+	 * @return whether to transcode H.264 video if it exceeds level 4.1
+	 */
 	public boolean isH264Level41Limited() {
-		return getBoolean(H264_L41_LIMITED, false);
+		return getBoolean(H264_L41_LIMITED, true);
 	}
 
 	public boolean isTranscodeFastStart() {
@@ -1604,26 +1609,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	/**
 	 * Returns the maximum video width supported by the renderer as defined in
-	 * the renderer configuration. The default value 0 means unlimited.
+	 * the renderer configuration. 0 means unlimited.
 	 *
 	 * @see #isMaximumResolutionSpecified()
 	 *
 	 * @return The maximum video width.
 	 */
 	public int getMaxVideoWidth() {
-		return getInt(MAX_VIDEO_WIDTH, 0);
+		return getInt(MAX_VIDEO_WIDTH, 1920);
 	}
 
 	/**
 	 * Returns the maximum video height supported by the renderer as defined
-	 * in the renderer configuration. The default value 0 means unlimited.
+	 * in the renderer configuration. 0 means unlimited.
 	 *
 	 * @see #isMaximumResolutionSpecified()
 	 *
 	 * @return The maximum video height.
 	 */
 	public int getMaxVideoHeight() {
-		return getInt(MAX_VIDEO_HEIGHT, 0);
+		return getInt(MAX_VIDEO_HEIGHT, 1080);
 	}
 
 	/**
