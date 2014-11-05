@@ -724,6 +724,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		this(null, null);
 	}
 
+	public RendererConfiguration(String uuid) throws ConfigurationException {
+		this(null, uuid);
+	}
+
+	public RendererConfiguration(int ignored) {
+		// Just instantiate minimally, full initialization will happen later
+		configuration = createPropertiesConfiguration();
+		configurationReader = new ConfigurationReader(configuration, true); // true: log
+	}
+
 	static UnicodeUnescaper unicodeUnescaper = new UnicodeUnescaper();
 
 	public RendererConfiguration(File f) throws ConfigurationException {
