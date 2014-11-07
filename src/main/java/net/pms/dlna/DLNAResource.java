@@ -378,7 +378,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public abstract boolean isFolder();
 
-	public String getDlnaContentFeatures() {
+	public String getDlnaContentFeatures(RendererConfiguration renderer) {
+		getDidlString(renderer); // used to set dlnaspec and dlnaOrgOpFlags
 		return (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags() + ";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
