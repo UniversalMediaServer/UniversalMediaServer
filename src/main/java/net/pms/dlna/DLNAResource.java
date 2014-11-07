@@ -1683,7 +1683,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				 * Some renderers will not play a file if it has the wrong DLNA.ORG_PN string, while others
 				 * are fine with any string or even nothing.
 				 */
-				if (mediaRenderer.isDLNAOrgPNUsed()) {
+				if (mediaRenderer.isDLNAOrgPNUsed() || mediaRenderer.isAccurateDLNAOrgPN()) {
 					if (mediaRenderer.isPS3()) {
 						if (mime.equals(DIVX_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=AVI";
