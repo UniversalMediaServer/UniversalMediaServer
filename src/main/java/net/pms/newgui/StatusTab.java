@@ -104,6 +104,7 @@ public class StatusTab {
 	private JLabel jl;
 	private JProgressBar jpb;
 	private GuiUtil.SegmentedProgressBarUI memBarUI;
+	private JLabel bitrateLabel;
 	private JLabel currentBitrate;
 	private JLabel currentBitrateLabel;
 	private JLabel peakBitrate;
@@ -145,11 +146,24 @@ public class StatusTab {
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 320dlu, 30dlu, pref, 0:grow", orientation);
 
-		FormLayout layout = new FormLayout(
-			colSpec,
-			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 15dlu, p, 15dlu, p, 15dlu, p, p"
+		String colSpec = FormLayoutUtil.getColSpec("pref, 30dlu, fill:pref:grow, 30dlu, pref", orientation);
+		//                                             1     2          3           4     5        
+
+		FormLayout layout = new FormLayout(colSpec,
+			//                          1     2          3            4     5        
+			//                   //////////////////////////////////////////////////
+			  "p,"               // Detected Media Renderers --------------------//  1
+			+ "9dlu,"            //                                              //
+			+ "fill:p:grow,"     //          <renderers>                         //  3
+			+ "3dlu,"            //                                              //
+			+ "p,"               // Status --------------------------------------//  5
+			+ "3dlu,"            //           |                       |          //
+			+ "p,"               // Connected |  Memory Usage         | Bitrate  //  7
+			+ "3dlu,"            //           |                       |          //
+			+ "p,"               //  <icon>   |  <statusbar>          | <rates>  //  9
+			                     //////////////////////////////////////////////////
+
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -157,58 +171,13 @@ public class StatusTab {
 		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("StatusTab.2"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
+		// Renderers
+		JComponent cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		Font bold = cmp.getFont().deriveFont(Font.BOLD);
+		Color fgColor = new Color(68, 68, 68);
+		cmp.setFont(bold);
 
-		jl = new JLabel(Messages.getString("StatusTab.3"));
-		builder.add(jl, FormLayoutUtil.flip(cc.xy(1, 3,  "center, top"), colSpec, orientation));
-		jl.setFont(new Font("Dialog", 1, 18));
-		jl.setForeground(new Color(68, 68, 68));
-
-		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
-		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
-
-		JSeparator x = new JSeparator(SwingConstants.VERTICAL);
-		x.setPreferredSize(new Dimension(3, 215));
-		builder.add(x, FormLayoutUtil.flip(cc.xywh(3, 3, 1, 10, "center, top"), colSpec, orientation));
-
-		currentBitrateLabel = new JLabel(Messages.getString("StatusTab.8") + " (" + Messages.getString("StatusTab.11") + ")");
-		builder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xyw(4, 3, 2, "left, top"), colSpec, orientation));
-
-		currentBitrate = new JLabel("0");
-		currentBitrate.setFont(new Font("Dialog", 1, 50));
-		currentBitrate.setForeground(new Color(68, 68, 68));
-		builder.add(currentBitrate, FormLayoutUtil.flip(cc.xyw(4, 5, 2, "left, top"), colSpec, orientation));
-
-		peakBitrateLabel = new JLabel(Messages.getString("StatusTab.10") + " (" + Messages.getString("StatusTab.11") + ")");
-		builder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xyw(4, 7, 2, "left, top"), colSpec, orientation));
-
-		peakBitrate = new JLabel("0");
-		peakBitrate.setFont(new Font("Dialog", 1, 50));
-		peakBitrate.setForeground(new Color(68, 68, 68));
-		builder.add(peakBitrate, FormLayoutUtil.flip(cc.xyw(4, 9, 2, "left, top"), colSpec, orientation));
-
-		jpb = new JProgressBar(0, 100);
-		jpb.setStringPainted(true);
-		jpb.setString(Messages.getString("StatusTab.5"));
-		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
-		memBarUI.addSegment("", memColor);
-		memBarUI.addSegment("", bufColor);
-		memBarUI.setTickMarks(100, "{}" + Messages.getString("StatusTab.12"));
-		jpb.setUI(memBarUI);
-
-		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
-
-		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 11, 5), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-//		FormLayout layoutRenderer = new FormLayout(
-//			"0:grow, pref, pref, pref, pref, pref, pref, pref, pref, pref, pref, 0:grow",
-//			"pref, 3dlu, pref"
-//		);
 		layoutRenderer = new FormLayout(
 			"pref",
 			"pref, 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
@@ -218,14 +187,65 @@ public class StatusTab {
 
 		JScrollPane rsp = new JScrollPane(
 			rendererBuilder.getPanel(),
-			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-//			//	JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
 		rsp.setPreferredSize(new Dimension(0, 260));
 		rsp.getHorizontalScrollBar().setLocation(0,250);
+		rsp.getHorizontalScrollBar().setLocation(0,250);
 
-		builder.add(rsp, cc.xyw(1, 13, 5));
+		builder.add(rsp, cc.xyw(1, 3, 5));
+
+		cmp = builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
+
+		// Connected
+		jl = new JLabel(Messages.getString("StatusTab.3"));
+		builder.add(jl, FormLayoutUtil.flip(cc.xy(1, 7,  "center, top"), colSpec, orientation));
+		jl.setFont(bold);
+		jl.setForeground(fgColor);
+
+		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
+		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+
+		// Memory
+		jpb = new JProgressBar(0, 100);
+		jpb.setStringPainted(true);
+		jpb.setString(Messages.getString("StatusTab.5"));
+		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
+		memBarUI.addSegment("", memColor);
+		memBarUI.addSegment("", bufColor);
+		memBarUI.setTickMarks(100, "{}");
+		jpb.setUI(memBarUI);
+
+		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+		mem.setForeground(fgColor);
+		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(3, 9, 1), colSpec, orientation));
+
+		// Bitrate
+		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
+		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));	
+
+		bitrateLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
+		bitrateLabel.setForeground(fgColor);
+		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xyw(1, 1, 3, "left, top"), colSpec, orientation));
+
+		currentBitrateLabel = new JLabel(Messages.getString("StatusTab.14"));
+		currentBitrateLabel.setForeground(fgColor);
+		bitrateBuilder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
+
+		currentBitrate = new JLabel("0");
+		currentBitrate.setForeground(new Color(68, 68, 68));
+		bitrateBuilder.add(currentBitrate, FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
+
+		peakBitrateLabel = new JLabel(Messages.getString("StatusTab.15"));
+		peakBitrateLabel.setForeground(fgColor);
+		bitrateBuilder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
+
+		peakBitrate = new JLabel("0");
+		peakBitrate.setForeground(new Color(68, 68, 68));
+		bitrateBuilder.add(peakBitrate, FormLayoutUtil.flip(cc.xy(3, 5), bitColSpec, orientation));
+
+		builder.add(bitrateBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(5, 7, 1, 3, "left, top"), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
@@ -234,7 +254,6 @@ public class StatusTab {
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
-			//JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
