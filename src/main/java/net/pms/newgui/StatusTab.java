@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -47,6 +48,8 @@ import org.slf4j.LoggerFactory;
 
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
+	private static final Color memColor = new Color(119, 119, 119, 128);
+	private static final Color bufColor = new Color(75, 140, 181, 128);
 
 	public static class RendererItem implements ActionListener {
 		public ImagePanel icon;
@@ -72,11 +75,11 @@ public class StatusTab {
 			time = new JLabel(" ");
 			time.setForeground(Color.gray);
 			jpb = new GuiUtil.SmoothProgressBar(0, 100);
-			jpb.setUI(new GuiUtil.SimpleProgressUI(Color.white, Color.gray));
+			jpb.setUI(new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
 			jpb.setStringPainted(true);
 			jpb.setBorderPainted(false);
-			jpb.setForeground(new Color(75, 140, 181));
 			jpb.setString(r.getAddress().getHostAddress());
+			jpb.setForeground(bufColor);
 		}
 
 		@Override
@@ -100,6 +103,7 @@ public class StatusTab {
 	private int rendererCount;
 	private JLabel jl;
 	private JProgressBar jpb;
+	private GuiUtil.SegmentedProgressBarUI memBarUI;
 	private JLabel currentBitrate;
 	private JLabel currentBitrateLabel;
 	private JLabel peakBitrate;
@@ -185,10 +189,14 @@ public class StatusTab {
 		peakBitrate.setForeground(new Color(68, 68, 68));
 		builder.add(peakBitrate, FormLayoutUtil.flip(cc.xyw(4, 9, 2, "left, top"), colSpec, orientation));
 
-		jpb = new GuiUtil.SmoothProgressBar(0, 100);
+		jpb = new JProgressBar(0, 100);
 		jpb.setStringPainted(true);
-		jpb.setForeground(new Color(75, 140, 181));
 		jpb.setString(Messages.getString("StatusTab.5"));
+		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
+		memBarUI.addSegment("", memColor);
+		memBarUI.addSegment("", bufColor);
+		memBarUI.setTickMarks(100, "{}" + Messages.getString("StatusTab.12"));
+		jpb.setUI(memBarUI);
 
 		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
@@ -389,20 +397,13 @@ public class StatusTab {
 	}
 
 	public void updateMemoryUsage() {
-		long used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-		int percent = (int) (100 * used / Runtime.getRuntime().maxMemory());
-		String msg = formatter.format(used / 1048576) + " " + Messages.getString("StatusTab.12");
-		jpb.setForeground(new Color(75, 140, 181));
-		if (percent > 70) {
-			jpb.setForeground(new Color(250, 177, 54));
-			//LOGGER.info("Your memory consumption is high");
+		long max = Runtime.getRuntime().maxMemory() / 1048576;
+		long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
+		long buf = 0;
+		for (RendererConfiguration r : PMS.get().getRenders()) {
+			buf += (r.getBuffer());
 		}
-		if (percent > 90) {
-			jpb.setForeground(new Color(255, 1, 18));
-			//LOGGER.info("Your memory consumption is alarmingly high");
-		}
-		jpb.setValue(percent);
-		jpb.setString(msg);
+		memBarUI.setValues(0, (int) max, (int) (used - buf), (int) buf);
 	}
 
 	private void startMemoryUpdater() {
@@ -412,7 +413,7 @@ public class StatusTab {
 				for(;;) {
 					updateMemoryUsage();
 					try {
-						Thread.sleep(20000);
+						Thread.sleep(2000);
 					} catch (Exception e) {
 						return;
 					}
