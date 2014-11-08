@@ -50,6 +50,7 @@ import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import org.apache.commons.configuration.ConfigurationException;
