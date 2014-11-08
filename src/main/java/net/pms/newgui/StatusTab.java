@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -171,13 +170,13 @@ public class StatusTab {
 			//                   //////////////////////////////////////////////////
 			  "p,"               // Detected Media Renderers --------------------//  1
 			+ "9dlu,"            //                                              //
-			+ "fill:p:grow,"     //          <renderers>                         //  3
+			+ "fill:p:grow,"     //                 <renderers>                  //  3
 			+ "3dlu,"            //                                              //
-			+ "p,"               // Status --------------------------------------//  5
+			+ "p,"               // ---------------------------------------------//  5
 			+ "3dlu,"            //           |                       |          //
-			+ "p,"               // Connected |  Memory Usage         | Bitrate  //  7
+			+ "p,"               // Connected |  Memory Usage         |<bitrate> //  7
 			+ "3dlu,"            //           |                       |          //
-			+ "p,"               //  <icon>   |  <statusbar>          | <rates>  //  9
+			+ "p,"               //  <icon>   |  <statusbar>          |          //  9
 			                     //////////////////////////////////////////////////
 
 		);
@@ -243,7 +242,7 @@ public class StatusTab {
 		bitrateBuilder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
 
 		currentBitrate = new JLabel("0");
-		currentBitrate.setForeground(new Color(68, 68, 68));
+		currentBitrate.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrate, FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
 
 		peakBitrateLabel = new JLabel(Messages.getString("StatusTab.15"));
@@ -251,7 +250,7 @@ public class StatusTab {
 		bitrateBuilder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
 
 		peakBitrate = new JLabel("0");
-		peakBitrate.setForeground(new Color(68, 68, 68));
+		peakBitrate.setForeground(fgColor);
 		bitrateBuilder.add(peakBitrate, FormLayoutUtil.flip(cc.xy(3, 5), bitColSpec, orientation));
 
 		builder.add(bitrateBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(5, 7, 1, 3, "left, top"), colSpec, orientation));

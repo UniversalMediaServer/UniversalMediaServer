@@ -44,7 +44,7 @@ public final class GuiUtil {
 		}
 	}
 
-	// A progresss bar with smooth transitions
+	// A progress bar with smooth transitions
 	public static class SmoothProgressBar extends JProgressBar {
 		public SmoothProgressBar(int min, int max) {
 			super(min, max);
@@ -317,7 +317,7 @@ public final class GuiUtil {
 		private Dimension preferredLayoutSize;
 
 		/**
-		* Constructs a new <code>WrapLayout</code> with a left
+		* Constructs a new <code>WrapLayout</code> with a centered
 		* alignment and a default 5-unit horizontal and vertical gap.
 		*/
 		public WrapLayout() {
@@ -325,11 +325,14 @@ public final class GuiUtil {
 		}
 
 		/**
-		* Constructs a new <code>FlowLayout</code> with the specified
+		* Constructs a new <code>WrapLayout</code> with the specified
 		* alignment and a default 5-unit horizontal and vertical gap.
+		* <p>
 		* The value of the alignment argument must be one of
-		* <code>WrapLayout</code>, <code>WrapLayout</code>,
-		* or <code>WrapLayout</code>.
+		* <code>FlowLayout.LEFT</code>, <code>FlowLayout.CENTER</code>,
+		* <code>FlowLayout.RIGHT</code>, <code>FlowLayout.LEADING</code>,
+		* or <code>FlowLayout.TRAILING</code>.
+		*
 		* @param align the alignment value
 		*/
 		public WrapLayout(int align) {
@@ -337,12 +340,8 @@ public final class GuiUtil {
 		}
 
 		/**
-		* Creates a new flow layout manager with the indicated alignment
+		* Creates a new wrap layout manager with the indicated alignment
 		* and the indicated horizontal and vertical gaps.
-		* <p>
-		* The value of the alignment argument must be one of
-		* <code>WrapLayout</code>, <code>WrapLayout</code>,
-		* or <code>WrapLayout</code>.
 		* @param align the alignment value
 		* @param hgap the horizontal gap between components
 		* @param vgap the vertical gap between components
