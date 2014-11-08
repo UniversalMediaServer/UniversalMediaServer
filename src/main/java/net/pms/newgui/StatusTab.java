@@ -61,6 +61,7 @@ public class StatusTab {
 		public GuiUtil.SmoothProgressBar jpb;
 		public RendererPanel panel;
 		public String name = " ";
+		private JPanel _panel = null;
 
 		public RendererItem(RendererConfiguration r) {
 			icon = addRendererIcon(r.getRendererIcon());
@@ -94,13 +95,29 @@ public class StatusTab {
 				playingLabel.setText(name);
 			}
 		}
+
+		public JPanel getPanel() {
+			if (_panel == null) {
+				PanelBuilder b = new PanelBuilder(new FormLayout(
+					"center:pref",
+					"max(140px;pref), 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
+				));
+				b.opaque(true);
+				CellConstraints cc = new CellConstraints();
+				b.add(icon, cc.xy(1, 1));
+				b.add(label, cc.xy(1, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
+				b.add(jpb, cc.xy(1, 5));
+				b.add(playing, cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
+				b.add(time, cc.xy(1, 9));
+				_panel = b.getPanel();
+			}
+			return _panel;
+		}
 	}
 
-	private PanelBuilder rendererBuilder;
-	private FormLayout layoutRenderer;
 	private ImagePanel imagePanel;
 	private PmsConfiguration configuration;
-	private int rendererCount;
+	private JPanel renderers;
 	private JLabel jl;
 	private JProgressBar jpb;
 	private GuiUtil.SegmentedProgressBarUI memBarUI;
@@ -116,7 +133,6 @@ public class StatusTab {
 
 	StatusTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
-		rendererCount = 0;
 		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
@@ -178,20 +194,13 @@ public class StatusTab {
 		Color fgColor = new Color(68, 68, 68);
 		cmp.setFont(bold);
 
-		layoutRenderer = new FormLayout(
-			"pref",
-			"pref, 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
-		);
-		rendererBuilder = new PanelBuilder(layoutRenderer);
-		rendererBuilder.opaque(true);
-
+		renderers = new JPanel(new GuiUtil.WrapLayout());
 		JScrollPane rsp = new JScrollPane(
-			rendererBuilder.getPanel(),
+			renderers,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
 		rsp.setPreferredSize(new Dimension(0, 260));
-		rsp.getHorizontalScrollBar().setLocation(0,250);
 		rsp.getHorizontalScrollBar().setLocation(0,250);
 
 		builder.add(rsp, cc.xyw(1, 3, 5));
@@ -293,17 +302,8 @@ public class StatusTab {
 
 	public void addRenderer(final RendererConfiguration renderer) {
 
-		layoutRenderer.appendColumn(ColumnSpec.decode("center:pref"));
-
 		final RendererItem r = new RendererItem(renderer);
-		CellConstraints cc = new CellConstraints();
-		int i = rendererCount++;
-		rendererBuilder.add(r.icon, cc.xy(i + 2, 1));
-		rendererBuilder.add(r.label, cc.xy(i + 2, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
-		rendererBuilder.add(r.jpb, cc.xy(i + 2, 5));
-		rendererBuilder.add(r.playing, cc.xy(i + 2, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
-		rendererBuilder.add(r.time, cc.xy(i + 2, 9));
-
+		renderers.add(r.getPanel());
 		renderer.setGuiComponents(r);
 		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
