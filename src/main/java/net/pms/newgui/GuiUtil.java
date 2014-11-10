@@ -167,7 +167,7 @@ public final class GuiUtil {
 		}
 	}
 
-	// A progressbar ui with subregions and tickmarks
+	// A progressbar ui with labled subregions, a progress-sensitive main label, and tickmarks
 	public static class SegmentedProgressBarUI extends javax.swing.plaf.basic.BasicProgressBarUI {
 		Color fg, bg;
 
@@ -181,6 +181,7 @@ public final class GuiUtil {
 			}
 		}
 		ArrayList<Segment> segments;
+		ArrayList<Segment> mainLabel;
 
 		int tickmarks;
 		String tickLabel;
@@ -191,6 +192,7 @@ public final class GuiUtil {
 
 		public SegmentedProgressBarUI(Color fg, Color bg) {
 			segments = new ArrayList<>();
+			mainLabel = new ArrayList<>();
 			this.fg = fg != null ? fg : super.getSelectionForeground();
 			this.bg = bg != null ? bg : super.getSelectionBackground();
 			tickmarks = 0;
@@ -201,6 +203,13 @@ public final class GuiUtil {
 			// Set color transparency to 50% so tickmarks are visible
 			segments.add(new Segment(label, new Color(c.getRed(), c.getGreen(), c.getBlue(), 128)));
 			return segments.size() - 1;
+		}
+
+		public void setActiveLabel(String label, Color c, int pct) {
+			Segment s = new Segment(label, c);
+			// This label will be activated if progress equals or exceeds this percentage
+			s.val = pct;
+			mainLabel.add(s);
 		}
 
 		public void setTickMarks(int units, String label) {
@@ -235,8 +244,9 @@ public final class GuiUtil {
 			if (w < 1 || h < 1) {
 				return;
 			}
+			int max = progressBar.getMaximum();
 			int filled = getAmountFull(b, w, h);
-			float unit = (float) w / progressBar.getMaximum();
+			float unit = (float) w / max;
 			int total = total();
 			int x = b.left;
 			Graphics2D g2 = (Graphics2D)g;
@@ -261,6 +271,21 @@ public final class GuiUtil {
 					}
 					x += seg_w;
 				}
+			}
+			// Draw the main label, if any
+			if (progressBar.isStringPainted() && mainLabel.size() > 0) {
+				// Find the active label for this percentage
+				Segment active = null;
+				int pct = total * 100 / max;
+				for (Segment s : mainLabel) {
+					if (s.val <= pct) {
+						active = s;
+					}
+				}
+				g2.setColor(active.color);
+				String label = active.label.replace("{}", "" + total);
+				int label_w = (int)g.getFontMetrics().getStringBounds(label, g).getWidth();
+				g2.drawString(label, x - label_w - 2, g2.getFontMetrics().getAscent());
 			}
 		}
 

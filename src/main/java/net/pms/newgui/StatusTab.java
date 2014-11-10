@@ -178,7 +178,6 @@ public class StatusTab {
 			+ "3dlu,"            //           |                       |          //
 			+ "p,"               //  <icon>   |  <statusbar>          |          //  9
 			                     //////////////////////////////////////////////////
-
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -220,6 +219,8 @@ public class StatusTab {
 		jpb.setStringPainted(true);
 		jpb.setString(Messages.getString("StatusTab.5"));
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
+		memBarUI.setActiveLabel("{}", Color.white, 0);
+		memBarUI.setActiveLabel("{}", Color.red, 90);
 		memBarUI.addSegment("", memColor);
 		memBarUI.addSegment("", bufColor);
 		memBarUI.setTickMarks(100, "{}");
