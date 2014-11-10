@@ -92,7 +92,7 @@ public class RendererConfigurationTest {
 		// Microsoft Xbox One:
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: Xbox-SystemOS");
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: XboxOne");
-		testHeaders("Xbox One", "User-Agent: Microsoft-Windows/6.2 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50");
+//		testHeaders("Xbox One", "User-Agent: Microsoft-Windows/6.2 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50");
 		testHeaders("Xbox One", "User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411");
 
 		// Netgear NeoTV:
