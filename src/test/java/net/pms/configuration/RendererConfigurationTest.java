@@ -66,6 +66,7 @@ public class RendererConfigurationTest {
 		// Known headers
 
 		// Cases that are too generic should not match anything
+		testHeaders(null, "User-Agent: Microsoft-Windows/6.2 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50");
 		testHeaders(null, "User-Agent: UPnP/1.0 DLNADOC/1.50");
 		testHeaders(null, "User-Agent: Unknown Renderer");
 		testHeaders(null, "X-Unknown-Header: Unknown Content");
@@ -92,7 +93,6 @@ public class RendererConfigurationTest {
 		// Microsoft Xbox One:
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: Xbox-SystemOS");
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: XboxOne");
-		testHeaders("Xbox One", "User-Agent: Microsoft-Windows/6.2 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50");
 		testHeaders("Xbox One", "User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411");
 
 		// Netgear NeoTV:
