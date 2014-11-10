@@ -121,6 +121,16 @@ public class RemoteMediaHandler implements HttpHandler {
 		Headers hdr = t.getResponseHeaders();
 		hdr.add("Content-Type", mime);
 		hdr.add("Accept-Ranges", "bytes");
+		if (range != null) {
+			long end = range.asByteRange().getEnd();
+			long start = range.asByteRange().getStart();
+			String rStr = start + "-" + end + "/*" ;
+			hdr.add("Content-Range", "bytes " + rStr);
+			if (start != 0) {
+				code = 206;
+			}
+
+		}
 		hdr.add("Server", PMS.get().getServerName());
 		hdr.add("Connection", "keep-alive");
 		t.sendResponseHeaders(code, 0);
