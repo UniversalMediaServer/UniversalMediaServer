@@ -89,6 +89,12 @@ public class RendererConfigurationTest {
 		testHeaders("iPad / iPhone", "User-Agent: MPlayer 1.0rc4-4.2.1");
 		testHeaders("iPad / iPhone", "User-Agent: NSPlayer/4.1.0.3856");
 
+		// Microsoft Xbox One:
+		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: Xbox-SystemOS");
+		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: XboxOne");
+		testHeaders("Xbox One", "User-Agent: Microsoft-Windows/6.2 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50");
+		testHeaders("Xbox One", "User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411");
+
 		// Netgear NeoTV:
 		testHeaders("Netgear NeoTV", "friendlyName.dlna.org: BD-Player");
 
@@ -129,6 +135,9 @@ public class RendererConfigurationTest {
 
 		// Showtime 4:
 		testHeaders("Showtime 4", "User-Agent: Showtime PS3 4.2");
+
+		// Sony Xperia:
+		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
 
 		// Telstra T-Box:
 		// Note: This isn't the full user-agent, just a snippet to find it
