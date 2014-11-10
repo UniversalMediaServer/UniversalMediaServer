@@ -14,6 +14,8 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
+import net.pms.external.StartStopListener;
+import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.io.OutputParams;
 import net.pms.remote.RemoteUtil;
@@ -54,6 +56,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int XBOX1 = 6;
 	protected static final int OPERA = 7;
 
+	private StartStopListenerDelegate startStop;
+
 	public WebRender(String user) throws ConfigurationException {
 		super(NOFILE, null);
 		this.user = user;
@@ -63,6 +67,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		fileless = true;
 		String userFmt = pmsconfiguration.getWebTranscode();
 		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
+		startStop = null;
 	}
 
 	@Override
@@ -427,6 +432,26 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return player;
 	}
 
+	public void start(DLNAResource dlna) {
+		if (getPlayingRes() != dlna) {
+			stop();
+		}
+		setPlayingRes(dlna);
+		if (startStop == null) {
+			startStop = new StartStopListenerDelegate(ip);
+		}
+		startStop.setRenderer(this);
+		startStop.start(getPlayingRes());
+	}
+
+	public void stop() {
+		if (startStop == null) {
+			return;
+		}
+		startStop.stop();
+		startStop = null;
+	}
+
 	public static class PlaybackNotifier extends BasicPlayer.Minimal {
 		private HashMap<String, String> data;
 		private Gson gson;
@@ -456,6 +481,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			long seconds = Integer.valueOf(data.get("position"));
 			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
 			refresh();
+			if (state.playback == STOPPED) {
+				((WebRender)renderer).stop();
+			}
 		}
 	}
 }

@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
@@ -74,15 +76,12 @@ public class RemoteUtil {
 			throw new IOException("no file");
 		}
 		t.sendResponseHeaders(200, f.length());
-		dump(new FileInputStream(f), t.getResponseBody(), null);
+		dump(new FileInputStream(f), t.getResponseBody());
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-	public static void dump(InputStream in, OutputStream os) {
-		dump(in, os, null);
-	}
 
-	public static void dump(final InputStream in, final OutputStream os, final StartStopListenerDelegate start) {
+	public static void dump(final InputStream in, final OutputStream os) {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -107,9 +106,6 @@ public class RemoteUtil {
 				try {
 					os.close();
 				} catch (IOException e) {
-				}
-				if (start != null) {
-					start.stop();
 				}
 			}
 		};
@@ -170,7 +166,7 @@ public class RemoteUtil {
 		InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
-		dump(in, os, null);
+		dump(in, os);
 	}
 
 	public static boolean directmime(String mime) {
