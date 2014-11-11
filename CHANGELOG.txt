@@ -1,7 +1,12 @@
 4.2.2 - 2014-11-??
 
 	General:
-		
+		Improved compatibility of H.264 transcoding when using MEncoder
+	Renderers:
+		Added support for Roku 3
+		Added support for Samsung Galaxy S5
+		Added support for Sony PlayStation Vita
+		Fixed Xbox One detection
 
 4.2.1 - 2014-11-01
 
