@@ -177,36 +177,14 @@ public class StringUtil {
 	/**
 	 * A unicode unescaper that translates unicode escapes, e.g. '\u005c', while leaving
 	 * intact any  sequences that can't be interpreted as escaped unicode.
-	 *
-	 * The code is verbatim from UnicodeUnescaper source except for exception throwing.
 	 */
 	public static class LaxUnicodeUnescaper extends UnicodeUnescaper {
 		@Override
 		public int translate(CharSequence input, int index, Writer out) throws IOException {
-			if (input.charAt(index) == '\\' && index + 1 < input.length() && input.charAt(index + 1) == 'u') {
-				// consume optional additional 'u' chars
-				int i = 2;
-				while (index + i < input.length() && input.charAt(index + i) == 'u') {
-					i++;
-				}
-
-				if (index + i < input.length() && input.charAt(index + i) == '+') {
-					i++;
-				}
-
-				if (index + i + 4 <= input.length()) {
-					// Get 4 hex digits
-					CharSequence unicode = input.subSequence(index + i, index + i + 4);
-
-					try {
-						int value = Integer.parseInt(unicode.toString(), 16);
-						out.write((char) value);
-					} catch (NumberFormatException nfe) {
-						// Leave it alone and continue
-						return 0;
-					}
-					return i + 4;
-				}
+			try {
+				return super.translate(input, index, out);
+			} catch (IllegalArgumentException e) {
+				// Leave it alone and continue
 			}
 			return 0;
 		}
