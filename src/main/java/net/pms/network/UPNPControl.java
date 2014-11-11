@@ -565,7 +565,7 @@ public class UPNPControl {
 				new ActionCallback.Default(a, upnpService.getControlPoint()).run();
 				if (log) {
 					for (ActionArgumentValue arg : a.getOutput()) {
-						LOGGER.debug("Received upnp {}: {}={} from {}[{}]", name, instanceID, service, arg.getArgument().getName(), arg.toString(), name, instanceID);
+						LOGGER.debug("Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());
 					}
 				}
 				return a;
