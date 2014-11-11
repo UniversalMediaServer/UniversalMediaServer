@@ -685,6 +685,7 @@ public class UPNPHelper extends UPNPControl {
 		private State state;
 		public Playlist playlist;
 		private String lasturi;
+		private boolean ignoreUpnpDuration;
 
 
 		public Player(DeviceConfiguration renderer) {
@@ -697,6 +698,7 @@ public class UPNPHelper extends UPNPControl {
 			playlist = new Playlist(this);
 			listeners = new LinkedHashSet();
 			lasturi = null;
+			ignoreUpnpDuration = false;
 			connect(renderer.gui);
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
 			refresh();
@@ -838,7 +840,9 @@ public class UPNPHelper extends UPNPControl {
 			s = data.get("Volume");
 			state.volume = s == null ? 0 : Integer.valueOf(s);
 			state.position = data.get("RelTime");
-			state.duration = data.get("CurrentMediaDuration");
+			if (! ignoreUpnpDuration) {
+				state.duration = data.get("CurrentMediaDuration");
+			}
 			state.uri = data.get("AVTransportURI");
 			state.metadata = data.get("AVTransportURIMetaData");
 			// update playlist only if uri has changed
@@ -852,11 +856,24 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void start() {
+			DLNAResource d = renderer.getPlayingRes();
+			if (d.getMedia() != null) {
+				String duration = d.getMedia().getDurationString();
+				ignoreUpnpDuration = ! StringUtil.isZeroTime(duration);
+				if (ignoreUpnpDuration) {
+					state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
+				}
+			}
 		}
-
 
 		@Override
 		public void reset() {
+			state.playback = STOPPED;
+			state.position = "";
+			state.duration = "";
+			state.name = " ";
+			state.buffer = 0;
+			refresh();
 		}
 
 		public void alert() {

@@ -40,6 +40,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -85,7 +86,7 @@ public class StatusTab {
 		@Override
 		public void actionPerformed(final ActionEvent e) {
 			BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
-			time.setText(state.playback == BasicPlayer.STOPPED ? " " :
+			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			jpb.setValue((int) (100 * state.buffer / bufferSize));
 			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;

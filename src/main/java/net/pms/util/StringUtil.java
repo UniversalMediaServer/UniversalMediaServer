@@ -155,8 +155,12 @@ public class StringUtil {
 	public static String shortTime(String t, int n) {
 		n = n < 8 ? n : 8;
 		if (!isBlank(t)) {
-			int i = 0;
-			for (; i < n; i++) {
+			int i = t.indexOf(".");
+			// Throw out the decimal portion, if any
+			if (i > -1) {
+				t = t.substring(0, i);
+			}
+			for (i = 0; i < n; i++) {
 				if (t.charAt(i) != "00:00:00".charAt(i)) {
 					break;
 				}
@@ -164,6 +168,10 @@ public class StringUtil {
 			return t.substring(i);
 		}
 		return "00:00:00".substring(n);
+	}
+
+	public static boolean isZeroTime(String t) {
+		return isBlank(t) || "00:00:00.000".contains(t);
 	}
 
 	/**

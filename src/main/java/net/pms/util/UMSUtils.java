@@ -226,6 +226,6 @@ public class UMSUtils {
 	public static String playedDurationStr(String current, String duration) {
 		String pos = fixTimeStr(StringUtil.shortTime(current, 4));
 		String dur = fixTimeStr(StringUtil.shortTime(duration, 4));
-		return pos + (dur.equals("0:00") ? "" : (" / " + dur));
+		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
 	}
 }
