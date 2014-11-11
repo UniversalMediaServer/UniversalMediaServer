@@ -264,7 +264,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.9.4.Final</version>
+			<version>3.9.5.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -382,7 +382,7 @@
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
-			<version>4.0.0</version>
+			<version>4.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>

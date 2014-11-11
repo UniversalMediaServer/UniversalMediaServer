@@ -3,6 +3,18 @@
 		General:
 			
 
+	Changes from the 4.x release branch:
+		General:
+			Improved compatibility of H.264 transcoding when using MEncoder
+		Renderers:
+			Added support for Roku 3
+			Added support for Samsung Galaxy S5
+			Added support for Sony PlayStation Vita
+			Fixed Xbox One detection
+		External Components:
+			Updated JNA to 4.1.0, which fixes bugs
+			Updated Netty to 3.9.5, which fixes bugs
+
 4.2.1 - 2014-11-01
 
 	General:
