@@ -560,12 +560,12 @@ public class UPNPControl {
 					a.setInput(args[i], args[i + 1]);
 				}
 				if (log) {
-					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
+					LOGGER.debug("Sending {}.{} {}", service, action, args);
 				}
 				new ActionCallback.Default(a, upnpService.getControlPoint()).run();
 				if (log) {
 					for (ActionArgumentValue arg : a.getOutput()) {
-						LOGGER.debug("Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());
+						LOGGER.debug("Received: {}={}", arg.getArgument().getName(), arg.toString());
 					}
 				}
 				return a;
