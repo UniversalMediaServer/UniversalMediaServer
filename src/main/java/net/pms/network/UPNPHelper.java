@@ -857,6 +857,7 @@ public class UPNPHelper extends UPNPControl {
 		@Override
 		public void start() {
 			DLNAResource d = renderer.getPlayingRes();
+			state.name = d.getDisplayName();
 			if (d.getMedia() != null) {
 				String duration = d.getMedia().getDurationString();
 				ignoreUpnpDuration = ! StringUtil.isZeroTime(duration);

@@ -2215,7 +2215,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				@Override
 				public void run() {
 					state.playback = PLAYING;
-					while(renderer.getPlayingRes() != null) {
+					while(res == renderer.getPlayingRes()) {
 						long elapsed = System.currentTimeMillis() - res.getStartTime();
 						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
 						refresh();
@@ -2224,7 +2224,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						} catch (Exception e) {
 						}
 					}
-					reset();
+					// Reset only if another item hasn't already begun playing
+					if (renderer.getPlayingRes() == null) {
+						reset();
+					}
 				}
 			};
 			new Thread(r).start();
