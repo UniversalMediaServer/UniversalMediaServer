@@ -117,9 +117,15 @@ public final class GuiUtil {
 		public FixedPanel(int w, int h) {
 			super();
 			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			setMaximumSize(new Dimension(w, h));
-			setPreferredSize(new Dimension(w, h));
+			setSize(w, h);
 			super.add(Box.createGlue());
+		}
+
+		@Override
+		public void setSize(int w, int h) {
+			Dimension d = new Dimension(w, h);
+			setMaximumSize(d);
+			setPreferredSize(d);
 		}
 
 		@Override
@@ -135,6 +141,10 @@ public final class GuiUtil {
 	public static class MarqueeLabel extends JLabel {
 		public int speed, spacer, dir, max_w, interval = 30;
 
+		public MarqueeLabel(String text) {
+			this(text, 9999, 30, -1, 10);
+		}
+
 		public MarqueeLabel(String text, int width) {
 			this(text, width, 30, -1, 10);
 		}
@@ -146,6 +156,10 @@ public final class GuiUtil {
 			this.dir = dir;
 			this.spacer = spacer;
 			setSize(getPreferredSize());
+		}
+
+		public void setMaxWidth(int width) {
+			max_w = width;
 		}
 
 		@Override

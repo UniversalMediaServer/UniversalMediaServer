@@ -67,11 +67,10 @@ public class StatusTab {
 			icon = addRendererIcon(r.getRendererIcon());
 			icon.enableRollover();
 			label = new JLabel(r.getRendererName());
-			int w = icon.getSource().getWidth() - 20;
-			playingLabel = new GuiUtil.MarqueeLabel(" ", w);
+			playingLabel = new GuiUtil.MarqueeLabel(" ");
 			playingLabel.setForeground(Color.gray);
 			int h = (int) playingLabel.getSize().getHeight();
-			playing = new GuiUtil.FixedPanel(w, h);
+			playing = new GuiUtil.FixedPanel(0, h);
 			playing.add(playingLabel);
 			time = new JLabel(" ");
 			time.setForeground(Color.gray);
@@ -94,6 +93,15 @@ public class StatusTab {
 				name = n;
 				playingLabel.setText(name);
 			}
+		}
+
+		public void addTo(Container parent) {
+			parent.add(getPanel());
+			parent.validate();
+			// Maximize the playing label width
+			int w = (int) _panel.getWidth() - _panel.getInsets().left - _panel.getInsets().right;
+			playing.setSize(w, (int) playingLabel.getSize().getHeight());
+			playingLabel.setMaxWidth(w);
 		}
 
 		public JPanel getPanel() {
@@ -193,7 +201,7 @@ public class StatusTab {
 		Color fgColor = new Color(68, 68, 68);
 		cmp.setFont(bold);
 
-		renderers = new JPanel(new GuiUtil.WrapLayout());
+		renderers = new JPanel(new GuiUtil.WrapLayout(FlowLayout.CENTER, 20, 10));
 		JScrollPane rsp = new JScrollPane(
 			renderers,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -304,7 +312,7 @@ public class StatusTab {
 	public void addRenderer(final RendererConfiguration renderer) {
 
 		final RendererItem r = new RendererItem(renderer);
-		renderers.add(r.getPanel());
+		r.addTo(renderers);
 		renderer.setGuiComponents(r);
 		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
