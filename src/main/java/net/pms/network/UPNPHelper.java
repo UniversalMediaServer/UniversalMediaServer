@@ -687,7 +687,6 @@ public class UPNPHelper extends UPNPControl {
 		private String lasturi;
 		private boolean ignoreUpnpDuration;
 
-
 		public Player(DeviceConfiguration renderer) {
 			uuid = renderer.getUUID();
 			instanceID = renderer.getInstanceID();
@@ -827,7 +826,11 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void actionPerformed(final ActionEvent e) {
-			refresh();
+			if (renderer.isUpnpConnected()) {
+				refresh();
+			} else if (state.playback != STOPPED) {
+				reset();
+			}
 		}
 
 		@Override
@@ -874,7 +877,7 @@ public class UPNPHelper extends UPNPControl {
 			state.duration = "";
 			state.name = " ";
 			state.buffer = 0;
-			refresh();
+			alert();
 		}
 
 		public void alert() {
