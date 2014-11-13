@@ -96,10 +96,10 @@ public class DLNAMediaDatabase implements Runnable {
 
 		if (Platform.isWindows()) {
 			String profileDir = configuration.getProfileDirectory();
-			url = String.format("jdbc:h2:%s\\%s/%s", profileDir, dir, dbName);
+			url = String.format("jdbc:h2:%s\\%s/%s;DB_CLOSE_ON_EXIT=FALSE", profileDir, dir, dbName);
 			fileDir = new File(profileDir, dir);
 		} else {
-			url = Constants.START_URL + dir + "/" + dbName;
+			url = Constants.START_URL + dir + "/" + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
 		}
 		dbDir = fileDir.getAbsolutePath();
 		LOGGER.debug("Using database URL: " + url);
