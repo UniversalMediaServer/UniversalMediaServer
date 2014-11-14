@@ -79,7 +79,9 @@ public interface BasicPlayer extends ActionListener {
 			this.renderer = renderer;
 			state = new State();
 			listeners = new LinkedHashSet();
-			connect(renderer.gui);
+			if (renderer.gui != null) {
+				connect(renderer.gui);
+			}
 			reset();
 			refresh();
 		}
@@ -100,7 +102,9 @@ public interface BasicPlayer extends ActionListener {
 
 		@Override
 		public void connect(ActionListener listener) {
-			listeners.add(listener);
+			if (listener != null) {
+				listeners.add(listener);
+			}
 		}
 
 		@Override

@@ -698,7 +698,9 @@ public class UPNPHelper extends UPNPControl {
 			listeners = new LinkedHashSet();
 			lasturi = null;
 			ignoreUpnpDuration = false;
-			connect(renderer.gui);
+			if (renderer.gui != null) {
+				connect(renderer.gui);
+			}
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
 			refresh();
 		}
@@ -813,7 +815,9 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void connect(ActionListener listener) {
-			listeners.add(listener);
+			if (listener != null) {
+				listeners.add(listener);
+			}
 		}
 
 		@Override
