@@ -37,6 +37,8 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.external.ExternalFactory;
@@ -1554,5 +1556,22 @@ public class PMS {
 
 	public static FileWatcher getFileWatcher() {
 		return fileWatcher;
+	}
+
+	private VirtualFolder dynamicPls;
+
+	public VirtualFolder getDynamicPls() {
+		if (dynamicPls == null) {
+			dynamicPls = new VirtualFolder(Messages.getString("PMS.146"), null);
+			dynamicPls.addChild(new VirtualVideoAction(Messages.getString("TracesTab.3"), true) {
+				@Override
+				public boolean enable() {
+					dynamicPls.getChildren().clear();
+					dynamicPls.addChild(this);
+					return true;
+				}
+			});
+		}
+		return dynamicPls;
 	}
 }

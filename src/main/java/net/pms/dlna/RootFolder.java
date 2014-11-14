@@ -131,6 +131,10 @@ public class RootFolder extends DLNAResource {
 			addChild(lim);
 		}
 
+		if (configuration.isDynamicPls()) {
+			addChild(PMS.get().getDynamicPls());
+		}
+
 		for (DLNAResource r : getConfiguredFolders(tags)) {
 			addChild(r);
 		}

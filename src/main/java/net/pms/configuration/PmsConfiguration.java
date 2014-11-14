@@ -109,6 +109,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
+	protected static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
 	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
@@ -3335,5 +3336,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			cs = CodeEnter.DIGITS;
 		}
 		return cs;
+	}
+
+	public boolean isDynamicPls() {
+		return getBoolean(KEY_DYNAMIC_PLS, false);
 	}
 }

@@ -35,6 +35,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.*;
 import net.pms.external.AdditionalResourceFolderListener;
 import net.pms.external.ExternalFactory;
@@ -260,6 +261,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected long lastRefreshTime;
 
 	private String lastSearch;
+
+	private VirtualFolder dynamicPls;
 
 	protected HashMap<String, Object> attachments = null;
 
@@ -684,6 +687,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 									vf.addChild(new SubSelFile(newChild));
 								}
+							}
+
+							if (configuration.isDynamicPls() && !child.isFolder()) {
+								addDynamicPls(child);
 							}
 
 							for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
@@ -3716,5 +3723,29 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public long getStartTime() {
 		return startTime;
+	}
+
+	private void addDynamicPls(DLNAResource child) {
+		final DLNAResource dynPls = PMS.get().getDynamicPls();
+		if (dynPls == child || child.getParent() == dynPls) {
+			return;
+		}
+		if (dynamicPls == null) {
+			dynamicPls = new VirtualFolder(Messages.getString("PMS.147"), null);
+			addChildInternal(dynamicPls);
+		}
+		if (dynamicPls != null) {
+			String str = Messages.getString("PluginTab.9") + " " + child.getDisplayName() + " " + Messages.getString("PMS.148");
+			final DLNAResource newChild = child.clone();
+			VirtualVideoAction vva = new VirtualVideoAction(str, true) {
+				@Override
+				public boolean enable() {
+					dynPls.addChild(newChild);
+					return true;
+				}
+			};
+			vva.setParent(this);
+			dynamicPls.addChildInternal(vva);
+		}
 	}
 }
