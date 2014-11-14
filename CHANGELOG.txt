@@ -5,7 +5,7 @@
 		Customized buffer color
 	Renderers:
 		Added support for Roku 3 (thanks, weyrava and drocket!)
-		Added support for Samsung F5100 Blu-ray Disc players
+		Added support for Samsung F5100 Blu-ray Disc players (thanks, maracucho!)
 		Added support for Samsung Galaxy S5 (thanks, FlyMcDoogal!)
 		Added support for Sony PlayStation Vita (incomplete) (thanks, Verequies, Balmung and xubz!)
 		Fixed Xbox One detection (thanks, Whogie!)
