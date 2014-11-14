@@ -83,7 +83,6 @@ public interface BasicPlayer extends ActionListener {
 				connect(renderer.gui);
 			}
 			reset();
-			refresh();
 		}
 
 		@Override

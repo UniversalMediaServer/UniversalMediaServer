@@ -64,6 +64,7 @@
 			player.addEventListener('pause', function(){status('playback', 'PAUSED');});
 			player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
 			player.addEventListener('ended', function(){status('playback', 'STOPPED');});
+			player.addEventListener('error', function(){status('playback', 'STOPPED');});
 			player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
 {{#autoContinue}}
 			player.addEventListener('ended', next, false);
