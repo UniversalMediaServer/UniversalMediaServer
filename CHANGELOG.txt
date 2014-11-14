@@ -8,7 +8,7 @@
 		Added support for Samsung F5100 Blu-ray Disc players
 		Added support for Samsung Galaxy S5 (thanks, FlyMcDoogal!)
 		Added support for Sony PlayStation Vita (incomplete) (thanks, Verequies, Balmung and xubz!)
-		Fixed Xbox One detection
+		Fixed Xbox One detection (thanks, Whogie!)
 	External Components:
 		Updated h2database to 1.4.182, which:
 			Fixes bugs
