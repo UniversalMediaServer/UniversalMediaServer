@@ -828,7 +828,6 @@
 							</configuration>
 						</plugin>
 
-						<!-- L10n internationalization report is not working with the latest maven site version -->
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>l10n-maven-plugin</artifactId>
