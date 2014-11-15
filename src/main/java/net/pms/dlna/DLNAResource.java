@@ -3737,6 +3737,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (dynamicPls == null) {
 			dynamicPls = new VirtualFolder(Messages.getString("PMS.147"), null);
 			addChildInternal(dynamicPls);
+			dynamicPls.addChild(dynPls);
 		}
 		if (dynamicPls != null) {
 			String str = Messages.getString("PluginTab.9") + " " + child.getDisplayName() + " " + Messages.getString("PMS.148");
