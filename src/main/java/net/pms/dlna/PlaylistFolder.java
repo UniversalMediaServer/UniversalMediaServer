@@ -88,9 +88,10 @@ public class PlaylistFolder extends DLNAResource {
 		ArrayList<Entry> entries = new ArrayList<>();
 		boolean m3u = false;
 		boolean pls = false;
+		boolean ups = false;
 		try (BufferedReader br = getBufferedReader()) {
 			String line;
-			while (!m3u && !pls && (line = br.readLine()) != null) {
+			while (!m3u && !pls && !ups && (line = br.readLine()) != null) {
 				line = line.trim();
 				if (line.startsWith("#EXTM3U")) {
 					m3u = true;
@@ -98,10 +99,28 @@ public class PlaylistFolder extends DLNAResource {
 				} else if (line.length() > 0 && line.equals("[playlist]")) {
 					pls = true;
 					LOGGER.debug("Reading PLS playlist: " + getName());
+				} else if (line.length() > 0 && line.contains("__UPS__")) {
+					ups = true;
+					LOGGER.debug("Reading UPS playlist: " + getName());
 				}
 			}
 			String fileName;
 			String title = null;
+			if (ups) {
+				try {
+					ArrayList<DLNAResource> res = new ArrayList<>();
+					UMSUtils.readResourcesFromFile(new File(uri), res);
+					if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
+						Collections.shuffle(res);
+					}
+					for (DLNAResource r : res) {
+						addChild(r);
+						r.resolve();
+					}
+				} catch (Exception e) {
+				}
+				return;
+			}
 			while ((line = br.readLine()) != null) {
 				line = line.trim();
 				if (pls) {
@@ -202,7 +221,6 @@ public class PlaylistFolder extends DLNAResource {
 		if (! isweb) {
 			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
-
 		if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
 		}

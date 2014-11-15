@@ -1597,7 +1597,7 @@ public class PMS {
 		}
 		Date d = new Date(dynamicPlsStart);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
-		File f = new File(configuration.getDataFile("dynamic_" + sdf.format(d)) + ".ups");
+		File f = new File(configuration.getDynamicPlsSaveFile("dynamic_" + sdf.format(d)) + ".ups");
 		try {
 			UMSUtils.writeResourcesToFile(f, dynamicPls.getChildren());
 		} catch (IOException e) {

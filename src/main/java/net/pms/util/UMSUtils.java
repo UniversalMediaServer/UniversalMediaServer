@@ -240,6 +240,7 @@ public class UMSUtils {
 		try (FileWriter out = new FileWriter(f)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("######\n");
+			sb.append("## __UPS__\n");
 			sb.append("## NOTE!!!!!\n");
 			sb.append("## This file is auto generated\n");
 			sb.append("## Edit with EXTREME care\n");

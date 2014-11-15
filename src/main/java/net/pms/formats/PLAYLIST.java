@@ -26,7 +26,8 @@ public class PLAYLIST extends Format {
 		"pls",
 		"m3u",
 		"m3u8",
-		"cue"
+		"cue",
+		"ups"
 	};
 
 	public PLAYLIST() {

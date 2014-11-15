@@ -88,7 +88,8 @@ public class MapFile extends DLNAResource {
 					addChild(new SevenZipFile(f));
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));
-				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") || lcFilename.endsWith(".pls")) {
+				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") ||
+						   lcFilename.endsWith(".pls") || lcFilename.endsWith(".ups")) {
 					addChild(new PlaylistFolder(f));
 				} else if (lcFilename.endsWith(".cue")) {
 					addChild(new CueFolder(f));

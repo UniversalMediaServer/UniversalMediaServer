@@ -3725,9 +3725,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return startTime;
 	}
 
-	private void addDynamicPls(DLNAResource child) {
+	private void addDynamicPls(final DLNAResource child) {
 		final DLNAResource dynPls = PMS.get().getDynamicPls();
 		if (dynPls == child || child.getParent() == dynPls) {
+			return;
+		}
+		if (child instanceof VirtualVideoAction) {
+			// ignore these
 			return;
 		}
 		if (dynamicPls == null) {
@@ -3741,6 +3745,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				@Override
 				public boolean enable() {
 					dynPls.addChild(newChild);
+					// we need to restore some fields here
+					newChild.setParent(child.getParent());
+					newChild.setMasterParent(child.getMasterParent());
+					newChild.setMediaSubtitle(child.getMediaSubtitle());
+					newChild.setResume(child.getResume());
 					if (configuration.isDynamicPlsAutoSave()) {
 						PMS.get().dynamicPlsSave();
 					}

@@ -133,6 +133,10 @@ public class RootFolder extends DLNAResource {
 
 		if (configuration.isDynamicPls()) {
 			addChild(PMS.get().getDynamicPls());
+			if (!configuration.isHideSavedPlaylistFolder()) {
+				File plsdir = new File(configuration.getDynamicPlsSavePath());
+				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")));
+			}
 		}
 
 		for (DLNAResource r : getConfiguredFolders(tags)) {

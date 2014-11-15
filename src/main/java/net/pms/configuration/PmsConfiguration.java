@@ -110,6 +110,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	protected static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
+	protected static final String KEY_DYNAMIC_PLS_HIDE = "dynamic_playlist_hide_folder";
 	protected static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
 	protected static final String KEY_DYNAMIC_PLS_SAVE_PATH = "dynamic_playlist_save_path";
 	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
@@ -3348,11 +3349,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	   	return getBoolean(KEY_DYNAMIC_PLS_AUTO_SAVE, false);
 	}
 
-	public String getDynamicPlsSaveFile(String str) {
+	public String getDynamicPlsSavePath() {
 		String path = getString(KEY_DYNAMIC_PLS_SAVE_PATH, "");
 		if (StringUtils.isEmpty(path)) {
 			path = getDataFile("dynpls");
+			// ensure that this path exists
+			new File(path).mkdirs();
 		}
-		return path + File.separator + str;
+		return path;
+	}
+
+	public String getDynamicPlsSaveFile(String str) {
+		return getDynamicPlsSavePath() + File.separator + str;
+	}
+
+	public boolean isHideSavedPlaylistFolder() {
+		return getBoolean(KEY_DYNAMIC_PLS_HIDE, false);
 	}
 }
