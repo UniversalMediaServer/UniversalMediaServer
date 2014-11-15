@@ -321,7 +321,7 @@ public class PluginTab {
 				final JTextArea textArea = new JTextArea();
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
+				scrollPane.setPreferredSize(new Dimension(900, 450));
 
 				try {
 					configuration.initCred();

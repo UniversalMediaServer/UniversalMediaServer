@@ -1456,10 +1456,10 @@ public class PMS {
 	 */
 	public static boolean isHeadless() {
 		try {
-			javax.swing.JDialog d = new javax.swing.JDialog();
+			JDialog d = new JDialog();
 			d.dispose();
 			return false;
-		} catch (java.lang.NoClassDefFoundError | java.awt.HeadlessException | java.lang.InternalError e) {
+		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
 			return true;
 		}
 	}

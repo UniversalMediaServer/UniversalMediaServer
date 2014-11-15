@@ -653,9 +653,9 @@ public class NavigationShareTab {
 
 		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-adddirectory.png"));
 		but.setToolTipText(Messages.getString("FoldTab.9"));
-		but.addActionListener(new java.awt.event.ActionListener() {
+		but.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(java.awt.event.ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser;
 				try {
 					chooser = new JFileChooser();
@@ -677,9 +677,9 @@ public class NavigationShareTab {
 
 		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-remove.png"));
 		but2.setToolTipText(Messages.getString("FoldTab.36"));
-		but2.addActionListener(new java.awt.event.ActionListener() {
+		but2.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(java.awt.event.ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				if (FList.getSelectedRow() > -1) {
 					((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
 					if (FList.getModel().getRowCount() == 0) {

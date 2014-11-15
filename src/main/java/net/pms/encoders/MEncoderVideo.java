@@ -217,7 +217,7 @@ public class MEncoderVideo extends Player {
 				textArea.setText(configuration.getMencoderCodecSpecificConfig());
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new java.awt.Dimension(900, 100));
+				scrollPane.setPreferredSize(new Dimension(900, 100));
 
 				final JTextArea textAreaDefault = new JTextArea();
 				textAreaDefault.setText(DEFAULT_CODEC_CONF_SCRIPT);
@@ -226,7 +226,7 @@ public class MEncoderVideo extends Player {
 				textAreaDefault.setEditable(false);
 				textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
 				JScrollPane scrollPaneDefault = new JScrollPane(textAreaDefault);
-				scrollPaneDefault.setPreferredSize(new java.awt.Dimension(900, 450));
+				scrollPaneDefault.setPreferredSize(new Dimension(900, 450));
 
 				JPanel customPanel = new JPanel(new BorderLayout());
 				intelligentsync = new JCheckBox(Messages.getString("MEncoderVideo.3"), configuration.isMencoderIntelligentSync());
@@ -701,7 +701,7 @@ public class MEncoderVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (StringUtils.isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
+		if (isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -1241,7 +1241,7 @@ public class MEncoderVideo extends Player {
 			int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 			int rendererMaxBitrates[] = new int[2];
 
-			if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
+			if (isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 				rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 			}
 

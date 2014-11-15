@@ -617,7 +617,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							header &&
 							(
 								line.startsWith("#") ||
-								StringUtils.isBlank(line)
+								isBlank(line)
 							)
 						)
 					) {
@@ -846,11 +846,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			while (st.hasMoreTokens()) {
 				String tok = st.nextToken().trim();
-				if (StringUtils.isBlank(tok)) {
+				if (isBlank(tok)) {
 					continue;
 				}
 				tok = tok.replaceAll("###0", " ").replaceAll("###n", "\n").replaceAll("###r", "\r");
-				if (StringUtils.isBlank(org)) {
+				if (isBlank(org)) {
 					org = tok;
 				} else {
 					charMap.put(org, tok);

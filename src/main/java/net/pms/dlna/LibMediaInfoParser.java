@@ -60,7 +60,7 @@ public class LibMediaInfoParser {
 				boolean subPrepped = false;
 				boolean unusedStreamType = false;
 
-				if (StringUtils.isNotBlank(info)) {
+				if (isNotBlank(info)) {
 					media.setSize(file.length());
 					StringTokenizer st = new StringTokenizer(info, "\n\r");
 
@@ -135,7 +135,7 @@ public class LibMediaInfoParser {
 										currentAudioTrack.setLang(getLang(value));
 									} else if (streamType == MediaInfo.StreamType.Text) {
 										currentSubTrack.setLang(getLang(value));
-									} else if (streamType == MediaInfo.StreamType.Video && StringUtils.isBlank(currentAudioTrack.getLang())) {
+									} else if (streamType == MediaInfo.StreamType.Video && isBlank(currentAudioTrack.getLang())) {
 										currentAudioTrack.setLang(getLang(value));
 									}
 								} else if (key.equals("Title")) {
@@ -495,7 +495,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
-		} else if (StringUtils.containsIgnoreCase(value, "@l") && streamType == MediaInfo.StreamType.Video) {
+		} else if (containsIgnoreCase(value, "@l") && streamType == MediaInfo.StreamType.Video) {
 			media.setAvcLevel(getAvcLevel(value));
 			media.setH264Profile(getAvcProfile(value));
 		}
@@ -534,7 +534,7 @@ public class LibMediaInfoParser {
 	public static byte getReferenceFrameCount(String value) {
 		try {
 			// Values like "16 frame3"
-			return Byte.parseByte(StringUtils.substringBefore(value, " "));
+			return Byte.parseByte(substringBefore(value, " "));
 		} catch (NumberFormatException ex) {
 			// Not parsed
 			LOGGER.warn("Could not parse ReferenceFrameCount value {}." , value);
@@ -562,7 +562,7 @@ public class LibMediaInfoParser {
 	}
 
 	public static String getAvcProfile(String value) {
-		String profile = StringUtils.substringBefore(lowerCase(value), "@l");
+		String profile = substringBefore(lowerCase(value), "@l");
 		if (isNotBlank(profile)) {
 			return profile;
 		} else {
