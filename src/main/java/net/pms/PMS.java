@@ -1559,19 +1559,49 @@ public class PMS {
 	}
 
 	private VirtualFolder dynamicPls;
+	private long dynamicPlsStart;
 
 	public VirtualFolder getDynamicPls() {
 		if (dynamicPls == null) {
 			dynamicPls = new VirtualFolder(Messages.getString("PMS.146"), null);
+			dynamicPlsStart = 0;
+			final VirtualVideoAction save = new VirtualVideoAction(Messages.getString("LooksFrame.9"), true) {
+				@Override
+				public boolean enable() {
+					dynamicPlsSave();
+					return true;
+				}
+			};
 			dynamicPls.addChild(new VirtualVideoAction(Messages.getString("TracesTab.3"), true) {
 				@Override
 				public boolean enable() {
+					dynamicPlsStart = 0;
 					dynamicPls.getChildren().clear();
 					dynamicPls.addChild(this);
+					if (!configuration.isDynamicPlsAutoSave()) {
+						dynamicPls.addChild(save);
+					}
 					return true;
 				}
 			});
+			if (!configuration.isDynamicPlsAutoSave()) {
+				dynamicPls.addChild(save);
+			}
 		}
 		return dynamicPls;
+	}
+
+	public void dynamicPlsSave() {
+		if (dynamicPlsStart == 0) {
+			dynamicPlsStart = System.currentTimeMillis();
+		}
+		Date d = new Date(dynamicPlsStart);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
+		File f = new File(configuration.getDataFile("dynamic_" + sdf.format(d)) + ".ups");
+		try {
+			UMSUtils.writeResourcesToFile(f, dynamicPls.getChildren());
+		} catch (IOException e) {
+			LOGGER.debug("Failed to write dynamic pls " + e);
+		}
 	}
 }
