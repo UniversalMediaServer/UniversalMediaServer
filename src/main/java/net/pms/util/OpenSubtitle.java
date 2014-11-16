@@ -30,6 +30,7 @@ import sun.net.www.protocol.http.HttpURLConnection;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
+	private static final String UA = "OSTestUserAgent";
 	private static final long TOKEN_AGE_TIME = 10 * 60 * 1000; // 10 mins
 	//private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
 
@@ -130,7 +131,7 @@ public class OpenSubtitle {
 		String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n<param>\n<value><string/></value>\n</param>\n" +
 			"<param>\n" +
 			"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n" +
-			"</param>\n<param>\n<value><string>OS Test User Agent</string></value>\n</param>\n" +
+			"</param>\n<param>\n<value><string>" + UA + "</string></value>\n</param>\n" +
 			"</params>\n" +
 			"</methodCall>\n";
 		Pattern re = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);

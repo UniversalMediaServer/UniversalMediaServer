@@ -126,6 +126,7 @@ public class StatusTab {
 
 		jpb = new JProgressBar(0, 100);
 		jpb.setStringPainted(true);
+		jpb.setForeground(new Color(75, 140, 181));
 		jpb.setString(Messages.getString("StatusTab.5"));
 
 		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
