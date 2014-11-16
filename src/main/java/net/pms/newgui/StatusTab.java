@@ -226,6 +226,7 @@ public class StatusTab {
 		// Memory
 		jpb = new JProgressBar(0, 100);
 		jpb.setStringPainted(true);
+		jpb.setForeground(new Color(75, 140, 181));
 		jpb.setString(Messages.getString("StatusTab.5"));
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
 		memBarUI.setActiveLabel("{}", Color.white, 0);
