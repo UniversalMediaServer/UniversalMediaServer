@@ -5,26 +5,31 @@
 
 	Changes from the 4.x release branch:
 		General:
-			Improved compatibility of H.264 transcoding when using MEncoder
-			Customized buffer color
-		Renderers:
-			Added support for Hama IR320 (thanks, Enrice!)
-			Added support for Roku 3 (thanks, weyrava and drocket!)
-			Added support for Panasonic ET60 Series TVs (thanks, Enrice!)
-			Added support for Samsung F5100 Blu-ray Disc players (thanks, maracucho!)
-			Added support for Samsung Galaxy S5 (thanks, FlyMcDoogal!)
-			Added support for Sony PlayStation Vita (incomplete) (thanks, Verequies, Balmung and xubz!)
-			Fixed Xbox One detection (thanks, Whogie!)
-		Languages:
-			Updated Spanish translation (thanks, AlfredoRamos!)
-		External Components:
-			Updated JNA to 4.1.0, which fixes bugs
-			Updated Maven Exec Plugin to 1.3.2, which fixes bugs
-			Updated Maven Findbugs Plugin to 3.0.0, which fixes bugs
-			Updated Maven Javadoc Plugin to 2.10.1, which fixes bugs
-			Updated Maven Jdepend Plugin to 2.0, which fixes bugs
-			Updated Maven Site Plugin to 3.4, which fixes bugs
-			Updated Netty to 3.9.5, which fixes bugs
+			
+
+4.2.2 - 2014-11-17
+
+	General:
+		Improved compatibility of H.264 transcoding when using MEncoder
+		Customized buffer color
+	Renderers:
+		Added support for Hama IR320 (thanks, Enrice!)
+		Added support for Roku 3 (incomplete) (thanks, weyrava and drocket!)
+		Added support for Panasonic ET60 Series TVs (thanks, Enrice!)
+		Added support for Samsung F5100 Blu-ray Disc players (thanks, maracucho!)
+		Added support for Samsung Galaxy S5 (thanks, FlyMcDoogal!)
+		Added support for Sony PlayStation Vita (incomplete) (thanks, Verequies, Balmung and xubz!)
+		Fixed Xbox One detection (thanks, Whogie!)
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated JNA to 4.1.0, which fixes bugs
+		Updated Maven Exec Plugin to 1.3.2, which fixes bugs
+		Updated Maven Findbugs Plugin to 3.0.0, which fixes bugs
+		Updated Maven Javadoc Plugin to 2.10.1, which fixes bugs
+		Updated Maven Jdepend Plugin to 2.0, which fixes bugs
+		Updated Maven Site Plugin to 3.4, which fixes bugs
+		Updated Netty to 3.9.5, which fixes bugs
 
 4.2.1 - 2014-11-01
 
