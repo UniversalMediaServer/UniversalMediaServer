@@ -1324,7 +1324,7 @@ public class MEncoderVideo extends Player {
 
 				encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
 					":threads=" + configuration.getMencoderMaxThreads() +
-					":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+					":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
 			}
