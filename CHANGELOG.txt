@@ -5,7 +5,7 @@
 		Customized buffer color
 	Renderers:
 		Added support for Hama IR320 (thanks, Enrice!)
-		Added support for Roku 3 (thanks, weyrava and drocket!)
+		Added support for Roku 3 (incomplete) (thanks, weyrava and drocket!)
 		Added support for Panasonic ET60 Series TVs (thanks, Enrice!)
 		Added support for Samsung F5100 Blu-ray Disc players (thanks, maracucho!)
 		Added support for Samsung Galaxy S5 (thanks, FlyMcDoogal!)
