@@ -13,6 +13,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.external.StartStopListener;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
@@ -115,6 +116,10 @@ public class PlayerControlHandler implements HttpHandler {
 							int id = children.indexOf(d);
 							for (int i = id; i < children.size(); i++) {
 								DLNAResource r = children.get(i);
+								if ((r instanceof VirtualVideoAction) || r.isFolder()) {
+									// skip these
+									continue;
+								}
 								String u = translate("/play/" + r.getId());
 								player.add(-1, u, r.getName(), r.getDidlString(r.getDefaultRenderer()), false);
 							}
