@@ -1,13 +1,18 @@
 4.2.3 - 2014-11-??
 
 	General:
-		
+		Improved filename prettifying
+	Renderers:
+		Added support for LG UB820V TVs
+		Added support for Logitech Squeezebox
+		Fixed video aspect ratios on Philips PFL TVs
 
 4.2.2 - 2014-11-17
 
 	General:
 		Improved compatibility of H.264 transcoding when using MEncoder
 		Customized buffer color
+		Fixed Live Subtitles
 	Renderers:
 		Added support for Hama IR320 (thanks, Enrice!)
 		Added support for Roku 3 (incomplete) (thanks, weyrava and drocket!)
