@@ -799,7 +799,7 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>3.0.0</version> <!-- This version works only with JDK 7-->
+							<version>2.5.4</version> <!-- This version works only with JDK 7-->
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
