@@ -1,4 +1,4 @@
-4.2.2 - 2014-11-??
+4.2.2 - 2014-11-17
 
 	General:
 		Improved compatibility of H.264 transcoding when using MEncoder
