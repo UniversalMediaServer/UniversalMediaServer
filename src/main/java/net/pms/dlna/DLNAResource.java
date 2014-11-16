@@ -295,7 +295,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The id string.
 	 * @since 1.50
 	 */
-	protected String getId() {
+	public String getId() {
 		return id;
 	}
 

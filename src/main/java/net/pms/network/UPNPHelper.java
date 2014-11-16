@@ -686,6 +686,7 @@ public class UPNPHelper extends UPNPControl {
 		public Playlist playlist;
 		private String lasturi;
 		private boolean ignoreUpnpDuration;
+		private boolean forceStop;
 
 		public Player(DeviceConfiguration renderer) {
 			uuid = renderer.getUUID();
@@ -698,6 +699,7 @@ public class UPNPHelper extends UPNPControl {
 			listeners = new LinkedHashSet();
 			lasturi = null;
 			ignoreUpnpDuration = false;
+			forceStop = false;
 			if (renderer.gui != null) {
 				connect(renderer.gui);
 			}
@@ -770,6 +772,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void play() {
+			forceStop = false;
 			UPNPControl.play(dev, instanceID);
 		}
 
@@ -780,6 +783,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void stop() {
+			forceStop = true;
 			UPNPControl.stop(dev, instanceID);
 		}
 
@@ -839,6 +843,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void refresh() {
+			int oldState = state.playback;
 			String s = data.get("TransportState");
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
@@ -857,6 +862,11 @@ public class UPNPHelper extends UPNPControl {
 				playlist.set(state.uri, null, state.metadata);
 			}
 			lasturi = state.uri;
+			if (configuration.isUPNPAutoCont() &&
+				state.playback == STOPPED && oldState != -1 &&
+				state.playback != oldState && !forceStop) {
+				next();
+			}
 			alert();
 		}
 

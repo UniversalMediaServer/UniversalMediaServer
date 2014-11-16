@@ -87,6 +87,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
 	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
+	protected static final String KEY_AUTO_UPNP_CONT = "auto_upnp_continue";
+	protected static final String KEY_AUTO_UPNP_ALL_PLS= "auto_upnp_playlist_all";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
 	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
 	protected static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
@@ -3366,4 +3368,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean isHideSavedPlaylistFolder() {
 		return getBoolean(KEY_DYNAMIC_PLS_HIDE, false);
 	}
+
+	public boolean isUPNPAutoCont() {
+		return getBoolean(KEY_AUTO_UPNP_CONT, false);
+	}
+
+	public boolean isUPNPAutoAll() {
+		return getBoolean(KEY_AUTO_UPNP_ALL_PLS, false);
+	}
+
 }

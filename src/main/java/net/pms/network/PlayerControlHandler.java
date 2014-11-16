@@ -7,13 +7,13 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
+import net.pms.external.StartStopListener;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.StringUtil;
@@ -108,7 +108,21 @@ public class PlayerControlHandler implements HttpHandler {
 					player.setVolume(Integer.valueOf(q.get("vol")));
 					break;
 				case "add":
-					player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
+					if (configuration.isUPNPAutoAll() && StringUtils.isNotEmpty(getId(q.get("uri")))) {
+					   DLNAResource d = PMS.getGlobalRepo().get(getId(q.get("uri")));
+						if (d != null) {
+							List<DLNAResource> children = d.getParent().getChildren();
+							int id = children.indexOf(d);
+							for (int i = id; i < children.size(); i++) {
+								DLNAResource r = children.get(i);
+								String u = translate("/play/" + r.getId());
+								player.add(-1, u, r.getName(), r.getDidlString(r.getDefaultRenderer()), false);
+							}
+						}
+				   	}
+					else {
+						player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
+					}
 					break;
 				case "remove":
 					player.remove(translate(q.get("uri")));
@@ -243,6 +257,10 @@ public class PlayerControlHandler implements HttpHandler {
 	public String translate(String uri) {
 		return uri.startsWith("/play/")
 			? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
+	}
+
+	private String getId(String uri) {
+		return uri.startsWith("/play/") ? uri.substring(6) : "";
 	}
 
 	// For standalone service, if required
