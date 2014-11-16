@@ -77,6 +77,7 @@ public class RemoteWeb {
 			RemotePlayHandler playHandler = new RemotePlayHandler(this);
 			addCtx("/play", playHandler);
 			addCtx("/playstatus", playHandler);
+			addCtx("/playlist", playHandler);
 			addCtx("/media", new RemoteMediaHandler(this));
 			addCtx("/fmedia", new RemoteMediaHandler(this, true));
 			addCtx("/thumb", new RemoteThumbHandler(this));

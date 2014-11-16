@@ -1604,4 +1604,8 @@ public class PMS {
 			LOGGER.debug("Failed to write dynamic pls " + e);
 		}
 	}
+
+	public boolean isInDynPls(DLNAResource r) {
+		return dynamicPls.getChildren().indexOf(r) != -1;
+	}
 }

@@ -207,6 +207,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return 0;
 	}
 
+	@Override
+	public boolean isNoDynPlsFolder() {
+		return true;
+	}
+
 	public boolean isLowBitrate() {
 		// FIXME: this should return true if either network speed or client cpu are slow
 		boolean slow = false;

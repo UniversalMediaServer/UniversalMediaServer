@@ -34,6 +34,11 @@ public class RemotePlayHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
+	private String returnPage() {
+		// special page to return
+		return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
+	}
+
 	private void addNextByType(DLNAResource d, HashMap<String, Object> vars) {
 		List<DLNAResource> children = d.getParent().getChildren();
 		boolean looping = configuration.getWebAutoLoop(d.getFormat());
@@ -101,8 +106,7 @@ public class RemotePlayHandler implements HttpHandler {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
 			((VirtualVideoAction) r).enable();
-			// special page to return
-			return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
+			return returnPage();
 		}
 		if (r.getFormat().isImage()) {
 			id1 = rawId;
@@ -217,6 +221,24 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			((WebRender.PlaybackNotifier)renderer.getPlayer()).setData(json);
+		}  else if (p.contains("/playlist/")) {
+			String[] tmp = p.split("/");
+			// sanity
+			if (tmp.length < 3) {
+				throw new IOException("Bad request");
+			}
+			String op = tmp[tmp.length - 2];
+			String id = tmp[tmp.length - 1];
+			DLNAResource r = PMS.getGlobalRepo().get(id);
+			if (r != null) {
+				if (op.equals("add")) {
+					r.addToDynPls();
+				}
+				else if (op.equals("del")) {
+					r.delFromDynPls();
+				}
+			}
+			RemoteUtil.respond(t, returnPage(), 200, "text/html");
 		}
 	}
 }

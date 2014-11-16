@@ -138,7 +138,8 @@ ul#Media .thumb {
 	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
 	width: auto;
 	float: left;
-	margin : 0;
+	display:block;
+	margin : 0;	
 }
 
 ul#Media .caption {
@@ -146,12 +147,29 @@ ul#Media .caption {
 	max-width: 221px;
 	height: 16px;
 	overflow: hidden;
-	float: left;
-	clear: left;
+	float: left;	
+	clear:right;
 	font-size: 12px;
 	color: #444;
 	margin : 0;
 }
+
+.playlist_add {
+	background: url('/files/bump/skin/add16.png') no-repeat;
+	width: 28px;
+	height: 16px;
+	display: block;
+	float: left;
+}
+
+.playlist_del {
+	background: url('/files/bump/skin/remove16.png') no-repeat;
+	width: 28px;
+	height: 16px;
+	display: block;
+	float: left;
+}
+
 
 ul#Media li:hover .caption {
 	color: #000 !important;

@@ -87,6 +87,13 @@ public class RemoteBrowseHandler implements HttpHandler {
 						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
 							.append("')\" title=\"No other renderers available\"></a>");
 					}
+					if (!PMS.get().isInDynPls(r)) {
+						sb.append("\n<a class=\"playlist_add\" href=\"/playlist/add/")
+								.append(idForWeb).append("\" title=\"Add to playlist\"></a>");
+					} else {
+						sb.append("\n<a class=\"playlist_del\" href=\"/playlist/del/")
+								.append(idForWeb).append("\" title=\"Remove from playlist\"></a>");
+					}
 				} else {
 					// ensure that we got a string
 					sb.append("");

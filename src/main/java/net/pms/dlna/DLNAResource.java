@@ -689,7 +689,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 
-							if (configuration.isDynamicPls() && !child.isFolder()) {
+							if (configuration.isDynamicPls() &&
+								!child.isFolder() &&
+								!defaultRenderer.isNoDynPlsFolder()) {
 								addDynamicPls(child);
 							}
 
@@ -3741,24 +3743,37 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		if (dynamicPls != null) {
 			String str = Messages.getString("PluginTab.9") + " " + child.getDisplayName() + " " + Messages.getString("PMS.148");
-			final DLNAResource newChild = child.clone();
 			VirtualVideoAction vva = new VirtualVideoAction(str, true) {
 				@Override
 				public boolean enable() {
-					dynPls.addChild(newChild);
-					// we need to restore some fields here
-					newChild.setParent(child.getParent());
-					newChild.setMasterParent(child.getMasterParent());
-					newChild.setMediaSubtitle(child.getMediaSubtitle());
-					newChild.setResume(child.getResume());
-					if (configuration.isDynamicPlsAutoSave()) {
-						PMS.get().dynamicPlsSave();
-					}
+					child.addToDynPls();
 					return true;
 				}
 			};
 			vva.setParent(this);
 			dynamicPls.addChildInternal(vva);
+		}
+	}
+
+	public void addToDynPls() {
+		DLNAResource newChild = this.clone();
+		DLNAResource dynPls = PMS.get().getDynamicPls();
+		dynPls.addChild(newChild);
+		// we need to restore some fields here
+		newChild.setParent(getParent());
+		newChild.setMasterParent(getMasterParent());
+		newChild.setMediaSubtitle(getMediaSubtitle());
+		newChild.setResume(getResume());
+		if (configuration.isDynamicPlsAutoSave()) {
+			PMS.get().dynamicPlsSave();
+		}
+	}
+
+	public void delFromDynPls() {
+		DLNAResource dynPls = PMS.get().getDynamicPls();
+		dynPls.getChildren().remove(this);
+		if (configuration.isDynamicPlsAutoSave()) {
+			PMS.get().dynamicPlsSave();
 		}
 	}
 }

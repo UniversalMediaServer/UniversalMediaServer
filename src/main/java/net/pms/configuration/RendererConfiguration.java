@@ -1808,6 +1808,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
 	}
 
+	public boolean isNoDynPlsFolder() {
+		return false;
+	}
+
 	/**
 	 * If this is true, we will always output video at 16/9 aspect ratio to
 	 * the renderer, meaning that all videos with different aspect ratios
