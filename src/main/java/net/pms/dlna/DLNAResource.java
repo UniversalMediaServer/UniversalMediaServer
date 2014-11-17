@@ -691,6 +691,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 							if (configuration.isDynamicPls() &&
 								!child.isFolder() &&
+								defaultRenderer != null &&
 								!defaultRenderer.isNoDynPlsFolder()) {
 								addDynamicPls(child);
 							}
