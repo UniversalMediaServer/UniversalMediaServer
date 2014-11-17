@@ -266,7 +266,7 @@ public class FormatConfiguration {
 				Iterator<Entry<String, String>> keyIt = extras.entrySet().iterator();
 				while (keyIt.hasNext()) {
 					String key = keyIt.next().getKey();
-					String value = extras.get(key);
+					String value = extras.get(key).toLowerCase();
 
 					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
 						LOGGER.trace("Qpel value \"{}\" failed to match support line {}", miExtras.get(MI_QPEL), supportLine);
