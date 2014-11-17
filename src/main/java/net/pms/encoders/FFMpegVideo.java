@@ -845,7 +845,6 @@ public class FFMpegVideo extends Player {
 		String prependTraceReason = "Switching from FFmpeg to MEncoder to transcode subtitles because ";
 		if (
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
-			configuration.isFFmpegDeferToMEncoderForSubtitles() &&
 			params.sid != null &&
 			!(
 				!configuration.getHideTranscodeEnabled() &&
