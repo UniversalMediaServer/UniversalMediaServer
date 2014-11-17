@@ -1193,7 +1193,7 @@ public class PMS {
 	}
 
 	public HttpServer getWebServer() {
-		return web.getServer();
+		return web == null ? null : web.getServer();
 	}
 
 	public void save() {
