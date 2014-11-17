@@ -411,6 +411,14 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MJPEG;
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
+		} else if (value.startsWith("vp6")) {
+			format = FormatConfiguration.VP6;
+		} else if (value.startsWith("vp7")) {
+			format = FormatConfiguration.VP7;
+		} else if (value.startsWith("vp8")) {
+			format = FormatConfiguration.VP8;
+		} else if (value.startsWith("vp9")) {
+			format = FormatConfiguration.VP9;
 		} else if (value.contains("xvid")) {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {

@@ -61,9 +61,13 @@ public class FormatConfiguration {
 	public static final String TIFF = "tiff";
 	public static final String TRUEHD = "truehd";
 	public static final String VC1 = "vc1";
+	public static final String VP6 = "vp6";
+	public static final String VP7 = "vp7";
+	public static final String VP8 = "vp8";
+	public static final String VP9 = "vp9";
 	public static final String WAVPACK = "wavpack";
 	public static final String WAV = "wav";
-	public static final String WEBM = "WebM";
+	public static final String WEBM = "webm";
 	public static final String WMA = "wma";
 	public static final String WMV = "wmv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
