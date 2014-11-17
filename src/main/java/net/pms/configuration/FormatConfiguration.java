@@ -54,13 +54,16 @@ public class FormatConfiguration {
 	public static final String MPEGPS = "mpegps";
 	public static final String MPEGTS = "mpegts";
 	public static final String OGG = "ogg";
+	public static final String OPUS = "opus";
 	public static final String PNG = "png";
 	public static final String RA = "ra";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
 	public static final String TIFF = "tiff";
+	public static final String THEORA = "theora";
 	public static final String TRUEHD = "truehd";
 	public static final String VC1 = "vc1";
+	public static final String VORBIS = "vorbis";
 	public static final String VP6 = "vp6";
 	public static final String VP7 = "vp7";
 	public static final String VP8 = "vp8";
