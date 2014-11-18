@@ -36,6 +36,9 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
+
+import net.pms.dlna.RealFile;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -655,6 +658,10 @@ public class UPNPHelper extends UPNPControl {
 
 	@Override
 	protected void rendererReady(String uuid) {
+		RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);
+		if(r != null) {
+			r.getPlayer();
+		}
 	}
 
 	public static void play(String uri, String name, DeviceConfiguration r) {
@@ -705,6 +712,58 @@ public class UPNPHelper extends UPNPControl {
 			}
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
 			refresh();
+			initAutoPlay();
+		}
+
+		private void initAutoPlay() {
+			String auto = PMS.getConfiguration().getUPNPAutoPlay();
+			if (StringUtils.isEmpty(auto)) {
+				return;
+			}
+			String[] strs = auto.split(" ");
+			for (String s : strs) {
+				String[] tmp = s.split(":", 2);
+				if (tmp.length != 2) {
+					continue;
+				}
+				if (!renderer.getConfName().equalsIgnoreCase(tmp[0])) {
+					continue;
+				}
+				final String folder = tmp[1];
+				final Player player = this;
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						while(PMS.get().getServer().getHost() == null) {
+							try {
+								Thread.sleep(1000);
+							} catch (Exception e) {
+								return;
+							}
+						}
+						RealFile f = new RealFile(new File(folder));
+						f.discoverChildren();
+						f.analyzeChildren(-1);
+						boolean sel = true;
+						for (DLNAResource r : f.getChildren()) {
+							if ((r instanceof VirtualVideoAction) || r.isFolder()) {
+								// skip these
+								continue;
+							}
+							String u = PlayerControlHandler.translate("/play/" + r.getId());
+							player.add(-1, u, r.getName(), null, sel);
+							sel = false;
+						}
+						// add a short delay here since player.add uses swing.invokelater
+						try {
+							Thread.sleep(1000);
+						} catch (Exception e) {
+						}
+						player.pressPlay(null, null);
+					}
+				};
+				new Thread(r).start();
+			}
 		}
 
 		@Override

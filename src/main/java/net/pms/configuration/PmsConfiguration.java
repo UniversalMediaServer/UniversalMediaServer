@@ -32,6 +32,7 @@ import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
+import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
@@ -89,6 +90,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
 	protected static final String KEY_AUTO_UPNP_CONT = "auto_upnp_continue";
 	protected static final String KEY_AUTO_UPNP_ALL_PLS= "auto_upnp_playlist_all";
+	protected static final String KEY_AUTO_UPNP_PLAY= "auto_upnp_play";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
 	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
 	protected static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
@@ -3375,6 +3377,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isUPNPAutoAll() {
 		return getBoolean(KEY_AUTO_UPNP_ALL_PLS, false);
+	}
+
+	public String getUPNPAutoPlay() {
+		return getString(KEY_AUTO_UPNP_PLAY, null);
 	}
 
 }

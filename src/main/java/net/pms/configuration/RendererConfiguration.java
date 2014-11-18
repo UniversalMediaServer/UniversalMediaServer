@@ -1336,8 +1336,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		try {
 			return UPNPHelper.getFriendlyName(uuid);
 		} catch (Exception e) {
-			return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+			 return getConfName();
 		}
+	}
+
+	public String getConfName() {
+		return getString(RENDERER_NAME, Messages.getString("PMS.17"));
 	}
 
 	/**

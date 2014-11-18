@@ -259,7 +259,7 @@ public class PlayerControlHandler implements HttpHandler {
 		return vars;
 	}
 
-	public String translate(String uri) {
+	public static String translate(String uri) {
 		return uri.startsWith("/play/")
 			? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
