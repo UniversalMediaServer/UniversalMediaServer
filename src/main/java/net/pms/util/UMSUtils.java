@@ -217,6 +217,9 @@ public class UMSUtils {
 	}
 
 	private static String fixTimeStr(String str) {
+		if (str.equals("NOT_IMPLEMENTED")) {
+			return " ";
+		}
 		if(str.charAt(0) == ':')   {
 			// remove stray ':' at the start
 			str = str.substring(1);
