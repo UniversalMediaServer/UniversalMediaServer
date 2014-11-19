@@ -90,9 +90,21 @@ public class LibMediaInfoParser {
 							media.setFrameRate(getFPSValue(MI.Get(StreamType.Video, i, "FrameRate")));
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(StreamType.Video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(StreamType.Video, i, "Format_Settings_RefFrames/String")));
-							media.putExtra(FormatConfiguration.MI_QPEL, MI.Get(StreamType.Video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name));
-							media.putExtra(FormatConfiguration.MI_GMC, MI.Get(StreamType.Video, i, "Format_Settings_GMC", InfoType.Text, InfoType.Name));
-							media.putExtra(FormatConfiguration.MI_GOP, MI.Get(StreamType.Video, i, "Format_Settings_GMC", InfoType.Text, InfoType.Name));
+							value = MI.Get(StreamType.Video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name);
+							if (isNotBlank(value)) {
+								media.putExtra(FormatConfiguration.MI_QPEL, value);
+							}
+
+							value = MI.Get(StreamType.Video, i, "Format_Settings_GMC", InfoType.Text, InfoType.Name);
+							if (isNotBlank(value)) {
+								media.putExtra(FormatConfiguration.MI_GMC, value);
+							}
+
+							value = MI.Get(StreamType.Video, i, "Format_Settings_GOP", InfoType.Text, InfoType.Name);
+							if (isNotBlank(value)) {
+								media.putExtra(FormatConfiguration.MI_GOP, value);
+							}
+
 							media.setMuxingMode(MI.Get(StreamType.Video, i, "MuxingMode", InfoType.Text, InfoType.Name));
 							if (!media.isEncrypted()) {
 								media.setEncrypted("encrypted".equals(MI.Get(StreamType.Video, i, "Encryption")));
