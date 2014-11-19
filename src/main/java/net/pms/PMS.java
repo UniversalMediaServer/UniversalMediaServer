@@ -1606,6 +1606,6 @@ public class PMS {
 	}
 
 	public boolean isInDynPls(DLNAResource r) {
-		return dynamicPls.getChildren().indexOf(r) != -1;
+		return dynamicPls != null && dynamicPls.getChildren().indexOf(r) != -1;
 	}
 }
