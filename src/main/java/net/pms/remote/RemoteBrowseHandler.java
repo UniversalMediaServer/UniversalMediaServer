@@ -102,7 +102,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				item.put("bump", sb.toString());
 				sb.setLength(0);
 
-				if (WebRender.supports(r)) {
+				if (WebRender.supports(r) || r.isResume()) {
 					sb.append("<a href=\"/play/").append(idForWeb)
 						.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
