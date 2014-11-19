@@ -147,8 +147,7 @@ ul#Media .caption {
 	max-width: 221px;
 	height: 16px;
 	overflow: hidden;
-	float: left;	
-	clear:right;
+	float: left;
 	font-size: 12px;
 	color: #444;
 	margin : 0;
@@ -156,10 +155,11 @@ ul#Media .caption {
 
 .playlist_add {
 	background: url('/files/bump/skin/add16.png') no-repeat;
-	width: 28px;
+	width: 16px;
 	height: 16px;
 	display: block;
-	float: left;
+	float: right;
+	margin-right:1px;
 }
 
 .playlist_del {
