@@ -3,17 +3,12 @@ package net.pms.network;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.BasicPlayer;
 import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.UpnpService;
