@@ -1402,32 +1402,6 @@ public class FFMpegVideo extends Player {
 		FileUtils.deleteQuietly(new File(_configuration.getDataFile(SUB_DIR)));
 	}
 
-	private void getOriginalResolution(String subtitles, int originalWidth, int originalHeight) throws IOException {
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
-		String line;
-		boolean resolved = false;
-		while ((line = input.readLine()) != null) {
-			if (line.contains("[Script Info]")) {
-				while ((line = input.readLine()) != null) {
-					if (isNotBlank(line)) {
-						if (line.contains("PlayResX:")) {
-							originalWidth = Integer.parseInt(line.substring(9).trim());
-						} else if (line.contains("PlayResY:")) {
-							originalHeight = Integer.parseInt(line.substring(9).trim());
-						}
-					} else {
-						resolved = true;
-						break;
-					}	
-				}
-			}
-			if (resolved) {
-				input.close();
-				break;
-			}
-		}
-	}
-
 	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
 		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
 		String line;

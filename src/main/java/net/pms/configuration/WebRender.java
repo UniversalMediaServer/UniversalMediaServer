@@ -14,7 +14,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
-import net.pms.external.StartStopListener;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.io.OutputParams;

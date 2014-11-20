@@ -192,11 +192,6 @@ public class RemotePlayHandler implements HttpHandler {
 		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(vars);
 	}
 
-	private boolean transMp4(String mime, DLNAMediaInfo media) {
-		LOGGER.debug("mp4 profile " + media.getH264Profile());
-		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() || media.getAvcAsInt() >= 40);
-	}
-
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		if (RemoteUtil.deny(t)) {

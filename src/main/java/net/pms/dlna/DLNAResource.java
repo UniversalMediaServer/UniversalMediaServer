@@ -3370,14 +3370,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return false;
 	}
 
-	private boolean liveSubs(DLNAResource r) {
-		DLNAMediaSubtitle s = r.media_subtitle;
-		if (s != null) {
-			return StringUtils.isNotEmpty(s.getLiveSubURL());
-		}
-		return false;
-	}
-
 	////////////////////////////////////////////////////
 	// Resume handling
 	////////////////////////////////////////////////////

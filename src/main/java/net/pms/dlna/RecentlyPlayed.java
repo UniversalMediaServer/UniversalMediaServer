@@ -1,27 +1,15 @@
 package net.pms.dlna;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
-import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
-import net.pms.formats.Format;
-import net.pms.formats.v2.SubtitleType;
-import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

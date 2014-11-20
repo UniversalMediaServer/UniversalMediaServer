@@ -333,38 +333,6 @@ public class MapFile extends DLNAResource {
 		analyzeChildren(-1);
 	}
 
-	private boolean foundInList(List<File> files, DLNAResource dlna) {
-		for (Iterator<File> it = files.iterator(); it.hasNext();) {
-			File file = it.next();
-			if (!file.isHidden() && isNameMatch(dlna, file) && (isRealFolder(dlna) || isSameLastModified(dlna, file))) {
-				it.remove();
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean isSameLastModified(DLNAResource dlna, File file) {
-		return dlna.getLastModified() == file.lastModified();
-	}
-
-	private boolean isRealFolder(DLNAResource dlna) {
-		return dlna instanceof RealFile && dlna.isFolder();
-	}
-
-	private boolean isNameMatch(DLNAResource dlna, File file) {
-		return (dlna.getName().equals(file.getName()) || isDVDIsoMatch(dlna, file));
-	}
-
-	private boolean isDVDIsoMatch(DLNAResource dlna, File file) {
-		if (dlna instanceof DVDISOFile) {
-			DVDISOFile dvdISOFile = (DVDISOFile) dlna;
-			return dvdISOFile.getFilename().equals(file.getName());
-		} else {
-			return false;
-		}
-	}
-
 	@Override
 	public String getSystemName() {
 		return getName();
