@@ -3477,12 +3477,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Handle last played stuff
+	 * Handle serialization.
 	 *
-	 * This method should be overridden by all media types that should be
-	 * added to the last played list.
+	 * This method should be overridden by all media types that can be
+	 * bookmarked, i.e. serialized to an external file.
 	 * By default it just returns null which means the resource is ignored
-	 * in the last played file.
+	 * when serializing.
 	 */
 	public String write() {
 		return null;

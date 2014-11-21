@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import net.pms.configuration.MapFileConfiguration;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
@@ -89,10 +91,11 @@ public class MapFile extends DLNAResource {
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));
 				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") ||
-						   lcFilename.endsWith(".pls") || lcFilename.endsWith(".ups")) {
-					addChild(new PlaylistFolder(f));
-				} else if (lcFilename.endsWith(".cue")) {
-					addChild(new CueFolder(f));
+						lcFilename.endsWith(".pls") || lcFilename.endsWith(".cue") || lcFilename.endsWith(".ups")) {
+					DLNAResource d = PlaylistFolder.getPlaylist(lcFilename, f.getAbsolutePath(), 0);
+					if (d != null) {
+						addChild(d);
+					}
 				} else {
 					/* Optionally ignore empty directories */
 					if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {

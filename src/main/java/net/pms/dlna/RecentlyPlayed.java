@@ -74,7 +74,7 @@ public class RecentlyPlayed extends VirtualFolder {
 			String data = res.write();
 			if (!StringUtils.isEmpty(data)
 				&& res.getMasterParent() != null) {
-				res1 = UMSUtils.resolveCreateMethod(res.getMasterParent(), data);
+				res1 = UMSUtils.Playlist.resolveCreateMethod(res.getMasterParent(), data);
 				res1.setMasterParent(res.getMasterParent());
 				res1.setMediaSubtitle(res.getMediaSubtitle());
 				res1.setResume(res.getResume());
@@ -93,7 +93,7 @@ public class RecentlyPlayed extends VirtualFolder {
 		setDiscovered(false);
 		getChildren().clear();
 		try {
-			UMSUtils.writeResourcesToFile(lastFile(), list);
+			UMSUtils.Playlist.write(list, lastFile());
 		} catch (IOException e) {
 			LOGGER.debug("error dumping last file " + e);
 		}
@@ -125,7 +125,7 @@ public class RecentlyPlayed extends VirtualFolder {
 		try {
 			getChildren().clear();
 			setDiscovered(false);
-			UMSUtils.writeResourcesToFile(lastFile(), list);
+			UMSUtils.Playlist.write(list, lastFile());
 			getChildren().clear();
 			setDiscovered(false);
 		} catch (IOException e) {
@@ -135,8 +135,8 @@ public class RecentlyPlayed extends VirtualFolder {
 	private void parseLastFile() {
 		File f = lastFile();
 		try {
-			UMSUtils.readResourcesFromFile(f, list);
-			UMSUtils.writeResourcesToFile(f, list);
+			UMSUtils.Playlist.read(list, f);
+			UMSUtils.Playlist.write(list, f);
 		} catch (Exception e) {
 		}
 	}

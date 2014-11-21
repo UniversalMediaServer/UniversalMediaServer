@@ -20,6 +20,7 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,234 +239,312 @@ public class UMSUtils {
 		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
 	}
 
-	public static void writeResourcesToFile(File f, List<DLNAResource> list) throws IOException {
-		Date now = new Date();
-		try (FileWriter out = new FileWriter(f)) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("######\n");
-			sb.append("## __UPS__\n");
-			sb.append("## NOTE!!!!!\n");
-			sb.append("## This file is auto generated\n");
-			sb.append("## Edit with EXTREME care\n");
-			sb.append("## Generated: ");
-			sb.append(now.toString());
-			sb.append("\n");
-			for (DLNAResource r : list) {
-				String data = r.write();
-				if (!org.apache.commons.lang.StringUtils.isEmpty(data)) {
-					ExternalListener parent = r.getMasterParent();
-					String id;
-					if (parent != null) {
-						id = parent.getClass().getName();
-					} else {
-						id = "internal:" + r.getClass().getName();
-					}
+	public static class Playlist extends ArrayList<DLNAResource> {
+		private File file;
+		int currentIndex;
+		boolean autoSave;
 
-					sb.append("master:").append(id).append(";");
-					if (r.getPlayer() != null) {
-						sb.append("player:").append(r.getPlayer().toString()).append(";");
-					}
-					if (r.isResume()) {
-						sb.append("resume");
-						sb.append(r.getResume().getResumeFile().getAbsolutePath());
-						sb.append(";");
-					}
-					if (r.getMediaSubtitle() != null) {
-						DLNAMediaSubtitle sub = r.getMediaSubtitle();
-						if (sub.getLang() != null
-								&& sub.getId() != -1) {
-							sb.append("sub");
-							sb.append(sub.getLang());
-							sb.append(",");
-							if (sub.isExternal()) {
-								sb.append("file:");
-								sb.append(sub.getExternalFile().getAbsolutePath());
-							} else {
-								sb.append("id:");
-								sb.append("").append(sub.getId());
-							}
+		public Playlist() {
+			this(null);
+		}
+
+		public Playlist(String uri) {
+			if (! StringUtils.isBlank(uri)) {
+				file = new File(uri);
+				load(file);
+				autoSave = true;
+			} else {
+				file = null;
+				autoSave = false;
+			}
+		}
+
+		@Override
+		public boolean add(DLNAResource d) {
+			super.add(d);
+			if (autoSave) {
+				save();
+			}
+			return true;
+		}
+
+		@Override
+		public DLNAResource remove(int index) {
+			DLNAResource d = super.remove(index);
+			if (autoSave) {
+				save();
+			}
+			return d;
+		}
+
+		public File getFile()  {
+			return file;
+		}
+
+		public void load(File f) {
+			if (f.exists()) {
+				file = f;
+				clear();
+				try {
+					read(this, f);
+				} catch (IOException e) {
+					LOGGER.debug("Error loading playlist '{}': {}", f, e);
+				}
+				if (PMS.getConfiguration().getSortMethod(f) == UMSUtils.SORT_RANDOM) {
+					Collections.shuffle(this);
+				}
+			}
+		}
+
+		public void save() {
+			if (file != null) {
+				save(file);
+			}
+		}
+
+		public void save(File f) {
+			if (size() > 0) {
+				try {
+					write(this, f);
+				} catch (IOException e) {
+					LOGGER.debug("Error saving playlist to '{}': {}", f, e);
+				}
+			} else if (f != null && f.exists()) {
+				// Save = delete for empty playlists
+				f.delete();
+			}
+		}
+
+		public static void write(List<DLNAResource> playlist, File f) throws IOException {
+			Date now = new Date();
+			try (FileWriter out = new FileWriter(f)) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("######\n");
+				sb.append("## __UPS__\n");
+				sb.append("## NOTE!!!!!\n");
+				sb.append("## This file is auto generated\n");
+				sb.append("## Edit with EXTREME care\n");
+				sb.append("## Generated: ");
+				sb.append(now.toString());
+				sb.append("\n");
+				for (DLNAResource r : playlist) {
+					String data = r.write();
+					if (!org.apache.commons.lang.StringUtils.isEmpty(data)) {
+						ExternalListener external = r.getMasterParent();
+						String id;
+						if (external != null) {
+							id = external.getClass().getName();
+						} else {
+							id = "internal:" + r.getClass().getName();
+						}
+
+						sb.append("master:").append(id).append(";");
+						if (r.getPlayer() != null) {
+							sb.append("player:").append(r.getPlayer().toString()).append(";");
+						}
+						if (r.isResume()) {
+							sb.append("resume");
+							sb.append(r.getResume().getResumeFile().getAbsolutePath());
 							sb.append(";");
 						}
+						if (r.getMediaSubtitle() != null) {
+							DLNAMediaSubtitle sub = r.getMediaSubtitle();
+							if (sub.getLang() != null
+									&& sub.getId() != -1) {
+								sb.append("sub");
+								sb.append(sub.getLang());
+								sb.append(",");
+								if (sub.isExternal()) {
+									sb.append("file:");
+									sb.append(sub.getExternalFile().getAbsolutePath());
+								} else {
+									sb.append("id:");
+									sb.append("").append(sub.getId());
+								}
+								sb.append(";");
+							}
+						}
+						sb.append(data);
+						sb.append("\n");
 					}
-					sb.append(data);
-					sb.append("\n");
+				}
+				out.write(sb.toString());
+				out.flush();
+			}
+		}
+
+		private static ExternalListener findMasterParent(String className) {
+			for (ExternalListener l : ExternalFactory.getExternalListeners()) {
+				if (className.equals(l.getClass().getName())) {
+					return l;
 				}
 			}
-			out.write(sb.toString());
-			out.flush();
+			return null;
 		}
-	}
 
-	private static ExternalListener findLastPlayedParent(String className) {
-		for (ExternalListener l : ExternalFactory.getExternalListeners()) {
-			if (className.equals(l.getClass().getName())) {
-				return l;
-			}
-		}
-		return null;
-	}
-
-	private static Player findLastPlayer(String playerName) {
-		for (Player p : PlayerFactory.getPlayers()) {
-			if (playerName.equals(p.name())) {
-				return p;
-			}
-		}
-		return null;
-	}
-
-	private static DLNAResource parseInternal(String clazz, String data) {
-		boolean error = false;
-		if (clazz.contains("RealFile")) {
-			if (data.contains(">")) {
-				String[] tmp = data.split(">");
-				return new RealFile(new File(tmp[1]), tmp[0]);
-			}
-			error = true;
-		}
-		if (clazz.contains("SevenZipEntry")) {
-			if (data.contains(">")) {
-				String[] tmp = data.split(">");
-				long len = Long.parseLong(tmp[2]);
-				return new SevenZipEntry(new File(tmp[1]), tmp[0], len);
-			}
-			error = true;
-		}
-		if (clazz.contains("ZippedEntry")) {
-			if (data.contains(">")) {
-				String[] tmp = data.split(">");
-				long len = Long.parseLong(tmp[2]);
-				return new ZippedEntry(new File(tmp[1]), tmp[0], len);
-			}
-			error = true;
-		}
-		if (clazz.contains("WebStream")) {
-			if (data.contains(">")) {
-				String[] tmp = data.split(">");
-				int type;
-				try {
-					type = Integer.parseInt(tmp[3]);
-				} catch (NumberFormatException e) {
-					type = Format.UNKNOWN;
+		private static Player findPlayer(String playerName) {
+			for (Player p : PlayerFactory.getPlayers()) {
+				if (playerName.equals(p.name())) {
+					return p;
 				}
-				return new WebStream(tmp[0], tmp[1], tmp[2], type);
 			}
-			error = true;
+			return null;
 		}
 
-		if (error) {
-			LOGGER.debug("parseInternal() received some bad data:");
-			LOGGER.debug("clazz: " + clazz);
-			LOGGER.debug("data:" + data);
-		}
-
-		return null;
-	}
-
-
-	public static void readResourcesFromFile(File f, List<DLNAResource> list) throws Exception {
-		if (!f.exists()) {
-			return;
-		}
-		try (BufferedReader in = new BufferedReader(new FileReader(f))) {
-			String str;
-
-			while ((str = in.readLine()) != null) {
-				if (org.apache.commons.lang.StringUtils.isEmpty(str)) {
-					continue;
+		private static DLNAResource parse(String clazz, String data) {
+			boolean error = false;
+			if (clazz.contains("RealFile")) {
+				if (data.contains(">")) {
+					String[] tmp = data.split(">");
+					return new RealFile(new File(tmp[1]), tmp[0]);
 				}
-				if (str.startsWith("#")) {
-					continue;
+				error = true;
+			}
+			if (clazz.contains("SevenZipEntry")) {
+				if (data.contains(">")) {
+					String[] tmp = data.split(">");
+					long len = Long.parseLong(tmp[2]);
+					return new SevenZipEntry(new File(tmp[1]), tmp[0], len);
 				}
-				str = str.trim();
-				if (!str.startsWith("master:")) {
-					continue;
+				error = true;
+			}
+			if (clazz.contains("ZippedEntry")) {
+				if (data.contains(">")) {
+					String[] tmp = data.split(">");
+					long len = Long.parseLong(tmp[2]);
+					return new ZippedEntry(new File(tmp[1]), tmp[0], len);
 				}
-				str = str.substring(7);
-				int pos = str.indexOf(';');
-				if (pos == -1) {
-					continue;
-				}
-				String master = str.substring(0, pos);
-				str = str.substring(pos + 1);
-				pos = str.indexOf(';');
-				String subData = null;
-				String resData = null;
-				DLNAResource res = null;
-				Player player = null;
-				while (pos != -1) {
-					if (str.startsWith("player:")) {
-						// find last player
-						player = findLastPlayer(str.substring(7, pos));
+				error = true;
+			}
+			if (clazz.contains("WebStream")) {
+				if (data.contains(">")) {
+					String[] tmp = data.split(">");
+					int type;
+					try {
+						type = Integer.parseInt(tmp[3]);
+					} catch (NumberFormatException e) {
+						type = Format.UNKNOWN;
 					}
-					if (str.startsWith("resume")) {
-						// resume data
-						resData = str.substring(6, pos);
+					return new WebStream(tmp[0], tmp[1], tmp[2], type);
+				}
+				error = true;
+			}
+
+			if (error) {
+				LOGGER.debug("Error parsing playlist resource:");
+				LOGGER.debug("clazz: " + clazz);
+				LOGGER.debug("data:" + data);
+			}
+
+			return null;
+		}
+
+		public static void read(List<DLNAResource> playlist, File f) throws IOException {
+			if (!f.exists()) {
+				return;
+			}
+			try (BufferedReader in = new BufferedReader(new FileReader(f))) {
+				String str;
+
+				while ((str = in.readLine()) != null) {
+					if (org.apache.commons.lang.StringUtils.isEmpty(str)) {
+						continue;
 					}
-					if (str.startsWith("sub")) {
-						// subs data
-						subData = str.substring(3, pos);
+					if (str.startsWith("#")) {
+						continue;
 					}
+					str = str.trim();
+					if (!str.startsWith("master:")) {
+						continue;
+					}
+					str = str.substring(7);
+					int pos = str.indexOf(';');
+					if (pos == -1) {
+						continue;
+					}
+					String master = str.substring(0, pos);
 					str = str.substring(pos + 1);
 					pos = str.indexOf(';');
-				}
-				LOGGER.debug("master is " + master + " str " + str);
-				ExternalListener lpp;
-				if (master.startsWith("internal:")) {
-					res = parseInternal(master.substring(9), str);
-				} else {
-					lpp = findLastPlayedParent(master);
-					if (lpp != null) {
-						res = resolveCreateMethod(lpp, str);
-						if (res != null) {
-							LOGGER.debug("set masterparent for " + res + " to " + lpp);
-							res.setMasterParent(lpp);
+					String subData = null;
+					String resData = null;
+					DLNAResource res = null;
+					Player player = null;
+					while (pos != -1) {
+						if (str.startsWith("player:")) {
+							// find last player
+							player = findPlayer(str.substring(7, pos));
+						}
+						if (str.startsWith("resume")) {
+							// resume data
+							resData = str.substring(6, pos);
+						}
+						if (str.startsWith("sub")) {
+							// subs data
+							subData = str.substring(3, pos);
+						}
+						str = str.substring(pos + 1);
+						pos = str.indexOf(';');
+					}
+					LOGGER.debug("master is " + master + " str " + str);
+					ExternalListener external;
+					if (master.startsWith("internal:")) {
+						res = parse(master.substring(9), str);
+					} else {
+						external = findMasterParent(master);
+						if (external != null) {
+							res = resolveCreateMethod(external, str);
+							if (res != null) {
+								LOGGER.debug("set masterparent for " + res + " to " + external);
+								res.setMasterParent(external);
+							}
 						}
 					}
-				}
-				if (res != null) {
-					if (resData != null) {
-						ResumeObj r = new ResumeObj(new File(resData));
-						if (!r.isDone()) {
-							r.read();
-							res.setResume(r);
+					if (res != null) {
+						if (resData != null) {
+							ResumeObj r = new ResumeObj(new File(resData));
+							if (!r.isDone()) {
+								r.read();
+								res.setResume(r);
+							}
 						}
+						res.setPlayer(player);
+						if (subData != null) {
+							DLNAMediaSubtitle s = res.getMediaSubtitle();
+							if (s == null) {
+								s = new DLNAMediaSubtitle();
+								res.setMediaSubtitle(s);
+							}
+							String[] tmp = subData.split(",");
+							s.setLang(tmp[0]);
+							subData = tmp[1];
+							if (subData.startsWith("file:")) {
+								String sFile = subData.substring(5);
+								s.setExternalFile(new File(sFile));
+								s.setId(100);
+								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
+								s.setType(t);
+							} else if (subData.startsWith("id:")) {
+								s.setId(Integer.parseInt(subData.substring(3)));
+							}
+						}
+						playlist.add(res);
 					}
-					res.setPlayer(player);
-					if (subData != null) {
-						DLNAMediaSubtitle s = res.getMediaSubtitle();
-						if (s == null) {
-							s = new DLNAMediaSubtitle();
-							res.setMediaSubtitle(s);
-						}
-						String[] tmp = subData.split(",");
-						s.setLang(tmp[0]);
-						subData = tmp[1];
-						if (subData.startsWith("file:")) {
-							String sFile = subData.substring(5);
-							s.setExternalFile(new File(sFile));
-							s.setId(100);
-							SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
-							s.setType(t);
-						} else if (subData.startsWith("id:")) {
-							s.setId(Integer.parseInt(subData.substring(3)));
-						}
-					}
-					list.add(res);
 				}
 			}
 		}
-	}
 
-	public static DLNAResource resolveCreateMethod(ExternalListener l, String arg) {
-		Method create;
-		try {
-			Class<?> clazz = l.getClass();
-			create = clazz.getDeclaredMethod("create", String.class);
-			return (DLNAResource) create.invoke(l, arg);
-			// Ignore all errors
-		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+		public static DLNAResource resolveCreateMethod(ExternalListener l, String arg) {
+			// FIXME: this effectively imposes an undeclared interface, better to declare it explicitly
+			Method create;
+			try {
+				Class<?> clazz = l.getClass();
+				create = clazz.getDeclaredMethod("create", String.class);
+				return (DLNAResource) create.invoke(l, arg);
+				// Ignore all errors
+			} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
+			}
+			return null;
 		}
-		return null;
 	}
 }
