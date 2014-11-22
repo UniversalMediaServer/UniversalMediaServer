@@ -1558,54 +1558,41 @@ public class PMS {
 		return fileWatcher;
 	}
 
-	private VirtualFolder dynamicPls;
-	private long dynamicPlsStart;
+	public static class DynamicPlaylist extends Playlist {
+		private long start;
+		private String savePath;
 
-	public VirtualFolder getDynamicPls() {
-		if (dynamicPls == null) {
-			dynamicPls = new VirtualFolder(Messages.getString("PMS.146"), null);
-			dynamicPlsStart = 0;
-			final VirtualVideoAction save = new VirtualVideoAction(Messages.getString("LooksFrame.9"), true) {
-				@Override
-				public boolean enable() {
-					dynamicPlsSave();
-					return true;
-				}
-			};
-			dynamicPls.addChild(new VirtualVideoAction(Messages.getString("TracesTab.3"), true) {
-				@Override
-				public boolean enable() {
-					dynamicPlsStart = 0;
-					dynamicPls.getChildren().clear();
-					dynamicPls.addChild(this);
-					if (!configuration.isDynamicPlsAutoSave()) {
-						dynamicPls.addChild(save);
-					}
-					return true;
-				}
-			});
-			if (!configuration.isDynamicPlsAutoSave()) {
-				dynamicPls.addChild(save);
+		public DynamicPlaylist(String name, String dir, int mode) {
+			super(name, null, 0, mode);
+			savePath = dir;
+			start = 0;
+		}
+
+		@Override
+		public void clear() {
+			super.clear();
+			start = 0;
+		}
+
+		@Override
+		public void save() {
+			if (start == 0) {
+				start = System.currentTimeMillis();
 			}
+			Date d = new Date(start);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
+			list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
+		}
+	}
+
+	private DynamicPlaylist dynamicPls;
+
+	public Playlist getDynamicPls() {
+		if (dynamicPls == null) {
+			dynamicPls = new DynamicPlaylist(Messages.getString("PMS.146"),
+				configuration.getDynamicPlsSavePath(),
+				configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0);
 		}
 		return dynamicPls;
-	}
-
-	public void dynamicPlsSave() {
-		if (dynamicPlsStart == 0) {
-			dynamicPlsStart = System.currentTimeMillis();
-		}
-		Date d = new Date(dynamicPlsStart);
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
-		File f = new File(configuration.getDynamicPlsSaveFile("dynamic_" + sdf.format(d)) + ".ups");
-		try {
-			UMSUtils.Playlist.write(dynamicPls.getChildren(), f);
-		} catch (IOException e) {
-			LOGGER.debug("Failed to write dynamic pls " + e);
-		}
-	}
-
-	public boolean isInDynPls(DLNAResource r) {
-		return dynamicPls != null && dynamicPls.getChildren().indexOf(r) != -1;
 	}
 }

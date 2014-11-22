@@ -228,13 +228,9 @@ public class RemotePlayHandler implements HttpHandler {
 			DLNAResource r = PMS.getGlobalRepo().get(id);
  			if (r != null) {
  				if (op.equals("add")) {
- 					r.addToDynPls();
-				} else if (op.equals("del")) {
-					if (PMS.get().isInDynPls(r)) {
-						r.delFromDynPls();
-					} else if (r.getParent() instanceof Playlist) {
-						((Playlist)r.getParent()).remove(r);
-					}
+ 					PMS.get().getDynamicPls().add(r);
+				} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
+					((Playlist)r.getParent()).remove(r);
 				}
  			}
 			RemoteUtil.respond(t, returnPage(), 200, "text/html");
