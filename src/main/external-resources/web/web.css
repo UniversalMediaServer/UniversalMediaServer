@@ -155,21 +155,19 @@ ul#Media .caption {
 
 .playlist_add {
 	background: url('/files/bump/skin/add16.png') no-repeat;
+}
+
+.playlist_del {
+	background: url('/files/bump/skin/remove16.png') no-repeat;
+}
+
+.playlist_add, .playlist_del {
 	width: 16px;
 	height: 16px;
 	display: block;
 	float: right;
 	margin-right:1px;
 }
-
-.playlist_del {
-	background: url('/files/bump/skin/remove16.png') no-repeat;
-	width: 28px;
-	height: 16px;
-	display: block;
-	float: left;
-}
-
 
 ul#Media li:hover .caption {
 	color: #000 !important;
