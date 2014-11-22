@@ -58,7 +58,7 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private RecentlyPlayed last;
+	private Playlist last;
 	private ArrayList<String> tags;
 	private ArrayList<DLNAResource> webFolders;
 
@@ -109,7 +109,10 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (!configuration.isHideRecentlyPlayedFolder()) {
-			last = new RecentlyPlayed();
+			last = new Playlist(Messages.getString("VirtualFolder.1"),
+				PMS.getConfiguration().getDataFile("UMS.last"),
+				PMS.getConfiguration().getInt("last_play_limit", 0),
+				Playlist.PERMANENT|Playlist.AUTOSAVE);
 			addChild(last);
 		}
 
@@ -1153,36 +1156,6 @@ public class RootFolder extends DLNAResource {
 							public boolean enable() {
 								f.delete();
 								getParent().getChildren().remove(this);
-								return false;
-							}
-						});
-					}
-				}
-			});
-		}
-
-		// recently played mgmt
-		if (last != null) {
-			final List<DLNAResource> l = last.getList();
-			res.addChild(new VirtualFolder(Messages.getString("PMS.137"), null) {
-				@Override
-				public void discoverChildren() {
-					addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
-						@Override
-						public boolean enable() {
-							getParent().getChildren().clear();
-							l.clear();
-							last.update();
-							return true;
-						}
-					});
-					for (final DLNAResource r : l) {
-						addChild(new VirtualVideoAction(r.getName(), false) {
-							@Override
-							public boolean enable() {
-								getParent().getChildren().remove(this);
-								l.remove(r);
-								last.update();
 								return false;
 							}
 						});
