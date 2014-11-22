@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.external.ExternalListener;
@@ -15,15 +14,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Playlist extends VirtualFolder {
+public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
-	private static final int MAX_LIST_SIZE = 250;
-	private static final int DEF_LIST_SIZE = 50;
-	public static final int PERMANENT = 1;
-	public static final int AUTOSAVE = 2;
-	public static final int AUTOREMOVE = 4;
-	protected UMSUtils.Playlist list;
-	protected int size, mode;
+	protected UMSUtils.IOList list;
+	protected int maxSize, mode;
 
 	public Playlist(String name) {
 		this(name, null, 0, AUTOSAVE);
@@ -33,13 +27,13 @@ public class Playlist extends VirtualFolder {
 		this(name, filename, 0, AUTOSAVE);
 	}
 
-	public Playlist(String name, String filename, int size, int mode) {
+	public Playlist(String name, String filename, int maxSize, int mode) {
 		super(name, "images/thumbnail-folder-256.png");
-		this.size = size > 0 ? size > MAX_LIST_SIZE ? MAX_LIST_SIZE : size : DEF_LIST_SIZE;
-//		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
-		list = new UMSUtils.Playlist(filename);
-		list.save();
+		this.maxSize = maxSize > 0 ? maxSize : 0;
 		this.mode = mode;
+//		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
+		list = new UMSUtils.IOList(filename, mode);
+		list.save();
 	}
 
 	public File getFile()  {
@@ -76,8 +70,8 @@ public class Playlist extends VirtualFolder {
 			}
 		}
 		list.remove(res1);
-		if (list.size() == size) {
-			list.remove(size - 1);
+		if (maxSize > 0 && list.size() == maxSize) {
+			list.remove(maxSize - 1);
 		}
 		list.add(0, res1);
 		update();

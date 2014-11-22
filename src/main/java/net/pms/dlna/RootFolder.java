@@ -111,7 +111,7 @@ public class RootFolder extends DLNAResource {
 		if (!configuration.isHideRecentlyPlayedFolder()) {
 			last = new Playlist(Messages.getString("VirtualFolder.1"),
 				PMS.getConfiguration().getDataFile("UMS.last"),
-				PMS.getConfiguration().getInt("last_play_limit", 0),
+				PMS.getConfiguration().getInt("last_play_limit", 250),
 				Playlist.PERMANENT|Playlist.AUTOSAVE);
 			addChild(last);
 		}

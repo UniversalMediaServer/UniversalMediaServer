@@ -1591,7 +1591,7 @@ public class PMS {
 		if (dynamicPls == null) {
 			dynamicPls = new DynamicPlaylist(Messages.getString("PMS.146"),
 				configuration.getDynamicPlsSavePath(),
-				configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0);
+				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
 		}
 		return dynamicPls;
 	}

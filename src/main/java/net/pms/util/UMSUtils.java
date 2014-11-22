@@ -239,30 +239,37 @@ public class UMSUtils {
 		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
 	}
 
-	public static class Playlist extends ArrayList<DLNAResource> {
+	/**
+	 * Bitwise constants relating to playlist management.
+	 */
+	public interface IOListModes {
+		public static final int PERMANENT = 1;
+		public static final int AUTOSAVE = 2;
+		public static final int AUTOREMOVE = 4;
+	}
+
+	/**
+	 * A DLNAResource list with built-in file i/o.
+	 */
+	public static class IOList extends ArrayList<DLNAResource> implements IOListModes {
 		private File file;
-		int currentIndex;
-		boolean autoSave;
+		private int currentIndex;
+		private int mode;
 
-		public Playlist() {
-			this(null);
-		}
-
-		public Playlist(String uri) {
+		public IOList(String uri, int mode) {
+			this.mode = mode;
 			if (! StringUtils.isBlank(uri)) {
 				file = new File(uri);
 				load(file);
-				autoSave = true;
 			} else {
 				file = null;
-				autoSave = false;
 			}
 		}
 
 		@Override
 		public boolean add(DLNAResource d) {
 			super.add(d);
-			if (autoSave) {
+			if (isMode(AUTOSAVE)) {
 				save();
 			}
 			return true;
@@ -271,10 +278,14 @@ public class UMSUtils {
 		@Override
 		public DLNAResource remove(int index) {
 			DLNAResource d = super.remove(index);
-			if (autoSave) {
+			if (isMode(AUTOSAVE)) {
 				save();
 			}
 			return d;
+		}
+
+		public boolean isMode(int m) {
+			return (mode & m) == m;
 		}
 
 		public File getFile()  {
@@ -288,7 +299,7 @@ public class UMSUtils {
 				try {
 					read(this, f);
 				} catch (IOException e) {
-					LOGGER.debug("Error loading playlist '{}': {}", f, e);
+					LOGGER.debug("Error loading resource list '{}': {}", f, e);
 				}
 				if (PMS.getConfiguration().getSortMethod(f) == UMSUtils.SORT_RANDOM) {
 					Collections.shuffle(this);
@@ -307,7 +318,7 @@ public class UMSUtils {
 				try {
 					write(this, f);
 				} catch (IOException e) {
-					LOGGER.debug("Error saving playlist to '{}': {}", f, e);
+					LOGGER.debug("Error saving resource list to '{}': {}", f, e);
 				}
 			} else if (f != null && f.exists()) {
 				// Save = delete for empty playlists
