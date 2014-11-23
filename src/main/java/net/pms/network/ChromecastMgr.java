@@ -1,12 +1,10 @@
 package net.pms.network;
 
 
+import ch.qos.logback.classic.Level;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.util.BasicPlayer;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import su.litvak.chromecast.api.v2.ChromeCast;
@@ -14,13 +12,8 @@ import su.litvak.chromecast.api.v2.ChromeCast;
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ChromecastMgr implements ServiceListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastMgr.class);
@@ -29,6 +22,8 @@ public class ChromecastMgr implements ServiceListener {
 	public ChromecastMgr() throws IOException {
 		jmDNS = JmDNS.create();
 		jmDNS.addServiceListener(ChromeCast.SERVICE_TYPE, this);
+		ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("su.litvak.chromecast.api.v2");
+		l.setLevel(Level.OFF);
 	}
 
 	public void stop() throws IOException{

@@ -14,7 +14,6 @@ import su.litvak.chromecast.api.v2.MediaStatus;
 import su.litvak.chromecast.api.v2.Status;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 
 public class ChromecastPlayer extends UPNPHelper.Player {
