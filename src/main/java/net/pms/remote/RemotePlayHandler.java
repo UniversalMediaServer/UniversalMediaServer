@@ -13,6 +13,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Player;
@@ -225,14 +226,13 @@ public class RemotePlayHandler implements HttpHandler {
 			String op = tmp[tmp.length - 2];
 			String id = tmp[tmp.length - 1];
 			DLNAResource r = PMS.getGlobalRepo().get(id);
-			if (r != null) {
-				if (op.equals("add")) {
-					r.addToDynPls();
+ 			if (r != null) {
+ 				if (op.equals("add")) {
+ 					PMS.get().getDynamicPls().add(r);
+				} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
+					((Playlist)r.getParent()).remove(r);
 				}
-				else if (op.equals("del")) {
-					r.delFromDynPls();
-				}
-			}
+ 			}
 			RemoteUtil.respond(t, returnPage(), 200, "text/html");
 		}
 	}

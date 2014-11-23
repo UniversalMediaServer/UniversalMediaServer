@@ -3477,12 +3477,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Handle last played stuff
+	 * Handle serialization.
 	 *
-	 * This method should be overridden by all media types that should be
-	 * added to the last played list.
+	 * This method should be overridden by all media types that can be
+	 * bookmarked, i.e. serialized to an external file.
 	 * By default it just returns null which means the resource is ignored
-	 * in the last played file.
+	 * when serializing.
 	 */
 	public String write() {
 		return null;
@@ -3739,34 +3739,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			VirtualVideoAction vva = new VirtualVideoAction(str, true) {
 				@Override
 				public boolean enable() {
-					child.addToDynPls();
+					PMS.get().getDynamicPls().add(child);
 					return true;
 				}
 			};
 			vva.setParent(this);
 			dynamicPls.addChildInternal(vva);
-		}
-	}
-
-	public void addToDynPls() {
-		DLNAResource newChild = this.clone();
-		DLNAResource dynPls = PMS.get().getDynamicPls();
-		dynPls.addChild(newChild);
-		// we need to restore some fields here
-		newChild.setParent(getParent());
-		newChild.setMasterParent(getMasterParent());
-		newChild.setMediaSubtitle(getMediaSubtitle());
-		newChild.setResume(getResume());
-		if (configuration.isDynamicPlsAutoSave()) {
-			PMS.get().dynamicPlsSave();
-		}
-	}
-
-	public void delFromDynPls() {
-		DLNAResource dynPls = PMS.get().getDynamicPls();
-		dynPls.getChildren().remove(this);
-		if (configuration.isDynamicPlsAutoSave()) {
-			PMS.get().dynamicPlsSave();
 		}
 	}
 }

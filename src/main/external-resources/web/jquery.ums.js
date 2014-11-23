@@ -36,6 +36,26 @@ function changeMargins() {
 	}
 }
 
+function scrollActions() {
+	if ($(window).width() > 1080) {
+		if ($(window).scrollTop() === 0) {
+			$("#Menu").animate({height: 95}, 200);
+			$("#ContentPage #Menu #HomeButton").animate({height: 93}, 200);
+			$("ul#Folders").animate({top: 94}, 200);
+			$("ul#Media").animate({paddingTop: 115}, 200);
+		} else {
+			$("#Menu").animate({height: 53}, 200);
+			$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
+			$("ul#Folders").animate({top: 52}, 200);
+			$("ul#Media").animate({paddingTop: 73}, 200);
+		}
+	} else {
+		$("#Menu").animate({height: 53}, 200);
+		$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
+		$("ul#Media").animate({paddingTop: 20}, 200);
+	}
+}
+
 $(document).ready(function() {
 	if ($('#Media').length) {
 		$(window).bind('load resize', changeMargins);
@@ -44,6 +64,9 @@ $(document).ready(function() {
 		$('#Folders li').bind('contextmenu', function(){
 			return false;
 		});
+	}
+	if ($('#Menu').length) {
+		$(window).bind('load resize scroll', scrollActions);
 	}
 });
 

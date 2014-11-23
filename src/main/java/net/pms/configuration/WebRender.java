@@ -431,7 +431,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	@Override
 	public BasicPlayer getPlayer() {
 		if (player == null) {
-			player = new PlaybackNotifier((DeviceConfiguration) this);
+			player = new PlaybackNotifier(this);
 		}
 		return player;
 	}
@@ -460,7 +460,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		private HashMap<String, String> data;
 		private Gson gson;
 
-		public PlaybackNotifier(DeviceConfiguration renderer) {
+		public PlaybackNotifier(WebRender renderer) {
 			super(renderer);
 			data = new HashMap<>();
 			gson = new Gson();
