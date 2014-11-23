@@ -107,7 +107,7 @@ public class FileWatcher {
 			Watch other = (Watch) o;
 			return listener.get() == other.listener.get() &&
 				(fspec == other.fspec || fspec.equals(other.fspec)) &&
-				(item.get() == other.item.get() || item.get().equals(other.item.get())) &&
+				(item == other.item || (item != null && other.item != null && (item.get() == other.item.get() || item.get().equals(other.item.get())))) &&
 				flag == other.flag;
 		}
 

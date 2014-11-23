@@ -251,10 +251,13 @@ public class RemoteUtil {
 		return mime.equals(MIME_MP4) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
-	public static boolean bumpAllowed(String ips, HttpExchange t) {
-		IpFilter filter = new IpFilter();
-		filter.setRawFilter(ips);
-		return filter.allowed(t.getRemoteAddress().getAddress());
+	private static IpFilter bumpFilter = null;
+
+	public static boolean bumpAllowed(HttpExchange t) {
+		if (bumpFilter == null) {
+			bumpFilter = new IpFilter(PMS.getConfiguration().getBumpAllowedIps());
+		}
+		return bumpFilter.allowed(t.getRemoteAddress().getAddress());
 	}
 
 	public static String transMime() {

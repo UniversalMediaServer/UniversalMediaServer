@@ -60,7 +60,7 @@ public class PlayerControlHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange x) throws IOException {
 
-		if (RemoteUtil.deny(x) && !RemoteUtil.bumpAllowed(configuration.getBumpAllowedIps(), x)) {
+		if (RemoteUtil.deny(x) && !RemoteUtil.bumpAllowed(x)) {
 			LOGGER.debug("Deny " + x);
 			throw new IOException("Denied");
 		}

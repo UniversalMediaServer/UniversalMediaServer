@@ -37,7 +37,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
-		boolean upnpAllowed = RemoteUtil.bumpAllowed(PMS.getConfiguration().getBumpAllowedIps(), t);
+		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		if (StringUtils.isNotEmpty(search) && !(res instanceof CodeEnter)) {
 			UMSUtils.postSearch(res, search);
