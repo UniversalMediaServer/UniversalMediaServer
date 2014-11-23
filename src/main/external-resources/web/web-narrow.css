@@ -14,8 +14,12 @@ ul#Media {
 #ContentPage #Menu {
 	background: url('/files/menu-background-content.png');
 	background-repeat: repeat-x;
-	height: 95px;
+	background-position: bottom;
+	height: 53px;
 	width: 100%;
 	z-index: 2;
 }
 
+#ContentPage #Menu #HomeButton {
+	height: 51px;
+}

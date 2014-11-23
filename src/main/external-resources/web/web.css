@@ -53,6 +53,9 @@ body#ContentPage {
 
 #ContentPage #Menu #HomeButton {
 	background: url('/files/menu-left-content.png');
+	background-repeat: no-repeat;
+	background-position: left bottom;
+	background-size: contain;
 	width: 125px;
 	height: 93px;
 	display: block;
