@@ -27,8 +27,6 @@ import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -74,7 +72,6 @@ public class VLCVideo extends Player {
 	protected JCheckBox audioSyncEnabled;
 	protected JTextField sampleRate;
 	protected JCheckBox sampleRateOverride;
-	protected JTextField extraParams;
 
 	protected boolean videoRemux;
 
@@ -563,11 +560,6 @@ public class VLCVideo extends Player {
 
 		// Force VLC to exit when finished
 		cmdList.add("vlc://quit");
-
-		// Add any extra parameters
-		if (!extraParams.getText().trim().isEmpty()) { // Add each part as a new item
-			cmdList.addAll(Arrays.asList(StringUtils.split(extraParams.getText().trim(), " ")));
-		}
 
 		// Pass to process wrapper
 		String[] cmdArray = new String[cmdList.size()];
