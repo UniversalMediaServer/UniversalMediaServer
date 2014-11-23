@@ -64,8 +64,8 @@
 		<url>https://github.com/UniversalMediaServer/UniversalMediaServer</url>
 	</scm>
 	<issueManagement>
-		<system>Google Code</system>
-		<url>http://code.google.com/p/universal-media-server/issues/list</url>
+		<system>GitHub</system>
+		<url>https://github.com/UniversalMediaServer/UniversalMediaServer/issues</url>
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
