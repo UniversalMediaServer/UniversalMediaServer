@@ -14,6 +14,23 @@ public interface BasicPlayer extends ActionListener {
 		public String position, duration;
 		public String name, uri, metadata;
 		public long buffer;
+
+		private String state(int s) {
+			switch (s) {
+				case STOPPED: return "Stopped";
+				case PAUSED: return "Paused";
+				case PLAYING: return "Playing";
+				default: return "Unknown";
+			}
+		}
+
+		public String toString() {
+			return  "Playback: " + state(playback) +
+				    ", Mute: " + mute + ", Volume: " + volume +
+					", CurrentPos: " + position + ", Duration: " + duration +
+					", Name: " + name + ", Uri: " + uri + ", Metadata: " +metadata +
+					", Buffer: " + buffer;
+		}
 	}
 
 	final static int STOPPED = 0;

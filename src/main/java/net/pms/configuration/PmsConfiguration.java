@@ -104,6 +104,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
 	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
+	protected static final String KEY_CHROMECAST_EXT = "chromecast_extension";
 	protected static final String KEY_CODE_CHARS = "code_charset";
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
@@ -3380,6 +3381,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getUPNPAutoPlay() {
 		return getString(KEY_AUTO_UPNP_PLAY, null);
+	}
+
+	public boolean useChromecastExt() {
+		return getBoolean(KEY_CHROMECAST_EXT, true);
 	}
 
 }

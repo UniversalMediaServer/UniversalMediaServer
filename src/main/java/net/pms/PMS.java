@@ -48,6 +48,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
@@ -101,6 +102,8 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	private NameFilter filter;
+
+	private ChromecastMgr ccm;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -578,6 +581,16 @@ public class PMS {
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
 		UPNPHelper.getInstance().init();
+
+		// launch ChromecastMgr
+		ccm = null;
+		if (configuration.useChromecastExt()) {
+			try {
+				ccm = new ChromecastMgr();
+			} catch (IOException e) {
+				LOGGER.debug("Error lunching Chromecast extension " + e);
+			}
+		}
 
 		OutputParams outputParams = new OutputParams(configuration);
 

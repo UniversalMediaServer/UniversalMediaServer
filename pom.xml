@@ -424,6 +424,11 @@
 			<artifactId>jmustache</artifactId>
 			<version>1.9</version>
 		</dependency>
+        <dependency>
+            <groupId>su.litvak.chromecast</groupId>
+            <artifactId>api-v2</artifactId>
+            <version>0.0.3</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>

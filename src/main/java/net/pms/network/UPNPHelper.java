@@ -575,6 +575,12 @@ public class UPNPHelper extends UPNPControl {
 		return InetAddress.getByName(IPV4_UPNP_HOST);
 	}
 
+	public void mapRender(String uuid, DeviceConfiguration r, int ctrl) {
+		rendererMap.put(uuid, "0", r);
+		rendererMap.mark(uuid, ACTIVE, true);
+		rendererMap.mark(uuid, CONTROLS, ctrl);
+	}
+
 	@Override
 	protected Renderer rendererFound(Device d, String uuid) {
 		// Create or retrieve an instance
@@ -693,7 +699,7 @@ public class UPNPHelper extends UPNPControl {
 		public Playlist playlist;
 		private String lasturi;
 		private boolean ignoreUpnpDuration;
-		private boolean forceStop;
+		protected boolean forceStop;
 
 		public Player(DeviceConfiguration renderer) {
 			uuid = renderer.getUUID();

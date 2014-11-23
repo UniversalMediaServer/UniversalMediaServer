@@ -16,6 +16,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
+
+import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.newgui.GuiUtil.CustomJButton;
@@ -52,7 +54,7 @@ public class RendererPanel extends JPanel {
 		}
 		builder.appendRow(rspec);
 		builder.addLabel(" ", cc.xy(1, ++y));
-		if (renderer.isUpnpConnected()) {
+		if (renderer.isUpnpConnected() && !renderer.isChromecast()) {
 			y = addMap(renderer.getUpnpDetails(), builder, y);
 			y = addStrings("Services", WordUtils.wrap(StringUtils.join(renderer.getUpnpServices(), ", "), 60).split("\n"),
 				builder, y);
@@ -69,6 +71,14 @@ public class RendererPanel extends JPanel {
 			y = addItem("name", renderer.getRendererName(), builder, y);
 			if (!(renderer.getAddress() == null)) {
 				y = addItem("address", renderer.getAddress().toString().substring(1), builder, y);
+			}
+			if (renderer.isChromecast()) {
+				builder.appendRow(rspec);
+				builder.addLabel(" ", cc.xy(1, ++y));
+				builder.appendRow(rspec);
+				builder.addSeparator("UPNP Controls", cc.xyw(1, ++y, 2));
+				builder.appendRow(rspec);
+				builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
 			}
 		}
 

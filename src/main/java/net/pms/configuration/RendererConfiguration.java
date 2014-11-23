@@ -15,6 +15,7 @@ import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
+import net.pms.network.ChromecastPlayer;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
@@ -705,6 +706,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getRendererName().toUpperCase().contains("LG ");
 	}
 
+	public boolean isChromecast() {
+		return (getConfName() == null ? false : getConfName().toUpperCase().contains("CHROMECAST")) &&
+				pmsConfiguration.useChromecastExt();
+	}
+
 	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
 		return getInt(BYTE_TO_TIMESEEK_REWIND_SECONDS, 0);
@@ -1334,9 +1340,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public String getRendererName() {
 		try {
+			if (isChromecast()) {
+				// more ugly hack
+				ChromecastPlayer p = (ChromecastPlayer) player;
+				return (p == null ? getConfName() : p.getName());
+			}
 			return UPNPHelper.getFriendlyName(uuid);
 		} catch (Exception e) {
-			 return getConfName();
+		 	return getConfName();
 		}
 	}
 
