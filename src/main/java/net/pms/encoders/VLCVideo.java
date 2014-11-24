@@ -147,8 +147,6 @@ public class VLCVideo extends Player {
 			) ||
 			isXboxOneWebVideo
 		) {
-			// Assume WMV = Xbox 360 = all media renderers with this flag
-			LOGGER.debug("Using XBox 360 WMV codecs");
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
@@ -161,22 +159,17 @@ public class VLCVideo extends Player {
 			}
 
 			if (renderer.isTranscodeToAC3()) {
-				LOGGER.debug("Using H.264 and AC-3 with MPEG-TS container");
 				codecConfig.audioCodec = "a52";
 			} else {
-				LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
 				codecConfig.audioCodec = "mp4a";
 			}
 
 			if (renderer.isTranscodeToMPEGTS()) {
-				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
 				codecConfig.container = "ts";
 			} else {
-				LOGGER.debug("Using standard DLNA codecs with an MPEG-PS (default) container");
 				codecConfig.container = "ps";
 			}
 		}
-
 		LOGGER.trace("Using " + codecConfig.videoCodec + ", " + codecConfig.audioCodec + ", " + codecConfig.container);
 
 		/**
