@@ -367,6 +367,8 @@ public class FormatConfiguration {
 		return match(WAV, null, null, 0, 96000, 0, 0, 0, null) != null || match(MP3, null, null, 0, 96000, 0, 0, 0, null) != null;
 	}
 
+	// XXX Unused
+	@Deprecated
 	public String getPrimaryVideoTranscoder() {
 		for (SupportSpec supportSpec : supportSpecs) {
 			if (supportSpec.match(MPEGPS, MPEG2, AC3)) {
