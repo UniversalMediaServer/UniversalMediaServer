@@ -533,7 +533,13 @@ public class VLCVideo extends Player {
 			cmdList.add("--sout-x264-preset");
 			cmdList.add("superfast");
 
-			cmdList.add("--no-sout-avcodec-hurry-up");
+			/**
+			 * This option prevents VLC from speeding up transcoding by disabling certain
+			 * codec optimizations if the CPU is struggling to keep up.
+			 * It is already disabled by default so there is no reason to specify that here,
+			 * plus the option doesn't work on versions of VLC from 2.0.7 to 2.1.5.
+			 */
+			//cmdList.add("--no-sout-avcodec-hurry-up");
 
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 		}
