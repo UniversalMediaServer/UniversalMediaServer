@@ -151,6 +151,9 @@ public class VLCVideo extends Player {
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
 		} else {
+			/**
+			 * VLC does not support H.265 encoding as of VLC 2.1.5.
+			 */
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				codecConfig.videoCodec = "h264";
 				videoRemux = true;
