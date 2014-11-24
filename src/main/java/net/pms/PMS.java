@@ -29,6 +29,8 @@ import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceListener;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.NameFilter;
@@ -103,7 +105,7 @@ public class PMS {
 
 	private NameFilter filter;
 
-	private ChromecastMgr ccm;
+	private JmDNS jmDNS;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -583,14 +585,8 @@ public class PMS {
 		UPNPHelper.getInstance().init();
 
 		// launch ChromecastMgr
-		ccm = null;
-		if (configuration.useChromecastExt()) {
-			try {
-				ccm = new ChromecastMgr();
-			} catch (IOException e) {
-				LOGGER.debug("Error lunching Chromecast extension " + e);
-			}
-		}
+		jmDNS = null;
+		launchJmDNSRenders();
 
 		OutputParams outputParams = new OutputParams(configuration);
 
@@ -1608,4 +1604,27 @@ public class PMS {
 		}
 		return dynamicPls;
 	}
+
+	private void launchJmDNSRenders() {
+		if (configuration.useChromecastExt()) {
+			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
+				try {
+					startjmDNS();
+					new ChromecastMgr(jmDNS);
+				} catch (Exception e) {
+					LOGGER.debug("Can't create chromecast mgr");
+				}
+			}
+			else {
+				LOGGER.info("No Chromecast render found. Please enable one and restart.");
+			}
+		}
+	}
+
+	private void startjmDNS() throws IOException{
+		if (jmDNS == null) {
+			jmDNS = JmDNS.create();
+		}
+	}
+
 }

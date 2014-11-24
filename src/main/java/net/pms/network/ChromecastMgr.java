@@ -7,6 +7,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.util.BasicPlayer;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import su.litvak.chromecast.api.v2.ChromeCast;
@@ -16,20 +17,24 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
 
 public class ChromecastMgr implements ServiceListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastMgr.class);
 	private JmDNS jmDNS;
+	private ArrayList<ChromeDevice> chromes;
+	private RendererConfiguration ccr;
 
-	public ChromecastMgr() throws IOException {
-		jmDNS = JmDNS.create();
+	public ChromecastMgr(JmDNS j) throws IOException {
+		this.jmDNS = j;
+		ccr = RendererConfiguration.getRendererConfigurationByName("Chromecast");
 		jmDNS.addServiceListener(ChromeCast.SERVICE_TYPE, this);
-		ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("su.litvak.chromecast.api.v2");
-		l.setLevel(Level.OFF);
-	}
-
-	public void stop() throws IOException{
-		jmDNS.close();
+		chromes = new ArrayList<>();
+		if (!PMS.getConfiguration().isChromecastDbg()) {
+			ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger)
+											   LoggerFactory.getLogger("su.litvak.chromecast.api.v2");
+			l.setLevel(Level.OFF);
+		}
 	}
 
 	@Override
@@ -42,7 +47,7 @@ public class ChromecastMgr implements ServiceListener {
 		ChromeCast cc = new ChromeCast(jmDNS, event.getInfo().getName());
 		try {
 			cc.connect();
-			new ChromeDevice(cc, InetAddress.getByName(cc.getAddress()));
+			chromes.add(new ChromeDevice(cc, ccr, InetAddress.getByName(cc.getAddress())));
 		} catch (Exception e) {
 			LOGGER.debug("Chromecast failed " + e);
 			return;
@@ -51,6 +56,23 @@ public class ChromecastMgr implements ServiceListener {
 
 	@Override
 	public void serviceRemoved(ServiceEvent event) {
+		if (event.getInfo() == null) {
+			// silent
+			return;
+		}
+		String name = event.getInfo().getName();
+		if (StringUtils.isEmpty(name)) {
+			name = ccr.getConfName();
+		}
+		ArrayList<ChromeDevice> devs = new ArrayList<>();
+		for (ChromeDevice d : chromes) {
+			if (name.equals(d.getRendererName())) {
+				LOGGER.debug("Chromecast " + name + " is gone.");
+				continue;
+			}
+			devs.add(d);
+		}
+		chromes = devs;
 	}
 
 	@Override
@@ -60,8 +82,8 @@ public class ChromecastMgr implements ServiceListener {
 	static class ChromeDevice extends DeviceConfiguration {
 		public ChromeCast api;
 
-		public ChromeDevice(ChromeCast cc, InetAddress ia) throws ConfigurationException {
-			super(RendererConfiguration.getRendererConfigurationByName("Chromecast"), ia);
+		public ChromeDevice(ChromeCast cc, RendererConfiguration r, InetAddress ia) throws ConfigurationException {
+			super(r, ia);
 			api = cc;
 			uuid = cc.getAddress();
 			controls = UPNPControl.ANY;
@@ -74,7 +96,10 @@ public class ChromecastMgr implements ServiceListener {
 		@Override
 		public String getRendererName() {
 			try {
-				return ((ChromecastPlayer)player).getName();
+				if (StringUtils.isNotEmpty(api.getName())) {
+					return api.getName();
+				}
+				return getConfName();
 			} catch (Exception e) {
 				return getConfName();
 			}

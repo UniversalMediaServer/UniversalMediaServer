@@ -114,13 +114,6 @@ public class ChromecastPlayer extends UPNPHelper.Player {
 		}
 	}
 
-	public String getName() throws IOException {
-		if (StringUtils.isNotEmpty(api.getName())) {
-			return api.getName();
-		}
-		throw new IOException("xxx");
-	}
-
 	public void startPoll() {
 		Runnable r = new Runnable() {
 			@Override
