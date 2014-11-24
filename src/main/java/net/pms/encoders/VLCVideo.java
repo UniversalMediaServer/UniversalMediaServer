@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -72,6 +73,7 @@ public class VLCVideo extends Player {
 	protected JCheckBox audioSyncEnabled;
 	protected JTextField sampleRate;
 	protected JCheckBox sampleRateOverride;
+	SystemUtils registry = PMS.get().getRegistry();
 
 	protected boolean videoRemux;
 
@@ -95,6 +97,11 @@ public class VLCVideo extends Player {
 
 	@Override
 	public boolean isTimeSeekable() {
+		return true;
+	}
+
+	@Override
+	public boolean isGPUAccelerationReady() {
 		return true;
 	}
 
@@ -446,11 +453,22 @@ public class VLCVideo extends Player {
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
-		// Disable hardware acceleration which is enabled by default,
-		// but for hardware acceleration, user must enable it in "VLC Preferences",
-		// until they release documentation for new functionalities introduced in 2.1.4+
-		if (!configuration.isGPUAcceleration()) {
-			cmdList.add("--avcodec-hw=disabled");
+		/**
+		 * Disable hardware acceleration which is enabled by default,
+		 * but for hardware acceleration, user must enable it in "VLC Preferences",
+		 * until they release documentation for new functionalities introduced in 2.1.4+
+		 */
+		String vlcVersion = registry.getVlcVersion();
+		Version currentVersion = new Version(vlcVersion);
+		Version requiredVersion = new Version("2.1.4");
+
+		if (vlcVersion != null && currentVersion.compareTo(requiredVersion) > 0) {
+			if (!configuration.isGPUAcceleration()) {
+				cmdList.add("--avcodec-hw=disabled");
+				LOGGER.trace("Disabled VLC's hardware acceleration.");
+			}
+		} else if (!configuration.isGPUAcceleration()) {
+			LOGGER.trace("Version " + vlcVersion + " of VLC is too low to handle the way we disable hardware acceleration.");
 		}
 
 		// Useful for the more esoteric codecs people use
