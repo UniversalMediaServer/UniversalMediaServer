@@ -152,21 +152,21 @@ public class VLCVideo extends Player {
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
-		} else if (renderer.isTranscodeToH264()) {
-			codecConfig.videoCodec = "h264";
-			codecConfig.container = "ts";
-			videoRemux = true;
+		} else {
+			if (renderer.isTranscodeToH264()) {
+				codecConfig.videoCodec = "h264";
+				videoRemux = true;
+			} else {
+				codecConfig.videoCodec = "mp2v";
+			}
 
 			if (renderer.isTranscodeToAC3()) {
 				LOGGER.debug("Using H.264 and AC-3 with MPEG-TS container");
 				codecConfig.audioCodec = "a52";
-			} else if (renderer.isTranscodeToAAC()) {
+			} else {
 				LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
 				codecConfig.audioCodec = "mp4a";
 			}
-		} else {
-			codecConfig.videoCodec = "mp2v";
-			codecConfig.audioCodec = "mp2a";
 
 			if (renderer.isTranscodeToMPEGTS()) {
 				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
