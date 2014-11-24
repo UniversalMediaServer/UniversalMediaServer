@@ -99,10 +99,9 @@ public class ChromecastMgr implements ServiceListener {
 				if (StringUtils.isNotEmpty(api.getName())) {
 					return api.getName();
 				}
-				return getConfName();
 			} catch (Exception e) {
-				return getConfName();
 			}
+			return getConfName();
 		}
 
 		@Override
