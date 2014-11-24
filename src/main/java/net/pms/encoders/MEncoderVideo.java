@@ -731,7 +731,7 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (mediaRenderer.isTranscodeToH264() && !isXboxOneWebVideo) {
+			if ((mediaRenderer.isTranscodeToH264() || mediaRenderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
 				if (
 					mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -983,7 +983,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
-		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264();
+		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265();
 
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
