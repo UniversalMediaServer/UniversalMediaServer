@@ -111,6 +111,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	// Current video transcoding options
 	protected static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
 	protected static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
+	protected static final String MPEGTSH265AAC = "MPEGTS-H265-AAC";
+	protected static final String MPEGTSH265AC3 = "MPEGTS-H265-AC3";
 	protected static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
 	protected static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
 
@@ -962,18 +964,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getVideoTranscode().equals(MPEGTSH264AAC);
 	}
 
+	public boolean isTranscodeToMPEGTSH265AAC() {
+		return getVideoTranscode().equals(MPEGTSH265AAC);
+	}
+
+	public boolean isTranscodeToMPEGTSH265AC3() {
+		return getVideoTranscode().equals(MPEGTSH265AC3);
+	}
+
 	/**
 	 * @return whether to use the AC-3 audio codec for transcoded video
 	 */
 	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3();
+		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH265AC3();
 	}
 
 	/**
 	 * @return whether to use the AAC audio codec for transcoded video
 	 */
 	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC();
 	}
 
 	/**
@@ -984,10 +994,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * @return whether to use the H.265 video codec for transcoded video
+	 */
+	public boolean isTranscodeToH265() {
+		return isTranscodeToMPEGTSH265AAC() || isTranscodeToMPEGTSH265AC3();
+	}
+
+	/**
 	 * @return whether to use the MPEG-TS container for transcoded video
 	 */
 	public boolean isTranscodeToMPEGTS() {
-		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC();
+		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AC3() || isTranscodeToMPEGTSH265AAC();
 	}
 
 	/**
@@ -1063,6 +1080,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
 				} else if (isTranscodeToMPEGTSH264AAC()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC);
+				} else if (isTranscodeToMPEGTSH265AC3()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H265, FormatConfiguration.AC3);
+				} else if (isTranscodeToMPEGTSH265AAC()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H265, FormatConfiguration.AAC);
 				} else if (isTranscodeToMPEGTSMPEG2AC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {

@@ -152,7 +152,10 @@ public class VLCVideo extends Player {
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
 		} else {
-			if (renderer.isTranscodeToH264()) {
+			/**
+			 * VLC does not support H.265 encoding as of VLC 2.1.5.
+			 */
+			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				codecConfig.videoCodec = "h264";
 				videoRemux = true;
 			} else {
@@ -327,7 +330,7 @@ public class VLCVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (!isXboxOneWebVideo && params.mediaRenderer.isTranscodeToH264()) {
+			if (!isXboxOneWebVideo && (params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265())) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -374,7 +377,7 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
+		if (isXboxOneWebVideo || (!params.mediaRenderer.isTranscodeToH264() && !params.mediaRenderer.isTranscodeToH265())) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();

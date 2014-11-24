@@ -36,6 +36,7 @@ public class FormatConfiguration {
 	public static final String FLV = "flv";
 	public static final String GIF = "gif";
 	public static final String H264 = "h264";
+	public static final String H265 = "h265";
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";
@@ -366,13 +367,19 @@ public class FormatConfiguration {
 		return match(WAV, null, null, 0, 96000, 0, 0, 0, null) != null || match(MP3, null, null, 0, 96000, 0, 0, 0, null) != null;
 	}
 
+	// XXX Unused
+	@Deprecated
 	public String getPrimaryVideoTranscoder() {
 		for (SupportSpec supportSpec : supportSpecs) {
 			if (supportSpec.match(MPEGPS, MPEG2, AC3)) {
 				return MPEGPS;
 			}
 
-			if (supportSpec.match(MPEGTS, MPEG2, AC3) || supportSpec.match(MPEGTS, H264, AAC)) {
+			if (
+				supportSpec.match(MPEGTS, MPEG2, AC3) ||
+				supportSpec.match(MPEGTS, H264, AAC) ||
+				supportSpec.match(MPEGTS, H264, AC3)
+			) {
 				return MPEGTS;
 			}
 
