@@ -36,6 +36,7 @@ public class FormatConfiguration {
 	public static final String FLV = "flv";
 	public static final String GIF = "gif";
 	public static final String H264 = "h264";
+	public static final String H265 = "h265";
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";

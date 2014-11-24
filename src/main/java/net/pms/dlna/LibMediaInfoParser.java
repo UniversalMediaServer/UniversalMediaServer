@@ -413,6 +413,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MJPEG;
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
+		} else if (value.startsWith("hevc")) {
+			format = FormatConfiguration.H265;
 		} else if (value.startsWith("vp6")) {
 			format = FormatConfiguration.VP6;
 		} else if (value.startsWith("vp7")) {
