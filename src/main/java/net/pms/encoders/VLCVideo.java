@@ -157,10 +157,10 @@ public class VLCVideo extends Player {
 			codecConfig.container = "ts";
 			videoRemux = true;
 
-			if (renderer.isTranscodeToMPEGTSH264AC3()) {
-				LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
+			if (renderer.isTranscodeToAC3()) {
+				LOGGER.debug("Using H.264 and AC-3 with MPEG-TS container");
 				codecConfig.audioCodec = "a52";
-			} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
+			} else if (renderer.isTranscodeToAAC()) {
 				LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
 				codecConfig.audioCodec = "mp4a";
 			}
@@ -233,9 +233,19 @@ public class VLCVideo extends Player {
 
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		// Audio Channels
+		/**
+		 * Only output 6 audio channels for codecs other than AC-3 because as of VLC
+		 * 2.1.5, VLC screws up the channel mapping, making a rear channel go through
+		 * a front speaker.
+		 * Re-evaluate if they ever fix it.
+		 */
 		int channels = 2;
-		if (!isXboxOneWebVideo && params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
+		if (
+			!isXboxOneWebVideo &&
+			params.aid.getAudioProperties().getNumberOfChannels() > 2 &&
+			configuration.getAudioChannelCount() == 6 &&
+			!params.mediaRenderer.isTranscodeToAC3()
+		) {
 			channels = 6;
 		}
 		args.put("channels", channels);
