@@ -3,7 +3,6 @@ package net.pms.network;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
-import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -102,7 +101,7 @@ public class ChromecastPlayer extends UPNPHelper.Player {
 
 	@Override
 	public int getControls() {
-		return BasicPlayer.PLAYCONTROL | BasicPlayer.VOLUMECONTROL;
+		return PLAYCONTROL | VOLUMECONTROL;
 	}
 
 	private int translateState(MediaStatus.PlayerState s) {
@@ -123,7 +122,6 @@ public class ChromecastPlayer extends UPNPHelper.Player {
 	}
 
 	public void startPoll() {
-		final ChromecastPlayer player = this;
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -134,32 +132,28 @@ public class ChromecastPlayer extends UPNPHelper.Player {
 						if (!s1.isAppRunning(MediaPlayer)) {
 							continue;
 						}
-						State s = getState();
 						MediaStatus status = api.getMediaStatus();
 						if (status == null) {
 							continue;
 						}
-						s.playback = translateState(status.playerState);
+						state.playback = translateState(status.playerState);
 						Media m = status.media;
 						if (m != null) {
 							if (m.url != null) {
-								s.uri = status.media.url;
+								state.uri = status.media.url;
 							}
 							if(m.duration != null) {
-								s.duration = StringUtil.convertTimeToString(status.media.duration, "%02d:%02d:%02.0f");
+								state.duration = StringUtil.convertTimeToString(status.media.duration, "%02d:%02d:%02.0f");
 							}
 						}
-						s.position = StringUtil.convertTimeToString(status.currentTime, "%02d:%02d:%02.0f");
+						state.position = StringUtil.convertTimeToString(status.currentTime, "%02d:%02d:%02.0f");
 						if (status.volume != null) {
-							s.volume = status.volume.level.intValue();
-							s.mute = status.volume.muted;
+							state.volume = status.volume.level.intValue();
+							state.mute = status.volume.muted;
 						}
+						alert();
 					} catch (Exception e) {
 						LOGGER.debug("Bad chromecast mediastate " + e);
-					}
-					if (renderer.gui != null) {
-						// ugly hack
-						renderer.gui.actionPerformed(new ActionEvent(player, 0, null));
 					}
 				}
 			}

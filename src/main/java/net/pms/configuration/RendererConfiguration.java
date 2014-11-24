@@ -15,7 +15,6 @@ import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
-import net.pms.network.ChromecastPlayer;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
@@ -706,11 +705,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getRendererName().toUpperCase().contains("LG ");
 	}
 
-	public boolean isChromecast() {
-		return (getConfName() == null ? false : getConfName().toUpperCase().contains("CHROMECAST")) &&
-				pmsConfiguration.useChromecastExt();
-	}
-
 	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
 		return getInt(BYTE_TO_TIMESEEK_REWIND_SECONDS, 0);
@@ -1179,6 +1173,27 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
 	}
 
+	public boolean isUpnp() {
+		return UPNPHelper.getDevice(uuid) != null;
+	}
+
+	public boolean isControllable() {
+		return controls != 0;
+	}
+
+	public Map<String, String> getDetails() {
+		if (isUpnp()) {
+			return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
+		} else {
+			return new LinkedHashMap<String, String>() {{
+				put("name", getRendererName());
+				if (getAddress() != null) {
+					put("address", getAddress().getHostAddress().toString());
+				}
+			}};
+		}
+	}
+
 	/**
 	 * Returns the current upnp state variables of this renderer, if known. Default value is null.
 	 *
@@ -1195,7 +1210,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The list of service names.
 	 */
 	public List<String> getUpnpServices() {
-		return UPNPHelper.getServiceNames(UPNPHelper.getDevice(uuid));
+		return isUpnp() ? UPNPHelper.getServiceNames(UPNPHelper.getDevice(uuid)) : null;
 	}
 
 	/**
@@ -1340,11 +1355,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public String getRendererName() {
 		try {
-			if (isChromecast()) {
-				// more ugly hack
-				ChromecastPlayer p = (ChromecastPlayer) player;
-				return (p == null ? getConfName() : p.getName());
-			}
 			return UPNPHelper.getFriendlyName(uuid);
 		} catch (Exception e) {
 		 	return getConfName();

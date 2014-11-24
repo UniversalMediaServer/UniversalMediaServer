@@ -5,6 +5,8 @@ import ch.qos.logback.classic.Level;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.util.BasicPlayer;
+import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import su.litvak.chromecast.api.v2.ChromeCast;
@@ -37,24 +39,14 @@ public class ChromecastMgr implements ServiceListener {
 			return;
 		}
 		LOGGER.debug("Found chromecast " + event.getInfo().getName());
-		DeviceConfiguration d;
 		ChromeCast cc = new ChromeCast(jmDNS, event.getInfo().getName());
 		try {
-			// this is a bit stupid, but first fetch the conf from the conf file
-			// then make special render obj to override the UPNP functions
-		 	RendererConfiguration r = RendererConfiguration.getRendererConfigurationByName("Chromecast");
-			d = new DeviceConfiguration(r);
 			cc.connect();
-			d.associateIP(InetAddress.getByName(cc.getAddress()));
-			UPNPHelper.getInstance().mapRender(cc.getAddress(), d, UPNPControl.ANY);
+			new ChromeDevice(cc, InetAddress.getByName(cc.getAddress()));
 		} catch (Exception e) {
 			LOGGER.debug("Chromecast failed " + e);
 			return;
 		}
-		ChromecastPlayer p = new ChromecastPlayer(d, cc);
-		d.setPlayer(p);
-		PMS.get().setRendererFound(d);
-		p.startPoll();
 	}
 
 	@Override
@@ -63,5 +55,38 @@ public class ChromecastMgr implements ServiceListener {
 
 	@Override
 	public void serviceResolved(ServiceEvent event) {
+	}
+
+	static class ChromeDevice extends DeviceConfiguration {
+		public ChromeCast api;
+
+		public ChromeDevice(ChromeCast cc, InetAddress ia) throws ConfigurationException {
+			super(RendererConfiguration.getRendererConfigurationByName("Chromecast"), ia);
+			api = cc;
+			uuid = cc.getAddress();
+			controls = UPNPControl.ANY;
+			active = true;
+			UPNPHelper.getInstance().addRenderer(this);
+			associateIP(ia);
+			PMS.get().setRendererFound(this);
+		}
+
+		@Override
+		public String getRendererName() {
+			try {
+				return ((ChromecastPlayer)player).getName();
+			} catch (Exception e) {
+				return getConfName();
+			}
+		}
+
+		@Override
+		public BasicPlayer getPlayer() {
+			if (player == null) {
+				player = new ChromecastPlayer(this, api);
+				((ChromecastPlayer)player).startPoll();
+			}
+			return player;
+		}
 	}
 }

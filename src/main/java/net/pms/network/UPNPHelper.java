@@ -575,10 +575,10 @@ public class UPNPHelper extends UPNPControl {
 		return InetAddress.getByName(IPV4_UPNP_HOST);
 	}
 
-	public void mapRender(String uuid, DeviceConfiguration r, int ctrl) {
-		rendererMap.put(uuid, "0", r);
-		rendererMap.mark(uuid, ACTIVE, true);
-		rendererMap.mark(uuid, CONTROLS, ctrl);
+	public void addRenderer(DeviceConfiguration d) {
+		if (d.uuid != null) {
+			rendererMap.put(d.uuid, "0", d);
+		}
 	}
 
 	@Override
@@ -689,15 +689,15 @@ public class UPNPHelper extends UPNPControl {
 
 	// A player state-machine to manage upnp playback
 	public static class Player implements BasicPlayer {
-		private Device dev;
-		private String uuid;
-		private String instanceID;
+		protected Device dev;
+		protected String uuid;
+		protected String instanceID;
 		public DeviceConfiguration renderer;
-		private Map<String, String> data;
-		private LinkedHashSet<ActionListener> listeners;
-		private State state;
+		protected Map<String, String> data;
+		protected LinkedHashSet<ActionListener> listeners;
+		protected State state;
 		public Playlist playlist;
-		private String lasturi;
+		protected String lasturi;
 		private boolean ignoreUpnpDuration;
 		protected boolean forceStop;
 
