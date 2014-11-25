@@ -138,6 +138,16 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("name", name);
 		vars.put("id1", id1);
 		vars.put("autoContinue", configuration.getWebAutoCont(r.getFormat()));
+		if (configuration.isDynamicPls()) {
+			if (r.getParent() instanceof Playlist) {
+				vars.put("plsOp", "del");
+				vars.put("plsSign", "-");
+			}
+			else {
+				vars.put("plsOp", "add");
+				vars.put("plsSign", "+");
+			}
+		}
 		addNextByType(r, vars);
 		if (isImage) {
 			// do this like this to simplify the code
