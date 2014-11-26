@@ -176,7 +176,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public boolean isFirefoxLinuxMp4() {
-		return browser == FIREFOX && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
+		return browser == FIREFOX && platform != null && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
 	}
 
 	public boolean isScreenSizeConstrained() {

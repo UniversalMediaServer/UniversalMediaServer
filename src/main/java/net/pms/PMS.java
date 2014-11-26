@@ -155,6 +155,10 @@ public class PMS {
 	 */
 	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<>();
 
+	public List<RendererConfiguration> getFoundRenderers() {
+		return foundRenderers;
+	}
+
 	/**
 	 * @deprecated Use {@link #setRendererFound(RendererConfiguration)} instead.
 	 */

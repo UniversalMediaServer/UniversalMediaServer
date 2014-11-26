@@ -321,6 +321,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// We need to check both upnp and http sides to ensure a complete list
 		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
 		renderers.addAll(addressAssociation.values());
+		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
+		renderers.addAll(PMS.get().getFoundRenderers());
 		return renderers;
 	}
 
@@ -514,7 +516,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static RendererConfiguration getRendererConfigurationByUUID(String uuid) {
 		for (RendererConfiguration conf : getConnectedRenderersConfigurations()) {
-			if (conf.getUUID().equals(uuid)) {
+			if (uuid.equals(conf.getUUID())) {
 				return conf;
 			}
 		}
