@@ -7,7 +7,8 @@
 		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
 		<script src="/files/jquery.min.js"></script>
-		<title>{{name}}</title>
+        <script src="/files/jquery.ums.js"></script>
+        <title>{{name}}</title>
 	</head>
 	<body id="ContentPage">
 		<script>
@@ -20,12 +21,6 @@
 {{#isVideo}}
 			function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 {{/isVideo}}
-{{#plsOp}}
-            function playlist() {				
-                $.ajax({url: '/playlist/{{plsOp}}/{{id1}}'}).done(function() {
-                        });
-            }
-{{/plsOp}}
 		</script>
 		<div id="Container">
 			<div id="Menu">
@@ -48,7 +43,7 @@
 					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
 					<button id="next" onclick="next()"{{nextAttr}}>>></button>
 {{#plsSign}}
-                    <button id="playlist" onclick="playlist()">{{plsSign}}</button>
+                    <button id="playlist" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false)">{{plsSign}}</button>
 {{/plsSign}}
 {{#isVideo}}
 					<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>

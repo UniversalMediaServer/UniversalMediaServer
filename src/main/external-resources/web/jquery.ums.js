@@ -77,3 +77,12 @@ function searchFun(url) {
 	}
 	return false;
 }
+
+ function umsAjax(u, reload) {
+    $.ajax({url: u}).done(function() {
+        if(reload) {
+            window.location.reload();
+        }
+    });
+ }
+

@@ -57,6 +57,27 @@ public class RemoteBrowseHandler implements HttpHandler {
 			String thumb = "/thumb/" + idForWeb;
 			String name = StringEscapeUtils.escapeHtml(r.resumeName());
 
+			if (r instanceof VirtualVideoAction) {
+				// Let's take the VVA real early
+				sb.setLength(0);
+				HashMap<String, String> item = new HashMap<>();
+				sb.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
+						.append("', true);return false;\" title=\"").append(name).append("\">")
+						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("</a>");
+				item.put("thumb", sb.toString());
+				sb.setLength(0);
+				sb.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
+						.append("', true);return false;\" title=\"").append(name).append("\">")
+						.append("<span class=\"caption\">").append(name).append("</span>")
+						.append("</a>");
+				item.put("caption", sb.toString());
+				item.put("bump", "");
+				media.add(item);
+				hasFile = true;
+				continue;
+			}
+
 			if (r.isFolder()) {
 				sb.setLength(0);
 				// The resource is a folder
@@ -78,8 +99,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				// The resource is a media file
 				sb.setLength(0);
 				HashMap<String, String> item = new HashMap<>();
-				if (upnpAllowed && !(r instanceof VirtualVideoAction)) {
-					// VVAs aren't bumpable
+				if (upnpAllowed) {
 					if (upnpControl) {
 						sb.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 							.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
@@ -89,11 +109,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 							.append("')\" title=\"No other renderers available\"></a>");
 					}
 					if (r.getParent() instanceof Playlist) {
-						sb.append("\n<a class=\"playlist_del\" href=\"/playlist/del/")
-							.append(idForWeb).append("\" title=\"Remove from playlist\"></a>");
+						sb.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
+							.append(idForWeb).append("', false);return false;\" title=\"Remove from playlist\"></a>");
 					} else {
-						sb.append("\n<a class=\"playlist_add\" href=\"/playlist/add/")
-							.append(idForWeb).append("\" title=\"Add to playlist\"></a>");
+						sb.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
+							.append(idForWeb).append("', false);return false\" title=\"Add to playlist\"></a>");
 					}
 				} else {
 					// ensure that we got a string
