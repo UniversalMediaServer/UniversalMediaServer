@@ -87,9 +87,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
 	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
-	protected static final String KEY_AUTO_UPNP_CONT = "auto_upnp_continue";
-	protected static final String KEY_AUTO_UPNP_ALL_PLS= "auto_upnp_playlist_all";
-	protected static final String KEY_AUTO_UPNP_PLAY= "auto_upnp_play";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
 	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
 	protected static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
@@ -208,6 +205,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
 	protected static final String KEY_PING_PATH = "ping_path";
+	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
+	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL= "playlist_auto_add_all";
+	protected static final String KEY_PLAYLIST_AUTO_PLAY= "playlist_auto_play";
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
@@ -3372,16 +3372,16 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_DYNAMIC_PLS_HIDE, false);
 	}
 
-	public boolean isUPNPAutoCont() {
-		return getBoolean(KEY_AUTO_UPNP_CONT, false);
+	public boolean isAutoContinue() {
+		return getBoolean(KEY_PLAYLIST_AUTO_CONT, false);
 	}
 
-	public boolean isUPNPAutoAll() {
-		return getBoolean(KEY_AUTO_UPNP_ALL_PLS, false);
+	public boolean isAutoAddAll() {
+		return getBoolean(KEY_PLAYLIST_AUTO_ADD_ALL, false);
 	}
 
-	public String getUPNPAutoPlay() {
-		return getString(KEY_AUTO_UPNP_PLAY, null);
+	public String getAutoPlay() {
+		return getString(KEY_PLAYLIST_AUTO_PLAY, null);
 	}
 
 	public boolean useChromecastExt() {

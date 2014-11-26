@@ -2234,7 +2234,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			player.start();
 		} else if (player instanceof PlaybackTimer) {
 			player.getState().playback = BasicPlayer.STOPPED;
-			player.refresh();
+			player.alert();
 		}
 	}
 
@@ -2270,7 +2270,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					while(res == renderer.getPlayingRes()) {
 						long elapsed = System.currentTimeMillis() - res.getStartTime();
 						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
-						refresh();
+						alert();
 						try {
 							Thread.sleep(1000);
 						} catch (Exception e) {

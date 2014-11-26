@@ -687,157 +687,40 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	// A player state-machine to manage upnp playback
-	public static class Player implements BasicPlayer {
+	// A logical player to manage upnp playback
+	public static class Player extends BasicPlayer.Logical {
 		protected Device dev;
 		protected String uuid;
 		protected String instanceID;
-		public DeviceConfiguration renderer;
 		protected Map<String, String> data;
-		protected LinkedHashSet<ActionListener> listeners;
-		protected State state;
-		public Playlist playlist;
 		protected String lasturi;
 		private boolean ignoreUpnpDuration;
-		protected boolean forceStop;
 
 		public Player(DeviceConfiguration renderer) {
+			super(renderer);
 			uuid = renderer.getUUID();
 			instanceID = renderer.getInstanceID();
-			this.renderer = renderer;
 			dev = getDevice(uuid);
 			data = rendererMap.get(uuid, instanceID).connect(this);
-			state = new State();
-			playlist = new Playlist(this);
-			listeners = new LinkedHashSet();
 			lasturi = null;
 			ignoreUpnpDuration = false;
-			forceStop = false;
-			if (renderer.gui != null) {
-				connect(renderer.gui);
-			}
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
 			refresh();
-			initAutoPlay();
-		}
-
-		private void initAutoPlay() {
-			String auto = PMS.getConfiguration().getUPNPAutoPlay();
-			if (StringUtils.isEmpty(auto)) {
-				return;
-			}
-			String[] strs = auto.split(" ");
-			for (String s : strs) {
-				String[] tmp = s.split(":", 2);
-				if (tmp.length != 2) {
-					continue;
-				}
-				if (!renderer.getConfName().equalsIgnoreCase(tmp[0])) {
-					continue;
-				}
-				final String folder = tmp[1];
-				final Player player = this;
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						while(PMS.get().getServer().getHost() == null) {
-							try {
-								Thread.sleep(1000);
-							} catch (Exception e) {
-								return;
-							}
-						}
-						RealFile f = new RealFile(new File(folder));
-						f.discoverChildren();
-						f.analyzeChildren(-1);
-						boolean sel = true;
-						for (DLNAResource r : f.getChildren()) {
-							if ((r instanceof VirtualVideoAction) || r.isFolder()) {
-								// skip these
-								continue;
-							}
-							String u = PlayerControlHandler.translate("/play/" + r.getId());
-							player.add(-1, u, r.getName(), null, sel);
-							sel = false;
-						}
-						// add a short delay here since player.add uses swing.invokelater
-						try {
-							Thread.sleep(1000);
-						} catch (Exception e) {
-						}
-						player.pressPlay(null, null);
-					}
-				};
-				new Thread(r).start();
-			}
 		}
 
 		@Override
 		public void setURI(String uri, String metadata) {
-			Playlist.Item item;
-			if (uri != null) {
-				if (metadata != null && metadata.startsWith("<DIDL")) {
-					// If it looks real assume it's valid
-				} else if ((item = playlist.get(uri)) != null) {
-					// We've played it before
-					metadata = item.metadata;
+			Playlist.Item item = resolveURI(uri, metadata);
+			if (item != null) {
+				if (item.name != null) {
 					state.name = item.name;
-				} else {
-					// It's new to us, find or create the resource as required.
-					// Note: here metadata (if any) is actually the resource name
-					LOGGER.debug("Validating uri " + uri);
-					DLNAResource d = DLNAResource.getValidResource(uri, metadata, renderer);
-					if (d != null) {
-						uri = d.getURL("", true);
-						metadata = d.getDidlString(renderer);
-						state.name = d.getDisplayName();
-					}
 				}
-				UPNPControl.setAVTransportURI(dev, instanceID, uri, metadata);
-			}
-		}
-
-		@Override
-		public void pressPlay(String uri, String metadata) {
-			if (state.playback == -1) {
-				// unknown state, we assume it's stopped
-				state.playback = STOPPED;
-			}
-			if (state.playback == PLAYING) {
-				pause();
-			} else {
-				if (state.playback == STOPPED) {
-					Playlist.Item item = playlist.resolve(uri);
-					if (item != null) {
-						uri = item.uri;
-						metadata = item.metadata;
-						state.name = item.name;
-					}
-					if (uri != null && !uri.equals(state.uri)) {
-						setURI(uri, metadata);
-					}
-				}
-				play();
-			}
-		}
-
-		@Override
-		public void add(int index, String uri, String name, String metadata, boolean select) {
-			if (!StringUtils.isBlank(uri)) {
-				playlist.add(index, uri, name, metadata, select);
-			}
-		}
-
-		@Override
-		public void remove(String uri) {
-			if (!StringUtils.isBlank(uri)) {
-				playlist.remove(uri);
+				UPNPControl.setAVTransportURI(dev, instanceID, item.uri, item.metadata);
 			}
 		}
 
 		@Override
 		public void play() {
-			forceStop = false;
 			UPNPControl.play(dev, instanceID);
 		}
 
@@ -848,18 +731,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void stop() {
-			forceStop = true;
 			UPNPControl.stop(dev, instanceID);
-		}
-
-		@Override
-		public void next() {
-			step(1);
-		}
-
-		@Override
-		public void prev() {
-			step(-1);
 		}
 
 		@Override
@@ -883,21 +755,6 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		@Override
-		public void connect(ActionListener listener) {
-			if (listener != null) {
-				listeners.add(listener);
-			}
-		}
-
-		@Override
-		public void disconnect(ActionListener listener) {
-			listeners.remove(listener);
-			if (listeners.isEmpty()) {
-				close();
-			}
-		}
-
-		@Override
 		public void actionPerformed(final ActionEvent e) {
 			if (renderer.isUpnpConnected()) {
 				refresh();
@@ -906,9 +763,7 @@ public class UPNPHelper extends UPNPControl {
 			}
 		}
 
-		@Override
 		public void refresh() {
-			int oldState = state.playback;
 			String s = data.get("TransportState");
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
@@ -927,11 +782,6 @@ public class UPNPHelper extends UPNPControl {
 				playlist.set(state.uri, null, state.metadata);
 			}
 			lasturi = state.uri;
-			if (configuration.isUPNPAutoCont() &&
-				state.playback == STOPPED && oldState != -1 &&
-				state.playback != oldState && !forceStop) {
-				next();
-			}
 			alert();
 		}
 
@@ -950,201 +800,14 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		@Override
-		public void reset() {
-			state.playback = STOPPED;
-			state.position = "";
-			state.duration = "";
-			state.name = " ";
-			state.buffer = 0;
-			alert();
-		}
-
-		public void alert() {
-			for (ActionListener l : listeners) {
-				l.actionPerformed(new ActionEvent(this, 0, null));
-			}
-		}
-
-		@Override
-		public State getState() {
-			return state;
-		}
-
-		@Override
-		public void setBuffer(long mb) {
-			state.buffer = mb;
-			alert();
-		}
-
-		@Override
-		public int getControls() {
-			return renderer.controls;
-		}
-
-		@Override
 		public void close() {
-			listeners.clear();
 			rendererMap.get(uuid, instanceID).disconnect(this);
-			renderer.setPlayer(null);
-		}
-
-		@Override
-		public DefaultComboBoxModel getPlaylist() {
-			return playlist;
+			super.close();
 		}
 
 		public String jump(double seconds) {
 			double t = StringUtil.convertStringToTime(state.position) + seconds;
 			return t > 0 ? StringUtil.convertTimeToString(t, "%02d:%02d:%02.0f") : "00:00:00";
-		}
-
-		public void step(int n) {
-			if (state.playback != STOPPED) {
-				stop();
-			}
-			playlist.step(n);
-			state.playback = STOPPED;
-			pressPlay(null, null);
-		}
-
-		public static class Playlist extends DefaultComboBoxModel {
-			private static final long serialVersionUID = 5934677633834195753L;
-
-			Player player;
-
-			public Playlist(Player p) {
-				player = p;
-			}
-
-			public Item get(String uri) {
-				int index = getIndexOf(new Item(uri, null, null));
-				if (index > -1) {
-					return (Item) getElementAt(index);
-				}
-				return null;
-			}
-
-			public Item resolve(String uri) {
-				Item item = null;
-				try {
-					Object selected = getSelectedItem();
-					Item selectedItem = selected instanceof Item ? (Item) selected : null;
-					String selectedName = selectedItem != null ? selectedItem.name : null;
-					// See if we have a matching item for the "uri", which could be:
-					item = (Item) (
-						// An alias for the currently selected item
-						StringUtils.isBlank(uri) || uri.equals(selectedName) ? selectedItem :
-						// An item index, e.g. '$i$4'
-						uri.startsWith("$i$") ? getElementAt(Integer.valueOf(uri.substring(3))) :
-						// Or an actual uri
-						get(uri));
-				} catch (Exception e) {
-				}
-				return (item != null && isValid(item, player.renderer)) ? item : null;
-			}
-
-			public static boolean isValid(Item item, DeviceConfiguration renderer) {
-				if (DLNAResource.isResourceUrl(item.uri)) {
-					// Check existence for resource uris
-					if (PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
-						return true;
-					}
-					// Repair the item if possible
-					DLNAResource d = DLNAResource.getValidResource(item.uri, item.name, renderer);
-					if (d != null) {
-						item.uri = d.getURL("", true);
-						item.metadata = d.getDidlString(renderer);
-						return true;
-					}
-					return false;
-				}
-				// Assume non-resource uris are valid
-				return true;
-			}
-
-			public void validate() {
-				for (int i = getSize() - 1; i > -1; i--) {
-					if (!isValid((Item) getElementAt(i), player.renderer)) {
-						removeElementAt(i);
-					}
-				}
-			}
-
-			public void set(String uri, String name, String metadata) {
-				add(0, uri, name, metadata, true);
-			}
-
-			public void add(final int index, final String uri, final String name, final String metadata, final boolean select) {
-				if (!StringUtils.isBlank(uri)) {
-					// TODO: check headless mode (should work according to https://java.net/bugzilla/show_bug.cgi?id=2568)
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							Item item = resolve(uri);
-							if (item == null) {
-								item = new Item(uri, name, metadata);
-								insertElementAt(item, index > -1 ? index : getSize());
-							}
-							if (select) {
-								setSelectedItem(item);
-							}
-						}
-					});
-				}
-			}
-
-			public void remove(final String uri) {
-				if (!StringUtils.isBlank(uri)) {
-					// TODO: check headless mode
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							Item item = resolve(uri);
-							if (item != null) {
-								removeElement(item);
-							}
-						}
-					});
-				}
-			}
-
-			public void step(int n) {
-				int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
-				setSelectedItem(getElementAt(i));
-			}
-
-			public static class Item {
-
-				public String name, uri, metadata;
-				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
-
-				public Item(String uri, String name, String metadata) {
-					this.uri = uri;
-					this.name = name;
-					this.metadata = metadata;
-				}
-
-				@Override
-				public String toString() {
-					if (StringUtils.isBlank(name)) {
-						name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
-							dctitle.group(1) :
-							new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
-					}
-					return name;
-				}
-
-				@Override
-				public boolean equals(Object other) {
-					return other == null ? false :
-						other == this ? true :
-						other instanceof Item ? ((Item)other).uri.equals(uri) :
-						other.toString().equals(uri);
-				}
-
-				@Override
-				public int hashCode() {
-					return uri.hashCode();
-				}
-			}
 		}
 	}
 

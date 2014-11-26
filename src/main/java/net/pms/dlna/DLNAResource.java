@@ -3632,6 +3632,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Returns the DLNAResource pointed to by the uri if it exists
 	// or else a new Temp item (or null)
 	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration r) {
+		LOGGER.debug("Validating uri " + uri);
 		String objectId = parseObjectId(uri);
 		if (objectId != null) {
 			if (objectId.startsWith("Temp$")) {
