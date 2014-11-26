@@ -7,6 +7,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -103,17 +105,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 					if (upnpControl) {
 						sb.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 							.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-							.append(name.replace("'", "\\'")).append("')\" title=\"Play on another renderer\"></a>");
+							.append(name.replace("'", "\\'")).append("')\" title=\"")
+							.append(Messages.getString("Web.1")).append("\"></a>");
 					} else {
-						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
-							.append("')\" title=\"No other renderers available\"></a>");
+						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('")
+						   .append(Messages.getString("Web.2"))
+						   .append("')\" title=\"").append(Messages.getString("Web.3")).append("\"></a>");
 					}
 					if (r.getParent() instanceof Playlist) {
 						sb.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
-							.append(idForWeb).append("', false);return false;\" title=\"Remove from playlist\"></a>");
+							.append(idForWeb).append("', false);return false;\" title=\"")
+						    .append(Messages.getString("Web.4")).append("\"></a>");
 					} else {
 						sb.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
-							.append(idForWeb).append("', false);return false\" title=\"Add to playlist\"></a>");
+							.append(idForWeb).append("', false);return false\" title=\"")
+						    .append(Messages.getString("Web.5")).append("\"></a>");
 					}
 				} else {
 					// ensure that we got a string
@@ -137,8 +143,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 					item.put("caption", sb.toString());
 				} else if (upnpControl && upnpAllowed) {
 					// Include it as a web-disabled item so it can be thrown via upnp
-					sb.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"")
-						.append(" title=\"").append(name).append(" (NOT PLAYABLE IN BROWSER)\">")
+					sb.append("<a class=\"webdisabled\" href=\"javascript:alert('")
+						.append(Messages.getString("Web.6")).append("')\"")
+						.append(" title=\"").append(name).append(" " + Messages.getString("Web.7") + "\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());
