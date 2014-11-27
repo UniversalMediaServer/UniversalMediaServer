@@ -23,6 +23,7 @@ var img = bump.setImages({
 	'mute'   :'mute16.png',
 	'add'    :'add16.png',
 	'remove' :'remove16.png',
+	'clear'  :'clear16.png',
 	'close'  :'close16.png',
 });
 
@@ -34,6 +35,7 @@ $('body').append([
 		'<select id="bplaylist"/>',
 		'<span id="bumpadd" title="Add to playlist"/>',
 		'<span id="bumprm" title="Remove from playlist"/>',
+		'<span id="bumpclear" title="Clear playlist"/>',
 		'<select id="brenderers"/>',
 	'</td>',
 	'<td><input id="bumpvol"/></td>',
@@ -56,6 +58,7 @@ bump.addButton('next', '#bumpctrl');
 bump.addButton('mute', '#bumpmute');
 bump.addButton('add', '#bumpadd');
 bump.addButton('remove', '#bumprm');
+bump.addButton('clear', '#bumpclear');
 
 // css: go crazy. Modify/add/remove blocks as appropriate using jquery selector syntax 
 

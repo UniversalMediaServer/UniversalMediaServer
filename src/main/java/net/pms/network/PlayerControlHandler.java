@@ -113,6 +113,9 @@ public class PlayerControlHandler implements HttpHandler {
 				case "remove":
 					player.remove(translate(q.get("uri")));
 					break;
+				case "clear":
+					player.clear();
+					break;
 				case "seturi":
 					player.setURI(translate(q.get("uri")), q.get("title"));
 					break;

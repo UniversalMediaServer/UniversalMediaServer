@@ -119,6 +119,7 @@ var bump = (function() {
 				found = 0;
 			}
 			setSelect('#bplaylist', vars['playlist'], selindex > -1 ? selindex:found);
+			tog('#bumprm,#bumpclear', $('#bplaylist > option').length < 2);
 			if (editmode == 1) editmode++;
 		}
 	}

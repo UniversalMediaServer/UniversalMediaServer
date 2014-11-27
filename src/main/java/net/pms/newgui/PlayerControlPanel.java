@@ -17,8 +17,8 @@ import org.apache.commons.lang.StringUtils;
 public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 8972730138916895247L;
 
-	private BasicPlayer player;
-	private AbstractAction add, remove, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
+	private BasicPlayer.Logical player;
+	private AbstractAction add, remove, clear, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
 	private JLabel position;
 	private JSlider volumeSlider;
 	private JTextField uri;
@@ -28,14 +28,14 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private File pwd;
 	private boolean playControl, volumeControl, expanded;
 
-	private static ImageIcon addIcon, removeIcon, playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
+	private static ImageIcon addIcon, removeIcon, clearIcon, playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
 		nextIcon, prevIcon, volumeIcon, muteIcon, sliderIcon;
 
 	public PlayerControlPanel(final BasicPlayer player) {
 		if (playIcon == null) {
 			loadIcons();
 		}
-		this.player = player;
+		this.player = (BasicPlayer.Logical)player;
 		player.connect(this);
 		int controls = player.getControls();
 		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
@@ -262,6 +262,17 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		});
 		r.setToolTipText("Remove from playlist");
 		u.add(r);
+		JButton c = new JButton(remove = new AbstractAction("", clearIcon) {
+			//private static final long serialVersionUID = #FIXME
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setEdited(false);
+				player.clear();
+			}
+		});
+		c.setToolTipText("Clear playlist");
+		u.add(c);
 		u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;
 
@@ -348,6 +359,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static void loadIcons() {
 		addIcon    = loadIcon("/resources/images/player/add16.png");
 		removeIcon = loadIcon("/resources/images/player/remove16.png");
+		clearIcon = loadIcon("/resources/images/player/clear16.png");
 		playIcon   = loadIcon("/resources/images/player/play16.png");
 		pauseIcon  = loadIcon("/resources/images/player/pause16.png");
 		stopIcon   = loadIcon("/resources/images/player/stop16.png");
