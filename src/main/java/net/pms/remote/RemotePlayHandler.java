@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -142,10 +144,12 @@ public class RemotePlayHandler implements HttpHandler {
 			if (r.getParent() instanceof Playlist) {
 				vars.put("plsOp", "del");
 				vars.put("plsSign", "-");
+				vars.put("plsAttr", Messages.getString("Web.4"));
 			}
 			else {
 				vars.put("plsOp", "add");
 				vars.put("plsSign", "+");
+				vars.put("plsAttr", Messages.getString("Web.5"));
 			}
 		}
 		addNextByType(r, vars);

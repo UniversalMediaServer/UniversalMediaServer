@@ -84,14 +84,17 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.setLength(0);
 				// The resource is a folder
 				String p = "/browse/" + idForWeb;
+				String txt = Messages.getString("Web.8");
 				if (r.getClass().getName().contains("SearchFolder")) {
 					// search folder add a prompt
 					// NOTE!!!
 					// Yes doing getClass.getname is REALLY BAD, but this
 					// is to make legacy plugins utilize this function as well
-					sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+					sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
+					   .append(txt).append("');\" title=\"").append(name).append("\">");
 				} else {
-					sb.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+					sb.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
+					  .append("','").append(txt).append("');\" title=\"").append(name).append("\">");
 				}
 				sb.append("<span>").append(name).append("</span>");
 				sb.append("</a>");
