@@ -309,14 +309,19 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the list of all renderer configurations.
+	 * Returns the list of active renderer configurations (i.e. having one or more devices connected).
 	 *
-	 * @return The list of all configurations.
+	 * @return The list of active configurations.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
 		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
 	}
 
+	/**
+	 * Returns the list of all connected renderer devices.
+	 *
+	 * @return The list of connected renderers.
+	 */
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
 		// We need to check both upnp and http sides to ensure a complete list
 		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
@@ -334,12 +339,31 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return UPNPHelper.getRenderers(UPNPHelper.AVT);
 	}
 
+	public static boolean hasConnectedRenderer(int type) {
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			if ((r.controls & type) != 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static List<RendererConfiguration> getConnectedRenderers(int type) {
+		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			if (r.active && (r.controls & type) != 0) {
+				renderers.add(r);
+			}
+		}
+		return renderers;
+	}
+
 	public static boolean hasConnectedControlPlayers() {
-		return UPNPHelper.hasRenderer(UPNPHelper.ANY);
+		return hasConnectedRenderer(UPNPHelper.ANY);
 	}
 
 	public static List<RendererConfiguration> getConnectedControlPlayers() {
-		return UPNPHelper.getRenderers(UPNPHelper.ANY);
+		return getConnectedRenderers(UPNPHelper.ANY);
 	}
 
 	public static File getRenderersDir() {
