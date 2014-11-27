@@ -88,7 +88,6 @@ public class ChromecastMgr implements ServiceListener {
 			uuid = cc.getAddress();
 			controls = UPNPControl.ANY;
 			active = true;
-			UPNPHelper.getInstance().addRenderer(this);
 			associateIP(ia);
 			PMS.get().setRendererFound(this);
 		}

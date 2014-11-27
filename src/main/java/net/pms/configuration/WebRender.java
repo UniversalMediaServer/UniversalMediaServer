@@ -176,7 +176,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public boolean isFirefoxLinuxMp4() {
-		return browser == FIREFOX && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
+		return browser == FIREFOX && platform != null && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
 	}
 
 	public boolean isScreenSizeConstrained() {
@@ -484,7 +484,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				"PAUSED".equals(s) ? PAUSED : -1;
 			long seconds = Integer.valueOf(data.get("position"));
 			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
-			refresh();
+			alert();
 			if (state.playback == STOPPED) {
 				((WebRender)renderer).stop();
 			}

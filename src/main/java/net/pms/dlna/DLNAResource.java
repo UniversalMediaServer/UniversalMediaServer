@@ -3520,7 +3520,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public static DLNAResource autoMatch(String uri, String name) {
 		uri = URLDecoder.decode(uri);
 		boolean isweb = uri.matches("\\S+://.+");
-		Format f = FormatFactory.getAssociatedFormat(isweb ? StringUtils.substringAfter(uri, "://") : uri);
+		Format f = FormatFactory.getAssociatedFormat(isweb ? "." + FileUtil.getUrlExtension(uri) : uri);
 		int type = f == null ? Format.VIDEO : f.getType();
 		if (name == null) {
 			name = new File(StringUtils.substringBefore(uri, "?")).getName();
@@ -3632,6 +3632,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Returns the DLNAResource pointed to by the uri if it exists
 	// or else a new Temp item (or null)
 	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration r) {
+		LOGGER.debug("Validating uri " + uri);
 		String objectId = parseObjectId(uri);
 		if (objectId != null) {
 			if (objectId.startsWith("Temp$")) {

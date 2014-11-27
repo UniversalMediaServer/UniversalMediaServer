@@ -309,18 +309,25 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the list of all renderer configurations.
+	 * Returns the list of active renderer configurations (i.e. having one or more devices connected).
 	 *
-	 * @return The list of all configurations.
+	 * @return The list of active configurations.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
 		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
 	}
 
+	/**
+	 * Returns the list of all connected renderer devices.
+	 *
+	 * @return The list of connected renderers.
+	 */
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
 		// We need to check both upnp and http sides to ensure a complete list
 		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
 		renderers.addAll(addressAssociation.values());
+		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
+		renderers.addAll(PMS.get().getFoundRenderers());
 		return renderers;
 	}
 
@@ -332,12 +339,31 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return UPNPHelper.getRenderers(UPNPHelper.AVT);
 	}
 
+	public static boolean hasConnectedRenderer(int type) {
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			if ((r.controls & type) != 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static List<RendererConfiguration> getConnectedRenderers(int type) {
+		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			if (r.active && (r.controls & type) != 0) {
+				renderers.add(r);
+			}
+		}
+		return renderers;
+	}
+
 	public static boolean hasConnectedControlPlayers() {
-		return UPNPHelper.hasRenderer(UPNPHelper.ANY);
+		return hasConnectedRenderer(UPNPHelper.ANY);
 	}
 
 	public static List<RendererConfiguration> getConnectedControlPlayers() {
-		return UPNPHelper.getRenderers(UPNPHelper.ANY);
+		return getConnectedRenderers(UPNPHelper.ANY);
 	}
 
 	public static File getRenderersDir() {
@@ -514,7 +540,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static RendererConfiguration getRendererConfigurationByUUID(String uuid) {
 		for (RendererConfiguration conf : getConnectedRenderersConfigurations()) {
-			if (conf.getUUID().equals(uuid)) {
+			if (uuid.equals(conf.getUUID())) {
 				return conf;
 			}
 		}
@@ -2232,7 +2258,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			player.start();
 		} else if (player instanceof PlaybackTimer) {
 			player.getState().playback = BasicPlayer.STOPPED;
-			player.refresh();
+			player.alert();
 		}
 	}
 
@@ -2268,7 +2294,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					while(res == renderer.getPlayingRes()) {
 						long elapsed = System.currentTimeMillis() - res.getStartTime();
 						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
-						refresh();
+						alert();
 						try {
 							Thread.sleep(1000);
 						} catch (Exception e) {

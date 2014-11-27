@@ -69,7 +69,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			add(uriPanel(), c);
 		}
 
-		player.refresh();
+		player.alert();
 
 		final ActionListener self = this;
 		getEnclosingWindow(this).addWindowListener(new WindowAdapter() {
@@ -120,7 +120,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				player.stop();
+				player.pressStop();
 			}
 		}));
 		playback.add(new JButton(forward = new AbstractAction("", fwdIcon) {

@@ -6,17 +6,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.net.URLDecoder;
 import java.util.*;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.StringUtil;
+import net.pms.util.BasicPlayer.Logical;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -29,8 +29,8 @@ public class PlayerControlHandler implements HttpHandler {
 	private int port;
 	private String protocol;
 	private RemoteWeb parent = null;
-	private HashMap<String, UPNPHelper.Player> players;
-	private HashMap<InetAddress, UPNPHelper.Player> selectedPlayers;
+	private HashMap<String, Logical> players;
+	private HashMap<InetAddress, Logical> selectedPlayers;
 	private String bumpAddress;
 	private RendererConfiguration defaultRenderer;
 	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
@@ -74,7 +74,7 @@ public class PlayerControlHandler implements HttpHandler {
 		ArrayList<String> json = new ArrayList<>();
 
 		String uuid = p.length > 3 ? p[3] : null;
-		UPNPHelper.Player player = uuid != null ? getPlayer(uuid) : null;
+		Logical player = uuid != null ? getPlayer(uuid) : null;
 
 		if (player != null) {
 			switch (p[2]) {
@@ -87,7 +87,7 @@ public class PlayerControlHandler implements HttpHandler {
 					player.pressPlay(translate(q.get("uri")), q.get("title"));
 					break;
 				case "stop":
-					player.stop();
+					player.pressStop();
 					break;
 				case "prev":
 					player.prev();
@@ -108,25 +108,7 @@ public class PlayerControlHandler implements HttpHandler {
 					player.setVolume(Integer.valueOf(q.get("vol")));
 					break;
 				case "add":
-					if (configuration.isUPNPAutoAll() && StringUtils.isNotEmpty(getId(q.get("uri")))) {
-					   DLNAResource d = PMS.getGlobalRepo().get(getId(q.get("uri")));
-						if (d != null) {
-							List<DLNAResource> children = d.getParent().getChildren();
-							int id = children.indexOf(d);
-							for (int i = id; i < children.size(); i++) {
-								DLNAResource r = children.get(i);
-								if ((r instanceof VirtualVideoAction) || r.isFolder()) {
-									// skip these
-									continue;
-								}
-								String u = translate("/play/" + r.getId());
-								player.add(-1, u, r.getName(), r.getDidlString(r.getDefaultRenderer()), false);
-							}
-						}
-				   	}
-					else {
-						player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
-					}
+					player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
 					break;
 				case "remove":
 					player.remove(translate(q.get("uri")));
@@ -178,12 +160,12 @@ public class PlayerControlHandler implements HttpHandler {
 		return PMS.get().getServer().getHost() + ":" + port;
 	}
 
-	public UPNPHelper.Player getPlayer(String uuid) {
-		UPNPHelper.Player player = players.get(uuid);
+	public Logical getPlayer(String uuid) {
+		Logical player = players.get(uuid);
 		if (player == null) {
 			try {
-				RendererConfiguration r = (RendererConfiguration) UPNPHelper.getRenderer(uuid);
-				player = (UPNPHelper.Player)r.getPlayer();
+				RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);
+				player = (Logical)r.getPlayer();
 				players.put(uuid, player);
 			} catch (Exception e) {
 				LOGGER.debug("Error retrieving player " + uuid + ": " + e);
@@ -192,9 +174,9 @@ public class PlayerControlHandler implements HttpHandler {
 		return player;
 	}
 
-	public String getPlayerState(UPNPHelper.Player player) {
+	public String getPlayerState(Logical player) {
 		if (player != null) {
-			UPNPHelper.Player.State state = player.getState();
+			Logical.State state = player.getState();
 			return String.format(jsonState, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4), state.uri/*, state.metadata*/);
 		}
 		return "";
@@ -202,16 +184,17 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public RendererConfiguration getDefaultRenderer() {
 		if (defaultRenderer == null && bumpAddress != null) {
-			UPNPHelper.Player player = getPlayer(UPNPHelper.getUUID(bumpAddress));
-			if (player != null) {
-				defaultRenderer = player.renderer;
+			try {
+				InetAddress ia = InetAddress.getByName(bumpAddress);
+				defaultRenderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+			} catch (UnknownHostException e) {
 			}
 		}
 		return (defaultRenderer != null && !defaultRenderer.isOffline()) ? defaultRenderer : null;
 	}
 
 	public String getRenderers(InetAddress client) {
-		UPNPHelper.Player player = selectedPlayers.get(client);
+		Logical player = selectedPlayers.get(client);
 		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
@@ -220,14 +203,14 @@ public class PlayerControlHandler implements HttpHandler {
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";
 	}
 
-	public String getPlaylist(UPNPHelper.Player player) {
+	public String getPlaylist(Logical player) {
 		ArrayList<String> json = new ArrayList();
-		UPNPHelper.Player.Playlist playlist = player.playlist;
+		Logical.Playlist playlist = player.playlist;
 		playlist.validate();
-		UPNPHelper.Player.Playlist.Item selected = (UPNPHelper.Player.Playlist.Item) playlist.getSelectedItem();
+		Logical.Playlist.Item selected = (Logical.Playlist.Item) playlist.getSelectedItem();
 		int i;
 		for (i = 0; i < playlist.getSize(); i++) {
-			UPNPHelper.Player.Playlist.Item item = (UPNPHelper.Player.Playlist.Item) playlist.getElementAt(i);
+			Logical.Playlist.Item item = (Logical.Playlist.Item) playlist.getElementAt(i);
 			json.add(String.format("[\"%s\",%d,\"%s\"]",
 				item.toString().replace("\"", "\\\""), item == selected ? 1 : 0, "$i$" + i));
 		}

@@ -3,6 +3,7 @@ package net.pms.network;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import su.litvak.chromecast.api.v2.Status;
 
 import java.io.IOException;
 
-public class ChromecastPlayer extends UPNPHelper.Player {
+public class ChromecastPlayer extends BasicPlayer.Logical {
 	private static final String MediaPlayer = "CC1AD845";
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastPlayer.class);
 	private ChromeCast api;
@@ -26,19 +27,20 @@ public class ChromecastPlayer extends UPNPHelper.Player {
 
 	@Override
 	public void setURI(String uri, String metadata) {
-		try {
-			// this is a bit bad design but what the heck
-			String id = uri.substring(uri.indexOf("get/") + 4);
-			DLNAResource r = PMS.get().getRootFolder(renderer).getDLNAResource(id, renderer);
+		Playlist.Item item = resolveURI(uri, metadata);
+		if (item != null) {
+			// this is a bit circular but what the heck
+			DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);
 			if (r == null) {
-				LOGGER.debug("Bad media in cc seturi " + id);
+				LOGGER.debug("Bad media in cc seturi: " + uri);
 				return;
 			}
-			String mime = r.mimeType();
-			api.launchApp(MediaPlayer);
-			api.load("", null, uri, mime);
-		} catch (IOException e) {
-			LOGGER.debug("Bad chromecast load " + e);
+			try {
+				api.launchApp(MediaPlayer);
+				api.load("", null, uri, r.mimeType());
+			} catch (IOException e) {
+				LOGGER.debug("Bad chromecast load: " + e);
+			}
 		}
 	}
 
@@ -46,7 +48,6 @@ public class ChromecastPlayer extends UPNPHelper.Player {
 	public void play() {
 		try {
 			api.play();
-			forceStop = false;
 		} catch (IOException e) {
 			LOGGER.debug("Bad chromecast play " + e);
 		}
@@ -65,7 +66,6 @@ public class ChromecastPlayer extends UPNPHelper.Player {
 	public void stop() {
 		try {
 			api.stopApp();
-			forceStop = true;
 		} catch (IOException e) {
 			LOGGER.debug("Bad chromecast stop " + e);
 		}
