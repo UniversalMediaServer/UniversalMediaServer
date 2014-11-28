@@ -1,5 +1,6 @@
 package net.pms.remote;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
@@ -7,8 +8,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -84,7 +83,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.setLength(0);
 				// The resource is a folder
 				String p = "/browse/" + idForWeb;
-				String txt = Messages.getString("Web.8");
+				String txt = RemoteUtil.getMsgString("Web.8", t);
 				if (r.getClass().getName().contains("SearchFolder")) {
 					// search folder add a prompt
 					// NOTE!!!
@@ -109,20 +108,20 @@ public class RemoteBrowseHandler implements HttpHandler {
 						sb.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 							.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
 							.append(name.replace("'", "\\'")).append("')\" title=\"")
-							.append(Messages.getString("Web.1")).append("\"></a>");
+							.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
 					} else {
 						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('")
-						   .append(Messages.getString("Web.2"))
-						   .append("')\" title=\"").append(Messages.getString("Web.3")).append("\"></a>");
+						   .append(RemoteUtil.getMsgString("Web.2", t))
+						   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
 					}
 					if (r.getParent() instanceof Playlist) {
 						sb.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 							.append(idForWeb).append("', false);return false;\" title=\"")
-						    .append(Messages.getString("Web.4")).append("\"></a>");
+						    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
 					} else {
 						sb.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
 							.append(idForWeb).append("', false);return false\" title=\"")
-						    .append(Messages.getString("Web.5")).append("\"></a>");
+						    .append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
 					}
 				} else {
 					// ensure that we got a string
@@ -147,8 +146,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 				} else if (upnpControl && upnpAllowed) {
 					// Include it as a web-disabled item so it can be thrown via upnp
 					sb.append("<a class=\"webdisabled\" href=\"javascript:alert('")
-						.append(Messages.getString("Web.6")).append("')\"")
-						.append(" title=\"").append(name).append(" " + Messages.getString("Web.7") + "\">")
+						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
+						.append(" title=\"").append(name).append(" " + RemoteUtil.getMsgString("Web.7", t) + "\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());

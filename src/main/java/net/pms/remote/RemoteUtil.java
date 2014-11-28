@@ -14,6 +14,9 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
 import net.pms.dlna.DLNAMediaInfo;
@@ -278,6 +281,41 @@ public class RemoteUtil {
 			LOGGER.debug("Error compiling mustache template: " + e);
 		}
 		return null;
+	}
+
+	public static String[] getLangs(HttpExchange t) {
+		List<String> langs = t.getRequestHeaders().get("Accept-language");
+		if (langs == null) {
+			return null;
+		}
+		for (String l : langs) {
+			// lets pick first
+			String[] tmp = l.split(",");
+			String[] l1 = tmp[0].split(";");
+			return l1;
+		}
+		return null;
+	}
+
+	public static String getFirstLang(HttpExchange t) {
+		String[] tmp = getLangs(t);
+		if (tmp == null) {
+			return "";
+		}
+		//we need to remove the part after -
+		int pos = tmp[0].indexOf("-");
+		if (pos != -1) {
+			return tmp[0].substring(0, pos);
+		}
+		return tmp[0];
+	}
+
+	public static String getMsgString(String key, HttpExchange t) {
+		String lang = "";
+		if(PMS.getConfiguration().useWebLang()) {
+			lang = getFirstLang(t);
+		}
+		return Messages.getString(key, lang);
 	}
 
 	/**
