@@ -74,7 +74,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						.append("<span class=\"caption\">").append(name).append("</span>")
 						.append("</a>");
 				item.put("caption", sb.toString());
-				item.put("bump", "");
+				item.put("bump", "<span class=\"floatRight\"></span>");
 				media.add(item);
 				hasFile = true;
 				continue;
