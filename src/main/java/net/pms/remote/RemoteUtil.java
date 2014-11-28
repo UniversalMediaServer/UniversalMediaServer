@@ -11,10 +11,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import net.pms.Messages;
 import net.pms.PMS;
@@ -283,31 +280,33 @@ public class RemoteUtil {
 		return null;
 	}
 
-	public static String[] getLangs(HttpExchange t) {
-		List<String> langs = t.getRequestHeaders().get("Accept-language");
-		if (langs == null) {
-			return null;
+	public static Set<String> getLangs(HttpExchange t) {
+		String hdr = t.getRequestHeaders().getFirst("Accept-language");
+		TreeSet<String> ret = new TreeSet<>();
+		if (StringUtils.isEmpty(hdr)) {
+			return ret;
 		}
-		for (String l : langs) {
-			// lets pick first
-			String[] tmp = l.split(",");
-			String[] l1 = tmp[0].split(";");
-			return l1;
+
+		String[] tmp = hdr.split(",");
+		for (String l : tmp) {
+			String[] l1 = l.split(";");
+			String str = l1[0];
+			//we need to remove the part after -
+			int pos = str.indexOf("-");
+			if (pos != -1) {
+				 str = str.substring(0, pos);
+			}
+			ret.add(str);
 		}
-		return null;
+		return ret;
 	}
 
 	public static String getFirstLang(HttpExchange t) {
-		String[] tmp = getLangs(t);
-		if (tmp == null) {
+		TreeSet<String> tmp = (TreeSet<String>)getLangs(t);
+		if (tmp.isEmpty()) {
 			return "";
 		}
-		//we need to remove the part after -
-		int pos = tmp[0].indexOf("-");
-		if (pos != -1) {
-			return tmp[0].substring(0, pos);
-		}
-		return tmp[0];
+		return tmp.first();
 	}
 
 	public static String getMsgString(String key, HttpExchange t) {
