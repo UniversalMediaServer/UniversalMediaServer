@@ -343,7 +343,8 @@ public interface BasicPlayer extends ActionListener {
 				if (addAllSiblings && DLNAResource.isResourceUrl(uri)) {
 					DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
 					if (d != null && d.getParent() != null) {
-						addAll(index, d.getParent().getChildren(), select);
+						List<DLNAResource> list = d.getParent().getChildren();
+						addAll(index, list, list.indexOf(d));
 						return;
 					}
 				}
@@ -351,14 +352,14 @@ public interface BasicPlayer extends ActionListener {
 			}
 		}
 
-		public void addAll(int index, List<DLNAResource> list, boolean select) {
-			for (DLNAResource r : list) {
+		public void addAll(int index, List<DLNAResource> list, int selIndex) {
+			for (int i = 0; i < list.size(); i++) {
+				DLNAResource r = list.get(i);
 				if ((r instanceof VirtualVideoAction) || r.isFolder()) {
 					// skip these
 					continue;
 				}
-				playlist.add(index, r.getURL("", true), r.getDisplayName(), r.getDidlString(renderer), select);
-				select = false;
+				playlist.add(index, r.getURL("", true), r.getDisplayName(), r.getDidlString(renderer), i == selIndex);
 			}
 		}
 
@@ -369,7 +370,11 @@ public interface BasicPlayer extends ActionListener {
 			}
 		}
 
-		private static void initAutoPlay(final BasicPlayer.Logical player) {
+		public void clear() {
+			playlist.removeAllElements();
+		}
+
+		private static void initAutoPlay(final Logical player) {
 			String auto = player.renderer.getAutoPlay();
 			if (StringUtils.isEmpty(auto)) {
 				return;
@@ -397,7 +402,7 @@ public interface BasicPlayer extends ActionListener {
 						RealFile f = new RealFile(new File(folder));
 						f.discoverChildren();
 						f.analyzeChildren(-1);
-						player.addAll(-1, f.getChildren(), true);
+						player.addAll(-1, f.getChildren(), -1);
 						// add a short delay here since player.add uses swing.invokelater
 						try {
 							Thread.sleep(1000);

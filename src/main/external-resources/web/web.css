@@ -193,6 +193,11 @@ ul#Media .caption:hover {
 	background-position: 0 -16px;
 }
 
+.floatRight {
+	float: right;
+	clear: left;
+}
+
 #DownloadLink {
 	margin: 20px auto 0 auto;
 	background: url('/files/download.png');
