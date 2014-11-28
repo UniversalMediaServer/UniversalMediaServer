@@ -33,15 +33,13 @@ $('body').append([
 	'<div class="bumpcontainer"><table class="bumppanel"><tr>',
 	'<td id="bumpsettings">',
 		'<select id="bplaylist"/>',
-		'<span id="bumpadd" title="Add to playlist"/>',
-		'<span id="bumprm" title="Remove from playlist"/>',
-		'<span id="bumpclear" title="Clear playlist"/>',
+		'<span id="bplaylistctrl"/>',
 		'<select id="brenderers"/>',
 	'</td>',
 	'<td><input id="bumpvol"/></td>',
 	'<td id="bumpmute"/>',
 	'<td id="bumpctrl"/>',
-	'<td id="bumppos" title="show/hide playlist">0:00</td>',
+	'<td id="bumppos" title="Show/hide playlist">0:00</td>',
 	'<td><div id="bexit"><img id="bclose"/></div></td>',
 	'</tr></table></div>'
 ].join(''));
@@ -56,9 +54,9 @@ bump.addButton('stop', '#bumpctrl');
 bump.addButton('fwd', '#bumpctrl');
 bump.addButton('next', '#bumpctrl');
 bump.addButton('mute', '#bumpmute');
-bump.addButton('add', '#bumpadd');
-bump.addButton('remove', '#bumprm');
-bump.addButton('clear', '#bumpclear');
+bump.addButton('add', '#bplaylistctrl', 'Add to playlist');
+bump.addButton('remove', '#bplaylistctrl', 'Remove from playlist');
+bump.addButton('clear', '#bplaylistctrl', 'Clear playlist');
 
 // css: go crazy. Modify/add/remove blocks as appropriate using jquery selector syntax 
 
