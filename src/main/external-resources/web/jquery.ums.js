@@ -70,8 +70,8 @@ $(document).ready(function() {
 	}
 });
 
-function searchFun(url) {
-	var str = prompt("Enter search string:");
+function searchFun(url, txt) {
+	var str = prompt(txt);
 	if (str !== null) {
 		window.location.assign(url+'?str='+str)
 	}
