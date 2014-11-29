@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -183,40 +184,48 @@ public class OpenSubtitle {
 	}
 
 	public static Map<String, Object> findSubs(File f) throws IOException {
-		Map<String, Object> res = findSubs(getHash(f), f.length());
+		return findSubs(f, null);
+	}
+
+	public static Map<String, Object> findSubs(File f, RendererConfiguration r) throws IOException {
+		Map<String, Object> res = findSubs(getHash(f), f.length(), null, null, r);
 		if (res.isEmpty()) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdb(f);
 			if (StringUtils.isEmpty(imdb)) {
 				imdb = fetchImdbId(f);
 			}
-			res = findSubs(imdb);
+			res = findSubs(null, 0, imdb, null, r);
 		}
 		if (res.isEmpty()) { // final try, use the name
-			res = querySubs(f.getName());
+			res = querySubs(f.getName(), r);
 		}
 		return res;
-
 	}
 
 	public static Map<String, Object> findSubs(String hash, long size) throws IOException {
-		return findSubs(hash, size, null, null);
+		return findSubs(hash, size, null, null, null);
 	}
 
 	public static Map<String, Object> findSubs(String imdb) throws IOException {
-		return findSubs(null, 0, imdb, null);
+		return findSubs(null, 0, imdb, null, null);
 	}
 
 	public static Map<String, Object> querySubs(String query) throws IOException {
-		return findSubs(null, 0, null, query);
+		return querySubs(query, null);
 	}
 
-	public static Map<String, Object> findSubs(String hash, long size, String imdb, String query) throws IOException {
+	public static Map<String, Object> querySubs(String query, RendererConfiguration r) throws IOException {
+		return findSubs(null, 0, null, query, r);
+	}
+
+	public static Map<String, Object> findSubs(String hash, long size, String imdb,
+											   String query, RendererConfiguration r) throws IOException {
 		login();
 		TreeMap<String, Object> res = new TreeMap<>();
 		if (token == null) {
 			return res;
 		}
-		String lang = iso639(PMS.getConfiguration().getSubtitlesLanguages());
+		String lang = UMSUtils.getLangList(r, true);
 		URL url = new URL(OPENSUBS_URL);
 		String hashStr = "";
 		String imdbStr = "";
@@ -263,17 +272,22 @@ public class OpenSubtitle {
 	 * @return
 	 * @throws IOException
 	 */
+
 	public static String[] getInfo(File f, String formattedName) throws IOException {
-		String[] res = getInfo(getHash(f), f.length(), null, null);
+		return getInfo(f, formattedName, null);
+	}
+
+	public static String[] getInfo(File f, String formattedName, RendererConfiguration r) throws IOException {
+		String[] res = getInfo(getHash(f), f.length(), null, null, r);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdb(f);
-			res = getInfo(null, 0, imdb, null);
+			res = getInfo(null, 0, imdb, null, r);
 		}
 		if (res == null || res.length == 0) { // final try, use the name
 			if (StringUtils.isNotEmpty(formattedName)) {
-				res = getInfo(null, 0, null, formattedName);
+				res = getInfo(null, 0, null, formattedName, r);
 			} else {
-				res = getInfo(null, 0, null, f.getName());
+				res = getInfo(null, 0, null, f.getName(), r);
 			}
 		}
 		return res;
@@ -297,12 +311,13 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String[] getInfo(String hash, long size, String imdb, String query) throws IOException {
+	private static String[] getInfo(String hash, long size, String imdb,
+									String query, RendererConfiguration r) throws IOException {
 		login();
 		if (token == null) {
 			return null;
 		}
-		String lang = iso639(PMS.getConfiguration().getSubtitlesLanguages());
+		String lang = UMSUtils.getLangList(r, true);
 		URL url = new URL(OPENSUBS_URL);
 		String hashStr = "";
 		String imdbStr = "";
@@ -354,20 +369,6 @@ public class OpenSubtitle {
 			};
 		}
 		return null;
-	}
-
-	private static String iso639(String s) {
-		String[] tmp = s.split(",");
-		StringBuilder res = new StringBuilder();
-		String sep = "";
-		for (String tmp1 : tmp) {
-			res.append(sep).append(Iso639.getISO639_2Code(tmp1));
-			sep = ",";
-		}
-		if (StringUtils.isNotEmpty(res)) {
-			return res.toString();
-		}
-		return s;
 	}
 
 	public static String subFile(String name) {

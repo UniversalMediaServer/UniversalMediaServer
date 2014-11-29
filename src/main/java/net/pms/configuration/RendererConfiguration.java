@@ -2273,6 +2273,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return buffer;
 	}
 
+	public String getSubLanguage() {
+		return pmsConfiguration.getSubtitlesLanguages();
+	}
+
 	public static class PlaybackTimer extends BasicPlayer.Minimal {
 
 		public PlaybackTimer(DeviceConfiguration renderer) {

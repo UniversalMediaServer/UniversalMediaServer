@@ -239,6 +239,38 @@ public class UMSUtils {
 		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
 	}
 
+	private static String iso639(String s) {
+		String[] tmp = s.split(",");
+		StringBuilder res = new StringBuilder();
+		String sep = "";
+		for (String tmp1 : tmp) {
+			res.append(sep).append(Iso639.getISO639_2Code(tmp1));
+			sep = ",";
+		}
+		if (StringUtils.isNotEmpty(res)) {
+			return res.toString();
+		}
+		return s;
+	}
+
+	public static String getLangList(RendererConfiguration r) {
+		return getLangList(r, false);
+	}
+
+	public static String getLangList(RendererConfiguration r, boolean three) {
+		String res;
+		if (r != null) {
+			res = r.getSubLanguage();
+		}
+		else {
+			res = PMS.getConfiguration().getSubtitlesLanguages();
+		}
+		if (three) {
+			res = iso639(res);
+		}
+		return res;
+	}
+
 	/**
 	 * Bitwise constants relating to playlist management.
 	 */

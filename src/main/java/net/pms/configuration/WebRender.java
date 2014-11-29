@@ -21,6 +21,7 @@ import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private int screenWidth = 0;
 	private int screenHeight = 0;
 	private boolean isTouchDevice = false;
+	private String subLang;
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats = {
@@ -67,6 +69,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		String userFmt = pmsconfiguration.getWebTranscode();
 		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
 		startStop = null;
+		subLang = "";
 	}
 
 	@Override
@@ -434,6 +437,18 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			player = new PlaybackNotifier(this);
 		}
 		return player;
+	}
+
+	@Override
+	public String getSubLanguage() {
+		if (!useWebSubLang() || StringUtils.isEmpty(subLang)) {
+			return super.getSubLanguage();
+		}
+		return subLang;
+	}
+
+	public void setSubLang(String s) {
+		subLang = s;
 	}
 
 	public void start(DLNAResource dlna) {

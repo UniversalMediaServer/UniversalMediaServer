@@ -173,6 +173,9 @@ public class RemoteWeb {
 			render.setRootFolder(root);
 			render.associateIP(t.getRemoteAddress().getAddress());
 			render.associatePort(t.getRemoteAddress().getPort());
+			if (configuration.useWebSubLang()) {
+				render.setSubLang(StringUtils.join(RemoteUtil.getLangs(t), ","));
+			}
 //			render.setUA(t.getRequestHeaders().getFirst("User-agent"));
 			render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 			PMS.get().setRendererFound(render);

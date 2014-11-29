@@ -280,9 +280,9 @@ public class RemoteUtil {
 		return null;
 	}
 
-	public static Set<String> getLangs(HttpExchange t) {
+	public static LinkedHashSet<String> getLangs(HttpExchange t) {
 		String hdr = t.getRequestHeaders().getFirst("Accept-language");
-		TreeSet<String> ret = new TreeSet<>();
+		LinkedHashSet<String> ret = new LinkedHashSet<>();
 		if (StringUtils.isEmpty(hdr)) {
 			return ret;
 		}
@@ -302,11 +302,11 @@ public class RemoteUtil {
 	}
 
 	public static String getFirstLang(HttpExchange t) {
-		TreeSet<String> tmp = (TreeSet<String>)getLangs(t);
+		LinkedHashSet<String> tmp = getLangs(t);
 		if (tmp.isEmpty()) {
 			return "";
 		}
-		return tmp.first();
+		return tmp.iterator().next();
 	}
 
 	public static String getMsgString(String key, HttpExchange t) {

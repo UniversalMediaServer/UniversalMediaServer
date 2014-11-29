@@ -265,6 +265,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
+	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
 	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome_mkv_as_webm_spoof";
 	protected static final String KEY_WEB_FIREFOX_LINUX_MP4 = "web_firefox_linux_mp4";
 	protected static final String KEY_WEB_CONF_PATH = "web_conf";
@@ -3328,6 +3329,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean useWebLang() {
 		return getBoolean(KEY_WEB_BROWSE_LANG, false);
+	}
+
+	public boolean useWebSubLang() {
+		return getBoolean(KEY_WEB_BROWSE_SUB_LANG, false);
 	}
 
 	public boolean useCode() {
