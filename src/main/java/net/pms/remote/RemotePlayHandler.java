@@ -176,6 +176,9 @@ public class RemotePlayHandler implements HttpHandler {
 				vars.put("height", renderer.getVideoHeight());
 			}
 		}
+		if (configuration.useWebControl()) {
+			vars.put("push", true);
+		}
 
 		if (isVideo && configuration.getWebSubs()) {
 			// only if subs are requested as <track> tags
@@ -244,8 +247,15 @@ public class RemotePlayHandler implements HttpHandler {
 				} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
 					((Playlist)r.getParent()).remove(r);
 				}
- 			}
+				WebRender renderer = (WebRender)r.getDefaultRenderer();
+				renderer.setPushURL("/play/" + r.getId());
+			}
 			RemoteUtil.respond(t, returnPage(), 200, "text/html");
+		} else if (p.contains("/push")) {
+			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+			WebRender renderer = (WebRender) root.getDefaultRenderer();
+			String url = renderer.pushURL();
+			RemoteUtil.respond(t, url, 200, "text");
 		}
 	}
 }

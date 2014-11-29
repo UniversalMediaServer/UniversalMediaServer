@@ -3,6 +3,7 @@ package net.pms.configuration;
 import com.google.gson.Gson;
 import java.io.File;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -17,6 +18,7 @@ import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.io.OutputParams;
+import net.pms.network.UPNPControl;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
@@ -70,6 +72,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
 		startStop = null;
 		subLang = "";
+		if (pmsConfiguration.useWebControl()) {
+			controls = UPNPControl.CONTROLS;
+		}
+		pushURL = new ArrayList<>();
 	}
 
 	@Override
@@ -451,6 +457,20 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		subLang = s;
 	}
 
+	private ArrayList<String> pushURL;
+
+	public String pushURL() {
+		String str = StringUtils.join(pushURL, ",");
+		pushURL.clear();
+		return str;
+	}
+
+	public void setPushURL(String u) {
+		if (pmsConfiguration.useWebControl()) {
+			pushURL.add(u);
+		}
+	}
+
 	public void start(DLNAResource dlna) {
 		if (getPlayingRes() != dlna) {
 			stop();
@@ -471,7 +491,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		startStop = null;
 	}
 
-	public static class PlaybackNotifier extends BasicPlayer.Minimal {
+	public static class PlaybackNotifier extends BasicPlayer.Logical {
 		private HashMap<String, String> data;
 		private Gson gson;
 
@@ -480,6 +500,39 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			data = new HashMap<>();
 			gson = new Gson();
 			LOGGER.debug("Created playback notifier for " + renderer.getRendererName());
+		}
+
+		@Override
+		public void setURI(String uri, String metadata) {
+			Playlist.Item item = resolveURI(uri, metadata);
+			if (item != null) {
+				DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);
+				if (r != null) {
+					((WebRender)renderer).setPushURL("/play/" + r.getId());
+					return;
+				}
+			}
+			LOGGER.debug("Bad uri " + uri);
+		}
+
+		@Override
+		public void stop() {
+			pause();
+		}
+
+		@Override
+		public void pause() {
+			((WebRender)renderer).setPushURL("ctrl/pause");
+		}
+
+		@Override
+		public void play() {
+			((WebRender)renderer).setPushURL("ctrl/play");
+		}
+
+		@Override
+		public int getControls() {
+			return PLAYCONTROL;
 		}
 
 		@Override

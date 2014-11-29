@@ -75,6 +75,9 @@
 			player.addEventListener('ended', next, false);
 {{/autoContinue}}
 			window.onbeforeunload = function(){status('playback','STOPPED');}
+{{#push}}
+			umsPush();
+{{/push}}			
 		</script>
 	</body>
 </html>

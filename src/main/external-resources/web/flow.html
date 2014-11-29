@@ -8,6 +8,7 @@
 		<link rel="stylesheet" href="/files/functional.css" type="text/css">
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
 		<script src="/files/jquery.min.js"></script>
+		<script src="/files/jquery.ums.js"></script>
 		<script src="/files/flowplayer.min.js"></script>
 		<title>{{name}}</title>
 	</head>
@@ -44,6 +45,9 @@
 				api.bind('finish', next);
 {{/autoContinue}}
 				window.onbeforeunload = function(){status('playback','STOPPED');}
+{{#push}}
+				umsPush();
+{{/push}}				
 			});
 		</script>
 		<div id="Container">

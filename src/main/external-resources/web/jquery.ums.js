@@ -86,3 +86,26 @@ function searchFun(url, txt) {
     });
  }
 
+ function umsPush() {
+    setInterval(function(){
+        $.ajax({ url: "/push", success: function(newurl){		
+                  if(newurl) {
+					var ops = newurl.split(",");
+					var i;
+					for (i=0; i< ops.length; i++) {
+						if (ops[i].indexOf('ctrl/pause') > -1) {
+							// pause/stop					
+							document.getElementById('player').pause();							
+						} else if (ops[i].indexOf('ctrl/play') > -1) {
+							// play			
+							document.getElementById('player').play();							
+						} else {
+							window.location.replace(ops[i]);
+						}
+					}
+                  }
+              }
+              });
+    }, 2000);
+ }
+

@@ -272,6 +272,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
+	protected static final String KEY_WEB_CONTROL = "web_control";
 	protected static final String KEY_WEB_ENABLE = "web_enable";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
@@ -3333,6 +3334,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean useWebSubLang() {
 		return getBoolean(KEY_WEB_BROWSE_SUB_LANG, false);
+	}
+
+	public boolean useWebControl() {
+		return getBoolean(KEY_WEB_CONTROL, true);
 	}
 
 	public boolean useCode() {

@@ -167,6 +167,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		vars.put("noFoldersCSS", showFolders ? "" : " class=\"noFolders\"");
 		vars.put("folders", folders);
 		vars.put("media", media);
+		if (configuration.useWebControl()) {
+			vars.put("push", true);
+		}
 
 		return parent.getResources().getTemplate("browse.html").execute(vars);
 	}

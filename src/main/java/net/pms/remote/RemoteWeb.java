@@ -84,6 +84,7 @@ public class RemoteWeb {
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler(this));
 			addCtx("/doc", new RemoteDocHandler(this));
+			addCtx("/push", playHandler);
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		} catch (Exception e) {
