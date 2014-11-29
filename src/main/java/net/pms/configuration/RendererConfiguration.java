@@ -309,9 +309,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the list of active renderer configurations (i.e. having one or more devices connected).
+	 * Returns the list of enabled renderer configurations.
 	 *
-	 * @return The list of active configurations.
+	 * @return The list of enabled renderers.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
 		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
@@ -364,6 +364,33 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static List<RendererConfiguration> getConnectedControlPlayers() {
 		return getConnectedRenderers(UPNPHelper.ANY);
+	}
+
+	/**
+	 * Searches for an instance of this renderer connected at the given address.
+	 *
+	 * @param r the renderer.
+	 * @param ia the address.
+	 * @return the matching renderer or null.
+	 */
+	public static RendererConfiguration find(RendererConfiguration r, InetAddress ia) {
+		return find(r.getConfName(), ia);
+	}
+
+	/**
+	 * Searches for a renderer of this name connected at the given address.
+	 *
+	 * @param name the renderer name.
+	 * @param ia the address.
+	 * @return the matching renderer or null.
+	 */
+	public static RendererConfiguration find(String name, InetAddress ia) {
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			if (ia.equals(r.getAddress()) && name.equals(r.getConfName())) {
+				return r;
+			}
+		}
+		return null;
 	}
 
 	public static File getRenderersDir() {

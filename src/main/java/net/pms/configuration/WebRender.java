@@ -106,24 +106,37 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		this.ua = ua.toLowerCase();
 	}
 
+	public static String getBrowserName(int browser) {
+		switch (browser) {
+			case CHROME:  return "Chrome";
+			case MSIE:    return "Internet Explorer";
+			case FIREFOX: return "Firefox";
+			case SAFARI:  return "Safari";
+			case PS4:     return "Playstation 4";
+			case XBOX1:   return "Xbox One";
+			case OPERA:   return "Opera";
+			default:      return Messages.getString("PMS.142");
+		}
+	}
+
+	public static int getBrowser(String userAgent) {
+		String ua = userAgent.toLowerCase();
+		return
+			ua.contains("chrome")        ? CHROME :
+			(ua.contains("msie") ||
+			ua.contains("trident"))      ? MSIE :
+			ua.contains("firefox")       ? FIREFOX :
+			ua.contains("safari")        ? SAFARI :
+			ua.contains("playstation 4") ? PS4 :
+			ua.contains("xbox one")      ? XBOX1 :
+			ua.contains("opera")         ? OPERA :
+			0;
+	}
+
 	public void setBrowserInfo(String info, String userAgent) {
 		setUA(userAgent);
+		browser = getBrowser(userAgent);
 
-		if (ua.contains("chrome")) {
-			browser = CHROME;
-		} else if (ua.contains("msie") || ua.contains("trident")) {
-			browser = MSIE;
-		} else if (ua.contains("firefox")) {
-			browser = FIREFOX;
-		} else if (ua.contains("safari")) {
-			browser = SAFARI;
-		} else if (ua.contains("playstation 4")) {
-			browser = PS4;
-		} else if (ua.contains("xbox one")) {
-			browser = XBOX1;
-		}  else if (ua.contains("opera")) {
-			browser = OPERA;
-		}
 		if (info != null && umsInfo.reset(info).find()) {
 			platform = umsInfo.group(1).toLowerCase();
 			screenWidth = Integer.valueOf(umsInfo.group(2));
@@ -137,17 +150,20 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getRendererName() {
-		String s = pmsconfiguration.isWebAuthenticate() ? user + "@" : "";
-		switch (browser) {
-			case CHROME:  return s + "Chrome";
-			case MSIE:    return s + "Internet Explorer";
-			case FIREFOX: return s + "Firefox";
-			case SAFARI:  return s + "Safari";
-			case PS4:     return s + "Playstation 4";
-			case XBOX1:   return s + "Xbox One";
-			case OPERA:   return s + "Opera";
-			default:      return s + Messages.getString("PMS.142");
-		}
+		return (StringUtils.isNotBlank(user) ? user + "@" : "") + getBrowserName(browser);
+	}
+
+	@Override
+	public String getConfName() {
+		return getBrowserName(browser);
+	}
+
+	public int getBrowser() {
+		return browser;
+	}
+
+	public String getUser() {
+		return user;
 	}
 
 	@Override

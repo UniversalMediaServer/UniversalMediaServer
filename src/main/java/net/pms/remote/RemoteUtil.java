@@ -16,6 +16,8 @@ import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
 import net.pms.newgui.LooksFrame;
@@ -194,17 +196,25 @@ public class RemoteUtil {
 		return null;
 	}
 
+	public static WebRender matchRenderer(String user, HttpExchange t) {
+		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
+		String confName = WebRender.getBrowserName(browser);
+		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
+		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender)r).getUser()))) ?
+			(WebRender) r : null;
+	}
+
 	public static String getCookie(String name, HttpExchange t) {
 		String cstr = t.getRequestHeaders().getFirst("Cookie");
-		if (StringUtils.isEmpty(cstr)) {
-			return null;
-		}
-		name += "=";
-		for (String str : cstr.trim().split("\\s*;\\s*")) {
-			if (str.startsWith(name)) {
-				return str.substring(name.length());
+		if (! StringUtils.isEmpty(cstr)) {
+			name += "=";
+			for (String str : cstr.trim().split("\\s*;\\s*")) {
+				if (str.startsWith(name)) {
+					return str.substring(name.length());
+				}
 			}
 		}
+		LOGGER.debug("Cookie '{}' not found: {}", name, t.getRequestHeaders().get("Cookie"));
 		return null;
 	}
 
