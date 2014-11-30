@@ -43,7 +43,7 @@
 					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
 					<button id="next" onclick="next()"{{nextAttr}}>>></button>
 {{#plsSign}}
-                    <button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false)">{{plsSign}}</button>
+                    <button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;">{{plsSign}}</button>
 {{/plsSign}}
 {{#isVideo}}
 					<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>
