@@ -120,7 +120,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
 					} else {
 						sb.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
-							.append(idForWeb).append("', false);return false\" title=\"")
+							.append(idForWeb).append("', false);return false;\" title=\"")
 						    .append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
 					}
 				} else {

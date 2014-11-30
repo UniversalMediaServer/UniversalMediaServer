@@ -74,7 +74,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 			list.remove(maxSize - 1);
 		}
 		list.add(0, res1);
-		update();
+		save();
 	}
 
 	public void remove(DLNAResource res) {

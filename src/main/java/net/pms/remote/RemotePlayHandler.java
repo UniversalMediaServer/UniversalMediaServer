@@ -248,8 +248,6 @@ public class RemotePlayHandler implements HttpHandler {
 				} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
 					((Playlist)r.getParent()).remove(r);
 				}
-				WebRender renderer = (WebRender)r.getDefaultRenderer();
-				renderer.setPushURL("/play/" + r.getId());
 			}
 			RemoteUtil.respond(t, returnPage(), 200, "text/html");
 		} else if (p.contains("/push")) {
