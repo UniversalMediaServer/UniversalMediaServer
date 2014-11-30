@@ -256,18 +256,16 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				setEdited(false);
 				player.remove(uri.getText());
 			}
 		});
 		r.setToolTipText("Remove from playlist");
 		u.add(r);
-		JButton c = new JButton(remove = new AbstractAction("", clearIcon) {
+		JButton c = new JButton(clear = new AbstractAction("", clearIcon) {
 			//private static final long serialVersionUID = #FIXME
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				setEdited(false);
 				player.clear();
 			}
 		});
@@ -302,13 +300,16 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 	public void setEdited(boolean b) {
 		edited = b;
-		update();
+		updatePlaylist();
 	}
 
-	public void update() {
+	public void updatePlaylist() {
 		boolean notblank = !StringUtils.isBlank(uri.getText());
-		add.setEnabled(edited && notblank);
-		remove.setEnabled(notblank);
+		boolean empty = uris.getModel().getSize() == 0;
+		add.setEnabled((edited || empty) && notblank);
+		boolean any = uris.getModel().getSize() > 0;
+		remove.setEnabled(any);
+		clear.setEnabled(any);
 		boolean more = uris.getModel().getSize() > 1;
 		next.setEnabled(more);
 		prev.setEnabled(more);
@@ -322,7 +323,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			stop.setEnabled(playing);
 			forward.setEnabled(playing);
 			rewind.setEnabled(playing);
-			update();
+			updatePlaylist();
 			// update position
 			position.setText(UMSUtils.playedDurationStr(state.position, state.duration));
 			// update uris only if meaningfully new

@@ -519,6 +519,24 @@ public interface BasicPlayer extends ActionListener {
 				setSelectedItem(getElementAt(i));
 			}
 
+			@Override
+			protected void fireContentsChanged(Object source, int index0, int index1) {
+				player.alert();
+				super.fireContentsChanged(source, index0, index1);
+			}
+
+			@Override
+			protected void fireIntervalAdded(Object source, int index0, int index1) {
+				player.alert();
+				super.fireIntervalAdded(source, index0, index1);
+			}
+
+			@Override
+			protected void fireIntervalRemoved(Object source, int index0, int index1) {
+				player.alert();
+				super.fireIntervalRemoved(source, index0, index1);
+			}
+
 			public static class Item {
 
 				public String name, uri, metadata;

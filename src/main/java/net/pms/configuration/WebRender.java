@@ -150,7 +150,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getRendererName() {
-		return (StringUtils.isNotBlank(user) ? user + "@" : "") + getBrowserName(browser);
+		return (pmsconfiguration.isWebAuthenticate() ? user + "@" : "") + getBrowserName(browser);
 	}
 
 	@Override
