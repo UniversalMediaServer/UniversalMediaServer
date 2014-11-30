@@ -304,12 +304,10 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	public void updatePlaylist() {
-		boolean notblank = !StringUtils.isBlank(uri.getText());
 		boolean empty = uris.getModel().getSize() == 0;
-		add.setEnabled((edited || empty) && notblank);
-		boolean any = uris.getModel().getSize() > 0;
-		remove.setEnabled(any);
-		clear.setEnabled(any);
+		add.setEnabled((edited || empty) && StringUtils.isNotBlank(uri.getText()));
+		remove.setEnabled(! empty);
+		clear.setEnabled(! empty);
 		boolean more = uris.getModel().getSize() > 1;
 		next.setEnabled(more);
 		prev.setEnabled(more);
