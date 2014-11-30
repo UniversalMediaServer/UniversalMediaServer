@@ -94,6 +94,7 @@ public class RemotePlayHandler implements HttpHandler {
 		String auto = "autoplay";
 		String query = t.getRequestURI().getQuery();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
+		flowplayer = forceFlash;
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String rawId = id;
 
