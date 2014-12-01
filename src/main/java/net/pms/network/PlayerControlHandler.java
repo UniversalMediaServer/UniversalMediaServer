@@ -12,6 +12,7 @@ import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
@@ -201,7 +202,7 @@ public class PlayerControlHandler implements HttpHandler {
 		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
-			json.add(String.format("[\"%s\",%d,\"%s\"]", r, r == selected ? 1 : 0, r.uuid));
+			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.uuid : r, r == selected ? 1 : 0, r.uuid));
 		}
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";
 	}

@@ -146,6 +146,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			LOGGER.debug("Setting {} browser info: platform:{}, screen:{}x{}, isTouchDevice:{}",
 				getRendererName(), platform, screenWidth, screenHeight, isTouchDevice);
 		}
+		active = true;
+		uuid = getConfName() + ":" + ip;
 	}
 
 	@Override
