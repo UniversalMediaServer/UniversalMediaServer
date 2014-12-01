@@ -532,11 +532,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 
 		@Override
-		public void stop() {
-			pause();
-		}
-
-		@Override
 		public void pause() {
 			((WebRender)renderer).setPushURL("ctrl/pause");
 		}
@@ -547,8 +542,23 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 
 		@Override
+		public void stop() {
+			((WebRender)renderer).setPushURL("ctrl/stop");
+		}
+
+		@Override
+		public void mute() {
+			((WebRender)renderer).setPushURL("ctrl/mute");
+		}
+
+		@Override
+		public void setVolume(int volume) {
+			((WebRender)renderer).setPushURL("ctrl/setvolume=" + volume);
+		}
+
+		@Override
 		public int getControls() {
-			return PLAYCONTROL;
+			return PLAYCONTROL|VOLUMECONTROL;
 		}
 
 		@Override
@@ -566,6 +576,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
 				"PAUSED".equals(s) ? PAUSED : -1;
+			state.mute = "0".equals(data.get("mute")) ? false : true;
+			s = data.get("volume");
+			state.volume = s == null ? 0 : Integer.valueOf(s);
 			long seconds = Integer.valueOf(data.get("position"));
 			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
 			alert();

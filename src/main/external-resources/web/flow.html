@@ -24,31 +24,62 @@
 
 			var state = {};
 
-			function status(k,v) {
-				console.log('STATUS '+k+': '+v);
+			function status(k, v, wait) {
+				//console.log('STATUS '+k+': '+v);
 				state[k] = v;
-				$.post('/playerstatus/', JSON.stringify(state));
+				if (! wait) {
+					$.post('/playerstatus/', JSON.stringify(state));
+				}
 			}
 
 			$(function () {
-				var api = $(".player").flowplayer({
+				var api = $('.player').flowplayer({
 					ratio: 9 / 16,
 					flashfit: true
 				});
 				api.bind('load', function(){status('playback', 'PLAYING');});
-				api.bind('pause', function(){status('playback', status['playback'] == 'PAUSED' ? 'PLAYING' : 'PAUSED');});
+				api.bind('pause',  function(){status('playback', 'PAUSED');});
+				api.bind('resume',  function(){status('playback', 'PLAYING');});
 				api.bind('stop', function(){status('playback','STOPPED');});
 				api.bind('finish', function(){status('playback', 'STOPPED');});
 				api.bind('unload', function(){status('playback', 'STOPPED');});
 				api.bind('progress', function(e, api, time){status('position', time.toFixed(0));});
+				api.bind('mute', function(e, api){status('mute', api.muted ? '1' : '0');});
+				api.bind('volume', function(e, api, vol){status('volume', (vol * 100).toFixed(0));});
 {{#autoContinue}}
 				api.bind('finish', next);
 {{/autoContinue}}
 				window.onbeforeunload = function(){status('playback','STOPPED');}
+				// Send initial status
+				status('mute', api.muted ? '1' : '0', true);
+				status('volume', (api.volume * 100).toFixed(0));
 {{#push}}
 				umsPush();
-{{/push}}				
+{{/push}}
 			});
+{{#push}}
+			function control(args) {
+				//console.log('control: '+args);
+				var api = flowplayer();
+				switch (args[0]) {
+					case 'play':
+						api.play();
+						break;
+					case 'pause':
+						api.pause();
+						break;
+					case 'stop':
+						api.stop();
+						break;
+					case 'setvolume':
+						api.volume(args[1]/100);
+						break;
+					case 'mute':
+						api.mute(!api.muted);
+						break;
+				}
+			}
+{{/push}}
 		</script>
 		<div id="Container">
 			<div id="Menu">

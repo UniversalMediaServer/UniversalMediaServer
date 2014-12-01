@@ -78,34 +78,29 @@ function searchFun(url, txt) {
 	return false;
 }
 
- function umsAjax(u, reload) {
-    $.ajax({url: u}).done(function() {
-        if(reload) {
-            window.location.reload();
-        }
-    });
- }
+function umsAjax(u, reload) {
+	$.ajax({url: u}).done(function() {
+		if(reload) {
+		window.location.reload();
+		}
+	});
+}
 
- function umsPush() {
-    setInterval(function(){
-        $.ajax({ url: "/push", success: function(newurl){		
-                  if(newurl) {
-					var ops = newurl.split(",");
-					var i;
-					for (i=0; i< ops.length; i++) {
-						if (ops[i].indexOf('ctrl/pause') > -1) {
-							// pause/stop					
-							document.getElementById('player').pause();							
-						} else if (ops[i].indexOf('ctrl/play') > -1) {
-							// play			
-							document.getElementById('player').play();							
-						} else {
-							window.location.replace(ops[i]);
-						}
+function umsPush() {
+	setInterval(function(){
+		$.ajax({ url: "/push", success: function(newurl){
+			if(newurl) {
+				var ops = newurl.split(","), i;
+				for (i=0; i < ops.length; i++) {
+					var ctrl = ops[i].indexOf('ctrl/');
+					if (ctrl > -1) {
+						control(ops[i].slice(ctrl+5).split('='));
+					} else {
+						window.location.replace(ops[i]);
 					}
-                  }
-              }
-              });
-    }, 2000);
- }
+				}
+			}
+		}});
+	}, 1000);
+}
 

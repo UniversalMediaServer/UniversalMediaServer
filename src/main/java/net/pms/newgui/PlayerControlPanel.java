@@ -27,6 +27,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private String lasturi;
 	private File pwd;
 	private boolean playControl, volumeControl, expanded;
+	int sliding;
 
 	private static ImageIcon addIcon, removeIcon, clearIcon, playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
 		nextIcon, prevIcon, volumeIcon, muteIcon, sliderIcon;
@@ -41,6 +42,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
 		volumeControl = (controls & BasicPlayer.VOLUMECONTROL) != 0;
 		expanded = true;
+		sliding = 0;
 
 		try {
 			pwd = new File(player.getState().uri).getParentFile();
@@ -175,6 +177,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				// Fire only when the slider is in motion, i.e. not during external updates
 				if (((JSlider) e.getSource()).getValueIsAdjusting()) {
 					player.setVolume(volumeSlider.getValue());
+					// For smoothness ignore external volume data until
+					// the 3rd update after sliding has finished
+					sliding = 3;
 				}
 			}
 		});
@@ -339,9 +344,11 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		if (volumeControl) {
 			// update rendering status
 			mute.putValue(Action.SMALL_ICON, state.mute ? muteIcon : volumeIcon);
-//			volumeSlider.setVisible(! state.mute);
 			volumeSlider.setEnabled(!state.mute);
-			volumeSlider.setValue(state.volume);
+			// ignore volume during slider motion
+			if (--sliding < 0) {
+				volumeSlider.setValue(state.volume);
+			}
 		}
 	}
 

@@ -515,8 +515,10 @@ public interface BasicPlayer extends ActionListener {
 			}
 
 			public void step(int n) {
-				int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
-				setSelectedItem(getElementAt(i));
+				if (getSize() > 0) {
+					int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
+					setSelectedItem(getElementAt(i));
+				}
 			}
 
 			@Override
