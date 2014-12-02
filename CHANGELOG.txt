@@ -1,4 +1,4 @@
-4.2.3 - 2014-11-??
+4.3.0 - 2014-12-??
 
 	General:
 		Improved filename prettifying
