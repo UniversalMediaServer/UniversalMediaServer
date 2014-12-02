@@ -1,6 +1,8 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -609,6 +611,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				if (r.associateIP(ia)) {
 					PMS.get().setRendererFound(r);
 				}
+				r.active = true;
 			}
 		} catch (Exception e) {
 		}
@@ -1248,7 +1251,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isUpnp() {
-		return UPNPHelper.getDevice(uuid) != null;
+		return uuid != null && UPNPHelper.isUpnpDevice(uuid);
 	}
 
 	public boolean isControllable() {
@@ -1256,16 +1259,19 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public Map<String, String> getDetails() {
-		if (isUpnp()) {
-			return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
-		} else {
-			return new LinkedHashMap<String, String>() {{
-				put("name", getRendererName());
-				if (getAddress() != null) {
-					put("address", getAddress().getHostAddress().toString());
-				}
-			}};
+		if (details == null) {
+			if (isUpnp()) {
+				details = UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
+			} else {
+				details = new LinkedHashMap<String, String>() {{
+					put("name", getRendererName());
+					if (getAddress() != null) {
+						put("address", getAddress().getHostAddress().toString());
+					}
+				}};
+			}
 		}
+		return details;
 	}
 
 	/**
@@ -1329,7 +1335,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Whether offline.
 	 */
 	public boolean isOffline() {
-		return !(uuid == null ? hasAssociatedAddress() : UPNPHelper.isActive(uuid, instanceID));
+		return !active;
 	}
 
 	/**
@@ -1405,11 +1411,41 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	@Override
-	public void alert() {
+	public void setActive(boolean b) {
+		super.setActive(b);
 		if (gui != null) {
-			gui.icon.setGrey(!isUpnpConnected());
+			gui.icon.setGrey(!active);
 		}
-		super.alert();
+	}
+
+	public void delete(int delay) {
+		delete(this, delay);
+	}
+
+	public static void delete(final RendererConfiguration r, int delay) {
+		r.setActive(false);
+		// Using javax.swing.Timer because of gui (this works in headless mode too).
+		javax.swing.Timer t = new javax.swing.Timer(delay, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				// Make sure we haven't been reactivated while asleep
+				if (! r.isActive()) {
+					LOGGER.debug("Deleting renderer " + r);
+					if (r.gui != null) {
+						r.gui.delete();
+					}
+					PMS.get().getFoundRenderers().remove(r);
+					UPNPHelper.getInstance().removeRenderer(r);
+					InetAddress ia = r.getAddress();
+					if (addressAssociation.get(ia) == r) {
+						addressAssociation.remove(ia);
+					}
+					// TODO: actually delete rootfolder, etc.
+				}
+			}
+		});
+		t.setRepeats(false);
+		t.start();
 	}
 
 	public void setGuiComponents(StatusTab.RendererItem item) {
@@ -1428,11 +1464,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The renderer name.
 	 */
 	public String getRendererName() {
-		try {
-			return UPNPHelper.getFriendlyName(uuid);
-		} catch (Exception e) {
-		 	return getConfName();
-		}
+		return (details != null && details.containsKey("friendlyName")) ? details.get("friendlyName") :
+			isUpnp() ? UPNPHelper.getFriendlyName(uuid) :
+			getConfName();
 	}
 
 	public String getConfName() {

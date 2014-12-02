@@ -104,6 +104,21 @@ public class StatusTab {
 			playingLabel.setMaxWidth(w);
 		}
 
+		public void delete() {
+			try {
+				// Delete the popup if open
+				if (frame != null) {
+					frame.dispose();
+					frame = null;
+				}
+				Container parent = _panel.getParent();
+				parent.remove(_panel);
+				parent.revalidate();
+				parent.repaint();
+			} catch (Exception e) {
+			}
+		}
+
 		public JPanel getPanel() {
 			if (_panel == null) {
 				PanelBuilder b = new PanelBuilder(new FormLayout(

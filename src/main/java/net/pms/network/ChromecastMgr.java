@@ -67,6 +67,8 @@ public class ChromecastMgr implements ServiceListener {
 		ArrayList<ChromeDevice> devs = new ArrayList<>();
 		for (ChromeDevice d : chromes) {
 			if (name.equals(d.getRendererName())) {
+				// Make the icon grey and delete after 5 seconds
+				d.delete(5000);
 				LOGGER.debug("Chromecast " + name + " is gone.");
 				continue;
 			}

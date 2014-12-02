@@ -581,6 +581,12 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
+	public void removeRenderer(RendererConfiguration d) {
+		if (d.uuid != null) {
+			rendererMap.remove(d.uuid);
+		}
+	}
+
 	@Override
 	protected Renderer rendererFound(Device d, String uuid) {
 		// Create or retrieve an instance
@@ -606,9 +612,10 @@ public class UPNPHelper extends UPNPControl {
 				}
 				// Make sure it's mapped
 				rendererMap.put(uuid, "0", r);
+				r.details = getDeviceDetails(d);
 				// Update gui
 				PMS.get().updateRenderer(r);
-				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + getDeviceDetails(d));
+				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + r.details);
 			} else {
 				// It's brand new
 				r = (DeviceConfiguration) rendererMap.get(uuid, "0");
@@ -622,8 +629,9 @@ public class UPNPHelper extends UPNPControl {
 					r.loaded = false;
 				}
 				if (r.associateIP(socket)) {
+					r.details = getDeviceDetails(d);
 					PMS.get().setRendererFound(r);
-					LOGGER.debug("New renderer found: " + r.getRendererName() + ": " + getDeviceDetails(d));
+					LOGGER.debug("New renderer found: " + r.getRendererName() + ": " + r.details);
 				}
 			}
 			return r;
