@@ -73,7 +73,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		startStop = null;
 		subLang = "";
 		if (pmsConfiguration.useWebControl()) {
-			controls = UPNPControl.CONTROLS;
+			controls = BasicPlayer.PLAYCONTROL|BasicPlayer.VOLUMECONTROL;
 		}
 		pushURL = new ArrayList<>();
 	}
@@ -458,7 +458,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	@Override
 	public BasicPlayer getPlayer() {
 		if (player == null) {
-			player = new PlaybackNotifier(this);
+			player = new WebPlayer(this);
 		}
 		return player;
 	}
@@ -509,15 +509,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		startStop = null;
 	}
 
-	public static class PlaybackNotifier extends BasicPlayer.Logical {
+	public static class WebPlayer extends BasicPlayer.Logical {
 		private HashMap<String, String> data;
 		private Gson gson;
 
-		public PlaybackNotifier(WebRender renderer) {
+		public WebPlayer(WebRender renderer) {
 			super(renderer);
 			data = new HashMap<>();
 			gson = new Gson();
-			LOGGER.debug("Created playback notifier for " + renderer.getRendererName());
+			LOGGER.debug("Created web player for " + renderer.getRendererName());
 		}
 
 		@Override
