@@ -1261,6 +1261,22 @@ public class MEncoderVideo extends Player {
 			}
 
 			String encodeSettings = "";
+
+			/**
+			 * Fixes aspect ratios on Sony TVs
+			 */
+			String aspectRatioLavcopts = "autoaspect=1";
+			if (
+				!dvd &&
+				(
+					params.mediaRenderer.isKeepAspectRatio() &&
+					!"16:9".equals(media.getAspectRatioContainer())
+				) &&
+				!configuration.isMencoderScaler()
+			) {
+				aspectRatioLavcopts = "aspect=16/9";
+			}
+
 			if (isXboxOneWebVideo || (configuration.getMPEG2MainSettings() != null && !isTranscodeToH264)) {
 				// Set MPEG-2 video quality
 				String mpeg2Options = configuration.getMPEG2MainSettings();
@@ -1295,7 +1311,7 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
+				encodeSettings = "-lavcopts " + aspectRatioLavcopts + vcodecString + acodec + abitrate +
 					":threads=" + (wmv && !params.mediaRenderer.isXbox360() ? 1 : configuration.getMencoderMaxThreads()) +
 					("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
@@ -1329,7 +1345,7 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
+				encodeSettings = "-lavcopts " + aspectRatioLavcopts + vcodecString + acodec + abitrate +
 					":threads=" + configuration.getMencoderMaxThreads() +
 					":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
 
