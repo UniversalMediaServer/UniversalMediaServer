@@ -116,7 +116,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					}
 					if (r.getParent() instanceof Playlist) {
 						sb.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
-							.append(idForWeb).append("', false);return false;\" title=\"")
+							.append(idForWeb).append("', true);return false;\" title=\"")
 						    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
 					} else {
 						sb.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")

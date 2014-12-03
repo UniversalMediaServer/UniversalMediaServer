@@ -81,7 +81,7 @@ function searchFun(url, txt) {
 function umsAjax(u, reload) {
 	$.ajax({url: u}).done(function() {
 		if(reload) {
-		window.location.reload();
+			window.location.reload();
 		}
 	});
 }

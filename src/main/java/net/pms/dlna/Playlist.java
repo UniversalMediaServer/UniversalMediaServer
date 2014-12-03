@@ -42,7 +42,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 
 	public void add(DLNAResource res) {
 		DLNAResource res1;
-		LOGGER.debug("add " + res + " to playlist " + res.getParent() + " " + this);
+		LOGGER.debug("adding \"" + res.getDisplayName() + "\" to playlist \"" + getName() + "\"");
 		if (res instanceof VirtualVideoAction) {
 			// don't add these
 			return;
@@ -74,15 +74,17 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 			list.remove(maxSize - 1);
 		}
 		list.add(0, res1);
-		save();
+		update();
 	}
 
 	public void remove(DLNAResource res) {
+		LOGGER.debug("removing \"" + res.getDisplayName() + "\" to playlist \"" + getName() + "\"");
 		list.remove(res);
 		update();
 	}
 
 	public void clear() {
+		LOGGER.debug("clearing playlist \"" + this.getName() + "\": " + list.size() + " items");
 		list.clear();
 		update();
 	}
@@ -135,8 +137,10 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	}
 
 	public void update() {
+		if (isMode(AUTOSAVE)) {
+			save();
+		}
 		getChildren().clear();
-		list.save();
 		setDiscovered(false);
 		if (list.size() < 1 && ! isMode(PERMANENT)) {
 			// Self-delete if empty
@@ -146,6 +150,5 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 
 	public void save() {
 		list.save();
-		update();
 	}
 }
