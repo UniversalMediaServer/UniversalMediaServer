@@ -1,9 +1,6 @@
 package net.pms.dlna;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;

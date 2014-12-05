@@ -20,16 +20,10 @@
 package net.pms.network;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.SwingUtilities;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -37,8 +31,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
 
-import net.pms.dlna.RealFile;
-import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;

@@ -18,7 +18,6 @@ import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.io.OutputParams;
-import net.pms.network.UPNPControl;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;

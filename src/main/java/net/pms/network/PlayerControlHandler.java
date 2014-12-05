@@ -13,7 +13,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
-import net.pms.dlna.DLNAResource;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.StringUtil;
