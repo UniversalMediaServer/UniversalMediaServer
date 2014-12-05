@@ -27,27 +27,20 @@ import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
-import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
-import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.*;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
-import net.pms.util.FormLayoutUtil;
-import net.pms.util.PlayerUtil;
-import net.pms.util.ProcessUtil;
+import net.pms.util.*;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -74,7 +67,7 @@ public class VLCVideo extends Player {
 	protected JCheckBox audioSyncEnabled;
 	protected JTextField sampleRate;
 	protected JCheckBox sampleRateOverride;
-	protected JTextField extraParams;
+	SystemUtils registry = PMS.get().getRegistry();
 
 	protected boolean videoRemux;
 
@@ -98,6 +91,11 @@ public class VLCVideo extends Player {
 
 	@Override
 	public boolean isTimeSeekable() {
+		return true;
+	}
+
+	@Override
+	public boolean isGPUAccelerationReady() {
 		return true;
 	}
 
@@ -149,36 +147,32 @@ public class VLCVideo extends Player {
 			) ||
 			isXboxOneWebVideo
 		) {
-			// Assume WMV = Xbox 360 = all media renderers with this flag
-			LOGGER.debug("Using XBox 360 WMV codecs");
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
-		} else if (renderer.isTranscodeToH264()) {
-			codecConfig.videoCodec = "h264";
-			codecConfig.container = "ts";
-			videoRemux = true;
+		} else {
+			/**
+			 * VLC does not support H.265 encoding as of VLC 2.1.5.
+			 */
+			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
+				codecConfig.videoCodec = "h264";
+				videoRemux = true;
+			} else {
+				codecConfig.videoCodec = "mp2v";
+			}
 
-			if (renderer.isTranscodeToMPEGTSH264AC3()) {
-				LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
+			if (renderer.isTranscodeToAC3()) {
 				codecConfig.audioCodec = "a52";
-			} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
-				LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
+			} else {
 				codecConfig.audioCodec = "mp4a";
 			}
-		} else {
-			codecConfig.videoCodec = "mp2v";
-			codecConfig.audioCodec = "mp2a";
 
 			if (renderer.isTranscodeToMPEGTS()) {
-				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
 				codecConfig.container = "ts";
 			} else {
-				LOGGER.debug("Using standard DLNA codecs with an MPEG-PS (default) container");
 				codecConfig.container = "ps";
 			}
 		}
-
 		LOGGER.trace("Using " + codecConfig.videoCodec + ", " + codecConfig.audioCodec + ", " + codecConfig.container);
 
 		/**
@@ -235,9 +229,19 @@ public class VLCVideo extends Player {
 
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		// Audio Channels
+		/**
+		 * Only output 6 audio channels for codecs other than AC-3 because as of VLC
+		 * 2.1.5, VLC screws up the channel mapping, making a rear channel go through
+		 * a front speaker.
+		 * Re-evaluate if they ever fix it.
+		 */
 		int channels = 2;
-		if (!isXboxOneWebVideo && params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
+		if (
+			!isXboxOneWebVideo &&
+			params.aid.getAudioProperties().getNumberOfChannels() > 2 &&
+			configuration.getAudioChannelCount() == 6 &&
+			!params.mediaRenderer.isTranscodeToAC3()
+		) {
 			channels = 6;
 		}
 		args.put("channels", channels);
@@ -325,7 +329,7 @@ public class VLCVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (!isXboxOneWebVideo && params.mediaRenderer.isTranscodeToH264()) {
+			if (!isXboxOneWebVideo && (params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265())) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -372,7 +376,7 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
+		if (isXboxOneWebVideo || (!params.mediaRenderer.isTranscodeToH264() && !params.mediaRenderer.isTranscodeToH265())) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -449,11 +453,22 @@ public class VLCVideo extends Player {
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
-		// Disable hardware acceleration which is enabled by default,
-		// but for hardware acceleration, user must enable it in "VLC Preferences",
-		// until they release documentation for new functionalities introduced in 2.1.4+
-		if (!configuration.isGPUAcceleration()) {
-			cmdList.add("--avcodec-hw=disabled");
+		/**
+		 * Disable hardware acceleration which is enabled by default,
+		 * but for hardware acceleration, user must enable it in "VLC Preferences",
+		 * until they release documentation for new functionalities introduced in 2.1.4+
+		 */
+		String vlcVersion = registry.getVlcVersion();
+		Version currentVersion = new Version(vlcVersion);
+		Version requiredVersion = new Version("2.1.4");
+
+		if (vlcVersion != null && currentVersion.compareTo(requiredVersion) > 0) {
+			if (!configuration.isGPUAcceleration()) {
+				cmdList.add("--avcodec-hw=disabled");
+				LOGGER.trace("Disabled VLC's hardware acceleration.");
+			}
+		} else if (!configuration.isGPUAcceleration()) {
+			LOGGER.trace("Version " + vlcVersion + " of VLC is too low to handle the way we disable hardware acceleration.");
 		}
 
 		// Useful for the more esoteric codecs people use
@@ -524,7 +539,13 @@ public class VLCVideo extends Player {
 			cmdList.add("--sout-x264-preset");
 			cmdList.add("superfast");
 
-			cmdList.add("--no-sout-avcodec-hurry-up");
+			/**
+			 * This option prevents VLC from speeding up transcoding by disabling certain
+			 * codec optimizations if the CPU is struggling to keep up.
+			 * It is already disabled by default so there is no reason to specify that here,
+			 * plus the option doesn't work on versions of VLC from 2.0.7 to 2.1.5.
+			 */
+			//cmdList.add("--no-sout-avcodec-hurry-up");
 
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 		}
@@ -563,11 +584,6 @@ public class VLCVideo extends Player {
 
 		// Force VLC to exit when finished
 		cmdList.add("vlc://quit");
-
-		// Add any extra parameters
-		if (!extraParams.getText().trim().isEmpty()) { // Add each part as a new item
-			cmdList.addAll(Arrays.asList(StringUtils.split(extraParams.getText().trim(), " ")));
-		}
 
 		// Pass to process wrapper
 		String[] cmdArray = new String[cmdList.size()];

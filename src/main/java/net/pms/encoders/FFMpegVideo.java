@@ -384,9 +384,13 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToH264()) {
+			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				transcodeOptions.add("-c:v");
-				transcodeOptions.add("libx264");
+				if (renderer.isTranscodeToH264()) {
+					transcodeOptions.add("libx264");
+				} else {
+					transcodeOptions.add("libx265");
+				}
 				transcodeOptions.add("-preset");
 				transcodeOptions.add("ultrafast");
 				transcodeOptions.add("-level");
