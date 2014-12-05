@@ -36,6 +36,7 @@ public class FormatConfiguration {
 	public static final String FLV = "flv";
 	public static final String GIF = "gif";
 	public static final String H264 = "h264";
+	public static final String H265 = "h265";
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";
@@ -54,16 +55,23 @@ public class FormatConfiguration {
 	public static final String MPEGPS = "mpegps";
 	public static final String MPEGTS = "mpegts";
 	public static final String OGG = "ogg";
+	public static final String OPUS = "opus";
 	public static final String PNG = "png";
 	public static final String RA = "ra";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
 	public static final String TIFF = "tiff";
+	public static final String THEORA = "theora";
 	public static final String TRUEHD = "truehd";
 	public static final String VC1 = "vc1";
+	public static final String VORBIS = "vorbis";
+	public static final String VP6 = "vp6";
+	public static final String VP7 = "vp7";
+	public static final String VP8 = "vp8";
+	public static final String VP9 = "vp9";
 	public static final String WAVPACK = "wavpack";
 	public static final String WAV = "wav";
-	public static final String WEBM = "WebM";
+	public static final String WEBM = "webm";
 	public static final String WMA = "wma";
 	public static final String WMV = "wmv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
@@ -359,13 +367,19 @@ public class FormatConfiguration {
 		return match(WAV, null, null, 0, 96000, 0, 0, 0, null) != null || match(MP3, null, null, 0, 96000, 0, 0, 0, null) != null;
 	}
 
+	// XXX Unused
+	@Deprecated
 	public String getPrimaryVideoTranscoder() {
 		for (SupportSpec supportSpec : supportSpecs) {
 			if (supportSpec.match(MPEGPS, MPEG2, AC3)) {
 				return MPEGPS;
 			}
 
-			if (supportSpec.match(MPEGTS, MPEG2, AC3) || supportSpec.match(MPEGTS, H264, AAC)) {
+			if (
+				supportSpec.match(MPEGTS, MPEG2, AC3) ||
+				supportSpec.match(MPEGTS, H264, AAC) ||
+				supportSpec.match(MPEGTS, H264, AC3)
+			) {
 				return MPEGTS;
 			}
 
