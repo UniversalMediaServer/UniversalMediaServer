@@ -33,6 +33,8 @@
 			Improved support for Samsung HU7000 TVs
 			Improved support for Samsung HU9000 TVs
 			Improved support for Xbox 360
+		Languages:
+			Updated Dutch translation (thanks, leroy!)
 
 4.2.2 - 2014-11-17
 
