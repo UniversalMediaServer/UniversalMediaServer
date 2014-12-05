@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory;
 public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
-	protected static ArrayList<String> allRenderersNames = new ArrayList<>();
+	protected static final ArrayList<String> allRenderersNames = new ArrayList<>();
 	protected static PmsConfiguration _pmsConfiguration = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
-	protected static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
+	protected static final Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
 	protected RootFolder rootFolder;
 	protected File file;
@@ -59,7 +59,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean loaded, fileless = false;
 	protected BasicPlayer player;
 
-	public static File NOFILE = new File("NOFILE");
+	public static final File NOFILE = new File("NOFILE");
 
 	public interface OutputOverride {
 		/**
@@ -2295,7 +2295,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Automatic reloading
 	 */
-	public static FileWatcher.Listener reloader = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener reloader = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			RendererConfiguration r = (RendererConfiguration) watch.getItem();

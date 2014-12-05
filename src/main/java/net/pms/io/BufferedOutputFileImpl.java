@@ -788,7 +788,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		startTimer();
 	}
 
-	private void startTimer() {
+	private synchronized void startTimer() {
 		if (!hidebuffer && maxMemorySize > (15 * 1048576)) {
 			timer = new Timer(attachedThread + "-Timer");
 			timer.schedule(new TimerTask() {
