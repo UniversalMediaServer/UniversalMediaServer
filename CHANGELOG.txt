@@ -1,8 +1,33 @@
+4.3.0 - 2014-12-06
+
+	General:
+		Added the ability to transcode to H.265
+		Improved filename prettifying
+		Improved support for many formats and codecs
+		Fixed VLC engine
+		Formatted the default renderer file
+	Renderers:
+		Added support for LG UB820V TVs
+		Added support for Logitech Squeezebox
+		Fixed video aspect ratios on Philips and Sony TVs
+		Improved support for Hama IR320
+		Improved support for LG LM660 TVs
+		Improved support for Netgem N7700
+		Improved support for Roku 3
+		Improved support for Samsung EH6070 TVs
+		Improved support for Samsung H4500 TVs
+		Improved support for Samsung HU7000 TVs
+		Improved support for Samsung HU9000 TVs
+		Improved support for Xbox 360
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
+
 4.2.2 - 2014-11-17
 
 	General:
 		Improved compatibility of H.264 transcoding when using MEncoder
 		Customized buffer color
+		Fixed Live Subtitles
 	Renderers:
 		Added support for Hama IR320 (thanks, Enrice!)
 		Added support for Roku 3 (incomplete) (thanks, weyrava and drocket!)

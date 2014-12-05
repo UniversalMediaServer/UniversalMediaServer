@@ -186,7 +186,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is Ogg Vorbis.
 	 */
 	public boolean isVorbis() {
-		return getCodecA() != null && getCodecA().equalsIgnoreCase("vorbis");
+		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.VORBIS);
 	}
 
 	/**
@@ -238,15 +238,15 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "TrueHD";
 		} else if (isPCM()) {
 			return "LPCM";
-		} else if (getCodecA() != null && getCodecA().equals("vorbis")) {
+		} else if (isVorbis()) {
 			return "OGG";
 		} else if (isAAC()) {
 			return "AAC";
-		} else if (getCodecA() != null && getCodecA().equals("mp3")) {
+		} else if (isMP3()) {
 			return "MP3";
-		} else if (getCodecA() != null && getCodecA().startsWith("wm")) {
+		} else if (isWMA()) {
 			return "WMA";
-		} else if (getCodecA() != null && getCodecA().equals("mp2")) {
+		} else if (isMpegAudio()) {
 			return "Mpeg Audio";
 		}
 		return getCodecA() != null ? getCodecA() : "-";
