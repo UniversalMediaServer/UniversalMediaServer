@@ -1,40 +1,41 @@
-5.0.0-b1 - 2014-11-??
-	Changes unique to 5.0.0-b1:
-		General:
-			Major redesign of the status tab to show per-renderer information
-			Improved player control
-			Includes the possibility to allow UMS to control renders automatically
-			Web player can also be controlled
-			Automatic reloading of external files
-			Documentation updates
-			New xmb playlist folders with optional automatic starting, looping, and saving, editable from web or xmb
-			A Dynamic xmb playlist for on-the-fly playlist creation from web or xmb
-			Better bump/gui player playlists with optional automatic looping
-			Push playback support for chromecast and web browsers
-			Improved Chromecast support (cast from UMS webui/gui)
+5.0.0-b1 - 2014-11-?? - Changes since 5.0.0-a1
+	General:
+		Major redesign of the status tab to show per-renderer information
+		Improved player control
+		Includes the possibility to allow UMS to control renders automatically
+		Web player can also be controlled
+		Automatic reloading of external files
+		Documentation updates
+		New xmb playlist folders with optional automatic starting, looping, and saving, editable from web or xmb
+		A Dynamic xmb playlist for on-the-fly playlist creation from web or xmb
+		Better bump/gui player playlists with optional automatic looping
+		Push playback support for chromecast and web browsers
+		Improved Chromecast support (cast from UMS webui/gui)
+		All changes from 4.2.1, 4.2.2 and 4.3.0
 
-	Changes from the 4.x release branch:
-		General:
-			Added the ability to transcode to H.265
-			Improved filename prettifying
-			Improved support for many formats and codecs
-			Fixed VLC engine
-			Formatted the default renderer file
-		Renderers:
-			Added support for LG UB820V TVs
-			Added support for Logitech Squeezebox
-			Fixed video aspect ratios on Philips and Sony TVs
-			Improved support for Hama IR320
-			Improved support for LG LM660 TVs
-			Improved support for Netgem N7700
-			Improved support for Roku 3
-			Improved support for Samsung EH6070 TVs
-			Improved support for Samsung H4500 TVs
-			Improved support for Samsung HU7000 TVs
-			Improved support for Samsung HU9000 TVs
-			Improved support for Xbox 360
-		Languages:
-			Updated Dutch translation (thanks, leroy!)
+4.3.0 - 2014-12-06
+
+	General:
+		Added the ability to transcode to H.265
+		Improved filename prettifying
+		Improved support for many formats and codecs
+		Fixed VLC engine
+		Formatted the default renderer file
+	Renderers:
+		Added support for LG UB820V TVs
+		Added support for Logitech Squeezebox
+		Fixed video aspect ratios on Philips and Sony TVs
+		Improved support for Hama IR320
+		Improved support for LG LM660 TVs
+		Improved support for Netgem N7700
+		Improved support for Roku 3
+		Improved support for Samsung EH6070 TVs
+		Improved support for Samsung H4500 TVs
+		Improved support for Samsung HU7000 TVs
+		Improved support for Samsung HU9000 TVs
+		Improved support for Xbox 360
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
 
 4.2.2 - 2014-11-17
 
