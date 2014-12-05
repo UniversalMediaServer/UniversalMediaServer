@@ -360,7 +360,7 @@ public class UMSUtils {
 
 		public static void write(List<DLNAResource> playlist, File f) throws IOException {
 			Date now = new Date();
-			try (FileWriter out = new FileWriter(f)) {
+			FileWriter out = new FileWriter(f);
 				StringBuilder sb = new StringBuilder();
 				sb.append("######\n");
 				sb.append("## __UPS__\n");
@@ -413,7 +413,7 @@ public class UMSUtils {
 				}
 				out.write(sb.toString());
 				out.flush();
-			}
+			out.close();
 		}
 
 		private static ExternalListener findMasterParent(String className) {
@@ -486,7 +486,7 @@ public class UMSUtils {
 			if (!f.exists()) {
 				return;
 			}
-			try (BufferedReader in = new BufferedReader(new FileReader(f))) {
+			BufferedReader in = new BufferedReader(new FileReader(f));
 				String str;
 
 				while ((str = in.readLine()) != null) {
@@ -573,7 +573,7 @@ public class UMSUtils {
 						playlist.add(res);
 					}
 				}
-			}
+			in.close();
 		}
 
 		public static DLNAResource resolveCreateMethod(ExternalListener l, String arg) {
@@ -584,7 +584,15 @@ public class UMSUtils {
 				create = clazz.getDeclaredMethod("create", String.class);
 				return (DLNAResource) create.invoke(l, arg);
 				// Ignore all errors
-			} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+			} catch (SecurityException e) {
+				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
+			} catch (NoSuchMethodException e) {
+				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
+			} catch (IllegalArgumentException e) {
+				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
+			} catch (IllegalAccessException e) {
+				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
+			} catch (InvocationTargetException e) {
 				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
 			}
 			return null;

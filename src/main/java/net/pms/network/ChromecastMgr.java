@@ -29,7 +29,7 @@ public class ChromecastMgr implements ServiceListener {
 		this.jmDNS = j;
 		ccr = RendererConfiguration.getRendererConfigurationByName("Chromecast");
 		jmDNS.addServiceListener(ChromeCast.SERVICE_TYPE, this);
-		chromes = new ArrayList<>();
+		chromes = new ArrayList<ChromeDevice>();
 		if (!PMS.getConfiguration().isChromecastDbg()) {
 			ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger)
 											   LoggerFactory.getLogger("su.litvak.chromecast.api.v2");
@@ -64,7 +64,7 @@ public class ChromecastMgr implements ServiceListener {
 		if (StringUtils.isEmpty(name)) {
 			name = ccr.getConfName();
 		}
-		ArrayList<ChromeDevice> devs = new ArrayList<>();
+		ArrayList<ChromeDevice> devs = new ArrayList<ChromeDevice>();
 		for (ChromeDevice d : chromes) {
 			if (name.equals(d.getRendererName())) {
 				// Make the icon grey and delete after 5 seconds

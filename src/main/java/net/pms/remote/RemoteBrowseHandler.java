@@ -61,7 +61,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			if (r instanceof VirtualVideoAction) {
 				// Let's take the VVA real early
 				sb.setLength(0);
-				HashMap<String, String> item = new HashMap<>();
+				HashMap<String, String> item = new HashMap<String, String>();
 				sb.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
 						.append("', true);return false;\" title=\"").append(name).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")

@@ -141,9 +141,9 @@ public class UPNPControl {
 		public Renderer() {
 			controls = 0;
 			active = false;
-			data = new HashMap<>();
+			data = new HashMap<String, String>();
 			details = null;
-			listeners = new LinkedHashSet<>();
+			listeners = new LinkedHashSet<ActionListener>();
 			event = new ActionEvent(this, 0, null);
 			monitor = null;
 			data.put("TransportState", "STOPPED");

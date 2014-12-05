@@ -75,7 +75,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		if (pmsConfiguration.useWebControl()) {
 			controls = BasicPlayer.PLAYCONTROL|BasicPlayer.VOLUMECONTROL;
 		}
-		pushURL = new ArrayList<>();
+		pushURL = new ArrayList<String>();
 	}
 
 	@Override
@@ -512,7 +512,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 		public WebPlayer(WebRender renderer) {
 			super(renderer);
-			data = new HashMap<>();
+			data = new HashMap<String, String>();
 			gson = new Gson();
 			LOGGER.debug("Created web player for " + renderer.getRendererName());
 		}

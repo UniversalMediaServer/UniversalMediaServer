@@ -351,7 +351,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static List<RendererConfiguration> getConnectedRenderers(int type) {
-		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
+		ArrayList<RendererConfiguration> renderers = new ArrayList<RendererConfiguration>();
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
 			if (r.active && (r.controls & type) != 0) {
 				renderers.add(r);

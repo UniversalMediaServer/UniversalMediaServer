@@ -205,8 +205,8 @@ public final class GuiUtil {
 		}
 
 		public SegmentedProgressBarUI(Color fg, Color bg) {
-			segments = new ArrayList<>();
-			mainLabel = new ArrayList<>();
+			segments = new ArrayList<Segment>();
+			mainLabel = new ArrayList<Segment>();
 			this.fg = fg != null ? fg : super.getSelectionForeground();
 			this.bg = bg != null ? bg : super.getSelectionBackground();
 			tickmarks = 0;

@@ -49,8 +49,8 @@ public class PlayerControlHandler implements HttpHandler {
 		server.createContext("/bump", this);
 		port = server.getAddress().getPort();
 		protocol = server instanceof HttpsServer ? "https://" : "http://";
-		players = new HashMap<String, UPNPHelper.Player>();
-		selectedPlayers = new HashMap<InetAddress, UPNPHelper.Player>();
+		players = new HashMap<String, Logical>();
+		selectedPlayers = new HashMap<InetAddress, Logical>();
 		String basepath = configuration.getWebPath().getPath();
 		bumpjs = new File(FilenameUtils.concat(basepath, configuration.getBumpJS("bump/bump.js")));
 		skindir = new File(FilenameUtils.concat(basepath, configuration.getBumpSkinDir("bump/skin")));

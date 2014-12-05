@@ -187,7 +187,7 @@ public class RemoteWeb {
 				tag.add(groupTag);
 			}
 
-			tag.add(t.getRemoteAddress().getHostString());
+			tag.add(t.getRemoteAddress().getHostName());
 			tag.add("web");
 			root = new RootFolder(tag);
 			try {

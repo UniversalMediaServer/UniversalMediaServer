@@ -236,8 +236,8 @@ public class PlaylistFolder extends DLNAResource {
 				return new PlaylistFolder(name, uri, type);
 			} else if ("cue".equals(f.getMatchedExtension())) {
 				return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
-				case "ups":
-					return new Playlist(name, uri);
+			} else if ("ups".equals(f.getMatchedExtension())) {
+				return new Playlist(name, uri);
 			}
 		}
 		return null;
