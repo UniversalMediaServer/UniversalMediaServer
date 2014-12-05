@@ -41,6 +41,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.OpenSubtitle;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -457,7 +458,7 @@ public abstract class Player {
 			}
 
 			if (params.sid == null) {
-				st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
+				st = new StringTokenizer(UMSUtils.getLangList(params.mediaRenderer), ",");
 				while (st.hasMoreTokens()) {
 					String lang = st.nextToken();
 					lang = lang.trim();

@@ -14,7 +14,6 @@ import net.pms.dlna.*;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.FFmpegAudio;
 import net.pms.encoders.FFmpegWebVideo;
-import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,20 +120,28 @@ public class RemoteMediaHandler implements HttpHandler {
 		Headers hdr = t.getResponseHeaders();
 		hdr.add("Content-Type", mime);
 		hdr.add("Accept-Ranges", "bytes");
+		if (range != null) {
+			long end = range.asByteRange().getEnd();
+			long start = range.asByteRange().getStart();
+			String rStr = start + "-" + end + "/*" ;
+			hdr.add("Content-Range", "bytes " + rStr);
+			if (start != 0) {
+				code = 206;
+			}
+
+		}
 		hdr.add("Server", PMS.get().getServerName());
 		hdr.add("Connection", "keep-alive");
 		t.sendResponseHeaders(code, 0);
 		OutputStream os = t.getResponseBody();
-		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostName());
-		startStop.setRenderer(render);
 		if (!dlna.quietPlay()) {
 			PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
 		}
-		startStop.start(dlna);
+		render.start(dlna);
 		if (sid != null) {
 			dlna.setMediaSubtitle(sid);
 		}
-		RemoteUtil.dump(in, os, startStop);
+		RemoteUtil.dump(in, os);
 		PMS.get().getFrame().setStatusLine("");
 	}
 }

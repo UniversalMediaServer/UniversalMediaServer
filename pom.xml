@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>5.0.0-a2</version>
+	<version>5.0.0-b1</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -64,8 +64,8 @@
 		<url>https://github.com/UniversalMediaServer/UniversalMediaServer</url>
 	</scm>
 	<issueManagement>
-		<system>Google Code</system>
-		<url>http://code.google.com/p/universal-media-server/issues/list</url>
+		<system>GitHub</system>
+		<url>https://github.com/UniversalMediaServer/UniversalMediaServer/issues</url>
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
@@ -88,11 +88,10 @@
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
-		<!-- Snapshots should get their binaries from the trunk, releases from a tag -->
-		<project.binaries-base>http://downloads.sourceforge.net/project/unimediaserver/Dependencies</project.binaries-base>
-		<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
+		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
+		<binary-revision>1</binary-revision>
 
-		<maven-javadoc-plugin-version>2.9.1</maven-javadoc-plugin-version>
+		<maven-javadoc-plugin-version>2.10.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.9</git-commit-id-plugin-version>
 
 		<!--
@@ -166,6 +165,7 @@
 			<name>myGrid Repository</name>
 			<url>http://www.mygrid.org.uk/maven/repository</url>
 		</repository>
+
 		<repository>
 			<id>4thline-repo</id>
 			<url>http://4thline.org/m2</url>
@@ -263,7 +263,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.9.4.Final</version>
+			<version>3.9.5.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -381,7 +381,7 @@
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
-			<version>4.0.0</version>
+			<version>4.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
@@ -423,6 +423,11 @@
 			<artifactId>jmustache</artifactId>
 			<version>1.9</version>
 		</dependency>
+        <dependency>
+            <groupId>su.litvak.chromecast</groupId>
+            <artifactId>api-v2</artifactId>
+            <version>0.0.3</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
@@ -754,7 +759,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.3</version>
+				<version>3.4</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
@@ -829,14 +834,14 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>jdepend-maven-plugin</artifactId>
-							<version>2.0-beta-2</version>
+							<version>2.0</version>
 						</plugin>
 
 						<!-- Findbugs report -->
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>2.5.4</version>
+							<version>3.0.0</version> <!-- This version works only with JDK 7-->
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
@@ -865,7 +870,6 @@
 							</configuration>
 						</plugin>
 
-						<!-- L10n internationalization report is not working with the latest maven site version
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>l10n-maven-plugin</artifactId>
@@ -899,7 +903,7 @@
 									<locale>zht</locale>
 								</locales>
 							</configuration>
-						</plugin> -->
+						</plugin>
 					</reportPlugins>
 				</configuration>
 			</plugin>
@@ -1021,6 +1025,62 @@
 										<mkdir dir="${project.binaries}/win32/mplayer" />
 										<mkdir dir="${project.binaries}/win32/service" />
 
+										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
+										<get src="${project.binaries-base}/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo.dll"  usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/win32/builds.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/win32/dcrawMS.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/win32/ffmpeg.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/win32/flac.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/win32/mencoder.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/win32/mplayer.exe"  usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR-new.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/win32/vcomp100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/win32/avisynth/avisynth.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv33260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv43260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drvc.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/pncrt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/sipr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/tokr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wma9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmv9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmvdmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dvrms/ffmpeg_MPGMUX.exe?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/ffmpeg_MPGMUX.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dvrms/pthreadGC2.dll?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/pthreadGC2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/45-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/50-user.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/51-local.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/60-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/README" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow_cpu.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow_cpu.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow_gpu.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow_gpu.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper-community-license-1.1.txt?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper-community-license-1.1.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.conf?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1173,10 +1233,10 @@
 										<mkdir dir="${project.binaries}" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/ffmpeg" dest="${project.binaries}/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/tsMuxeR" dest="${project.binaries}/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/tsMuxeR-new" dest="${project.binaries}/tsMuxeR-new" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt" dest="${project.binaries}/tsMuxeR_license.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/ffmpeg?p=${binary-revision}" dest="${project.binaries}/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/tsMuxeR-new" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/tsMuxeR_license.txt" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1236,15 +1296,15 @@
 										<mkdir dir="${project.binaries}/osx" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR-new" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/flac?p=${binary-revision}" dest="${project.binaries}/osx/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
@@ -1461,7 +1521,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.2.1</version>
+						<version>1.3.2</version>
 						<executions>
 							<execution>
 								<phase>test</phase>

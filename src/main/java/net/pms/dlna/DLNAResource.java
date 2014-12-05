@@ -35,6 +35,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.*;
 import net.pms.external.AdditionalResourceFolderListener;
 import net.pms.external.ExternalFactory;
@@ -261,6 +262,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private String lastSearch;
 
+	private VirtualFolder dynamicPls;
+
 	protected HashMap<String, Object> attachments = null;
 
 	/**
@@ -292,7 +295,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The id string.
 	 * @since 1.50
 	 */
-	protected String getId() {
+	public String getId() {
 		return id;
 	}
 
@@ -686,6 +689,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 
+							if (configuration.isDynamicPls() &&
+								!child.isFolder() &&
+								defaultRenderer != null &&
+								!defaultRenderer.isNoDynPlsFolder()) {
+								addDynamicPls(child);
+							}
+
 							for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 								if (listener instanceof AdditionalResourceFolderListener) {
 									try {
@@ -999,7 +1009,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) throws IOException {
+	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) {
 		// this method returns exactly ONE (1) DLNAResource
 		// it's used when someone requests playback of media. The media must
 		// first have been discovered by someone first (unless it's a Temp item)
@@ -1065,7 +1075,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return getDLNAResources(objectId, children, start, count, renderer, null);
 	}
 
-	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
+	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) {
 		ArrayList<DLNAResource> resources = new ArrayList<DLNAResource>();
 
 		// Get/create/reconstruct it if it's a Temp item
@@ -2348,7 +2358,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 									String rendererName = "unknown renderer";
 									try {
-										renderer.setPlayingRes(null);
+										// Reset only if another item hasn't already begun playing
+										if (renderer.getPlayingRes() == self) {
+											renderer.setPlayingRes(null);
+										}
 										rendererName = renderer.getRendererName();
 									} catch (NullPointerException e) { }
 									if (!quietPlay()) {
@@ -3357,14 +3370,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return false;
 	}
 
-	private boolean liveSubs(DLNAResource r) {
-		DLNAMediaSubtitle s = r.media_subtitle;
-		if (s != null) {
-			return StringUtils.isNotEmpty(s.getLiveSubURL());
-		}
-		return false;
-	}
-
 	////////////////////////////////////////////////////
 	// Resume handling
 	////////////////////////////////////////////////////
@@ -3472,12 +3477,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Handle last played stuff
+	 * Handle serialization.
 	 *
-	 * This method should be overridden by all media types that should be
-	 * added to the last played list.
+	 * This method should be overridden by all media types that can be
+	 * bookmarked, i.e. serialized to an external file.
 	 * By default it just returns null which means the resource is ignored
-	 * in the last played file.
+	 * when serializing.
 	 */
 	public String write() {
 		return null;
@@ -3515,7 +3520,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public static DLNAResource autoMatch(String uri, String name) {
 		uri = URLDecoder.decode(uri);
 		boolean isweb = uri.matches("\\S+://.+");
-		Format f = FormatFactory.getAssociatedFormat(isweb ? StringUtils.substringAfter(uri, "://") : uri);
+		Format f = FormatFactory.getAssociatedFormat(isweb ? "." + FileUtil.getUrlExtension(uri) : uri);
 		int type = f == null ? Format.VIDEO : f.getType();
 		if (name == null) {
 			name = new File(StringUtils.substringBefore(uri, "?")).getName();
@@ -3627,6 +3632,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Returns the DLNAResource pointed to by the uri if it exists
 	// or else a new Temp item (or null)
 	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration r) {
+		LOGGER.debug("Validating uri " + uri);
 		String objectId = parseObjectId(uri);
 		if (objectId != null) {
 			if (objectId.startsWith("Temp$")) {
@@ -3636,11 +3642,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (r == null) {
 					r = RendererConfiguration.getDefaultConf();
 				}
-				try {
-					return PMS.get().getRootFolder(r).getDLNAResource(objectId, r);
-				} catch (IOException e) {
-					return null;
-				}
+				return PMS.get().getRootFolder(r).getDLNAResource(objectId, r);
 
 			}
 		} else {
@@ -3717,5 +3719,33 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public long getStartTime() {
 		return startTime;
+	}
+
+	private void addDynamicPls(final DLNAResource child) {
+		final DLNAResource dynPls = PMS.get().getDynamicPls();
+		if (dynPls == child || child.getParent() == dynPls) {
+			return;
+		}
+		if (child instanceof VirtualVideoAction) {
+			// ignore these
+			return;
+		}
+		if (dynamicPls == null) {
+			dynamicPls = new VirtualFolder(Messages.getString("PMS.147"), null);
+			addChildInternal(dynamicPls);
+			dynamicPls.addChild(dynPls);
+		}
+		if (dynamicPls != null) {
+			String str = Messages.getString("PluginTab.9") + " " + child.getDisplayName() + " " + Messages.getString("PMS.148");
+			VirtualVideoAction vva = new VirtualVideoAction(str, true) {
+				@Override
+				public boolean enable() {
+					PMS.get().getDynamicPls().add(child);
+					return true;
+				}
+			};
+			vva.setParent(this);
+			dynamicPls.addChildInternal(vva);
+		}
 	}
 }

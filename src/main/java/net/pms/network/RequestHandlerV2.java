@@ -122,7 +122,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
-		if (renderer == null || (renderer != null && ! renderer.loaded)) {
+		if (renderer == null || !renderer.loaded) {
 			// Attempt 2: try to recognize the renderer by matching headers
 			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
 		}

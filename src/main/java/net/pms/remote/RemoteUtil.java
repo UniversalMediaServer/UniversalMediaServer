@@ -11,14 +11,15 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
-import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.FileWatcher;
 import org.apache.commons.io.FileUtils;
@@ -75,15 +76,12 @@ public class RemoteUtil {
 			throw new IOException("no file");
 		}
 		t.sendResponseHeaders(200, f.length());
-		dump(new FileInputStream(f), t.getResponseBody(), null);
+		dump(new FileInputStream(f), t.getResponseBody());
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-	public static void dump(InputStream in, OutputStream os) throws IOException {
-		dump(in, os, null);
-	}
 
-	public static void dump(final InputStream in, final OutputStream os, final StartStopListenerDelegate start) throws IOException {
+	public static void dump(final InputStream in, final OutputStream os) {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -108,9 +106,6 @@ public class RemoteUtil {
 				try {
 					os.close();
 				} catch (IOException e) {
-				}
-				if (start != null) {
-					start.stop();
 				}
 			}
 		};
@@ -171,7 +166,7 @@ public class RemoteUtil {
 		InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
-		dump(in, os, null);
+		dump(in, os);
 	}
 
 	public static boolean directmime(String mime) {
@@ -202,17 +197,25 @@ public class RemoteUtil {
 		return null;
 	}
 
+	public static WebRender matchRenderer(String user, HttpExchange t) {
+		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
+		String confName = WebRender.getBrowserName(browser);
+		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
+		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender)r).getUser()))) ?
+			(WebRender) r : null;
+	}
+
 	public static String getCookie(String name, HttpExchange t) {
 		String cstr = t.getRequestHeaders().getFirst("Cookie");
-		if (StringUtils.isEmpty(cstr)) {
-			return null;
-		}
-		name += "=";
-		for (String str : cstr.trim().split("\\s*;\\s*")) {
-			if (str.startsWith(name)) {
-				return str.substring(name.length());
+		if (! StringUtils.isEmpty(cstr)) {
+			name += "=";
+			for (String str : cstr.trim().split("\\s*;\\s*")) {
+				if (str.startsWith(name)) {
+					return str.substring(name.length());
+				}
 			}
 		}
+		LOGGER.debug("Cookie '{}' not found: {}", name, t.getRequestHeaders().get("Cookie"));
 		return null;
 	}
 
@@ -259,10 +262,13 @@ public class RemoteUtil {
 		return mime.equals(MIME_MP4) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
-	public static boolean bumpAllowed(String ips, HttpExchange t) {
-		IpFilter filter = new IpFilter();
-		filter.setRawFilter(ips);
-		return filter.allowed(t.getRemoteAddress().getAddress());
+	private static IpFilter bumpFilter = null;
+
+	public static boolean bumpAllowed(HttpExchange t) {
+		if (bumpFilter == null) {
+			bumpFilter = new IpFilter(PMS.getConfiguration().getBumpAllowedIps());
+		}
+		return bumpFilter.allowed(t.getRemoteAddress().getAddress());
 	}
 
 	public static String transMime() {
@@ -283,6 +289,43 @@ public class RemoteUtil {
 			LOGGER.debug("Error compiling mustache template: " + e);
 		}
 		return null;
+	}
+
+	public static LinkedHashSet<String> getLangs(HttpExchange t) {
+		String hdr = t.getRequestHeaders().getFirst("Accept-language");
+		LinkedHashSet<String> ret = new LinkedHashSet<String>();
+		if (StringUtils.isEmpty(hdr)) {
+			return ret;
+		}
+
+		String[] tmp = hdr.split(",");
+		for (String l : tmp) {
+			String[] l1 = l.split(";");
+			String str = l1[0];
+			//we need to remove the part after -
+			int pos = str.indexOf("-");
+			if (pos != -1) {
+				 str = str.substring(0, pos);
+			}
+			ret.add(str);
+		}
+		return ret;
+	}
+
+	public static String getFirstLang(HttpExchange t) {
+		LinkedHashSet<String> tmp = getLangs(t);
+		if (tmp.isEmpty()) {
+			return "";
+		}
+		return tmp.iterator().next();
+	}
+
+	public static String getMsgString(String key, HttpExchange t) {
+		String lang = "";
+		if(PMS.getConfiguration().useWebLang()) {
+			lang = getFirstLang(t);
+		}
+		return Messages.getString(key, lang);
 	}
 
 	/**

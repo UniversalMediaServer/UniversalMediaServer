@@ -1,8 +1,11 @@
 package net.pms.configuration;
 
+import com.google.gson.Gson;
 import java.io.File;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -12,10 +15,16 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
+import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.io.OutputParams;
+import net.pms.network.UPNPControl;
 import net.pms.remote.RemoteUtil;
+import net.pms.util.BasicPlayer;
+import net.pms.util.StringUtil;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +39,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private int screenWidth = 0;
 	private int screenHeight = 0;
 	private boolean isTouchDevice = false;
+	private String subLang;
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats = {
@@ -47,6 +57,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int SAFARI = 4;
 	protected static final int PS4 = 5;
 	protected static final int XBOX1 = 6;
+	protected static final int OPERA = 7;
+
+	private StartStopListenerDelegate startStop;
 
 	public WebRender(String user) throws ConfigurationException {
 		super(NOFILE, null);
@@ -57,6 +70,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		fileless = true;
 		String userFmt = pmsconfiguration.getWebTranscode();
 		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
+		startStop = null;
+		subLang = "";
+		if (pmsConfiguration.useWebControl()) {
+			controls = BasicPlayer.PLAYCONTROL|BasicPlayer.VOLUMECONTROL;
+		}
+		pushURL = new ArrayList<>();
 	}
 
 	@Override
@@ -83,25 +102,41 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public void setUA(String ua) {
+		LOGGER.debug("Setting web client ua: {}", ua);
 		this.ua = ua.toLowerCase();
+	}
+
+	public static String getBrowserName(int browser) {
+		switch (browser) {
+			case CHROME:  return "Chrome";
+			case MSIE:    return "Internet Explorer";
+			case FIREFOX: return "Firefox";
+			case SAFARI:  return "Safari";
+			case PS4:     return "Playstation 4";
+			case XBOX1:   return "Xbox One";
+			case OPERA:   return "Opera";
+			default:      return Messages.getString("PMS.142");
+		}
+	}
+
+	public static int getBrowser(String userAgent) {
+		String ua = userAgent.toLowerCase();
+		return
+			ua.contains("chrome")        ? CHROME :
+			(ua.contains("msie") ||
+			ua.contains("trident"))      ? MSIE :
+			ua.contains("firefox")       ? FIREFOX :
+			ua.contains("safari")        ? SAFARI :
+			ua.contains("playstation 4") ? PS4 :
+			ua.contains("xbox one")      ? XBOX1 :
+			ua.contains("opera")         ? OPERA :
+			0;
 	}
 
 	public void setBrowserInfo(String info, String userAgent) {
 		setUA(userAgent);
+		browser = getBrowser(userAgent);
 
-		if (ua.contains("chrome")) {
-			browser = CHROME;
-		} else if (ua.contains("msie")) {
-			browser = MSIE;
-		} else if (ua.contains("firefox")) {
-			browser = FIREFOX;
-		} else if (ua.contains("safari")) {
-			browser = SAFARI;
-		} else if (ua.contains("playstation 4")) {
-			browser = PS4;
-		} else if (ua.contains("xbox one")) {
-			browser = XBOX1;
-		}
 		if (info != null && umsInfo.reset(info).find()) {
 			platform = umsInfo.group(1).toLowerCase();
 			screenWidth = Integer.valueOf(umsInfo.group(2));
@@ -111,20 +146,26 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			LOGGER.debug("Setting {} browser info: platform:{}, screen:{}x{}, isTouchDevice:{}",
 				getRendererName(), platform, screenWidth, screenHeight, isTouchDevice);
 		}
+		active = true;
+		uuid = getConfName() + ":" + ip;
 	}
 
 	@Override
 	public String getRendererName() {
-		String s = pmsconfiguration.isWebAuthenticate() ? user + "@" : "";
-		switch (browser) {
-			case CHROME:  return s + "Chrome";
-			case MSIE:    return s + "Internet Explorer";
-			case FIREFOX: return s + "Firefox";
-			case SAFARI:  return s + "Safari";
-			case PS4:     return s + "Playstation 4";
-			case XBOX1:   return s + "Xbox One";
-			default:      return s + Messages.getString("PMS.142");
-		}
+		return (pmsconfiguration.isWebAuthenticate() ? user + "@" : "") + getBrowserName(browser);
+	}
+
+	@Override
+	public String getConfName() {
+		return getBrowserName(browser);
+	}
+
+	public int getBrowser() {
+		return browser;
+	}
+
+	public String getUser() {
+		return user;
 	}
 
 	@Override
@@ -136,6 +177,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 //			case SAFARI:  return "safari.png"; // TODO
 			case PS4:     return "ps4.png";
 			case XBOX1:   return "xbox-one.png";
+			case OPERA:   return "opera.png";
 			default:      return super.getRendererIcon();
 		}
 	}
@@ -161,7 +203,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public boolean isFirefoxLinuxMp4() {
-		return browser == FIREFOX && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
+		return browser == FIREFOX && platform != null && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
 	}
 
 	public boolean isScreenSizeConstrained() {
@@ -189,6 +231,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	@Override
 	public int getAutoPlayTmo() {
 		return 0;
+	}
+
+	@Override
+	public boolean isNoDynPlsFolder() {
+		return true;
 	}
 
 	public boolean isLowBitrate() {
@@ -403,5 +450,140 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	@Override
 	public boolean addSubtitles() {
 		return true;
+	}
+
+	@Override
+	public BasicPlayer getPlayer() {
+		if (player == null) {
+			player = new WebPlayer(this);
+		}
+		return player;
+	}
+
+	@Override
+	public String getSubLanguage() {
+		if (!useWebSubLang() || StringUtils.isEmpty(subLang)) {
+			return super.getSubLanguage();
+		}
+		return subLang;
+	}
+
+	public void setSubLang(String s) {
+		subLang = s;
+	}
+
+	private ArrayList<String> pushURL;
+
+	public String pushURL() {
+		String str = StringUtils.join(pushURL, ",");
+		pushURL.clear();
+		return str;
+	}
+
+	public void setPushURL(String u) {
+		if (pmsConfiguration.useWebControl()) {
+			pushURL.add(u);
+		}
+	}
+
+	public void start(DLNAResource dlna) {
+		if (getPlayingRes() != dlna) {
+			stop();
+		}
+		setPlayingRes(dlna);
+		if (startStop == null) {
+			startStop = new StartStopListenerDelegate(ip);
+		}
+		startStop.setRenderer(this);
+		startStop.start(getPlayingRes());
+	}
+
+	public void stop() {
+		if (startStop == null) {
+			return;
+		}
+		startStop.stop();
+		startStop = null;
+	}
+
+	public static class WebPlayer extends BasicPlayer.Logical {
+		private HashMap<String, String> data;
+		private Gson gson;
+
+		public WebPlayer(WebRender renderer) {
+			super(renderer);
+			data = new HashMap<>();
+			gson = new Gson();
+			LOGGER.debug("Created web player for " + renderer.getRendererName());
+		}
+
+		@Override
+		public void setURI(String uri, String metadata) {
+			Playlist.Item item = resolveURI(uri, metadata);
+			if (item != null) {
+				DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);
+				if (r != null) {
+					((WebRender)renderer).setPushURL("/play/" + r.getId());
+					return;
+				}
+			}
+			LOGGER.debug("Bad uri " + uri);
+		}
+
+		@Override
+		public void pause() {
+			((WebRender)renderer).setPushURL("ctrl/pause");
+		}
+
+		@Override
+		public void play() {
+			((WebRender)renderer).setPushURL("ctrl/play");
+		}
+
+		@Override
+		public void stop() {
+			((WebRender)renderer).setPushURL("ctrl/stop");
+		}
+
+		@Override
+		public void mute() {
+			((WebRender)renderer).setPushURL("ctrl/mute");
+		}
+
+		@Override
+		public void setVolume(int volume) {
+			((WebRender)renderer).setPushURL("ctrl/setvolume=" + volume);
+		}
+
+		@Override
+		public int getControls() {
+			return PLAYCONTROL|VOLUMECONTROL;
+		}
+
+		@Override
+		public void start() {
+			DLNAResource d = renderer.getPlayingRes();
+			state.name = d.getDisplayName();
+			if (d.getMedia() != null) {
+				state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
+			}
+		}
+
+		public void setData(String jsonData) {
+			data = gson.fromJson(jsonData, data.getClass());
+			String s = data.get("playback");
+			state.playback = "STOPPED".equals(s) ? STOPPED :
+				"PLAYING".equals(s) ? PLAYING :
+				"PAUSED".equals(s) ? PAUSED : -1;
+			state.mute = "0".equals(data.get("mute")) ? false : true;
+			s = data.get("volume");
+			state.volume = s == null ? 0 : Integer.valueOf(s);
+			long seconds = Integer.valueOf(data.get("position"));
+			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
+			alert();
+			if (state.playback == STOPPED) {
+				((WebRender)renderer).stop();
+			}
+		}
 	}
 }

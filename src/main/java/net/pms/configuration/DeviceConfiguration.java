@@ -12,7 +12,6 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -32,7 +31,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	private static HashMap<String, PropertiesConfiguration> deviceConfs;
 	private static File deviceDir;
 
-	public DeviceConfiguration() throws ConfigurationException {
+	public DeviceConfiguration() {
 		super(0);
 	}
 
@@ -87,7 +86,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		// Initialize our internal RendererConfiguration vars
 		renderCache = new HashMap<String, DLNAResource>();
 		sortedHeaderMatcher = ref.sortedHeaderMatcher;
-		player = null;
+		// Note: intentionally omitting 'player = null' so as to preserve player state when reloading
 		loaded = true;
 		this.ref = ref;
 
@@ -113,7 +112,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return uuid != null ? uuid : getAddress().toString().substring(1);
 	}
 
-	public PropertiesConfiguration initConfiguration(InetAddress ia) throws ConfigurationException {
+	public PropertiesConfiguration initConfiguration(InetAddress ia) {
 		String id = uuid != null ? uuid : ia != null ? ia.toString().substring(1) : null;
 		if (id != null && deviceConfs.containsKey(id)) {
 			deviceConf = deviceConfs.get(id);

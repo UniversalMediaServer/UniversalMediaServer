@@ -101,6 +101,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
 	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
+	protected static final String KEY_CHROMECAST_EXT = "chromecast_extension";
+	protected static final String KEY_CHROMECAST_DBG = "chromecast_debug";
 	protected static final String KEY_CODE_CHARS = "code_charset";
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
@@ -109,6 +111,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
+	protected static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
+	protected static final String KEY_DYNAMIC_PLS_HIDE = "dynamic_playlist_hide_folder";
+	protected static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
+	protected static final String KEY_DYNAMIC_PLS_SAVE_PATH = "dynamic_playlist_save_path";
 	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
@@ -196,8 +202,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
+	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
 	protected static final String KEY_PING_PATH = "ping_path";
+	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
+	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL= "playlist_auto_add_all";
+	protected static final String KEY_PLAYLIST_AUTO_PLAY= "playlist_auto_play";
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
@@ -254,12 +264,15 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	protected static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
+	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
+	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
 	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome_mkv_as_webm_spoof";
 	protected static final String KEY_WEB_FIREFOX_LINUX_MP4 = "web_firefox_linux_mp4";
 	protected static final String KEY_WEB_CONF_PATH = "web_conf";
 	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
+	protected static final String KEY_WEB_CONTROL = "web_control";
 	protected static final String KEY_WEB_ENABLE = "web_enable";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
@@ -2932,6 +2945,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
 	}
 
+	public int getLiveSubtitlesTimeout() {
+		return getInt(KEY_LIVE_SUBTITLES_TMO, 0) * 24 * 3600 * 1000;
+	}
+
+	public void setLiveSubtitlesTimeout(int t) {
+		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
+	}
+
 	public boolean isVlcUseHardwareAccel() {
 		return getBoolean(KEY_VLC_USE_HW_ACCELERATION, false);
 	}
@@ -3300,6 +3321,18 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getInt(KEY_WEB_LOW_SPEED, 0);
 	}
 
+	public boolean useWebLang() {
+		return getBoolean(KEY_WEB_BROWSE_LANG, false);
+	}
+
+	public boolean useWebSubLang() {
+		return getBoolean(KEY_WEB_BROWSE_SUB_LANG, false);
+	}
+
+	public boolean useWebControl() {
+		return getBoolean(KEY_WEB_CONTROL, true);
+	}
+
 	public boolean useCode() {
 		return getBoolean(KEY_CODE_USE, true);
 	}
@@ -3320,4 +3353,51 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 		return cs;
 	}
+
+	public boolean isDynamicPls() {
+		return getBoolean(KEY_DYNAMIC_PLS, false);
+	}
+
+	public boolean isDynamicPlsAutoSave() {
+	   	return getBoolean(KEY_DYNAMIC_PLS_AUTO_SAVE, false);
+	}
+
+	public String getDynamicPlsSavePath() {
+		String path = getString(KEY_DYNAMIC_PLS_SAVE_PATH, "");
+		if (StringUtils.isEmpty(path)) {
+			path = getDataFile("dynpls");
+			// ensure that this path exists
+			new File(path).mkdirs();
+		}
+		return path;
+	}
+
+	public String getDynamicPlsSaveFile(String str) {
+		return getDynamicPlsSavePath() + File.separator + str;
+	}
+
+	public boolean isHideSavedPlaylistFolder() {
+		return getBoolean(KEY_DYNAMIC_PLS_HIDE, false);
+	}
+
+	public boolean isAutoContinue() {
+		return getBoolean(KEY_PLAYLIST_AUTO_CONT, false);
+	}
+
+	public boolean isAutoAddAll() {
+		return getBoolean(KEY_PLAYLIST_AUTO_ADD_ALL, false);
+	}
+
+	public String getAutoPlay() {
+		return getString(KEY_PLAYLIST_AUTO_PLAY, null);
+	}
+
+	public boolean useChromecastExt() {
+		return getBoolean(KEY_CHROMECAST_EXT, true);
+	}
+
+   	public boolean isChromecastDbg() {
+		return getBoolean(KEY_CHROMECAST_DBG, false);
+	}
+
 }

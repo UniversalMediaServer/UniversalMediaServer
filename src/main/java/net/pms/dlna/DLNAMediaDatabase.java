@@ -65,7 +65,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "1";
+	private final String latestVersion = "2";
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -90,18 +90,9 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_GENRE = 64;
 
 	public DLNAMediaDatabase(String name) {
-		String dir = "database";
 		dbName = name;
-		File fileDir = new File(dir);
-
-		if (Platform.isWindows()) {
-			String profileDir = configuration.getProfileDirectory();
-			url = String.format("jdbc:h2:%s\\%s/%s", profileDir, dir, dbName);
-			fileDir = new File(profileDir, dir);
-		} else {
-			url = Constants.START_URL + dir + "/" + dbName;
-		}
-		dbDir = fileDir.getAbsolutePath();
+		dbDir = new File(Platform.isWindows() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
+		url = Constants.START_URL + dbDir + "/" + dbName;
 		LOGGER.debug("Using database URL: " + url);
 		LOGGER.info("Using database located at: " + dbDir);
 

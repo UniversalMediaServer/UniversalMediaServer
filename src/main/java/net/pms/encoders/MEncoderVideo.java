@@ -46,7 +46,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.CustomJButton;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
@@ -54,7 +54,6 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -217,7 +216,7 @@ public class MEncoderVideo extends Player {
 				textArea.setText(configuration.getMencoderCodecSpecificConfig());
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new java.awt.Dimension(900, 100));
+				scrollPane.setPreferredSize(new Dimension(900, 100));
 
 				final JTextArea textAreaDefault = new JTextArea();
 				textAreaDefault.setText(DEFAULT_CODEC_CONF_SCRIPT);
@@ -226,7 +225,7 @@ public class MEncoderVideo extends Player {
 				textAreaDefault.setEditable(false);
 				textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
 				JScrollPane scrollPaneDefault = new JScrollPane(textAreaDefault);
-				scrollPaneDefault.setPreferredSize(new java.awt.Dimension(900, 450));
+				scrollPaneDefault.setPreferredSize(new Dimension(900, 450));
 
 				JPanel customPanel = new JPanel(new BorderLayout());
 				intelligentsync = new JCheckBox(Messages.getString("MEncoderVideo.3"), configuration.isMencoderIntelligentSync());
@@ -701,7 +700,7 @@ public class MEncoderVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (StringUtils.isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
+		if (isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -733,7 +732,7 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (mediaRenderer.isTranscodeToH264() && !isXboxOneWebVideo) {
+			if ((mediaRenderer.isTranscodeToH264() || mediaRenderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
 				if (
 					mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -990,7 +989,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
-		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264();
+		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265();
 
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
@@ -1244,7 +1243,7 @@ public class MEncoderVideo extends Player {
 			int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 			int rendererMaxBitrates[] = new int[2];
 
-			if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
+			if (isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 				rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 			}
 
@@ -1265,6 +1264,22 @@ public class MEncoderVideo extends Player {
 			}
 
 			String encodeSettings = "";
+
+			/**
+			 * Fixes aspect ratios on Sony TVs
+			 */
+			String aspectRatioLavcopts = "autoaspect=1";
+			if (
+				!dvd &&
+				(
+					params.mediaRenderer.isKeepAspectRatio() &&
+					!"16:9".equals(media.getAspectRatioContainer())
+				) &&
+				!configuration.isMencoderScaler()
+			) {
+				aspectRatioLavcopts = "aspect=16/9";
+			}
+
 			if (isXboxOneWebVideo || (configuration.getMPEG2MainSettings() != null && !isTranscodeToH264)) {
 				// Set MPEG-2 video quality
 				String mpeg2Options = configuration.getMPEG2MainSettings();
@@ -1299,7 +1314,7 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
+				encodeSettings = "-lavcopts " + aspectRatioLavcopts + vcodecString + acodec + abitrate +
 					":threads=" + (wmv && !params.mediaRenderer.isXbox360() ? 1 : configuration.getMencoderMaxThreads()) +
 					("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
@@ -1333,9 +1348,9 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
+				encodeSettings = "-lavcopts " + aspectRatioLavcopts + vcodecString + acodec + abitrate +
 					":threads=" + configuration.getMencoderMaxThreads() +
-					":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+					":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
 			}

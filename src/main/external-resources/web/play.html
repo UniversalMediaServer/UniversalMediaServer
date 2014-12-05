@@ -6,7 +6,9 @@
 		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
 		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
-		<title>{{name}}</title>
+		<script src="/files/jquery.min.js"></script>
+        <script src="/files/jquery.ums.js"></script>
+        <title>{{name}}</title>
 	</head>
 	<body id="ContentPage">
 		<script>
@@ -40,6 +42,9 @@
 				<div id="toolbar">
 					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
 					<button id="next" onclick="next()"{{nextAttr}}>>></button>
+{{#plsSign}}
+                    <button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;">{{plsSign}}</button>
+{{/plsSign}}
 {{#isVideo}}
 					<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>
 {{/isVideo}}
@@ -47,11 +52,62 @@
 			</div>
 			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
 		</div>
-{{#autoContinue}}
 		<script>
-			document.getElementById('player').addEventListener('ended', next);
-		</script>
+			var state = {};
+			var player = document.getElementById('player');
+
+			function status(k, v, wait) {
+				//console.log('STATUS '+k+': '+v);
+				state[k] = v;
+				if (! wait) {
+					$.post('/playerstatus/', JSON.stringify(state));
+				}
+			}
+
+			function volumeStatus() {
+				status('mute', player.muted ? '1' : '0', true);
+				status('volume', (player.volume * 100).toFixed(0));
+			}
+
+			player.addEventListener('playing', function(){status('playback', 'PLAYING');});
+			player.addEventListener('pause', function(){status('playback', 'PAUSED');});
+			player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
+			player.addEventListener('ended', function(){status('playback', 'STOPPED');});
+			player.addEventListener('error', function(){status('playback', 'STOPPED');});
+			player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
+			player.addEventListener('volumechange', volumeStatus);
+{{#autoContinue}}
+			player.addEventListener('ended', next, false);
 {{/autoContinue}}
+			window.onbeforeunload = function(){status('playback','STOPPED');}
+			// Send initial status
+			volumeStatus();
+{{#push}}
+			umsPush();
+
+			function control(args) {
+				//console.log('control: '+args);
+				var player = document.getElementById('player');
+				switch (args[0]) {
+					case 'play':
+						player.play();
+						break;
+					case 'pause':
+						player.pause(!player.paused);
+						break;
+					case 'stop':
+						player.pause();
+						break;
+					case 'setvolume':
+						player.volume = args[1]/100;
+						break;
+					case 'mute':
+						player.muted = !player.muted;
+						break;
+				}
+			}
+{{/push}}			
+		</script>
 	</body>
 </html>
 

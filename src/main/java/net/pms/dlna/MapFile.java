@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import net.pms.configuration.MapFileConfiguration;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
@@ -88,10 +90,12 @@ public class MapFile extends DLNAResource {
 					addChild(new SevenZipFile(f));
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));
-				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") || lcFilename.endsWith(".pls")) {
-					addChild(new PlaylistFolder(f));
-				} else if (lcFilename.endsWith(".cue")) {
-					addChild(new CueFolder(f));
+				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") ||
+						lcFilename.endsWith(".pls") || lcFilename.endsWith(".cue") || lcFilename.endsWith(".ups")) {
+					DLNAResource d = PlaylistFolder.getPlaylist(lcFilename, f.getAbsolutePath(), 0);
+					if (d != null) {
+						addChild(d);
+					}
 				} else {
 					/* Optionally ignore empty directories */
 					if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
@@ -330,38 +334,6 @@ public class MapFile extends DLNAResource {
 		discoverable = null;
 		discoverChildren(str);
 		analyzeChildren(-1);
-	}
-
-	private boolean foundInList(List<File> files, DLNAResource dlna) {
-		for (Iterator<File> it = files.iterator(); it.hasNext();) {
-			File file = it.next();
-			if (!file.isHidden() && isNameMatch(dlna, file) && (isRealFolder(dlna) || isSameLastModified(dlna, file))) {
-				it.remove();
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean isSameLastModified(DLNAResource dlna, File file) {
-		return dlna.getLastModified() == file.lastModified();
-	}
-
-	private boolean isRealFolder(DLNAResource dlna) {
-		return dlna instanceof RealFile && dlna.isFolder();
-	}
-
-	private boolean isNameMatch(DLNAResource dlna, File file) {
-		return (dlna.getName().equals(file.getName()) || isDVDIsoMatch(dlna, file));
-	}
-
-	private boolean isDVDIsoMatch(DLNAResource dlna, File file) {
-		if (dlna instanceof DVDISOFile) {
-			DVDISOFile dvdISOFile = (DVDISOFile) dlna;
-			return dvdISOFile.getFilename().equals(file.getName());
-		} else {
-			return false;
-		}
 	}
 
 	@Override

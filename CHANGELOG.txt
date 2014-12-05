@@ -1,9 +1,69 @@
-5.0.0-a2 - 2014-10-??
-	Changes unique to 5.0.0-a2:
-		General:
-			
+5.0.0-b1 - 2014-11-?? - Changes since 5.0.0-a1
+	General:
+		Major redesign of the status tab to show per-renderer information
+		Improved player control
+		Includes the possibility to allow UMS to control renders automatically
+		Web player can also be controlled
+		Automatic reloading of external files
+		Documentation updates
+		New xmb playlist folders with optional automatic starting, looping, and saving, editable from web or xmb
+		A Dynamic xmb playlist for on-the-fly playlist creation from web or xmb
+		Better bump/gui player playlists with optional automatic looping
+		Push playback support for chromecast and web browsers
+		Improved Chromecast support (cast from UMS webui/gui)
+		All changes from 4.2.1, 4.2.2 and 4.3.0
 
-4.2.1 - 2014-10-??
+4.3.0 - 2014-12-06
+
+	General:
+		Added the ability to transcode to H.265
+		Improved filename prettifying
+		Improved support for many formats and codecs
+		Fixed VLC engine
+		Formatted the default renderer file
+	Renderers:
+		Added support for LG UB820V TVs
+		Added support for Logitech Squeezebox
+		Fixed video aspect ratios on Philips and Sony TVs
+		Improved support for Hama IR320
+		Improved support for LG LM660 TVs
+		Improved support for Netgem N7700
+		Improved support for Roku 3
+		Improved support for Samsung EH6070 TVs
+		Improved support for Samsung H4500 TVs
+		Improved support for Samsung HU7000 TVs
+		Improved support for Samsung HU9000 TVs
+		Improved support for Xbox 360
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
+
+4.2.2 - 2014-11-17
+
+	General:
+		Improved compatibility of H.264 transcoding when using MEncoder
+		Customized buffer color
+		Fixed Live Subtitles
+	Renderers:
+		Added support for Hama IR320 (thanks, Enrice!)
+		Added support for Roku 3 (incomplete) (thanks, weyrava and drocket!)
+		Added support for Panasonic ET60 Series TVs (thanks, Enrice!)
+		Added support for Samsung F5100 Blu-ray Disc players (thanks, maracucho!)
+		Added support for Samsung Galaxy S5 (thanks, FlyMcDoogal!)
+		Added support for Sony PlayStation Vita (incomplete) (thanks, Verequies, Balmung and xubz!)
+		Fixed Xbox One detection (thanks, Whogie!)
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated JNA to 4.1.0, which fixes bugs
+		Updated Maven Exec Plugin to 1.3.2, which fixes bugs
+		Updated Maven Findbugs Plugin to 3.0.0, which fixes bugs
+		Updated Maven Javadoc Plugin to 2.10.1, which fixes bugs
+		Updated Maven Jdepend Plugin to 2.0, which fixes bugs
+		Updated Maven Site Plugin to 3.4, which fixes bugs
+		Updated Netty to 3.9.5, which fixes bugs
+
+4.2.1 - 2014-11-01
+
 	General:
 		Increased speed of FFmpeg transcoding to H.264
 		Updated UMS.conf
@@ -12,10 +72,18 @@
 		Minor GUI fixes and improvements
 		Fontconfig caches are not generated if subtitles are disabled
 		Renamed most renderer config files
+		Fixed special characters in folder names not displaying correctly
 	Renderers:
 		Added support for LG WebOS TVs
 		Added support for Panasonic SC-BTT Blu-ray Disc Home Theater Sound Systems
+		Added support for Samsung ES8000 TVs
+		Added support for Samsung F5900 Blu-ray Disc players
 		Added support for Technisat S1+
+		Improved detection of Windows Media Player
+		Improved support for H.264 videos on some renderers
+		Improved support for Cambridge Audio Azur BD players
+		Improved support for Samsung WiseLink renderers
+		Improved support for subtitles on Sony Bravia EX TVs (thanks, master-nevi!)
 		Improved support for Panasonic TVs
 		Improved support for Xbox One
 		Fixed seeking on Samsung E+ Series TVs
@@ -35,6 +103,7 @@
 			Added support for UPnP connections and playback
 			Added the option to use info from IMDB with filename prettifying
 			Added HTML5 video support to the web interface
+			Create custom per-device configuration files to override any general renderer or UMS setting
 			Minor tweaks to the GUI
 
 	Changes from the 4.x release branch:
