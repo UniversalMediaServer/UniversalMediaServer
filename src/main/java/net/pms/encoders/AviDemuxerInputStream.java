@@ -505,5 +505,5 @@ public class AviDemuxerInputStream extends InputStream {
 		}
 	}
 
-	public static void writePCMHeader(OutputStream aOut, long fileLength, int nbAudio, int rate, int sampleSize, int bitsPerSample) throws IOException { }
+	public static void writePCMHeader(OutputStream aOut, long fileLength, int nbAudio, int rate, int sampleSize, int bitsPerSample) { }
 }

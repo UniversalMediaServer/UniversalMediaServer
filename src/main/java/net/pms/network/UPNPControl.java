@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import net.pms.util.BasicPlayer;
 import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.UpnpService;
@@ -113,8 +114,7 @@ public class UPNPControl {
 			for (T i : get(uuid).values()) {
 				switch (property) {
 					case ACTIVE:
-						i.active = (boolean) value;
-						i.alert();
+						i.setActive((boolean) value);
 						break;
 					case CONTROLS:
 						i.controls = (int) value;
@@ -133,6 +133,7 @@ public class UPNPControl {
 		public String uuid;
 		public String instanceID = "0"; // FIXME: unclear in what precise context a media renderer's instanceID != 0
 		public HashMap<String, String> data;
+		public Map<String, String> details;
 		public LinkedHashSet<ActionListener> listeners;
 		private Thread monitor;
 		public boolean active;
@@ -140,19 +141,21 @@ public class UPNPControl {
 		public Renderer(String uuid) {
 			this();
 			this.uuid = uuid;
-			controls = 0;
 		}
 
 		public Renderer() {
-			data = new HashMap<String, String>();
-			listeners = new LinkedHashSet<ActionListener>();
+			controls = 0;
+			active = false;
+			data = new HashMap<>();
+			details = null;
+			listeners = new LinkedHashSet<>();
 			event = new ActionEvent(this, 0, null);
 			monitor = null;
 			data.put("TransportState", "STOPPED");
 		}
 
 		public void alert() {
-			if ((monitor == null || !monitor.isAlive()) && !"STOPPED".equals(data.get("TransportState"))) {
+			if (isUpnpDevice(uuid) && (monitor == null || !monitor.isAlive()) && !"STOPPED".equals(data.get("TransportState"))) {
 				monitor();
 			}
 			for (ActionListener l : listeners) {
@@ -195,6 +198,14 @@ public class UPNPControl {
 
 		public boolean hasVolumeControls() {
 			return (controls & BasicPlayer.VOLUMECONTROL) != 0;
+		}
+
+		public boolean isActive() {
+			return active;
+		}
+
+		public void setActive(boolean b) {
+			active = b;
 		}
 	}
 
@@ -306,6 +317,10 @@ public class UPNPControl {
 			}
 		}
 		return false;
+	}
+
+	public static boolean isUpnpDevice(String uuid) {
+		return getDevice(uuid) != null;
 	}
 
 	public static boolean isActive(String uuid, String id) {
@@ -565,7 +580,7 @@ public class UPNPControl {
 				new ActionCallback.Default(a, upnpService.getControlPoint()).run();
 				if (log) {
 					for (ActionArgumentValue arg : a.getOutput()) {
-						LOGGER.debug("Received upnp {}: {}={} from {}[{}]", name, instanceID, service, arg.getArgument().getName(), arg.toString(), name, instanceID);
+						LOGGER.debug("Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());
 					}
 				}
 				return a;

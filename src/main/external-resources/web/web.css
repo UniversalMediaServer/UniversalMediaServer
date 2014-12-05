@@ -53,6 +53,9 @@ body#ContentPage {
 
 #ContentPage #Menu #HomeButton {
 	background: url('/files/menu-left-content.png');
+	background-repeat: no-repeat;
+	background-position: left bottom;
+	background-size: contain;
 	width: 125px;
 	height: 93px;
 	display: block;
@@ -138,19 +141,35 @@ ul#Media .thumb {
 	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
 	width: auto;
 	float: left;
-	margin : 0;
+	display:block;
+	margin : 0;	
 }
 
 ul#Media .caption {
 	display: block;
-	max-width: 221px;
+	max-width: 205px;
 	height: 16px;
 	overflow: hidden;
 	float: left;
-	clear: left;
 	font-size: 12px;
 	color: #444;
 	margin : 0;
+}
+
+.playlist_add {
+	background: url('/files/bump/skin/add16.png') no-repeat;
+}
+
+.playlist_del {
+	background: url('/files/bump/skin/remove16.png') no-repeat;
+}
+
+.playlist_add, .playlist_del {
+	width: 16px;
+	height: 16px;
+	display: block;
+	float: right;
+	margin-right:1px;
 }
 
 ul#Media li:hover .caption {
@@ -172,6 +191,11 @@ ul#Media .caption:hover {
 
 .bumpIcon:hover {
 	background-position: 0 -16px;
+}
+
+.floatRight {
+	float: right;
+	clear: left;
 }
 
 #DownloadLink {

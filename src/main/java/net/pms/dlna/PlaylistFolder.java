@@ -202,7 +202,6 @@ public class PlaylistFolder extends DLNAResource {
 		if (! isweb) {
 			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
-
 		if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
 		}
@@ -232,6 +231,8 @@ public class PlaylistFolder extends DLNAResource {
 					return new PlaylistFolder(name, uri, type);
 				case "cue":
 					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
+				case "ups":
+					return new Playlist(name, uri);
 			}
 		}
 		return null;

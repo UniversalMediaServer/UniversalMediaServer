@@ -43,6 +43,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.io.WindowsNamedPipe;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
@@ -492,9 +493,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setValue(int v, String msg) {
-		st.getJpb().setValue(v);
-		st.getJpb().setString(msg);
+	public void updateBuffer() {
+		st.updateCurrentBitrate();
 	}
 
 	/**
@@ -548,14 +548,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void setStatusLine(String line) {
-		if (line == null || "".equals(line)) {
+		/*if (line == null || "".equals(line)) {
 			line = "";
 			status.setBorder(BorderFactory.createEmptyBorder());
 		} else {
 			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
 		}
 
-		status.setText(line);
+		status.setText(line);*/
 	}
 
 	@Override
@@ -570,6 +570,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void serverReady() {
+		st.updateMemoryUsage();
 		gt.addRenderers();
 		pt.addPlugins();
 	}

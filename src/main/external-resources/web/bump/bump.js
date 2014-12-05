@@ -119,6 +119,7 @@ var bump = (function() {
 				found = 0;
 			}
 			setSelect('#bplaylist', vars['playlist'], selindex > -1 ? selindex:found);
+			tog('#bremovebutton,#bclearbutton', $('#bplaylist > option').length < 2);
 			if (editmode == 1) editmode++;
 		}
 	}
@@ -133,7 +134,7 @@ var bump = (function() {
 			$('#bumpvol').val(state.volume);
 		}
 		$('#bumpvol').attr('disabled', state.mute === 'true');
-		$('#bumppos').html(state.position+(state.duration == '0:00' ? "" : (' / '+state.duration)));
+		$('#bumppos').html(state.position+(state.position == '0:00' ? '' : state.duration == '0:00' ? '' : (' / '+state.duration)));
 		status();
 	}
 
@@ -187,8 +188,9 @@ var bump = (function() {
 		return img;
 	}
 
-	function addButton(name, parent) {
-		var b = $('<a class="bumpbtn" id="b'+name+'button" href="javascript:bump.press(\''+name+'\')"/>');
+	function addButton(name, parent, tooltip) {
+		var b = $('<a class="bumpbtn" id="b'+name+'button" href="javascript:bump.press(\''+name+'\')"'+
+			(tooltip ? (' title="'+tooltip+'"'):'')+'/>');
 		$(parent).append(b);
 		b.css({
 			background:'url('+img[name]+') no-repeat center center',
@@ -214,8 +216,8 @@ var bump = (function() {
 		setImages: function (i) {
 			return setImages(i);
 		},
-		addButton: function (name, parent) {
-			addButton(name, parent);
+		addButton: function (name, parent, tooltip) {
+			addButton(name, parent, tooltip);
 		},
 		setVol: function (v) {
 			setVol(v);

@@ -116,7 +116,7 @@ public class PipeProcess {
 		}
 	}
 
-	public BufferedOutputFile getDirectBuffer() throws IOException {
+	public BufferedOutputFile getDirectBuffer() {
 		if (!Platform.isWindows()) {
 			return null;
 		}

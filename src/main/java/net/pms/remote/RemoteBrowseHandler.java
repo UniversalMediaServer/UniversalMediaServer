@@ -1,5 +1,6 @@
 package net.pms.remote;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.UMSUtils;
@@ -36,7 +38,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
-		boolean upnpAllowed = RemoteUtil.bumpAllowed(PMS.getConfiguration().getBumpAllowedIps(), t);
+		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		if (StringUtils.isNotEmpty(search) && !(res instanceof CodeEnter)) {
 			UMSUtils.postSearch(res, search);
@@ -56,18 +58,42 @@ public class RemoteBrowseHandler implements HttpHandler {
 			String thumb = "/thumb/" + idForWeb;
 			String name = StringEscapeUtils.escapeHtml(r.resumeName());
 
+			if (r instanceof VirtualVideoAction) {
+				// Let's take the VVA real early
+				sb.setLength(0);
+				HashMap<String, String> item = new HashMap<>();
+				sb.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
+						.append("', true);return false;\" title=\"").append(name).append("\">")
+						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("</a>");
+				item.put("thumb", sb.toString());
+				sb.setLength(0);
+				sb.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
+						.append("', true);return false;\" title=\"").append(name).append("\">")
+						.append("<span class=\"caption\">").append(name).append("</span>")
+						.append("</a>");
+				item.put("caption", sb.toString());
+				item.put("bump", "<span class=\"floatRight\"></span>");
+				media.add(item);
+				hasFile = true;
+				continue;
+			}
+
 			if (r.isFolder()) {
 				sb.setLength(0);
 				// The resource is a folder
 				String p = "/browse/" + idForWeb;
+				String txt = RemoteUtil.getMsgString("Web.8", t);
 				if (r.getClass().getName().contains("SearchFolder")) {
 					// search folder add a prompt
 					// NOTE!!!
 					// Yes doing getClass.getname is REALLY BAD, but this
 					// is to make legacy plugins utilize this function as well
-					sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+					sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
+					   .append(txt).append("');\" title=\"").append(name).append("\">");
 				} else {
-					sb.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+					sb.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
+					  .append("','").append(txt).append("');\" title=\"").append(name).append("\">");
 				}
 				sb.append("<span>").append(name).append("</span>");
 				sb.append("</a>");
@@ -77,15 +103,25 @@ public class RemoteBrowseHandler implements HttpHandler {
 				// The resource is a media file
 				sb.setLength(0);
 				HashMap<String, String> item = new HashMap<>();
-				if (upnpAllowed && !(r instanceof VirtualVideoAction)) {
-					// VVAs aren't bumpable
+				if (upnpAllowed) {
 					if (upnpControl) {
 						sb.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 							.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-							.append(name.replace("'", "\\'")).append("')\" title=\"Play on another renderer\"></a>");
+							.append(name.replace("'", "\\'")).append("')\" title=\"")
+							.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
 					} else {
-						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
-							.append("')\" title=\"No other renderers available\"></a>");
+						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('")
+						   .append(RemoteUtil.getMsgString("Web.2", t))
+						   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
+					}
+					if (r.getParent() instanceof Playlist) {
+						sb.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
+							.append(idForWeb).append("', true);return false;\" title=\"")
+						    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
+					} else {
+						sb.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
+							.append(idForWeb).append("', false);return false;\" title=\"")
+						    .append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
 					}
 				} else {
 					// ensure that we got a string
@@ -95,22 +131,23 @@ public class RemoteBrowseHandler implements HttpHandler {
 				item.put("bump", sb.toString());
 				sb.setLength(0);
 
-				if (WebRender.supports(r)) {
+				if (WebRender.supports(r) || r.isResume()) {
 					sb.append("<a href=\"/play/").append(idForWeb)
-						.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">")
+						.append("\" title=\"").append(name).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());
 					sb.setLength(0);
 					sb.append("<a href=\"/play/").append(idForWeb)
-						.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">")
+						.append("\" title=\"").append(name).append("\">")
 						.append("<span class=\"caption\">").append(name).append("</span>")
 						.append("</a>");
 					item.put("caption", sb.toString());
 				} else if (upnpControl && upnpAllowed) {
 					// Include it as a web-disabled item so it can be thrown via upnp
-					sb.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"")
-						.append(" title=\"").append(name).append(" (NOT PLAYABLE IN BROWSER)\">")
+					sb.append("<a class=\"webdisabled\" href=\"javascript:alert('")
+						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
+						.append(" title=\"").append(name).append(" " + RemoteUtil.getMsgString("Web.7", t) + "\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());
@@ -130,6 +167,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		vars.put("noFoldersCSS", showFolders ? "" : " class=\"noFolders\"");
 		vars.put("folders", folders);
 		vars.put("media", media);
+		if (configuration.useWebControl()) {
+			vars.put("push", true);
+		}
 
 		return parent.getResources().getTemplate("browse.html").execute(vars);
 	}

@@ -17,7 +17,7 @@ function changeMargins() {
 			// Normalize cell heights for current row
 			for(var c=row_start; c <= i; c++) {
 				var cell_w = row_h * aspect[c],
-					caption_w = cell_w - 32;
+					caption_w = cell_w - 48;
 				$(cells[c]).find('.caption').css({
 					width : caption_w + 'px',
 					maxWidth : caption_w + 'px',
@@ -36,6 +36,26 @@ function changeMargins() {
 	}
 }
 
+function scrollActions() {
+	if ($(window).width() > 1080) {
+		if ($(window).scrollTop() === 0) {
+			$("#Menu").animate({height: 95}, 200);
+			$("#ContentPage #Menu #HomeButton").animate({height: 93}, 200);
+			$("ul#Folders").animate({top: 94}, 200);
+			$("ul#Media").animate({paddingTop: 115}, 200);
+		} else {
+			$("#Menu").animate({height: 53}, 200);
+			$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
+			$("ul#Folders").animate({top: 52}, 200);
+			$("ul#Media").animate({paddingTop: 73}, 200);
+		}
+	} else {
+		$("#Menu").animate({height: 53}, 200);
+		$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
+		$("ul#Media").animate({paddingTop: 20}, 200);
+	}
+}
+
 $(document).ready(function() {
 	if ($('#Media').length) {
 		$(window).bind('load resize', changeMargins);
@@ -45,12 +65,42 @@ $(document).ready(function() {
 			return false;
 		});
 	}
+	if ($('#Menu').length) {
+		$(window).bind('load resize scroll', scrollActions);
+	}
 });
 
-function searchFun(url) {
-	var str = prompt("Enter search string:");
+function searchFun(url, txt) {
+	var str = prompt(txt);
 	if (str !== null) {
 		window.location.assign(url+'?str='+str)
 	}
 	return false;
 }
+
+function umsAjax(u, reload) {
+	$.ajax({url: u}).done(function() {
+		if(reload) {
+			window.location.reload();
+		}
+	});
+}
+
+function umsPush() {
+	setInterval(function(){
+		$.ajax({ url: "/push", success: function(newurl){
+			if(newurl) {
+				var ops = newurl.split(","), i;
+				for (i=0; i < ops.length; i++) {
+					var ctrl = ops[i].indexOf('ctrl/');
+					if (ctrl > -1) {
+						control(ops[i].slice(ctrl+5).split('='));
+					} else {
+						window.location.replace(ops[i]);
+					}
+				}
+			}
+		}});
+	}, 1000);
+}
+

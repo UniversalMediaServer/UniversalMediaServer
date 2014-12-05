@@ -124,7 +124,7 @@ public class FFmpegDVRMSRemux extends Player {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
-	) throws IOException {
+	) {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();

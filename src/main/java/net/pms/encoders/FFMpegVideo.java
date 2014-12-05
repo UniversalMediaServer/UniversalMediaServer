@@ -390,10 +390,14 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToH264()) {
+			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
-					transcodeOptions.add("libx264");
+					if (renderer.isTranscodeToH264()) {
+						transcodeOptions.add("libx264");
+					} else {
+						transcodeOptions.add("libx265");
+					}
 				}
 				if (!customFFmpegOptions.contains("-preset")) {
 					transcodeOptions.add("-preset");
@@ -845,7 +849,6 @@ public class FFMpegVideo extends Player {
 		String prependTraceReason = "Switching from FFmpeg to MEncoder to transcode subtitles because ";
 		if (
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
-			configuration.isFFmpegDeferToMEncoderForSubtitles() &&
 			params.sid != null &&
 			!(
 				!configuration.getHideTranscodeEnabled() &&
@@ -1401,32 +1404,6 @@ public class FFMpegVideo extends Player {
 
 	public static void deleteSubs() {
 		FileUtils.deleteQuietly(new File(_configuration.getDataFile(SUB_DIR)));
-	}
-
-	private void getOriginalResolution(String subtitles, int originalWidth, int originalHeight) throws IOException {
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
-		String line;
-		boolean resolved = false;
-		while ((line = input.readLine()) != null) {
-			if (line.contains("[Script Info]")) {
-				while ((line = input.readLine()) != null) {
-					if (isNotBlank(line)) {
-						if (line.contains("PlayResX:")) {
-							originalWidth = Integer.parseInt(line.substring(9).trim());
-						} else if (line.contains("PlayResY:")) {
-							originalHeight = Integer.parseInt(line.substring(9).trim());
-						}
-					} else {
-						resolved = true;
-						break;
-					}	
-				}
-			}
-			if (resolved) {
-				input.close();
-				break;
-			}
-		}
 	}
 
 	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {

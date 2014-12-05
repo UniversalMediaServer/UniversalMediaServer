@@ -11,14 +11,14 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.util.BasicPlayer;
-import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 
 public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 8972730138916895247L;
 
-	private BasicPlayer player;
-	private AbstractAction add, remove, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
+	private BasicPlayer.Logical player;
+	private AbstractAction add, remove, clear, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
 	private JLabel position;
 	private JSlider volumeSlider;
 	private JTextField uri;
@@ -27,20 +27,22 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private String lasturi;
 	private File pwd;
 	private boolean playControl, volumeControl, expanded;
+	int sliding;
 
-	private static ImageIcon addIcon, removeIcon, playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
+	private static ImageIcon addIcon, removeIcon, clearIcon, playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
 		nextIcon, prevIcon, volumeIcon, muteIcon, sliderIcon;
 
 	public PlayerControlPanel(final BasicPlayer player) {
 		if (playIcon == null) {
 			loadIcons();
 		}
-		this.player = player;
+		this.player = (BasicPlayer.Logical)player;
 		player.connect(this);
 		int controls = player.getControls();
 		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
 		volumeControl = (controls & BasicPlayer.VOLUMECONTROL) != 0;
 		expanded = true;
+		sliding = 0;
 
 		try {
 			pwd = new File(player.getState().uri).getParentFile();
@@ -69,7 +71,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			add(uriPanel(), c);
 		}
 
-		player.refresh();
+		player.alert();
 
 		final ActionListener self = this;
 		getEnclosingWindow(this).addWindowListener(new WindowAdapter() {
@@ -120,7 +122,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				player.stop();
+				player.pressStop();
 			}
 		}));
 		playback.add(new JButton(forward = new AbstractAction("", fwdIcon) {
@@ -175,6 +177,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				// Fire only when the slider is in motion, i.e. not during external updates
 				if (((JSlider) e.getSource()).getValueIsAdjusting()) {
 					player.setVolume(volumeSlider.getValue());
+					// For smoothness ignore external volume data until
+					// the 3rd update after sliding has finished
+					sliding = 3;
 				}
 			}
 		});
@@ -256,12 +261,21 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				setEdited(false);
 				player.remove(uri.getText());
 			}
 		});
 		r.setToolTipText("Remove from playlist");
 		u.add(r);
+		JButton c = new JButton(clear = new AbstractAction("", clearIcon) {
+			//private static final long serialVersionUID = #FIXME
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				player.clear();
+			}
+		});
+		c.setToolTipText("Clear playlist");
+		u.add(c);
 		u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;
 
@@ -291,13 +305,14 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 	public void setEdited(boolean b) {
 		edited = b;
-		update();
+		updatePlaylist();
 	}
 
-	public void update() {
-		boolean notblank = !StringUtils.isBlank(uri.getText());
-		add.setEnabled(edited && notblank);
-		remove.setEnabled(notblank);
+	public void updatePlaylist() {
+		boolean empty = uris.getModel().getSize() == 0;
+		add.setEnabled((edited || empty) && StringUtils.isNotBlank(uri.getText()));
+		remove.setEnabled(! empty);
+		clear.setEnabled(! empty);
 		boolean more = uris.getModel().getSize() > 1;
 		next.setEnabled(more);
 		prev.setEnabled(more);
@@ -311,11 +326,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			stop.setEnabled(playing);
 			forward.setEnabled(playing);
 			rewind.setEnabled(playing);
-			update();
+			updatePlaylist();
 			// update position
-			String pos = StringUtil.shortTime(state.position, 4);
-			String dur = StringUtil.shortTime(state.duration, 4);
-			position.setText(pos + (dur.equals("0:00") ? "" : (" / " + dur)));
+			position.setText(UMSUtils.playedDurationStr(state.position, state.duration));
 			// update uris only if meaningfully new
 			boolean isNew = !StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi);
 			lasturi = state.uri;
@@ -331,9 +344,11 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		if (volumeControl) {
 			// update rendering status
 			mute.putValue(Action.SMALL_ICON, state.mute ? muteIcon : volumeIcon);
-//			volumeSlider.setVisible(! state.mute);
 			volumeSlider.setEnabled(!state.mute);
-			volumeSlider.setValue(state.volume);
+			// ignore volume during slider motion
+			if (--sliding < 0) {
+				volumeSlider.setValue(state.volume);
+			}
 		}
 	}
 
@@ -350,6 +365,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static void loadIcons() {
 		addIcon    = loadIcon("/resources/images/player/add16.png");
 		removeIcon = loadIcon("/resources/images/player/remove16.png");
+		clearIcon = loadIcon("/resources/images/player/clear16.png");
 		playIcon   = loadIcon("/resources/images/player/play16.png");
 		pauseIcon  = loadIcon("/resources/images/player/pause16.png");
 		stopIcon   = loadIcon("/resources/images/player/stop16.png");

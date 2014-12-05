@@ -21,7 +21,9 @@ package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.util.*;
-import static net.pms.configuration.RendererConfiguration.*;
+import net.pms.configuration.RendererConfiguration.SortedHeaderMap;
+import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByHeaders;
+import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,7 +35,6 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
-
 	@Before
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
@@ -65,6 +66,7 @@ public class RendererConfigurationTest {
 		// Known headers
 
 		// Cases that are too generic should not match anything
+		testHeaders(null, "User-Agent: Microsoft-Windows/6.2 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50");
 		testHeaders(null, "User-Agent: UPnP/1.0 DLNADOC/1.50");
 		testHeaders(null, "User-Agent: Unknown Renderer");
 		testHeaders(null, "X-Unknown-Header: Unknown Content");
@@ -87,6 +89,11 @@ public class RendererConfigurationTest {
 		testHeaders("iPad / iPhone", "User-Agent: yxplayer2%20lite/1.2.7 CFNetwork/485.13.9 Darwin/11.0.0");
 		testHeaders("iPad / iPhone", "User-Agent: MPlayer 1.0rc4-4.2.1");
 		testHeaders("iPad / iPhone", "User-Agent: NSPlayer/4.1.0.3856");
+
+		// Microsoft Xbox One:
+		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: Xbox-SystemOS");
+		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: XboxOne");
+		testHeaders("Xbox One", "User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411");
 
 		// Netgear NeoTV:
 		testHeaders("Netgear NeoTV", "friendlyName.dlna.org: BD-Player");
@@ -113,7 +120,7 @@ public class RendererConfigurationTest {
 		testHeaders("Samsung AllShare C/D", "User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UN55D6050/1.0");
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_ Family TV/1.0");
 		testHeaders("Samsung AllShare", "User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0");
-		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
+		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50");
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50");
 
@@ -128,6 +135,9 @@ public class RendererConfigurationTest {
 
 		// Showtime 4:
 		testHeaders("Showtime 4", "User-Agent: Showtime PS3 4.2");
+
+		// Sony Xperia:
+		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
 
 		// Telstra T-Box:
 		// Note: This isn't the full user-agent, just a snippet to find it

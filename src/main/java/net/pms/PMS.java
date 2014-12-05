@@ -29,6 +29,8 @@ import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceListener;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.NameFilter;
@@ -37,6 +39,8 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.external.ExternalFactory;
@@ -46,14 +50,11 @@ import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
-import net.pms.newgui.DbgPacker;
-import net.pms.newgui.DummyFrame;
-import net.pms.newgui.IFrame;
-import net.pms.newgui.LooksFrame;
-import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.*;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
@@ -79,6 +80,8 @@ public class PMS {
 
 	private boolean ready = false;
 
+	private static FileWatcher fileWatcher;
+
 	private GlobalIdRepo globalRepo;
 
 	public static final String AVS_SEPARATOR = "\1";
@@ -101,6 +104,8 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	private NameFilter filter;
+
+	private JmDNS jmDNS;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -149,6 +154,10 @@ public class PMS {
 	 * Array of {@link net.pms.configuration.RendererConfiguration} that have been found by PMS.
 	 */
 	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<>();
+
+	public List<RendererConfiguration> getFoundRenderers() {
+		return foundRenderers;
+	}
 
 	/**
 	 * @deprecated Use {@link #setRendererFound(RendererConfiguration)} instead.
@@ -517,6 +526,8 @@ public class PMS {
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
 
+		fileWatcher = new FileWatcher();
+
 		globalRepo = new GlobalIdRepo();
 
 		AutoUpdater autoUpdater = null;
@@ -576,6 +587,10 @@ public class PMS {
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
 		UPNPHelper.getInstance().init();
+
+		// launch ChromecastMgr
+		jmDNS = null;
+		launchJmDNSRenders();
 
 		OutputParams outputParams = new OutputParams(configuration);
 
@@ -1085,7 +1100,7 @@ public class PMS {
 		return FormatFactory.getAssociatedFormat(filename);
 	}
 
-	public static void main(String args[]) throws IOException, ConfigurationException {
+	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
 		boolean headless = true;
 
@@ -1191,7 +1206,7 @@ public class PMS {
 	}
 
 	public HttpServer getWebServer() {
-		return web.getServer();
+		return web == null ? null : web.getServer();
 	}
 
 	public void save() {
@@ -1454,10 +1469,10 @@ public class PMS {
 	 */
 	public static boolean isHeadless() {
 		try {
-			javax.swing.JDialog d = new javax.swing.JDialog();
+			JDialog d = new JDialog();
 			d.dispose();
 			return false;
-		} catch (java.lang.NoClassDefFoundError | java.awt.HeadlessException | java.lang.InternalError e) {
+		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
 			return true;
 		}
 	}
@@ -1551,4 +1566,69 @@ public class PMS {
 	public boolean masterCodeValid() {
 		return (masterCode != null && masterCode.validCode(null));
 	}
+
+	public static FileWatcher getFileWatcher() {
+		return fileWatcher;
+	}
+
+	public static class DynamicPlaylist extends Playlist {
+		private long start;
+		private String savePath;
+
+		public DynamicPlaylist(String name, String dir, int mode) {
+			super(name, null, 0, mode);
+			savePath = dir;
+			start = 0;
+		}
+
+		@Override
+		public void clear() {
+			super.clear();
+			start = 0;
+		}
+
+		@Override
+		public void save() {
+			if (start == 0) {
+				start = System.currentTimeMillis();
+			}
+			Date d = new Date(start);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
+			list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
+		}
+	}
+
+	private DynamicPlaylist dynamicPls;
+
+	public Playlist getDynamicPls() {
+		if (dynamicPls == null) {
+			dynamicPls = new DynamicPlaylist(Messages.getString("PMS.146"),
+				configuration.getDynamicPlsSavePath(),
+				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
+		}
+		return dynamicPls;
+	}
+
+	private void launchJmDNSRenders() {
+		if (configuration.useChromecastExt()) {
+			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
+				try {
+					startjmDNS();
+					new ChromecastMgr(jmDNS);
+				} catch (Exception e) {
+					LOGGER.debug("Can't create chromecast mgr");
+				}
+			}
+			else {
+				LOGGER.info("No Chromecast render found. Please enable one and restart.");
+			}
+		}
+	}
+
+	private void startjmDNS() throws IOException{
+		if (jmDNS == null) {
+			jmDNS = JmDNS.create();
+		}
+	}
+
 }

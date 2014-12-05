@@ -43,6 +43,7 @@ import net.pms.formats.Format;
 import net.pms.newgui.IFrame;
 import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
+import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -57,12 +58,14 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private RecentlyPlayed last;
+	private Playlist last;
 	private ArrayList<String> tags;
+	private ArrayList<DLNAResource> webFolders;
 
 	public RootFolder(ArrayList<String> tags) {
 		setIndexId(0);
 		this.tags = tags;
+		webFolders = new ArrayList<>();
 	}
 
 	public RootFolder() {
@@ -106,7 +109,10 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (!configuration.isHideRecentlyPlayedFolder()) {
-			last = new RecentlyPlayed();
+			last = new Playlist(Messages.getString("VirtualFolder.1"),
+				PMS.getConfiguration().getDataFile("UMS.last"),
+				PMS.getConfiguration().getInt("last_play_limit", 250),
+				Playlist.PERMANENT|Playlist.AUTOSAVE);
 			addChild(last);
 		}
 
@@ -128,6 +134,14 @@ public class RootFolder extends DLNAResource {
 			addChild(lim);
 		}
 
+		if (configuration.isDynamicPls()) {
+			addChild(PMS.get().getDynamicPls());
+			if (!configuration.isHideSavedPlaylistFolder()) {
+				File plsdir = new File(configuration.getDynamicPlsSavePath());
+				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")));
+			}
+		}
+
 		for (DLNAResource r : getConfiguredFolders(tags)) {
 			addChild(r);
 		}
@@ -136,11 +150,7 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		String webConfPath = configuration.getWebConfPath();
-		File webConf = new File(webConfPath);
-		if (webConf.exists() && configuration.getExternalNetwork() && !configuration.isHideWebFolder(tags)) {
-			addWebFolder(webConf);
-		}
+		loadWebConf();
 
 		if (Platform.isMac() && configuration.isShowIphotoLibrary()) {
 			DLNAResource iPhotoRes = getiPhotoFolder();
@@ -310,6 +320,20 @@ public class RootFolder extends DLNAResource {
 		return res;
 	}
 
+	private void loadWebConf() {
+		for (DLNAResource d : webFolders) {
+			getChildren().remove(d);
+		}
+		webFolders.clear();
+		String webConfPath = configuration.getWebConfPath();
+		File webConf = new File(webConfPath);
+		if (webConf.exists() && configuration.getExternalNetwork() && !configuration.isHideWebFolder(tags)) {
+			addWebFolder(webConf);
+			PMS.getFileWatcher().add(new FileWatcher.Watch(webConf.getPath(), rootWatcher, this, RELOAD_WEB_CONF));
+		}
+		lastmodified = 1;
+	}
+
 	private void addWebFolder(File webConf) {
 		if (webConf.exists()) {
 			try {
@@ -344,6 +368,10 @@ public class RootFolder extends DLNAResource {
 
 											if (parent == null) {
 												parent = new VirtualFolder(folder, "");
+												if (currentRoot == this) {
+													// parent is a top-level web folder
+													webFolders.add(parent);
+												}
 												currentRoot.addChild(parent);
 											}
 
@@ -1136,36 +1164,6 @@ public class RootFolder extends DLNAResource {
 			});
 		}
 
-		// recently played mgmt
-		if (last != null) {
-			final List<DLNAResource> l = last.getList();
-			res.addChild(new VirtualFolder(Messages.getString("PMS.137"), null) {
-				@Override
-				public void discoverChildren() {
-					addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
-						@Override
-						public boolean enable() {
-							getParent().getChildren().clear();
-							l.clear();
-							last.update();
-							return true;
-						}
-					});
-					for (final DLNAResource r : l) {
-						addChild(new VirtualVideoAction(r.getName(), false) {
-							@Override
-							public boolean enable() {
-								getParent().getChildren().remove(this);
-								l.remove(r);
-								last.update();
-								return false;
-							}
-						});
-					}
-				}
-			});
-		}
-
 		addChild(res);
 	}
 
@@ -1408,4 +1406,20 @@ public class RootFolder extends DLNAResource {
 	public ArrayList<String> getTags() {
 		return tags;
 	}
+
+	// Automatic reloading
+
+	public final static int RELOAD_WEB_CONF = 1;
+
+	public static FileWatcher.Listener rootWatcher = new FileWatcher.Listener() {
+		@Override
+		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+			RootFolder r = (RootFolder) watch.getItem();
+			if (r != null) {
+				if (watch.flag == RELOAD_WEB_CONF) {
+					r.loadWebConf();
+				}
+			}
+		}
+	};
 }
