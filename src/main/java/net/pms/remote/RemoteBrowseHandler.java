@@ -109,7 +109,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 							.append(name.replace("'", "\\'")).append("')\" title=\"")
 							.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
 					} else {
-						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('")
+						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
 						   .append(RemoteUtil.getMsgString("Web.2", t))
 						   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
 					}
@@ -144,7 +144,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					item.put("caption", sb.toString());
 				} else if (upnpControl && upnpAllowed) {
 					// Include it as a web-disabled item so it can be thrown via upnp
-					sb.append("<a class=\"webdisabled\" href=\"javascript:alert('")
+					sb.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
 						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
 						.append(" title=\"").append(name).append(" " + RemoteUtil.getMsgString("Web.7", t) + "\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")

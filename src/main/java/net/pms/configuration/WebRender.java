@@ -39,6 +39,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private int screenHeight = 0;
 	private boolean isTouchDevice = false;
 	private String subLang;
+	private Gson gson;
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats = {
@@ -74,7 +75,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		if (pmsConfiguration.useWebControl()) {
 			controls = BasicPlayer.PLAYCONTROL|BasicPlayer.VOLUMECONTROL;
 		}
-		pushURL = new ArrayList<>();
+		gson = new Gson();
+		push = new ArrayList<>();
 	}
 
 	@Override
@@ -474,18 +476,24 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		subLang = s;
 	}
 
-	private ArrayList<String> pushURL;
+	private ArrayList<String[]> push;
 
-	public String pushURL() {
-		String str = StringUtils.join(pushURL, ",");
-		pushURL.clear();
-		return str;
+	public void push(String... args) {
+		push.add(args);
 	}
 
-	public void setPushURL(String u) {
-		if (pmsConfiguration.useWebControl()) {
-			pushURL.add(u);
+	public String getPushData() {
+		String json = "";
+		if (push.size() > 0) {
+			json = gson.toJson(push);
+			push.clear();
 		}
+		return json;
+	}
+
+	@Override
+	public void notify(String type, String msg) {
+		push("notify", type, msg);
 	}
 
 	public void start(DLNAResource dlna) {
@@ -515,7 +523,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		public WebPlayer(WebRender renderer) {
 			super(renderer);
 			data = new HashMap<>();
-			gson = new Gson();
+			gson = ((WebRender)renderer).gson;
 			LOGGER.debug("Created web player for " + renderer.getRendererName());
 		}
 
@@ -525,7 +533,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			if (item != null) {
 				DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);
 				if (r != null) {
-					((WebRender)renderer).setPushURL("/play/" + r.getId());
+					((WebRender)renderer).push("seturl", "/play/" + r.getId());
 					return;
 				}
 			}
@@ -534,32 +542,32 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 		@Override
 		public void pause() {
-			((WebRender)renderer).setPushURL("ctrl/pause");
+			((WebRender)renderer).push("control", "pause");
 		}
 
 		@Override
 		public void play() {
-			((WebRender)renderer).setPushURL("ctrl/play");
+			((WebRender)renderer).push("control", "play");
 		}
 
 		@Override
 		public void stop() {
-			((WebRender)renderer).setPushURL("ctrl/stop");
+			((WebRender)renderer).push("control", "stop");
 		}
 
 		@Override
 		public void mute() {
-			((WebRender)renderer).setPushURL("ctrl/mute");
+			((WebRender)renderer).push("control", "mute");
 		}
 
 		@Override
 		public void setVolume(int volume) {
-			((WebRender)renderer).setPushURL("ctrl/setvolume=" + volume);
+			((WebRender)renderer).push("control", "setvolume", "" + volume);
 		}
 
 		@Override
 		public int getControls() {
-			return PLAYCONTROL|VOLUMECONTROL;
+			return renderer.pmsConfiguration.useWebControl() ? PLAYCONTROL|VOLUMECONTROL : 0;
 		}
 
 		@Override

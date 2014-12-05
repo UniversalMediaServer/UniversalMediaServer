@@ -68,6 +68,7 @@ $(document).ready(function() {
 	if ($('#Menu').length) {
 		$(window).bind('load resize scroll', scrollActions);
 	}
+	poll();
 });
 
 function searchFun(url, txt) {
@@ -86,21 +87,50 @@ function umsAjax(u, reload) {
 	});
 }
 
-function umsPush() {
-	setInterval(function(){
-		$.ajax({ url: "/push", success: function(newurl){
-			if(newurl) {
-				var ops = newurl.split(","), i;
-				for (i=0; i < ops.length; i++) {
-					var ctrl = ops[i].indexOf('ctrl/');
-					if (ctrl > -1) {
-						control(ops[i].slice(ctrl+5).split('='));
-					} else {
-						window.location.replace(ops[i]);
+var polling, refused;
+
+function poll() {
+	$('body').append('<div id="notices"><div/></div>');
+	polling = setInterval(function(){
+		$.ajax({ url: '/poll',
+			success: function(json){
+				refused = 0;
+				if(json) {
+					//console.log('json: '+json)
+					var ops = JSON.parse(json), i;
+					for (i=0; i < ops.length; i++) {
+						var args = ops[i];
+						switch (args[0]) {
+							case 'seturl':
+								window.location.replace(args[1]);
+								break;
+							case 'control':
+								if (typeof control === 'function') {
+									control(args[1], args[2]);
+								}
+								break;
+							case 'notify':
+								notify(args[1], args[2]);
+								break;
+						}
 					}
 				}
+			},
+			error: function(){
+				if (++refused > 10) {
+					clearInterval(polling);
+				}
 			}
-		}});
+		});
 	}, 1000);
+}
+
+function notify(icon, msg) {
+	//console.log('notify: '+icon+': '+msg);
+	var notice = $('<div class="notice"><span class="icon '+icon+'"></span><span class="msg">'+msg+'</msg></div>');
+	notice.insertAfter($('#notices').children(':last'));
+	setTimeout(function() {
+		notice.fadeOut('slow', function(){notice.remove();});
+	}, 5000);
 }
 
