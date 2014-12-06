@@ -3612,7 +3612,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// A temp folder for non-xmb items
-	public static unattachedFolder Temp = new unattachedFolder("Temp");
+	public static final unattachedFolder Temp = new unattachedFolder("Temp");
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {

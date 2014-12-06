@@ -49,9 +49,9 @@ import org.slf4j.LoggerFactory;
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private static List<String> protocols;
-	public static PatternMap<Object> excludes = new PatternMap<>();
+	public static final PatternMap<Object> excludes = new PatternMap<>();
 
-	public static PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
+	public static final PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
 		private static final long serialVersionUID = 5225786297932747007L;
 
 		@Override
@@ -60,7 +60,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 	};
 
-	public static PatternMap<String> replacements = new PatternMap<>();
+	public static final PatternMap<String> replacements = new PatternMap<>();
 	private static boolean init = false;
 
 	// FIXME we have an id() accessor for this; no need for the field to be public

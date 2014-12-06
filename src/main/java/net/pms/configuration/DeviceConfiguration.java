@@ -255,7 +255,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	/**
 	 * Automatic reloading
 	 */
-	public static FileWatcher.Listener reloader = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener reloader = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			File f = new File(filename);

@@ -1411,7 +1411,7 @@ public class RootFolder extends DLNAResource {
 
 	public final static int RELOAD_WEB_CONF = 1;
 
-	public static FileWatcher.Listener rootWatcher = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener rootWatcher = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			RootFolder r = (RootFolder) watch.getItem();
