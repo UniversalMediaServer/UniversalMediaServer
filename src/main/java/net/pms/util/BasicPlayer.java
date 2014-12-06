@@ -231,11 +231,13 @@ public interface BasicPlayer extends ActionListener {
 		public Playlist playlist;
 		protected boolean autoContinue, addAllSiblings, forceStop;
 		protected int lastPlayback;
+		protected int maxVol;
 
 		public Logical(DeviceConfiguration renderer) {
 			super(renderer);
 			playlist = new Playlist(this);
 			lastPlayback = STOPPED;
+			maxVol = renderer.getMaxVolume();
 			autoContinue = renderer.isAutoContinue();
 			addAllSiblings = renderer.isAutoAddAll();
 			forceStop = false;

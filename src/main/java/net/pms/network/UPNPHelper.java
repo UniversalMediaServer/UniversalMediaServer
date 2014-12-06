@@ -751,7 +751,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void setVolume(int volume) {
-			UPNPControl.setVolume(dev, instanceID, volume);
+			UPNPControl.setVolume(dev, instanceID, volume * maxVol / 100);
 		}
 
 		@Override
@@ -770,7 +770,7 @@ public class UPNPHelper extends UPNPControl {
 				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
 			state.mute = "0".equals(data.get("Mute")) ? false : true;
 			s = data.get("Volume");
-			state.volume = s == null ? 0 : Integer.valueOf(s);
+			state.volume = s == null ? 0 : (Integer.valueOf(s) * 100 / maxVol);
 			state.position = data.get("RelTime");
 			if (! ignoreUpnpDuration) {
 				state.duration = data.get("CurrentMediaDuration");
