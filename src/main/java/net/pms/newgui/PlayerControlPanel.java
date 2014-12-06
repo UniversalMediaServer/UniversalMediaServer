@@ -267,7 +267,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		r.setToolTipText("Remove from playlist");
 		u.add(r);
 		JButton c = new JButton(clear = new AbstractAction("", clearIcon) {
-			//private static final long serialVersionUID = #FIXME
+			private static final long serialVersionUID = -2484978035031713948L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {

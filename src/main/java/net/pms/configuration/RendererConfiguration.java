@@ -1263,12 +1263,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			if (isUpnp()) {
 				details = UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
 			} else {
-				details = new LinkedHashMap<String, String>() {{
-					put("name", getRendererName());
-					if (getAddress() != null) {
-						put("address", getAddress().getHostAddress().toString());
-					}
-				}};
+				details = new LinkedHashMap<String, String>() {
+					private static final long serialVersionUID = -3998102753945339020L;
+
+					{
+						put("name", getRendererName());
+						if (getAddress() != null) {
+							put("address", getAddress().getHostAddress().toString());
+						}
+					}	
+				};
 			}
 		}
 		return details;

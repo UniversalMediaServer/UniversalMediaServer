@@ -161,6 +161,8 @@ public class FileWatcher {
 	 * A map of file watchpoints by watchkey.
 	 */
 	static class WatchMap extends HashMap<WatchKey, ArrayList<Watch>> {
+		private static final long serialVersionUID = 66052264663459389L;
+
 		public void put(WatchKey k, Watch w) {
 			if (!containsKey(k)) {
 				put(k, new ArrayList<Watch>());

@@ -284,8 +284,8 @@ public class UMSUtils {
 	 * A DLNAResource list with built-in file i/o.
 	 */
 	public static class IOList extends ArrayList<DLNAResource> implements IOListModes {
+		private static final long serialVersionUID = 8042924548275374060L;
 		private File file;
-		private int currentIndex;
 		private int mode;
 
 		public IOList(String uri, int mode) {
