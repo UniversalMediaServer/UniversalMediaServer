@@ -496,7 +496,7 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			LOGGER.debug("poll req " + t.getRequestURI());
+			//LOGGER.debug("poll req " + t.getRequestURI());
 			if (RemoteUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}

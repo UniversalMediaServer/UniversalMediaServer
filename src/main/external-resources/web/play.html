@@ -70,6 +70,7 @@
 			}
 
 			player.addEventListener('playing', function(){status('playback', 'PLAYING');});
+            player.addEventListener('play', function(){status('playback', 'PLAYING');});
 			player.addEventListener('pause', function(){status('playback', 'PAUSED');});
 			player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
 			player.addEventListener('ended', function(){status('playback', 'STOPPED');});
