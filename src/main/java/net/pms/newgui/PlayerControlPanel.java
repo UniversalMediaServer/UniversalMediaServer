@@ -251,7 +251,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setEdited(false);
-				player.add(-1, uri.getText(), null, null, false);
+				player.add(-1, uri.getText(), null, null, true);
 			}
 		});
 		a.setToolTipText("Add to playlist");

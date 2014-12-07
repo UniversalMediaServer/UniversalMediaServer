@@ -108,7 +108,7 @@ public class PlayerControlHandler implements HttpHandler {
 					player.setVolume(Integer.valueOf(q.get("vol")));
 					break;
 				case "add":
-					player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
+					player.add(-1, translate(q.get("uri")), q.get("title"), null, true);
 					break;
 				case "remove":
 					player.remove(translate(q.get("uri")));
