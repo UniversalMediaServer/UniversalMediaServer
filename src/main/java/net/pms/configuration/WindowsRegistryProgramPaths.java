@@ -51,7 +51,6 @@ class WindowsRegistryProgramPaths implements ProgramPaths {
 			String vlc = registry.getVlcPath();
 			String version = registry.getVlcVersion();
 			if (new File(vlc).exists() && version != null) {
-				LOGGER.debug("Found VLC version " + version + " in Windows Registry: " + vlc);
 				return vlc;
 			}
 		}
