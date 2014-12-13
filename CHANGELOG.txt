@@ -1,3 +1,10 @@
+4.3.2 - 2014-12-??
+
+	General:
+		Improved compatibility of H.264 transcoded videos
+	Renderers:
+		Improved support for Xbox 360
+
 4.3.1 - 2014-12-12
 
 	General:
