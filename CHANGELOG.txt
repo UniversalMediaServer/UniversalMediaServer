@@ -1,3 +1,23 @@
+4.3.2 - 2014-12-??
+
+	General:
+		Improved compatibility of H.264 transcoded videos
+	Renderers:
+		Improved support for Xbox 360
+
+4.3.1 - 2014-12-12
+
+	General:
+		Windows installer removes deprecated renderer files
+		Fixed a startup crash
+	Renderers:
+		Added support for Hisense K680 TVs
+		Added support for Samsung F5505 TVs
+		Improved support for LG LS5700 TVs (thanks, AngelShine!)
+		Improved support for Panasonic S60 Series TVs
+		Improved support for Samsung WiseLink devices
+		Improved support for Sony Bravia HX75 Series TVs
+
 5.0.0-b1 - 2014-11-?? - Changes since 5.0.0-a1
 	General:
 		Major redesign of the status tab to show per-renderer information
