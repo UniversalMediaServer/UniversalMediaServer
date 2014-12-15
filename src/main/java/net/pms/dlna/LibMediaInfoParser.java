@@ -31,6 +31,7 @@ public class LibMediaInfoParser {
 		if (MI.isValid()) {
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
+			MI.Option("File_TestContinuousFileNames", "0");
 		}
 
 		base64 = new Base64();
