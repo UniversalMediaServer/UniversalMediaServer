@@ -32,6 +32,7 @@ public class LibMediaInfoParser {
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
 			MI.Option("File_TestContinuousFileNames", "0");
+			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
 		}
 
 		base64 = new Base64();
