@@ -1453,7 +1453,7 @@ public class MEncoderVideo extends Player {
 					sb.append("Outline=").append(configuration.getAssOutline()).append(",Shadow=").append(configuration.getAssShadow());
 
 					try {
-						userMargin = Integer.parseInt(configuration.getAssMargin());
+						userMargin = configuration.getAssMargin();
 					} catch (NumberFormatException n) {
 						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getAssMargin() + "\"");
 					}
