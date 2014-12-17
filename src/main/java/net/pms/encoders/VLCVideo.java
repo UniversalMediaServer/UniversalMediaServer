@@ -461,17 +461,19 @@ public class VLCVideo extends Player {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		String vlcVersion = registry.getVlcVersion();
-		Version currentVersion = new Version(vlcVersion);
-		Version requiredVersion = new Version("2.1.4");
+		if (registry.getVlcVersion() != null) {
+			String vlcVersion = registry.getVlcVersion();
+			Version currentVersion = new Version(vlcVersion);
+			Version requiredVersion = new Version("2.1.4");
 
-		if (vlcVersion != null && currentVersion.compareTo(requiredVersion) > 0) {
-			if (!configuration.isGPUAcceleration()) {
-				cmdList.add("--avcodec-hw=disabled");
-				LOGGER.trace("Disabled VLC's hardware acceleration.");
+			if (currentVersion.compareTo(requiredVersion) > 0) {
+				if (!configuration.isGPUAcceleration()) {
+					cmdList.add("--avcodec-hw=disabled");
+					LOGGER.trace("Disabled VLC's hardware acceleration.");
+				}
+			} else if (!configuration.isGPUAcceleration()) {
+				LOGGER.trace("Version " + vlcVersion + " of VLC is too low to handle the way we disable hardware acceleration.");
 			}
-		} else if (!configuration.isGPUAcceleration()) {
-			LOGGER.trace("Version " + vlcVersion + " of VLC is too low to handle the way we disable hardware acceleration.");
 		}
 
 		// Useful for the more esoteric codecs people use
