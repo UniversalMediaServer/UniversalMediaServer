@@ -130,7 +130,7 @@ class ConfigurationReader {
 	 * @param def The default value to return when no valid key value can be found.
 	 * @return The value configured for the key.
 	 */
-	long getLong(String key, int def) {
+	long getLong(String key, long def) {
 		long value;
 
 		try {
@@ -142,6 +142,30 @@ class ConfigurationReader {
 		log(key, value, def);
 		return value;
 	}
+
+	/**
+	 * Return the <code>double</code> value for a given configuration key. First, the key
+	 * is looked up in the current configuration settings. If it exists and contains a
+	 * valid value, that value is returned. If the key contains an invalid value or
+	 * cannot be found, the specified default value is returned.
+	 *
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	double getDouble(String key, double def) {
+		double value;
+
+		try {
+			value = configuration.getDouble(key, def);
+		} catch (ConversionException e) {
+			value = def;
+		}
+
+		log(key, value, def);
+		return value;
+	}
+	
 
 	/**
 	 * Return the <code>boolean</code> value for a given configuration key. First, the
