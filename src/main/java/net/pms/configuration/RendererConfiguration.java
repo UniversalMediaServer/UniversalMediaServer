@@ -286,8 +286,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return configurationReader.getInt(key, def);
 	}
 
-	public long getLong(String key, int def) {
+	public long getLong(String key, long def) {
 		return configurationReader.getLong(key, def);
+	}
+
+	public double getDouble(String key, double def) {
+		return configurationReader.getDouble(key, def);
 	}
 
 	public boolean getBoolean(String key, boolean def) {
