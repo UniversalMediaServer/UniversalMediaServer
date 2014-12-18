@@ -179,7 +179,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT = "mencoder_overscan_compensation_height";
 	protected static final String KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH = "mencoder_overscan_compensation_width";
 	protected static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
-	protected static final String KEY_MEDIAINFO_PARSE_SPEED = "mediainfo_parse_speed";
 	protected static final String KEY_MENCODER_REMUX_MPEG2 = "mencoder_remux_mpeg2";
 	protected static final String KEY_MENCODER_SCALER = "mencoder_scaler";
 	protected static final String KEY_MENCODER_SCALEX = "mencoder_scalex";
@@ -3407,12 +3406,4 @@ public class PmsConfiguration extends RendererConfiguration {
    	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
 	}
-
-   	public double getMediaInfoParseSpeed() {
-   		return getDouble(KEY_MEDIAINFO_PARSE_SPEED, 0.5);
-   	}
-   	
-   	public void setMediaInfoParseSpeed(double value) {
-   		configuration.setProperty(KEY_MEDIAINFO_PARSE_SPEED, value);
-   	}
 }

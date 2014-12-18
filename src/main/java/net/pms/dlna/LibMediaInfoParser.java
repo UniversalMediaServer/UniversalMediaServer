@@ -4,9 +4,7 @@ import java.io.File;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
@@ -17,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 public class LibMediaInfoParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibMediaInfoParser.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	// Regular expression to parse a 4 digit year number from a string
 	private static final String YEAR_REGEX = ".*([\\d]{4}).*";
@@ -36,7 +33,7 @@ public class LibMediaInfoParser {
 			MI.Option("Language", "raw");
 			MI.Option("File_TestContinuousFileNames", "0");
 			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
-			MI.Option("ParseSpeed", String.valueOf(configuration.getMediaInfoParseSpeed()));
+			MI.Option("ParseSpeed", "0");
 			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
 		}
 
