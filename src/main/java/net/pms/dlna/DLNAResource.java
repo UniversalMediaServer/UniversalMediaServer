@@ -2372,8 +2372,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									LOGGER.debug("" + ex);
 								}
 
-								PMS.get().getFrame().setStatusLine("");
-
 								internalStop();
 
 								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {

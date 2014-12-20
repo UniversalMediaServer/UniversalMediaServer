@@ -419,10 +419,6 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
 						}
 
-						if (!dlna.quietPlay()) {
-							PMS.get().getFrame().setStatusLine("Serving " + name);
-						}
-
 						// Response generation:
 						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.

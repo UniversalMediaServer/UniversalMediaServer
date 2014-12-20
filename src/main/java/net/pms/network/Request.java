@@ -375,10 +375,6 @@ public class Request extends HTTPResource {
 							}
 						}
 
-						if (!dlna.quietPlay()) {
-							PMS.get().getFrame().setStatusLine("Serving " + name);
-						}
-
 						// Response generation:
 						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
@@ -838,7 +834,6 @@ public class Request extends HTTPResource {
 			}
 
 			LOGGER.trace("Sending stream: " + sendB + " bytes of " + argument);
-			PMS.get().getFrame().setStatusLine(null);
 		} else { // inputStream is null
 			if (lowRange > 0 && highRange > 0) {
 				output(output, "Content-Length: " + (highRange - lowRange + 1));
