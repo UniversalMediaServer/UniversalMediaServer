@@ -39,6 +39,7 @@ public final class FormatFactory {
 	 */
 	private static final Format[] FORMATS = new Format[] {
 		new DVRMS(),
+		new BMP(),
 		new FLAC(),
 		new GIF(),
 		new ISO(),
