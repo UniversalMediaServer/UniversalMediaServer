@@ -60,7 +60,6 @@ public class FormatConfiguration {
 	public static final String RA = "ra";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
-	public static final String SORENSON = "sorenson";
 	public static final String TIFF = "tiff";
 	public static final String THEORA = "theora";
 	public static final String TRUEHD = "truehd";

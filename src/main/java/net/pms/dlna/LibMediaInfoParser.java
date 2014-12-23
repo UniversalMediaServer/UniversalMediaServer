@@ -415,8 +415,6 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
 			format = FormatConfiguration.H265;
-		} else if (value.startsWith("sorenson")) {
-			format = FormatConfiguration.SORENSON;
 		} else if (value.startsWith("vp6")) {
 			format = FormatConfiguration.VP6;
 		} else if (value.startsWith("vp7")) {
