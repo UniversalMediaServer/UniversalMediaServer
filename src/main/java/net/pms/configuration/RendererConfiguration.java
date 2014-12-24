@@ -163,6 +163,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	protected static final String SEEK_BY_TIME = "SeekByTime";
 	protected static final String SEND_DATE_METADATA = "SendDateMetadata";
+	protected static final String SEND_FOLDER_THUMBNAILS = "SendFolderThumbnails";
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
@@ -1886,6 +1887,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isSendDateMetadata() {
 		return getBoolean(SEND_DATE_METADATA, true);
+	}
+
+	/**
+	 * Whether to send folder thumbnails.
+	 *
+	 * @return whether to send folder thumbnails
+	 */
+	public boolean isSendFolderThumbnails() {
+		return getBoolean(SEND_FOLDER_THUMBNAILS, true);
 	}
 
 	public boolean isDLNATreeHack() {
