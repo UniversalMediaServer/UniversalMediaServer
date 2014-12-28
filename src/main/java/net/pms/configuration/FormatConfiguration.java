@@ -27,6 +27,7 @@ public class FormatConfiguration {
 	public static final String ATRAC = "atrac";
 	public static final String AVI = "avi";
 	public static final String BMP = "bmp";
+	public static final String CINEPACK = "cinepack";
 	public static final String DIVX = "divx";
 	public static final String DTS = "dts";
 	public static final String DTSHD = "dtshd";

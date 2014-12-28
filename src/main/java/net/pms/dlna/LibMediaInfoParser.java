@@ -387,6 +387,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MATROSKA;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
+		} else if (value.startsWith("cinepack")) {
+			format = FormatConfiguration.CINEPACK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
 		} else if (value.toLowerCase().equals("webm")) {
