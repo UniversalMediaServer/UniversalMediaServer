@@ -1,6 +1,5 @@
 package net.pms.network;
 
-import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.util.BasicPlayer;

@@ -404,6 +404,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	static class Button extends JButton {
+		private static final long serialVersionUID = 8649059925768844933L;
 		public Button(Action a) {
 			this(0, a);
 		}
@@ -417,6 +418,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	static class Toolbar extends JToolBar {
+		private static final long serialVersionUID = -657958964967514184L;
+
 		public Toolbar() {
 			super(SwingConstants.HORIZONTAL);
 			setFloatable(false);

@@ -21,6 +21,7 @@ package net.pms.network;
 
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -30,7 +31,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
-
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -811,7 +811,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	public static String unescape(String s) {
-		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s)));
+	public static String unescape(String s) throws UnsupportedEncodingException {
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, "UTF-8")));
 	}
 }

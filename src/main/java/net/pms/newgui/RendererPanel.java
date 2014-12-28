@@ -130,7 +130,7 @@ public class RendererPanel extends JPanel {
 			}
 		});
 		if (!exists) {
-			open.setLabel("!");
+			open.setText("!");
 			open.setHorizontalTextPosition(JButton.CENTER);
 			open.setForeground(Color.lightGray);
 			open.setEnabled(false);

@@ -11,10 +11,13 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import static net.pms.network.UPNPHelper.unescape;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.regex.Matcher;
 import net.pms.PMS;
 import javax.swing.SwingUtilities;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.regex.Pattern;
 
 public interface BasicPlayer extends ActionListener {
@@ -92,7 +95,7 @@ public interface BasicPlayer extends ActionListener {
 		public Minimal(DeviceConfiguration renderer) {
 			this.renderer = renderer;
 			state = new State();
-			listeners = new LinkedHashSet();
+			listeners = new LinkedHashSet<ActionListener>();
 			if (renderer.gui != null) {
 				connect(renderer.gui);
 			}
@@ -542,7 +545,7 @@ public interface BasicPlayer extends ActionListener {
 			}
 
 			public static class Item {
-
+				private static final Logger LOGGER = LoggerFactory.getLogger(Item.class);
 				public String name, uri, metadata;
 				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
 
@@ -555,9 +558,13 @@ public interface BasicPlayer extends ActionListener {
 				@Override
 				public String toString() {
 					if (StringUtils.isBlank(name)) {
-						name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
-							dctitle.group(1) :
-							new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
+						try {
+							name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
+								dctitle.group(1) :
+								new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
+						} catch (UnsupportedEncodingException e) {
+							LOGGER.error("URL decoding error ", e);
+						}
 					}
 					return name;
 				}
