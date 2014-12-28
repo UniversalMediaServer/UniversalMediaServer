@@ -456,7 +456,7 @@ public class LibMediaInfoParser {
 				format = FormatConfiguration.DTSHD;
 			}
 		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
-			format = FormatConfiguration.OGG;
+			format = FormatConfiguration.VORBIS;
 		} else if (value.equals("ac-3") || value.equals("a_ac3") || value.equals("2000")) {
 			format = FormatConfiguration.AC3;
 		} else if (value.equals("e-ac-3")) {
