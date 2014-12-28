@@ -409,6 +409,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.OPUS;
 		} else if (value.contains("realmedia") || value.startsWith("rv") || value.startsWith("cook")) {
 			format = FormatConfiguration.RM;
+		} else if (value.startsWith("theora")) {
+			format = FormatConfiguration.THEORA;
 		} else if (value.contains("windows media") || value.equals("wmv1") || value.equals("wmv2") || value.equals("wmv7") || value.equals("wmv8")) {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
