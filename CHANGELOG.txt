@@ -18,6 +18,21 @@
 		Improved support for Samsung WiseLink devices
 		Improved support for Sony Bravia HX75 Series TVs
 
+5.0.0-b1 - 2014-11-?? - Changes since 5.0.0-a1
+	General:
+		Major redesign of the status tab to show per-renderer information
+		Improved player control
+		Includes the possibility to allow UMS to control renders automatically
+		Web player can also be controlled
+		Automatic reloading of external files
+		Documentation updates
+		New xmb playlist folders with optional automatic starting, looping, and saving, editable from web or xmb
+		A Dynamic xmb playlist for on-the-fly playlist creation from web or xmb
+		Better bump/gui player playlists with optional automatic looping
+		Push playback support for chromecast and web browsers
+		Improved Chromecast support (cast from UMS webui/gui)
+		All changes from 4.2.1, 4.2.2 and 4.3.0
+
 4.3.0 - 2014-12-06
 
 	General:
@@ -100,6 +115,31 @@
 			Improves H.265 support
 			Improves support for many containers and codecs
 			Fixes bugs
+
+5.0.0-a1 - 2014-10-23
+
+	Changes unique to 5.0.0-a1:
+		General:
+			Added support for UPnP connections and playback
+			Added the option to use info from IMDB with filename prettifying
+			Added HTML5 video support to the web interface
+			Create custom per-device configuration files to override any general renderer or UMS setting
+			Minor tweaks to the GUI
+
+	Changes from the 4.x release branch:
+		General:
+			Increased speed of FFmpeg transcoding to H.264
+			Updated UMS.conf
+			Improved filename prettifying
+			Re-added "Force default renderer" option to the GUI
+			Minor GUI fixes and improvements
+			Fontconfig caches are not generated if subtitles are disabled
+		Renderers:
+			Added support for Panasonic SC-BTT Blu-ray Disc Home Theater Sound Systems
+			Improved support for Panasonic TVs
+			Improved support for Xbox One
+		Languages:
+			Updated French translation (thanks, Kirvx!)
 
 4.2.0 - 2014-10-17
 

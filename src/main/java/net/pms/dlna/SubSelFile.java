@@ -3,11 +3,11 @@ package net.pms.dlna;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.OpenSubtitle;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +36,9 @@ public class SubSelFile extends VirtualFolder {
 		try {
 			if (orig instanceof RealFile) {
 				rf = (RealFile) orig;
-				data = OpenSubtitle.findSubs(rf.getFile());
+				data = OpenSubtitle.findSubs(rf.getFile(), getDefaultRenderer());
 			} else {
-				data = OpenSubtitle.querySubs(orig.getDisplayName());
+				data = OpenSubtitle.querySubs(orig.getDisplayName(), getDefaultRenderer());
 			}
 		} catch (IOException e) {
 			return;
@@ -47,7 +47,7 @@ public class SubSelFile extends VirtualFolder {
 			return;
 		}
 		List<String> sortedKeys = new ArrayList<>(data.keySet());
-		Collections.sort(sortedKeys, new SubSort(PMS.getConfiguration()));
+		Collections.sort(sortedKeys, new SubSort(getDefaultRenderer()));
 		for (String key : sortedKeys) {
 			LOGGER.debug("Add play subtitle child " + key + " rf " + orig);
 			DLNAMediaSubtitle sub = orig.getMediaSubtitle();
@@ -73,8 +73,8 @@ public class SubSelFile extends VirtualFolder {
 	private static class SubSort implements Comparator<String> {
 		private List<String> langs;
 
-		SubSort(PmsConfiguration configuration) {
-			langs = Arrays.asList(configuration.getSubtitlesLanguages().split(","));
+		SubSort(RendererConfiguration r) {
+			langs = Arrays.asList(UMSUtils.getLangList(r, true).split(","));
 		}
 
 		@Override

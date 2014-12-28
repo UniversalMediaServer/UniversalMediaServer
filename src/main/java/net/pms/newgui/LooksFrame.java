@@ -41,7 +41,9 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.io.WindowsNamedPipe;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
@@ -491,19 +493,18 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setValue(int v, String msg) {
-		st.getJpb().setValue(v);
-		st.getJpb().setString(msg);
+	public void updateBuffer() {
+		st.updateCurrentBitrate();
 	}
 
 	/**
 	 * This method is being called when a configuration change requiring
 	 * a restart of the HTTP server has been done by the user. It should notify the user
 	 * to restart the server.<br>
-	 * Currently the icon as well as the tool tip text of the restart button is being 
+	 * Currently the icon as well as the tool tip text of the restart button is being
 	 * changed.<br>
 	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
-	 * 
+	 *
 	 * @param bool true if the server has to be restarted, false otherwise
 	 */
 	@Override
@@ -558,12 +559,18 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void addRendererIcon(int code, String msg, String icon) {
-		st.addRendererIcon(code, msg, icon);
+	public void addRenderer(RendererConfiguration renderer) {
+		st.addRenderer(renderer);
+	}
+
+	@Override
+	public void updateRenderer(RendererConfiguration renderer) {
+		st.updateRenderer(renderer);
 	}
 
 	@Override
 	public void serverReady() {
+		st.updateMemoryUsage();
 		gt.addRenderers();
 		pt.addPlugins();
 	}
@@ -571,5 +578,9 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
 		getNt().setScanLibraryEnabled(flag);
+	}
+
+	public String getLog() {
+		return getTt().getList().getText();
 	}
 }

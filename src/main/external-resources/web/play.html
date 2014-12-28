@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<script src="/files/jquery.min.js"></script>
+        <script src="/files/jquery.ums.js"></script>
+        <title>{{name}}</title>
+	</head>
+	<body id="ContentPage">
+		<script>
+{{#prevId}}
+			function prev() {window.location.replace('/play/{{prevId}}');}
+{{/prevId}}
+{{#nextId}}
+			function next() {window.location.replace('/play/{{nextId}}');}
+{{/nextId}}
+{{#isVideo}}
+			function flash() {window.location.replace('/play/{{id1}}?flash=1');}
+{{/isVideo}}
+		</script>
+		<div id="Container">
+			<div id="Menu">
+				<a href="/browse/0" id="HomeButton"></a>
+				<a href="/doc" id="DocButton" title="Documentation"></a>
+			</div>
+
+			<div id="VideoContainer">
+{{^isVideo}}
+				<img height=256 width=256 src="/thumb/{{id1}}" alt=""><br>
+				<h2>{{name}}</h2><br>
+{{/isVideo}}
+				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
+					<source src="/media/{{id1}}" type="{{mime}}">
+{{#sub}}
+					<track kind="subtitles" src="/files/{{this}}" default>
+{{/sub}}
+				</{{mediaType}}>
+				<div id="toolbar">
+					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+					<button id="next" onclick="next()"{{nextAttr}}>>></button>
+{{#plsSign}}
+                    <button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;">{{plsSign}}</button>
+{{/plsSign}}
+{{#isVideo}}
+					<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>
+{{/isVideo}}
+				</div>
+			</div>
+			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
+		</div>
+		<script>
+			var state = {};
+			var player = document.getElementById('player');
+
+			function status(k, v, wait) {
+				//console.log('status '+JSON.stringify(arguments));
+				state[k] = v;
+				if (! wait) {
+					$.post('/playerstatus/', JSON.stringify(state));
+				}
+			}
+
+			function volumeStatus() {
+				status('mute', player.muted ? '1' : '0', true);
+				status('volume', (player.volume * 100).toFixed(0));
+			}
+
+			player.addEventListener('playing', function(){status('playback', 'PLAYING');});
+			player.addEventListener('play', function(){status('playback', 'PLAYING');});
+			player.addEventListener('pause', function(){status('playback', 'PAUSED');});
+			player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
+			player.addEventListener('ended', function(){status('playback', 'STOPPED');});
+			player.addEventListener('error', function(){status('playback', 'STOPPED');});
+			player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
+			player.addEventListener('volumechange', volumeStatus);
+{{#autoContinue}}
+			player.addEventListener('ended', next, false);
+{{/autoContinue}}
+			window.onbeforeunload = function(){status('playback','STOPPED');}
+			// Send initial status
+			volumeStatus();
+
+{{#push}}
+			function control(op, arg) {
+				//console.log('control '+JSON.stringify(arguments));
+				var player = document.getElementById('player');
+				switch (op) {
+					case 'play':
+						player.play();
+						break;
+					case 'pause':
+						player.pause(!player.paused);
+						break;
+					case 'stop':
+						player.pause();
+						break;
+					case 'setvolume':
+						player.volume = arg/100;
+						break;
+					case 'mute':
+						player.muted = !player.muted;
+						break;
+				}
+			}
+{{/push}}			
+		</script>
+	</body>
+</html>
+

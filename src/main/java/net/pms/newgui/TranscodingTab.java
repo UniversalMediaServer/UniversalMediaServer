@@ -40,6 +40,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -542,7 +543,7 @@ public class TranscodingTab {
 			String.format("keyint=25:vqmax=8:vqmin=3  /* %s */",  Messages.getString("TrTab2.65"))  /* Low */
 		};
 
-		MyComboBoxModel cbm = new MyComboBoxModel(data);
+		GuiUtil.MyComboBoxModel cbm = new GuiUtil.MyComboBoxModel(data);
 		vq = new JComboBox(cbm);
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
 		vq.addItemListener(new ItemListener() {
@@ -574,7 +575,7 @@ public class TranscodingTab {
 			String.format("16  /* %s */", Messages.getString("TrTab2.61"))                    /* Lossless */
 		};
 
-		MyComboBoxModel cbm2 = new MyComboBoxModel(x264QualityOptions);
+		GuiUtil.MyComboBoxModel cbm2 = new GuiUtil.MyComboBoxModel(x264QualityOptions);
 		x264Quality = new JComboBox(cbm2);
 		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
 		x264Quality.addItemListener(new ItemListener() {
@@ -840,7 +841,7 @@ public class TranscodingTab {
 			Messages.getString("MEncoderVideo.124")
 		};
 
-		MyComboBoxModel cbm = new MyComboBoxModel(data);
+		GuiUtil.MyComboBoxModel cbm = new GuiUtil.MyComboBoxModel(data);
 		subtitleCodePage = new JComboBox(cbm);
 		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
@@ -1010,12 +1011,12 @@ public class TranscodingTab {
 		builder.add(useEmbeddedSubtitlesStyle, FormLayoutUtil.flip(cc.xyw(1, 18, 11), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(1, 20), colSpec, orientation));
-		depth3D = new JTextField(configuration.getDepth3D());
+		depth3D = new JTextField(String.valueOf(configuration.getDepth3D()));
 		depth3D.setToolTipText(Messages.getString("TrTab2.91"));
 		depth3D.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setDepth3D(depth3D.getText());
+				configuration.setDepth3D(Double.parseDouble(depth3D.getText()));
 			}
 		});
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 20), colSpec, orientation));

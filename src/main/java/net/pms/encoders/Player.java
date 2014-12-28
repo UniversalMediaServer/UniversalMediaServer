@@ -41,6 +41,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.OpenSubtitle;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,8 @@ public abstract class Player {
 
 	public abstract String mimeType();
 	public abstract String executable();
-	protected static PmsConfiguration configuration = PMS.getConfiguration();
+	protected static final PmsConfiguration _configuration = PMS.getConfiguration();
+	protected PmsConfiguration configuration = _configuration;
 	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners = new ArrayList<>();
 
 	public static void initializeFinalizeTranscoderArgsListeners() {
@@ -220,6 +222,7 @@ public abstract class Player {
 	 * The parameters to populate.
 	 */
 	public static void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params) {
+		PmsConfiguration configuration = PMS.getConfiguration(params);
 		if (params.aid == null && media != null && media.getFirstAudioTrack() != null) {
 			// check for preferred audio
 			DLNAMediaAudio dtsTrack = null;
@@ -265,6 +268,7 @@ public abstract class Player {
 	 * The parameters to populate.
 	 */
 	public static void setSubtitleOutputParameters(String fileName, DLNAMediaInfo media, OutputParams params) {
+		PmsConfiguration configuration = PMS.getConfiguration(params);
 		String currentLang = null;
 		DLNAMediaSubtitle matchedSub = null;
 
@@ -454,7 +458,7 @@ public abstract class Player {
 			}
 
 			if (params.sid == null) {
-				st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
+				st = new StringTokenizer(UMSUtils.getLangList(params.mediaRenderer), ",");
 				while (st.hasMoreTokens()) {
 					String lang = st.nextToken();
 					lang = lang.trim();
