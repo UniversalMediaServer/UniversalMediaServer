@@ -1897,12 +1897,10 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
-	@Deprecated
 	public String getFfmpegAlternativePath() {
 		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
 	}
 
-	@Deprecated
 	public void setFfmpegAlternativePath(String value) {
 		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
 	}
