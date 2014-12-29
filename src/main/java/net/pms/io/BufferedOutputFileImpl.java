@@ -202,7 +202,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		this.hidebuffer = params.hidebuffer;
 		this.cleanup = params.cleanup;
 
-		if ((maxMemorySize > INITIAL_BUFFER_SIZE) && !configuration.initBufferMax()) {
+		if (maxMemorySize > INITIAL_BUFFER_SIZE) {
 			// Try to limit memory usage a bit.
 			// Start with a modest allocation initially, grow to max when needed later.
 			buffer = growBuffer(null, INITIAL_BUFFER_SIZE);

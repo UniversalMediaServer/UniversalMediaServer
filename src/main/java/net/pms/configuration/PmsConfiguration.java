@@ -1898,12 +1898,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
-	@Deprecated
 	public String getFfmpegAlternativePath() {
 		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
 	}
 
-	@Deprecated
 	public void setFfmpegAlternativePath(String value) {
 		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
 	}
@@ -2737,12 +2735,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getFolderLimit() {
 		return getBoolean(KEY_FOLDER_LIMIT, false);
-	}
-
-	// FIXME this is undocumented and misnamed
-	@Deprecated
-	public boolean initBufferMax() {
-		return getBoolean(KEY_BUFFER_MAX, false);
 	}
 
 	public String getScriptDir() {
