@@ -331,7 +331,7 @@ public class RootFolder extends DLNAResource {
 			addWebFolder(webConf);
 			PMS.getFileWatcher().add(new FileWatcher.Watch(webConf.getPath(), rootWatcher, this, RELOAD_WEB_CONF));
 		}
-		lastmodified = 1;
+		setLastModified(1);
 	}
 
 	private void addWebFolder(File webConf) {
