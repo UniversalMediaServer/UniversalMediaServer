@@ -471,6 +471,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.AAC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.AAC_HE;
+		} else if (value.startsWith("adpcm")) {
+			format = FormatConfiguration.ADPCM;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {
