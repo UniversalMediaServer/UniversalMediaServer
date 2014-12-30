@@ -89,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>1</binary-revision>
+		<binary-revision>3</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.9</git-commit-id-plugin-version>
@@ -255,7 +255,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.9.5.Final</version>
+			<version>3.9.6.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -595,6 +595,7 @@
 					<target>1.7</target>
 					<testSource>1.7</testSource>
 					<testTarget>1.7</testTarget>
+					<showDeprecation>true</showDeprecation>
 				</configuration>
 			</plugin>
 

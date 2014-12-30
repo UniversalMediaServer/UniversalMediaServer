@@ -387,6 +387,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MATROSKA;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
+		} else if (value.startsWith("cinepack")) {
+			format = FormatConfiguration.CINEPACK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
 		} else if (value.toLowerCase().equals("webm")) {
@@ -407,6 +409,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.OPUS;
 		} else if (value.contains("realmedia") || value.startsWith("rv") || value.startsWith("cook")) {
 			format = FormatConfiguration.RM;
+		} else if (value.startsWith("theora")) {
+			format = FormatConfiguration.THEORA;
 		} else if (value.contains("windows media") || value.equals("wmv1") || value.equals("wmv2") || value.equals("wmv7") || value.equals("wmv8")) {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
@@ -454,7 +458,7 @@ public class LibMediaInfoParser {
 				format = FormatConfiguration.DTSHD;
 			}
 		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
-			format = FormatConfiguration.OGG;
+			format = FormatConfiguration.VORBIS;
 		} else if (value.equals("ac-3") || value.equals("a_ac3") || value.equals("2000")) {
 			format = FormatConfiguration.AC3;
 		} else if (value.equals("e-ac-3")) {
