@@ -24,6 +24,7 @@ public class FormatConfiguration {
 	public static final String ADPCM = "adpcm";
 	public static final String AIFF = "aiff";
 	public static final String ALAC = "alac";
+	public static final String AMR = "amr";
 	public static final String APE = "ape";
 	public static final String ATRAC = "atrac";
 	public static final String AVI = "avi";
