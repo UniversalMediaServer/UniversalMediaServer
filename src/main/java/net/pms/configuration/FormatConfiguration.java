@@ -67,6 +67,7 @@ public class FormatConfiguration {
 	public static final String TIFF = "tiff";
 	public static final String THEORA = "theora";
 	public static final String TRUEHD = "truehd";
+	public static final String TTA = "tta";
 	public static final String VC1 = "vc1";
 	public static final String VORBIS = "vorbis";
 	public static final String VP6 = "vp6";
