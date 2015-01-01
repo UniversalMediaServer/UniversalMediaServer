@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -37,15 +36,12 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.FileUtil;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -432,7 +428,7 @@ public class SubtitleUtils {
 								params[i] = configuration.getAssShadow();
 								break;
 							case "MarginV":
-								params[i] = String.valueOf(configuration.getAssMargin());
+								params[i] = configuration.getAssMargin();
 								break;
 							default:
 								break;
@@ -492,9 +488,9 @@ public class SubtitleUtils {
 
 		// First try to calculate subtitles position and depth
 		// Max depth - 2% ... + 2%
-		int depth3D = (int) - (((double) playResX /(double) 100) * configuration.getDepth3D());
+		int depth3D = (int) - (((double) playResX /(double) 100) * Double.valueOf(configuration.getDepth3D()));
 		int offset = (playResX / 100) * 2;
-		int bottomSubsPosition = (int) ((playResY /(double) 100) * configuration.getAssMargin());
+		int bottomSubsPosition = (int) ((playResY /(double) 100) * Double.valueOf(configuration.getAssMargin()));
 		int topSubsPositionTb = playResY + bottomSubsPosition;
 		int middleSbs = media.getWidth() / 2;
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
