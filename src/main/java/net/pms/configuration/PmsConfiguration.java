@@ -778,8 +778,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Returns the margin used for ASS subtitling. Default value is 10.
 	 * @return The ASS margin.
 	 */
-	public int getAssMargin() {
-		return getInt(KEY_ASS_MARGIN, 10);
+	public String getAssMargin() {
+		return getString(KEY_ASS_MARGIN, "10");
 	}
 
 	/**
@@ -3108,11 +3108,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
 	}
 
-	public double getDepth3D() {
-		return getDouble(KEY_3D_SUBTITLES_DEPTH, 0);
+	public String getDepth3D() {
+		return getString(KEY_3D_SUBTITLES_DEPTH, "0");
 	}
 
-	public void setDepth3D(double value) {
+	public void setDepth3D(String value) {
 		configuration.setProperty(KEY_3D_SUBTITLES_DEPTH, value);
 	}
 

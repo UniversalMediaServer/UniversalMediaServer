@@ -1011,12 +1011,12 @@ public class TranscodingTab {
 		builder.add(useEmbeddedSubtitlesStyle, FormLayoutUtil.flip(cc.xyw(1, 18, 11), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(1, 20), colSpec, orientation));
-		depth3D = new JTextField(String.valueOf(configuration.getDepth3D()));
+		depth3D = new JTextField(configuration.getDepth3D());
 		depth3D.setToolTipText(Messages.getString("TrTab2.91"));
 		depth3D.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setDepth3D(Double.parseDouble(depth3D.getText()));
+				configuration.setDepth3D(depth3D.getText());
 			}
 		});
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 20), colSpec, orientation));
