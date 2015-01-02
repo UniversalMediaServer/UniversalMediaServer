@@ -1,9 +1,34 @@
-4.3.2 - 2014-12-??
+4.3.2 - 2015-01-??
 
 	General:
 		Improved compatibility of H.264 transcoded videos
+		Fixed error on Linux when VLC is not installed
+		Fixed recognition of BMP, Theora and Vorbis (thanks, ler0y!)
+		Added support for Sorenson Media and Cinepak in renderer configs (thanks, ler0y!)
+		Added "SendFolderThumbnails" renderer option
+		Fixed some cases of unnecessary video transcoding
 	Renderers:
+		Added support for Samsung ES8005 TVs (thanks, wazer!)
+		Added support for Samsung BD-C6800 Blu-ray Disc Players
+		Updated DefaultRenderer.conf
+		Improved support for Hama IR320
+		Improved support for Panasonic VT60 TVs
+		Improved support for Sony Bravia W series TVs
 		Improved support for Xbox 360
+	External Components:
+		Updated FFmpeg for Windows and OS X, which:
+			Improves support for many containers and codecs
+			Fixes bugs
+		Updated MPlayer/MEncoder for Windows to SB62, which:
+			Fixes support for Opus
+			Fixes support for DVDs
+			Fixes color and italic support for MicroDVD subtitles
+			Improves MPEG-2 output
+			Fixes x264 hardware acceleration
+			Improves support for many containers and codecs
+			Fixes VBR and VFR support in H.264 output
+			Fixes bugs
+		Updated Netty to 3.9.6, which fixed bugs
 
 4.3.1 - 2014-12-12
 
