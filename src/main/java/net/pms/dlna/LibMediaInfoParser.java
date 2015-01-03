@@ -466,6 +466,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.AC3;
 		} else if (value.startsWith("cook")) {
 			format = FormatConfiguration.COOK;
+		} else if (value.equals("realaudio lossless")) {
+			format = FormatConfiguration.REALAUDIO_LOSSLESS;
 		} else if (value.equals("e-ac-3")) {
 			format = FormatConfiguration.EAC3;
 		} else if (value.contains("truehd")) {
