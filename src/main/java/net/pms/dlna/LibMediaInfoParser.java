@@ -468,6 +468,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.AC3;
 		} else if (value.startsWith("cook")) {
 			format = FormatConfiguration.COOK;
+		} else if (value.startsWith("qdesign")) {
+			format = FormatConfiguration.QDESIGN;
 		} else if (value.equals("realaudio lossless")) {
 			format = FormatConfiguration.REALAUDIO_LOSSLESS;
 		} else if (value.equals("e-ac-3")) {
