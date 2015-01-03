@@ -19,6 +19,10 @@
 		Updated FFmpeg for Windows and OS X, which:
 			Improves support for many containers and codecs
 			Fixes bugs
+		Updated MediaInfo to 0.7.71, which:
+			Improves folder population time
+			Improves detection of many formats
+			Fixes bugs
 		Updated MPlayer/MEncoder for Windows to SB62, which:
 			Fixes support for Opus
 			Fixes support for DVDs
