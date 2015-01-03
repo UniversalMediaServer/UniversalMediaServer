@@ -396,12 +396,12 @@
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-core</artifactId>
-			<version>2.0-alpha3</version>
+			<version>2.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-support</artifactId>
-			<version>2.0-alpha3</version>
+			<version>2.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
