@@ -1,12 +1,11 @@
 package net.pms.newgui;
 
 import java.awt.*;
-import javax.swing.*;
 import java.util.ArrayList;
+import javax.swing.*;
 import org.apache.commons.lang3.StringUtils;
 
 public final class GuiUtil {
-
 	public static class CustomJButton extends JButton {
 		private static final long serialVersionUID = -528428545289132331L;
 
@@ -436,8 +435,9 @@ public final class GuiUtil {
 
 			int targetWidth = target.getSize().width;
 
-			if (targetWidth == 0)
+			if (targetWidth == 0) {
 				targetWidth = Integer.MAX_VALUE;
+			}
 
 			int hgap = getHgap();
 			int vgap = getVgap();
