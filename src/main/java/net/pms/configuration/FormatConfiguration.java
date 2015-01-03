@@ -39,6 +39,7 @@ public class FormatConfiguration {
 	public static final String FLAC = "flac";
 	public static final String FLV = "flv";
 	public static final String GIF = "gif";
+	public static final String H263 = "h263";
 	public static final String H264 = "h264";
 	public static final String H265 = "h265";
 	public static final String JPG = "jpg";
