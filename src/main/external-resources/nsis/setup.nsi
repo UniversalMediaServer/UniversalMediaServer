@@ -172,6 +172,7 @@ Function AdvancedSettingsAfterwards
 		ReadENVStr $R1 ALLUSERSPROFILE
 		RMDir /r $R1\UMS
 		RMDir /r $TEMP\fontconfig
+		RMDir /r $LOCALAPPDATA\fontconfig
 		RMDir /r $INSTDIR
 	${EndIf}
 FunctionEnd
