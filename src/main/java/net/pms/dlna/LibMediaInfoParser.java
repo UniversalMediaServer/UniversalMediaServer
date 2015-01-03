@@ -408,7 +408,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.OGG;
 		} else if (value.contains("opus")) {
 			format = FormatConfiguration.OPUS;
-		} else if (value.contains("realmedia") || value.startsWith("rv") || value.startsWith("cook")) {
+		} else if (value.contains("realmedia") || value.startsWith("rv")) {
 			format = FormatConfiguration.RM;
 		} else if (value.startsWith("theora")) {
 			format = FormatConfiguration.THEORA;
@@ -464,6 +464,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.AMR;			
 		} else if (value.equals("ac-3") || value.equals("a_ac3") || value.equals("2000")) {
 			format = FormatConfiguration.AC3;
+		} else if (value.startsWith("cook")) {
+			format = FormatConfiguration.COOK;
 		} else if (value.equals("e-ac-3")) {
 			format = FormatConfiguration.EAC3;
 		} else if (value.contains("truehd")) {
