@@ -434,7 +434,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			ArrayList<String> tags = new ArrayList<String>();
+			ArrayList<String> tags = new ArrayList<>();
 			tags.add(getRendererName());
 			for (InetAddress sa : addressAssociation.keySet()) {
 				if (addressAssociation.get(sa) == this) {
@@ -650,7 +650,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
 		try {
-			ArrayList<String> conf = new ArrayList<String>();
+			ArrayList<String> conf = new ArrayList<>();
 			String name = r.getRendererName().split("\\(")[0].trim();
 			Map<String, String> details = r.getUpnpDetails();
 			String detailmatcher = details == null ? "" :

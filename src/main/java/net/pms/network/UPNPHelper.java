@@ -86,7 +86,7 @@ public class UPNPHelper extends UPNPControl {
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
-		rendererMap = new DeviceMap<DeviceConfiguration>(DeviceConfiguration.class);
+		rendererMap = new DeviceMap<>(DeviceConfiguration.class);
 	}
 
 	public static UPNPHelper getInstance() {

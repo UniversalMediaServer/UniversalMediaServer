@@ -217,7 +217,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 				filename += ".conf";
 			}
 			file = new File(deviceDir, filename);
-			ArrayList<String> conf = new ArrayList<String>();
+			ArrayList<String> conf = new ArrayList<>();
 
 			// Add the header and device id
 			conf.add("#----------------------------------------------------------------------------");

@@ -95,7 +95,7 @@ public interface BasicPlayer extends ActionListener {
 		public Minimal(DeviceConfiguration renderer) {
 			this.renderer = renderer;
 			state = new State();
-			listeners = new LinkedHashSet<ActionListener>();
+			listeners = new LinkedHashSet<>();
 			if (renderer.gui != null) {
 				connect(renderer.gui);
 			}

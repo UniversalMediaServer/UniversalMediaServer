@@ -84,8 +84,8 @@ public class FileWatcher {
 		public Watch(String fspec, Listener listener, Object item, int flag) {
 			// Make sure we have double-backslashes in Windows paths
 			this.fspec = fspec.replace("\\\\", "\\").replace("\\", "\\\\");
-			this.listener = new WeakReference<Listener>(listener);
-			this.item = (item != null) ? new WeakReference<Object>(item) : null;
+			this.listener = new WeakReference<>(listener);
+			this.item = (item != null) ? new WeakReference<>(item) : null;
 			this.flag = flag;
 		}
 
@@ -106,7 +106,7 @@ public class FileWatcher {
 			}
 			Watch other = (Watch) o;
 			return listener.get() == other.listener.get() &&
-				(fspec == other.fspec || fspec.equals(other.fspec)) &&
+				fspec.equals(other.fspec) &&
 				(item == other.item || (item != null && other.item != null && (item.get() == other.item.get() || item.get().equals(other.item.get())))) &&
 				flag == other.flag;
 		}
