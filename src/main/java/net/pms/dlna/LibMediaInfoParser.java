@@ -269,8 +269,7 @@ public class LibMediaInfoParser {
 					isBlank(media.getCodecV()) &&
 					media.getAudioTracksList() != null &&
 					media.getAudioTracksList().size() == 1 &&
-					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA()) |
-					FormatConfiguration.AAC_HE.equals(media.getAudioTracksList().get(0).getCodecA())
+					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
 				) {
 					media.setContainer(FormatConfiguration.AAC);
 				}
@@ -482,7 +481,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.TTA;
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
-		} else if (value.equals("lc") || value.equals("aac")) {
+		} else if (value.equals("lc")) {
 			format = FormatConfiguration.AAC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.AAC_HE;
