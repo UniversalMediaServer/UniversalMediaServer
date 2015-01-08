@@ -243,6 +243,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		if (
 			PlayerUtil.isAudio(resource, Format.Identifier.FLAC) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.M4A) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.MP3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.WAV) ||
 			PlayerUtil.isWebAudio(resource)

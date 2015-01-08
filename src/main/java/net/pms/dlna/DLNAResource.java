@@ -806,11 +806,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace("File \"{}\" will be forced to be transcoded by configuration", getName());
 			}
 
-			boolean hasEmbeddedSubs = false;
-			boolean hasAnySubs = media.getSubtitleTracksList().size() > 0 || isSubsFile();
 			boolean hasSubsToTranscode = false;
 
-			if (!configuration.isDisableSubtitles() && hasAnySubs) {
+			/**
+			 * Figure out how to handle subtitles for this file if it's a video, subtitles
+			 * are enabled, and subtitles exist.
+			 */
+			if (
+				format.isVideo() &&
+				!configuration.isDisableSubtitles() &&
+				(
+					media.getSubtitleTracksList().size() > 0 ||
+					isSubsFile()
+				)
+			) {
+				boolean hasEmbeddedSubs = false;
+
 				for (DLNAMediaSubtitle s : media.getSubtitleTracksList()) {
 					hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 				}
@@ -871,7 +882,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			) {
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
-			} else if (renderer != null) {
+			} else if (renderer != null && format.isVideo()) {
 				if (
 					renderer.isKeepAspectRatio() &&
 					!"16:9".equals(media.getAspectRatioContainer())
