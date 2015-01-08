@@ -1,18 +1,22 @@
-4.3.2 - 2015-01-??
+4.4.0 - 2015-01-??
 
 	General:
 		Improved compatibility of H.264 transcoded videos
 		Fixed error on Linux when VLC is not installed
 		Fixed recognition of BMP, Theora and Vorbis (thanks, ler0y!)
-		Added support for Sorenson Media and Cinepak in renderer configs (thanks, ler0y!)
+		Added support for several more formats and codecs in renderer configs (thanks, ler0y!)
 		Added "SendFolderThumbnails" renderer option
 		Fixed some cases of unnecessary video transcoding
 		Fixed AviSynth output compatibility on some renderers
 		Improved speed of True Motion processing
 		Updated setting descriptions
+		Cleaned up logging
+		Fixed MP3 transcoding support
+		Improved library creation speed and prevented unnecessary transcoding for non-video files
 	Renderers:
 		Added support for Samsung ES8005 TVs (thanks, wazer!)
 		Added support for Samsung BD-C6800 Blu-ray Disc Players
+		Added support for Yamaha R-N500
 		Updated DefaultRenderer.conf
 		Improved support for Hama IR320
 		Improved support for Panasonic AS600E TVs (thanks, Etmoc!)
