@@ -407,7 +407,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.OGG;
 		} else if (value.contains("opus")) {
 			format = FormatConfiguration.OPUS;
-		} else if (value.contains("realmedia") || value.startsWith("rv") || value.startsWith("cook")) {
+		} else if (value.contains("realmedia") || value.startsWith("rv")) {
 			format = FormatConfiguration.RM;
 		} else if (value.startsWith("theora")) {
 			format = FormatConfiguration.THEORA;
@@ -415,6 +415,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
+		} else if (value.startsWith("h263")) {
+			format = FormatConfiguration.H263;	
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
@@ -459,18 +461,32 @@ public class LibMediaInfoParser {
 			}
 		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
 			format = FormatConfiguration.VORBIS;
+		} else if (value.equals("adts")) {
+			format = FormatConfiguration.ADTS;
+		} else if (value.startsWith("amr")) {
+			format = FormatConfiguration.AMR;
 		} else if (value.equals("ac-3") || value.equals("a_ac3") || value.equals("2000")) {
 			format = FormatConfiguration.AC3;
+		} else if (value.startsWith("cook")) {
+			format = FormatConfiguration.COOK;
+		} else if (value.startsWith("qdesign")) {
+			format = FormatConfiguration.QDESIGN;
+		} else if (value.equals("realaudio lossless")) {
+			format = FormatConfiguration.REALAUDIO_LOSSLESS;
 		} else if (value.equals("e-ac-3")) {
 			format = FormatConfiguration.EAC3;
 		} else if (value.contains("truehd")) {
 			format = FormatConfiguration.TRUEHD;
+		} else if (value.equals("tta")) {
+			format = FormatConfiguration.TTA;
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
 		} else if (value.equals("lc")) {
 			format = FormatConfiguration.AAC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.AAC_HE;
+		} else if (value.startsWith("adpcm")) {
+			format = FormatConfiguration.ADPCM;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {
