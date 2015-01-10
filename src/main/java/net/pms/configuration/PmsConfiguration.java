@@ -95,7 +95,6 @@ public class PmsConfiguration {
 	private static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
 	private static final String KEY_ASS_SCALE = "subtitles_ass_scale";
 	private static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
-	private static final String KEY_BUFFER_MAX = "buffer_max";
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
 	private static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
@@ -1890,12 +1889,10 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
-	@Deprecated
 	public String getFfmpegAlternativePath() {
 		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
 	}
 
-	@Deprecated
 	public void setFfmpegAlternativePath(String value) {
 		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
 	}
@@ -2721,12 +2718,6 @@ public class PmsConfiguration {
 
 	public boolean getFolderLimit() {
 		return getBoolean(KEY_FOLDER_LIMIT, false);
-	}
-
-	// FIXME this is undocumented and misnamed
-	@Deprecated
-	public boolean initBufferMax() {
-		return getBoolean(KEY_BUFFER_MAX, false);
 	}
 
 	public String getScriptDir() {

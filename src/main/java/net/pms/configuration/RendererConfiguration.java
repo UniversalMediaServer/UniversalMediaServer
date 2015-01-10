@@ -131,6 +131,7 @@ public class RendererConfiguration {
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	private static final String SEEK_BY_TIME = "SeekByTime";
 	private static final String SEND_DATE_METADATA = "SendDateMetadata";
+	private static final String SEND_FOLDER_THUMBNAILS = "SendFolderThumbnails";
 	private static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	private static final String SHOW_SUB_METADATA = "ShowSubMetadata";
@@ -1277,6 +1278,15 @@ public class RendererConfiguration {
 	 */
 	public boolean isSendDateMetadata() {
 		return getBoolean(SEND_DATE_METADATA, true);
+	}
+
+	/**
+	 * Whether to send folder thumbnails.
+	 *
+	 * @return whether to send folder thumbnails
+	 */
+	public boolean isSendFolderThumbnails() {
+		return getBoolean(SEND_FOLDER_THUMBNAILS, true);
 	}
 
 	public boolean isDLNATreeHack() {

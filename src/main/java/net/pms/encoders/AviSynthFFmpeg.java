@@ -174,7 +174,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
 					"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
 					"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
+					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Faster\")\n";
 			}
 
 			String subLine = null;
