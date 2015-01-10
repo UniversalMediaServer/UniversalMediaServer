@@ -26,7 +26,7 @@ public class SelectRenderers extends JPanel implements ActionListener {
 
 	public SelectRenderers() {
 		super(new BorderLayout());
-		JPanel checkPanel = new JPanel(new GridLayout(0, 3));
+		JPanel checkPanel = new JPanel(new GridLayout(0, 4));
 
 		selectAll.addActionListener(this);
 		checkPanel.add(selectAll);
@@ -35,9 +35,11 @@ public class SelectRenderers extends JPanel implements ActionListener {
 		checkPanel.add(deselectAll);
 
 		checkPanel.add(new JLabel(""));
-		checkPanel.add(new JLabel("____________________________"));
-		checkPanel.add(new JLabel("____________________________"));
-		checkPanel.add(new JLabel("____________________________"));
+		checkPanel.add(new JLabel(""));
+		checkPanel.add(new JLabel("________________________________"));
+		checkPanel.add(new JLabel("________________________________"));
+		checkPanel.add(new JLabel("________________________________"));
+		checkPanel.add(new JLabel("________________________________"));
 
 		for (String rendererName : allRenderersNames) {
 			JCheckBox checkbox = new JCheckBox(rendererName, !ignoredRenderers.contains(rendererName));

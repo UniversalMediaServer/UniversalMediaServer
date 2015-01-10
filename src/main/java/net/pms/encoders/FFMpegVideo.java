@@ -392,7 +392,7 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("libx265");
 				}
 				transcodeOptions.add("-preset");
-				transcodeOptions.add("ultrafast");
+				transcodeOptions.add("superfast");
 				transcodeOptions.add("-level");
 				transcodeOptions.add("31");
 				transcodeOptions.add("-pix_fmt");
