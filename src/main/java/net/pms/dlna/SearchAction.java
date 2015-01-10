@@ -53,11 +53,6 @@ public class SearchAction extends VirtualFolder {
 	}
 
 	@Override
-	public long lastModified() {
-		return 0;
-	}
-
-	@Override
 	public String getThumbnailContentType() {
 		return HTTPResource.JPEG_TYPEMIME;
 	}

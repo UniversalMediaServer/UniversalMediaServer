@@ -1757,20 +1757,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioContainer(String aspect) {
-		if (aspect == null) {
-			this.aspectRatioContainer = null;
-		} else {
-			if (aspect.contains(":")) {
-				this.aspectRatioContainer = aspect;
-			} else {
-				double exactAspectRatio = Double.parseDouble(aspect);
-				if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
-					this.aspectRatioContainer = "16:9";
-				} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
-					this.aspectRatioContainer = "4:3";
-				}
-			}
-		}
+		this.aspectRatioContainer = getFormattedAspectRatio(aspect);
 	}
 
 	/**
@@ -1789,7 +1776,35 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioVideoTrack(String aspect) {
-		this.aspectRatioVideoTrack = aspect;
+		this.aspectRatioVideoTrack = getFormattedAspectRatio(aspect);
+	}
+
+	/**
+	 * Make sure the aspect ratio is formatted, e.g. 16:9 not 1.78
+	 *
+	 * @param aspect the possibly-unformatted aspect ratio
+	 *
+	 * @return the formatted aspect ratio or null
+	 */
+	public String getFormattedAspectRatio(String aspect) {
+		if (aspect == null || StringUtils.isEmpty(aspect)) {
+			return null;
+		} else {
+			if (aspect.contains(":")) {
+				return aspect;
+			} else {
+				double exactAspectRatio = Double.parseDouble(aspect);
+				if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
+					return "16:9";
+				} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
+					return "4:3";
+				} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
+					return "5:4";
+				} else {
+					return null;
+				}
+			}
+		}
 	}
 
 	/**

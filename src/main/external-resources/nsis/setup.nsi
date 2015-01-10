@@ -172,6 +172,7 @@ Function AdvancedSettingsAfterwards
 		ReadENVStr $R1 ALLUSERSPROFILE
 		RMDir /r $R1\UMS
 		RMDir /r $TEMP\fontconfig
+		RMDir /r $LOCALAPPDATA\fontconfig
 		RMDir /r $INSTDIR
 	${EndIf}
 FunctionEnd
@@ -381,16 +382,19 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Realtek.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-5.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-BDC6800.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-CD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-D7000.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-EH6070.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-ES6575.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-ES8000.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-ES8005.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-F5100.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-F5505.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-F5900.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-GalaxyS5.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-H4500.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-H6400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HTE3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HU7000.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HU9000.conf"
