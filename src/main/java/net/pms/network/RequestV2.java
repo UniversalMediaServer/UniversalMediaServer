@@ -114,7 +114,13 @@ public class RequestV2 extends HTTPResource {
 	 * @param lowRange The byte to start from.
 	 */
 	public void setLowRange(long lowRange) {
-		this.lowRange = lowRange;
+		if(lowRange > 100000000000L) {
+			// ignore anything insane
+			//LOGGER.debug("setLowRange: " + lowRange);
+		}
+		else {
+			this.lowRange = lowRange;
+		}
 	}
 
 	public String getTransferMode() {
