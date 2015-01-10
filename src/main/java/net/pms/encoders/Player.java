@@ -64,7 +64,6 @@ public abstract class Player {
 	// FIXME this is an implementation detail (and not a very good one).
 	// it's entirely up to engines how they construct their command lines.
 	// need to get rid of this
-	@Deprecated
 	public abstract String[] args();
 
 	public abstract String mimeType();
