@@ -783,7 +783,8 @@ public class FFMpegVideo extends Player {
 			params.aid.isAC3() &&
 			!avisynth() &&
 			renderer.isTranscodeToAC3() &&
-			!isXboxOneWebVideo
+			!isXboxOneWebVideo &&
+			params.aid.getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
 		) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
