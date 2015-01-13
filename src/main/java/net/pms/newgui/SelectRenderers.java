@@ -46,7 +46,7 @@ public class SelectRenderers extends JPanel implements ActionListener {
 
 	public SelectRenderers() {
 		super(new BorderLayout());
-		JPanel checkPanel = new JPanel(new GridLayout(0, 4));
+		JPanel checkPanel = new JPanel(new GridLayout(0, 5));
 
 		selectAll.addActionListener(this);
 		checkPanel.add(selectAll);
@@ -56,6 +56,8 @@ public class SelectRenderers extends JPanel implements ActionListener {
 
 		checkPanel.add(new JLabel(""));
 		checkPanel.add(new JLabel(""));
+		checkPanel.add(new JLabel(""));
+		checkPanel.add(new JLabel("________________________________"));
 		checkPanel.add(new JLabel("________________________________"));
 		checkPanel.add(new JLabel("________________________________"));
 		checkPanel.add(new JLabel("________________________________"));
