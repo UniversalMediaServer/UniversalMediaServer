@@ -8,11 +8,14 @@ body {
 	background: url('/files/background.jpg');
 	font-family: "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	color: #333;
-	min-height: 100%;
 }
 
 body#ContentPage {
 	background: url('/files/background-blank.jpg');
+}
+
+body#ContentPage.browsePage {
+	min-height: 100%;
 }
 
 /* Scaffolding */
