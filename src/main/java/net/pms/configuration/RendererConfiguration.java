@@ -187,14 +187,15 @@ public class RendererConfiguration {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
-			List<String> ignoredRenderers = pmsConfiguration.getIgnoredRenderers();
+
+			List<String> selectedRenderers = pmsConf.getSelectedRenderers();
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
-						if (!ignoredRenderers.contains(rendererName)) {
+						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(pmsConfiguration.ALL_RENDERERS)) {
 							enabledRendererConfs.add(r);
 						} else {
 							LOGGER.debug("Ignored " + rendererName + " configuration");
