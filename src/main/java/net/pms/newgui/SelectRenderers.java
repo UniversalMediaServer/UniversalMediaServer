@@ -106,13 +106,10 @@ public class SelectRenderers extends JPanel {
 		if (selectRenderers == JOptionPane.OK_OPTION) {
 			StringBuilder buildSelectedRenders = new StringBuilder();
 			TreePath[] selected = checkTreeManager.getSelectionModel().getSelectionPaths();
-			StringBuilder nameStr = new StringBuilder();
 			for (TreePath render : selected) {
 				String[] treePathString = render.toString().split(",");
-				nameStr.setLength(0);
 				if (treePathString.length > 1) {
-					nameStr.append(treePathString[1].substring(0, treePathString[1].indexOf("]")).trim());
-					buildSelectedRenders.append(nameStr).append(",");
+					buildSelectedRenders.append(treePathString[1].substring(0, treePathString[1].indexOf("]")).trim()).append(",");
 				} else if (selected.length == 1) {
 					buildSelectedRenders.append(configuration.ALL_RENDERERS);
 				}
