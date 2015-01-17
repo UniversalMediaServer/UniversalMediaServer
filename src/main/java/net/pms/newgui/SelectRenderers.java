@@ -17,7 +17,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.newgui;
 
 import java.awt.*;
@@ -28,13 +27,11 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.util.tree.CheckTreeManager;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +45,7 @@ public class SelectRenderers extends JPanel {
 	private CheckTreeManager checkTreeManager;
 	private final JTree SrvTree;
 	private final DefaultMutableTreeNode allRenderers;
-	private String rootName = Messages.getString("GeneralTab.13");	
+	private String rootName = Messages.getString("GeneralTab.13");
 
 	public SelectRenderers() {
 		super(new BorderLayout());
@@ -62,11 +59,11 @@ public class SelectRenderers extends JPanel {
 			allRenderers.add(new DefaultMutableTreeNode(renderer));
 		}
 
-		SrvTree = new JTree(new DefaultTreeModel(allRenderers)); 
-		checkTreeManager = new CheckTreeManager(SrvTree); 
+		SrvTree = new JTree(new DefaultTreeModel(allRenderers));
+		checkTreeManager = new CheckTreeManager(SrvTree);
 		checkPanel.add(new JScrollPane(SrvTree));
 		checkPanel.setSize(400, 500);
-		
+
 	}
 
 	/**
@@ -90,7 +87,7 @@ public class SelectRenderers extends JPanel {
 					}
 				}
 			}
-			
+
 			i++;
 		}
 
@@ -105,17 +102,14 @@ public class SelectRenderers extends JPanel {
 			null,
 			null
 		);
-		
+
 		if (selectRenderers == JOptionPane.OK_OPTION) {
 			StringBuilder buildSelectedRenders = new StringBuilder();
 			TreePath[] selected = checkTreeManager.getSelectionModel().getSelectionPaths();
-			StringBuilder nameStr = new StringBuilder();
 			for (TreePath render : selected) {
 				String[] treePathString = render.toString().split(",");
-				nameStr.setLength(0);
 				if (treePathString.length > 1) {
-					nameStr.append(treePathString[1].substring(0, treePathString[1].indexOf("]")).trim());
-					buildSelectedRenders.append(nameStr).append(",");
+					buildSelectedRenders.append(treePathString[1].substring(0, treePathString[1].indexOf("]")).trim()).append(",");
 				} else if (selected.length == 1) {
 					buildSelectedRenders.append(configuration.ALL_RENDERERS);
 				}
@@ -127,7 +121,7 @@ public class SelectRenderers extends JPanel {
 			} catch (ConfigurationException e) {
 				LOGGER.error("Could not save configuration", e);
 			}
-			
+
 		}
 	}
 }
