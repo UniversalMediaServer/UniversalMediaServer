@@ -982,7 +982,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isWrapDTSIntoPCM() {
-		return getBoolean(WRAP_DTS_INTO_PCM, true);
+		return getBoolean(WRAP_DTS_INTO_PCM, false);
 	}
 
 	public boolean isWrapEncodedAudioIntoPCM() {
