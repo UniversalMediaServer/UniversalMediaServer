@@ -310,7 +310,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	protected static final char LIST_SEPARATOR = ',';
 	public final String ALL_RENDERERS = "All renderers";
-	public final String ALL_RENDERERS = "All renderers";
 
 	public TempFolder tempFolder;
 	public ProgramPaths programPaths;

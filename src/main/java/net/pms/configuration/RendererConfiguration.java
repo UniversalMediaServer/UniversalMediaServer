@@ -231,7 +231,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
-						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(pmsConfiguration.ALL_RENDERERS)) {
+						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
 							enabledRendererConfs.add(r);
 						} else {
 							LOGGER.debug("Ignored " + rendererName + " configuration");
