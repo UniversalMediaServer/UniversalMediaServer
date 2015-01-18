@@ -17,6 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
 package net.pms.newgui;
 
 import java.awt.*;
@@ -26,6 +27,7 @@ import java.util.Locale;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -52,15 +54,40 @@ public class SelectRenderers extends JPanel {
 		JPanel checkPanel = new JPanel();
 		checkPanel.applyComponentOrientation(ComponentOrientation.getOrientation(new Locale(configuration.getLanguage())));
 		add(checkPanel, BorderLayout.LINE_START);
-		checkPanel.applyComponentOrientation(ComponentOrientation.getOrientation(new Locale(configuration.getLanguage())));
-		add(checkPanel, BorderLayout.LINE_START);
 		allRenderers = new DefaultMutableTreeNode(rootName);
+		DefaultMutableTreeNode renderersGroup = null;
+		String lastGroup = null;
+		String groupName;
+		boolean firstLoop = true;
 		for (String renderer : allRenderersNames) {
-			allRenderers.add(new DefaultMutableTreeNode(renderer));
+			if (lastGroup != null && renderer.startsWith(lastGroup)) {
+				if (renderer.indexOf(" ") > 0 ) {
+					renderersGroup.add(new DefaultMutableTreeNode(renderer.substring(renderer.indexOf(" "))));
+				} else {
+					renderersGroup.add(new DefaultMutableTreeNode(renderer));
+				}
+
+			} else {
+				if (!firstLoop) {
+					allRenderers.add(renderersGroup);
+				}
+				
+				if (renderer.indexOf(" ") > 0) {
+					groupName = renderer.substring(0, renderer.indexOf(" "));
+					renderersGroup = new DefaultMutableTreeNode(groupName);
+					renderersGroup.add(new DefaultMutableTreeNode(renderer.substring(renderer.indexOf(" "))));
+				} else {
+					groupName = renderer;
+					renderersGroup = new DefaultMutableTreeNode(groupName);
+				}
+				
+				lastGroup = groupName;
+				firstLoop = false;
+			}
 		}
 
 		SrvTree = new JTree(new DefaultTreeModel(allRenderers));
-		checkTreeManager = new CheckTreeManager(SrvTree);
+		checkTreeManager = new CheckTreeManager(SrvTree); 
 		checkPanel.add(new JScrollPane(SrvTree));
 		checkPanel.setSize(400, 500);
 
@@ -81,16 +108,34 @@ public class SelectRenderers extends JPanel {
 			} else {
 				int childNumber = allRenderers.getChildCount();
 				for (int j = 0; j < childNumber; j++) {
-					if (allRenderers.getChildAt(j).toString().matches(renderer)) {
-						renderersPath[i] = root.pathByAddingChild(allRenderers.getChildAt(j));
+					TreeNode node = allRenderers.getChildAt(j); // node represents simple renderer or group of renderers family
+					int nodeChildren = node.getChildCount();
+					int endIndex = renderer.indexOf(" ");
+					if (node.toString().equals(renderer)) { // group has all children selected or renderer is only one word name
+						renderersPath[i] = root.pathByAddingChild(node);
+						i++;
 						break;
+					} else {
+						if (endIndex > 0 && nodeChildren > 0) {
+							if (node.toString().equals(renderer.substring(0, endIndex))) {
+								for (int jj = 0; jj < nodeChildren; jj++) {
+									if (node.getChildAt(jj).toString().equals(renderer.substring(renderer.indexOf(" ")))) {
+										renderersPath[i] = root.pathByAddingChild(node).pathByAddingChild(node.getChildAt(jj));
+										i++;
+										break;
+									}
+								}
+							
+								break;	
+							}
+						}
+						
 					}
 				}
 			}
-
-			i++;
 		}
 
+		SrvTree.validate();
 		checkTreeManager.getSelectionModel().setSelectionPaths(renderersPath);
 		int selectRenderers = JOptionPane.showOptionDialog(
 			(Component) PMS.get().getFrame(),
@@ -106,13 +151,30 @@ public class SelectRenderers extends JPanel {
 		if (selectRenderers == JOptionPane.OK_OPTION) {
 			StringBuilder buildSelectedRenders = new StringBuilder();
 			TreePath[] selected = checkTreeManager.getSelectionModel().getSelectionPaths();
-			for (TreePath render : selected) {
-				String[] treePathString = render.toString().split(",");
+			for (TreePath path : selected) {
+				String[] treePathString = path.toString().split(",");
+				StringBuilder nameStr = new StringBuilder();
+				int firstRange;
+				int lastRange;
 				if (treePathString.length > 1) {
-					buildSelectedRenders.append(treePathString[1].substring(0, treePathString[1].indexOf("]")).trim()).append(",");
-				} else if (selected.length == 1) {
-					buildSelectedRenders.append(configuration.ALL_RENDERERS);
+					if (treePathString[0].contains(allRenderers.toString())) {
+						for (i = 1; i < treePathString.length; i++) {
+							firstRange = treePathString[i].lastIndexOf("[") + 1;
+							lastRange = treePathString[i].indexOf("]");
+							if (lastRange > firstRange) {
+								nameStr.append(treePathString[i].substring(firstRange, lastRange).trim());
+							} else {
+								nameStr.append(treePathString[i].trim()).append(" ");
+							}
+						}
+					}
+				} else {
+					if (selected.length == 1) {
+						nameStr.append(configuration.ALL_RENDERERS);
+					}
 				}
+
+				buildSelectedRenders.append(nameStr).append(",");
 			}
 
 			configuration.setSelectedRenderers(buildSelectedRenders.toString());
