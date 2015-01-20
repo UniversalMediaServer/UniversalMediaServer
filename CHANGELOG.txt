@@ -1,4 +1,9 @@
-4.4.0 - 2015-01-??
+4.4.1 - 2015-01-??
+
+	General:
+		
+
+4.4.0 - 2015-01-11
 
 	General:
 		Improved compatibility of H.264 transcoded videos
@@ -16,22 +21,25 @@
 	Renderers:
 		Added support for Samsung ES8005 TVs (thanks, wazer!)
 		Added support for Samsung BD-C6800 Blu-ray Disc Players
+		Added support for Sony Xperia Z3
 		Added support for Yamaha R-N500
-		Updated DefaultRenderer.conf
 		Improved support for Hama IR320
 		Improved support for Panasonic AS600E TVs (thanks, Etmoc!)
 		Improved support for Panasonic VT60 TVs
+		Improved support for Samsung H6400 series TVs
+		Improved support for Sony Blu-ray Disc players from 2013
+		Improved support for Sony Bravia NX70x series TVs
 		Improved support for Sony Bravia W series TVs
 		Improved support for Xbox 360
+		Fixed audio transcoding on Sony Bravia EX series TVs
+		Fixed timeouts on Philips TVs
+		Fixed support for images on Panasonic TVs
+		Updated DefaultRenderer.conf
 	Languages:
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
 		Updated FFmpeg for Windows and OS X, which:
 			Improves support for many containers and codecs
-			Fixes bugs
-		Updated MediaInfo to 0.7.71, which:
-			Improves folder population time
-			Improves detection of many formats
 			Fixes bugs
 		Updated MPlayer/MEncoder for Windows to SB62, which:
 			Fixes support for Opus

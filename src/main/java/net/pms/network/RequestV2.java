@@ -115,7 +115,10 @@ public class RequestV2 extends HTTPResource {
 	 * @param lowRange The byte to start from.
 	 */
 	public void setLowRange(long lowRange) {
-		this.lowRange = lowRange;
+		// Assume 100GB+ values are errors and ignore them.
+		if (lowRange < 100000000000L) {
+			this.lowRange = lowRange;
+		}
 	}
 
 	public String getTransferMode() {
