@@ -60,7 +60,7 @@ fi
 
 # Provide a means of setting max memory using an environment variable
 if [ "x$PMS_MAX_MEMORY" = "x" ]; then
-  PMS_MAX_MEMORY=768M
+    PMS_MAX_MEMORY=768M
 fi
 
 # Execute the JVM
