@@ -718,7 +718,20 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 			return endOF - mb;
 		} else {
-			System.arraycopy(buffer, mb, buf, off, len - cut);
+			try {
+                System.arraycopy(buffer, mb, buf, off, len - cut);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                LOGGER.error("ReadCount: " + readCount);
+                LOGGER.error("WriteCount: " + writeCount);
+                LOGGER.error("len - (writeCount - readCount)): " + (len - (writeCount - readCount)));
+				LOGGER.error("Something went wrong with the buffer, error: " + e);
+                LOGGER.error("buffer.length: " + buffer.length);
+				LOGGER.error("srcPos: " + mb);
+                LOGGER.error("buf.length: " + buf.length);
+				LOGGER.error("destPos: " + off);
+				LOGGER.error("length: " + len + " - " + cut + " = " + (len - cut));
+                throw e;
+			}
 			return len;
 		}
 	}

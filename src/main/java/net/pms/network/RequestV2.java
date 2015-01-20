@@ -450,6 +450,12 @@ public class RequestV2 extends HTTPResource {
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
 
+							LOGGER.trace("totalsize: " + totalsize);
+							LOGGER.trace("remaining: " + remaining);
+							LOGGER.trace("requested: " + requested);
+							LOGGER.trace("lowRange: " + lowRange);
+							LOGGER.trace("highRange: " + highRange);
+
 							output.headers().set(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
 							// Content-Length refers to the current chunk size here, though in chunked
@@ -908,6 +914,10 @@ public class RequestV2 extends HTTPResource {
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) {
+						LOGGER.trace("The channel future completed:");
+						LOGGER.trace("  isSuccess: " + future.isSuccess());
+						LOGGER.trace("  isCancelled: " + future.isCancelled());
+						LOGGER.trace("  getCause: ", future.getCause());
 						try {
 							PMS.get().getRegistry().reenableGoToSleep();
 							inputStream.close();
