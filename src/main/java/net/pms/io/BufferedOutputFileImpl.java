@@ -792,7 +792,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	}
 
 	@Override
-	public void attachThread(ProcessWrapper thread) {
+	public synchronized void attachThread(ProcessWrapper thread) {
 		if (attachedThread != null) {
 			throw new RuntimeException("BufferedOutputFile is already attached to a Thread: " + attachedThread);
 		}
@@ -802,7 +802,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		startTimer();
 	}
 
-	private synchronized void startTimer() {
+	private void startTimer() {
 		if (!hidebuffer && maxMemorySize > (15 * 1048576)) {
 			timer = new Timer(attachedThread + "-Timer");
 			timer.schedule(new TimerTask() {
