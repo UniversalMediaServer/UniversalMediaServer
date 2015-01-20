@@ -1584,7 +1584,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isWrapDTSIntoPCM() {
-		return getBoolean(WRAP_DTS_INTO_PCM, true);
+		return getBoolean(WRAP_DTS_INTO_PCM, false);
 	}
 
 	public boolean isWrapEncodedAudioIntoPCM() {
