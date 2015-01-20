@@ -703,6 +703,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		if (eof && (writeCount - readCount) < len) {
 			cut = (int) (len - (writeCount - readCount));
+            if (cut < 0) cut = 0;
 		}
 
 		if (mb >= endOF - len) {
@@ -718,7 +719,20 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 			return endOF - mb;
 		} else {
-			System.arraycopy(buffer, mb, buf, off, len - cut);
+			try {
+				System.arraycopy(buffer, mb, buf, off, len - cut);
+			} catch (ArrayIndexOutOfBoundsException e) {
+				LOGGER.error("ReadCount: " + readCount);
+				LOGGER.error("WriteCount: " + writeCount);
+				LOGGER.error("len - (writeCount - readCount)): " + (len - (writeCount - readCount)));
+				LOGGER.error("Something went wrong with the buffer, error: " + e);
+				LOGGER.error("buffer.length: " + buffer.length);
+				LOGGER.error("srcPos: " + mb);
+				LOGGER.error("buf.length: " + buf.length);
+				LOGGER.error("destPos: " + off);
+				LOGGER.error("length: " + len + " - " + cut + " = " + (len - cut));
+				throw e;
+			}
 			return len;
 		}
 	}
@@ -778,7 +792,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	}
 
 	@Override
-	public void attachThread(ProcessWrapper thread) {
+	public synchronized void attachThread(ProcessWrapper thread) {
 		if (attachedThread != null) {
 			throw new RuntimeException("BufferedOutputFile is already attached to a Thread: " + attachedThread);
 		}
@@ -788,7 +802,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		startTimer();
 	}
 
-	private synchronized void startTimer() {
+	private void startTimer() {
 		if (!hidebuffer && maxMemorySize > (15 * 1048576)) {
 			timer = new Timer(attachedThread + "-Timer");
 			timer.schedule(new TimerTask() {
