@@ -703,7 +703,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		if (eof && (writeCount - readCount) < len) {
 			cut = (int) (len - (writeCount - readCount));
-            if (cut < 0) cut = 0;
+			if (cut < 0) {
+				cut = 0;
+			}
 		}
 
 		if (mb >= endOF - len) {
