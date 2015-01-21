@@ -63,7 +63,7 @@ public class PlaySub extends DLNAResource {
 	}
 
 	@Override
-	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		setSub();
 		return real.getInputStream(range, mediarenderer);
 	}

@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 public class RAW extends JPG {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * {@inheritDoc} 
@@ -93,6 +92,7 @@ public class RAW extends JPG {
 
 	@Override
 	public void parse(DLNAMediaInfo media, InputFile file, int type, RendererConfiguration renderer) {
+		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		try {
 			OutputParams params = new OutputParams(configuration);
 			params.waitbeforestart = 1;

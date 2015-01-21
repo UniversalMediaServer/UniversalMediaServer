@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
@@ -31,7 +30,6 @@ import net.pms.util.ProcessUtil;
 
 public class DVDISOFile extends VirtualFolder {
 	private static final String NAME = "[DVD ISO] %s";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private File file;
 	private boolean isVideoTS;
 

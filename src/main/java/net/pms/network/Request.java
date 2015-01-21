@@ -18,11 +18,7 @@
  */
 package net.pms.network;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
@@ -46,11 +42,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response. 
+ * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
  */
 public class Request extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Request.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private PmsConfiguration configuration = PMS.getConfiguration();
 
 	private final static String CRLF = "\r\n";
 	private final static String HTTP_200_OK = "HTTP/1.1 200 OK";
@@ -101,6 +97,7 @@ public class Request extends HTTPResource {
 
 	public void setMediaRenderer(RendererConfiguration mediaRenderer) {
 		this.mediaRenderer = mediaRenderer;
+		configuration = PMS.getConfiguration(mediaRenderer);
 	}
 
 	public InputStream getInputStream() {
@@ -255,7 +252,7 @@ public class Request extends HTTPResource {
 
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
-		boolean xbox360 = mediaRenderer.isXbox360();
+		boolean xbox360 = (mediaRenderer == null ? false : mediaRenderer.isXbox360());
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -271,29 +268,38 @@ public class Request extends HTTPResource {
 			// Request to retrieve a file
 
 			/**
-			 * Skip the leading "get/" and extract the resource ID from the first path element
-			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
+			 * Skip the leading "get/"
+			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4/Foo.mp4"
 			 *
 			 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
 			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
 			 * This should fix it
 			 */
-			String id = argument.substring(argument.indexOf("get/") + 4, argument.lastIndexOf('/'));
+
+			// Note: we intentionally include the trailing filename here because it may
+			// be used to reconstruct lost Temp items.
+			String id = argument.substring(argument.indexOf("get/") + 4);
 
 			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(id, false, 0, 0, mediaRenderer);
+
+			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
+			String fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
 				output(output, "TransferMode.DLNA.ORG: " + transferMode);
 			}
 
-			if (files.size() == 1) {
+			if (dlna != null && dlna.isFolder() && !fileName.startsWith("thumbnail0000")) {
+				// if we found a folder we MUST be asked for thumbnails
+				// otherwise this is not allowed
+				dlna = null;
+			}
+
+			if (dlna != null) {
 				// DLNAresource was found.
-				dlna = files.get(0);
-				String fileName = argument.substring(argument.lastIndexOf('/') + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
@@ -301,12 +307,16 @@ public class Request extends HTTPResource {
 					output(output, "Accept-Ranges: bytes");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
 					output(output, "Connection: keep-alive");
-					if (mediaRenderer.isMediaParserV2()) {
-						dlna.checkThumbnail();
+					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
+						inputStream = dlna.getGenericThumbnailInputStream(null);
+					} else {
+						if (mediaRenderer.isMediaParserV2()) {
+							dlna.checkThumbnail();
+						}
+						inputStream = dlna.getThumbnailInputStream();
 					}
-
-					inputStream = dlna.getThumbnailInputStream();
-				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000")) {
+					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
+				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitle file
 					output(output, "Content-Type: text/plain");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
@@ -322,8 +332,13 @@ public class Request extends HTTPResource {
 							LOGGER.trace("Could not find external subtitles: " + sub);
 						}
 					}
-				} else {
+				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
+					DLNAResource.Rendering origRendering = null;
+					if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
+						// Adjust rendering details for this renderer
+						origRendering = dlna.updateRendering(mediaRenderer);
+					}
 					String name = dlna.getDisplayName(mediaRenderer);
 					if (dlna.isNoName()) {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
@@ -363,17 +378,13 @@ public class Request extends HTTPResource {
 							}
 						}
 
-						PMS.get().getFrame().setStatusLine("Serving " + name);
-
 						// Response generation:
 						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
-
 						boolean chunked = mediaRenderer.isChunkedTransfer();
 
 						// Determine the total size. Note: when transcoding the length is
 						// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
-
 						long totalsize = dlna.length(mediaRenderer);
 
 						if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
@@ -420,6 +431,10 @@ public class Request extends HTTPResource {
 						}
 
 						output(output, "Connection: keep-alive");
+					}
+					if (origRendering != null) {
+						// Restore original rendering details
+						dlna.updateRendering(origRendering);
 					}
 				}
 			}
@@ -548,11 +563,12 @@ public class Request extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
+				//LOGGER.trace(content);
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
 					containerID = getEnclosingValue(content, "<ContainerID", "</ContainerID>");
-					if (containerID == null || !containerID.contains("$")) {
+					if (containerID == null) {
 						objectID = "0";
 					} else {
 						objectID = containerID;
@@ -625,6 +641,18 @@ public class Request extends HTTPResource {
 					searchCriteria
 				);
 
+				if(xbox360 && files.size() == 0) {
+					// do it again...
+					files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
+							"0",
+							browseDirectChildren,
+							startingIndex,
+							requestCount,
+							mediaRenderer,
+							searchCriteria
+					);
+				}
+
 				if (searchCriteria != null && files != null) {
 					UMSUtils.postSearch(files, searchCriteria);
 					if (xbox360) {
@@ -640,7 +668,6 @@ public class Request extends HTTPResource {
 						if (xbox360 && containerID != null) {
 							uf.setFakeParentId(containerID);
 						}
-
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
 							response.append(uf.getDidlString(mediaRenderer));
 						} else {
@@ -730,7 +757,7 @@ public class Request extends HTTPResource {
 					URL soapActionUrl = new URL(cb);
 					String addr = soapActionUrl.getHost();
 					int port = soapActionUrl.getPort();
-					try (Socket sock = new Socket(addr,port)) {
+					try (Socket sock = new Socket(addr, port)) {
 						OutputStream out = sock.getOutputStream();
 
 						output(out, "NOTIFY /" + argument + " HTTP/1.1");
@@ -810,7 +837,6 @@ public class Request extends HTTPResource {
 			}
 
 			LOGGER.trace("Sending stream: " + sendB + " bytes of " + argument);
-			PMS.get().getFrame().setStatusLine(null);
 		} else { // inputStream is null
 			if (lowRange > 0 && highRange > 0) {
 				output(output, "Content-Length: " + (highRange - lowRange + 1));

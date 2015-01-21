@@ -30,10 +30,6 @@ public class HTMLConsole {
 
 		DLNAMediaDatabase database = PMS.get().getDatabase();
 		PmsConfiguration configuration = PMS.getConfiguration();
-		if (resource.equals("compact") && configuration.getUseCache()) {
-			database.compact();
-			sb.append("<p align=center><b>Database compacted!</b></p><br>");
-		}
 
 		if (resource.equals("scan") && configuration.getUseCache()) {
 			if (!database.isScanLibraryRunning()) {
@@ -52,7 +48,6 @@ public class HTMLConsole {
 		sb.append("<p align=center><img src='/images/logo.png'><br>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML console<br><br>Menu:<br>");
 		sb.append("<a href=\"home\">Home</a><br>");
 		sb.append("<a href=\"scan\">Scan folders</a><br>");
-		sb.append("<a href=\"compact\">Shrink cache database (not recommended)</a>");
 		sb.append("</p></body></html>");
 		return sb.toString();
 	}
