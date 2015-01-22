@@ -350,7 +350,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 * @param l the <code>ListDataListener</code> to be removed
 	 */
 	@Override
-	public void removeListDataListener(final ListDataListener l) {
+	public synchronized void removeListDataListener(final ListDataListener l) {
 		listdatalistener.remove(l);
 		tempListeners = null;
 	}

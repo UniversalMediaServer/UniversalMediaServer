@@ -5,9 +5,10 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.dlna.MediaInfo.InfoType;
+import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,10 @@ public class LibMediaInfoParser {
 		if (MI.isValid()) {
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
+			MI.Option("File_TestContinuousFileNames", "0");
+			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
+			MI.Option("ParseSpeed", "0");
+			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
 		}
 
 		base64 = new Base64();
@@ -49,201 +54,159 @@ public class LibMediaInfoParser {
 
 	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type) {
 		File file = inputFile.getFile();
-
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.Open(file.getAbsolutePath()) > 0) {
 			try {
-				String info = MI.Inform();
-				MediaInfo.StreamType streamType = MediaInfo.StreamType.General;
 				DLNAMediaAudio currentAudioTrack = new DLNAMediaAudio();
-				boolean audioPrepped = false;
 				DLNAMediaSubtitle currentSubTrack = new DLNAMediaSubtitle();
-				boolean subPrepped = false;
-				boolean unusedStreamType = false;
+				media.setSize(file.length());
+				String value;
 
-				if (StringUtils.isNotBlank(info)) {
-					media.setSize(file.length());
-					StringTokenizer st = new StringTokenizer(info, "\n\r");
+				// set General
+				getFormat(StreamType.General, media, currentAudioTrack, MI.Get(StreamType.General, 0, "Format").toLowerCase(), file);
+				media.setDuration(getDuration(MI.Get(StreamType.General, 0, "Duration/String1")));
+				media.setBitrate(getBitrate(MI.Get(StreamType.General, 0, "OverallBitRate")));
+				value = MI.Get(StreamType.General, 0, "Cover_Data");
+				if (isNotBlank(value)) {
+					media.setThumb(getCover(value));
+				}
 
-					while (st.hasMoreTokens()) {
-						String line = st.nextToken().trim();
-
-						// Define the type of media
-						if (line.equals("Video") || line.startsWith("Video #")) {
-							streamType = MediaInfo.StreamType.Video;
-						} else if (line.equals("Audio") || line.startsWith("Audio #")) {
-							if (audioPrepped) {
-								addAudio(currentAudioTrack, media);
-								currentAudioTrack = new DLNAMediaAudio();
+				// set Video
+				int videos = MI.Count_Get(StreamType.Video);
+				if (videos > 0) {
+					for (int i = 0; i < videos; i++) {
+						// check for DXSA and DXSB subtitles (subs in video format)
+						if (MI.Get(StreamType.Video, i, "Title").startsWith("Subtitle")) {
+							currentSubTrack = new DLNAMediaSubtitle();
+							// First attempt to detect subtitle track format
+							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(StreamType.Video, i, "Format")));
+							// Second attempt to detect subtitle track format (CodecID usually is more accurate)
+							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(StreamType.Video, i, "CodecID")));
+							currentSubTrack.setId(media.getSubtitleTracksList().size());
+							addSub(currentSubTrack, media);
+						} else {
+							getFormat(StreamType.Video, media, currentAudioTrack, MI.Get(StreamType.Video, i, "Format").toLowerCase(), file);
+							getFormat(StreamType.Video, media, currentAudioTrack, MI.Get(StreamType.Video, i, "CodecID").toLowerCase(), file);
+							media.setWidth(getPixelValue(MI.Get(StreamType.Video, i, "Width")));
+							media.setHeight(getPixelValue(MI.Get(StreamType.Video, i, "Height")));
+							media.setFrameRate(getFPSValue(MI.Get(StreamType.Video, i, "FrameRate")));
+							media.setStereoscopy(MI.Get(StreamType.Video, i, "MultiView_Layout"));
+							media.setAspectRatioContainer(MI.Get(StreamType.Video, i, "DisplayAspectRatio/String"));
+							media.setAspectRatioVideoTrack(MI.Get(StreamType.Video, i, "DisplayAspectRatio_Original/Stri"));
+							media.setFrameRate(getFPSValue(MI.Get(StreamType.Video, i, "FrameRate")));
+							media.setFrameRateMode(getFrameRateModeValue(MI.Get(StreamType.Video, i, "FrameRateMode")));
+							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(StreamType.Video, i, "Format_Settings_RefFrames/String")));
+							value = MI.Get(StreamType.Video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name);
+							if (isNotBlank(value)) {
+								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							}
-							audioPrepped = true;
-							streamType = MediaInfo.StreamType.Audio;
-						} else if (line.equals("Text") || line.startsWith("Text #")) {
-							if (subPrepped) {
-								addSub(currentSubTrack, media);
-								currentSubTrack = new DLNAMediaSubtitle();
+
+							value = MI.Get(StreamType.Video, i, "Format_Settings_GMC", InfoType.Text, InfoType.Name);
+							if (isNotBlank(value)) {
+								media.putExtra(FormatConfiguration.MI_GMC, value);
 							}
-							subPrepped = true;
-							streamType = MediaInfo.StreamType.Text;
-						} else if (line.equals("Menu") || line.startsWith("Menu #")) {
-							streamType = MediaInfo.StreamType.Menu;
-							unusedStreamType = true;
-						} else if (line.equals("Chapters")) {
-							streamType = MediaInfo.StreamType.Chapters;
-							unusedStreamType = true;
-						} else if (line.equals("Other") || line.startsWith("Other #")) {
-							streamType = MediaInfo.StreamType.Other;
-							unusedStreamType = true;
-						}
 
-						if (!unusedStreamType) {
-							int point = line.indexOf(':');
-							if (point > -1) {
-								String key = line.substring(0, point).trim();
-								String ovalue = line.substring(point + 1).trim();
-								String value = ovalue.toLowerCase();
+							value = MI.Get(StreamType.Video, i, "Format_Settings_GOP", InfoType.Text, InfoType.Name);
+							if (isNotBlank(value)) {
+								media.putExtra(FormatConfiguration.MI_GOP, value);
+							}
 
-								if (key.equals("Format") || key.startsWith("Format_Version") || key.startsWith("Format_Profile")) {
-									if (streamType == MediaInfo.StreamType.Text) {
-										// First attempt to detect subtitle track format
-										currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(value));
-									} else {
-										getFormat(streamType, media, currentAudioTrack, value, file);
-									}
-								} else if (key.equals("Duration/String1") && streamType == MediaInfo.StreamType.General) {
-									media.setDuration(getDuration(value));
-								} else if (key.equals("MultiView_Layout")) {
-									media.setStereoscopy(value);
-								} else if (key.equals("Format_Settings_RefFrames/String") && streamType == MediaInfo.StreamType.Video) {
-									media.setReferenceFrameCount(getReferenceFrameCount(value));
-								} else if (key.equals("Format_Settings_QPel") && streamType == MediaInfo.StreamType.Video) {
-									media.putExtra(FormatConfiguration.MI_QPEL, value);
-								} else if (key.equals("Format_Settings_GMC") && streamType == MediaInfo.StreamType.Video) {
-									media.putExtra(FormatConfiguration.MI_GMC, value);
-								} else if (key.equals("Format_Settings_GOP") && streamType == MediaInfo.StreamType.Video) {
-									media.putExtra(FormatConfiguration.MI_GOP, value);
-								} else if (key.equals("MuxingMode") && streamType == MediaInfo.StreamType.Video) {
-									media.setMuxingMode(ovalue);
-								} else if (key.equals("CodecID")) {
-									if (streamType == MediaInfo.StreamType.Text) {
-										// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-										currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(value));
-									} else {
-										getFormat(streamType, media, currentAudioTrack, value, file);
-									}
-								} else if (key.equals("Language/String")) {
-									if (streamType == MediaInfo.StreamType.Audio) {
-										currentAudioTrack.setLang(getLang(value));
-									} else if (streamType == MediaInfo.StreamType.Text) {
-										currentSubTrack.setLang(getLang(value));
-									} else if (streamType == MediaInfo.StreamType.Video && StringUtils.isBlank(currentAudioTrack.getLang())) {
-										currentAudioTrack.setLang(getLang(value));
-									}
-								} else if (key.equals("Title")) {
-									if (streamType == MediaInfo.StreamType.Audio) {
-										currentAudioTrack.setFlavor(getFlavor(value));
-									} else if (streamType == MediaInfo.StreamType.Text) {
-										currentSubTrack.setFlavor(getFlavor(value));
-									}
-								} else if (key.equals("Width")) {
-									media.setWidth(getPixelValue(value));
-								} else if (key.equals("Encryption") && !media.isEncrypted()) {
-									media.setEncrypted("encrypted".equals(value));
-								} else if (key.equals("Height")) {
-									media.setHeight(getPixelValue(value));
-								} else if (key.equals("DisplayAspectRatio/String")) {
-									media.setAspectRatioContainer(value);
-								} else if (key.equals("DisplayAspectRatio_Original/Stri")) {
-									media.setAspectRatioVideoTrack(value);
-								} else if (key.equals("FrameRate")) {
-									media.setFrameRate(getFPSValue(value));
-								} else if (key.equals("FrameRateMode")) {
-									media.setFrameRateMode(getFrameRateModeValue(value));
-								} else if (key.equals("OverallBitRate")) {
-									if (streamType == MediaInfo.StreamType.General) {
-										media.setBitrate(getBitrate(value));
-									}
-								} else if (key.equals("Channel(s)")) {
-									if (streamType == MediaInfo.StreamType.Audio) {
-										currentAudioTrack.getAudioProperties().setNumberOfChannels(value);
-									}
-								} else if (key.equals("BitRate")) {
-									if (streamType == MediaInfo.StreamType.Audio) {
-										currentAudioTrack.setBitRate(getBitrate(value));
-									}
-								} else if (key.equals("SamplingRate")) {
-									if (streamType == MediaInfo.StreamType.Audio) {
-										currentAudioTrack.setSampleFrequency(getSampleFrequency(value));
-									}
-								} else if (key.equals("ID/String")) {
-									// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
-									if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
-										if (streamType == MediaInfo.StreamType.Audio) {
-											currentAudioTrack.setId(getSpecificID(value));
-										} else if (streamType == MediaInfo.StreamType.Text) {
-											currentSubTrack.setId(getSpecificID(value));
-										}
-									} else {
-										if (streamType == MediaInfo.StreamType.Audio) {
-											currentAudioTrack.setId(media.getAudioTracksList().size());
-										} else if (streamType == MediaInfo.StreamType.Text) {
-											currentSubTrack.setId(media.getSubtitleTracksList().size());
-										}
-									}
-								} else if (key.equals("Cover_Data") && streamType == MediaInfo.StreamType.General) {
-									media.setThumb(getCover(ovalue));
-								} else if (key.equals("Track") && streamType == MediaInfo.StreamType.General) {
-									currentAudioTrack.setSongname(ovalue);
-								} else if (key.equals("Album") && streamType == MediaInfo.StreamType.General) {
-									currentAudioTrack.setAlbum(ovalue);
-								} else if (key.equals("Performer") && streamType == MediaInfo.StreamType.General) {
-									currentAudioTrack.setArtist(ovalue);
-								} else if (key.equals("Genre") && streamType == MediaInfo.StreamType.General) {
-									currentAudioTrack.setGenre(ovalue);
-								} else if (key.equals("Recorded_Date") && streamType == MediaInfo.StreamType.General) {
-									// Try to parse the year from the stored date
-									Matcher matcher = yearPattern.matcher(value);
-
-									if (matcher.matches()) {
-										try {
-											currentAudioTrack.setYear(Integer.parseInt(matcher.group(1)));
-										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse year from recorded date \"" + value + "\"");
-										}
-									}
-								} else if (key.equals("Track/Position") && streamType == MediaInfo.StreamType.General) {
-									try {
-										currentAudioTrack.setTrack(Integer.parseInt(value));
-									} catch (NumberFormatException nfe) {
-										LOGGER.debug("Could not parse track \"" + value + "\"");
-									}
-								} else if (key.equals("BitDepth") && streamType == MediaInfo.StreamType.Audio) {
-									try {
-										currentAudioTrack.setBitsperSample(Integer.parseInt(value));
-									} catch (NumberFormatException nfe) {
-										LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
-									}
-								} else if (key.equals("Video_Delay") && streamType == MediaInfo.StreamType.Audio) {
-									try {
-										currentAudioTrack.getAudioProperties().setAudioDelay(value);
-									} catch (NumberFormatException nfe) {
-										LOGGER.debug("Could not parse delay \"" + value + "\"");
-									}
-								} else if (key.equals("matrix_coefficients") && streamType == MediaInfo.StreamType.Video) {
-									media.setMatrixCoefficients(value);
-								} else if (key.equals("Attachment") && streamType == MediaInfo.StreamType.General) {
-									media.setEmbeddedFontExists(true);
-								}
+							media.setMuxingMode(MI.Get(StreamType.Video, i, "MuxingMode", InfoType.Text, InfoType.Name));
+							if (!media.isEncrypted()) {
+								media.setEncrypted("encrypted".equals(MI.Get(StreamType.Video, i, "Encryption")));
 							}
 						}
 					}
 				}
 
-				if (audioPrepped) {
-					addAudio(currentAudioTrack, media);
+				// set Audio
+				int audioTracks = MI.Count_Get(StreamType.Audio);
+				if (audioTracks > 0) {
+					for (int i = 0; i < audioTracks; i++) {
+						currentAudioTrack = new DLNAMediaAudio();
+						getFormat(StreamType.Audio, media, currentAudioTrack, MI.Get(StreamType.Audio, i, "Format").toLowerCase(), file);
+						getFormat(StreamType.Audio, media, currentAudioTrack, MI.Get(StreamType.Audio, i, "Format_Version").toLowerCase(), file);
+						getFormat(StreamType.Audio, media, currentAudioTrack, MI.Get(StreamType.Audio, i, "Format_Profile").toLowerCase(), file);
+						getFormat(StreamType.Audio, media, currentAudioTrack, MI.Get(StreamType.Audio, i, "CodecID").toLowerCase(), file);
+						currentAudioTrack.setLang(getLang(MI.Get(StreamType.Audio, i, "Language/String")));
+						currentAudioTrack.setFlavor(getFlavor(MI.Get(StreamType.Audio, i, "Title")));
+						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(StreamType.Audio, i, "Channel(s)"));
+						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(StreamType.Audio, i, "SamplingRate")));
+						currentAudioTrack.setBitRate(getBitrate(MI.Get(StreamType.Audio, i, "BitRate")));
+						currentAudioTrack.setSongname(MI.Get(StreamType.General, 0, "Track"));
+						currentAudioTrack.setAlbum(MI.Get(StreamType.General, 0, "Album"));
+						currentAudioTrack.setArtist(MI.Get(StreamType.General, 0, "Performer"));
+						currentAudioTrack.setGenre(MI.Get(StreamType.General, 0, "Genre"));
+						// Try to parse the year from the stored date
+						String recordedDate = MI.Get(StreamType.General, 0, "Recorded_Date");
+						Matcher matcher = yearPattern.matcher(recordedDate);
+						if (matcher.matches()) {
+							try {
+								currentAudioTrack.setYear(Integer.parseInt(matcher.group(1)));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Could not parse year from recorded date \"" + recordedDate + "\"");
+							}
+						}
+
+						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
+						value = MI.Get(StreamType.Audio, i, "ID/String");
+						if (isNotBlank(value)) {
+							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
+								currentAudioTrack.setId(getSpecificID(value));
+							} else {
+								currentAudioTrack.setId(media.getAudioTracksList().size());
+							}
+						}
+
+						value = MI.Get(StreamType.General, i, "Track/Position");
+						if (isNotBlank(value)) {
+							try {
+								currentAudioTrack.setTrack(Integer.parseInt(value));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Could not parse track \"" + value + "\"");
+							}
+						}
+
+						value = MI.Get(StreamType.Audio, i, "BitDepth");
+						if (isNotBlank(value)) {
+							try {
+								currentAudioTrack.setBitsperSample(Integer.parseInt(value));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
+							}
+						}
+
+						addAudio(currentAudioTrack, media);
+					}
 				}
 
-				if (subPrepped) {
-					addSub(currentSubTrack, media);
+				// set Image
+				if (MI.Count_Get(StreamType.Image) > 0) {
+					getFormat(StreamType.Image, media, currentAudioTrack, MI.Get(StreamType.Image, 0, "Format").toLowerCase(), file);
+					media.setWidth(getPixelValue(MI.Get(StreamType.Image, 0, "Width")));
+					media.setHeight(getPixelValue(MI.Get(StreamType.Image, 0, "Height")));
+				}
+
+				// set Subs in text format
+				int subTracks = MI.Count_Get(StreamType.Text);
+				if (subTracks > 0) {
+					for (int i = 0; i < subTracks; i++) {
+						currentSubTrack = new DLNAMediaSubtitle();
+						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(StreamType.Text, i, "Format")));
+						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(StreamType.Text, i, "CodecID")));
+						currentSubTrack.setLang(getLang(MI.Get(StreamType.Text, i, "Language/String")));
+						currentSubTrack.setFlavor(getFlavor(MI.Get(StreamType.Text, i, "Title")));
+						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
+						value = MI.Get(StreamType.Text, i, "ID/String");
+						if (isNotBlank(value)) {
+							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
+								currentSubTrack.setId(getSpecificID(value));
+							} else {
+								currentSubTrack.setId(media.getSubtitleTracksList().size());
+							}
+						}
+
+						addSub(currentSubTrack, media);
+					}
 				}
 
 				/**
@@ -351,11 +314,11 @@ public class LibMediaInfoParser {
 	}
 
 	public static void addAudio(DLNAMediaAudio currentAudioTrack, DLNAMediaInfo media) {
-		if (currentAudioTrack.getLang() == null) {
+		if (isBlank(currentAudioTrack.getLang())) {
 			currentAudioTrack.setLang(DLNAMediaLang.UND);
 		}
 
-		if (currentAudioTrack.getCodecA() == null) {
+		if (isBlank(currentAudioTrack.getCodecA())) {
 			currentAudioTrack.setCodecA(DLNAMediaLang.UND);
 		}
 
@@ -367,7 +330,7 @@ public class LibMediaInfoParser {
 			return;
 		}
 
-		if (currentSubTrack.getLang() == null) {
+		if (isBlank(currentSubTrack.getLang())) {
 			currentSubTrack.setLang(DLNAMediaLang.UND);
 		}
 
@@ -529,7 +492,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
-		} else if (StringUtils.containsIgnoreCase(value, "@l") && streamType == MediaInfo.StreamType.Video) {
+		} else if (containsIgnoreCase(value, "@l") && streamType == MediaInfo.StreamType.Video) {
 			media.setAvcLevel(getAvcLevel(value));
 			media.setH264Profile(getAvcProfile(value));
 		}
@@ -566,9 +529,13 @@ public class LibMediaInfoParser {
 	 * @return reference frame count or {@code -1} if could not parse.
 	 */
 	public static byte getReferenceFrameCount(String value) {
+		if (isBlank(value)) {
+			return -1;
+		}
+
 		try {
 			// Values like "16 frame3"
-			return Byte.parseByte(StringUtils.substringBefore(value, " "));
+			return Byte.parseByte(substringBefore(value, " "));
 		} catch (NumberFormatException ex) {
 			// Not parsed
 			LOGGER.warn("Could not parse ReferenceFrameCount value {}." , value);
@@ -596,7 +563,7 @@ public class LibMediaInfoParser {
 	}
 
 	public static String getAvcProfile(String value) {
-		String profile = StringUtils.substringBefore(lowerCase(value), "@l");
+		String profile = substringBefore(lowerCase(value), "@l");
 		if (isNotBlank(profile)) {
 			return profile;
 		} else {
