@@ -71,10 +71,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
-		// FIXME: this would also block an external cling-based client running on the same host
-		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT) != null &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("Cling/");
+		String userAgent = nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT);
+		boolean isSelf = isLocalClingRequest(ia, userAgent);
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
@@ -192,7 +190,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			if (requestV2.getMediaRenderer() != null) {
 				LOGGER.trace("Using default media renderer: " + requestV2.getMediaRenderer().getRendererName());
 
-				String userAgent = headers.get(HttpHeaders.Names.USER_AGENT);
 				if (userAgent != null && !userAgent.equals("FDSSDP")) {
 					// We have found an unknown renderer
 					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
@@ -217,6 +214,12 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		LOGGER.trace("HTTP: " + requestV2.getArgument() + " / " + requestV2.getLowRange() + "-" + requestV2.getHighRange());
 
 		writeResponse(ctx, nettyRequest, requestV2, ia);
+	}
+
+	private boolean isLocalClingRequest(InetAddress ia, String userAgent) {
+		// FIXME: this would also block an external cling-based client running on the same host
+		return userAgent != null && userAgent.contains("Cling/") &&
+				ia.getHostAddress().equals(PMS.get().getServer().getHost());
 	}
 
 	private RendererConfiguration getRendererConfiguration(InetAddress ia, HttpHeaders headers) {
