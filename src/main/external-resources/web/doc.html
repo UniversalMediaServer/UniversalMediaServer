@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<title>Documentation</title>
+	</head>
+	<body id="ContentPage" class="Doc">
+		<div id="Menu">
+			<a href="/browse/0" id="HomeButton"></a>
+		</div>
+		<div id="Container">
+			<h1>Tools</h1>
+			<br>
+			<ul>
+				<li><a href="/files/util/logviewer.html" title="Open general purpose log viewer">View</a> logs and Confs:
+					<ul>
+{{#logs}}
+						<li><a href="/files/log/{{id}}">{{filename}}</a></li>
+{{/logs}}
+					</ul>
+				</li>
+{{#cache}}
+				<br>
+				<li><a href="{{this}}">Manage cache.</a></li>
+{{/cache}}
+			</ul>
+			<br><br>
+			<h1>Documentation</h1>
+			<br>
+			<ul>
+				<li><a href="/bump">Browser-to-UMS Media Player Setup.</a></li>
+			</ul>
+		</div>
+	</body>
+</html>

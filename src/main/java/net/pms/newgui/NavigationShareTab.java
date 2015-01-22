@@ -38,6 +38,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.UMSUtils;
@@ -81,6 +82,7 @@ public class NavigationShareTab {
 	private JTextField atzLimit;
 	private JCheckBox liveSubtitles;
 	private JCheckBox prettifyfilenames;
+	private JCheckBox episodeTitles;
 	private JCheckBox newmediafolder;
 	private JCheckBox recentlyplayedfolder;
 	private JCheckBox resume;
@@ -179,6 +181,7 @@ public class NavigationShareTab {
 			builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xy(9, 11), colSpec, orientation));
 
 			builder.add(prettifyfilenames, FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
+			builder.add(episodeTitles, FormLayoutUtil.flip(cc.xy(9, 13), colSpec, orientation));
 
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"), FormLayoutUtil.flip(cc.xyw(1, 15, 10), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
@@ -582,6 +585,20 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
 				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+				episodeTitles.setEnabled((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		episodeTitles = new JCheckBox(Messages.getString("FoldTab.63"), configuration.isUseInfoFromIMDB());
+		episodeTitles.setToolTipText(Messages.getString("FoldTab.64"));
+		episodeTitles.setContentAreaFilled(false);
+		if (!configuration.isPrettifyFilenames()) {
+			episodeTitles.setEnabled(false);
+		}
+		episodeTitles.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setUseInfoFromIMDB((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
@@ -636,9 +653,9 @@ public class NavigationShareTab {
 
 		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-adddirectory.png"));
 		but.setToolTipText(Messages.getString("FoldTab.9"));
-		but.addActionListener(new java.awt.event.ActionListener() {
+		but.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(java.awt.event.ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser;
 				try {
 					chooser = new JFileChooser();
@@ -660,9 +677,9 @@ public class NavigationShareTab {
 
 		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-remove.png"));
 		but2.setToolTipText(Messages.getString("FoldTab.36"));
-		but2.addActionListener(new java.awt.event.ActionListener() {
+		but2.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(java.awt.event.ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				if (FList.getSelectedRow() > -1) {
 					((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
 					if (FList.getModel().getRowCount() == 0) {

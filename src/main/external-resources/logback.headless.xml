@@ -18,7 +18,7 @@
 			<level>INFO</level>
 		</filter>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -31,7 +31,7 @@
 		<file>${debugLogPath}${file.separator}debug.log</file>
 		<append>false</append>  <!-- Start new debug.log on each application start -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -51,7 +51,7 @@
 			<maxFileSize>10MB</maxFileSize>
 		</triggeringPolicy>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
 

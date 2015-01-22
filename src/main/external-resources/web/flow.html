@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="stylesheet" href="/files/functional.css" type="text/css">
+		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<script src="/files/jquery.min.js"></script>
+		<script src="/files/jquery.ums.js"></script>
+		<script src="/files/flowplayer.min.js"></script>
+		<title>{{name}}</title>
+	</head>
+	<body id="ContentPage">
+		<script>
+{{#prevId}}
+			function prev() {window.location.replace('/play/{{prevId}}?flash=1');}
+{{/prevId}}
+{{#nextId}}
+			function next() {window.location.replace('/play/{{nextId}}?flash=1');}
+{{/nextId}}
+			function html5() {window.location.replace('/play/{{id1}}'); }
+
+			var state = {};
+
+			function status(k, v, wait) {
+				//console.log('status '+JSON.stringify(arguments));
+				state[k] = v;
+				if (! wait) {
+					$.post('/playerstatus/', JSON.stringify(state));
+				}
+			}
+
+			$(function () {
+				var api = $('.player').flowplayer({
+					ratio: 9 / 16,
+					flashfit: true
+				});
+				api.bind('load', function(){status('playback', 'PLAYING');});
+				api.bind('pause',  function(){status('playback', 'PAUSED');});
+				api.bind('resume',  function(){status('playback', 'PLAYING');});
+				api.bind('stop', function(){status('playback','STOPPED');});
+				api.bind('finish', function(){status('playback', 'STOPPED');});
+				api.bind('unload', function(){status('playback', 'STOPPED');});
+				api.bind('progress', function(e, api, time){status('position', time.toFixed(0));});
+				api.bind('mute', function(e, api){status('mute', api.muted ? '1' : '0');});
+				api.bind('volume', function(e, api, vol){status('volume', (vol * 100).toFixed(0));});
+{{#autoContinue}}
+				api.bind('finish', next);
+{{/autoContinue}}
+				window.onbeforeunload = function(){status('playback','STOPPED');}
+				// Send initial status
+				status('mute', api.muted ? '1' : '0', true);
+				status('volume', (api.volume * 100).toFixed(0));
+			});
+{{#push}}
+			function control(op, arg) {
+				//console.log('control '+JSON.stringify(arguments));
+				var api = flowplayer();
+				switch (op) {
+					case 'play':
+						api.play();
+						break;
+					case 'pause':
+						api.pause();
+						break;
+					case 'stop':
+						api.stop();
+						break;
+					case 'setvolume':
+						api.volume(arg/100);
+						break;
+					case 'mute':
+						api.mute(!api.muted);
+						break;
+				}
+			}
+{{/push}}
+		</script>
+		<div id="Container">
+			<div id="Menu">
+				<a href="/browse/0" id="HomeButton"></a>
+				<a href="/doc" id="DocButton" title="Documentation"></a>
+			</div>
+
+			<div id="VideoContainer">
+				<div class="player">
+					<{{mediaType}} id="player" controls {{auto}}>
+{{#src}}
+						<source src="/media/{{id1}}" type="{{mime}}">
+{{/src}}
+						<source src="/fmedia/{{id1}}" type="video/flash">
+{{#sub}}
+						<track kind="subtitles" src="/files/{{this}}" default>
+{{/sub}}
+					</{{mediaType}}>
+				</div>
+				<div id="toolbar">
+					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+					<button id="next" onclick="next()"{{nextAttr}}>>></button>
+					<button id="html5" onclick="html5()" title="Switch to html5 player">html5</button>
+				</div>
+			</div>
+			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
+		</div>
+	</body>
+</html>
+

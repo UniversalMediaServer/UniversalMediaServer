@@ -36,7 +36,7 @@ public abstract class Range implements Cloneable {
 		return new Range.Time(timeseek, timeRangeEnd);
 	}
 
-	public static class Time extends Range implements Cloneable {
+	public static class Time extends Range {
 		private Double start;
 		private Double end;
 
@@ -162,7 +162,7 @@ public abstract class Range implements Cloneable {
 		}
 	}
 
-	public static class Byte extends Range implements Cloneable {
+	public static class Byte extends Range {
 		private Long start;
 		private Long end;
 

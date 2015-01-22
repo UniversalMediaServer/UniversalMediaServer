@@ -22,7 +22,6 @@ import com.sun.jna.Platform;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
@@ -33,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private boolean useSuperThumb;
 
