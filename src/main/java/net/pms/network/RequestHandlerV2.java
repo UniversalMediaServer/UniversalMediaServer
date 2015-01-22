@@ -23,9 +23,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,8 +70,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
 		RequestV2 request;
 		String userAgentString = null;
-		StringBuilder unknownHeaders = new StringBuilder();
-		String separator = "";
 
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
@@ -112,6 +108,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		Set<String> headerNames = headers.names();
+		List<String> unknownHeaders = new LinkedList<>();
 		Iterator<String> iterator = headerNames.iterator();
 		while (iterator.hasNext()) {
 			String name = iterator.next();
@@ -183,8 +180,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 						if (!isKnown) {
 							// Truly unknown header, therefore interesting. Save for later use.
-							unknownHeaders.append(separator).append(headerLine);
-							separator = ", ";
+							unknownHeaders.add(headerLine);
 						}
 					}
 				}
@@ -205,8 +201,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 					// We have found an unknown renderer
-					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
-							+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
+					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
+							"User-Agent: " + userAgentString +
+							(unknownHeaders.isEmpty() ? "" : ", " + StringUtils.join(unknownHeaders, ", ")));
 					PMS.get().setRendererFound(request.getMediaRenderer());
 				}
 			} else {
