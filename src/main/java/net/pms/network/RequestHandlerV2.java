@@ -69,7 +69,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
 		RequestV2 request;
-		String userAgentString = null;
 
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
@@ -114,10 +113,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			String name = iterator.next();
 			String headerLine = name + ": " + headers.get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
-
-			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
-				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
-			}
 
 			try {
 				StringTokenizer s = new StringTokenizer(headerLine);
@@ -199,10 +194,11 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			if (request.getMediaRenderer() != null) {
 				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
-				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
+				String userAgent = headers.get(HttpHeaders.Names.USER_AGENT);
+				if (userAgent != null && !userAgent.equals("FDSSDP")) {
 					// We have found an unknown renderer
 					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
-							"User-Agent: " + userAgentString +
+							"User-Agent: " + userAgent +
 							(unknownHeaders.isEmpty() ? "" : ", " + StringUtils.join(unknownHeaders, ", ")));
 					PMS.get().setRendererFound(request.getMediaRenderer());
 				}
@@ -211,12 +207,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				// it means we know via upnp that it's not really a renderer.
 				return;
 			}
-		} else {
-			if (userAgentString != null) {
-				LOGGER.debug("HTTP User-Agent: " + userAgentString);
-			}
-
-			LOGGER.trace("Recognized media renderer: " + request.getMediaRenderer().getRendererName());
 		}
 
 		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
@@ -241,6 +231,15 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			// Attempt 2: try to recognize the renderer by matching headers
 			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
 		}
+
+		if (renderer != null) {
+			String userAgent = headers.get(HttpHeaders.Names.USER_AGENT);
+			if (userAgent != null) {
+				LOGGER.debug("HTTP User-Agent: " + userAgent);
+			}
+			LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
+		}
+
 		return renderer;
 	}
 
