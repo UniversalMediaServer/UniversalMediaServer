@@ -27,7 +27,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -40,6 +39,8 @@ import net.pms.external.StartStopListenerDelegate;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpRequest> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlerV2.class);
@@ -185,11 +186,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			}
 		}
 
-		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
-			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
-			ByteBuf content = nettyRequest.content();
-			content.readBytes(data);
-			requestV2.setTextContent(new String(data, "UTF-8"));
+		if (HttpHeaders.isContentLengthSet(nettyRequest) && nettyRequest.content().isReadable()) {
+			requestV2.setTextContent(nettyRequest.content().toString(UTF_8));
 		}
 
 		LOGGER.trace("HTTP: " + requestV2.getArgument() + " / " + requestV2.getLowRange() + "-" + requestV2.getHighRange());
