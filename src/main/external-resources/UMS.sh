@@ -59,9 +59,9 @@ if [ "x$FONTCONFIG_FILE" = "x" ]; then
 fi
 
 # Provide a means of setting max memory using an environment variable
-if [ "x$PMS_MAX_MEMORY" = "x" ]; then
-    PMS_MAX_MEMORY=768M
+if [ "x$UMS_MAX_MEMORY" = "x" ]; then
+    UMS_MAX_MEMORY=768M
 fi
 
 # Execute the JVM
-exec "$JAVA" $JAVA_OPTS -Xmx$PMS_MAX_MEMORY -Xss2048k -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true -classpath "$PMS_JARS" net.pms.PMS "$@"
+exec "$JAVA" $JAVA_OPTS -Xmx$UMS_MAX_MEMORY -Xss2048k -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true -classpath "$PMS_JARS" net.pms.PMS "$@"
