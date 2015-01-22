@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpRequest> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlerV2.class);
@@ -49,6 +50,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		"timeseekrange\\.dlna\\.org\\W*npt\\W*=\\W*([\\d.:]+)?-?([\\d.:]+)?",
 		Pattern.CASE_INSENSITIVE
 	);
+
+	private static final CharSequence CALLBACK = HttpHeaders.newNameEntity("CallBack");
+	private static final CharSequence SOAPACTION = HttpHeaders.newNameEntity("SOAPAction");
 
 	// Used to filter out known headers when the renderer is not recognized
 	private final static String[] KNOWN_HEADERS = {
@@ -62,7 +66,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		"date",
 		"host",
 		"nt",
+		"range",
 		"sid",
+		"soapaction",
 		"timeout",
 		"user-agent"
 	};
@@ -103,6 +109,11 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			requestV2.setMediaRenderer(renderer);
 		}
 
+		String soapAction = getSoapActionOrCallback(headers);
+		if (soapAction != null) {
+			requestV2.setSoapaction(soapAction);
+		}
+
 		Set<String> headerNames = headers.names();
 		List<String> unknownHeaders = new LinkedList<>();
 		Iterator<String> iterator = headerNames.iterator();
@@ -112,13 +123,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			LOGGER.trace("Received on socket: " + headerLine);
 
 			try {
-				StringTokenizer s = new StringTokenizer(headerLine);
-				String temp = s.nextToken();
-				if (temp.toUpperCase().equals("SOAPACTION:")) {
-					requestV2.setSoapaction(s.nextToken());
-				} else if (temp.toUpperCase().equals("CALLBACK:")) {
-					requestV2.setSoapaction(s.nextToken());
-				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
+				if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
 					String nums = headerLine.substring(
 						headerLine.toUpperCase().indexOf(
 						"RANGE: BYTES=") + 13).trim();
@@ -193,6 +198,20 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		LOGGER.trace("HTTP: " + requestV2.getArgument() + " / " + requestV2.getLowRange() + "-" + requestV2.getHighRange());
 
 		writeResponse(ctx, nettyRequest, requestV2, ia);
+	}
+
+	private String getSoapActionOrCallback(HttpHeaders headers) {
+		String headerValue = trimToEmpty(headers.get(SOAPACTION));
+		if (headerValue.isEmpty()) {
+			// Fall back to the callback header
+			headerValue = trimToEmpty(headers.get(CALLBACK));
+		}
+		if (headerValue.isEmpty()){
+			return null;
+		} else {
+			// I'm not entirely sure this is needed, but I'm leaving it in just in case.
+			return new StringTokenizer(headerValue).nextToken();
+		}
 	}
 
 	private boolean isKnownOrAdditionalHeader(RendererConfiguration renderer, String headerLine) {
