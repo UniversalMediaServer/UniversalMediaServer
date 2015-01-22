@@ -150,26 +150,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 						 * Unknown headers make interesting logging info when we cannot recognize
 						 * the media renderer, so keep track of the truly unknown ones.
 						 */
-						boolean isKnown = false;
-
-						// Try to match known headers.
-						String lowerCaseHeaderLine = headerLine.toLowerCase();
-						for (String knownHeaderString : KNOWN_HEADERS) {
-							if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
-								isKnown = true;
-								break;
-							}
-						}
-
-						// It may be unusual but already known
-						if (renderer != null) {
-							String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
-							if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
-								isKnown = true;
-							}
-						}
-
-						if (!isKnown) {
+						if (!isKnownOrAdditionalHeader(renderer, headerLine)) {
 							// Truly unknown header, therefore interesting. Save for later use.
 							unknownHeaders.add(headerLine);
 						}
@@ -214,6 +195,28 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		LOGGER.trace("HTTP: " + requestV2.getArgument() + " / " + requestV2.getLowRange() + "-" + requestV2.getHighRange());
 
 		writeResponse(ctx, nettyRequest, requestV2, ia);
+	}
+
+	private boolean isKnownOrAdditionalHeader(RendererConfiguration renderer, String headerLine) {
+		boolean isKnown = false;
+
+		// Try to match known headers.
+		String lowerCaseHeaderLine = headerLine.toLowerCase();
+		for (String knownHeaderString : KNOWN_HEADERS) {
+            if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
+                isKnown = true;
+                break;
+            }
+        }
+
+		// It may be unusual but already known
+		if (renderer != null) {
+            String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
+            if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
+                isKnown = true;
+            }
+        }
+		return isKnown;
 	}
 
 	private boolean isLocalClingRequest(InetAddress ia, String userAgent) {
