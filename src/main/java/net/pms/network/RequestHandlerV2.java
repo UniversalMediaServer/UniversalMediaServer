@@ -68,8 +68,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
-		RequestV2 request;
-
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
@@ -88,11 +86,11 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		LOGGER.trace("Opened request handler on socket " + remoteAddress);
 		PMS.get().getRegistry().disableGoToSleep();
-		request = new RequestV2(nettyRequest.getMethod().name(), nettyRequest.getUri().substring(1));
-		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().text() + " : " + request.getMethod() + " : " + request.getArgument());
+		RequestV2 requestV2 = new RequestV2(nettyRequest.getMethod().name(), nettyRequest.getUri().substring(1));
+		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().text() + " : " + requestV2.getMethod() + " : " + requestV2.getArgument());
 
 		if (nettyRequest.getProtocolVersion().minorVersion() == 0) {
-			request.setHttp10(true);
+			requestV2.setHttp10(true);
 		}
 
 		HttpHeaders headers = nettyRequest.headers();
@@ -103,7 +101,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		// default renderer.
 		RendererConfiguration renderer = getRendererConfiguration(ia, headers);
 		if (renderer != null) {
-			request.setMediaRenderer(renderer);
+			requestV2.setMediaRenderer(renderer);
 		}
 
 		Set<String> headerNames = headers.names();
@@ -118,36 +116,36 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				StringTokenizer s = new StringTokenizer(headerLine);
 				String temp = s.nextToken();
 				if (temp.toUpperCase().equals("SOAPACTION:")) {
-					request.setSoapaction(s.nextToken());
+					requestV2.setSoapaction(s.nextToken());
 				} else if (temp.toUpperCase().equals("CALLBACK:")) {
-					request.setSoapaction(s.nextToken());
+					requestV2.setSoapaction(s.nextToken());
 				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
 					String nums = headerLine.substring(
 						headerLine.toUpperCase().indexOf(
 						"RANGE: BYTES=") + 13).trim();
 					StringTokenizer st = new StringTokenizer(nums, "-");
 					if (!nums.startsWith("-")) {
-						request.setLowRange(Long.parseLong(st.nextToken()));
+						requestV2.setLowRange(Long.parseLong(st.nextToken()));
 					}
 					if (!nums.startsWith("-") && !nums.endsWith("-")) {
-						request.setHighRange(Long.parseLong(st.nextToken()));
+						requestV2.setHighRange(Long.parseLong(st.nextToken()));
 					} else {
-						request.setHighRange(-1);
+						requestV2.setHighRange(-1);
 					}
 				} else if (headerLine.toLowerCase().contains("transfermode.dlna.org:")) {
-					request.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
+					requestV2.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
 				} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
-					request.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
+					requestV2.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
 				} else {
 					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
 					if (matcher.find()) {
 						String first = matcher.group(1);
 						if (first != null) {
-							request.setTimeRangeStartString(first);
+							requestV2.setTimeRangeStartString(first);
 						}
 						String end = matcher.group(2);
 						if (end != null) {
-							request.setTimeRangeEndString(end);
+							requestV2.setTimeRangeEndString(end);
 						}
 					} else {
 						/** If we made it to here, none of the previous header checks matched.
@@ -185,14 +183,14 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		// Still no media renderer recognized?
-		if (request.getMediaRenderer() == null) {
+		if (requestV2.getMediaRenderer() == null) {
 
 			// Attempt 3: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
-			if (request.getMediaRenderer() != null) {
-				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
+			requestV2.setMediaRenderer(RendererConfiguration.resolve(ia, null));
+			if (requestV2.getMediaRenderer() != null) {
+				LOGGER.trace("Using default media renderer: " + requestV2.getMediaRenderer().getRendererName());
 
 				String userAgent = headers.get(HttpHeaders.Names.USER_AGENT);
 				if (userAgent != null && !userAgent.equals("FDSSDP")) {
@@ -200,7 +198,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
 							"User-Agent: " + userAgent +
 							(unknownHeaders.isEmpty() ? "" : ", " + StringUtils.join(unknownHeaders, ", ")));
-					PMS.get().setRendererFound(request.getMediaRenderer());
+					PMS.get().setRendererFound(requestV2.getMediaRenderer());
 				}
 			} else {
 				// If RendererConfiguration.resolve() didn't return the default renderer
@@ -213,12 +211,12 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
 			ByteBuf content = nettyRequest.content();
 			content.readBytes(data);
-			request.setTextContent(new String(data, "UTF-8"));
+			requestV2.setTextContent(new String(data, "UTF-8"));
 		}
 
-		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
+		LOGGER.trace("HTTP: " + requestV2.getArgument() + " / " + requestV2.getLowRange() + "-" + requestV2.getHighRange());
 
-		writeResponse(ctx, nettyRequest, request, ia);
+		writeResponse(ctx, nettyRequest, requestV2, ia);
 	}
 
 	private RendererConfiguration getRendererConfiguration(InetAddress ia, HttpHeaders headers) {
