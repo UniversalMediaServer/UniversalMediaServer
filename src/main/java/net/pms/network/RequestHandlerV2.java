@@ -109,10 +109,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			requestV2.setMediaRenderer(renderer);
 		}
 
-		String soapAction = getSoapActionOrCallback(headers);
-		if (soapAction != null) {
-			requestV2.setSoapaction(soapAction);
-		}
+		requestV2.setSoapaction(getSoapActionOrCallback(headers));
 
 		Set<String> headerNames = headers.names();
 		List<String> unknownHeaders = new LinkedList<>();
@@ -207,7 +204,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			headerValue = trimToEmpty(headers.get(CALLBACK));
 		}
 		if (headerValue.isEmpty()){
-			return null;
+			return "";
 		} else {
 			// I'm not entirely sure this is needed, but I'm leaving it in just in case.
 			return new StringTokenizer(headerValue).nextToken();
