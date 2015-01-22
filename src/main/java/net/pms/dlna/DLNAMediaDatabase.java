@@ -767,23 +767,4 @@ public class DLNAMediaDatabase implements Runnable {
 	public void run() {
 		PMS.get().getRootFolder(null).scan();
 	}
-
-	public void compact() {
-		LOGGER.info("Compacting database...");
-		PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.3"));
-		String filename = "database/backup.sql";
-		try {
-			Script.execute(url, "sa", "", filename);
-			DeleteDbFiles.execute(dbDir, dbName, true);
-			RunScript.execute(url, "sa", "", filename, null, false);
-		} catch (SQLException se) {
-			LOGGER.error("Error in compacting database: ", se);
-		} finally {
-			File testsql = new File(filename);
-			if (testsql.exists() && !testsql.delete()) {
-				testsql.deleteOnExit();
-			}
-		}
-		PMS.get().getFrame().setStatusLine(null);
-	}
 }

@@ -89,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>5</binary-revision>
+		<binary-revision>6</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.11</git-commit-id-plugin-version>
@@ -213,7 +213,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.184</version>
+			<version>1.4.185</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
