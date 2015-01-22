@@ -51,8 +51,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		Pattern.CASE_INSENSITIVE
 	);
 
-	private volatile FullHttpRequest nettyRequest;
-
 	// Used to filter out known headers when the renderer is not recognized
 	private final static String[] KNOWN_HEADERS = {
 		"accept",
@@ -71,14 +69,12 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	};
 
 	@Override
-	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest e) throws Exception {
+	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
 		RequestV2 request;
 		RendererConfiguration renderer;
 		String userAgentString = null;
 		StringBuilder unknownHeaders = new StringBuilder();
 		String separator = "";
-
-		FullHttpRequest nettyRequest = this.nettyRequest = e;
 
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
@@ -246,7 +242,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 
-		writeResponse(ctx, e, request, ia);
+		writeResponse(ctx, nettyRequest, request, ia);
 	}
 
 	/**
@@ -261,7 +257,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest e, RequestV2 request, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest nettyRequest, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
@@ -288,7 +284,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 
 		try {
-			request.answer(ctx, response, e, close, startStopListenerDelegate);
+			request.answer(ctx, response, nettyRequest, close, startStopListenerDelegate);
 		} catch (IOException e1) {
 			LOGGER.trace("HTTP request V2 IO error: " + e1.getMessage());
 			// note: we don't call stop() here in a finally block as
