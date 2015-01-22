@@ -40,6 +40,33 @@ public class RemoteBrowseHandler implements HttpHandler {
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		if (!res.isEmpty() &&
+			res.get(0).getParent() != null &&
+			(res.get(0).getParent() instanceof CodeEnter)) {
+			// this is a code folder the search string is  entered code
+			CodeEnter ce = (CodeEnter)res.get(0).getParent();
+			ce.setEnteredCode(search);
+			if(!ce.validCode(ce)) {
+				// invalid code throw error
+				throw new IOException("Auth error");
+			}
+			DLNAResource real = ce.getResource();
+			if (!real.isFolder()) {
+				// no folder   -> redirect
+				Headers hdr = t.getResponseHeaders();
+				hdr.add("Location", "/play/" + real.getId());
+				RemoteUtil.respond(t, "", 302, "text/html");
+				// return null here to avoid multipl responses
+				return null;
+			}
+			else {
+				// redirect to ourself
+				Headers hdr = t.getResponseHeaders();
+				hdr.add("Location", "/browse/" + real.getResourceId());
+				RemoteUtil.respond(t, "", 302, "text/html");
+				return null;
+			}
+		}
 		if (StringUtils.isNotEmpty(search) && !(res instanceof CodeEnter)) {
 			UMSUtils.postSearch(res, search);
 		}
@@ -83,8 +110,12 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.setLength(0);
 				// The resource is a folder
 				String p = "/browse/" + idForWeb;
+				boolean code = (r instanceof CodeEnter);
 				String txt = RemoteUtil.getMsgString("Web.8", t);
-				if (r.getClass().getName().contains("SearchFolder")) {
+				if (code) {
+					txt = RemoteUtil.getMsgString("Web.9", t);
+				}
+				if (r.getClass().getName().contains("SearchFolder") || code) {
 					// search folder add a prompt
 					// NOTE!!!
 					// Yes doing getClass.getname is REALLY BAD, but this
@@ -110,7 +141,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 							.append(name.replace("'", "\\'")).append("')\" title=\"")
 							.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
 					} else {
-						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('")
+						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
 						   .append(RemoteUtil.getMsgString("Web.2", t))
 						   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
 					}
@@ -145,7 +176,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					item.put("caption", sb.toString());
 				} else if (upnpControl && upnpAllowed) {
 					// Include it as a web-disabled item so it can be thrown via upnp
-					sb.append("<a class=\"webdisabled\" href=\"javascript:alert('")
+					sb.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
 						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
 						.append(" title=\"").append(name).append(" " + RemoteUtil.getMsgString("Web.7", t) + "\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
@@ -176,12 +207,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
-		LOGGER.debug("Got a browse request " + t.getRequestURI());
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}
 		String id = RemoteUtil.getId("browse/", t);
-		LOGGER.debug("Found id " + id);
+		LOGGER.debug("Got a browse request found id " + id);
 		String response = mkBrowsePage(id, t);
 		LOGGER.debug("Write page " + response);
 		RemoteUtil.respond(t, response, 200, "text/html");

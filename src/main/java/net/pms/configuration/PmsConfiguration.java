@@ -150,7 +150,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
-	protected static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	protected static final String KEY_IP_FILTER = "ip_filter";
 	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
@@ -226,6 +225,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
 	protected static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
 	protected static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
+	protected static final String KEY_SELECTED_RENDERERS = "selected_renderers";
 	protected static final String KEY_SERVER_HOSTNAME = "hostname";
 	protected static final String KEY_SERVER_NAME = "server_name";
 	protected static final String KEY_SERVER_PORT = "port";
@@ -309,6 +309,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final int BUFFER_MEMORY_FACTOR = 368;
 	protected static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	protected static final char LIST_SEPARATOR = ',';
+	public final String ALL_RENDERERS = "All renderers";
 
 	public TempFolder tempFolder;
 	public ProgramPaths programPaths;
@@ -1430,17 +1431,17 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @return The ignored renderers as a list.
+	 * @return The selected renderers as a list.
 	 */
-	public List<String> getIgnoredRenderers() {
-		return getStringList(KEY_IGNORED_RENDERERS, "");
+	public List<String> getSelectedRenderers() {
+		return getStringList(KEY_SELECTED_RENDERERS, ALL_RENDERERS);
 	}
 
 	/**
-	 * @param value The comma-separated list of ignored renderers.
+	 * @param value The comma-separated list of selected renderers.
 	 */
-	public void setIgnoredRenderers(String value) {
-		configuration.setProperty(KEY_IGNORED_RENDERERS, value);
+	public void setSelectedRenderers(String value) {
+		configuration.setProperty(KEY_SELECTED_RENDERERS, value);
 	}
 
 	/**
@@ -1891,12 +1892,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
-	@Deprecated
 	public String getFfmpegAlternativePath() {
 		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
 	}
 
-	@Deprecated
 	public void setFfmpegAlternativePath(String value) {
 		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
 	}
@@ -2732,12 +2731,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_FOLDER_LIMIT, false);
 	}
 
-	// FIXME this is undocumented and misnamed
-	@Deprecated
-	public boolean initBufferMax() {
-		return getBoolean(KEY_BUFFER_MAX, false);
-	}
-
 	public String getScriptDir() {
 		return getString(KEY_SCRIPT_DIR, null);
 	}
@@ -3399,5 +3392,4 @@ public class PmsConfiguration extends RendererConfiguration {
    	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
 	}
-
 }

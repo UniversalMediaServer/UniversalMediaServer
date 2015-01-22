@@ -8,7 +8,6 @@ import java.net.URL;
 import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import net.pms.util.BasicPlayer;
 import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.UpnpService;
@@ -242,7 +241,7 @@ public class UPNPControl {
 	}
 
 	public UPNPControl() {
-		rendererMap = new DeviceMap<Renderer>(Renderer.class);
+		rendererMap = new DeviceMap(Renderer.class);
 	}
 
 	public void init() {
@@ -522,27 +521,32 @@ public class UPNPControl {
 			uuid = getUUID(s.getDevice());
 		}
 
+		@Override
 		public void eventReceived(GENASubscription subscription) {
 			if (subscription.getCurrentValues().containsKey("LastChange")) {
 				xml2d(uuid, subscription.getCurrentValues().get("LastChange").toString(), null);
 			}
 		}
 
+		@Override
 		public void established(GENASubscription sub) {
 			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() + 
 				" on " + getFriendlyName(uuid));
 		}
 
+		@Override
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex, String defaultMsg) {
 			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
 				" on " + getFriendlyName(uuid) + ": " + defaultMsg.split(": ", 2)[1]);
 		}
 
+		@Override
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex) {
 			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
 				" on " + getFriendlyName(uuid) + ": " + createDefaultFailureMessage(response, ex).split(": ", 2)[1]);
 		}
 
+		@Override
 		public void ended(GENASubscription sub, CancelReason reason, UpnpResponse response) {
 			// Reason should be null, or it didn't end regularly
 			if (reason != null) {
@@ -551,6 +555,7 @@ public class UPNPControl {
 			}
 		}
 
+		@Override
 		public void eventsMissed(GENASubscription sub, int numberOfMissedEvents) {
 			LOGGER.debug("Missed events: " + numberOfMissedEvents + " for subscription " + sub.getService().getServiceId().getId() + " on " + getFriendlyName(uuid));
 		}

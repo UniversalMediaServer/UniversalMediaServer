@@ -65,12 +65,11 @@ public abstract class Player {
 	// FIXME this is an implementation detail (and not a very good one).
 	// it's entirely up to engines how they construct their command lines.
 	// need to get rid of this
-	@Deprecated
 	public abstract String[] args();
 
 	public abstract String mimeType();
 	public abstract String executable();
-	protected static PmsConfiguration _configuration = PMS.getConfiguration();
+	protected static final PmsConfiguration _configuration = PMS.getConfiguration();
 	protected PmsConfiguration configuration = _configuration;
 	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners = new ArrayList<FinalizeTranscoderArgsListener>();
 

@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory;
 public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
-	protected static ArrayList<String> allRenderersNames = new ArrayList<String>();
+	protected static final ArrayList<String> allRenderersNames = new ArrayList<String>();
 	protected static PmsConfiguration _pmsConfiguration = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
-	protected static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<InetAddress, RendererConfiguration>();
+	protected static final Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<InetAddress, RendererConfiguration>();
 
 	protected RootFolder rootFolder;
 	protected File file;
@@ -59,7 +59,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean loaded, fileless = false;
 	protected BasicPlayer player;
 
-	public static File NOFILE = new File("NOFILE");
+	public static final File NOFILE = new File("NOFILE");
 
 	public interface OutputOverride {
 		/**
@@ -157,11 +157,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
+	protected static final String MAX_VOLUME = "MaxVolume";
 	protected static final String RENDERER_ICON = "RendererIcon";
 	protected static final String RENDERER_NAME = "RendererName";
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	protected static final String SEEK_BY_TIME = "SeekByTime";
 	protected static final String SEND_DATE_METADATA = "SendDateMetadata";
+	protected static final String SEND_FOLDER_THUMBNAILS = "SendFolderThumbnails";
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
@@ -221,14 +223,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
-			List<String> ignoredRenderers = pmsConf.getIgnoredRenderers();
+
+			List<String> selectedRenderers = pmsConf.getSelectedRenderers();
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
-						if (!ignoredRenderers.contains(rendererName)) {
+						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
 							enabledRendererConfs.add(r);
 						} else {
 							LOGGER.debug("Ignored " + rendererName + " configuration");
@@ -285,8 +288,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return configurationReader.getInt(key, def);
 	}
 
-	public long getLong(String key, int def) {
+	public long getLong(String key, long def) {
 		return configurationReader.getLong(key, def);
+	}
+
+	public double getDouble(String key, double def) {
+		return configurationReader.getDouble(key, def);
 	}
 
 	public boolean getBoolean(String key, boolean def) {
@@ -1263,12 +1270,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			if (isUpnp()) {
 				details = UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
 			} else {
-				details = new LinkedHashMap<String, String>() {{
-					put("name", getRendererName());
-					if (getAddress() != null) {
-						put("address", getAddress().getHostAddress().toString());
-					}
-				}};
+				details = new LinkedHashMap<String, String>() {
+					private static final long serialVersionUID = -3998102753945339020L;
+
+					{
+						put("name", getRendererName());
+						if (getAddress() != null) {
+							put("address", getAddress().getHostAddress().toString());
+						}
+					}	
+				};
 			}
 		}
 		return details;
@@ -1573,7 +1584,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isWrapDTSIntoPCM() {
-		return getBoolean(WRAP_DTS_INTO_PCM, true);
+		return getBoolean(WRAP_DTS_INTO_PCM, false);
 	}
 
 	public boolean isWrapEncodedAudioIntoPCM() {
@@ -1870,6 +1881,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isSendDateMetadata() {
 		return getBoolean(SEND_DATE_METADATA, true);
+	}
+
+	/**
+	 * Whether to send folder thumbnails.
+	 *
+	 * @return whether to send folder thumbnails
+	 */
+	public boolean isSendFolderThumbnails() {
+		return getBoolean(SEND_FOLDER_THUMBNAILS, true);
 	}
 
 	public boolean isDLNATreeHack() {
@@ -2288,7 +2308,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Automatic reloading
 	 */
-	public static FileWatcher.Listener reloader = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener reloader = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			RendererConfiguration r = (RendererConfiguration) watch.getItem();
@@ -2366,5 +2386,18 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			};
 			new Thread(r).start();
 		}
+	}
+
+	public static final String INFO = "info";
+	public static final String OK = "okay";
+	public static final String WARN = "warn";
+	public static final String ERR = "err";
+
+	public void notify(String type, String msg) {
+		// Implemented by subclasses
+	}
+
+	public int getMaxVolume() {
+		return getInt(MAX_VOLUME, 100);
 	}
 }

@@ -1,12 +1,11 @@
 package net.pms.newgui;
 
 import java.awt.*;
-import javax.swing.*;
 import java.util.ArrayList;
+import javax.swing.*;
 import org.apache.commons.lang3.StringUtils;
 
 public final class GuiUtil {
-
 	public static class CustomJButton extends JButton {
 		private static final long serialVersionUID = -528428545289132331L;
 
@@ -46,6 +45,8 @@ public final class GuiUtil {
 
 	// A progress bar with smooth transitions
 	public static class SmoothProgressBar extends JProgressBar {
+		private static final long serialVersionUID = 4418306779403459913L;
+
 		public SmoothProgressBar(int min, int max) {
 			super(min, max);
 		}
@@ -114,6 +115,8 @@ public final class GuiUtil {
 
 	// A fixed-size horizontal content-centering panel.
 	public static class FixedPanel extends JPanel {
+		private static final long serialVersionUID = 8295684215937548109L;
+
 		public FixedPanel(int w, int h) {
 			super();
 			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -139,6 +142,7 @@ public final class GuiUtil {
 	// A label that automatically scrolls its text if
 	// wider than a specified maximum.
 	public static class MarqueeLabel extends JLabel {
+		private static final long serialVersionUID = 8600355251271220610L;
 		public int speed, spacer, dir, max_w, interval = 30;
 
 		public MarqueeLabel(String text) {
@@ -353,7 +357,7 @@ public final class GuiUtil {
 	 * Blog:   tips4java.wordpress.com/2008/11/06/wrap-layout/
 	 */
 	public static class WrapLayout extends FlowLayout {
-		private Dimension preferredLayoutSize;
+		private static final long serialVersionUID = 8423910716184289166L;
 
 		/**
 		* Constructs a new <code>WrapLayout</code> with a centered
@@ -431,8 +435,9 @@ public final class GuiUtil {
 
 			int targetWidth = target.getSize().width;
 
-			if (targetWidth == 0)
+			if (targetWidth == 0) {
 				targetWidth = Integer.MAX_VALUE;
+			}
 
 			int hgap = getHgap();
 			int vgap = getVgap();

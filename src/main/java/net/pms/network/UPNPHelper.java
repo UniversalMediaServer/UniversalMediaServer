@@ -20,25 +20,17 @@
 package net.pms.network;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.SwingUtilities;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
-
-import net.pms.dlna.RealFile;
-import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -94,7 +86,7 @@ public class UPNPHelper extends UPNPControl {
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
-		rendererMap = new DeviceMap<DeviceConfiguration>(DeviceConfiguration.class);
+		rendererMap = new DeviceMap(DeviceConfiguration.class);
 	}
 
 	public static UPNPHelper getInstance() {
@@ -761,7 +753,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void setVolume(int volume) {
-			UPNPControl.setVolume(dev, instanceID, volume);
+			UPNPControl.setVolume(dev, instanceID, volume * maxVol / 100);
 		}
 
 		@Override
@@ -780,7 +772,7 @@ public class UPNPHelper extends UPNPControl {
 				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
 			state.mute = "0".equals(data.get("Mute")) ? false : true;
 			s = data.get("Volume");
-			state.volume = s == null ? 0 : Integer.valueOf(s);
+			state.volume = s == null ? 0 : (Integer.valueOf(s) * 100 / maxVol);
 			state.position = data.get("RelTime");
 			if (! ignoreUpnpDuration) {
 				state.duration = data.get("CurrentMediaDuration");
@@ -821,7 +813,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	public static String unescape(String s) {
-		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s)));
+	public static String unescape(String s) throws UnsupportedEncodingException {
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, "UTF-8")));
 	}
 }

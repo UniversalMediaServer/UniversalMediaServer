@@ -401,7 +401,7 @@ public class FFMpegVideo extends Player {
 				}
 				if (!customFFmpegOptions.contains("-preset")) {
 					transcodeOptions.add("-preset");
-					transcodeOptions.add("ultrafast");
+					transcodeOptions.add("superfast");
 				}
 				if (!customFFmpegOptions.contains("-level")) {
 					transcodeOptions.add("-level");
@@ -821,7 +821,8 @@ public class FFMpegVideo extends Player {
 			params.aid.isAC3() &&
 			!avisynth() &&
 			renderer.isTranscodeToAC3() &&
-			!isXboxOneWebVideo
+			!isXboxOneWebVideo &&
+			params.aid.getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
 		) {
 			// AC-3 remux takes priority
 			ac3Remux = true;

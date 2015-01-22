@@ -107,7 +107,11 @@ public class RemotePlayHandler implements HttpHandler {
 		if (r instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
-			((VirtualVideoAction) r).enable();
+			if (((VirtualVideoAction) r).enable()) {
+				renderer.notify(renderer.OK, r.getName() + " done");
+			} else {
+				renderer.notify(renderer.ERR, r.getName() + " failed");
+			}
 			return returnPage();
 		}
 		if (r.getFormat().isImage()) {
@@ -243,18 +247,21 @@ public class RemotePlayHandler implements HttpHandler {
 			String id = tmp[tmp.length - 1];
 			DLNAResource r = PMS.getGlobalRepo().get(id);
  			if (r != null) {
+				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+				if (root == null) {
+					LOGGER.debug("root not found");
+					throw new IOException("Unknown root");
+				}
+				WebRender renderer = (WebRender) root.getDefaultRenderer();
  				if (op.equals("add")) {
  					PMS.get().getDynamicPls().add(r);
+					renderer.notify(renderer.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
 				} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
 					((Playlist)r.getParent()).remove(r);
+					renderer.notify(renderer.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
 				}
 			}
 			RemoteUtil.respond(t, returnPage(), 200, "text/html");
-		} else if (p.contains("/push")) {
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-			WebRender renderer = (WebRender) root.getDefaultRenderer();
-			String url = renderer.pushURL();
-			RemoteUtil.respond(t, url, 200, "text");
 		}
 	}
 }

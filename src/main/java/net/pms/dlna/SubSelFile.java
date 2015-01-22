@@ -3,8 +3,6 @@ package net.pms.dlna;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.v2.SubtitleType;

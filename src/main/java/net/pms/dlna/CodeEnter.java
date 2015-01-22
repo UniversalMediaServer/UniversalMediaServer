@@ -64,6 +64,10 @@ public class CodeEnter extends VirtualFolder {
 		return code;
 	}
 
+	public DLNAResource getResource() {
+		return resource;
+	}
+
 	private void addCharVVA(final String ch) {
 		super.addChild(new CodeAction(ch, true) {
 			@Override
@@ -131,7 +135,7 @@ public class CodeEnter extends VirtualFolder {
 			return true;
 		}
 		String realCode = PMS.get().codeDb().lookup(code);
-		LOGGER.debug("valid code " + commitTime);
+		//LOGGER.debug("valid code " + realCode + " " + enteredCode);
 		if (!enteredCode.equalsIgnoreCase(realCode)) {
 			// bad code
 			return false;

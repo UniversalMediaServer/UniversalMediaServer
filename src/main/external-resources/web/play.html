@@ -57,7 +57,7 @@
 			var player = document.getElementById('player');
 
 			function status(k, v, wait) {
-				//console.log('STATUS '+k+': '+v);
+				//console.log('status '+JSON.stringify(arguments));
 				state[k] = v;
 				if (! wait) {
 					$.post('/playerstatus/', JSON.stringify(state));
@@ -70,6 +70,7 @@
 			}
 
 			player.addEventListener('playing', function(){status('playback', 'PLAYING');});
+			player.addEventListener('play', function(){status('playback', 'PLAYING');});
 			player.addEventListener('pause', function(){status('playback', 'PAUSED');});
 			player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
 			player.addEventListener('ended', function(){status('playback', 'STOPPED');});
@@ -82,13 +83,12 @@
 			window.onbeforeunload = function(){status('playback','STOPPED');}
 			// Send initial status
 			volumeStatus();
-{{#push}}
-			umsPush();
 
-			function control(args) {
-				//console.log('control: '+args);
+{{#push}}
+			function control(op, arg) {
+				//console.log('control '+JSON.stringify(arguments));
 				var player = document.getElementById('player');
-				switch (args[0]) {
+				switch (op) {
 					case 'play':
 						player.play();
 						break;
@@ -99,7 +99,7 @@
 						player.pause();
 						break;
 					case 'setvolume':
-						player.volume = args[1]/100;
+						player.volume = arg/100;
 						break;
 					case 'mute':
 						player.muted = !player.muted;

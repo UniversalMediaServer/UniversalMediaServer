@@ -1063,7 +1063,8 @@ public class MEncoderVideo extends Player {
 			!configuration.isMEncoderNormalizeVolume() &&
 			!combinedCustomOptions.contains("acodec=") &&
 			!encodedAudioPassthrough &&
-			!isXboxOneWebVideo
+			!isXboxOneWebVideo &&
+			params.aid.getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
 		) {
 			ac3Remux = true;
 		} else {

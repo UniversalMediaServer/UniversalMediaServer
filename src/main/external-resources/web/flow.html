@@ -25,7 +25,7 @@
 			var state = {};
 
 			function status(k, v, wait) {
-				//console.log('STATUS '+k+': '+v);
+				//console.log('status '+JSON.stringify(arguments));
 				state[k] = v;
 				if (! wait) {
 					$.post('/playerstatus/', JSON.stringify(state));
@@ -53,15 +53,12 @@
 				// Send initial status
 				status('mute', api.muted ? '1' : '0', true);
 				status('volume', (api.volume * 100).toFixed(0));
-{{#push}}
-				umsPush();
-{{/push}}
 			});
 {{#push}}
-			function control(args) {
-				//console.log('control: '+args);
+			function control(op, arg) {
+				//console.log('control '+JSON.stringify(arguments));
 				var api = flowplayer();
-				switch (args[0]) {
+				switch (op) {
 					case 'play':
 						api.play();
 						break;
@@ -72,7 +69,7 @@
 						api.stop();
 						break;
 					case 'setvolume':
-						api.volume(args[1]/100);
+						api.volume(arg/100);
 						break;
 					case 'mute':
 						api.mute(!api.muted);

@@ -118,7 +118,10 @@ public class Request extends HTTPResource {
 	 * @param lowRange The byte to start from.
 	 */
 	public void setLowRange(long lowRange) {
-		this.lowRange = lowRange;
+		// Assume 100GB+ values are errors and ignore them.
+		if (lowRange < 100000000000L) {
+			this.lowRange = lowRange;
+		}
 	}
 
 	public String getTransferMode() {
@@ -373,10 +376,6 @@ public class Request extends HTTPResource {
 									output(output, subtitleHttpHeader + ": " + subtitleUrl);
 								}
 							}
-						}
-
-						if (!dlna.quietPlay()) {
-							PMS.get().getFrame().setStatusLine("Serving " + name);
 						}
 
 						// Response generation:
@@ -838,7 +837,6 @@ public class Request extends HTTPResource {
 			}
 
 			LOGGER.trace("Sending stream: " + sendB + " bytes of " + argument);
-			PMS.get().getFrame().setStatusLine(null);
 		} else { // inputStream is null
 			if (lowRange > 0 && highRange > 0) {
 				output(output, "Content-Length: " + (highRange - lowRange + 1));

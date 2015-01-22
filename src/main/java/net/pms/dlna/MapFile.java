@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import net.pms.configuration.MapFileConfiguration;
-import net.pms.formats.Format;
-import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;

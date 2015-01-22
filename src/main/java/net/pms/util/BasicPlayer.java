@@ -2,20 +2,23 @@ package net.pms.util;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingUtilities;
+import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import static net.pms.network.UPNPHelper.unescape;
 import org.apache.commons.lang3.StringUtils;
-import java.util.regex.Matcher;
-import net.pms.PMS;
-import javax.swing.SwingUtilities;
-import java.io.File;
-import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public interface BasicPlayer extends ActionListener {
 	public class State {
@@ -92,7 +95,7 @@ public interface BasicPlayer extends ActionListener {
 		public Minimal(DeviceConfiguration renderer) {
 			this.renderer = renderer;
 			state = new State();
-			listeners = new LinkedHashSet();
+			listeners = new LinkedHashSet<ActionListener>();
 			if (renderer.gui != null) {
 				connect(renderer.gui);
 			}
@@ -231,11 +234,13 @@ public interface BasicPlayer extends ActionListener {
 		public Playlist playlist;
 		protected boolean autoContinue, addAllSiblings, forceStop;
 		protected int lastPlayback;
+		protected int maxVol;
 
 		public Logical(DeviceConfiguration renderer) {
 			super(renderer);
 			playlist = new Playlist(this);
 			lastPlayback = STOPPED;
+			maxVol = renderer.getMaxVolume();
 			autoContinue = renderer.isAutoContinue();
 			addAllSiblings = renderer.isAutoAddAll();
 			forceStop = false;
@@ -540,7 +545,7 @@ public interface BasicPlayer extends ActionListener {
 			}
 
 			public static class Item {
-
+				private static final Logger LOGGER = LoggerFactory.getLogger(Item.class);
 				public String name, uri, metadata;
 				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
 
@@ -553,9 +558,13 @@ public interface BasicPlayer extends ActionListener {
 				@Override
 				public String toString() {
 					if (StringUtils.isBlank(name)) {
-						name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
-							dctitle.group(1) :
-							new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
+						try {
+							name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
+								dctitle.group(1) :
+								new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
+						} catch (UnsupportedEncodingException e) {
+							LOGGER.error("URL decoding error ", e);
+						}
 					}
 					return name;
 				}

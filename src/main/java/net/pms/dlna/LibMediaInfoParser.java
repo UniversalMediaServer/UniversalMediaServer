@@ -31,6 +31,10 @@ public class LibMediaInfoParser {
 		if (MI.isValid()) {
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
+			MI.Option("File_TestContinuousFileNames", "0");
+			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
+			MI.Option("ParseSpeed", "0");
+			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
 		}
 
 		base64 = new Base64();
@@ -80,6 +84,7 @@ public class LibMediaInfoParser {
 							currentSubTrack.setId(media.getSubtitleTracksList().size());
 							addSub(currentSubTrack, media);
 						} else {
+							getFormat(StreamType.Video, media, currentAudioTrack, MI.Get(StreamType.Video, i, "Format").toLowerCase(), file);
 							getFormat(StreamType.Video, media, currentAudioTrack, MI.Get(StreamType.Video, i, "CodecID").toLowerCase(), file);
 							media.setWidth(getPixelValue(MI.Get(StreamType.Video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(StreamType.Video, i, "Height")));
@@ -345,6 +350,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MATROSKA;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
+		} else if (value.startsWith("cinepack")) {
+			format = FormatConfiguration.CINEPACK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
 		} else if (value.toLowerCase().equals("webm")) {
@@ -363,16 +370,22 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.OGG;
 		} else if (value.contains("opus")) {
 			format = FormatConfiguration.OPUS;
-		} else if (value.contains("realmedia") || value.startsWith("rv") || value.startsWith("cook")) {
+		} else if (value.contains("realmedia") || value.startsWith("rv")) {
 			format = FormatConfiguration.RM;
+		} else if (value.startsWith("theora")) {
+			format = FormatConfiguration.THEORA;
 		} else if (value.contains("windows media") || value.equals("wmv1") || value.equals("wmv2") || value.equals("wmv7") || value.equals("wmv8")) {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
+		} else if (value.startsWith("h263")) {
+			format = FormatConfiguration.H263;	
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
 			format = FormatConfiguration.H265;
+		} else if (value.startsWith("sorenson")) {
+			format = FormatConfiguration.SORENSON;
 		} else if (value.startsWith("vp6")) {
 			format = FormatConfiguration.VP6;
 		} else if (value.startsWith("vp7")) {
@@ -410,19 +423,33 @@ public class LibMediaInfoParser {
 				format = FormatConfiguration.DTSHD;
 			}
 		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
-			format = FormatConfiguration.OGG;
+			format = FormatConfiguration.VORBIS;
+		} else if (value.equals("adts")) {
+			format = FormatConfiguration.ADTS;
+		} else if (value.startsWith("amr")) {
+			format = FormatConfiguration.AMR;
 		} else if (value.equals("ac-3") || value.equals("a_ac3") || value.equals("2000")) {
 			format = FormatConfiguration.AC3;
+		} else if (value.startsWith("cook")) {
+			format = FormatConfiguration.COOK;
+		} else if (value.startsWith("qdesign")) {
+			format = FormatConfiguration.QDESIGN;
+		} else if (value.equals("realaudio lossless")) {
+			format = FormatConfiguration.REALAUDIO_LOSSLESS;
 		} else if (value.equals("e-ac-3")) {
 			format = FormatConfiguration.EAC3;
 		} else if (value.contains("truehd")) {
 			format = FormatConfiguration.TRUEHD;
+		} else if (value.equals("tta")) {
+			format = FormatConfiguration.TTA;
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
 		} else if (value.equals("lc")) {
 			format = FormatConfiguration.AAC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.AAC_HE;
+		} else if (value.startsWith("adpcm")) {
+			format = FormatConfiguration.ADPCM;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {

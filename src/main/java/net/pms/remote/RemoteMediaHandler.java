@@ -134,14 +134,10 @@ public class RemoteMediaHandler implements HttpHandler {
 		hdr.add("Connection", "keep-alive");
 		t.sendResponseHeaders(code, 0);
 		OutputStream os = t.getResponseBody();
-		if (!dlna.quietPlay()) {
-			PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
-		}
 		render.start(dlna);
 		if (sid != null) {
 			dlna.setMediaSubtitle(sid);
 		}
 		RemoteUtil.dump(in, os);
-		PMS.get().getFrame().setStatusLine("");
 	}
 }

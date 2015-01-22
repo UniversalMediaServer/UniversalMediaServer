@@ -806,11 +806,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace("File \"{}\" will be forced to be transcoded by configuration", getName());
 			}
 
-			boolean hasEmbeddedSubs = false;
-			boolean hasAnySubs = media.getSubtitleTracksList().size() > 0 || isSubsFile();
 			boolean hasSubsToTranscode = false;
 
-			if (!configuration.isDisableSubtitles() && hasAnySubs) {
+			/**
+			 * Figure out how to handle subtitles for this file if it's a video, subtitles
+			 * are enabled, and subtitles exist.
+			 */
+			if (
+				format.isVideo() &&
+				!configuration.isDisableSubtitles() &&
+				(
+					media.getSubtitleTracksList().size() > 0 ||
+					isSubsFile()
+				)
+			) {
+				boolean hasEmbeddedSubs = false;
+
 				for (DLNAMediaSubtitle s : media.getSubtitleTracksList()) {
 					hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 				}
@@ -871,7 +882,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			) {
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
-			} else if (renderer != null) {
+			} else if (renderer != null && format.isVideo()) {
 				if (
 					renderer.isKeepAspectRatio() &&
 					!"16:9".equals(media.getAspectRatioContainer())
@@ -1912,7 +1923,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									(
 										MEncoderVideo.ID.equals(player.id()) ||
 										FFMpegVideo.ID.equals(player.id()) ||
-										VLCVideo.ID.equals(player.id())
+										VLCVideo.ID.equals(player.id()) ||
+										AviSynthFFmpeg.ID.equals(player.id()) ||
+										AviSynthMEncoder.ID.equals(player.id())
 									)
 								) {
 									isFileMPEGTS = true;
@@ -2156,8 +2169,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		appendThumbnail(mediaRenderer, sb, "JPEG_TN");
-		appendThumbnail(mediaRenderer, sb, "JPEG_SM");
+		if (!(isFolder() && !mediaRenderer.isSendFolderThumbnails())) {
+			appendThumbnail(mediaRenderer, sb, "JPEG_TN");
+			appendThumbnail(mediaRenderer, sb, "JPEG_SM");
+		}
 
 		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
@@ -2371,8 +2386,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								} catch (UnknownHostException ex) {
 									LOGGER.debug("" + ex);
 								}
-
-								PMS.get().getFrame().setStatusLine("");
 
 								internalStop();
 
@@ -3518,7 +3531,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Attempts to automatically create the appropriate container for
 	// the given uri. Defaults to mpeg video for indeterminate local uris.
 	public static DLNAResource autoMatch(String uri, String name) {
-		uri = URLDecoder.decode(uri);
+		try {
+			uri = URLDecoder.decode(uri, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			LOGGER.error("URL decoding error ", e);
+		}
 		boolean isweb = uri.matches("\\S+://.+");
 		Format f = FormatFactory.getAssociatedFormat(isweb ? "." + FileUtil.getUrlExtension(uri) : uri);
 		int type = f == null ? Format.VIDEO : f.getType();
@@ -3612,7 +3629,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// A temp folder for non-xmb items
-	public static unattachedFolder Temp = new unattachedFolder("Temp");
+	public static final unattachedFolder Temp = new unattachedFolder("Temp");
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {

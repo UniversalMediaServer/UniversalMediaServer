@@ -8,11 +8,14 @@ body {
 	background: url('/files/background.jpg');
 	font-family: "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	color: #333;
-	min-height: 100%;
 }
 
 body#ContentPage {
 	background: url('/files/background-blank.jpg');
+}
+
+body#ContentPage.browsePage {
+	min-height: 100%;
 }
 
 /* Scaffolding */
@@ -281,4 +284,59 @@ form#SearchForm {
 	background: transparent;
 	text-shadow: black 0 0 0.2em;
 	font: 1.2em sans-serif;
+}
+
+#notices {
+	position: fixed;
+	z-index: 99999;
+	top: 100px;
+	right: 12px;
+}
+
+.notice {
+	display: table;
+	width: 300px;
+	min-height: 32px;
+	margin: 0 0 6px 0;
+	padding: 5px;
+	background-color: #3E84C1;
+	border: 1px;
+	border-radius: 3px;
+/*	box-shadow: 4px 4px 2px rgba(136,136,136,0.5);*/
+}
+
+.notice .msg {
+	padding: 0;
+	color: #fff;
+	font: normal 13px sans-serif;
+	font-weight: 500;
+	text-decoration: none;
+	text-align: left;
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.notice .icon {
+	display:block;
+	width: 42px;
+	height: 32px;
+	margin: 0;
+	top: 5px;
+	float: left;
+}
+
+.notice .info {
+	background: url('/files/info32.png') no-repeat;
+}
+
+.notice .okay {
+	background: url('/files/ok32.png') no-repeat;
+}
+
+.notice .warn {
+	background: url('/files/warn32.png') no-repeat;
+}
+
+.notice .err {
+	background: url('/files/err32.png') no-repeat;
 }

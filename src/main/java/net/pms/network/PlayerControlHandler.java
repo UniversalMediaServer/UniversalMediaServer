@@ -13,7 +13,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
-import net.pms.dlna.DLNAResource;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.StringUtil;
@@ -99,7 +98,7 @@ public class PlayerControlHandler implements HttpHandler {
 			} else if ("setvolume".equals(p[2])) {
 					player.setVolume(Integer.valueOf(q.get("vol")));
 			} else if ("add".equals(p[2])) {
-					player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
+					player.add(-1, translate(q.get("uri")), q.get("title"), null, true);
 			} else if ("remove".equals(p[2])) {
 					player.remove(translate(q.get("uri")));
 			} else if ("seturi".equals(p[2])) {

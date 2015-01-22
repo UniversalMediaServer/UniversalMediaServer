@@ -72,7 +72,7 @@ public class GlobalIdRepo {
 		return indexOf(parseIndex(id)) != -1;
 	}
 
-	private int indexOf(int id) {
+	private synchronized int indexOf(int id) {
 		if (id > 0 && id < globalId) {
 			// We're in sequence by definition, so binary search is quickest
 

@@ -202,7 +202,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		this.hidebuffer = params.hidebuffer;
 		this.cleanup = params.cleanup;
 
-		if ((maxMemorySize > INITIAL_BUFFER_SIZE) && !configuration.initBufferMax()) {
+		if (maxMemorySize > INITIAL_BUFFER_SIZE) {
 			// Try to limit memory usage a bit.
 			// Start with a modest allocation initially, grow to max when needed later.
 			buffer = growBuffer(null, INITIAL_BUFFER_SIZE);
@@ -703,6 +703,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		if (eof && (writeCount - readCount) < len) {
 			cut = (int) (len - (writeCount - readCount));
+			if (cut < 0) {
+				cut = 0;
+			}
 		}
 
 		if (mb >= endOF - len) {
@@ -718,7 +721,20 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 			return endOF - mb;
 		} else {
-			System.arraycopy(buffer, mb, buf, off, len - cut);
+			try {
+				System.arraycopy(buffer, mb, buf, off, len - cut);
+			} catch (ArrayIndexOutOfBoundsException e) {
+				LOGGER.error("ReadCount: " + readCount);
+				LOGGER.error("WriteCount: " + writeCount);
+				LOGGER.error("len - (writeCount - readCount)): " + (len - (writeCount - readCount)));
+				LOGGER.error("Something went wrong with the buffer, error: " + e);
+				LOGGER.error("buffer.length: " + buffer.length);
+				LOGGER.error("srcPos: " + mb);
+				LOGGER.error("buf.length: " + buf.length);
+				LOGGER.error("destPos: " + off);
+				LOGGER.error("length: " + len + " - " + cut + " = " + (len - cut));
+				throw e;
+			}
 			return len;
 		}
 	}
@@ -778,7 +794,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	}
 
 	@Override
-	public void attachThread(ProcessWrapper thread) {
+	public synchronized void attachThread(ProcessWrapper thread) {
 		if (attachedThread != null) {
 			throw new RuntimeException("BufferedOutputFile is already attached to a Thread: " + attachedThread);
 		}

@@ -86,7 +86,7 @@ public class RemoteWeb {
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler(this));
 			addCtx("/doc", new RemoteDocHandler(this));
-			addCtx("/push", playHandler);
+			addCtx("/poll", new RemotePollHandler(this));
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		} catch (Exception e) {
@@ -482,5 +482,29 @@ public class RemoteWeb {
 	public String getUrl() {
 		return (server instanceof HttpsServer ? "https://" : "http://") +
 			PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
+	}
+
+	static class RemotePollHandler implements HttpHandler {
+		private static final Logger LOGGER = LoggerFactory.getLogger(RemotePollHandler.class);
+		private final static String CRLF = "\r\n";
+
+		private RemoteWeb parent;
+
+		public RemotePollHandler(RemoteWeb parent) {
+			this.parent = parent;
+		}
+
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			//LOGGER.debug("poll req " + t.getRequestURI());
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			String p = t.getRequestURI().getPath();
+			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+			WebRender renderer = (WebRender) root.getDefaultRenderer();
+			String json = renderer.getPushData();
+			RemoteUtil.respond(t, json, 200, "text");
+		}
 	}
 }

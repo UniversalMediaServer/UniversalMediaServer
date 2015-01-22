@@ -192,6 +192,7 @@ public class FileUtil {
 		String fileNameWithoutExtension;
 		String formattedName;
 		String formattedNameTemp;
+		String searchFormattedName;
 
 		// These are false unless we recognize that we could use some info on the video from IMDB
 		boolean isEpisodeToLookup = false;
@@ -200,6 +201,7 @@ public class FileUtil {
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
 		formattedName = fileNameWithoutExtension;
+		searchFormattedName = "";
 
 		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*|[\\s\\.]READNFO.*|[\\s\\.]60FPS.*";
 		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]WEBRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*|.*[\\s\\.]READNFO.*|.*[\\s\\.]60FPS.*";
@@ -402,6 +404,11 @@ public class FileUtil {
 			} else {
 				formattedName = fileNameWithoutExtension;
 			}
+
+			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
+				isEpisodeToLookup = true;
+				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
+			}
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
 
@@ -426,13 +433,18 @@ public class FileUtil {
 			} else {
 				formattedName = fileNameWithoutExtension;
 			}
+
+			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
+				isEpisodeToLookup = true;
+				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
+			}
 		}
 
 		// Add episode name (if not there)
 		if (isEpisodeToLookup || isMovieToLookup) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
-				PMS.get().infoDbAdd(file, "");
+				PMS.get().infoDbAdd(file, searchFormattedName);
 			} else if (isEpisodeToLookup && StringUtils.isNotEmpty(info.ep_name)) {
 				formattedName += " - " + info.ep_name;
 			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.year)) {

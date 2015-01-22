@@ -131,7 +131,6 @@ public class DeviceConfiguration extends PmsConfiguration {
 	@Override
 	public File getFile() {
 		if (loaded) {
-			CompositeConfiguration c = (CompositeConfiguration) configuration;
 			File f = getConfiguration(DEVICE).getFile();
 			return (f != null && !f.equals(NOFILE)) ? f : getConfiguration(RENDERER).getFile();
 		}
@@ -139,7 +138,6 @@ public class DeviceConfiguration extends PmsConfiguration {
 	}
 
 	public File getParentFile() {
-		CompositeConfiguration c = (CompositeConfiguration) configuration;
 		return getConfiguration(RENDERER).getFile();
 	}
 
@@ -258,7 +256,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	/**
 	 * Automatic reloading
 	 */
-	public static FileWatcher.Listener reloader = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener reloader = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			File f = new File(filename);

@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>5.0.0-b1</version>
+	<version>5.0.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -89,10 +89,10 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>1</binary-revision>
+		<binary-revision>5</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.1</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.1.9</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>2.1.11</git-commit-id-plugin-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -228,7 +228,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.176</version>
+			<version>1.4.185</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -263,7 +263,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.9.5.Final</version>
+			<version>3.9.6.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -396,27 +396,27 @@
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-core</artifactId>
-			<version>2.0-alpha3</version>
+			<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-support</artifactId>
-			<version>2.0-alpha3</version>
+			<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-http</artifactId>
-			<version>1.0-alpha3</version>
+			<version>1.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-util</artifactId>
-			<version>1.0-alpha3</version>
+			<version>1.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-xml</artifactId>
-			<version>1.0-alpha3</version>
+			<version>1.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.samskivert</groupId>
@@ -527,7 +527,7 @@
 						-->
 						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
 					</configuration>
-					<version>2.16</version>
+					<version>2.18</version>
 				</plugin>
 
 				<!--
@@ -632,12 +632,13 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.2</version>
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
 					<testSource>1.6</testSource>
 					<testTarget>1.6</testTarget>
+					<showDeprecation>true</showDeprecation>
 				</configuration>
 			</plugin>
 
@@ -786,7 +787,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-surefire-report-plugin</artifactId>
-							<version>2.16</version>
+							<version>2.18</version>
 							<configuration>
 								<showSuccess>false</showSuccess>
 							</configuration>
@@ -910,7 +911,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
+				<version>2.4</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -962,7 +963,7 @@
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.4</version>
+						<version>2.5.2</version>
 						<executions>
 							<execution>
 								<id>make-jar-with-dependencies-win</id>
@@ -1053,6 +1054,7 @@
 										<get src="${project.binaries-base}/win32/dvrms/ffmpeg_MPGMUX.exe?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/ffmpeg_MPGMUX.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dvrms/pthreadGC2.dll?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/pthreadGC2.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
@@ -1167,7 +1169,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.4</version>
+						<version>2.5.2</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>

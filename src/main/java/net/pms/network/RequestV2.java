@@ -115,7 +115,10 @@ public class RequestV2 extends HTTPResource {
 	 * @param lowRange The byte to start from.
 	 */
 	public void setLowRange(long lowRange) {
-		this.lowRange = lowRange;
+		// Assume 100GB+ values are errors and ignore them.
+		if (lowRange < 100000000000L) {
+			this.lowRange = lowRange;
+		}
 	}
 
 	public String getTransferMode() {
@@ -419,10 +422,6 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
 						}
 
-						if (!dlna.quietPlay()) {
-							PMS.get().getFrame().setStatusLine("Serving " + name);
-						}
-
 						// Response generation:
 						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
@@ -450,6 +449,12 @@ public class RequestV2 extends HTTPResource {
 							highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
+
+							LOGGER.trace("totalsize: " + totalsize);
+							LOGGER.trace("remaining: " + remaining);
+							LOGGER.trace("requested: " + requested);
+							LOGGER.trace("lowRange: " + lowRange);
+							LOGGER.trace("highRange: " + highRange);
 
 							output.headers().set(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
@@ -909,6 +914,10 @@ public class RequestV2 extends HTTPResource {
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) {
+						LOGGER.trace("The channel future completed:");
+						LOGGER.trace("  isSuccess: " + future.isSuccess());
+						LOGGER.trace("  isCancelled: " + future.isCancelled());
+						LOGGER.trace("  getCause: ", future.getCause());
 						try {
 							PMS.get().getRegistry().reenableGoToSleep();
 							inputStream.close();
