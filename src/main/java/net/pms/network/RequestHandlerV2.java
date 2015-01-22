@@ -71,7 +71,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
 		RequestV2 request;
-		RendererConfiguration renderer;
 		String userAgentString = null;
 		StringBuilder unknownHeaders = new StringBuilder();
 		String separator = "";
@@ -107,17 +106,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
 		// default renderer.
-
-		// Attempt 1: try to recognize the renderer by its socket address from previous requests
-		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
-
-		// If the renderer exists but isn't marked as loaded it means it's unrecognized
-		// by upnp and we still need to attempt http recognition here.
-		if (renderer == null || !renderer.loaded) {
-			// Attempt 2: try to recognize the renderer by matching headers
-			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
-		}
-
+		RendererConfiguration renderer = getRendererConfiguration(ia, headers);
 		if (renderer != null) {
 			request.setMediaRenderer(renderer);
 		}
@@ -243,6 +232,19 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 
 		writeResponse(ctx, nettyRequest, request, ia);
+	}
+
+	private RendererConfiguration getRendererConfiguration(InetAddress ia, HttpHeaders headers) {
+		// Attempt 1: try to recognize the renderer by its socket address from previous requests
+		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+
+		// If the renderer exists but isn't marked as loaded it means it's unrecognized
+		// by upnp and we still need to attempt http recognition here.
+		if (renderer == null || !renderer.loaded) {
+			// Attempt 2: try to recognize the renderer by matching headers
+			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
+		}
+		return renderer;
 	}
 
 	/**
