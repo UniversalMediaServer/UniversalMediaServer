@@ -222,7 +222,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, PmsConfiguration configuration) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {

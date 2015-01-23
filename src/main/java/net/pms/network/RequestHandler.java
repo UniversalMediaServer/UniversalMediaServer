@@ -80,6 +80,8 @@ public class RequestHandler implements Runnable {
 			InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
 			InetAddress ia = remoteAddress.getAddress();
 
+			boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost());
+
 			// Apply the IP filter
 			if (filterIp(ia)) {
 				throw new IOException("Access denied for address " + ia + " based on IP filter");
@@ -95,27 +97,26 @@ public class RequestHandler implements Runnable {
 
 			// Attempt 1: try to recognize the renderer by its socket address from previous requests
 			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
-			ArrayList<String> headerLines = new ArrayList<>();
-			RendererConfiguration.SortedHeaderMap sortedHeaders = renderer == null ? new RendererConfiguration.SortedHeaderMap() : null;
+
+			// If the renderer exists but isn't marked as loaded it means it's unrecognized
+			// by upnp and we still need to attempt http recognition here.
+			boolean unrecognized = renderer == null || !renderer.loaded;
+			RendererConfiguration.SortedHeaderMap sortedHeaders = unrecognized ? new RendererConfiguration.SortedHeaderMap() : null;
 
 			// Gather all the headers
+			ArrayList<String> headerLines = new ArrayList<>();
 			String line = br.readLine();
 			while (line != null && line.length() > 0) {
 				headerLines.add(line);
-				if (renderer == null) {
+				if (unrecognized) {
 					sortedHeaders.put(line);
 				}
 				line = br.readLine();
 			}
 
-			if (renderer == null) {
+			if (unrecognized) {
 				// Attempt 2: try to recognize the renderer by matching headers
-				renderer = RendererConfiguration.getRendererConfigurationByHeaders(sortedHeaders);
-			}
-
-			if (renderer != null) {
-				renderer.associateIP(ia);
-				PMS.get().setRendererFound(renderer);
+				renderer = RendererConfiguration.getRendererConfigurationByHeaders(sortedHeaders, ia);
 			}
 
 			for (String headerLine : headerLines) {
@@ -126,6 +127,11 @@ public class RequestHandler implements Runnable {
 					request.setMediaRenderer(renderer);
 				}
 				if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
+					// FIXME: this would also block an external cling-based client running on the same host
+					if (isSelf && headerLine.contains("Cling/")) {
+						LOGGER.trace("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort());
+						return;
+					}
 					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 				}
 
@@ -213,17 +219,22 @@ public class RequestHandler implements Runnable {
 			if (request != null) {
 				// Still no media renderer recognized?
 				if (request.getMediaRenderer() == null) {
-					// Attempt 4: Not really an attempt; all other attempts to recognize
+					// Attempt 3: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
-					request.setMediaRenderer(RendererConfiguration.getDefaultConf());
-					LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
+					request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
+					if (request.getMediaRenderer() != null) {
+						LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
-					if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
-						// We have found an unknown renderer
-						LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString +
-								("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-						PMS.get().setRendererFound(request.getMediaRenderer());
+						if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
+							// We have found an unknown renderer
+							LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString +
+									("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
+						}
+					} else {
+						// If RendererConfiguration.resolve() didn't return the default renderer
+						// it means we know via upnp that it's not really a renderer.
+						return;
 					}
 				} else {
 					if (userAgentString != null) {

@@ -32,7 +32,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.MapFileConfiguration;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -42,7 +41,9 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.newgui.IFrame;
+import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
+import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -54,16 +55,17 @@ import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private RecentlyPlayed last;
+	private Playlist last;
 	private ArrayList<String> tags;
+	private ArrayList<DLNAResource> webFolders;
 
 	public RootFolder(ArrayList<String> tags) {
 		setIndexId(0);
 		this.tags = tags;
+		webFolders = new ArrayList<>();
 	}
 
 	public RootFolder() {
@@ -107,7 +109,10 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (!configuration.isHideRecentlyPlayedFolder()) {
-			last = new RecentlyPlayed();
+			last = new Playlist(Messages.getString("VirtualFolder.1"),
+				PMS.getConfiguration().getDataFile("UMS.last"),
+				PMS.getConfiguration().getInt("last_play_limit", 250),
+				Playlist.PERMANENT|Playlist.AUTOSAVE);
 			addChild(last);
 		}
 
@@ -124,9 +129,17 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (configuration.getFolderLimit() && getDefaultRenderer().isLimitFolders()) {
+		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
 			lim = new FolderLimit();
 			addChild(lim);
+		}
+
+		if (configuration.isDynamicPls()) {
+			addChild(PMS.get().getDynamicPls());
+			if (!configuration.isHideSavedPlaylistFolder()) {
+				File plsdir = new File(configuration.getDynamicPlsSavePath());
+				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")));
+			}
 		}
 
 		for (DLNAResource r : getConfiguredFolders(tags)) {
@@ -137,11 +150,7 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		String webConfPath = configuration.getWebConfPath();
-		File webConf = new File(webConfPath);
-		if (webConf.exists() && configuration.getExternalNetwork() && !configuration.isHideWebFolder(tags)) {
-			addWebFolder(webConf);
-		}
+		loadWebConf();
 
 		if (Platform.isMac() && configuration.isShowIphotoLibrary()) {
 			DLNAResource iPhotoRes = getiPhotoFolder();
@@ -257,8 +266,8 @@ public class RootFolder extends DLNAResource {
 
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
 		List<RealFile> res = new ArrayList<>();
-		File[] files = PMS.get().getSharedFoldersArray(false, tags);
-		String s = PMS.getConfiguration().getFoldersIgnored(tags);
+		File[] files = PMS.get().getSharedFoldersArray(false, tags, configuration);
+		String s = configuration.getFoldersIgnored(tags);
 		String[] skips = null;
 
 		if (s != null) {
@@ -311,6 +320,20 @@ public class RootFolder extends DLNAResource {
 		return res;
 	}
 
+	private void loadWebConf() {
+		for (DLNAResource d : webFolders) {
+			getChildren().remove(d);
+		}
+		webFolders.clear();
+		String webConfPath = configuration.getWebConfPath();
+		File webConf = new File(webConfPath);
+		if (webConf.exists() && configuration.getExternalNetwork() && !configuration.isHideWebFolder(tags)) {
+			addWebFolder(webConf);
+			PMS.getFileWatcher().add(new FileWatcher.Watch(webConf.getPath(), rootWatcher, this, RELOAD_WEB_CONF));
+		}
+		setLastModified(1);
+	}
+
 	private void addWebFolder(File webConf) {
 		if (webConf.exists()) {
 			try {
@@ -345,6 +368,10 @@ public class RootFolder extends DLNAResource {
 
 											if (parent == null) {
 												parent = new VirtualFolder(folder, "");
+												if (currentRoot == this) {
+													// parent is a top-level web folder
+													webFolders.add(parent);
+												}
 												currentRoot.addChild(parent);
 											}
 
@@ -1137,36 +1164,6 @@ public class RootFolder extends DLNAResource {
 			});
 		}
 
-		// recently played mgmt
-		if (last != null) {
-			final List<DLNAResource> l = last.getList();
-			res.addChild(new VirtualFolder(Messages.getString("PMS.137"), null) {
-				@Override
-				public void discoverChildren() {
-					addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
-						@Override
-						public boolean enable() {
-							getParent().getChildren().clear();
-							l.clear();
-							last.update();
-							return true;
-						}
-					});
-					for (final DLNAResource r : l) {
-						addChild(new VirtualVideoAction(r.getName(), false) {
-							@Override
-							public boolean enable() {
-								getParent().getChildren().remove(this);
-								l.remove(r);
-								last.update();
-								return false;
-							}
-						});
-					}
-				}
-			});
-		}
-
 		addChild(res);
 	}
 
@@ -1182,6 +1179,25 @@ public class RootFolder extends DLNAResource {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
 			res.addChild(vfSub);
+
+			if (configuration.useCode() && !PMS.get().masterCodeValid() &&
+				StringUtils.isNotEmpty(PMS.get().codeDb().lookup(CodeDb.MASTER))) {
+				// if the master code is valid we don't add this
+				VirtualVideoAction vva = new VirtualVideoAction("MasterCode", true) {
+					@Override
+					public boolean enable() {
+						CodeEnter ce = (CodeEnter) getParent();
+						if (ce.validCode(this)) {
+							PMS.get().setMasterCode(ce);
+							return true;
+						}
+						return false;
+					}
+				};
+				CodeEnter ce1 = new CodeEnter(vva);
+				ce1.setCode(CodeDb.MASTER);
+				res.addChild(ce1);
+			}
 
 			res.addChild(new VirtualVideoAction(Messages.getString("PMS.3"), configuration.isMencoderNoOutOfSync()) {
 				@Override
@@ -1390,4 +1406,20 @@ public class RootFolder extends DLNAResource {
 	public ArrayList<String> getTags() {
 		return tags;
 	}
+
+	// Automatic reloading
+
+	public final static int RELOAD_WEB_CONF = 1;
+
+	public static final FileWatcher.Listener rootWatcher = new FileWatcher.Listener() {
+		@Override
+		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+			RootFolder r = (RootFolder) watch.getItem();
+			if (r != null) {
+				if (watch.flag == RELOAD_WEB_CONF) {
+					r.loadWebConf();
+				}
+			}
+		}
+	};
 }

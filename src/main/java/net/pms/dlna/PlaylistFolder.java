@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 public class PlaylistFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private String name;
 	private String uri;
 	private boolean valid = true;
@@ -204,7 +202,6 @@ public class PlaylistFolder extends DLNAResource {
 		if (! isweb) {
 			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
-
 		if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
 		}
@@ -234,6 +231,8 @@ public class PlaylistFolder extends DLNAResource {
 					return new PlaylistFolder(name, uri, type);
 				case "cue":
 					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
+				case "ups":
+					return new Playlist(name, uri);
 			}
 		}
 		return null;
