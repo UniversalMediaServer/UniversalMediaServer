@@ -142,7 +142,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 				if (userAgent != null && !userAgent.equals("FDSSDP")) {
 					// We have found an unknown renderer
-					List<String> unknownHeaders = getUnknownHeaders(headers, renderer);
+					List<String> unknownHeaders = getUnknownHeaders(headers);
 					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
 							"User-Agent: " + userAgent +
 							(unknownHeaders.isEmpty() ? "" : ", " + StringUtils.join(unknownHeaders, ", ")));
@@ -164,7 +164,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		writeResponse(ctx, nettyRequest, requestV2, ia);
 	}
 
-	private List<String> getUnknownHeaders(HttpHeaders headers, RendererConfiguration renderer) {
+	private List<String> getUnknownHeaders(HttpHeaders headers) {
 		List<String> unknownHeaders = new LinkedList<>();
 		Set<String> headerNames = headers.names();
 		Iterator<String> iterator = headerNames.iterator();
@@ -177,8 +177,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			/** Unknown headers make interesting logging info when we cannot recognize
 			 * the media renderer, so keep track of the truly unknown ones.
 			 */
-			if (!isKnownHeader(name) && !startsWithAdditionalUserAgentHeader(renderer, headerLine)) {
-				// Truly unknown header, therefore interesting. Save for later use.
+			if (!isKnownHeader(name)) {
 				unknownHeaders.add(headerLine);
 			}
 		}
@@ -245,16 +244,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			if (equalsIgnoreCase(headerName, knownHeader)) {
 				return true;
 			}
-		}
-		return false;
-	}
-
-	private boolean startsWithAdditionalUserAgentHeader(RendererConfiguration renderer, String headerLine) {
-		// It may be unusual but already known
-		if (renderer != null) {
-			String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
-			return isNotBlank(additionalHeader) &&
-					headerLine.toLowerCase().startsWith(additionalHeader.toLowerCase());
 		}
 		return false;
 	}
