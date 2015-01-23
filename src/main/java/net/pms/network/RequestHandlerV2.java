@@ -113,6 +113,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		HttpHeaders headers = nettyRequest.headers();
+		if (LOGGER.isTraceEnabled())
+			logHeaders(headers);
 
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
 		// IP address matches from previous requests are preferred, when that fails request
@@ -164,15 +166,19 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		writeResponse(ctx, nettyRequest, requestV2, ia);
 	}
 
+	private void logHeaders(HttpHeaders headers) {
+		for (Map.Entry<String, String> header : headers) {
+			LOGGER.trace("Received on socket: " + header.getKey() + ": " + header.getValue());
+		}
+	}
+
 	private List<String> getUnknownHeaders(HttpHeaders headers) {
 		List<String> unknownHeaders = new LinkedList<>();
 		Set<String> headerNames = headers.names();
 		Iterator<String> iterator = headerNames.iterator();
 		while (iterator.hasNext()) {
 			String name = iterator.next();
-			String value = headers.get(name);
-			String headerLine = name + ": " + value;
-			LOGGER.trace("Received on socket: " + headerLine);
+			String headerLine = name + ": " + headers.get(name);
 
 			/** Unknown headers make interesting logging info when we cannot recognize
 			 * the media renderer, so keep track of the truly unknown ones.
