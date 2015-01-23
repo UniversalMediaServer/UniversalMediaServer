@@ -40,7 +40,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.equalsIgnoreCase;
+import static io.netty.handler.codec.http.HttpHeaders.isContentLengthSet;
 import static io.netty.handler.codec.http.HttpHeaders.newNameEntity;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -65,24 +67,24 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 	// Used to filter out known headers when the renderer is not recognized
 	private final static CharSequence[] KNOWN_HEADERS = {
-		HttpHeaders.Names.ACCEPT,
-		HttpHeaders.Names.ACCEPT_LANGUAGE,
-		HttpHeaders.Names.ACCEPT_ENCODING,
+		ACCEPT,
+		ACCEPT_LANGUAGE,
+		ACCEPT_ENCODING,
 		CALLBACK,
-		HttpHeaders.Names.CONNECTION,
-		HttpHeaders.Names.CONTENT_LENGTH,
-		HttpHeaders.Names.CONTENT_TYPE,
-		HttpHeaders.Names.DATE,
+		CONNECTION,
+		CONTENT_LENGTH,
+		CONTENT_TYPE,
+		DATE,
 		DLNA_GETCONTENTFEATURES,
 		DLNA_TIMESEEKRANGE,
 		DLNA_TRANSFERMODE,
-		HttpHeaders.Names.HOST,
+		HOST,
 		NT,
-		HttpHeaders.Names.RANGE,
+		RANGE,
 		SID,
 		SOAPACTION,
 		TIMEOUT,
-		HttpHeaders.Names.USER_AGENT,
+		USER_AGENT,
 	};
 
 	@Override
@@ -90,7 +92,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
-		String userAgent = nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT);
+		String userAgent = nettyRequest.headers().get(USER_AGENT);
 		boolean isSelf = isLocalClingRequest(ia, userAgent);
 
 		// Filter if required
@@ -133,7 +135,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			LOGGER.trace("Received on socket: " + headerLine);
 
 			try {
-				if (equalsIgnoreCase(name, HttpHeaders.Names.RANGE) &&
+				if (equalsIgnoreCase(name, RANGE) &&
 						value.toLowerCase().startsWith("bytes=")) {
 					String nums = value.substring(6).trim();
 					StringTokenizer st = new StringTokenizer(nums, "-");
@@ -200,7 +202,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			}
 		}
 
-		if (HttpHeaders.isContentLengthSet(nettyRequest) && nettyRequest.content().isReadable()) {
+		if (isContentLengthSet(nettyRequest) && nettyRequest.content().isReadable()) {
 			requestV2.setTextContent(nettyRequest.content().toString(UTF_8));
 		}
 
@@ -260,7 +262,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		if (renderer != null) {
-			String userAgent = headers.get(HttpHeaders.Names.USER_AGENT);
+			String userAgent = headers.get(USER_AGENT);
 			if (userAgent != null) {
 				LOGGER.debug("HTTP User-Agent: " + userAgent);
 			}
@@ -284,9 +286,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest nettyRequest, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
-		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
+		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
-			!HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION));
+			!HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.headers().get(CONNECTION));
 
 		// Build the response object.
 		HttpResponse response;
@@ -341,7 +343,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(
 				"Failure: " + status.toString() + "\r\n", Charset.forName("UTF-8")));
 		response.headers().set(
-			HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+			CONTENT_TYPE, "text/plain; charset=UTF-8");
 
 		// Close the connection as soon as the error message is sent.
 		ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
