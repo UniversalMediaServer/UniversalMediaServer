@@ -130,8 +130,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		parseGetContentFeatures(requestV2, headers);
 		parseTimeSeekRange(requestV2, headers);
 
-		List<String> unknownHeaders = getUnknownHeaders(headers, renderer);
-
 		// Still no media renderer recognized?
 		if (requestV2.getMediaRenderer() == null) {
 
@@ -144,6 +142,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 				if (userAgent != null && !userAgent.equals("FDSSDP")) {
 					// We have found an unknown renderer
+					List<String> unknownHeaders = getUnknownHeaders(headers, renderer);
 					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
 							"User-Agent: " + userAgent +
 							(unknownHeaders.isEmpty() ? "" : ", " + StringUtils.join(unknownHeaders, ", ")));
