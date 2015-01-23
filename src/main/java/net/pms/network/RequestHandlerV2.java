@@ -130,23 +130,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		parseGetContentFeatures(requestV2, headers);
 		parseTimeSeekRange(requestV2, headers);
 
-		Set<String> headerNames = headers.names();
-		List<String> unknownHeaders = new LinkedList<>();
-		Iterator<String> iterator = headerNames.iterator();
-		while (iterator.hasNext()) {
-			String name = iterator.next();
-			String value = headers.get(name);
-			String headerLine = name + ": " + value;
-			LOGGER.trace("Received on socket: " + headerLine);
-
-			/** Unknown headers make interesting logging info when we cannot recognize
-			 * the media renderer, so keep track of the truly unknown ones.
-			 */
-			if (!isKnownHeader(name) && !startsWithAdditionalUserAgentHeader(renderer, headerLine)) {
-				// Truly unknown header, therefore interesting. Save for later use.
-				unknownHeaders.add(headerLine);
-			}
-		}
+		List<String> unknownHeaders = getUnknownHeaders(headers, renderer);
 
 		// Still no media renderer recognized?
 		if (requestV2.getMediaRenderer() == null) {
@@ -179,6 +163,27 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		LOGGER.trace("HTTP: " + requestV2.getArgument() + " / " + requestV2.getLowRange() + "-" + requestV2.getHighRange());
 
 		writeResponse(ctx, nettyRequest, requestV2, ia);
+	}
+
+	private List<String> getUnknownHeaders(HttpHeaders headers, RendererConfiguration renderer) {
+		List<String> unknownHeaders = new LinkedList<>();
+		Set<String> headerNames = headers.names();
+		Iterator<String> iterator = headerNames.iterator();
+		while (iterator.hasNext()) {
+			String name = iterator.next();
+			String value = headers.get(name);
+			String headerLine = name + ": " + value;
+			LOGGER.trace("Received on socket: " + headerLine);
+
+			/** Unknown headers make interesting logging info when we cannot recognize
+			 * the media renderer, so keep track of the truly unknown ones.
+			 */
+			if (!isKnownHeader(name) && !startsWithAdditionalUserAgentHeader(renderer, headerLine)) {
+				// Truly unknown header, therefore interesting. Save for later use.
+				unknownHeaders.add(headerLine);
+			}
+		}
+		return unknownHeaders;
 	}
 
 	private void parseTimeSeekRange(RequestV2 requestV2, HttpHeaders headers) {
