@@ -1,14 +1,29 @@
 package net.pms.remote;
 
+import com.samskivert.mustache.Mustache;
+import com.samskivert.mustache.Template;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 import java.io.*;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
+import java.util.*;
+
+import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.IpFilter;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
-import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.FileWatcher;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +37,33 @@ public class RemoteUtil {
 	//public static final String MIME_TRANS = MIME_MP4;
 	public static final String MIME_TRANS = MIME_OGG;
 	//public static final String MIME_TRANS = MIME_WEBM;
+	public static final String MIME_MP3 = "audio/mpeg";
+	public static final String MIME_WAV = "audio/wav";
+	public static final String MIME_PNG = "image/png";
+	public static final String MIME_JPG = "image/jpeg";
+
+	public static void respond(HttpExchange t, String response, int status, String mime) {
+		if (response != null) {
+			respond(t, response.getBytes(), status, mime);
+		}
+	}
+
+	public static void respond(HttpExchange t, byte[] response, int status, String mime) {
+		if (response != null) {
+			if (mime != null) {
+				Headers hdr = t.getResponseHeaders();
+				hdr.add("Content-Type", mime);
+			}
+			try {
+				OutputStream os = t.getResponseBody();
+				t.sendResponseHeaders(status, response.length);
+				os.write(response);
+				os.close();
+			} catch (Exception e) {
+				LOGGER.debug("Error sending response: " + e);
+			}
+		}
+	}
 
 	public static void dumpFile(String file, HttpExchange t) throws IOException {
 		File f = new File(file);
@@ -34,15 +76,12 @@ public class RemoteUtil {
 			throw new IOException("no file");
 		}
 		t.sendResponseHeaders(200, f.length());
-		dump(new FileInputStream(f), t.getResponseBody(), null);
+		dump(new FileInputStream(f), t.getResponseBody());
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-	public static void dump(InputStream in, OutputStream os) throws IOException {
-		dump(in, os, null);
-	}
 
-	public static void dump(final InputStream in, final OutputStream os, final StartStopListenerDelegate start) throws IOException {
+	public static void dump(final InputStream in, final OutputStream os) {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -68,12 +107,18 @@ public class RemoteUtil {
 					os.close();
 				} catch (IOException e) {
 				}
-				if (start != null) {
-					start.stop();
-				}
 			}
 		};
 		new Thread(r).start();
+	}
+
+	public static String read(File f) {
+		try {
+			return FileUtils.readFileToString(f, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			LOGGER.debug("Error reading file: " + e);
+		}
+		return null;
 	}
 
 	public static String getId(String path, HttpExchange t) {
@@ -94,8 +139,7 @@ public class RemoteUtil {
 	}
 
 	public static boolean deny(HttpExchange t) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress()) ||
-			   !PMS.isReady();
+		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress()) || !PMS.isReady();
 	}
 
 	private static Range nullRange(long len) {
@@ -122,11 +166,12 @@ public class RemoteUtil {
 		InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
-		dump(in, os, null);
+		dump(in, os);
 	}
 
 	public static boolean directmime(String mime) {
-		return (mime.equals(MIME_MP4) || mime.equals(MIME_WEBM) || mime.equals(MIME_OGG));
+		return mime != null && (mime.equals(MIME_MP4) || mime.equals(MIME_WEBM) || mime.equals(MIME_OGG) ||
+			mime.equals(MIME_MP3) || mime.equals(MIME_PNG) || mime.equals(MIME_JPG)/*|| mime.equals(MIME_WAV)*/);
 	}
 
 	public static String userName(HttpExchange t) {
@@ -150,5 +195,278 @@ public class RemoteUtil {
 			}
 		}
 		return null;
+	}
+
+	public static WebRender matchRenderer(String user, HttpExchange t) {
+		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
+		String confName = WebRender.getBrowserName(browser);
+		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
+		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender)r).getUser()))) ?
+			(WebRender) r : null;
+	}
+
+	public static String getCookie(String name, HttpExchange t) {
+		String cstr = t.getRequestHeaders().getFirst("Cookie");
+		if (! StringUtils.isEmpty(cstr)) {
+			name += "=";
+			for (String str : cstr.trim().split("\\s*;\\s*")) {
+				if (str.startsWith(name)) {
+					return str.substring(name.length());
+				}
+			}
+		}
+		LOGGER.debug("Cookie '{}' not found: {}", name, t.getRequestHeaders().get("Cookie"));
+		return null;
+	}
+
+	private static final int WIDTH = 0;
+	private static final int HEIGHT = 1;
+
+	private static final int DEFAULT_WIDTH = 720;
+	private static final int DEFAULT_HEIGHT = 404;
+
+	private static int getHW(int cfgVal, int id, int def) {
+		if (cfgVal != 0) {
+			// if we have a value cfg return that
+			return cfgVal;
+		}
+		String s = PMS.getConfiguration().getWebSize();
+		if (StringUtils.isEmpty(s)) {
+			// no size string return default
+			return def;
+		}
+		String[] tmp = s.split("x", 2);
+		if (tmp.length < 2) {
+			// bad format resort to default
+			return def;
+		}
+		try {
+			// pick whatever we got
+			return Integer.parseInt(tmp[id]);
+		} catch (NumberFormatException e) {
+			// bad format (again) resort to default
+			return def;
+		}
+	}
+
+	public static int getHeight() {
+		return getHW(PMS.getConfiguration().getWebHeight(), HEIGHT, DEFAULT_HEIGHT);
+	}
+
+	public static int getWidth() {
+		return getHW(PMS.getConfiguration().getWebWidth(), WIDTH, DEFAULT_WIDTH);
+	}
+
+	public static boolean transMp4(String mime, DLNAMediaInfo media) {
+		LOGGER.debug("mp4 profile " + media.getH264Profile());
+		return mime.equals(MIME_MP4) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
+	}
+
+	private static IpFilter bumpFilter = null;
+
+	public static boolean bumpAllowed(HttpExchange t) {
+		if (bumpFilter == null) {
+			bumpFilter = new IpFilter(PMS.getConfiguration().getBumpAllowedIps());
+		}
+		return bumpFilter.allowed(t.getRemoteAddress().getAddress());
+	}
+
+	public static String transMime() {
+		return MIME_TRANS;
+	}
+
+	public static String getContentType(String filename) {
+		return filename.endsWith(".html") ? "text/html" :
+			filename.endsWith(".css") ? "text/css" :
+			filename.endsWith(".js") ? "text/javascript" :
+			URLConnection.guessContentTypeFromName(filename);
+	}
+
+	public static Template compile(InputStream stream) {
+		try {
+			return Mustache.compiler().escapeHTML(false).compile(new InputStreamReader(stream));
+		} catch (Exception e) {
+			LOGGER.debug("Error compiling mustache template: " + e);
+		}
+		return null;
+	}
+
+	public static LinkedHashSet<String> getLangs(HttpExchange t) {
+		String hdr = t.getRequestHeaders().getFirst("Accept-language");
+		LinkedHashSet<String> ret = new LinkedHashSet<String>();
+		if (StringUtils.isEmpty(hdr)) {
+			return ret;
+		}
+
+		String[] tmp = hdr.split(",");
+		for (String l : tmp) {
+			String[] l1 = l.split(";");
+			String str = l1[0];
+			//we need to remove the part after -
+			int pos = str.indexOf("-");
+			if (pos != -1) {
+				 str = str.substring(0, pos);
+			}
+			ret.add(str);
+		}
+		return ret;
+	}
+
+	public static String getFirstLang(HttpExchange t) {
+		LinkedHashSet<String> tmp = getLangs(t);
+		if (tmp.isEmpty()) {
+			return "";
+		}
+		return tmp.iterator().next();
+	}
+
+	public static String getMsgString(String key, HttpExchange t) {
+		String lang = "";
+		if(PMS.getConfiguration().useWebLang()) {
+			lang = getFirstLang(t);
+		}
+		return Messages.getString(key, lang);
+	}
+
+	/**
+	 * A web resource manager to act as:
+	 *
+	 * - A resource finder with native java classpath search behaviour (including in zip files)
+	 *   to allow flexible customizing/skinning of the web interface.
+	 *
+	 * - A file manager to control access to arbitrary non-web resources, i.e. subtitles,
+	 *   logs, etc.
+	 *
+	 * - A template manager.
+	 */
+	public static class ResourceManager extends URLClassLoader {
+		private HashSet<File> files;
+		private HashMap<String, Template> templates;
+
+		public ResourceManager(String... urls) {
+			super(new URL[]{}, null);
+			try {
+				for (String url : urls) {
+					addURL(new URL(url));
+				}
+			} catch (MalformedURLException e) {
+				LOGGER.debug("Error adding resource url: " + e);
+			}
+			files = new HashSet<File>();
+			templates = new HashMap<String, Template>();
+		}
+
+		public InputStream getInputStream(String filename) {
+			InputStream stream = getResourceAsStream(filename);
+			if (stream == null) {
+				File file = getFile(filename);
+				if (file != null && file.exists()) {
+					try {
+						stream = new FileInputStream(file);
+					} catch (Exception e) {
+						LOGGER.debug("Error opening stream: " + e);
+					}
+				}
+			}
+			return stream;
+		}
+
+		@Override
+		public URL getResource(String name) {
+			URL url = super.getResource(name);
+			if (url != null) {
+				LOGGER.debug("Using resource: " + url);
+			}
+			return url;
+		}
+
+		/**
+		 * Register a file as servable.
+		 *
+		 * @return its hashcode (for use as a 'filename' in an http path)
+		 */
+		public int add(File f) {
+			files.add(f);
+			return f.hashCode();
+		}
+
+		/**
+		 * Retrieve a servable file by its hashcode.
+		 */
+		public File getFile(String hash) {
+			try {
+				int h = Integer.valueOf(hash);
+				for (File f : files) {
+					if (f.hashCode() == h) {
+						return f;
+					}
+				}
+			} catch (NumberFormatException e) {
+			}
+			return null;
+		}
+
+		public String read(String filename) {
+			try {
+				return IOUtils.toString(getInputStream(filename), "UTF-8");
+			} catch (IOException e) {
+				LOGGER.debug("Error reading resource {}: {}", filename, e);
+			}
+			return null;
+		}
+
+		/**
+		 * Write the given resource as an http response body.
+		 */
+		public boolean write(String filename, HttpExchange t) throws IOException {
+			InputStream stream = getInputStream(filename);
+			if (stream != null) {
+				Headers headers = t.getResponseHeaders();
+				if (!headers.containsKey("Content-Type")) {
+					String mime = getContentType(filename);
+					if (mime != null) {
+						headers.add("Content-Type", mime);
+					}
+				}
+				// Note: available() isn't officially guaranteed to return the full
+				// stream length but effectively seems to do so in our context.
+				t.sendResponseHeaders(200, stream.available());
+				dump(stream, t.getResponseBody());
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * Retrieve the given mustache template, compiling as necessary.
+		 */
+		public Template getTemplate(String filename) {
+			Template t = null;
+			if (templates.containsKey(filename)) {
+				t = templates.get(filename);
+			} else {
+				URL url = findResource(filename);
+				if (url != null) {
+					t = compile(getInputStream(filename));
+					templates.put(filename, t);
+					PMS.getFileWatcher().add(new FileWatcher.Watch(url.getFile(), recompiler));
+				}
+			}
+			return t;
+		}
+
+		/**
+		 * Automatic recompiling
+		 */
+		FileWatcher.Listener recompiler = new FileWatcher.Listener() {
+			@Override
+			public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+				String path = watch.fspec.startsWith("web/") ? watch.fspec.substring(4) : watch.fspec;
+				if (templates.containsKey(path)) {
+					templates.put(path, compile(getInputStream(path)));
+					LOGGER.info("Recompiling template: {}", path);
+				}
+			}
+		};
 	}
 }

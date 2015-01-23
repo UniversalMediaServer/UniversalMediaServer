@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JComponent;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
@@ -49,9 +49,9 @@ import org.slf4j.LoggerFactory;
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private static List<String> protocols;
-	public static PatternMap<Object> excludes = new PatternMap<Object>();
+	public static final PatternMap<Object> excludes = new PatternMap<Object>();
 
-	public static PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
+	public static final PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
 		private static final long serialVersionUID = 5225786297932747007L;
 
 		@Override
@@ -60,7 +60,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 	};
 
-	public static PatternMap<String> replacements = new PatternMap<String>();
+	public static final PatternMap<String> replacements = new PatternMap<String>();
 	private static boolean init = false;
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -91,7 +91,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		this();
 	}
-	
+
 	public FFmpegWebVideo() {
 		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
@@ -111,12 +111,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		if (dlna.getDefaultRenderer() instanceof WebRender) {
-			WebPlayer wp = new WebPlayer(WebPlayer.FLASH);
-			return wp.launchTranscode(dlna, media, params);
-		}
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 		String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
@@ -155,31 +153,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.addAll(parseOptions(attached));
 		}
 		// - renderer options
-		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
-			customOptions.addAll(parseOptions(renderer.getCustomFFmpegOptions()));
+		String ffmpegOptions = renderer.getCustomFFmpegOptions();
+		if (StringUtils.isNotEmpty(ffmpegOptions)) {
+			customOptions.addAll(parseOptions(ffmpegOptions));
 		}
-
-		// basename of the named pipe:
-		// ffmpeg -loglevel warning -threads nThreads -i URL -threads nThreads -transcode-video-options /path/to/fifoName
-		String fifoName = String.format(
-			"ffmpegwebvideo_%d_%d",
-			Thread.currentThread().getId(),
-			System.currentTimeMillis()
-		);
-
-		// This process wraps the command that creates the named pipe
-		PipeProcess pipe = new PipeProcess(fifoName);
-		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
-		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-
-		/**
-		 * It can take a long time for Windows to create a named pipe (and
-		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
-		 * the current thread.
-		 */
-		mkfifo_process.runInSameThread();
-
-		params.input_pipes[0] = pipe;
 
 		// Build the command line
 		List<String> cmdList = new ArrayList<String>();
@@ -212,7 +189,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		
+
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
 			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
@@ -263,18 +240,51 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
 
-		// Add video bitrate options
-		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
-
-		// Add audio bitrate options
-		cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
-
-		// Add any remaining custom options
-		if (!customOptions.isEmpty()) {
-			customOptions.transferAll(cmdList);
+		// Now that inputs and filtering are complete, see if we should
+		// give the renderer the final say on the command
+		boolean override = false;
+		if (renderer instanceof RendererConfiguration.OutputOverride) {
+			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
 		}
+
+		if (!override) {
+			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+
+			// Add video bitrate options
+			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
+
+			// Add audio bitrate options
+			cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
+
+			// Add any remaining custom options
+			if (!customOptions.isEmpty()) {
+				customOptions.transferAll(cmdList);
+			}
+		}
+
+		// Set up the process
+
+		// basename of the named pipe:
+		String fifoName = String.format(
+			"ffmpegwebvideo_%d_%d",
+			Thread.currentThread().getId(),
+			System.currentTimeMillis()
+		);
+
+		// This process wraps the command that creates the named pipe
+		PipeProcess pipe = new PipeProcess(fifoName);
+		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
+		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+
+		/**
+		 * It can take a long time for Windows to create a named pipe (and
+		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+		 * the current thread.
+		 */
+		mkfifo_process.runInSameThread();
+
+		params.input_pipes[0] = pipe;
 
 		// Output file
 		cmdList.add(pipe.getInputPipe());
@@ -313,6 +323,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
 
+		configuration = prev;
 		return pw;
 	}
 

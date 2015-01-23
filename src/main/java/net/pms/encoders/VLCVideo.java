@@ -33,6 +33,7 @@ import java.util.*;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -429,6 +430,8 @@ public class VLCVideo extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		boolean isWindows = Platform.isWindows();
 		setAudioAndSubs(filename, media, params);
@@ -602,6 +605,7 @@ public class VLCVideo extends Player {
 		}
 
 		pw.runInNewThread();
+		configuration = prev;
 		return pw;
 	}
 

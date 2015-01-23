@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
@@ -37,7 +35,6 @@ import org.slf4j.LoggerFactory;
  */
 public class FileTranscodeVirtualFolder extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	// FIXME unused
 	@Deprecated
@@ -198,41 +195,32 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			ArrayList<DLNAResource> entries = new ArrayList<DLNAResource>();
 
 			// First, add the option to simply stream the resource.
-			// Only add the option if the renderer is compatible with the format
-			if (
-				child.getFormat() != null &&
-				(
-					child.getFormat().isCompatible(child.getMedia(), renderer) ||
-					child.isSkipTranscode()
-				)
-			) {
-				if (renderer != null) {
-					LOGGER.trace(
-						"Duplicating {} for direct streaming to renderer: {}",
-						child.getName(),
-						renderer.getRendererName()
-					);
-				}
+			if (renderer != null) {
+				LOGGER.trace(
+					"Duplicating {} for direct streaming to renderer: {}",
+					child.getName(),
+					renderer.getRendererName()
+				);
+			}
 
-				DLNAResource noTranscode = createResourceWithAudioSubtitlePlayer(child, null, null, null);
-				addChildInternal(noTranscode);
-				addChapterFolder(noTranscode);
+			DLNAResource noTranscode = createResourceWithAudioSubtitlePlayer(child, null, null, null);
+			addChildInternal(noTranscode);
+			addChapterFolder(noTranscode);
 
-				// add options for renderer capable to handle streamed subtitles
-				if (!configuration.isDisableSubtitles() && renderer != null && renderer.isSubtitlesStreamingSupported()) {
-					for (DLNAMediaSubtitle subtitle : subtitleTracks) {
-						// only add the option if the renderer supports the given format
-						if (subtitle.isExternal()) { // do not check for embedded subs
-							if (renderer.isExternalSubtitlesFormatSupported(subtitle)) {
-								DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
-								copy.getMediaSubtitle().setSubsStreamable(true);
-								entries.add(copy);
-								LOGGER.trace(
-									"Duplicating {} for direct streaming subtitles {}",
-									child.getName(),
-									subtitle.toString()
-								);
-							}
+			// add options for renderer capable to handle streamed subtitles
+			if (!configuration.isDisableSubtitles() && renderer != null && renderer.isSubtitlesStreamingSupported()) {
+				for (DLNAMediaSubtitle subtitle : subtitleTracks) {
+					// only add the option if the renderer supports the given format
+					if (subtitle.isExternal()) { // do not check for embedded subs
+						if (renderer.isExternalSubtitlesFormatSupported(subtitle)) {
+							DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
+							copy.getMediaSubtitle().setSubsStreamable(true);
+							entries.add(copy);
+							LOGGER.trace(
+								"Duplicating {} for direct streaming subtitles {}",
+								child.getName(),
+								subtitle.toString()
+							);
 						}
 					}
 				}

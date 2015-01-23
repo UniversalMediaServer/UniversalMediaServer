@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			// reload if we have been sent back here after a VVA
+			if (typeof window.refresh != 'undefined' && window.refresh) {
+				window.refresh = false;
+				window.location.reload();
+			}
+			// ensure the browser info cookie is set
+			if ((' ' + document.cookie).indexOf(' UMSINFO=') == -1) {
+				document.cookie = 'UMSINFO=platform=' + navigator.platform + '&width=' + screen.width + '&height=' + screen.height + '&isTouchDevice=' + (window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window)) + ';Path=/';
+			}
+		</script>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<script src="/files/jquery.min.js"></script>
+		<script src="/files/jquery.ums.js"></script>
+		<script src="/bump/bump.js"></script>
+		<title>{{name}}</title>
+	</head>
+	<body id="ContentPage" class="browsePage">
+		<div id="Container" class="noHzScroll">
+			<div id="Menu">
+				<a href="/browse/0" id="HomeButton"></a>
+{{#hasFile}}
+				<form id="SearchForm" method="get">
+					<input type="text" id="SearchInput" name="str">
+					<input type="submit" id="SearchSubmit" title="Search" value="&nbsp;">
+				</form>
+{{/hasFile}}
+				<a href="/doc" id="DocButton" title="Documentation"></a>
+			</div>
+
+			<div id="FoldersContainer"{{noFoldersCSS}}>
+				<ul id="Folders">
+{{#folders}}
+					<li>{{this}}</li>
+{{/folders}}
+				</ul>
+			</div>
+
+{{#hasFile}}
+			<ul id="Media"{{noFoldersCSS}}>
+{{#media}}
+				<li>
+					{{thumb}}
+					{{bump}}
+					{{caption}}
+				</li>
+{{/media}}
+			</ul>
+{{/hasFile}}
+		</div>
+	</body>
+</html>

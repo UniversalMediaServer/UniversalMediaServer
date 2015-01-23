@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import net.pms.Messages;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -135,6 +136,8 @@ public class FFmpegAudio extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration)params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		params.maxBufferSize = configuration.getMaxAudioBuffer();
 		params.waitbeforestart = 2000;
@@ -231,6 +234,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 
+		configuration = prev;
 		return pw;
 	}
 

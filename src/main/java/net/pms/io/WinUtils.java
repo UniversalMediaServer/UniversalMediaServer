@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author zsombor
  */
-public class WinUtils extends BasicSystemUtils implements SystemUtils {
+public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 

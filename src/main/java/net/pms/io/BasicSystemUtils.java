@@ -145,7 +145,6 @@ public class BasicSystemUtils implements SystemUtils {
 			PopupMenu popup = new PopupMenu();
 			MenuItem defaultItem = new MenuItem(Messages.getString("LooksFrame.5"));
 			MenuItem traceItem = new MenuItem(Messages.getString("LooksFrame.6"));
-			MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.29"));
 
 			defaultItem.addActionListener(new ActionListener() {
 				@Override
@@ -161,14 +160,16 @@ public class BasicSystemUtils implements SystemUtils {
 				}
 			});
 
-			webInterfaceItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					browseURI(PMS.get().getWebInterface().getUrl());
-				}
-			});
-
-			popup.add(webInterfaceItem);
+			if (PMS.getConfiguration().useWebInterface()) {
+				MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.29"));
+				webInterfaceItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						browseURI(PMS.get().getWebInterface().getUrl());
+					}
+				});
+				popup.add(webInterfaceItem);
+			}
 			popup.add(traceItem);
 			popup.add(defaultItem);
 

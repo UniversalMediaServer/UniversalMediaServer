@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.swing.*;
@@ -18,10 +19,12 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +120,9 @@ public class DbgPacker implements ActionListener {
 			if (r.getFile() != null) {
 				add(r.getFile());
 			}
+			if (((DeviceConfiguration)r).isCustomized()) {
+				add(((DeviceConfiguration)r).getParentFile());
+			}
 		}
 
 		// add core items with debug.log last (LinkedHashMap preserves insertion order)
@@ -166,6 +172,11 @@ public class DbgPacker implements ActionListener {
 			}
 			out.closeEntry();
 		in.close();
+	}
+
+	public Set<File> getItems() {
+		poll();
+		return items.keySet();
 	}
 
 	private boolean saveDialog() {
