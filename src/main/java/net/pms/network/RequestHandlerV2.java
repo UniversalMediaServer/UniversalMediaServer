@@ -40,7 +40,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static io.netty.handler.codec.http.HttpHeaders.equalsIgnoreCase;
+import static io.netty.handler.codec.http.HttpHeaders.newNameEntity;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -51,26 +54,35 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		Pattern.CASE_INSENSITIVE
 	);
 
-	private static final CharSequence CALLBACK = HttpHeaders.newNameEntity("CallBack");
-	private static final CharSequence SOAPACTION = HttpHeaders.newNameEntity("SOAPAction");
+	private static final CharSequence CALLBACK = newNameEntity("CallBack");
+	private static final CharSequence DLNA_GETCONTENTFEATURES = newNameEntity("GetContentFeatures.DLNA.ORG");
+	private static final CharSequence DLNA_TIMESEEKRANGE = newNameEntity("TimeSeekRange.DLNA.ORG");
+	private static final CharSequence DLNA_TRANSFERMODE = newNameEntity("TransferMode.DLNA.ORG");
+	private static final CharSequence NT = newNameEntity("NT");
+	private static final CharSequence SOAPACTION = newNameEntity("SOAPAction");
+	private static final CharSequence SID = newNameEntity("SID");
+	private static final CharSequence TIMEOUT = newNameEntity("Timeout");
 
 	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
-		"accept",
-		"accept-language",
-		"accept-encoding",
-		"callback",
-		"connection",
-		"content-length",
-		"content-type",
-		"date",
-		"host",
-		"nt",
-		"range",
-		"sid",
-		"soapaction",
-		"timeout",
-		"user-agent"
+	private final static CharSequence[] KNOWN_HEADERS = {
+		HttpHeaders.Names.ACCEPT,
+		HttpHeaders.Names.ACCEPT_LANGUAGE,
+		HttpHeaders.Names.ACCEPT_ENCODING,
+		CALLBACK,
+		HttpHeaders.Names.CONNECTION,
+		HttpHeaders.Names.CONTENT_LENGTH,
+		HttpHeaders.Names.CONTENT_TYPE,
+		HttpHeaders.Names.DATE,
+		DLNA_GETCONTENTFEATURES,
+		DLNA_TIMESEEKRANGE,
+		DLNA_TRANSFERMODE,
+		HttpHeaders.Names.HOST,
+		NT,
+		HttpHeaders.Names.RANGE,
+		SID,
+		SOAPACTION,
+		TIMEOUT,
+		HttpHeaders.Names.USER_AGENT,
 	};
 
 	@Override
@@ -116,14 +128,14 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		Iterator<String> iterator = headerNames.iterator();
 		while (iterator.hasNext()) {
 			String name = iterator.next();
-			String headerLine = name + ": " + headers.get(name);
+			String value = headers.get(name);
+			String headerLine = name + ": " + value;
 			LOGGER.trace("Received on socket: " + headerLine);
 
 			try {
-				if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
-					String nums = headerLine.substring(
-						headerLine.toUpperCase().indexOf(
-						"RANGE: BYTES=") + 13).trim();
+				if (equalsIgnoreCase(name, HttpHeaders.Names.RANGE) &&
+						value.toLowerCase().startsWith("bytes=")) {
+					String nums = value.substring(6).trim();
 					StringTokenizer st = new StringTokenizer(nums, "-");
 					if (!nums.startsWith("-")) {
 						requestV2.setLowRange(Long.parseLong(st.nextToken()));
@@ -133,10 +145,10 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 					} else {
 						requestV2.setHighRange(-1);
 					}
-				} else if (headerLine.toLowerCase().contains("transfermode.dlna.org:")) {
-					requestV2.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
-				} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
-					requestV2.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
+				} else if (equalsIgnoreCase(name, DLNA_TRANSFERMODE)) {
+					requestV2.setTransferMode(value.trim());
+				} else if (equalsIgnoreCase(name, DLNA_GETCONTENTFEATURES)) {
+					requestV2.setContentFeatures(value.trim());
 				} else {
 					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
 					if (matcher.find()) {
@@ -153,7 +165,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 						 * Unknown headers make interesting logging info when we cannot recognize
 						 * the media renderer, so keep track of the truly unknown ones.
 						 */
-						if (!isKnownOrAdditionalHeader(renderer, headerLine)) {
+						if (!isKnownHeader(name) && !startsWithAdditionalUserAgentHeader(renderer, headerLine)) {
 							// Truly unknown header, therefore interesting. Save for later use.
 							unknownHeaders.add(headerLine);
 						}
@@ -211,26 +223,23 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 	}
 
-	private boolean isKnownOrAdditionalHeader(RendererConfiguration renderer, String headerLine) {
-		boolean isKnown = false;
+	private boolean isKnownHeader(String headerName) {
+		for (CharSequence knownHeader : KNOWN_HEADERS) {
+			if (equalsIgnoreCase(headerName, knownHeader)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-		// Try to match known headers.
-		String lowerCaseHeaderLine = headerLine.toLowerCase();
-		for (String knownHeaderString : KNOWN_HEADERS) {
-            if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
-                isKnown = true;
-                break;
-            }
-        }
-
+	private boolean startsWithAdditionalUserAgentHeader(RendererConfiguration renderer, String headerLine) {
 		// It may be unusual but already known
 		if (renderer != null) {
-            String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
-            if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
-                isKnown = true;
-            }
-        }
-		return isKnown;
+			String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
+			return isNotBlank(additionalHeader) &&
+					headerLine.toLowerCase().startsWith(additionalHeader.toLowerCase());
+		}
+		return false;
 	}
 
 	private boolean isLocalClingRequest(InetAddress ia, String userAgent) {
