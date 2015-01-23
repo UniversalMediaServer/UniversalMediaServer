@@ -183,21 +183,18 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 	private void parseTimeSeekRange(RequestV2 requestV2, HttpHeaders headers) {
 		if (!headers.contains(DLNA_TIMESEEKRANGE)) return;
-		try {
-			String headerLine = DLNA_TIMESEEKRANGE + ": " + headers.get(DLNA_TIMESEEKRANGE);
-			Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
-			if (matcher.find()) {
-				String first = matcher.group(1);
-				if (first != null) {
-					requestV2.setTimeRangeStartString(first);
-				}
-				String end = matcher.group(2);
-				if (end != null) {
-					requestV2.setTimeRangeEndString(end);
-				}
+
+		String headerLine = DLNA_TIMESEEKRANGE + ": " + headers.get(DLNA_TIMESEEKRANGE);
+		Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
+		if (matcher.find()) {
+			String first = matcher.group(1);
+			if (first != null) {
+				requestV2.setTimeRangeStartString(first);
 			}
-		} catch (Exception ee) {
-			LOGGER.error("Error parsing HTTP headers", ee);
+			String end = matcher.group(2);
+			if (end != null) {
+				requestV2.setTimeRangeEndString(end);
+			}
 		}
 	}
 
