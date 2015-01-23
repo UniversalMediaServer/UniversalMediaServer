@@ -126,6 +126,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		requestV2.setSoapaction(getSoapActionOrCallback(headers));
 
 		parseRangeHeader(requestV2, headers);
+		parseTransferMode(requestV2, headers);
 
 		Set<String> headerNames = headers.names();
 		List<String> unknownHeaders = new LinkedList<>();
@@ -137,9 +138,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			LOGGER.trace("Received on socket: " + headerLine);
 
 			try {
-				if (equalsIgnoreCase(name, DLNA_TRANSFERMODE)) {
-					requestV2.setTransferMode(value.trim());
-				} else if (equalsIgnoreCase(name, DLNA_GETCONTENTFEATURES)) {
+				if (equalsIgnoreCase(name, DLNA_GETCONTENTFEATURES)) {
 					requestV2.setContentFeatures(value.trim());
 				} else {
 					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
@@ -201,6 +200,10 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		writeResponse(ctx, nettyRequest, requestV2, ia);
 	}
 
+	private void parseTransferMode(RequestV2 requestV2, HttpHeaders headers) {
+		if (headers.contains(DLNA_TRANSFERMODE))
+			requestV2.setTransferMode(headers.get(DLNA_TRANSFERMODE).trim());
+	}
 	private void parseRangeHeader(RequestV2 requestV2, HttpHeaders headers) {
 		if (headers.contains(RANGE) && headers.get(RANGE).toLowerCase().startsWith("bytes=")) {
 			String nums = headers.get(RANGE).substring(6).trim();
