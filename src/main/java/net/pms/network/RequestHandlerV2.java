@@ -127,6 +127,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		parseRangeHeader(requestV2, headers);
 		parseTransferMode(requestV2, headers);
+		parseGetContentFeatures(requestV2, headers);
 
 		Set<String> headerNames = headers.names();
 		List<String> unknownHeaders = new LinkedList<>();
@@ -138,28 +139,24 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			LOGGER.trace("Received on socket: " + headerLine);
 
 			try {
-				if (equalsIgnoreCase(name, DLNA_GETCONTENTFEATURES)) {
-					requestV2.setContentFeatures(value.trim());
+				Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
+				if (matcher.find()) {
+					String first = matcher.group(1);
+					if (first != null) {
+						requestV2.setTimeRangeStartString(first);
+					}
+					String end = matcher.group(2);
+					if (end != null) {
+						requestV2.setTimeRangeEndString(end);
+					}
 				} else {
-					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
-					if (matcher.find()) {
-						String first = matcher.group(1);
-						if (first != null) {
-							requestV2.setTimeRangeStartString(first);
-						}
-						String end = matcher.group(2);
-						if (end != null) {
-							requestV2.setTimeRangeEndString(end);
-						}
-					} else {
-						/** If we made it to here, none of the previous header checks matched.
-						 * Unknown headers make interesting logging info when we cannot recognize
-						 * the media renderer, so keep track of the truly unknown ones.
-						 */
-						if (!isKnownHeader(name) && !startsWithAdditionalUserAgentHeader(renderer, headerLine)) {
-							// Truly unknown header, therefore interesting. Save for later use.
-							unknownHeaders.add(headerLine);
-						}
+					/** If we made it to here, none of the previous header checks matched.
+					 * Unknown headers make interesting logging info when we cannot recognize
+					 * the media renderer, so keep track of the truly unknown ones.
+					 */
+					if (!isKnownHeader(name) && !startsWithAdditionalUserAgentHeader(renderer, headerLine)) {
+						// Truly unknown header, therefore interesting. Save for later use.
+						unknownHeaders.add(headerLine);
 					}
 				}
 			} catch (Exception ee) {
@@ -198,6 +195,11 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		LOGGER.trace("HTTP: " + requestV2.getArgument() + " / " + requestV2.getLowRange() + "-" + requestV2.getHighRange());
 
 		writeResponse(ctx, nettyRequest, requestV2, ia);
+	}
+
+	private void parseGetContentFeatures(RequestV2 requestV2, HttpHeaders headers) {
+		if (headers.contains(DLNA_GETCONTENTFEATURES))
+			requestV2.setContentFeatures(headers.get(DLNA_GETCONTENTFEATURES).trim());
 	}
 
 	private void parseTransferMode(RequestV2 requestV2, HttpHeaders headers) {
