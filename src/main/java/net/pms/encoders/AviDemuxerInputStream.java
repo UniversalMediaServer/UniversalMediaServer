@@ -68,7 +68,11 @@ public class AviDemuxerInputStream extends InputStream {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
 			Runnable r;
-			InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header);
+
+			/**
+			 * Note: Java 6 needs pin to be final.
+			 */
+			final InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header);
 				final OutputStream out = params.output_pipes[0].getOutputStream();
 				r = new Runnable() {
 					@Override
