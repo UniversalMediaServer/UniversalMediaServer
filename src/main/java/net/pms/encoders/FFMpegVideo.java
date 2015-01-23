@@ -778,14 +778,7 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 2500;
 		}
 
-		if (params.aid == null) {
-			setAudioOutputParameters(media, params);
-		}
-
-		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
-			setSubtitleOutputParameters(filename, media, params);
-		}
-
+		setAudioAndSubs(filename, media, params);
 		cmdList.add(executable());
 
 		// Prevent FFmpeg timeout
@@ -940,6 +933,10 @@ public class FFMpegVideo extends Player {
 				return tv.launchTranscode(dlna, media, params);
 			}
 		}
+
+		// Apply any video filters and associated options. These should go
+		// after video input is specified and before output streams are mapped.
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Map the output streams if necessary
 		if (media.getAudioTracksList().size() > 1) {

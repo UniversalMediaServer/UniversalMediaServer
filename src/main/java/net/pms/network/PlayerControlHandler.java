@@ -101,6 +101,8 @@ public class PlayerControlHandler implements HttpHandler {
 					player.add(-1, translate(q.get("uri")), q.get("title"), null, true);
 			} else if ("remove".equals(p[2])) {
 					player.remove(translate(q.get("uri")));
+			} else if ("clear".equals(p[2])) {
+					player.clear();
 			} else if ("seturi".equals(p[2])) {
 					player.setURI(translate(q.get("uri")), q.get("title"));
 			}

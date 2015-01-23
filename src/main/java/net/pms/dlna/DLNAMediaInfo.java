@@ -1162,6 +1162,9 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getDurationString() {
+		/**
+		 * Note: Use getDurationString instead of convertTimeToString on Java 6.
+		 */
 		return durationSec != null ? getDurationString(durationSec) : null;
 	}
 

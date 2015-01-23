@@ -286,11 +286,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 					} else if (mime.equals(RemoteUtil.MIME_MP4)) {
 							ffmp4Cmd(cmdList);
 					} else if (mime.equals(RemoteUtil.MIME_WEBM)) {
-						if (isChromeTrick()) {
-							chromeCmd(cmdList);
-						} else {
-							// nothing here yet
-						}
+							if (isChromeTrick()) {
+								chromeCmd(cmdList);
+							} else {
+								// nothing here yet
+							}
 					}
 				}
 				if (isLowBitrate()) {

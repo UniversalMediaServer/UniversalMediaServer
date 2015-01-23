@@ -525,8 +525,8 @@ public class DownloadPlugins {
 
 				res &= downloadFile(tmp[0], dir, filename);
 			}
-
 		in.close();
+
 		return res;
 	}
 

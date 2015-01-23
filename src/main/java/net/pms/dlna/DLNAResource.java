@@ -1581,6 +1581,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (getSplitRange().isEndLimitAvailable()) {
+			/**
+			 * Note: Use getDurationString instead of convertTimeToString on Java 6.
+			 */
 			displayName = ">> " + DLNAMediaInfo.getDurationString(getSplitRange().getStart());
 		}
 
@@ -2058,6 +2061,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 					if (media.getDuration() != null) {
 						if (getSplitRange().isEndLimitAvailable()) {
+							/**
+							 * Note: Use getDurationString instead of convertTimeToString on Java 6.
+							 */
 							wireshark.append(" duration=").append(DLNAMediaInfo.getDurationString(getSplitRange().getDuration()));
 							addAttribute(sb, "duration", DLNAMediaInfo.getDurationString(getSplitRange().getDuration()));
 						} else {
@@ -2092,6 +2098,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (media != null && media.isMediaparsed()) {
 						addAttribute(sb, "bitrate", media.getBitrate());
 						if (media.getDuration() != null) {
+							/**
+							 * Note: Use getDurationString instead of convertTimeToString on Java 6.
+							 */
 							wireshark.append(" duration=").append(DLNAMediaInfo.getDurationString(media.getDuration()));
 							addAttribute(sb, "duration", DLNAMediaInfo.getDurationString(media.getDuration()));
 						}

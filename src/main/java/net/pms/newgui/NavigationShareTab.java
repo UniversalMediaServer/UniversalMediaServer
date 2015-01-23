@@ -113,6 +113,9 @@ public class NavigationShareTab {
 				}
 
 				String directory = (String) folderTableModel.getValueAt(i, 0);
+				/**
+				 * Note: Use Boolean.TRUE.equals on Java 6 instead of casting.
+				 */
 				boolean monitored = Boolean.TRUE.equals(folderTableModel.getValueAt(i, 1));
 
 				// escape embedded commas. note: backslashing isn't safe as it conflicts with
@@ -699,6 +702,9 @@ public class NavigationShareTab {
 				for (int i = 0; i < FList.getRowCount() - 1; i++) {
 					if (FList.isRowSelected(i)) {
 						Object  value1 = FList.getValueAt(i, 0);
+						/**
+						 * Note: Use Boolean.TRUE.equals on Java 6 instead of casting.
+						 */
 						boolean value2 = Boolean.TRUE.equals(FList.getValueAt(i, 1));
 
 						FList.setValueAt(FList.getValueAt(i + 1, 0), i    , 0);
@@ -722,6 +728,9 @@ public class NavigationShareTab {
 				for (int i = 1; i < FList.getRowCount(); i++) {
 					if (FList.isRowSelected(i)) {
 						Object  value1 = FList.getValueAt(i, 0);
+						/**
+						 * Note: Use Boolean.TRUE.equals on Java 6 instead of casting.
+						 */
 						boolean value2 = Boolean.TRUE.equals(FList.getValueAt(i, 1));
 
 						FList.setValueAt(FList.getValueAt(i - 1, 0), i    , 0);
@@ -841,6 +850,9 @@ public class NavigationShareTab {
 		public void setValueAt(Object aValue, int row, int column) {
 			Vector rowVector = (Vector) dataVector.elementAt(row);
 			if (aValue instanceof Boolean && column == 1) {
+				/**
+				 * Note: Use Boolean.TRUE.equals on Java 6 instead of casting.
+				 */
 				rowVector.setElementAt(Boolean.TRUE.equals(aValue), 1);
 			} else {
 				rowVector.setElementAt(aValue, column);
