@@ -19,13 +19,23 @@
  */
 package net.pms.network;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
+import static net.pms.dlna.DLNAResource.Temp;
+import net.pms.util.BasicPlayer;
+import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.fourthline.cling.model.meta.Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * and http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.1-AnnexA.pdf
  * for the specifications.
  */
-public class UPNPHelper {
+public class UPNPHelper extends UPNPControl {
 	// Logger instance to write messages to the logs.
 	private static final Logger LOGGER = LoggerFactory.getLogger(UPNPHelper.class);
 
@@ -69,10 +79,39 @@ public class UPNPHelper {
 
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
+	private static final UPNPHelper instance = new UPNPHelper();
+	private static PlayerControlHandler httpControlHandler;
+
 	/**
 	 * This utility class is not meant to be instantiated.
 	 */
-	private UPNPHelper() { }
+	private UPNPHelper() {
+		rendererMap = new DeviceMap<>(DeviceConfiguration.class);
+	}
+
+	public static UPNPHelper getInstance() {
+		return instance;
+	}
+
+	@Override
+	public void init() {
+		super.init();
+		getHttpControlHandler();
+	}
+
+	public static PlayerControlHandler getHttpControlHandler() {
+		if (
+			httpControlHandler == null &&
+			PMS.get().getWebServer() != null &&
+			!"false".equals(configuration.getBumpAddress().toLowerCase())
+		) {
+			httpControlHandler = new PlayerControlHandler(PMS.get().getWebInterface());
+			LOGGER.debug("Attached http player control handler to web server");
+		}
+		return httpControlHandler;
+	}
+
+	private static String lastSearch = null;
 
 	/**
 	 * Send UPnP discovery search message to discover devices of interest on
@@ -109,7 +148,16 @@ public class UPNPHelper {
 		discovery.append("USN: ").append(usn).append(st).append(CRLF);
 		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
 
-		sendReply(host, port, discovery.toString());
+		String msg = discovery.toString();
+
+		if (st.equals(lastSearch)) {
+			LOGGER.trace("Resending last discovery [" + host + ":" + port + "]");
+		} else {
+			LOGGER.trace("Sending discovery [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+		}
+
+		sendReply(host, port, msg);
+		lastSearch = st;
 	}
 
 	/**
@@ -124,9 +172,6 @@ public class UPNPHelper {
 		try (DatagramSocket datagramSocket = new DatagramSocket()) {
 			InetAddress inetAddr = InetAddress.getByName(host);
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
-
-			LOGGER.trace("Sending this reply [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
-
 			datagramSocket.send(dgmPacket);
 		} catch (Exception e) {
 			LOGGER.info(e.getMessage());
@@ -167,6 +212,8 @@ public class UPNPHelper {
 			}
 		}
 	}
+
+	static boolean multicastLog = true;
 
 	/**
 	 * Gets the new multicast socket.
@@ -215,12 +262,15 @@ public class UPNPHelper {
 		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
 		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
 		ssdpSocket.setReuseAddress(true);
-
-		LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
-		LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
 		ssdpSocket.setTimeToLive(32);
-		LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
-		LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+
+		if (multicastLog) {
+			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
+			LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
+			LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
+			LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+			multicastLog = false;
+		}
 		return ssdpSocket;
 	}
 
@@ -236,7 +286,7 @@ public class UPNPHelper {
 			multicastSocket = getNewMulticastSocket();
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
-	
+
 			sendMessage(multicastSocket, "upnp:rootdevice", BYEBYE);
 			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
 			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
@@ -264,7 +314,7 @@ public class UPNPHelper {
 	 *
 	 * @param delay the delay
 	 */
-	private static void sleep(int delay) {
+	public static void sleep(int delay) {
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) { }
@@ -300,7 +350,7 @@ public class UPNPHelper {
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
-	 * to listen for responses. 
+	 * to listen for responses.
 	 *
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
@@ -316,14 +366,14 @@ public class UPNPHelper {
 				// the second delay is for 20 seconds. From then on, all other
 				// delays are for 180 seconds.
 				switch (delay) {
-					case 10000:
-						delay = 20000;
-						break;
-					case 20000:
-						delay = 180000;
-						break;
-					default:
-						break;
+						case 10000:
+							delay = 20000;
+							break;
+						case 20000:
+							delay = 180000;
+							break;
+						default:
+							break;
 				}
 			}
 		};
@@ -347,42 +397,50 @@ public class UPNPHelper {
 
 					NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
-					try {
-						/**
-						 * Setting the network interface will throw a SocketException on Mac OS X
-						 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
-						 * configurations will not listen at all.
-						 */
-						if (ni != null) {
-							multicastSocket.setNetworkInterface(ni);
-						} else if (PMS.get().getServer().getNetworkInterface() != null) {
-							multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
-							LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
+						try {
+							/**
+							 * Setting the network interface will throw a SocketException on Mac OS X
+							 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
+							 * configurations will not listen at all.
+							 */
+							if (ni != null) {
+								multicastSocket.setNetworkInterface(ni);
+							} else if (PMS.get().getServer().getNetworkInterface() != null) {
+								multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+								LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
+							}
+						} catch (SocketException e) {
+							// Not setting the network interface will work just fine on Mac OS X.
 						}
-					} catch (SocketException e) {
-						// Not setting the network interface will work just fine on Mac OS X.
-					}
 
-					multicastSocket.setTimeToLive(4);
-					multicastSocket.setReuseAddress(true);
-					InetAddress upnpAddress = getUPNPAddress();
-					multicastSocket.joinGroup(upnpAddress);
+						multicastSocket.setTimeToLive(4);
+						multicastSocket.setReuseAddress(true);
+						InetAddress upnpAddress = getUPNPAddress();
+						multicastSocket.joinGroup(upnpAddress);
 
-					while (true) {
-						byte[] buf = new byte[1024];
-						DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
-						multicastSocket.receive(receivePacket);
+						int M_SEARCH = 1, NOTIFY = 2;
+						InetAddress lastAddress = null;
+						int lastPacketType = 0;
 
-						String s = new String(receivePacket.getData());
+						while (true) {
+							byte[] buf = new byte[1024];
+							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
+							multicastSocket.receive(receivePacket);
+
+							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
 						InetAddress address = receivePacket.getAddress();
+							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
-						if (s.startsWith("M-SEARCH")) {
-							String remoteAddr = address.getHostAddress();
-							int remotePort = receivePacket.getPort();
+							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
 
-							if (configuration.getIpFiltering().allowed(address)) {
-								LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+							if (packetType == M_SEARCH) {
+								if (configuration.getIpFiltering().allowed(address)) {
+									String remoteAddr = address.getHostAddress();
+									int remotePort = receivePacket.getPort();
+									if (!redundant) {
+										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+									}
 
 								if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
 									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
@@ -403,12 +461,12 @@ public class UPNPHelper {
 								if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
 									sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 								}
+							// Don't log redundant notify messages
+							} else if (packetType == NOTIFY && !redundant) {
+								LOGGER.trace("Receiving a NOTIFY from [" + address.getHostAddress() + ":" + receivePacket.getPort() + "]");
 							}
-						} else if (s.startsWith("NOTIFY")) {
-							String remoteAddr = address.getHostAddress();
-							int remotePort = receivePacket.getPort();
-
-							LOGGER.trace("Receiving a NOTIFY from [" + remoteAddr + ":" + remotePort + "]");
+							lastAddress = address;
+							lastPacketType = packetType;
 						}
 					}
 				} catch (BindException e) {
@@ -449,6 +507,7 @@ public class UPNPHelper {
 	 * Shut down the threads that send ALIVE messages and listen to responses.
 	 */
 	public static void shutDownListener() {
+		instance.shutdown();
 		listenerThread.interrupt();
 		aliveThread.interrupt();
 	}
@@ -500,5 +559,253 @@ public class UPNPHelper {
 	 */
 	private static InetAddress getUPNPAddress() throws IOException {
 		return InetAddress.getByName(IPV4_UPNP_HOST);
+	}
+
+	public void addRenderer(DeviceConfiguration d) {
+		if (d.uuid != null) {
+			rendererMap.put(d.uuid, "0", d);
+		}
+	}
+
+	public void removeRenderer(RendererConfiguration d) {
+		if (d.uuid != null) {
+			rendererMap.remove(d.uuid);
+		}
+	}
+
+	@Override
+	protected Renderer rendererFound(Device d, String uuid) {
+		// Create or retrieve an instance
+		try {
+			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
+			DeviceConfiguration r = (DeviceConfiguration) RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+			RendererConfiguration ref = configuration.isRendererForceDefault() ?
+				null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+
+			// FIXME: when UpnpDetailsSearch is missing from the conf a upnp-advertising
+			// renderer could register twice if the http server sees it first
+			if (r != null && r.matchUPNPDetails(getDeviceDetailsString(d))) {
+				// Already seen by the http server
+				if (
+					ref != null &&
+					!ref.getUpnpDetailsString().equals(r.getUpnpDetailsString()) &&
+					ref.getLoadingPriority() >= r.getLoadingPriority()
+				) {
+					// The upnp-matched reference conf is different from the previous
+					// http-matched conf and has equal or higher priority, so update.
+					LOGGER.debug("Switching to preferred renderer: " + ref.getRendererName());
+					r.inherit(ref);
+				}
+				// Make sure it's mapped
+				rendererMap.put(uuid, "0", r);
+				r.details = getDeviceDetails(d);
+				// Update gui
+				PMS.get().updateRenderer(r);
+				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + r.details);
+			} else {
+				// It's brand new
+				r = (DeviceConfiguration) rendererMap.get(uuid, "0");
+				if (ref != null) {
+					r.inherit(ref);
+				} else {
+					// It's unrecognized: temporarily assign the default renderer but mark it as unloaded
+					// so actual recognition can happen later once the http server receives a request.
+					// This is to allow initiation of upnp playback before http recognition has occurred.
+					r.inherit(r.getDefaultConf());
+					r.loaded = false;
+				}
+				if (r.associateIP(socket)) {
+					r.details = getDeviceDetails(d);
+					PMS.get().setRendererFound(r);
+					LOGGER.debug("New renderer found: " + r.getRendererName() + ": " + r.details);
+				}
+			}
+			return r;
+		} catch (Exception e) {
+			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
+		}
+		return null;
+	}
+
+	public static InetAddress getAddress(String uuid) {
+		try {
+			return InetAddress.getByName(getURL(getDevice(uuid)).getHost());
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
+	public static boolean hasRenderer(int type) {
+		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
+			Renderer r = (Renderer) item.get("0");
+			if ((r.controls & type) != 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static List<RendererConfiguration> getRenderers(int type) {
+		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
+		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
+			Renderer r = (Renderer) item.get("0");
+			if (r.active && (r.controls & type) != 0) {
+				renderers.add((RendererConfiguration) r);
+			}
+		}
+		return renderers;
+	}
+
+	@Override
+	protected void rendererReady(String uuid) {
+		RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);
+		if(r != null) {
+			r.getPlayer();
+		}
+	}
+
+	public static void play(String uri, String name, DeviceConfiguration r) {
+		DLNAResource d = DLNAResource.getValidResource(uri, name, r);
+		if (d != null) {
+			play(d, r);
+		}
+	}
+
+	public static void play(DLNAResource d, DeviceConfiguration r) {
+		DLNAResource d1 = d.getParent() == null ? Temp.add(d) : d;
+		if (d1 != null) {
+			Device dev = getDevice(r.getUUID());
+			String id = r.getInstanceID();
+			setAVTransportURI(dev, id, d1.getURL(""), d1.getDidlString(r));
+			play(dev, id);
+		}
+	}
+
+	// A logical player to manage upnp playback
+	public static class Player extends BasicPlayer.Logical {
+		protected Device dev;
+		protected String uuid;
+		protected String instanceID;
+		protected Map<String, String> data;
+		protected String lasturi;
+		private boolean ignoreUpnpDuration;
+
+		public Player(DeviceConfiguration renderer) {
+			super(renderer);
+			uuid = renderer.getUUID();
+			instanceID = renderer.getInstanceID();
+			dev = getDevice(uuid);
+			data = rendererMap.get(uuid, instanceID).connect(this);
+			lasturi = null;
+			ignoreUpnpDuration = false;
+			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
+			refresh();
+		}
+
+		@Override
+		public void setURI(String uri, String metadata) {
+			Playlist.Item item = resolveURI(uri, metadata);
+			if (item != null) {
+				if (item.name != null) {
+					state.name = item.name;
+				}
+				UPNPControl.setAVTransportURI(dev, instanceID, item.uri, item.metadata);
+			}
+		}
+
+		@Override
+		public void play() {
+			UPNPControl.play(dev, instanceID);
+		}
+
+		@Override
+		public void pause() {
+			UPNPControl.pause(dev, instanceID);
+		}
+
+		@Override
+		public void stop() {
+			UPNPControl.stop(dev, instanceID);
+		}
+
+		@Override
+		public void forward() {
+			UPNPControl.seek(dev, instanceID, REL_TIME, jump(60));
+		}
+
+		@Override
+		public void rewind() {
+			UPNPControl.seek(dev, instanceID, REL_TIME, jump(-60));
+		}
+
+		@Override
+		public void mute() {
+			UPNPControl.setMute(dev, instanceID, !state.mute);
+		}
+
+		@Override
+		public void setVolume(int volume) {
+			UPNPControl.setVolume(dev, instanceID, volume * maxVol / 100);
+		}
+
+		@Override
+		public void actionPerformed(final ActionEvent e) {
+			if (renderer.isUpnpConnected()) {
+				refresh();
+			} else if (state.playback != STOPPED) {
+				reset();
+			}
+		}
+
+		public void refresh() {
+			String s = data.get("TransportState");
+			state.playback = "STOPPED".equals(s) ? STOPPED :
+				"PLAYING".equals(s) ? PLAYING :
+				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
+			state.mute = "0".equals(data.get("Mute")) ? false : true;
+			s = data.get("Volume");
+			state.volume = s == null ? 0 : (Integer.valueOf(s) * 100 / maxVol);
+			state.position = data.get("RelTime");
+			if (! ignoreUpnpDuration) {
+				state.duration = data.get("CurrentMediaDuration");
+			}
+			state.uri = data.get("AVTransportURI");
+			state.metadata = data.get("AVTransportURIMetaData");
+			// update playlist only if uri has changed
+			if (!StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi)) {
+				playlist.set(state.uri, null, state.metadata);
+			}
+			lasturi = state.uri;
+			alert();
+		}
+
+
+		@Override
+		public void start() {
+			DLNAResource d = renderer.getPlayingRes();
+			state.name = d.getDisplayName();
+			if (d.getMedia() != null) {
+				String duration = d.getMedia().getDurationString();
+				ignoreUpnpDuration = ! StringUtil.isZeroTime(duration);
+				if (ignoreUpnpDuration) {
+					state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
+				}
+			}
+		}
+
+		@Override
+		public void close() {
+			rendererMap.get(uuid, instanceID).disconnect(this);
+			super.close();
+		}
+
+		public String jump(double seconds) {
+			double t = StringUtil.convertStringToTime(state.position) + seconds;
+			return t > 0 ? StringUtil.convertTimeToString(t, "%02d:%02d:%02.0f") : "00:00:00";
+		}
+	}
+
+	public static String unescape(String s) throws UnsupportedEncodingException {
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, "UTF-8")));
 	}
 }

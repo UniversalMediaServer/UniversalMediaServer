@@ -36,6 +36,7 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
@@ -45,7 +46,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.CustomJButton;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
@@ -53,7 +54,6 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -205,8 +205,8 @@ public class MEncoderVideo extends Player {
 			textArea.setText(configuration.getMencoderCodecSpecificConfig());
 			textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 			JScrollPane scrollPane = new JScrollPane(textArea);
-			scrollPane.setPreferredSize(new java.awt.Dimension(900, 100));
-
+			scrollPane.setPreferredSize(new Dimension(900, 100));
+			
 			final JTextArea textAreaDefault = new JTextArea();
 			textAreaDefault.setText(DEFAULT_CODEC_CONF_SCRIPT);
 			textAreaDefault.setBackground(Color.WHITE);
@@ -214,8 +214,8 @@ public class MEncoderVideo extends Player {
 			textAreaDefault.setEditable(false);
 			textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
 			JScrollPane scrollPaneDefault = new JScrollPane(textAreaDefault);
-			scrollPaneDefault.setPreferredSize(new java.awt.Dimension(900, 450));
-
+			scrollPaneDefault.setPreferredSize(new Dimension(900, 450));
+			
 			JPanel customPanel = new JPanel(new BorderLayout());
 			intelligentsync = new JCheckBox(Messages.getString("MEncoderVideo.3"), configuration.isMencoderIntelligentSync());
 			intelligentsync.setContentAreaFilled(false);
@@ -223,15 +223,15 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderIntelligentSync(e1.getStateChange() == ItemEvent.SELECTED);
 				textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
 			});
-
+			
 			JLabel label = new JLabel(Messages.getString("MEncoderVideo.33"));
 			customPanel.add(label, BorderLayout.NORTH);
 			customPanel.add(scrollPane, BorderLayout.SOUTH);
-
+			
 			codecPanel.add(intelligentsync, BorderLayout.NORTH);
 			codecPanel.add(scrollPaneDefault, BorderLayout.CENTER);
 			codecPanel.add(customPanel, BorderLayout.SOUTH);
-
+			
 			while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 				codecPanel, Messages.getString("MEncoderVideo.34"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null) == JOptionPane.OK_OPTION) {
 				String newCodecparam = textArea.getText();
@@ -248,7 +248,7 @@ public class MEncoderVideo extends Player {
 				fakemedia.setFrameRate("23.976");
 				fakemedia.getAudioTracksList().add(audio);
 				String result[] = getSpecificCodecOptions(newCodecparam, fakemedia, new OutputParams(configuration), "dummy.mpg", "dummy.srt", false, true);
-
+				
 				if (result.length > 0 && result[0].startsWith("@@")) {
 					String errorMessage = result[0].substring(2);
 					JOptionPane.showMessageDialog(
@@ -656,10 +656,11 @@ public class MEncoderVideo extends Player {
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
+		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (StringUtils.isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
+		if (isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -766,6 +767,8 @@ public class MEncoderVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		params.manageFastStart();
 
 		boolean avisynth = avisynth();
@@ -1016,7 +1019,8 @@ public class MEncoderVideo extends Player {
 			!configuration.isMEncoderNormalizeVolume() &&
 			!combinedCustomOptions.contains("acodec=") &&
 			!encodedAudioPassthrough &&
-			!isXboxOneWebVideo
+			!isXboxOneWebVideo &&
+			params.aid.getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
 		) {
 			ac3Remux = true;
 		} else {
@@ -1197,7 +1201,7 @@ public class MEncoderVideo extends Player {
 			int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 			int rendererMaxBitrates[] = new int[2];
 
-			if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
+			if (isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 				rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 			}
 
@@ -1556,7 +1560,7 @@ public class MEncoderVideo extends Player {
 
 		// Input filename
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthMEncoder.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+			File avsFile = AviSynthMEncoder.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, configuration);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.stdin != null) {
@@ -2424,6 +2428,7 @@ public class MEncoderVideo extends Player {
 		} catch (InterruptedException e) {
 		}
 
+		configuration = prev;
 		return pw;
 	}
 

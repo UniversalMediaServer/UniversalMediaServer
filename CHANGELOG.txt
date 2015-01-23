@@ -1,3 +1,100 @@
+5.0.0 - 2015-01-23 - Changes since 4.4.0
+
+	General:
+		Added support for UPnP connections and playback
+		Added the option to use info from IMDB with filename prettifying
+		Added HTML5 video support to the web interface
+		Create custom per-device configuration files to override any general renderer or UMS setting
+		Major redesign of the status tab to show per-renderer information
+		Minor tweaks to the GUI
+		Improved player control
+		Includes the possibility to allow UMS to control renders automatically
+		Web player can also be controlled
+		Automatic reloading of external files
+		Documentation updates
+		New xmb playlist folders with optional automatic starting, looping, and saving, editable from web or xmb
+		A Dynamic xmb playlist for on-the-fly playlist creation from web or xmb
+		Better bump/gui player playlists with optional automatic looping
+		Push playback support for chromecast and web browsers
+		Changed the interface for enabling/disabling renderer configurations
+		Changed the default setting for wrap_dts_into_pcm to false
+		Made sure files are always directly streamable via the Transcoding folder
+		Added the UMS_MAX_MEMORY variable to UMS.sh
+		Fixed audio downsampling
+		Fixed a bug with parsing formats from MediaInfo
+		Removed the database compacting method that was never recommended
+		Made sure the "No Encoding" option in the Transcoding folder is always available
+		Minor bugfixes and code optimizations
+	Renderers:
+		Added support for Panasonic DMP-BDT360 devices
+		Added support for Telefunken TVs
+		Improved support for Chromecast (cast from UMS webui/gui)
+		Improved support for Panasonic Viera AS650 series TVs
+		Improved support for Samsung C6600 series TVs
+		Improved support for Sony Blu-ray Disc players
+		Improved support for Sony Bravia W series TVs
+		Fixed detection of some Samsung renderers
+	Languages:
+		Updated Czech translation
+	External Components:
+		Updated h2database to 1.4.185
+		Updated Maven Assembly Plugin to 2.5.2
+		Updated Maven Compiler Plugin to 3.2
+		Updated Maven Git Commit ID Plugin to 2.1.11
+		Updated Maven Source Plugin to 2.4
+		Updated Maven Surefire plugins to 2.18
+		Updated MediaInfo to 0.7.71, which:
+			Improves folder population time
+			Improves detection of many formats
+			Fixes bugs
+		Updated MPlayer/MEncoder for Windows to SB63, which:
+			Fixes support DVD audio
+			Improves support for many containers and codecs
+			Fixes bugs
+
+
+5.0.0 - 2015-01-23 - Changes since 5.0.0-b1
+
+	General:
+		Changed the interface for enabling/disabling renderer configurations
+		Changed the default setting for wrap_dts_into_pcm to false
+		Made sure files are always directly streamable via the Transcoding folder
+		Added the UMS_MAX_MEMORY variable to UMS.sh
+		Using info from IMDB with filename prettifying works for anime
+		Minor improvements to the web interface
+		Fixed audio downsampling
+		Fixed a bug with parsing formats from MediaInfo
+		Minor bugfixes and code optimizations
+		Removed the database compacting method that was never recommended
+		All changes from 4.3.1 and 4.4.0
+	Renderers:
+		Added support for Panasonic DMP-BDT360 devices
+		Added support for Telefunken TVs
+		Improved support for Panasonic Viera AS650 series TVs
+		Improved support for Samsung C6600 series TVs
+		Improved support for Sony Blu-ray Disc players
+		Improved support for Sony Bravia W series TVs
+		Fixed detection of some Samsung renderers
+	Languages:
+		Updated Czech translation
+	External Components:
+		Updated Cling to 2.0.1
+		Updated h2database to 1.4.185
+		Updated Maven Assembly Plugin to 2.5.2
+		Updated Maven Compiler Plugin to 3.2
+		Updated Maven Git Commit ID Plugin to 2.1.11
+		Updated Maven Source Plugin to 2.4
+		Updated Maven Surefire plugins to 2.18
+		Updated MediaInfo to 0.7.71, which:
+			Improves folder population time
+			Improves detection of many formats
+			Fixes bugs
+		Updated MPlayer/MEncoder for Windows to SB63, which:
+			Fixes support DVD audio
+			Improves support for many containers and codecs
+			Fixes bugs
+		Updated Seamless to 1.1.0
+
 4.4.0 - 2015-01-11
 
 	General:
@@ -59,6 +156,21 @@
 		Improved support for Panasonic S60 Series TVs
 		Improved support for Samsung WiseLink devices
 		Improved support for Sony Bravia HX75 Series TVs
+
+5.0.0-b1 - 2014-11-?? - Changes since 5.0.0-a1
+	General:
+		Major redesign of the status tab to show per-renderer information
+		Improved player control
+		Includes the possibility to allow UMS to control renders automatically
+		Web player can also be controlled
+		Automatic reloading of external files
+		Documentation updates
+		New xmb playlist folders with optional automatic starting, looping, and saving, editable from web or xmb
+		A Dynamic xmb playlist for on-the-fly playlist creation from web or xmb
+		Better bump/gui player playlists with optional automatic looping
+		Push playback support for chromecast and web browsers
+		Improved Chromecast support (cast from UMS webui/gui)
+		All changes from 4.2.1, 4.2.2 and 4.3.0
 
 4.3.0 - 2014-12-06
 
@@ -142,6 +254,31 @@
 			Improves H.265 support
 			Improves support for many containers and codecs
 			Fixes bugs
+
+5.0.0-a1 - 2014-10-23
+
+	Changes unique to 5.0.0-a1:
+		General:
+			Added support for UPnP connections and playback
+			Added the option to use info from IMDB with filename prettifying
+			Added HTML5 video support to the web interface
+			Create custom per-device configuration files to override any general renderer or UMS setting
+			Minor tweaks to the GUI
+
+	Changes from the 4.x release branch:
+		General:
+			Increased speed of FFmpeg transcoding to H.264
+			Updated UMS.conf
+			Improved filename prettifying
+			Re-added "Force default renderer" option to the GUI
+			Minor GUI fixes and improvements
+			Fontconfig caches are not generated if subtitles are disabled
+		Renderers:
+			Added support for Panasonic SC-BTT Blu-ray Disc Home Theater Sound Systems
+			Improved support for Panasonic TVs
+			Improved support for Xbox One
+		Languages:
+			Updated French translation (thanks, Kirvx!)
 
 4.2.0 - 2014-10-17
 

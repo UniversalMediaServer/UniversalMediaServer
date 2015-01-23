@@ -12,17 +12,18 @@ ul#Folders {
 }
 
 ul#Media {
-	margin: 0 0 0 240px;
+	margin: 0 -20px 0 240px;
 	padding: 115px 0 20px 20px;
 }
 
 ul#Media.noFolders {
-	margin: 0 !important;
+	margin: 0 -20px 0 0 !important;
 }
 
 #ContentPage #Menu {
 	background: url('/files/menu-background-content.png');
 	background-repeat: repeat-x;
+	background-position: bottom;
 	height: 95px;
 	position: fixed;
 	top: 0;
@@ -44,8 +45,3 @@ div#FoldersContainer div {
 	position: relative;
 }
 
-form#SearchForm {
-	position: fixed;
-	top: 27px;
-	right: 20px;
-}
