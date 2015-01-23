@@ -822,6 +822,9 @@ public class Request extends HTTPResource {
 
 			if (timeseek > 0 && dlna != null) {
 				// Add timeseek information headers.
+				/**
+				 * Note: Use getDurationString instead of convertTimeToString on Java 6.
+				 */
 				String timeseekValue = DLNAMediaInfo.getDurationString(timeseek);
 				String timetotalValue = dlna.getMedia().getDurationString();
 				output(output, "TimeSeekRange.dlna.org: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);

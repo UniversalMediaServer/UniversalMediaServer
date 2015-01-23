@@ -301,11 +301,6 @@
 			<artifactId>jaudiotagger</artifactId>
 			<version>2.0.3</version>
 		</dependency>
-		<dependency>
-			<groupId>net.java.dev.jna</groupId>
-			<artifactId>jna</artifactId>
-			<version>${jna-version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.jgoodies</groupId>
@@ -840,7 +835,7 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>3.0.0</version> <!-- This version works only with JDK 7-->
+							<version>2.5.4</version> <!-- This version works only with JDK 7-->
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
@@ -919,6 +914,18 @@
 		</plugins>
 	</build>
 	<profiles>
+		<profile>
+			<id>system-makensis</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+
+			<properties>
+				<!-- if selected, use the system makensis on Linux, Mac OS X &c. -->
+				<makensis-bin>makensis</makensis-bin>
+			</properties>
+		</profile>
+
 		<!--
 			Windows profile: takes care of building the final package for Microsoft Windows
 		-->
@@ -1116,7 +1123,7 @@
 							<execution>
 								<id>build-pms-windows</id>
 								<configuration>
-									<makensisBin>${project.external-resources}/third-party/nsis/makensis.exe</makensisBin>
+									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS.exe</outputFile>
 									<setupScript>${project.external-resources}/nsis/pms.nsi</setupScript>
 								</configuration>
@@ -1130,7 +1137,7 @@
 							<execution>
 								<id>build-setup-windows</id>
 								<configuration>
-									<makensisBin>${project.external-resources}/third-party/nsis/makensis.exe</makensisBin>
+									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
 									<setupScript>${project.external-resources}/nsis/setup.nsi</setupScript>
 								</configuration>
@@ -1156,7 +1163,7 @@
 				 and is needed for the Hudson profile to work
 			 -->
 			<activation>
-				<activeByDefault>false</activeByDefault>
+				<activeByDefault>true</activeByDefault>
 			</activation>
 
 			<build>

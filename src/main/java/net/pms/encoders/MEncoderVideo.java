@@ -55,6 +55,10 @@ import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
+
+// Needed for Java 6
+import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -763,13 +767,10 @@ public class MEncoderVideo extends Player {
 			if (!bitrateLevel41Limited) {
 				// Make room for audio
 				if ("pcm".equals(audioType)) {
-					// If audio is PCM, subtract 4600kb/s
 					defaultMaxBitrates[0] -= 4600;
 				} else if ("dts".equals(audioType)) {
-					// If audio is DTS, subtract 1510kb/s
 					defaultMaxBitrates[0] -= 1510;
 				} else if ("ac3".equals(audioType) || "aac".equals(audioType)) {
-					// If audio is AC3 or AAC, subtract the configured amount (usually 640)
 					defaultMaxBitrates[0] -= configuration.getAudioBitrate();
 				}
 
@@ -1698,11 +1699,11 @@ public class MEncoderVideo extends Player {
 		// Make MEncoder output framerate correspond to InterFrame
 		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
 			if ("25".equals(frameRateRatio)) {
-				ofps = "50";
+					ofps = "50";
 			} else if ("30".equals(frameRateRatio)) {
-				ofps = "60";
+					ofps = "60";
 			} else {
-				ofps = "60000/1001";
+					ofps = "60000/1001";
 			}
 		}
 

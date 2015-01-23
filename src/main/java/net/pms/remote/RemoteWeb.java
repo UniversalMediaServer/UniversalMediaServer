@@ -187,6 +187,9 @@ public class RemoteWeb {
 				tag.add(groupTag);
 			}
 
+			/**
+			 * Note: Use getHostName() on Java 6 instead of getHostString().
+			 */
 			tag.add(t.getRemoteAddress().getHostName());
 			tag.add("web");
 			root = new RootFolder(tag);

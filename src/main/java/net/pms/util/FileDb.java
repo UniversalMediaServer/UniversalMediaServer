@@ -115,7 +115,6 @@ public class FileDb {
 	public void sync() {
 		try {
 			FileOutputStream out = new FileOutputStream(file);
-
 			// Write a dummy line to make sure the file exists
 			Date now = new Date();
 			String data = "#########################\n#### Db file generated " + now.toString() + "\n" +

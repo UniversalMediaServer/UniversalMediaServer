@@ -93,16 +93,17 @@ public class ResumeObj {
 
 	public void read() {
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(file));
-				String str;
-				while ((str = in.readLine()) != null) {
-					String[] tmp = str.split(",");
-					offsetTime = Long.parseLong(tmp[0]);
-					if (tmp.length > 1) {
-						resDuration = Long.parseLong(tmp[1]);
-					}
-					break;
+		BufferedReader in = new BufferedReader(new FileReader(file));
+			String str;
+			while ((str = in.readLine()) != null) {
+				String[] tmp = str.split(",");
+				offsetTime = Long.parseLong(tmp[0]);
+				if (tmp.length > 1) {
+					resDuration = Long.parseLong(tmp[1]);
 				}
+				break;
+			}
+		in.close();
 		} catch (IOException e) {
 		}
 	}
@@ -116,6 +117,7 @@ public class ResumeObj {
 				if (configuration.getResumeKeepTime() > 0) {
 					PMS.get().addTempFile(f, configuration.getResumeKeepTime() * DAYS);
 				}
+			out.close();
 		} catch (IOException e) {
 		}
 	}

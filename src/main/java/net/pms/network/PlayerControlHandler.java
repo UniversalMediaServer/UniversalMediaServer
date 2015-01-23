@@ -77,33 +77,33 @@ public class PlayerControlHandler implements HttpHandler {
 		Logical player = uuid != null ? getPlayer(uuid) : null;
 
 		if (player != null) {
-			if (p[2] == "status") {
+			if ("status".equals(p[2])) {
 					// limit status updates to one per second
 					UPNPHelper.sleep(1000);
 					log = false;
-			} else if (p[2] == "play") {
+			} else if ("play".equals(p[2])) {
 					player.pressPlay(translate(q.get("uri")), q.get("title"));
-			} else if (p[2] == "stop") {
+			} else if ("stop".equals(p[2])) {
 					player.pressStop();
-			} else if (p[2] == "prev") {
+			} else if ("prev".equals(p[2])) {
 					player.prev();
-			} else if (p[2] == "next") {
+			} else if ("next".equals(p[2])) {
 					player.next();
-			} else if (p[2] == "fwd") {
+			} else if ("fwd".equals(p[2])) {
 					player.forward();
-			} else if (p[2] == "rew") {
+			} else if ("rew".equals(p[2])) {
 					player.rewind();
-			} else if (p[2] == "mute") {
+			} else if ("mute".equals(p[2])) {
 					player.mute();
-			} else if (p[2] == "setvolume") {
+			} else if ("setvolume".equals(p[2])) {
 					player.setVolume(Integer.valueOf(q.get("vol")));
-			} else if (p[2] == "add") {
+			} else if ("add".equals(p[2])) {
 					player.add(-1, translate(q.get("uri")), q.get("title"), null, true);
-			} else if (p[2] == "remove") {
+			} else if ("remove".equals(p[2])) {
 					player.remove(translate(q.get("uri")));
-			} else if (p[2] == "clear") {
+			} else if ("clear".equals(p[2])) {
 					player.clear();
-			} else if (p[2] == "seturi") {
+			} else if ("seturi".equals(p[2])) {
 					player.setURI(translate(q.get("uri")), q.get("title"));
 			}
 			json.add(getPlayerState(player));
