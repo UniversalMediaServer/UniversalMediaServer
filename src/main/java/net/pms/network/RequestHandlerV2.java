@@ -125,6 +125,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		requestV2.setSoapaction(getSoapActionOrCallback(headers));
 
+		parseRangeHeader(requestV2, headers);
+
 		Set<String> headerNames = headers.names();
 		List<String> unknownHeaders = new LinkedList<>();
 		Iterator<String> iterator = headerNames.iterator();
@@ -135,19 +137,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			LOGGER.trace("Received on socket: " + headerLine);
 
 			try {
-				if (equalsIgnoreCase(name, RANGE) &&
-						value.toLowerCase().startsWith("bytes=")) {
-					String nums = value.substring(6).trim();
-					StringTokenizer st = new StringTokenizer(nums, "-");
-					if (!nums.startsWith("-")) {
-						requestV2.setLowRange(Long.parseLong(st.nextToken()));
-					}
-					if (!nums.startsWith("-") && !nums.endsWith("-")) {
-						requestV2.setHighRange(Long.parseLong(st.nextToken()));
-					} else {
-						requestV2.setHighRange(-1);
-					}
-				} else if (equalsIgnoreCase(name, DLNA_TRANSFERMODE)) {
+				if (equalsIgnoreCase(name, DLNA_TRANSFERMODE)) {
 					requestV2.setTransferMode(value.trim());
 				} else if (equalsIgnoreCase(name, DLNA_GETCONTENTFEATURES)) {
 					requestV2.setContentFeatures(value.trim());
@@ -209,6 +199,21 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		LOGGER.trace("HTTP: " + requestV2.getArgument() + " / " + requestV2.getLowRange() + "-" + requestV2.getHighRange());
 
 		writeResponse(ctx, nettyRequest, requestV2, ia);
+	}
+
+	private void parseRangeHeader(RequestV2 requestV2, HttpHeaders headers) {
+		if (headers.contains(RANGE) && headers.get(RANGE).toLowerCase().startsWith("bytes=")) {
+			String nums = headers.get(RANGE).substring(6).trim();
+			StringTokenizer st = new StringTokenizer(nums, "-");
+			if (!nums.startsWith("-")) {
+				requestV2.setLowRange(Long.parseLong(st.nextToken()));
+			}
+			if (!nums.startsWith("-") && !nums.endsWith("-")) {
+				requestV2.setHighRange(Long.parseLong(st.nextToken()));
+			} else {
+				requestV2.setHighRange(-1);
+			}
+		}
 	}
 
 	private String getSoapActionOrCallback(HttpHeaders headers) {
