@@ -47,11 +47,14 @@ public class WindowsRegistry {
 			reader.join();
 
 			// Parse out the value
-			String parsed = reader.getResult().substring(reader.getResult().indexOf("REG_SZ") + 6).trim();
+			if (reader.getResult().length() > 6) {
+				String parsed = reader.getResult().substring(reader.getResult().indexOf("REG_SZ") + 6).trim();
 
-			if (parsed.length() > 1) {
-				return parsed;
+				if (parsed.length() > 1) {
+					return parsed;
+				}
 			}
+
 		} catch (IOException | InterruptedException e) {}
 
 		return null;
