@@ -49,8 +49,8 @@ class ConfigurationReader {
 		this.configuration = configuration;
 		this.logOverrides = logOverrides;
 		dConf = (configuration instanceof CompositeConfiguration) ?
-			((CompositeConfiguration)configuration).getConfiguration(0) : null;
-		File f = dConf != null ? ((PropertiesConfiguration)dConf).getFile() : null;
+			((CompositeConfiguration) configuration).getConfiguration(0) : null;
+		File f = dConf != null ? ((PropertiesConfiguration) dConf).getFile() : null;
 		dTag = f != null ? ("[" + f.getName() + "] ") : null;
 	}
 
@@ -88,7 +88,7 @@ class ConfigurationReader {
 
 			// Do an independant lookup to determine if the value's source was the device conf,
 			// and if so log it as a device override by explicitly identifying the source.
-			String src = (dConf != null && value != null && value.equals((T)dConf.getProperty(key))) ? dTag : "";
+			String src = (dConf != null && value != null && value.equals((T) dConf.getProperty(key))) ? dTag : "";
 			if (initialised) {
 				LOGGER.debug("{}Reading {}: {} (default: {})", src, key, quote(value), quote(oldValue));
 			} else {
@@ -165,7 +165,6 @@ class ConfigurationReader {
 		log(key, value, def);
 		return value;
 	}
-	
 
 	/**
 	 * Return the <code>boolean</code> value for a given configuration key. First, the
