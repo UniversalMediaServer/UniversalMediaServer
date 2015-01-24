@@ -113,7 +113,12 @@ public class StatusTab {
 				}
 				Container parent = _panel.getParent();
 				parent.remove(_panel);
-				parent.revalidate();
+
+				/**
+				 * Use invalidate() and validate() in Java 6 instead of revalidate().
+				 */
+				parent.invalidate();
+				parent.validate();
 				parent.repaint();
 			} catch (Exception e) {
 			}
