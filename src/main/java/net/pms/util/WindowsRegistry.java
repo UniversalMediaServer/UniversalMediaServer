@@ -54,7 +54,6 @@ public class WindowsRegistry {
 					return parsed;
 				}
 			}
-
 		} catch (IOException | InterruptedException e) {}
 
 		return null;
