@@ -112,12 +112,12 @@ public class UPNPControl {
 		public void mark(String uuid, int property, Object value) {
 			for (T i : get(uuid).values()) {
 				/**
-				 * Note: Use valueOf on Java 6 instead of casting.
+				 * Note: Cast to Boolean and Integer on Java 6 instead of boolean and int.
 				 */
 				if (property == ACTIVE) {
-						i.setActive(Boolean.valueOf((String) value));
+						i.setActive((Boolean) value);
 				} else if (property == CONTROLS) {
-						i.controls = Integer.valueOf((String) value);
+						i.controls = (Integer) value;
 				}
 			}
 		}
