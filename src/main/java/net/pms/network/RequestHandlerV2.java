@@ -123,6 +123,10 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		RendererConfiguration renderer = getRendererConfiguration(ia, headers);
 		if (renderer != null) {
 			requestV2.setMediaRenderer(renderer);
+		} else {
+			// If RendererConfiguration.resolve() didn't return the default renderer
+			// it means we know via upnp that it's not really a renderer.
+			return;
 		}
 
 		requestV2.setSoapaction(getSoapActionOrCallback(headers));
@@ -131,31 +135,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		parseTransferMode(requestV2, headers);
 		parseGetContentFeatures(requestV2, headers);
 		parseTimeSeekRange(requestV2, headers);
-
-		// Still no media renderer recognized?
-		if (requestV2.getMediaRenderer() == null) {
-
-			// Attempt 3: Not really an attempt; all other attempts to recognize
-			// the renderer have failed. The only option left is to assume the
-			// default renderer.
-			requestV2.setMediaRenderer(RendererConfiguration.resolve(ia, null));
-			if (requestV2.getMediaRenderer() != null) {
-				LOGGER.trace("Using default media renderer: " + requestV2.getMediaRenderer().getRendererName());
-
-				if (userAgent != null && !userAgent.equals("FDSSDP")) {
-					// We have found an unknown renderer
-					List<String> unknownHeaders = getUnknownHeaders(headers);
-					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
-							"User-Agent: " + userAgent +
-							(unknownHeaders.isEmpty() ? "" : ", " + StringUtils.join(unknownHeaders, ", ")));
-					PMS.get().setRendererFound(requestV2.getMediaRenderer());
-				}
-			} else {
-				// If RendererConfiguration.resolve() didn't return the default renderer
-				// it means we know via upnp that it's not really a renderer.
-				return;
-			}
-		}
 
 		if (isContentLengthSet(nettyRequest) && nettyRequest.content().isReadable()) {
 			requestV2.setTextContent(nettyRequest.content().toString(UTF_8));
@@ -277,6 +256,23 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				LOGGER.debug("HTTP User-Agent: " + userAgent);
 			}
 			LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
+		} else {
+			// Attempt 3: Not really an attempt; all other attempts to recognize
+			// the renderer have failed. The only option left is to assume the
+			// default renderer.
+			renderer = RendererConfiguration.resolve(ia, null);
+			if (renderer != null) {
+				LOGGER.trace("Using default media renderer: " + renderer.getRendererName());
+				String userAgent = headers.get(USER_AGENT);
+				if (userAgent != null && !userAgent.equals("FDSSDP")) {
+					// We have found an unknown renderer
+					List<String> unknownHeaders = getUnknownHeaders(headers);
+					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
+							"User-Agent: " + userAgent +
+							(unknownHeaders.isEmpty() ? "" : ", " + StringUtils.join(unknownHeaders, ", ")));
+					PMS.get().setRendererFound(renderer);
+				}
+			}
 		}
 
 		return renderer;
