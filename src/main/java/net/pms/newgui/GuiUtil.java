@@ -25,7 +25,10 @@ public final class GuiUtil {
 		}
 	}
 
-	public static class MyComboBoxModel extends DefaultComboBoxModel<Object> {
+	/**
+	 * DefaultComboBoxModel does not take arguments on Java 6.
+	 */
+	public static class MyComboBoxModel extends DefaultComboBoxModel {
 		private static final long serialVersionUID = -9094365556516842551L;
 
 		public MyComboBoxModel() {
