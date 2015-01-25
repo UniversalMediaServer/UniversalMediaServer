@@ -638,7 +638,6 @@
 					<target>1.6</target>
 					<testSource>1.6</testSource>
 					<testTarget>1.6</testTarget>
-					<showDeprecation>true</showDeprecation>
 				</configuration>
 			</plugin>
 
