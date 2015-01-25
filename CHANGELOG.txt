@@ -13,7 +13,7 @@
 		Automatic reloading of external files
 		Documentation updates
 		New xmb playlist folders with optional automatic starting, looping, and saving, editable from web or xmb
-		A Dynamic xmb playlist for on-the-fly playlist creation from web or xmb
+		A dynamic xmb playlist for on-the-fly playlist creation from web or xmb
 		Better bump/gui player playlists with optional automatic looping
 		Push playback support for chromecast and web browsers
 		Changed the interface for enabling/disabling renderer configurations
@@ -23,7 +23,6 @@
 		Fixed audio downsampling
 		Fixed a bug with parsing formats from MediaInfo
 		Removed the database compacting method that was never recommended
-		Made sure the "No Encoding" option in the Transcoding folder is always available
 		Fixed a startup error
 		Minor bugfixes and code optimizations
 	Renderers:
@@ -51,7 +50,6 @@
 			Improves detection of many formats
 			Fixes bugs
 		Updated MPlayer/MEncoder for Windows to SB63, which:
-			Fixes support DVD audio
 			Improves support for many containers and codecs
 			Fixes bugs
 
@@ -73,11 +71,13 @@
 		All changes from 4.3.1 and 4.4.0
 	Renderers:
 		Added support for Panasonic DMP-BDT360 devices
+		Added support for Samsung H6500 Blu-ray Disc players
 		Added support for Telefunken TVs
 		Improved support for Panasonic Viera AS650 series TVs
 		Improved support for Samsung C6600 series TVs
 		Improved support for Sony Blu-ray Disc players
 		Improved support for Sony Bravia W series TVs
+		Improved file compatibility on non-PS3 renderers
 		Fixed detection of some Samsung renderers
 	Languages:
 		Updated Czech translation
@@ -94,7 +94,7 @@
 			Improves detection of many formats
 			Fixes bugs
 		Updated MPlayer/MEncoder for Windows to SB63, which:
-			Fixes support DVD audio
+			Fixes support for DVD audio
 			Improves support for many containers and codecs
 			Fixes bugs
 		Updated Seamless to 1.1.0
