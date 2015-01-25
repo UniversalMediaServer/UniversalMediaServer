@@ -28,8 +28,8 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 		if (selectionPaths == null) {
 			return false;
 		}
-		for (int j = 0; j < selectionPaths.length; j++) {
-			if (isDescendant(selectionPaths[j], path)) {
+		for (TreePath selectionPath : selectionPaths) {
+			if (isDescendant(selectionPath, path)) {
 				return true;
 			}
 		}
@@ -68,24 +68,23 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	@Override
 	public void setSelectionPaths(TreePath[] pPaths) {
 		clearSelection();
-		for (int i = 0; i < pPaths.length; i++) {
-			addSelectionPath(pPaths[i]);
+		for (TreePath pPath : pPaths) {
+			addSelectionPath(pPath);
 		}
 	}
 
 	@Override
 	public void addSelectionPaths(TreePath[] paths) {
-		// unselect all descendants of paths[] 
-		for (int i = 0; i < paths.length; i++) {
-			TreePath path = paths[i];
+		// unselect all descendants of paths[]
+		for (TreePath path : paths) {
 			TreePath[] selectionPaths = getSelectionPaths();
 			if (selectionPaths == null) {
 				break;
 			}
 			ArrayList<TreePath> toBeRemoved = new ArrayList<>();
-			for (int j = 0; j < selectionPaths.length; j++) {
-				if (isDescendant(selectionPaths[j], path)) {
-					toBeRemoved.add(selectionPaths[j]);
+			for (TreePath selectionPath : selectionPaths) {
+				if (isDescendant(selectionPath, path)) {
+					toBeRemoved.add(selectionPath);
 				}
 			}
 			super.removeSelectionPaths(toBeRemoved.toArray(new TreePath[0]));
@@ -95,8 +94,7 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 		 * If all siblings are selected then unselect them and select parent
 		 * recursively, otherwise just select that path.
 		 */
-		for (int i = 0; i < paths.length; i++) {
-			TreePath path = paths[i];
+		for (TreePath path : paths) {
 			TreePath temp = null;
 			while (areSiblingsSelected(path)) {
 				temp = path;
@@ -146,8 +144,7 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 
 	@Override
 	public void removeSelectionPaths(TreePath[] paths) {
-		for (int i = 0; i < paths.length; i++) {
-			TreePath path = paths[i];
+		for (TreePath path : paths) {
 			if (path.getPathCount() == 1) {
 				super.removeSelectionPaths(new TreePath[]{path});
 			} else {
