@@ -1,7 +1,10 @@
 5.0.1 - 2015-01-??
 
 	General:
-		
+		Fixed text in the Windows automatic updater
+		Fixed MediaInfo not parsing some rare data
+	External Components:
+		Updated Netty to 4.0.25, which fixed bugs
 
 5.0.0 - 2015-01-25 - Changes since 4.4.0
 
