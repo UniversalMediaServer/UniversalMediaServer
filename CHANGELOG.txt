@@ -50,6 +50,7 @@
 			Improves detection of many formats
 			Fixes bugs
 		Updated MPlayer/MEncoder for Windows to SB63, which:
+			Fixes support for DVD audio
 			Improves support for many containers and codecs
 			Fixes bugs
 
@@ -94,7 +95,6 @@
 			Improves detection of many formats
 			Fixes bugs
 		Updated MPlayer/MEncoder for Windows to SB63, which:
-			Fixes support for DVD audio
 			Improves support for many containers and codecs
 			Fixes bugs
 		Updated Seamless to 1.1.0
