@@ -69,6 +69,10 @@ public class LibMediaInfoParser {
 				if (isNotBlank(value)) {
 					media.setThumb(getCover(value));
 				}
+				value = MI.Get(StreamType.General, 0, "Attachment");
+				if (isNotBlank(value)) {
+					media.setEmbeddedFontExists(true);
+				}
 
 				// set Video
 				int videos = MI.Count_Get(StreamType.Video);
@@ -89,6 +93,7 @@ public class LibMediaInfoParser {
 							media.setWidth(getPixelValue(MI.Get(StreamType.Video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(StreamType.Video, i, "Height")));
 							media.setFrameRate(getFPSValue(MI.Get(StreamType.Video, i, "FrameRate")));
+							media.setMatrixCoefficients(MI.Get(StreamType.Video, i, "matrix_coefficients"));
 							media.setStereoscopy(MI.Get(StreamType.Video, i, "MultiView_Layout"));
 							media.setAspectRatioContainer(MI.Get(StreamType.Video, i, "DisplayAspectRatio/String"));
 							media.setAspectRatioVideoTrack(MI.Get(StreamType.Video, i, "DisplayAspectRatio_Original/Stri"));
