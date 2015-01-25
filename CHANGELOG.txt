@@ -1,4 +1,4 @@
-5.0.0 - 2015-01-23 - Changes since 4.4.0
+5.0.0 - 2015-01-?? - Changes since 4.4.0
 
 	General:
 		Added support for UPnP connections and playback
@@ -24,15 +24,18 @@
 		Fixed a bug with parsing formats from MediaInfo
 		Removed the database compacting method that was never recommended
 		Made sure the "No Encoding" option in the Transcoding folder is always available
+		Fixed a startup error
 		Minor bugfixes and code optimizations
 	Renderers:
 		Added support for Panasonic DMP-BDT360 devices
+		Added support for Samsung H6500 Blu-ray Disc players
 		Added support for Telefunken TVs
 		Improved support for Chromecast (cast from UMS webui/gui)
 		Improved support for Panasonic Viera AS650 series TVs
 		Improved support for Samsung C6600 series TVs
 		Improved support for Sony Blu-ray Disc players
 		Improved support for Sony Bravia W series TVs
+		Improved file compatibility on non-PS3 renderers
 		Fixed detection of some Samsung renderers
 	Languages:
 		Updated Czech translation
@@ -53,7 +56,7 @@
 			Fixes bugs
 
 
-5.0.0 - 2015-01-23 - Changes since 5.0.0-b1
+5.0.0 - 2015-01-?? - Changes since 5.0.0-b1
 
 	General:
 		Changed the interface for enabling/disabling renderer configurations
@@ -64,6 +67,7 @@
 		Minor improvements to the web interface
 		Fixed audio downsampling
 		Fixed a bug with parsing formats from MediaInfo
+		Fixed a startup error
 		Minor bugfixes and code optimizations
 		Removed the database compacting method that was never recommended
 		All changes from 4.3.1 and 4.4.0
