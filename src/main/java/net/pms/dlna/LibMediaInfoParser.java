@@ -69,7 +69,7 @@ public class LibMediaInfoParser {
 				if (isNotBlank(value)) {
 					media.setThumb(getCover(value));
 				}
-				value = MI.Get(StreamType.General, 0, "Attachment");
+				value = MI.Get(StreamType.General, 0, "Attachements");
 				if (isNotBlank(value)) {
 					media.setEmbeddedFontExists(true);
 				}
