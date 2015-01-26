@@ -207,6 +207,9 @@ public class FFMpegVideo extends Player {
 					CharacterIterator it = new StringCharacterIterator(originalSubsFilename);
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 						switch (ch) {
+							case '\'':
+								s.append("\\\\\\'");
+								break;
 							case ':':
 								s.append("\\\\:");
 								break;
