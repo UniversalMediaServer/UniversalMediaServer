@@ -864,9 +864,6 @@ public class FFMpegVideo extends Player {
 			} else if (media.isEmbeddedFontExists()) {
 				deferToMencoder = true;
 				LOGGER.trace(prependTraceReason + "there are embedded fonts.");
-			} else if (dlna.getSystemName().contains("'")) {
-				deferToMencoder = true;
-				LOGGER.trace(prependTraceReason + "FFmpeg can't handle apostrophes in filenames when using subtitles.");
 			}
 			if (deferToMencoder) {
 				MEncoderVideo mv = new MEncoderVideo();
