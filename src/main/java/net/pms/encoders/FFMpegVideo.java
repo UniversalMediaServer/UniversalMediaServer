@@ -196,10 +196,16 @@ public class FFMpegVideo extends Player {
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;
 				String subsFilename;
-				if (params.sid.isEmbedded() || configuration.isFFmpegFontConfig() || is3D) {
+				boolean loadEmbeddedSubtitlesWithoutExtraction = false;
+				if (configuration.isFFmpegFontConfig() || is3D) {
 					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else {
-					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
+					if (params.sid.isEmbedded() && !dlna.getSystemName().contains("'")) {
+						originalSubsFilename = dlna.getSystemName();
+						loadEmbeddedSubtitlesWithoutExtraction = true;
+					} else {
+						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
+					}
 				}
 
 				if (originalSubsFilename != null) {
@@ -250,6 +256,8 @@ public class FFMpegVideo extends Player {
 								}
 							}
 						}
+					} else if (params.sid.isEmbedded() && loadEmbeddedSubtitlesWithoutExtraction) {
+						subsFilter.append(":si=").append(media.getSubtitleTracksList().indexOf(params.sid));
 					}
 				}
 			} else if (params.sid.getType().isPicture()) {
@@ -861,9 +869,9 @@ public class FFMpegVideo extends Player {
 			if (configuration.isFFmpegDeferToMEncoderForSubtitles()) {
 				deferToMencoder = true;
 				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
-			} else if (media.isEmbeddedFontExists()) {
+			} else if (media.isEmbeddedFontExists() && dlna.getSystemName().contains("'")) {
 				deferToMencoder = true;
-				LOGGER.trace(prependTraceReason + "there are embedded fonts.");
+				LOGGER.trace(prependTraceReason + "there are embedded fonts that FFmpeg can't handle.");
 			}
 			if (deferToMencoder) {
 				MEncoderVideo mv = new MEncoderVideo();
