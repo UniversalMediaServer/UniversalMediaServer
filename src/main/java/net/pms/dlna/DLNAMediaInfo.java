@@ -1347,6 +1347,10 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(muxingMode);
 		result.append(", mime type: ");
 		result.append(mimeType);
+		result.append(", matrix coefficients: ");
+		result.append(matrixCoefficients);
+		result.append(", attached fonts: ");
+		result.append(embeddedFontExists);
 
 		for (DLNAMediaAudio audio : audioTracks) {
 			result.append("\n\tAudio track ");
