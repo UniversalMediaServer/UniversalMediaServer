@@ -1,9 +1,9 @@
 package net.pms.newgui;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 import javax.swing.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -145,7 +145,8 @@ public final class GuiUtil {
 	// wider than a specified maximum.
 	public static class MarqueeLabel extends JLabel {
 		private static final long serialVersionUID = 8600355251271220610L;
-		public int speed, spacer, dir, max_w, interval = 100;
+		public int speed, spacer, dir, max_w, interval = 33;
+		Timer timer = null;
 
 		public MarqueeLabel(String text) {
 			this(text, 9999, 30, -1, 10);
@@ -182,7 +183,15 @@ public final class GuiUtil {
 				super.paintComponent(g);
 				g.translate(-dir * w, 0);
 				super.paintComponent(g);
-				repaint();
+				if (timer == null) {
+					timer = new Timer(interval, new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							repaint();
+						}
+					});
+					timer.start();
+				}
 			}
 		}
 	}
@@ -207,13 +216,13 @@ public final class GuiUtil {
 		}
 
 		private void scrollTheText() {
-			Timer tmr = new Timer();
-			tmr.scheduleAtFixedRate(new TimerTask() {
-				public void run() {
+			new Timer(200, new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
 					text = new StringBuffer(text.substring(1)).append(text.substring(0,1)).toString();
 					setText(text);
 				}
-			}, 500, 200);
+			}).start();
 		}
 	}
 
