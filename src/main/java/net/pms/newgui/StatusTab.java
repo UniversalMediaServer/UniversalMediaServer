@@ -54,7 +54,8 @@ public class StatusTab {
 	public static class RendererItem implements ActionListener {
 		public ImagePanel icon;
 		public JLabel label;
-		public GuiUtil.MarqueeLabel playingLabel;
+//		public GuiUtil.MarqueeLabel playingLabel;
+		public GuiUtil.ScrollLabel playingLabel;
 		public GuiUtil.FixedPanel playing;
 		public JLabel time;
 		public JFrame frame;
@@ -67,7 +68,8 @@ public class StatusTab {
 			icon = addRendererIcon(r.getRendererIcon());
 			icon.enableRollover();
 			label = new JLabel(r.getRendererName());
-			playingLabel = new GuiUtil.MarqueeLabel(" ");
+//			playingLabel = new GuiUtil.MarqueeLabel(" ");
+			playingLabel = new GuiUtil.ScrollLabel(" ");
 			playingLabel.setForeground(Color.gray);
 			int h = (int) playingLabel.getSize().getHeight();
 			playing = new GuiUtil.FixedPanel(0, h);
@@ -101,7 +103,7 @@ public class StatusTab {
 			// Maximize the playing label width
 			int w = (int) _panel.getWidth() - _panel.getInsets().left - _panel.getInsets().right;
 			playing.setSize(w, (int) playingLabel.getSize().getHeight());
-			playingLabel.setMaxWidth(w);
+//			playingLabel.setMaxWidth(w);
 		}
 
 		public void delete() {
