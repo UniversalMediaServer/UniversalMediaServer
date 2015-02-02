@@ -38,6 +38,8 @@ public class FormatConfiguration {
 	private ArrayList<SupportSpec> supportSpecs;
 	// Use old parser for JPEG files (MediaInfo does not support EXIF)
 	private static final String[] PARSER_V1_EXTENSIONS = new String[]{".jpg", ".jpe", ".jpeg"};
+	public static final String THREEGPP2 = "3gpp2";
+	public static final String THREEGP = "3gp";
 	public static final String AAC = "aac";
 	public static final String AAC_HE = "aac-he";
 	public static final String AC3 = "ac3";

@@ -352,7 +352,11 @@ public class LibMediaInfoParser {
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		String format = null;
 
-		if (value.startsWith("matroska")) {
+		if (value.equals("3g2a")) {
+			format = FormatConfiguration.THREEGPP2;
+		} else if (value.startsWith("3gp")) {
+			format = FormatConfiguration.THREEGP;
+		} else if (value.startsWith("matroska")) {
 			format = FormatConfiguration.MATROSKA;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
