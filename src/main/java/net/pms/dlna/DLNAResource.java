@@ -914,7 +914,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// 2) transcoding is preferred and not prevented by configuration
 			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), media.getMimeType());
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), renderer != null ? renderer.getMimeType(mimeType(player)) : media.getMimeType());
 				} else {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\"", getName(), player.toString());
 				}
@@ -2641,6 +2641,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String mimeType() {
+		return mimeType(player);
+	}
+
+	public String mimeType(Player player) {
 		if (player != null) {
 			// FIXME: This cannot be right. A player like FFmpeg can output many
 			// formats depending on the media and the renderer. Also, players are
