@@ -1793,6 +1793,34 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
 	}
 
+	/**
+	 * Whether the resolution is compatible with the renderer.
+	 *
+	 * @param width the media width
+	 * @param height the media height
+	 *
+	 * @return whether the resolution is compatible with the renderer
+	 */
+	public boolean isResolutionCompatibleWithRenderer(int width, int height) {
+		if (
+			isMaximumResolutionSpecified() &&
+			(
+				width > getMaxVideoWidth() ||
+				(
+					height > getMaxVideoHeight() &&
+					!(
+						getMaxVideoHeight() == 1080 &&
+						height == 1088
+					)
+				)
+			)
+		) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public boolean isDLNAOrgPNUsed() {
 		return getBoolean(DLNA_ORGPN_USE, true);
 	}

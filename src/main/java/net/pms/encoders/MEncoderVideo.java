@@ -1736,16 +1736,7 @@ public class MEncoderVideo extends Player {
 		boolean deinterlace = configuration.isMencoderYadif();
 
 		// Check if the media renderer supports this resolution
-		boolean isResolutionTooHighForRenderer = false;
-		if (
-			params.mediaRenderer.isMaximumResolutionSpecified() &&
-			(
-				media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
-				media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
-			)
-		) {
-			isResolutionTooHighForRenderer = true;
-		}
+		boolean isResolutionTooHighForRenderer = !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight());
 
 		// Video scaler and overscan compensation
 		boolean scaleBool = false;
