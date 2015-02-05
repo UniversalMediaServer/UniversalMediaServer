@@ -661,7 +661,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			conf.add("#----------------------------------------------------------------------------");
 			conf.add("# Auto-generated profile for " + name);
 			conf.add("#" + (ref == null ? "" : " Based on " + ref.getName()));
-			conf.add("# See PS3.conf for a description of all possible configuration options.");
+			conf.add("# See DefaultRenderer.conf for a description of all possible configuration options.");
 			conf.add("#");
 			conf.add("");
 			conf.add(RENDERER_NAME + " = " + name);
