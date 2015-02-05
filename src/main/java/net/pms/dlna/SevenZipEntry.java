@@ -112,7 +112,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 					//byte data[] = new byte[65536];
 					RandomAccessFile rf = new RandomAccessFile(file, "r");
 
-					arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
+					arc = SevenZip.openInArchive(null, new RandomAccessFileInStream(rf));
 					ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 					ISimpleInArchiveItem realItem = null;
 

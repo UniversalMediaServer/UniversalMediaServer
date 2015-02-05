@@ -42,7 +42,7 @@ public class SevenZipFile extends DLNAResource {
 		setLastModified(file.lastModified());
 		try {
 			RandomAccessFile rf = new RandomAccessFile(f, "r");
-			arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
+			arc = SevenZip.openInArchive(null, new RandomAccessFileInStream(rf));
 			ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 
 			for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {

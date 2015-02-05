@@ -101,7 +101,7 @@ public class StatusTab {
 			parent.add(getPanel());
 			parent.validate();
 			// Maximize the playing label width
-			int w = (int) _panel.getWidth() - _panel.getInsets().left - _panel.getInsets().right;
+			int w = _panel.getWidth() - _panel.getInsets().left - _panel.getInsets().right;
 			playing.setSize(w, (int) playingLabel.getSize().getHeight());
 			playingLabel.setMaxWidth(w);
 		}

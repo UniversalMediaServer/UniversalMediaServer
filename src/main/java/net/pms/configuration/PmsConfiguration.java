@@ -1568,7 +1568,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				if (!isAdmin()) {
 					try {
 						JOptionPane.showMessageDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 							Messages.getString("NetworkTab.58"),
 							Messages.getString("Dialog.PermissionsError"),
 							JOptionPane.ERROR_MESSAGE

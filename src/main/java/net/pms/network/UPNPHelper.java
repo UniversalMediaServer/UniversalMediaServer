@@ -643,7 +643,7 @@ public class UPNPHelper extends UPNPControl {
 
 	public static boolean hasRenderer(int type) {
 		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
-			Renderer r = (Renderer) item.get("0");
+			Renderer r = item.get("0");
 			if ((r.controls & type) != 0) {
 				return true;
 			}
@@ -654,7 +654,7 @@ public class UPNPHelper extends UPNPControl {
 	public static List<RendererConfiguration> getRenderers(int type) {
 		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
 		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
-			Renderer r = (Renderer) item.get("0");
+			Renderer r = item.get("0");
 			if (r.active && (r.controls & type) != 0) {
 				renderers.add((RendererConfiguration) r);
 			}

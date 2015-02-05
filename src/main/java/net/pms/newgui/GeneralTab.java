@@ -317,8 +317,8 @@ public class GeneralTab {
 		}
 
 		final KeyedComboBoxModel renderersKcbm = new KeyedComboBoxModel(
-			(Object[]) keyValues.toArray(new Object[keyValues.size()]),
-			(Object[]) nameValues.toArray(new Object[nameValues.size()]));
+			keyValues.toArray(new Object[keyValues.size()]),
+			nameValues.toArray(new Object[nameValues.size()]));
 		renderers = new JComboBox(renderersKcbm);
 		renderers.setEditable(false);
 		String defaultRenderer = configuration.getRendererDefault();
@@ -588,8 +588,8 @@ public class GeneralTab {
 		}
 
 		final KeyedComboBoxModel renderersKcbm = new KeyedComboBoxModel(
-			(Object[]) keyValues.toArray(new Object[keyValues.size()]),
-			(Object[]) nameValues.toArray(new Object[nameValues.size()])
+			keyValues.toArray(new Object[keyValues.size()]),
+			nameValues.toArray(new Object[nameValues.size()])
 		);
 		renderers.setModel(renderersKcbm);
 		renderers.setEditable(false);
