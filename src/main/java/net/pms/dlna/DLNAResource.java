@@ -1774,23 +1774,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		endTag(sb);
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
+		String title;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
-			wireshark.append(firstAudioTrack.getSongname()).append(player != null && !configuration.isHideEngineNames() ? (" [" + player.name() + "]") : "");
-			addXMLTagAndAttribute(
-				sb,
-				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), nameSuffix, this))
-			);
+			title = firstAudioTrack.getSongname() + (player != null && !configuration.isHideEngineNames() ? (" [" + player.name() + "]") : "");
 		} else { // Ditlew - org
-			// Ditlew
-			wireshark.append(((isFolder() || subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
-			addXMLTagAndAttribute(
-				sb,
-				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), nameSuffix, this))
-			);
+			title = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 		}
+		title = resumeStr(title);
+		addXMLTagAndAttribute(
+			sb,
+			"dc:title",
+			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
+		);
+		wireshark.append("\"" + title + "\"");
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
