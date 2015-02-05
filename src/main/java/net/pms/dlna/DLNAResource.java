@@ -654,7 +654,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (player == null) {
 							player = child.resolvePlayer(defaultRenderer);
 						}
+
 						child.setPlayer(player);
+						if (resumeRes != null) {
+							resumeRes.player = player;
+						}
 
 						if (!allChildrenAreFolders) {
 							child.setDefaultRenderer(defaultRenderer);
