@@ -196,7 +196,7 @@ public class FFMpegVideo extends Player {
 				if (configuration.isFFmpegFontConfig() || is3D) {
 					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else {
-					if (params.sid.isEmbedded() && !dlna.getSystemName().contains("'")) {
+					if (params.sid.isEmbedded()) {
 						originalSubsFilename = dlna.getSystemName();
 						loadEmbeddedSubtitlesWithoutExtraction = true;
 					} else {
@@ -868,9 +868,6 @@ public class FFMpegVideo extends Player {
 			if (configuration.isFFmpegDeferToMEncoderForSubtitles()) {
 				deferToMencoder = true;
 				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
-			} else if (media.isEmbeddedFontExists() && dlna.getSystemName().contains("'")) {
-				deferToMencoder = true;
-				LOGGER.trace(prependTraceReason + "there are embedded fonts that FFmpeg can't handle.");
 			}
 			if (deferToMencoder) {
 				MEncoderVideo mv = new MEncoderVideo();
