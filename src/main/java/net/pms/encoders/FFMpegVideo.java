@@ -130,11 +130,7 @@ public class FFMpegVideo extends Player {
 		final RendererConfiguration renderer = params.mediaRenderer;
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
-		boolean isResolutionTooHighForRenderer = renderer.isMaximumResolutionSpecified() && isMediaValid && // renderer defines a max width/height
-			(
-				media.getWidth() > renderer.getMaxVideoWidth() ||
-				media.getHeight() > renderer.getMaxVideoHeight()
-			);
+		boolean isResolutionTooHighForRenderer = isMediaValid && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight());
 
 		int scaleWidth = 0;
 		int scaleHeight = 0;
@@ -213,6 +209,9 @@ public class FFMpegVideo extends Player {
 					CharacterIterator it = new StringCharacterIterator(originalSubsFilename);
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 						switch (ch) {
+							case '\'':
+								s.append("\\\\\\'");
+								break;
 							case ':':
 								s.append("\\\\:");
 								break;

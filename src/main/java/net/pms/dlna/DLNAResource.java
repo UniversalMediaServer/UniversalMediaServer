@@ -654,7 +654,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (player == null) {
 							player = child.resolvePlayer(defaultRenderer);
 						}
+
 						child.setPlayer(player);
+						if (resumeRes != null) {
+							resumeRes.player = player;
+						}
 
 						if (!allChildrenAreFolders) {
 							child.setDefaultRenderer(defaultRenderer);
@@ -889,13 +893,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), media.getAspectRatioContainer());
-				} else if (
-					renderer.isMaximumResolutionSpecified() &&
-					(
-						media.getWidth()  > renderer.getMaxVideoWidth() ||
-						media.getHeight() > renderer.getMaxVideoHeight()
-					)
-				) {
+				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the resolution is too high for the renderer.", getName());
 				} else if (media.getBitrate() > (renderer.getMaxBandwidth() / 2)) {
@@ -914,7 +912,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// 2) transcoding is preferred and not prevented by configuration
 			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), media.getMimeType());
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), renderer != null ? renderer.getMimeType(mimeType(player)) : media.getMimeType());
 				} else {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\"", getName(), player.toString());
 				}
@@ -1770,23 +1768,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		endTag(sb);
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
+		String title;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
-			wireshark.append(firstAudioTrack.getSongname()).append(player != null && !configuration.isHideEngineNames() ? (" [" + player.name() + "]") : "");
-			addXMLTagAndAttribute(
-				sb,
-				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), nameSuffix, this))
-			);
+			title = firstAudioTrack.getSongname() + (player != null && !configuration.isHideEngineNames() ? (" [" + player.name() + "]") : "");
 		} else { // Ditlew - org
-			// Ditlew
-			wireshark.append(((isFolder() || subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
-			addXMLTagAndAttribute(
-				sb,
-				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), nameSuffix, this))
-			);
+			title = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 		}
+		title = resumeStr(title);
+		addXMLTagAndAttribute(
+			sb,
+			"dc:title",
+			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
+		);
+		wireshark.append("\"" + title + "\"");
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
@@ -2522,7 +2516,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (range.isTimeRange()) {
 					resume.update((Range.Time) range, this);
 				}
-				params.timeseek = (long) (resume.getTimeOffset() / 1000);
+				params.timeseek = resume.getTimeOffset() / 1000;
 				if (player == null) {
 					player = new FFMpegVideo();
 				}
@@ -2641,6 +2635,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String mimeType() {
+		return mimeType(player);
+	}
+
+	public String mimeType(Player player) {
 		if (player != null) {
 			// FIXME: This cannot be right. A player like FFmpeg can output many
 			// formats depending on the media and the renderer. Also, players are

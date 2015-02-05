@@ -222,7 +222,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			// Add the header and device id
 			conf.add("#----------------------------------------------------------------------------");
 			conf.add("# Custom Device profile");
-			conf.add("# See PS3.conf for descriptions of all possible renderer options");
+			conf.add("# See DefaultRenderer.conf for descriptions of all possible renderer options");
 			conf.add("# and UMS.conf for program options.");
 			conf.add("");
 			conf.add("# Options in this file override the default settings for the specific " + r.getName() + " device(s) listed below.");

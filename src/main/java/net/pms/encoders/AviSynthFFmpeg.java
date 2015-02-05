@@ -270,7 +270,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				configuration.setFfmpegAvisynthInterFrame(interframe.isSelected());
 				if (configuration.getFfmpegAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 						Messages.getString("AviSynthMEncoder.16"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE

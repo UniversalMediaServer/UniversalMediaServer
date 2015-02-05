@@ -63,6 +63,7 @@ public class LibMediaInfoParser {
 
 				// set General
 				getFormat(StreamType.General, media, currentAudioTrack, MI.Get(StreamType.General, 0, "Format").toLowerCase(), file);
+				getFormat(StreamType.General, media, currentAudioTrack, MI.Get(StreamType.General, 0, "CodecID").toLowerCase().trim(), file);
 				media.setDuration(getDuration(MI.Get(StreamType.General, 0, "Duration/String1")));
 				media.setBitrate(getBitrate(MI.Get(StreamType.General, 0, "OverallBitRate")));
 				value = MI.Get(StreamType.General, 0, "Cover_Data");
@@ -348,10 +349,14 @@ public class LibMediaInfoParser {
 		getFormat(streamType, media, audio, value, null);
 	}
 
-	private static void getFormat(MediaInfo.StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
+	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		String format = null;
 
-		if (value.startsWith("matroska")) {
+		if (value.startsWith("3g2")) {
+			format = FormatConfiguration.THREEGPP2;
+		} else if (value.startsWith("3gp")) {
+			format = FormatConfiguration.THREEGPP;
+		} else if (value.startsWith("matroska")) {
 			format = FormatConfiguration.MATROSKA;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
@@ -497,17 +502,17 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
-		} else if (containsIgnoreCase(value, "@l") && streamType == MediaInfo.StreamType.Video) {
+		} else if (containsIgnoreCase(value, "@l") && streamType == StreamType.Video) {
 			media.setAvcLevel(getAvcLevel(value));
 			media.setH264Profile(getAvcProfile(value));
 		}
 
 		if (format != null) {
-			if (streamType == MediaInfo.StreamType.General) {
+			if (streamType == StreamType.General) {
 				media.setContainer(format);
-			} else if (streamType == MediaInfo.StreamType.Video) {
+			} else if (streamType == StreamType.Video) {
 				media.setCodecV(format);
-			} else if (streamType == MediaInfo.StreamType.Audio) {
+			} else if (streamType == StreamType.Audio) {
 				audio.setCodecA(format);
 			}
 		}

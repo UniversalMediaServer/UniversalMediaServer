@@ -543,7 +543,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		public WebPlayer(WebRender renderer) {
 			super(renderer);
 			data = new HashMap<>();
-			gson = ((WebRender)renderer).gson;
+			gson = renderer.gson;
 			LOGGER.debug("Created web player for " + renderer.getRendererName());
 		}
 

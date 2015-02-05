@@ -37,9 +37,6 @@ import static org.apache.commons.lang3.StringUtils.*;
 import org.h2.engine.Constants;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
-import org.h2.tools.DeleteDbFiles;
-import org.h2.tools.RunScript;
-import org.h2.tools.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +129,7 @@ public class DLNAMediaDatabase implements Runnable {
 				} else {
 					if (!net.pms.PMS.isHeadless()) {
 						JOptionPane.showMessageDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE);

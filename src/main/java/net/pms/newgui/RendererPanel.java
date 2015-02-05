@@ -233,7 +233,7 @@ public class RendererPanel extends JPanel {
 	}
 
 	public int addMap(Map<String, String> map, PanelBuilder builder, int y) {
-		for (Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) map.entrySet()) {
+		for (Map.Entry<String, String> entry : map.entrySet()) {
 			y = addItem(entry.getKey(), entry.getValue(), builder, y);
 		}
 		return y;

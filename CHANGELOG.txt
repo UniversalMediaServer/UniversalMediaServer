@@ -3,7 +3,22 @@
 	General:
 		Fixed text in the Windows automatic updater
 		Fixed MediaInfo not parsing some rare data
+		Fixed detection of font attachments
+		Fixed support for subtitled files with apostrophes in the name
+		Improved support for MOV, 3GP and 3G2 files
+		Reduced CPU load when the Status tab is visible
+	Renderers:
+		Improved support for Samsung ES6100 TVs
+		Improved support for Samsung ES6575 TVs
+		Improved support for Sony Xperia Z3 smart phones
+	Languages:
+		Updated Czech translation
+		Updated French translation (thanks, Kirvx!)
 	External Components:
+		Updated MediaInfo for OS X to 0.7.71, which:
+			Improved folder population time
+			Added and improved support for many formats
+			Fixed bugs
 		Updated Netty to 4.0.25, which fixed bugs
 
 5.0.0 - 2015-01-25 - Changes since 4.4.0
@@ -53,7 +68,7 @@
 		Updated Maven Git Commit ID Plugin to 2.1.11
 		Updated Maven Source Plugin to 2.4
 		Updated Maven Surefire plugins to 2.18
-		Updated MediaInfo to 0.7.71, which:
+		Updated MediaInfo for Windows to 0.7.71, which:
 			Improves folder population time
 			Improves detection of many formats
 			Fixes bugs
@@ -98,7 +113,7 @@
 		Updated Maven Git Commit ID Plugin to 2.1.11
 		Updated Maven Source Plugin to 2.4
 		Updated Maven Surefire plugins to 2.18
-		Updated MediaInfo to 0.7.71, which:
+		Updated MediaInfo for Windows to 0.7.71, which:
 			Improves folder population time
 			Improves detection of many formats
 			Fixes bugs
