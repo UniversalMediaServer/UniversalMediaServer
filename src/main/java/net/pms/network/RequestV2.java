@@ -626,7 +626,7 @@ public class RequestV2 extends HTTPResource {
 						objectID = "0";
 					} else {
 						objectID = containerID;
-						containerID = null;
+						//containerID = null;
 					}
 				}
 				String sI = getEnclosingValue(content, "<StartingIndex", "</StartingIndex>");
@@ -684,6 +684,12 @@ public class RequestV2 extends HTTPResource {
 					}
 				} else if (soapaction.contains("ContentDirectory:1#Search")) {
 					searchCriteria = getEnclosingValue(content, "<SearchCriteria", "</SearchCriteria>");
+					if(xbox360 && searchCriteria != null && searchCriteria.contains("upnp:class")) {
+						// even wierder xbox crap, we cant search for this anyway if we don't
+						// have the library above enabled just ignore it
+						searchCriteria = null;
+						objectID = "0";
+					}
 				}
 
 				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(

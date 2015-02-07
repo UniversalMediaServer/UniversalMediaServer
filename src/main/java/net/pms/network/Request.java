@@ -563,7 +563,7 @@ public class Request extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
-				//LOGGER.trace(content);
+				LOGGER.trace(content);
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
@@ -572,7 +572,7 @@ public class Request extends HTTPResource {
 						objectID = "0";
 					} else {
 						objectID = containerID;
-						containerID = null;
+						//containerID = null;
 					}
 				}
 				Object sI = getEnclosingValue(content, "<StartingIndex", "</StartingIndex>");
@@ -630,6 +630,12 @@ public class Request extends HTTPResource {
 					}
 				} else if (soapaction.contains("ContentDirectory:1#Search")) {
 					searchCriteria = getEnclosingValue(content, "<SearchCriteria", "</SearchCriteria>");
+					if(xbox360 && searchCriteria != null && searchCriteria.contains("upnp:class")) {
+						// even wierder xbox crap, we cant search for this anyway if we don't
+						// have the library above enabled just ignore it
+						searchCriteria = null;
+						objectID = "0";
+					}
 				}
 
 				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
@@ -640,7 +646,6 @@ public class Request extends HTTPResource {
 					mediaRenderer,
 					searchCriteria
 				);
-
 				if (xbox360 && files.isEmpty()) {
 					// do it again...
 					files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
