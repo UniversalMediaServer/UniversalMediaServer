@@ -271,17 +271,13 @@ public class FFMpegVideo extends Player {
 				}
 			}
 			if (isNotBlank(subsFilter)) {
-				filterChain.add(subsFilter.toString());
-				// based on https://trac.ffmpeg.org/ticket/2067
 				if (params.timeseek > 0) {
-					videoFilterOptions.add("-copyts");
-					videoFilterOptions.add("-copypriorss");
-					videoFilterOptions.add("0");
-					videoFilterOptions.add("-avoid_negative_ts");
-					videoFilterOptions.add("1");
-					videoFilterOptions.add("-af");
-					videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
-					filterChain.add("setpts=PTS-" + params.timeseek + "/TB");
+					filterChain.add("setpts=PTS+" + params.timeseek + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
+				}
+
+				filterChain.add(subsFilter.toString());
+				if (params.timeseek > 0) {
+					filterChain.add("setpts=PTS-STARTPTS"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 			}
 		}
@@ -793,14 +789,14 @@ public class FFMpegVideo extends Player {
 
 		cmdList.add("-loglevel");
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("verbose"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
 			cmdList.add("fatal");
 		}
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
-			cmdList.add(String.valueOf((int) params.timeseek));
+			cmdList.add(String.valueOf(params.timeseek));
 		}
 
 		// Decoder threads
