@@ -427,30 +427,6 @@ public class PMS {
 					save();
 				}
 
-				// Ask if their audio receiver/s support DTS audio
-
-				Object[] optionsDTS = {
-					UIManager.getString("OptionPane.yesButtonText"),
-					UIManager.getString("OptionPane.noButtonText")
-				};
-				int whetherToSendDTS = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("Wizard.5"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					optionsDTS,
-					optionsDTS[1]
-				);
-				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
-					configuration.setAudioEmbedDtsInPcm(true);
-					save();
-				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
-					configuration.setAudioEmbedDtsInPcm(false);
-					save();
-				}
-
 				// Ask if their network is wired, etc.
 				Object[] options = {
 					Messages.getString("Wizard.8"),
