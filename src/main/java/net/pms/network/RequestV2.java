@@ -18,13 +18,6 @@
  */
 package net.pms.network;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +36,14 @@ import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.stream.ChunkedStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,7 +232,7 @@ public class RequestV2 extends HTTPResource {
 	 *
 	 * @param ctx
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
-	 * @param e The {@link io.netty.handler.codec.http.FullHttpRequest} object used to communicate with the client that sent
+	 * @param e The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
 	 * @param close Set to true to close the channel after sending the response. By default the
 	 * 			channel is not closed after sending.
@@ -241,9 +242,8 @@ public class RequestV2 extends HTTPResource {
 	 * @throws IOException
 	 */
 	public ChannelFuture answer(
-		final ChannelHandlerContext ctx,
 		HttpResponse output,
-		FullHttpRequest e,
+		MessageEvent e,
 		final boolean close,
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
@@ -868,14 +868,12 @@ public class RequestV2 extends HTTPResource {
 			// HEAD requests only require headers to be set, no need to set contents.
 			if (!method.equals("HEAD")) {
 				// Not a HEAD request, so set the contents of the response.
-				ByteBuf buf = Unpooled.copiedBuffer(responseData);
-				HttpResponse oldOutput = output;
-				output = new DefaultFullHttpResponse(output.getProtocolVersion(), output.getStatus(), buf);
-				output.headers().add(oldOutput.headers());
+				ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
+				output.setContent(buf);
 			}
 
 			// Send the response to the client.
-			future = ctx.writeAndFlush(output);
+			future = e.getChannel().write(output);
 
 			if (close) {
 				// Close the channel after the response is sent.
@@ -908,11 +906,11 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			// Send the response headers to the client.
-			future = ctx.write(output);
+			future = e.getChannel().write(output);
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
 				// Send the response body to the client in chunks.
-				ChannelFuture chunkWriteFuture = ctx.writeAndFlush(new ChunkedStream(inputStream, BUFFER_SIZE));
+				ChannelFuture chunkWriteFuture = e.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
 				// Add a listener to clean up after sending the entire response body.
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
@@ -921,7 +919,7 @@ public class RequestV2 extends HTTPResource {
 						LOGGER.trace("The channel future completed:");
 						LOGGER.trace("  isSuccess: " + future.isSuccess());
 						LOGGER.trace("  isCancelled: " + future.isCancelled());
-						LOGGER.trace("  getCause: ", future.cause());
+						LOGGER.trace("  getCause: ", future.getCause());
 						try {
 							PMS.get().getRegistry().reenableGoToSleep();
 							inputStream.close();
@@ -931,13 +929,12 @@ public class RequestV2 extends HTTPResource {
 
 						// Always close the channel after the response is sent because of
 						// a freeze at the end of video when the channel is not closed.
-						future.channel().close();
+						future.getChannel().close();
 						startStopListenerDelegate.stop();
 					}
 				});
 			} else {
 				// HEAD method is being used, so simply clean up after the response was sent.
-				ctx.flush();
 				try {
 					PMS.get().getRegistry().reenableGoToSleep();
 					inputStream.close();
@@ -962,7 +959,7 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			// Send the response headers to the client.
-			future = ctx.writeAndFlush(output);
+			future = e.getChannel().write(output);
 
 			if (close) {
 				// Close the channel after the response is sent.
