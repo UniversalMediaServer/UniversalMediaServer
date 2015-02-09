@@ -1,4 +1,4 @@
-5.0.1 - 2015-01-??
+5.0.1 - 2015-02-??
 
 	General:
 		Fixed text in the Windows automatic updater
@@ -6,20 +6,21 @@
 		Fixed detection of font attachments
 		Fixed support for subtitled files with apostrophes in the name
 		Fixed errors when packing debug files
-		Fixed resuming support on some devices
+		Fixed support for resuming playback on some devices
 		Improved support for MOV, 3GP and 3G2 files
 		Reduced CPU load when the Status tab is visible
 		Improved support for 1920x1088 videos
 		Fixed logging error
-		Fixed 24-bit FLAC playback
 	Renderers:
 		Added support for Kodi Media Center
+		Added support for more Panasonic Blu-ray players
 		Added support for Samsung HT-F4 series home entertainment systems
 		Improved detection of some Samsung devices
 		Improved support for Samsung ES6100 TVs
 		Improved support for Samsung ES6575 TVs
 		Improved support for Sony Xperia Z3 smart phones
 		Updated the image for Xbox 360
+		Fixed 24-bit FLAC playback on PS3 via the Videos folder
 	Languages:
 		Updated Czech translation
 		Updated French translation (thanks, Kirvx!)
@@ -29,7 +30,6 @@
 			Improved folder population time
 			Added and improved support for many formats
 			Fixed bugs
-		Updated Netty to 4.0.25, which fixed bugs
 
 5.0.0 - 2015-01-25 - Changes since 4.4.0
 
