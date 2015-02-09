@@ -5,15 +5,25 @@
 		Fixed MediaInfo not parsing some rare data
 		Fixed detection of font attachments
 		Fixed support for subtitled files with apostrophes in the name
+		Fixed errors when packing debug files
+		Fixed resuming support on some devices
 		Improved support for MOV, 3GP and 3G2 files
 		Reduced CPU load when the Status tab is visible
+		Improved support for 1920x1088 videos
+		Fixed logging error
+		Fixed 24-bit FLAC playback
 	Renderers:
+		Added support for Kodi Media Center
+		Added support for Samsung HT-F4 series home entertainment systems
+		Improved detection of some Samsung devices
 		Improved support for Samsung ES6100 TVs
 		Improved support for Samsung ES6575 TVs
 		Improved support for Sony Xperia Z3 smart phones
+		Updated the image for Xbox 360
 	Languages:
 		Updated Czech translation
 		Updated French translation (thanks, Kirvx!)
+		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
 		Updated MediaInfo for OS X to 0.7.71, which:
 			Improved folder population time
