@@ -922,7 +922,12 @@ public class RequestV2 extends HTTPResource {
 						LOGGER.trace("  isSuccess: " + future.isSuccess());
 						LOGGER.trace("  isCancelled: " + future.isCancelled());
 						LOGGER.trace("  getCause: ", future.cause());
-						PMS.get().getRegistry().reenableGoToSleep();
+						try {
+							PMS.get().getRegistry().reenableGoToSleep();
+							inputStream.close();
+						} catch (IOException e) {
+							LOGGER.debug("Caught exception", e);
+						}
 
 						// Always close the channel after the response is sent because of
 						// a freeze at the end of video when the channel is not closed.
