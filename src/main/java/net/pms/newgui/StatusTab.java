@@ -250,7 +250,7 @@ public class StatusTab {
 		memBarUI.setActiveLabel("{}", Color.red, 90);
 		memBarUI.addSegment("", memColor);
 		memBarUI.addSegment("", bufColor);
-		memBarUI.setTickMarks(100, "{}");
+		memBarUI.setTickMarks(getTickMarks(), "{}");
 		jpb.setUI(memBarUI);
 
 		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
@@ -440,6 +440,12 @@ public class StatusTab {
 			}
 		}
 		return bi;
+	}
+
+	private int getTickMarks() {
+		long maxMem = Runtime.getRuntime().maxMemory();
+		int exp = (int) (Math.log(maxMem) / Math.log(1024));
+		return (int) Math.pow(10, exp);
 	}
 
 	public void updateMemoryUsage() {
