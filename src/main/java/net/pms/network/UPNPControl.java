@@ -410,7 +410,7 @@ public class UPNPControl {
 	}
 
 	public static String getDeviceIcon(Renderer r, int maxHeight) {
-		if (r.uuid != null) {
+		if (isUpnpDevice(r.uuid)) {
 			return getDeviceIcon(getDevice(r.uuid), maxHeight);
 		}
 		return null;
