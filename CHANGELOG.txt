@@ -15,6 +15,8 @@
 		Added support for Kodi Media Center
 		Added support for more Panasonic Blu-ray players
 		Added support for Samsung HT-F4 series home entertainment systems
+		Improved detection of some LG TVs
+		Improved detection of some Panasonic Blu-ray players and TVs
 		Improved detection of some Samsung devices
 		Improved support for Samsung ES6100 TVs
 		Improved support for Samsung ES6575 TVs
