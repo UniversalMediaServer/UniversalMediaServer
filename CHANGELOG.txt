@@ -11,6 +11,8 @@
 		Reduced CPU load when the Status tab is visible
 		Improved support for 1920x1088 videos
 		Fixed logging error
+		Fixed the web interface when browsing via Safari
+		Improved stability when disabling renderers
 	Renderers:
 		Added support for Kodi Media Center
 		Added support for more Panasonic Blu-ray players
