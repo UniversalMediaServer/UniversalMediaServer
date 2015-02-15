@@ -96,7 +96,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			configuration.setAvisynthInterFrame(interframe.isSelected());
 			if (configuration.getAvisynthInterFrame()) {
 				JOptionPane.showMessageDialog(
-					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 					Messages.getString("AviSynthMEncoder.16"),
 					Messages.getString("Dialog.Information"),
 					JOptionPane.INFORMATION_MESSAGE

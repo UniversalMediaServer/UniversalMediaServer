@@ -227,7 +227,7 @@ public class RemotePlayHandler implements HttpHandler {
 			RemoteUtil.respond(t, response, 200, "text/html");
 		} else if (p.contains("/playerstatus/")) {
 			String json = IOUtils.toString(t.getRequestBody(), "UTF-8");
-			LOGGER.debug("got player status: " + json);
+			LOGGER.trace("got player status: " + json);
 			RemoteUtil.respond(t, "", 200, "text/html");
 
 			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);

@@ -117,7 +117,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (!configuration.isHideNewMediaFolder()) {
-			String m = (String) configuration.getFoldersMonitored();
+			String m = configuration.getFoldersMonitored();
 			if (!StringUtils.isEmpty(m)) {
 				String[] tmp = m.split(",");
 				File[] dirs = new File[tmp.length];
