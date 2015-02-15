@@ -229,6 +229,8 @@ public class RequestV2 extends HTTPResource {
 	 * created, it is sent and the resulting {@link ChannelFuture} object is returned.
 	 * See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC-2616</a>
 	 * for HTTP header field definitions.
+	 *
+	 * @param ctx
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
 	 * @param e The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
@@ -449,12 +451,6 @@ public class RequestV2 extends HTTPResource {
 							highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
-
-							LOGGER.trace("totalsize: " + totalsize);
-							LOGGER.trace("remaining: " + remaining);
-							LOGGER.trace("requested: " + requested);
-							LOGGER.trace("lowRange: " + lowRange);
-							LOGGER.trace("highRange: " + highRange);
 
 							output.headers().set(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
@@ -693,15 +689,15 @@ public class RequestV2 extends HTTPResource {
 					searchCriteria
 				);
 
-				if(xbox360 && files.size() == 0) {
+				if (xbox360 && files.isEmpty()) {
 					// do it again...
 					files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
-							"0",
-							browseDirectChildren,
-							startingIndex,
-							requestCount,
-							mediaRenderer,
-							searchCriteria
+						"0",
+						browseDirectChildren,
+						startingIndex,
+						requestCount,
+						mediaRenderer,
+						searchCriteria
 					);
 				}
 
@@ -912,10 +908,6 @@ public class RequestV2 extends HTTPResource {
 
 				// Add a listener to clean up after sending the entire response body.
 				chunkWriteFuture.addListener((ChannelFuture future1) -> {
-					LOGGER.trace("The channel future completed:");
-					LOGGER.trace("  isSuccess: " + future1.isSuccess());
-					LOGGER.trace("  isCancelled: " + future1.isCancelled());
-					LOGGER.trace("  getCause: ", future1.getCause());
 					try {
 						PMS.get().getRegistry().reenableGoToSleep();
 						inputStream.close();

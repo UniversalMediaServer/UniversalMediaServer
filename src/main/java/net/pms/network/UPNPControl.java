@@ -8,17 +8,22 @@ import java.net.URL;
 import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import net.pms.PMS;
 import net.pms.util.BasicPlayer;
 import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.UpnpServiceImpl;
 import org.fourthline.cling.controlpoint.ActionCallback;
 import org.fourthline.cling.controlpoint.SubscriptionCallback;
+import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.model.action.*;
 import org.fourthline.cling.model.gena.*;
+import org.fourthline.cling.model.message.header.UpnpHeader;
+import org.fourthline.cling.model.message.UpnpHeaders;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.model.message.header.DeviceTypeHeader;
 import org.fourthline.cling.model.meta.*;
+import org.fourthline.cling.model.ServerClientTokens;
 import org.fourthline.cling.model.types.DeviceType;
 import org.fourthline.cling.model.types.ServiceId;
 import org.fourthline.cling.model.types.UDADeviceType;
@@ -44,6 +49,7 @@ public class UPNPControl {
 	};
 
 	private static UpnpService upnpService;
+	private static UpnpHeaders UMSHeaders;
 	private static DocumentBuilder db;
 
 	public static final int ACTIVE = 0;
@@ -250,6 +256,15 @@ public class UPNPControl {
 
 		try {
 			db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			UMSHeaders = new UpnpHeaders();
+			UMSHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
+
+			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration() {
+				@Override
+				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
+					return UMSHeaders;
+				}
+			};
 
 			RegistryListener rl = new DefaultRegistryListener() {
 				@Override
@@ -279,9 +294,8 @@ public class UPNPControl {
 						rendererUpdated(d);
 					}
 				}
-
 			};
-			upnpService = new UpnpServiceImpl(rl);
+			upnpService = new UpnpServiceImpl(sc, rl);
 
 			// find all media renderers on the network
 			for (DeviceType t : mediaRendererTypes) {
@@ -390,7 +404,7 @@ public class UPNPControl {
 	}
 
 	public static String getDeviceIcon(Renderer r, int maxHeight) {
-		if (r.uuid != null) {
+		if (isUpnpDevice(r.uuid)) {
 			return getDeviceIcon(getDevice(r.uuid), maxHeight);
 		}
 		return null;
