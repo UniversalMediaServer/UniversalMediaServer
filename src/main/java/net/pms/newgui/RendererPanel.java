@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -233,7 +232,7 @@ public class RendererPanel extends JPanel {
 	}
 
 	public int addMap(Map<String, String> map, PanelBuilder builder, int y) {
-		for (Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) map.entrySet()) {
+		for (Map.Entry<String, String> entry : map.entrySet()) {
 			y = addItem(entry.getKey(), entry.getValue(), builder, y);
 		}
 		return y;

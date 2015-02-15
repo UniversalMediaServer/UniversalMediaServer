@@ -127,8 +127,8 @@ public class RequestHandler implements Runnable {
 					request.setMediaRenderer(renderer);
 				}
 				if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
-					// FIXME: this would also block an external cling-based client running on the same host
-					if (isSelf && headerLine.contains("Cling/")) {
+					// Is the request from our own Cling service, i.e. self-originating?
+					if (isSelf && headerLine.contains("UMS/")) {
 						LOGGER.trace("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort());
 						return;
 					}

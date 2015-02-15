@@ -1,3 +1,40 @@
+5.0.1 - 2015-02-16
+
+	General:
+		Fixed text in the Windows automatic updater
+		Fixed MediaInfo not parsing some rare data
+		Fixed detection of font attachments
+		Fixed support for subtitled files with apostrophes in the name
+		Fixed errors when packing debug files
+		Fixed support for resuming playback on some devices
+		Improved support for MOV, 3GP and 3G2 files
+		Reduced CPU load when the Status tab is visible
+		Improved support for 1920x1088 videos
+		Fixed logging error
+		Fixed the web interface when browsing via Safari
+		Improved stability when disabling renderers
+	Renderers:
+		Added support for Kodi Media Center
+		Added support for more Panasonic Blu-ray players
+		Added support for Samsung HT-F4 series home entertainment systems
+		Improved detection of some LG TVs
+		Improved detection of some Panasonic Blu-ray players and TVs
+		Improved detection of some Samsung devices
+		Improved support for Samsung ES6100 TVs
+		Improved support for Samsung ES6575 TVs
+		Improved support for Sony Xperia Z3 smart phones
+		Updated the image for Xbox 360
+		Fixed 24-bit FLAC playback on PS3 via the Videos folder
+	Languages:
+		Updated Czech translation
+		Updated French translation (thanks, Kirvx!)
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated MediaInfo for OS X to 0.7.71, which:
+			Improved folder population time
+			Added and improved support for many formats
+			Fixed bugs
+
 5.0.0 - 2015-01-25 - Changes since 4.4.0
 
 	General:
@@ -13,7 +50,7 @@
 		Automatic reloading of external files
 		Documentation updates
 		New xmb playlist folders with optional automatic starting, looping, and saving, editable from web or xmb
-		A Dynamic xmb playlist for on-the-fly playlist creation from web or xmb
+		A dynamic xmb playlist for on-the-fly playlist creation from web or xmb
 		Better bump/gui player playlists with optional automatic looping
 		Push playback support for chromecast and web browsers
 		Changed the interface for enabling/disabling renderer configurations
@@ -23,7 +60,6 @@
 		Fixed audio downsampling
 		Fixed a bug with parsing formats from MediaInfo
 		Removed the database compacting method that was never recommended
-		Made sure the "No Encoding" option in the Transcoding folder is always available
 		Fixed a startup error
 		Minor bugfixes and code optimizations
 	Renderers:
@@ -46,12 +82,12 @@
 		Updated Maven Git Commit ID Plugin to 2.1.11
 		Updated Maven Source Plugin to 2.4
 		Updated Maven Surefire plugins to 2.18
-		Updated MediaInfo to 0.7.71, which:
+		Updated MediaInfo for Windows to 0.7.71, which:
 			Improves folder population time
 			Improves detection of many formats
 			Fixes bugs
 		Updated MPlayer/MEncoder for Windows to SB63, which:
-			Fixes support DVD audio
+			Fixes support for DVD audio
 			Improves support for many containers and codecs
 			Fixes bugs
 
@@ -73,11 +109,13 @@
 		All changes from 4.3.1 and 4.4.0
 	Renderers:
 		Added support for Panasonic DMP-BDT360 devices
+		Added support for Samsung H6500 Blu-ray Disc players
 		Added support for Telefunken TVs
 		Improved support for Panasonic Viera AS650 series TVs
 		Improved support for Samsung C6600 series TVs
 		Improved support for Sony Blu-ray Disc players
 		Improved support for Sony Bravia W series TVs
+		Improved file compatibility on non-PS3 renderers
 		Fixed detection of some Samsung renderers
 	Languages:
 		Updated Czech translation
@@ -89,12 +127,11 @@
 		Updated Maven Git Commit ID Plugin to 2.1.11
 		Updated Maven Source Plugin to 2.4
 		Updated Maven Surefire plugins to 2.18
-		Updated MediaInfo to 0.7.71, which:
+		Updated MediaInfo for Windows to 0.7.71, which:
 			Improves folder population time
 			Improves detection of many formats
 			Fixes bugs
 		Updated MPlayer/MEncoder for Windows to SB63, which:
-			Fixes support DVD audio
 			Improves support for many containers and codecs
 			Fixes bugs
 		Updated Seamless to 1.1.0

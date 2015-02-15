@@ -641,15 +641,15 @@ public class Request extends HTTPResource {
 					searchCriteria
 				);
 
-				if(xbox360 && files.size() == 0) {
+				if (xbox360 && files.isEmpty()) {
 					// do it again...
 					files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
-							"0",
-							browseDirectChildren,
-							startingIndex,
-							requestCount,
-							mediaRenderer,
-							searchCriteria
+						"0",
+						browseDirectChildren,
+						startingIndex,
+						requestCount,
+						mediaRenderer,
+						searchCriteria
 					);
 				}
 
