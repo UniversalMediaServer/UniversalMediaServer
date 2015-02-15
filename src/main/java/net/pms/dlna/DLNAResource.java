@@ -3574,17 +3574,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		public DLNAResource add(String uri, String name, RendererConfiguration r) {
 			DLNAResource  d = autoMatch(uri, name);
 			if (d != null) {
-				add(d);
-				// Pretend to be a parent with the same renderer
+				// Set the auto-matched item's renderer
+				d.setDefaultRenderer(r);
+				// Cache our previous renderer and
+				// pretend to be a parent with the same renderer
 				RendererConfiguration prev = getDefaultRenderer();
 				setDefaultRenderer(r);
-				// Resolve the new item's rendering details
-				d.setDefaultRenderer(r);
+				// Now add the item and resolve its rendering details
+				add(d);
 				d.resolve();
-				d.setPlayer(d.resolvePlayer(r));
 				// Restore our previous renderer
 				setDefaultRenderer(prev);
-		}
+			}
 			return d;
 		}
 
