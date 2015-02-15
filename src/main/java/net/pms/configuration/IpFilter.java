@@ -174,7 +174,7 @@ public class IpFilter {
 		public boolean match(InetAddress addr) {
 			byte[] b = addr.getAddress();
 			for (int i = 0; i < rules.size() && i < b.length; i++) {
-				int value = b[i] < 0 ? (int) b[i] + 256 : b[i];
+				int value = b[i] < 0 ? b[i] + 256 : b[i];
 				if (!rules.get(i).match(value)) {
 					return false;
 				}

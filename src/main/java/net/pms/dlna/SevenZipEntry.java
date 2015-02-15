@@ -26,7 +26,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
-import net.sf.sevenzipjbinding.IInStream;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
 import net.sf.sevenzipjbinding.ISevenZipInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
@@ -112,7 +111,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 					//byte data[] = new byte[65536];
 					RandomAccessFile rf = new RandomAccessFile(file, "r");
 
-					arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
+					arc = SevenZip.openInArchive(null, new RandomAccessFileInStream(rf));
 					ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 					ISimpleInArchiveItem realItem = null;
 

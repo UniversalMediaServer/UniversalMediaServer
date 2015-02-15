@@ -62,6 +62,9 @@ public class HTTPResource {
 	public static final String TIFF_TYPEMIME = "image/tiff";
 	public static final String GIF_TYPEMIME = "image/gif";
 	public static final String BMP_TYPEMIME = "image/bmp";
+	public static final String THREEGPP_TYPEMIME = "video/3gpp";
+	public static final String THREEGPP2_TYPEMIME = "video/3gpp2";
+	public static final String MOV_TYPEMIME = "video/quicktime";
 	public HTTPResource() { }
 
 	/**
