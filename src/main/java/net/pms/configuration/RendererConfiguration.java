@@ -231,7 +231,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
-						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
+						String renderersGroup = null; 
+						if (rendererName.indexOf(" ") > 0) {
+							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
+						}
+						
+						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
 							enabledRendererConfs.add(r);
 						} else {
 							LOGGER.debug("Ignored " + rendererName + " configuration");
@@ -661,7 +666,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			conf.add("#----------------------------------------------------------------------------");
 			conf.add("# Auto-generated profile for " + name);
 			conf.add("#" + (ref == null ? "" : " Based on " + ref.getName()));
-			conf.add("# See PS3.conf for a description of all possible configuration options.");
+			conf.add("# See DefaultRenderer.conf for a description of all possible configuration options.");
 			conf.add("#");
 			conf.add("");
 			conf.add(RENDERER_NAME + " = " + name);
@@ -1784,6 +1789,34 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isMaximumResolutionSpecified() {
 		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
+	}
+
+	/**
+	 * Whether the resolution is compatible with the renderer.
+	 *
+	 * @param width the media width
+	 * @param height the media height
+	 *
+	 * @return whether the resolution is compatible with the renderer
+	 */
+	public boolean isResolutionCompatibleWithRenderer(int width, int height) {
+		if (
+			isMaximumResolutionSpecified() &&
+			(
+				width > getMaxVideoWidth() ||
+				(
+					height > getMaxVideoHeight() &&
+					!(
+						getMaxVideoHeight() == 1080 &&
+						height == 1088
+					)
+				)
+			)
+		) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public boolean isDLNAOrgPNUsed() {

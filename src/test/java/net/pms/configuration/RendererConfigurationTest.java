@@ -95,9 +95,6 @@ public class RendererConfigurationTest {
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: XboxOne");
 		testHeaders("Xbox One", "User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411");
 
-		// Netgear NeoTV:
-		testHeaders("Netgear NeoTV", "friendlyName.dlna.org: BD-Player");
-
 		// Philips:
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");
 

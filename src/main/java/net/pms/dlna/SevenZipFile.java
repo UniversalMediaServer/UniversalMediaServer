@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import net.sf.sevenzipjbinding.IInStream;
 import net.sf.sevenzipjbinding.ISevenZipInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
@@ -42,7 +41,7 @@ public class SevenZipFile extends DLNAResource {
 		setLastModified(file.lastModified());
 		try {
 			RandomAccessFile rf = new RandomAccessFile(f, "r");
-			arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
+			arc = SevenZip.openInArchive(null, new RandomAccessFileInStream(rf));
 			ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 
 			for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {

@@ -63,11 +63,16 @@ public class LibMediaInfoParser {
 
 				// set General
 				getFormat(StreamType.General, media, currentAudioTrack, MI.Get(StreamType.General, 0, "Format").toLowerCase(), file);
+				getFormat(StreamType.General, media, currentAudioTrack, MI.Get(StreamType.General, 0, "CodecID").toLowerCase().trim(), file);
 				media.setDuration(getDuration(MI.Get(StreamType.General, 0, "Duration/String1")));
 				media.setBitrate(getBitrate(MI.Get(StreamType.General, 0, "OverallBitRate")));
 				value = MI.Get(StreamType.General, 0, "Cover_Data");
 				if (isNotBlank(value)) {
 					media.setThumb(getCover(value));
+				}
+				value = MI.Get(StreamType.General, 0, "Attachements");
+				if (isNotBlank(value)) {
+					media.setEmbeddedFontExists(true);
 				}
 
 				// set Video
@@ -89,6 +94,7 @@ public class LibMediaInfoParser {
 							media.setWidth(getPixelValue(MI.Get(StreamType.Video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(StreamType.Video, i, "Height")));
 							media.setFrameRate(getFPSValue(MI.Get(StreamType.Video, i, "FrameRate")));
+							media.setMatrixCoefficients(MI.Get(StreamType.Video, i, "matrix_coefficients"));
 							media.setStereoscopy(MI.Get(StreamType.Video, i, "MultiView_Layout"));
 							media.setAspectRatioContainer(MI.Get(StreamType.Video, i, "DisplayAspectRatio/String"));
 							media.setAspectRatioVideoTrack(MI.Get(StreamType.Video, i, "DisplayAspectRatio_Original/Stri"));
@@ -343,10 +349,14 @@ public class LibMediaInfoParser {
 		getFormat(streamType, media, audio, value, null);
 	}
 
-	private static void getFormat(MediaInfo.StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
+	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		String format = null;
 
-		if (value.startsWith("matroska")) {
+		if (value.startsWith("3g2")) {
+			format = FormatConfiguration.THREEGPP2;
+		} else if (value.startsWith("3gp")) {
+			format = FormatConfiguration.THREEGPP;
+		} else if (value.startsWith("matroska")) {
 			format = FormatConfiguration.MATROSKA;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
@@ -492,17 +502,17 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
-		} else if (containsIgnoreCase(value, "@l") && streamType == MediaInfo.StreamType.Video) {
+		} else if (containsIgnoreCase(value, "@l") && streamType == StreamType.Video) {
 			media.setAvcLevel(getAvcLevel(value));
 			media.setH264Profile(getAvcProfile(value));
 		}
 
 		if (format != null) {
-			if (streamType == MediaInfo.StreamType.General) {
+			if (streamType == StreamType.General) {
 				media.setContainer(format);
-			} else if (streamType == MediaInfo.StreamType.Video) {
+			} else if (streamType == StreamType.Video) {
 				media.setCodecV(format);
-			} else if (streamType == MediaInfo.StreamType.Audio) {
+			} else if (streamType == StreamType.Audio) {
 				audio.setCodecA(format);
 			}
 		}

@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
@@ -1568,7 +1567,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				if (!isAdmin()) {
 					try {
 						JOptionPane.showMessageDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 							Messages.getString("NetworkTab.58"),
 							Messages.getString("Dialog.PermissionsError"),
 							JOptionPane.ERROR_MESSAGE

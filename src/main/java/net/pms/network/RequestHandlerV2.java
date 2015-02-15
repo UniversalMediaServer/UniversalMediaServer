@@ -87,10 +87,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		InetSocketAddress remoteAddress = (InetSocketAddress) e.getChannel().getRemoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
-		// FIXME: this would also block an external cling-based client running on the same host
+		// Is the request from our own Cling service, i.e. self-originating?
 		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
 			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT) != null &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("Cling/");
+			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
@@ -309,7 +309,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		throws Exception {
 		Channel ch = e.getChannel();
 		Throwable cause = e.getCause();
-		LOGGER.trace("Caught exception", cause);
 		if (cause instanceof TooLongFrameException) {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
