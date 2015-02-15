@@ -1,4 +1,4 @@
-5.0.1 - 2015-02-??
+5.0.1 - 2015-02-16
 
 	General:
 		Fixed text in the Windows automatic updater
