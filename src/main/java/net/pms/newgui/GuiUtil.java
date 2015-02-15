@@ -184,11 +184,8 @@ public final class GuiUtil {
 				g.translate(-dir * w, 0);
 				super.paintComponent(g);
 				if (timer == null) {
-					timer = new Timer(interval, new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							repaint();
-						}
+					timer = new Timer(interval, (ActionEvent e) -> {
+						repaint();
 					});
 					timer.start();
 				}
@@ -216,12 +213,9 @@ public final class GuiUtil {
 		}
 
 		private void scrollTheText() {
-			new Timer(200, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					text = new StringBuffer(text.substring(1)).append(text.substring(0,1)).toString();
-					setText(text);
-				}
+			new Timer(200, (ActionEvent e) -> {
+				text = new StringBuffer(text.substring(1)).append(text.substring(0,1)).toString();
+				setText(text);
 			}).start();
 		}
 	}
