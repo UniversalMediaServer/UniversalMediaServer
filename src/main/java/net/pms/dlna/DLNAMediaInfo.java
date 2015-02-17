@@ -660,7 +660,7 @@ public class DLNAMediaInfo implements Cloneable {
 						ffmpeg_parsing = false;
 					}
 
-					if (audio.getSongname() == null || audio.getSongname().length() == 0 || mediaRenderer.isOverrideAllShareSorting()) {
+					if (audio.getSongname() == null || audio.getSongname().length() == 0 || mediaRenderer.isUseTrackFileNames()) {
 						audio.setSongname(file.getName());
 					}
 

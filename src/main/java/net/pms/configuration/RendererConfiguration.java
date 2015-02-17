@@ -155,7 +155,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
-    protected static final String OVERRIDE_ALLSHARE_SORTING = "OverrideAllShareSorting";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String MAX_VOLUME = "MaxVolume";
@@ -191,7 +190,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String UPNP_DETAILS = "UpnpDetailsSearch";
 	protected static final String USE_CLOSED_CAPTION = "UseClosedCaption";
 	protected static final String USE_SAME_EXTENSION = "UseSameExtension";
-	protected static final String VIDEO = "Video";
+    protected static final String USE_TRACK_FILE_NAMES = "UseTrackFileNames";
+    protected static final String VIDEO = "Video";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 
@@ -2009,8 +2009,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
      *
      * @return
      */
-    public boolean isOverrideAllShareSorting() {
-        return getBoolean(OVERRIDE_ALLSHARE_SORTING, false);
+    public boolean isUseTrackFileNames() {
+        return getBoolean(USE_TRACK_FILE_NAMES, false);
     }
 
 	/**
