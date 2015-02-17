@@ -267,7 +267,7 @@ public abstract class Format implements Cloneable {
 		if (renderer != null && renderer.isMediaParserV2()) {
 			renderer.getFormatConfiguration().parse(media, file, this, type);
 		} else {
-			media.parse(file, this, type, false, false);
+            media.parse(file, this, type, false, false, renderer);
 		}
 
 		LOGGER.trace("Parsing results for file \"{}\": {}", file.toString(), media.toString());

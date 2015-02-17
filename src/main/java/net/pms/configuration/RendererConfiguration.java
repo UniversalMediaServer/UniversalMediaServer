@@ -155,6 +155,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
+    protected static final String OVERRIDE_ALLSHARE_SORTING = "OverrideAllShareSorting";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String MAX_VOLUME = "MaxVolume";
@@ -1997,6 +1998,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isNoDynPlsFolder() {
 		return false;
 	}
+
+    /**
+     * Samsung's AllShare has this nasty habit of ordering filenames
+     * by track name. This makes playing albums annoying as albums
+     * will play in alphabetical order instead of track order.
+     *
+     * This hack addresses this issue by overriding the track names with
+     * the actual filenames.
+     *
+     * @return
+     */
+    public boolean isOverrideAllShareSorting() {
+        return getBoolean(OVERRIDE_ALLSHARE_SORTING, false);
+    }
 
 	/**
 	 * If this is true, we will always output video at 16/9 aspect ratio to
