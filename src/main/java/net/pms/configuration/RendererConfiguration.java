@@ -2370,9 +2370,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (dlna != null) {
 			player.getState().name = dlna.getDisplayName();
 			player.start();
-		} else if (player instanceof PlaybackTimer) {
-			player.getState().playback = BasicPlayer.STOPPED;
-			player.alert();
+		} else {
+			player.reset();
 		}
 	}
 
