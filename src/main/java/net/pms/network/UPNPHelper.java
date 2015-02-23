@@ -443,9 +443,9 @@ public class UPNPHelper extends UPNPControl {
 								if (configuration.getIpFiltering().allowed(address)) {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
-									if (!redundant) {
-										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
-									}
+//									if (!redundant) {
+										LOGGER.trace("Receiving a M-SEARCH from [{}:{}]: {}", remoteAddr, remotePort, s);
+//									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
 										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
@@ -468,8 +468,8 @@ public class UPNPHelper extends UPNPControl {
 									}
 								}
 							// Don't log redundant notify messages
-							} else if (packetType == NOTIFY && !redundant) {
-								LOGGER.trace("Receiving a NOTIFY from [" + address.getHostAddress() + ":" + receivePacket.getPort() + "]");
+							} else if (packetType == NOTIFY /*&& !redundant*/) {
+								LOGGER.trace("Receiving a NOTIFY from [{}:{}]: {}", address.getHostAddress(), receivePacket.getPort(), s);
 							}
 							lastAddress = address;
 							lastPacketType = packetType;

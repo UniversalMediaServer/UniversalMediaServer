@@ -1140,6 +1140,10 @@ public class PMS {
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
 			LoggingConfigFileLoader.load();
 
+// Force TRACE logging
+ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+l.setLevel(ch.qos.logback.classic.Level.TRACE);
+
 			LOGGER.debug(new Date().toString());
 
 			try {
