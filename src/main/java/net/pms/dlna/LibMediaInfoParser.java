@@ -57,7 +57,7 @@ public class LibMediaInfoParser {
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.Open(file.getAbsolutePath()) > 0) {
 			try {
 				DLNAMediaAudio currentAudioTrack = new DLNAMediaAudio();
-				DLNAMediaSubtitle currentSubTrack = new DLNAMediaSubtitle();
+				DLNAMediaSubtitle currentSubTrack;
 				media.setSize(file.length());
 				String value;
 
