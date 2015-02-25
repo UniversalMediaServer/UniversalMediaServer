@@ -82,6 +82,10 @@ public class RemoteUtil {
 
 
 	public static void dump(final InputStream in, final OutputStream os) {
+		dump(in, os, null);
+	}
+
+	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -106,6 +110,9 @@ public class RemoteUtil {
 				try {
 					os.close();
 				} catch (IOException e) {
+				}
+				if (renderer != null) {
+					renderer.stop();
 				}
 			}
 		};

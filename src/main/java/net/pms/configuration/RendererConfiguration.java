@@ -1549,7 +1549,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return true if the renderer supports seek-by-time, false otherwise.
 	 */
 	public boolean isSeekByTime() {
-		return isSeekByTimeExclusive() || getBoolean(SEEK_BY_TIME, false);
+		return isSeekByTimeExclusive() || getString(SEEK_BY_TIME, "false").equalsIgnoreCase("true");
 	}
 
 	/**
@@ -1560,7 +1560,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * (i.e. not in conjunction with seek-by-byte), false otherwise.
 	 */
 	public boolean isSeekByTimeExclusive() {
-		return getString(SEEK_BY_TIME, "").equalsIgnoreCase("exclusive");
+		return getString(SEEK_BY_TIME, "false").equalsIgnoreCase("exclusive");
 	}
 
 	public boolean isMuxH264MpegTS() {
@@ -2363,9 +2363,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (dlna != null) {
 			player.getState().name = dlna.getDisplayName();
 			player.start();
-		} else if (player instanceof PlaybackTimer) {
-			player.getState().playback = BasicPlayer.STOPPED;
-			player.alert();
+		} else {
+			player.reset();
 		}
 	}
 

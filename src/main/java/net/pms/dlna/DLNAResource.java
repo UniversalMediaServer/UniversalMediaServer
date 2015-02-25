@@ -1771,8 +1771,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		endTag(sb);
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
+
+		/**
+		 * Use the track title for audio files, otherwise use the filename.
+		 */
 		String title;
-		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
+		if (
+			firstAudioTrack != null &&
+			StringUtils.isNotBlank(firstAudioTrack.getSongname()) &&
+			getFormat() != null &&
+			getFormat().isAudio()
+		) {
 			title = firstAudioTrack.getSongname() + (player != null && !configuration.isHideEngineNames() ? (" [" + player.name() + "]") : "");
 		} else { // Ditlew - org
 			title = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
@@ -1783,7 +1792,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			"dc:title",
 			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
 		);
-		wireshark.append("\"" + title + "\"");
+		wireshark.append("\"").append(title).append("\"");
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
@@ -3583,17 +3592,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		public DLNAResource add(String uri, String name, RendererConfiguration r) {
 			DLNAResource  d = autoMatch(uri, name);
 			if (d != null) {
-				add(d);
-				// Pretend to be a parent with the same renderer
+				// Set the auto-matched item's renderer
+				d.setDefaultRenderer(r);
+				// Cache our previous renderer and
+				// pretend to be a parent with the same renderer
 				RendererConfiguration prev = getDefaultRenderer();
 				setDefaultRenderer(r);
-				// Resolve the new item's rendering details
-				d.setDefaultRenderer(r);
+				// Now add the item and resolve its rendering details
+				add(d);
 				d.resolve();
-				d.setPlayer(d.resolvePlayer(r));
 				// Restore our previous renderer
 				setDefaultRenderer(prev);
-		}
+			}
 			return d;
 		}
 
