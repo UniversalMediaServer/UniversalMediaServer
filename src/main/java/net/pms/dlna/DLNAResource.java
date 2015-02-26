@@ -1768,8 +1768,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		endTag(sb);
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
+
+		/**
+		 * Use the track title for audio files, otherwise use the filename.
+		 */
 		String title;
-		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
+		if (
+			firstAudioTrack != null &&
+			StringUtils.isNotBlank(firstAudioTrack.getSongname()) &&
+			getFormat() != null &&
+			getFormat().isAudio()
+		) {
 			title = firstAudioTrack.getSongname() + (player != null && !configuration.isHideEngineNames() ? (" [" + player.name() + "]") : "");
 		} else { // Ditlew - org
 			title = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
@@ -1780,7 +1789,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			"dc:title",
 			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
 		);
-		wireshark.append("\"" + title + "\"");
+		wireshark.append("\"").append(title).append("\"");
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
