@@ -470,7 +470,7 @@ public class RequestV2 extends HTTPResource {
 						highRange = lowRange + CLoverride - (CLoverride > 0 ? 1 : 0);
 
 						if (contentFeatures != null) {
-							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures());
+							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
 						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
