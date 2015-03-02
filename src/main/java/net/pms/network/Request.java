@@ -423,7 +423,7 @@ public class Request extends HTTPResource {
 						}
 
 						if (contentFeatures != null) {
-							output(output, "ContentFeatures.DLNA.ORG: " + dlna.getDlnaContentFeatures());
+							output(output, "ContentFeatures.DLNA.ORG: " + dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
 						if (dlna.getPlayer() == null || xbox360) {
