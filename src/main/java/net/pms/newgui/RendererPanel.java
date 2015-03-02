@@ -46,7 +46,7 @@ public class RendererPanel extends JPanel {
 		editBar = new JPanel();
 		editBar.setLayout(new BoxLayout(editBar, BoxLayout.X_AXIS));
 		builder.add(editBar, cc.xyw(1, ++y, 2));
-		if (renderer.loaded && !renderer.isFileless()) {
+		if (/*renderer.loaded &&*/ !renderer.isFileless()) {
 			buildEditBar(false);
 		}
 		builder.appendRow(rspec);

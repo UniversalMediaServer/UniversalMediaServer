@@ -601,17 +601,19 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
 		DeviceConfiguration r = null;
-		if (ref == null) {
+		boolean recognized = ref != null;
+		if (! recognized) {
 			ref = getDefaultConf();
 		}
 		try {
 			if (addressAssociation.containsKey(ia)) {
 				// Already seen, finish configuration if required
 				r = (DeviceConfiguration) addressAssociation.get(ia);
-				boolean higher = ref.getLoadingPriority() > r.getLoadingPriority() && ref != defaultConf;
+				boolean higher = ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
 				if (!r.loaded || higher) {
+					LOGGER.debug("Finishing configuration for {}", r);
 					if (higher) {
-						LOGGER.debug("Switching to higher priority renderer: " + ref.getRendererName());
+						LOGGER.debug("Switching to higher priority renderer: {}", ref);
 					}
 					r.inherit(ref);
 					// update gui
@@ -626,6 +628,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				r.active = true;
 			}
 		} catch (Exception e) {
+		}
+		if (! recognized) {
+			// Mark it as unloaded so actual recognition can happen later if upnp sees it.
+			LOGGER.debug("Marking renderer \"{}\" at {} as unrecognized", r, ia);
+			r.loaded = false;
 		}
 		return r;
 	}
