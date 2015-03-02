@@ -345,12 +345,12 @@ public class StatusTab {
 							// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
 							// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
 							// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
-							r.frame = new JFrame(renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""));
+							r.frame = new JFrame();
 							r.panel = new RendererPanel(renderer);
 							r.frame.add(r.panel);
+							r.panel.update();
 							r.frame.setResizable(false);
 							r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
-							r.frame.pack();
 							r.frame.setLocationRelativeTo(top);
 							r.frame.setVisible(true);
 						} else {

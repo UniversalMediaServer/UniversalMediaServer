@@ -37,7 +37,9 @@ public class RendererPanel extends JPanel {
 
 	public RendererPanel(final RendererConfiguration renderer) {
 		this.renderer = renderer;
+	}
 
+	public JPanel buildPanel() {
 		FormLayout layout = new FormLayout("left:pref, 400:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(new EmptyBorder(10, 10, 10, 10));
@@ -67,9 +69,7 @@ public class RendererPanel extends JPanel {
 			builder.appendRow(rspec);
 			builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
 		}
-
-		add(builder.getPanel());
-		ready = true;
+		return builder.getPanel();
 	}
 
 	public void buildEditBar(boolean updateUI) {
@@ -266,6 +266,13 @@ public class RendererPanel extends JPanel {
 	}
 
 	public void update() {
-		buildEditBar(true);
+		removeAll();
+		add(buildPanel());
+		JFrame top = (JFrame) SwingUtilities.getWindowAncestor(this);
+		if (top != null) {
+			top.setTitle(renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""));
+			top.pack();
+		}
+		ready = true;
 	}
 }
