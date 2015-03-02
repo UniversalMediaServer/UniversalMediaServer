@@ -17,6 +17,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.Messages;
 import net.pms.newgui.GuiUtil.CustomJButton;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
@@ -62,7 +63,7 @@ public class RendererPanel extends JPanel {
 			builder.appendRow(rspec);
 			builder.addLabel(" ", cc.xy(1, ++y));
 			builder.appendRow(rspec);
-			builder.addSeparator("Controls", cc.xyw(1, ++y, 2));
+			builder.addSeparator(Messages.getString("RendererPanel.1"), cc.xyw(1, ++y, 2));
 			builder.appendRow(rspec);
 			builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
 		}
@@ -91,15 +92,15 @@ public class RendererPanel extends JPanel {
 		final CustomJButton open = new CustomJButton("+", MetalIconFactory.getTreeLeafIcon());
 		open.setHorizontalTextPosition(JButton.CENTER);
 		open.setForeground(Color.lightGray);
-		open.setToolTipText("Customize this device");
+		open.setToolTipText(Messages.getString("RendererPanel.5"));
 		open.setFocusPainted(false);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				DeviceConfiguration d = (DeviceConfiguration) renderer;
-				String filename = chooseConfName(d.getDeviceDir(), d.getDefaultFilename(d));
-				if (filename != null) {
-					File file = DeviceConfiguration.createDeviceFile(d, filename, true);
+				File f = chooseConf(d.getDeviceDir(), d.getDefaultFilename(d));
+				if (f != null) {
+					File file = DeviceConfiguration.createDeviceFile(d, f.getName(), true);
 					buildEditBar(true);
 					try {
 						java.awt.Desktop.getDesktop().open(file);
@@ -116,7 +117,7 @@ public class RendererPanel extends JPanel {
 		final File ref = ((DeviceConfiguration) renderer).getConfiguration(DeviceConfiguration.RENDERER).getFile();
 		final CustomJButton open = new CustomJButton(MetalIconFactory.getTreeLeafIcon());
 		boolean exists = ref != null && ref.exists();
-		open.setToolTipText(exists ? ("Open the parent configuration: " + ref) : "No parent configuration");
+		open.setToolTipText(exists ? (Messages.getString("RendererPanel.3") + ": " + ref) : Messages.getString("RendererPanel.4"));
 		open.setFocusPainted(false);
 		open.addActionListener(new ActionListener() {
 			@Override
@@ -140,7 +141,7 @@ public class RendererPanel extends JPanel {
 	public JButton editButton(final boolean create) {
 		final File file = create ? renderer.getUsableFile() : renderer.getFile();
 		final CustomJButton open = new CustomJButton(((file != null && file.exists() || !create) ? "<html>"
-			: "<html><font color=blue>Start a new configuration file:</font> ") + file.getName() + "</html>",
+			: "<html><font color=blue>" + Messages.getString("RendererPanel.2") + ":</font> ") + file.getName() + "</html>",
 			MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file.getAbsolutePath());
 		open.setFocusPainted(false);
@@ -148,17 +149,21 @@ public class RendererPanel extends JPanel {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				boolean exists = file.isFile() && file.exists();
+				File f = file;
 				if (!exists && create) {
-					File ref = chooseReferenceConf();
-					if (ref != null) {
-						renderer.createNewFile(renderer, file, true, ref);
-						open.setText(file.getName());
-						exists = true;
+					f =  chooseConf(file.getParentFile(), file.getName());
+					if (f != null) {
+						File ref = chooseReferenceConf();
+						if (ref != null) {
+							renderer.createNewFile(renderer, f, true, ref);
+							open.setText(f.getName());
+							exists = true;
+						}
 					}
 				}
 				if (exists) {
 					try {
-						java.awt.Desktop.getDesktop().open(file);
+						java.awt.Desktop.getDesktop().open(f);
 					} catch (IOException ioe) {
 						LOGGER.debug("Failed to open default desktop application: " + ioe);
 					}
@@ -171,7 +176,7 @@ public class RendererPanel extends JPanel {
 		return open;
 	}
 
-	public String chooseConfName(final File dir, final String filename) {
+	public File chooseConf(final File dir, final String filename) {
 		final File file = new File(filename);
 		JFileChooser fc = new JFileChooser(dir) {
 			private static final long serialVersionUID = -3606991702534289691L;
@@ -184,7 +189,7 @@ public class RendererPanel extends JPanel {
 			@Override
 			public void approveSelection() {
 				if (getSelectedFile().exists()) {
-					switch (JOptionPane.showConfirmDialog(this, "Overwrite existing file?", "File Exists", JOptionPane.YES_NO_CANCEL_OPTION)) {
+					switch (JOptionPane.showConfirmDialog(this, Messages.getString("RendererPanel.6"), Messages.getString("RendererPanel.7"), JOptionPane.YES_NO_CANCEL_OPTION)) {
 						case JOptionPane.CANCEL_OPTION:
 						case JOptionPane.NO_OPTION:
 							setSelectedFile(file);
@@ -199,11 +204,13 @@ public class RendererPanel extends JPanel {
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("Conf Files", "conf");
 		fc.addChoosableFileFilter(filter);
 		fc.setAcceptAllFileFilterUsed(false);
+		// Current dir must be set explicitly before setting selected file (despite constructor call above)
+		fc.setCurrentDirectory(dir);
 		fc.setSelectedFile(file);
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		fc.setDialogTitle("Specify A File Name");
+		fc.setDialogTitle(Messages.getString("RendererPanel.8"));
 		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-			return fc.getSelectedFile().getName();
+			return fc.getSelectedFile();
 		}
 		return null;
 	}
@@ -214,8 +221,12 @@ public class RendererPanel extends JPanel {
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("Conf Files", "conf");
 		fc.addChoosableFileFilter(filter);
 		fc.setAcceptAllFileFilterUsed(true);
+		File defaultRef = new File(RendererConfiguration.getRenderersDir(), "DefaultRenderer.conf");
+		if (defaultRef.exists()) {
+			fc.setSelectedFile(defaultRef);
+		}
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		if (fc.showDialog(this, "Select a reference file") == JFileChooser.APPROVE_OPTION) {
+		if (fc.showDialog(this, Messages.getString("RendererPanel.9")) == JFileChooser.APPROVE_OPTION) {
 			return fc.getSelectedFile();
 		}
 		return null;

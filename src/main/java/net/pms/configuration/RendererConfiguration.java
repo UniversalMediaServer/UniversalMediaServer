@@ -653,10 +653,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return file;
 	}
 
+	public String getId() {
+		return uuid != null ? uuid : getAddress().toString().substring(1);
+	}
+
+	public static String getSimpleName(RendererConfiguration r) {
+		return StringUtils.substringBefore(r.getRendererName(), "(").trim();
+	}
+
+	public static String getDefaultFilename(RendererConfiguration r) {
+		String id = r.getId();
+		return (getSimpleName(r) + "-" + (id.startsWith("uuid:") ? id.substring(5, 11) : id)).replace(" ", "") + ".conf";
+	}
+
 	public File getUsableFile() {
 		File f = getFile();
 		if (f == null || f.equals(NOFILE)) {
-			f = new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf");
+			String name = getSimpleName(this);
+			f = new File(getRenderersDir(), name.equals(getSimpleName(defaultConf)) ? getDefaultFilename(this) :  (name.replace(" ", "") + ".conf"));
 		}
 		return f;
 	}
@@ -664,7 +678,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
 		try {
 			ArrayList<String> conf = new ArrayList<>();
-			String name = r.getRendererName().split("\\(")[0].trim();
+			String name = getSimpleName(r);
 			Map<String, String> details = r.getUpnpDetails();
 			String detailmatcher = details == null ? "" :
 				(details.get("manufacturer") + " , " + details.get("modelName"));
@@ -709,7 +723,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			if (load) {
 				try {
-					r.init(file);
+					RendererConfiguration renderer = new RendererConfiguration(file);
+					enabledRendererConfs.add(renderer);
+					if (r instanceof DeviceConfiguration) {
+						((DeviceConfiguration)r).inherit(renderer);
+					}
 				} catch (ConfigurationException ce) {
 					LOGGER.debug("Error initializing renderer configuration: " + ce);
 				}
