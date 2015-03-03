@@ -443,9 +443,8 @@ public class StatusTab {
 	}
 
 	private int getTickMarks() {
-		long maxMem = Runtime.getRuntime().maxMemory();
-		int exp = (int) (Math.log(maxMem) / Math.log(1024));
-		return (int) Math.pow(10, exp);
+		int mb = (int) (Runtime.getRuntime().maxMemory() / 1048576);
+		return mb < 1000 ? 100 : mb < 2500 ? 250 : mb < 5000 ? 500 : 1000;
 	}
 
 	public void updateMemoryUsage() {
