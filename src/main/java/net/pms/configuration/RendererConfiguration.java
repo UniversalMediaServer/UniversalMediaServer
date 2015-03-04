@@ -1304,9 +1304,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					private static final long serialVersionUID = -3998102753945339020L;
 
 					{
-						put("name", getRendererName());
+						put(Messages.getString("RendererPanel.10"), getRendererName());
 						if (getAddress() != null) {
-							put("address", getAddress().getHostAddress().toString());
+							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress().toString());
 						}
 					}	
 				};
