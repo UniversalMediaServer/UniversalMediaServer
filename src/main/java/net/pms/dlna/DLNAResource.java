@@ -1796,16 +1796,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						// Check if the renderer settings make the current engine always output MPEG-TS
 						if (
-								!isFileMPEGTS &&
-										mediaRenderer.isTranscodeToMPEGTS() &&
-										(
-												MEncoderVideo.ID.equals(player.id()) ||
-														FFMpegVideo.ID.equals(player.id()) ||
-														VLCVideo.ID.equals(player.id()) ||
-														AviSynthFFmpeg.ID.equals(player.id()) ||
-														AviSynthMEncoder.ID.equals(player.id())
-										)
-								) {
+							!isFileMPEGTS &&
+							mediaRenderer.isTranscodeToMPEGTS() &&
+							(
+								MEncoderVideo.ID.equals(player.id()) ||
+								FFMpegVideo.ID.equals(player.id()) ||
+								VLCVideo.ID.equals(player.id()) ||
+								AviSynthFFmpeg.ID.equals(player.id()) ||
+								AviSynthMEncoder.ID.equals(player.id())
+							)
+						) {
 							isFileMPEGTS = true;
 						}
 
@@ -1813,18 +1813,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						// If the engine is capable of automatically muxing to MPEG-TS and the setting is enabled, it might be MPEG-TS
 						if (
-								!isFileMPEGTS &&
-										(
-												(
-														configuration.isMencoderMuxWhenCompatible() &&
-																MEncoderVideo.ID.equals(player.id())
-												) ||
-														(
-																configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
-																		FFMpegVideo.ID.equals(player.id())
-														)
-										)
-								) {
+							!isFileMPEGTS &&
+							(
+								(
+									configuration.isMencoderMuxWhenCompatible() &&
+									MEncoderVideo.ID.equals(player.id())
+								) ||
+								(
+									configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
+									FFMpegVideo.ID.equals(player.id())
+								)
+							)
+						) {
 							/**
 							 * Media renderer needs ORG_PN to be accurate.
 							 * If the value does not match the media, it won't play the media.
@@ -1859,13 +1859,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							 * then the file is MPEG-TS
 							 */
 							if (
-									media_subtitle == null &&
-											!isSubsFile() &&
-											media != null &&
-											media.getDvdtrack() == 0 &&
-											isMuxableResult &&
-											mediaRenderer.isMuxH264MpegTS()
-									) {
+								media_subtitle == null &&
+								!isSubsFile() &&
+								media != null &&
+								media.getDvdtrack() == 0 &&
+								isMuxableResult &&
+								mediaRenderer.isMuxH264MpegTS()
+							) {
 								isFileMPEGTS = true;
 							}
 						}
@@ -1873,10 +1873,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (isFileMPEGTS) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(localizationValue);
 							if (
-									media.isH264() &&
-											!VideoLanVideoStreaming.ID.equals(player.id()) &&
-											isMuxableResult
-									) {
+								media.isH264() &&
+								!VideoLanVideoStreaming.ID.equals(player.id()) &&
+								isMuxableResult
+							) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
 								if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 									dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
