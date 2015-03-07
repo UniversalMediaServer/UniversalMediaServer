@@ -452,12 +452,6 @@ public class RequestV2 extends HTTPResource {
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
 
-							LOGGER.trace("totalsize: " + totalsize);
-							LOGGER.trace("remaining: " + remaining);
-							LOGGER.trace("requested: " + requested);
-							LOGGER.trace("lowRange: " + lowRange);
-							LOGGER.trace("highRange: " + highRange);
-
 							output.headers().set(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
 							// Content-Length refers to the current chunk size here, though in chunked
@@ -476,7 +470,7 @@ public class RequestV2 extends HTTPResource {
 						highRange = lowRange + CLoverride - (CLoverride > 0 ? 1 : 0);
 
 						if (contentFeatures != null) {
-							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures());
+							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
 						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");

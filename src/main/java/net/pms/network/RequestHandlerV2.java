@@ -215,7 +215,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			// default renderer.
 			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
 			if (request.getMediaRenderer() != null) {
-				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
+				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getConfName());
 
 				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 					// We have found an unknown renderer
@@ -285,6 +285,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		// Attach it to the context so it can be invoked if connection is reset unexpectedly
+		ctx.setAttachment(startStopListenerDelegate);
 
 		try {
 			request.answer(ctx, response, e, close, startStopListenerDelegate);
@@ -300,13 +302,21 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		LOGGER.trace("Caught exception", cause);
 		if (cause instanceof TooLongFrameException) {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
-		if (cause != null && !cause.getClass().equals(ClosedChannelException.class) && !cause.getClass().equals(IOException.class)) {
-			LOGGER.debug("Caught exception", cause);
+		if (cause != null) {
+			if (cause.getClass().equals(IOException.class)) {
+				LOGGER.debug("Connection error: " + cause);
+				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();
+				if (startStopListenerDelegate != null) {
+					LOGGER.debug("Premature end, stopping...");
+					startStopListenerDelegate.stop();
+				}
+			} else if (!cause.getClass().equals(ClosedChannelException.class)) {
+				LOGGER.debug("Caught exception: " + cause);
+			}
 		}
 		if (ctx.channel().isActive()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);

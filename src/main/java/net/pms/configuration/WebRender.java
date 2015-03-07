@@ -195,7 +195,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case CHROME:  return "chrome.png";
 			case MSIE:    return "internetexplorer.png";
 			case FIREFOX: return "firefox.png";
-//			case SAFARI:  return "safari.png"; // TODO
+			case SAFARI:  return "safari.png";
 			case PS4:     return "ps4.png";
 			case XBOX1:   return "xbox-one.png";
 			case OPERA:   return "opera.png";

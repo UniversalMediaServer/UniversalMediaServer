@@ -1,4 +1,9 @@
-5.0.1 - 2015-02-??
+5.0.2 - 2015-02-??
+
+	General:
+		
+
+5.0.1 - 2015-02-16
 
 	General:
 		Fixed text in the Windows automatic updater
@@ -11,10 +16,14 @@
 		Reduced CPU load when the Status tab is visible
 		Improved support for 1920x1088 videos
 		Fixed logging error
+		Fixed the web interface when browsing via Safari
+		Improved stability when disabling renderers
 	Renderers:
 		Added support for Kodi Media Center
 		Added support for more Panasonic Blu-ray players
 		Added support for Samsung HT-F4 series home entertainment systems
+		Improved detection of some LG TVs
+		Improved detection of some Panasonic Blu-ray players and TVs
 		Improved detection of some Samsung devices
 		Improved support for Samsung ES6100 TVs
 		Improved support for Samsung ES6575 TVs
