@@ -1,4 +1,4 @@
-5.0.2 - 2015-02-??
+5.1.0 - 2015-02-??
 
 	General:
 		Added 64-bit versions of FFmpeg for a ~10% increase in transcoding speed
