@@ -27,12 +27,12 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+//import org.jboss.netty.bootstrap.ServerBootstrap;
+//import org.jboss.netty.channel.Channel;
+//import org.jboss.netty.channel.ChannelFactory;
+//import org.jboss.netty.channel.group.ChannelGroup;
+//import org.jboss.netty.channel.group.DefaultChannelGroup;
+//import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +46,10 @@ public class HTTPServer implements Runnable {
 	private boolean stop;
 	private Thread runnable;
 	private InetAddress iafinal;
-	private ChannelFactory factory;
-	private Channel channel;
+//	private ChannelFactory factory;
+//	private Channel channel;
 	private NetworkInterface networkInterface;
-	private ChannelGroup group;
+//	private ChannelGroup group;
 
 	// XXX not used
 	@Deprecated
@@ -106,39 +106,40 @@ public class HTTPServer implements Runnable {
 
 		LOGGER.info("Created socket: " + address);
 
-		if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
-			group = new DefaultChannelGroup("myServer");
-			factory = new NioServerSocketChannelFactory(
-				Executors.newCachedThreadPool(),
-				Executors.newCachedThreadPool()
-			);
+		if (false) { // HTTP Engine V2
+//		if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
+//			group = new DefaultChannelGroup("myServer");
+//			factory = new NioServerSocketChannelFactory(
+//				Executors.newCachedThreadPool(),
+//				Executors.newCachedThreadPool()
+//			);
 
-			ServerBootstrap bootstrap = new ServerBootstrap(factory);
-			HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(group);
-			bootstrap.setPipelineFactory(pipeline);
-			bootstrap.setOption("child.tcpNoDelay", true);
-			bootstrap.setOption("child.keepAlive", true);
-			bootstrap.setOption("reuseAddress", true);
-			bootstrap.setOption("child.reuseAddress", true);
-			bootstrap.setOption("child.sendBufferSize", 65536);
-			bootstrap.setOption("child.receiveBufferSize", 65536);
+//			ServerBootstrap bootstrap = new ServerBootstrap(factory);
+//			HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(group);
+//			bootstrap.setPipelineFactory(pipeline);
+//			bootstrap.setOption("child.tcpNoDelay", true);
+//			bootstrap.setOption("child.keepAlive", true);
+//			bootstrap.setOption("reuseAddress", true);
+//			bootstrap.setOption("child.reuseAddress", true);
+//			bootstrap.setOption("child.sendBufferSize", 65536);
+//			bootstrap.setOption("child.receiveBufferSize", 65536);
 
-			try {
-				channel = bootstrap.bind(address);
+//			try {
+//				channel = bootstrap.bind(address);
 
-				group.add(channel);
-			} catch (Exception e) {
-				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
-				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
-				LOGGER.trace("The error was: " + e);
-				PMS.get().getFrame().setStatusCode(0, Messages.getString("PMS.141"), "icon-status-warning.png");
-			}
+//				group.add(channel);
+//			} catch (Exception e) {
+//				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
+//				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
+//				LOGGER.trace("The error was: " + e);
+//				PMS.get().getFrame().setStatusCode(0, Messages.getString("PMS.141"), "icon-status-warning.png");
+//			}
 
-			if (hostname == null && iafinal != null) {
-				hostname = iafinal.getHostAddress();
-			} else if (hostname == null) {
-				hostname = InetAddress.getLocalHost().getHostAddress();
-			}
+//			if (hostname == null && iafinal != null) {
+//				hostname = iafinal.getHostAddress();
+//			} else if (hostname == null) {
+//				hostname = InetAddress.getLocalHost().getHostAddress();
+//			}
 		} else { // HTTP Engine V1
 			serverSocketChannel = ServerSocketChannel.open();
 
@@ -202,15 +203,15 @@ public class HTTPServer implements Runnable {
 			}
 		}
 
-		if (channel != null) { // HTTP Engine V2
-			if (group != null) {
-				group.close().awaitUninterruptibly();
-			}
+//		if (channel != null) { // HTTP Engine V2
+//			if (group != null) {
+//				group.close().awaitUninterruptibly();
+//			}
 
-			if (factory != null) {
-				factory.releaseExternalResources();
-			}
-		}
+//			if (factory != null) {
+//				factory.releaseExternalResources();
+//			}
+//		}
 
 		NetworkConfiguration.forgetConfiguration();
 	}

@@ -43,6 +43,38 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import javax.xml.bind.ValidationException;
+import org.fourthline.cling.binding.annotations.AnnotationLocalServiceBinder;
+import org.fourthline.cling.binding.LocalServiceBindingException;
+import org.fourthline.cling.model.DefaultServiceManager;
+import org.fourthline.cling.model.message.Connection;
+import org.fourthline.cling.model.message.StreamRequestMessage;
+import org.fourthline.cling.model.message.StreamResponseMessage;
+import org.fourthline.cling.model.NetworkAddress;
+import org.fourthline.cling.model.types.*;
+import org.fourthline.cling.model.ValidationError;
+import org.fourthline.cling.protocol.async.SendingNotificationAlive;
+import org.fourthline.cling.protocol.async.SendingSearch;
+import org.fourthline.cling.support.connectionmanager.ConnectionManagerService;
+import org.fourthline.cling.transport.Router;
+import org.fourthline.cling.transport.RouterException;
+import org.fourthline.cling.transport.RouterImpl;
+import org.fourthline.cling.model.DiscoveryOptions;
+import org.fourthline.cling.model.message.OutgoingDatagramMessage;
+import org.fourthline.cling.transport.spi.UpnpStream;
+import org.fourthline.cling.model.Namespace;
+import org.fourthline.cling.model.NetworkAddress;
+import org.fourthline.cling.model.Location;
+import org.fourthline.cling.transport.impl.StreamClientConfigurationImpl;
+import org.fourthline.cling.transport.impl.StreamClientImpl;
+import org.fourthline.cling.transport.impl.StreamServerConfigurationImpl;
+import org.fourthline.cling.transport.impl.StreamServerImpl;
+import org.fourthline.cling.transport.spi.StreamClient;
+import org.fourthline.cling.transport.spi.StreamServer;
+import org.fourthline.cling.transport.spi.NetworkAddressFactory;
 
 public class UPNPControl {
 	// Logger ids to write messages to the logs.
@@ -55,7 +87,9 @@ public class UPNPControl {
 	};
 
 	private static UpnpService upnpService;
+	private static LocalDevice localServer;
 	private static UpnpHeaders UMSHeaders;
+	private static Namespace UMSNamespace;
 	private static DocumentBuilder db;
 
 	public static final int ACTIVE = 0;
@@ -272,100 +306,6 @@ public class UPNPControl {
 
 	public UPNPControl() {
 		rendererMap = new DeviceMap<>(Renderer.class);
-	}
-
-	public void init() {
-
-		try {
-			db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			UMSHeaders = new UpnpHeaders();
-			UMSHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
-
-			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration() {
-				@Override
-				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
-					return UMSHeaders;
-				}
-			};
-
-			RegistryListener rl = new DefaultRegistryListener() {
-				@Override
-				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
-					super.remoteDeviceAdded(registry, d);
-					if (!addRenderer(d)) {
-						LOGGER.debug("found device: {} {}", d.getType().getType(), d.toString());
-					}
-					// This may be unnecessary, but we might as well be thorough
-					if (d.hasEmbeddedDevices()) {
-						for (Device e : d.getEmbeddedDevices()) {
-							if (!addRenderer(e)) {
-								LOGGER.debug("found embedded device: {} {}", e.getType(), e.toString());
-							}
-						}
-					}
-				}
-
-				@Override
-				public void remoteDeviceRemoved(Registry registry, RemoteDevice d) {
-					super.remoteDeviceRemoved(registry, d);
-					String uuid = getUUID(d);
-					if (rendererMap.containsKey(uuid)) {
-						rendererMap.mark(uuid, ACTIVE, false);
-						rendererRemoved(d);
-					}
-				}
-
-				@Override
-				public void remoteDeviceUpdated(Registry registry, RemoteDevice d) {
-					super.remoteDeviceUpdated(registry, d);
-					rendererUpdated(d);
-				}
-			};
-
-			upnpService = new UpnpServiceImpl(sc, rl) {
-				@Override
-				protected ProtocolFactory createProtocolFactory() {
-					return new ProtocolFactoryImpl(this) {
-						@Override
-						public ReceivingAsync createReceivingAsync(IncomingDatagramMessage message) throws ProtocolCreationException {
-							if (message.getOperation() instanceof UpnpRequest) {
-								IncomingDatagramMessage<UpnpRequest> d = message;
-								InetAddress host = d.getSourceAddress();
-								String headers = d.getHeaders().toString();
-//								boolean isSelf = StringUtils.indexOf(headers, "UMS/") > 0 && PMS.get().getServer().getIafinal().equals(host);
-								boolean isSelf = StringUtils.indexOf(headers, "UMS/") > 0; // deliberately lax for debugging
-								if (! isSelf) {
-									int port = d.getSourcePort();
-									LOGGER.debug("{}: {}:{} [{}]\n{}", message, host, port, d.getLocalAddress(), headers);
-									if (d.getOperation().getMethod().equals(UpnpRequest.Method.MSEARCH)) {
-										List<String> services = UPNPHelper.getInstance().getSupportedServices(headers);
-										if (services != null) {
-											for (String service : services) {
-												try {
-													UPNPHelper.getInstance().sendDiscover(host, port, service);
-												} catch (Exception e) {
-													LOGGER.debug("Error returning discovery: " + e);	
-												}
-											}
-										}
-									}
-								}
-							}
-							return super.createReceivingAsync(message);
-						}
-					};
-				}
-			};
-
-			// find all media renderers on the network
-			for (DeviceType t : mediaRendererTypes) {
-				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-			}
-
-			LOGGER.debug("UPNP Services are online, listening for media renderers");
-		} catch (Exception ex) {
-			LOGGER.debug("UPNP startup Error", ex);
-		}
 	}
 
 	public void shutdown() {
@@ -851,4 +791,207 @@ public class UPNPControl {
 		send(dev, instanceID, "RenderingControl", "SetVolume", "DesiredVolume", String.valueOf(volume), "Channel", channel);
 	}
 
+/////////////////////////////////////////////////////////////////////////////////////////
+
+	public void init() {
+
+		try {
+			db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			final String UMSUA = new ServerClientTokens() + " UMS/" + PMS.getVersion();
+			UMSHeaders = new UpnpHeaders();
+			UMSHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), UMSUA);
+			
+			UMSNamespace = new Namespace("http://"+ PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort()) {
+				@Override
+				public String getDescriptorPathString(Device device) {
+					return "/description/fetch"; // *HACK*
+				}
+			};
+
+			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration() {
+				@Override
+				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
+					return UMSHeaders;
+				}
+				@Override
+				public Namespace getNamespace() {
+					return UMSNamespace;
+				}
+				@Override
+				public StreamClient createStreamClient() {
+					return new StreamClientImpl(
+						new StreamClientConfigurationImpl(getSyncProtocolExecutorService()) {
+							public String getUserAgentValue(int majorVersion, int minorVersion) {
+								return UMSUA; // *HACK*
+							}
+						}
+					);
+				}
+//				@Override
+//				public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
+//					return new StreamServerImpl(
+//						new StreamServerConfigurationImpl(networkAddressFactory.getStreamListenPort()) {
+//							
+//						}
+//					);
+//				}
+			};
+
+			RegistryListener rl = new DefaultRegistryListener() {
+				@Override
+				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
+					super.remoteDeviceAdded(registry, d);
+					if (!addRenderer(d)) {
+						LOGGER.debug("found device: {} {}", d.getType().getType(), d.toString());
+					}
+					// This may be unnecessary, but we might as well be thorough
+					if (d.hasEmbeddedDevices()) {
+						for (Device e : d.getEmbeddedDevices()) {
+							if (!addRenderer(e)) {
+								LOGGER.debug("found embedded device: {} {}", e.getType(), e.toString());
+							}
+						}
+					}
+				}
+
+				@Override
+				public void remoteDeviceRemoved(Registry registry, RemoteDevice d) {
+					super.remoteDeviceRemoved(registry, d);
+					String uuid = getUUID(d);
+					if (rendererMap.containsKey(uuid)) {
+						rendererMap.mark(uuid, ACTIVE, false);
+						rendererRemoved(d);
+					}
+				}
+
+				@Override
+				public void remoteDeviceUpdated(Registry registry, RemoteDevice d) {
+					super.remoteDeviceUpdated(registry, d);
+					rendererUpdated(d);
+				}
+			};
+
+			upnpService = new UpnpServiceImpl(sc, rl) {
+				@Override
+				protected Router createRouter(ProtocolFactory protocolFactory, Registry registry) {
+					return new RouterImpl(getConfiguration(), protocolFactory) {
+						@Override
+						public void received(UpnpStream stream) {
+							LOGGER.trace("RECV-UPNP {}:",stream);
+							super.received(stream);
+						}
+						@Override
+						public void received(IncomingDatagramMessage msg) {
+							String headers = msg.getHeaders().toString();
+//							boolean isSelf = StringUtils.indexOf(headers, "UMS/") > 0;
+							boolean isSelf = StringUtils.indexOf(headers, "Cling/") > 0; // *HACK*
+							if (! isSelf) {
+								LOGGER.trace("RECV-UDP {}: {}:{} [{}]\n{}", msg, msg.getSourceAddress(), msg.getSourcePort(), msg.getLocalAddress(), headers);
+							}
+							super.received(msg);
+						}
+						@Override
+						public StreamResponseMessage send(StreamRequestMessage msg) throws RouterException {
+							StreamResponseMessage s = super.send(msg);
+							Connection c = msg.getConnection();
+							String headers = msg.getHeaders().toString();
+							if (c != null) {
+								LOGGER.trace("SEND-TCP {}: {}:{} [{}]\n{}", msg, c.getRemoteAddress(), msg.getUri(), c.getLocalAddress(), headers);
+							} else {
+								LOGGER.trace("SEND-TCP {}:\n{}", msg, headers);
+							}
+							return s;
+						}
+						@Override
+						public void send(OutgoingDatagramMessage msg) throws RouterException {
+							String headers = msg.getHeaders().toString();
+							if (StringUtils.indexOf(headers, "ssdp:alive") > 0 && net.pms.network.UPNPControl.aliveLogged) {
+								LOGGER.trace("SEND-UDP ALIVE {}: {}:{}", msg, msg.getDestinationAddress(), msg.getDestinationPort());
+							} else {
+								LOGGER.trace("SEND-UDP {}: {}:{}\n{}", msg, msg.getDestinationAddress(), msg.getDestinationPort(), headers);
+							}
+							super.send(msg);
+						}
+						
+						// *** THIS IS A HACK ***
+						@Override
+						public List<NetworkAddress> getActiveStreamServers(InetAddress preferredAddress) throws RouterException {
+							List<NetworkAddress> addrs = new ArrayList<NetworkAddress>();
+							try {
+								addrs.add(new NetworkAddress(InetAddress.getByName(PMS.get().getServer().getHost()), PMS.get().getServer().getPort())); // *HACK*
+							} catch (Exception e) {
+							}
+							return addrs;
+						}
+					};
+				}
+			};
+
+			localServer = createDevice();
+			upnpService.getRegistry().addDevice(localServer, new DiscoveryOptions(true));
+			UPNPHelper.getInstance().startAlive();
+
+			// find all media renderers on the network
+			for (DeviceType t : mediaRendererTypes) {
+				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
+			}
+
+			LOGGER.debug("UPNP Services are online, listening for media renderers");
+		} catch (Exception ex) {
+			LOGGER.debug("UPNP startup Error", ex);
+		}
+	}
+
+	static volatile boolean aliveLogged = false;
+
+	public void sendAlive() {
+		if (localServer != null) {
+			new SendingNotificationAlive(upnpService, localServer).run();
+			aliveLogged = true;
+		}
+	}
+
+	private LocalDevice createDevice() throws ValidationException, LocalServiceBindingException, IOException {
+		try {
+			DeviceDetails details = new DeviceDetails(
+				"UMS",
+				new ManufacturerDetails("UMS", "http://www.universalmediaserver.com"),
+				new ModelDetails(
+					"UMS",
+					"UPnP/AV 1.0 Compliant Media Server", "01",
+					"http://www.universalmediaserver.com"),
+				"",
+				"",
+				"http://192.168.100.2:5001/console/index.html",
+				new DLNADoc[] {new DLNADoc("DMS", "1.50"), new DLNADoc("M-DMS", "1.50")},
+				null
+			);
+			
+			Icon icon = new Icon("image/png", 48, 48, 8, "myicon",
+				getClass().getClassLoader().getResourceAsStream("resources/images/icon-48.png")
+			);
+
+			return new LocalDevice(
+				new DeviceIdentity(new UDN(PMS.get().usn().substring(5))),
+				new UDADeviceType("MediaServer"),
+				details,
+				icon,
+				new LocalService<?>[] {createConnectionManager()}
+			);
+		} catch (Exception e) {
+			LOGGER.error("Error creating device", e);
+		}
+		return null;
+	}
+	
+	private LocalService<ConnectionManagerService> createConnectionManager() {
+		LocalService<ConnectionManagerService> service = new AnnotationLocalServiceBinder().read(ConnectionManagerService.class);
+		service.setManager(new DefaultServiceManager<ConnectionManagerService>(service, ConnectionManagerService.class) {
+			@Override
+			protected ConnectionManagerService createServiceInstance() throws Exception {
+				return new ConnectionManagerService(null, null);
+			}
+		});
+		return service;
+	}
 }

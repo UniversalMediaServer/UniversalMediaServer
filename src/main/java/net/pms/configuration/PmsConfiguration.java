@@ -2412,7 +2412,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isHTTPEngineV2() {
-		return getBoolean(KEY_HTTP_ENGINE_V2, true);
+		return false;
+//		return getBoolean(KEY_HTTP_ENGINE_V2, true);
 	}
 
 	public boolean isShowIphotoLibrary() {

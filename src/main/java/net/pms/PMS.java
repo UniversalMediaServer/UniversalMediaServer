@@ -559,7 +559,7 @@ public class PMS {
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
-		UPNPHelper.getInstance().init();
+//		UPNPHelper.getInstance().init();
 
 		// launch ChromecastMgr
 		jmDNS = null;
@@ -643,6 +643,7 @@ public class PMS {
 		System.setErr(new PrintStream(new SystemErrWrapper(), true));
 
 		server = new HTTPServer(configuration.getServerPort());
+		UPNPHelper.getInstance().init();
 
 		/*
 		 * XXX: keep this here (i.e. after registerExtensions and before registerPlayers) so that plugins
@@ -733,8 +734,8 @@ public class PMS {
 						l.shutdown();
 					}
 
-					UPNPHelper.shutDownListener();
-					UPNPHelper.sendByeBye();
+//					UPNPHelper.shutDownListener();
+//					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");
 
 					for (Process p : currentProcesses) {
@@ -754,10 +755,10 @@ public class PMS {
 			}
 		});
 
-		UPNPHelper.sendAlive();
-		LOGGER.trace("Waiting 250 milliseconds...");
-		Thread.sleep(250);
-		UPNPHelper.listen();
+//		UPNPHelper.sendAlive();
+//		LOGGER.trace("Waiting 250 milliseconds...");
+//		Thread.sleep(250);
+//		UPNPHelper.listen();
 
 		return true;
 	}
@@ -910,7 +911,7 @@ public class PMS {
 			public void run() {
 				try {
 					LOGGER.trace("Waiting 1 second...");
-					UPNPHelper.sendByeBye();
+//					UPNPHelper.sendByeBye();
 					server.stop();
 					server = null;
 					RendererConfiguration.resetAllRenderers();
@@ -923,7 +924,7 @@ public class PMS {
 
 					server = new HTTPServer(configuration.getServerPort());
 					server.start();
-					UPNPHelper.sendAlive();
+//					UPNPHelper.sendAlive();
 					frame.setReloadable(false);
 				} catch (IOException e) {
 					LOGGER.error("error during restart :" +e.getMessage(), e);
