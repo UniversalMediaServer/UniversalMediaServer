@@ -2193,7 +2193,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return whether to use the embedded styles or ours
 	 */
 	public boolean isUseEmbeddedSubtitlesStyle() {
-		return getBoolean(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true) || getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
+		return getBoolean(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true);
 	}
 
 	public int getMEncoderOverscan() {
