@@ -541,7 +541,7 @@ public class UPNPHelper extends UPNPControl {
 	public static void shutDownListener() {
 		instance.shutdown();
 //		listenerThread.interrupt();
-//		aliveThread.interrupt();
+		aliveThread.interrupt();
 	}
 
 //	/**
