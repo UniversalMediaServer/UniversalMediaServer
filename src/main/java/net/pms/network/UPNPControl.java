@@ -22,12 +22,18 @@ import org.fourthline.cling.model.message.header.UpnpHeader;
 import org.fourthline.cling.model.message.UpnpHeaders;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.model.message.header.DeviceTypeHeader;
+import org.fourthline.cling.model.message.IncomingDatagramMessage;
+import org.fourthline.cling.model.message.UpnpRequest;
 import org.fourthline.cling.model.meta.*;
 import org.fourthline.cling.model.ServerClientTokens;
 import org.fourthline.cling.model.types.DeviceType;
 import org.fourthline.cling.model.types.ServiceId;
 import org.fourthline.cling.model.types.UDADeviceType;
 import org.fourthline.cling.model.types.UDN;
+import org.fourthline.cling.protocol.ProtocolCreationException;
+import org.fourthline.cling.protocol.ProtocolFactory;
+import org.fourthline.cling.protocol.ProtocolFactoryImpl;
+import org.fourthline.cling.protocol.ReceivingAsync;
 import org.fourthline.cling.registry.DefaultRegistryListener;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
@@ -316,7 +322,40 @@ public class UPNPControl {
 				}
 			};
 
-			upnpService = new UpnpServiceImpl(sc, rl);
+			upnpService = new UpnpServiceImpl(sc, rl) {
+				@Override
+				protected ProtocolFactory createProtocolFactory() {
+					return new ProtocolFactoryImpl(this) {
+						@Override
+						public ReceivingAsync createReceivingAsync(IncomingDatagramMessage message) throws ProtocolCreationException {
+							if (message.getOperation() instanceof UpnpRequest) {
+								IncomingDatagramMessage<UpnpRequest> d = message;
+								InetAddress host = d.getSourceAddress();
+								String headers = d.getHeaders().toString();
+//								boolean isSelf = StringUtils.indexOf(headers, "UMS/") > 0 && PMS.get().getServer().getIafinal().equals(host);
+								boolean isSelf = StringUtils.indexOf(headers, "UMS/") > 0; // deliberately lax for debugging
+								if (! isSelf) {
+									int port = d.getSourcePort();
+									LOGGER.debug("{}: {}:{} [{}]\n{}", message, host, port, d.getLocalAddress(), headers);
+									if (d.getOperation().getMethod().equals(UpnpRequest.Method.MSEARCH)) {
+										List<String> services = UPNPHelper.getInstance().getSupportedServices(headers);
+										if (services != null) {
+											for (String service : services) {
+												try {
+													UPNPHelper.getInstance().sendDiscover(host, port, service);
+												} catch (Exception e) {
+													LOGGER.debug("Error returning discovery: " + e);	
+												}
+											}
+										}
+									}
+								}
+							}
+							return super.createReceivingAsync(message);
+						}
+					};
+				}
+			};
 
 			// find all media renderers on the network
 			for (DeviceType t : mediaRendererTypes) {
