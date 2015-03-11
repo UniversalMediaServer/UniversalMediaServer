@@ -3398,4 +3398,12 @@ public class PmsConfiguration extends RendererConfiguration {
    	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
 	}
+
+   	
+   	/**
+	 * Enable the automatically saving of modified properties to the disk.
+	 */
+   	public void setAutoSave() {
+   		((PropertiesConfiguration)configuration).setAutoSave(true);
+   	}
 }
