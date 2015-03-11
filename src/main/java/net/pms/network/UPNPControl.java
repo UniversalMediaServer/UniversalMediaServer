@@ -917,10 +917,9 @@ public class UPNPControl {
 						@Override
 						public List<NetworkAddress> getActiveStreamServers(InetAddress preferredAddress) throws RouterException {
 							List<NetworkAddress> addrs = new ArrayList<NetworkAddress>();
-							try {
-								addrs.add(new NetworkAddress(InetAddress.getByName(PMS.get().getServer().getHost()), PMS.get().getServer().getPort())); // *HACK*
-							} catch (Exception e) {
-							}
+							for (NetworkAddress server : super.getActiveStreamServers(preferredAddress)) {
+								addrs.add(new NetworkAddress(server.getAddress(), PMS.get().getServer().getPort())); // *HACK*
+ 							}
 							return addrs;
 						}
 					};
