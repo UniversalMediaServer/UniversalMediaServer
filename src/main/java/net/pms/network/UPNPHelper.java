@@ -358,24 +358,17 @@ public class UPNPHelper extends UPNPControl {
 		Runnable rAlive = new Runnable() {
 			@Override
 			public void run() {
-				int delay = 10000;
-
-				while (true) {
-					sleep(delay);
-					sendAlive();
-
-					// The first delay for sending an ALIVE message is 10 seconds,
-					// the second delay is for 20 seconds. From then on, all other
-					// delays are for 180 seconds.
-					switch (delay) {
-						case 10000:
-							delay = 20000;
-							break;
-						case 20000:
-							delay = 180000;
-							break;
-						default:
-							break;
+				int delay = 10;
+				int elapsed = 0;
+				while (! Thread.currentThread().isInterrupted()) {
+					sleep(1000);
+					if (++elapsed == delay) {
+						sendAlive();
+						// The first delay for sending an ALIVE message is 10 seconds,
+						// the second delay is for 20 seconds. From then on, all other
+						// delays are for 180 seconds.
+						delay = delay == 10 ? 20 : 180;
+						elapsed = 0;
 					}
 				}
 			}
