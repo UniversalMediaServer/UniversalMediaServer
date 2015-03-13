@@ -412,17 +412,18 @@ public class GeneralTab {
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
-			networkinterfacesCBX = new JComboBox(networkInterfaces);
-			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
-			networkinterfacesCBX.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					if (e.getStateChange() == ItemEvent.SELECTED) {
-						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
-					}
-				}
-			});
+			networkinterfacesCBX = new JComboBox();
+//			final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
+//			networkinterfacesCBX = new JComboBox(networkInterfaces);
+//			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
+//			networkinterfacesCBX.addItemListener(new ItemListener() {
+//				@Override
+//				public void itemStateChanged(ItemEvent e) {
+//					if (e.getStateChange() == ItemEvent.SELECTED) {
+//						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
+//					}
+//				}
+//			});
 
 			ip_filter = new JTextField(configuration.getIpFilter());
 			ip_filter.addKeyListener(new KeyAdapter() {
@@ -564,6 +565,20 @@ public class GeneralTab {
 		names.add(0, "");
 		final KeyedComboBoxModel networkInterfaces = new KeyedComboBoxModel(keys.toArray(), names.toArray());
 		return networkInterfaces;
+	}
+
+	public void addInterfaces() {
+			final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
+			networkinterfacesCBX.setModel(networkInterfaces);
+			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
+			networkinterfacesCBX.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					if (e.getStateChange() == ItemEvent.SELECTED) {
+						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
+					}
+				}
+			});
 	}
 
 	/**

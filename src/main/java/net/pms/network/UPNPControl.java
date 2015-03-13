@@ -75,6 +75,8 @@ import org.fourthline.cling.transport.impl.StreamServerImpl;
 import org.fourthline.cling.transport.spi.StreamClient;
 import org.fourthline.cling.transport.spi.StreamServer;
 import org.fourthline.cling.transport.spi.NetworkAddressFactory;
+import org.fourthline.cling.transport.impl.NetworkAddressFactoryImpl;
+import org.fourthline.cling.transport.spi.InitializationException;
 
 public class UPNPControl {
 	// Logger ids to write messages to the logs.
@@ -816,6 +818,13 @@ public class UPNPControl {
 				@Override
 				public Namespace getNamespace() {
 					return UMSNamespace;
+				}
+				@Override
+				protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
+					NetworkConfiguration.forgetConfiguration();
+					NetworkConfiguration config = NetworkConfiguration.getInstance();
+					config.init(streamListenPort);
+					return config;
 				}
 				@Override
 				public StreamClient createStreamClient() {
