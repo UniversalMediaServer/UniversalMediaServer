@@ -1,19 +1,35 @@
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012  UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 /**
  * Based on http://transoceanic.blogspot.cz/2011/12/java-read-key-from-windows-registry.html
  */
 package net.pms.util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WindowsRegistry {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsRegistry.class);
-	
+
 	/**
 	 * @param location path in the registry
 	 * @param key registry key
@@ -31,12 +47,13 @@ public class WindowsRegistry {
 			reader.join();
 
 			// Parse out the value
-			String parsed = reader.getResult().substring(reader.getResult().indexOf("REG_SZ") + 6).trim();
+			if (reader.getResult().length() > 6) {
+				String parsed = reader.getResult().substring(reader.getResult().indexOf("REG_SZ") + 6).trim();
 
-			if (parsed.length() > 1) {
-				return parsed;
+				if (parsed.length() > 1) {
+					return parsed;
+				}
 			}
-			
 		} catch (IOException | InterruptedException e) {}
 
 		return null;
@@ -58,10 +75,9 @@ public class WindowsRegistry {
 				BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, charsetName));
 				String line = null;
 
-				while ((line = br.readLine()) != null){
+				while ((line = br.readLine()) != null) {
 					result.append(line);
 				}
-
 			} catch (UnsupportedEncodingException e) {
 				LOGGER.error(null, e);
 			} catch (IOException e1) {
@@ -74,4 +90,3 @@ public class WindowsRegistry {
 		}
 	}
 }
-

@@ -20,21 +20,23 @@
 package net.pms;
 
 import com.sun.jna.Platform;
+import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
+import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RootFolder;
+import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -45,6 +47,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
@@ -74,6 +77,10 @@ public class PMS {
 
 	private boolean ready = false;
 
+	private static FileWatcher fileWatcher;
+
+	private GlobalIdRepo globalRepo;
+
 	public static final String AVS_SEPARATOR = "\1";
 
 	// (innot): The logger used for all logging.
@@ -94,6 +101,8 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	private NameFilter filter;
+
+	private JmDNS jmDNS;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -143,6 +152,10 @@ public class PMS {
 	 */
 	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<>();
 
+	public List<RendererConfiguration> getFoundRenderers() {
+		return foundRenderers;
+	}
+
 	/**
 	 * @deprecated Use {@link #setRendererFound(RendererConfiguration)} instead.
 	 */
@@ -161,10 +174,16 @@ public class PMS {
 	 */
 	public void setRendererFound(RendererConfiguration renderer) {
 		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+			LOGGER.debug("Adding status button for " + renderer.getRendererName());
 			foundRenderers.add(renderer);
-			frame.addRendererIcon(renderer.getRank(), renderer.getRendererName(), renderer.getRendererIcon());
+			frame.addRenderer(renderer);
 			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
 		}
+	}
+
+	public void updateRenderer(RendererConfiguration renderer) {
+		LOGGER.debug("Updating status button for " + renderer.getRendererName());
+		frame.updateRenderer(renderer);
 	}
 
 	/**
@@ -271,6 +290,7 @@ public class PMS {
 	}
 
 	private void displayBanner() throws IOException {
+		LOGGER.debug("");
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
 		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
 		LOGGER.info("http://www.universalmediaserver.com");
@@ -370,6 +390,10 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+
+		// call this as early as possible
+		displayBanner();
+
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
 			// Ask the user if they want to run the wizard
@@ -400,30 +424,6 @@ public class PMS {
 					save();
 				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
 					configuration.setMinimized(false);
-					save();
-				}
-
-				// Ask if their audio receiver/s support DTS audio
-
-				Object[] optionsDTS = {
-					UIManager.getString("OptionPane.yesButtonText"),
-					UIManager.getString("OptionPane.noButtonText")
-				};
-				int whetherToSendDTS = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("Wizard.5"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					optionsDTS,
-					optionsDTS[1]
-				);
-				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
-					configuration.setAudioEmbedDtsInPcm(true);
-					save();
-				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
-					configuration.setAudioEmbedDtsInPcm(false);
 					save();
 				}
 
@@ -499,8 +499,9 @@ public class PMS {
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
 
-		// call this as early as possible
-		displayBanner();
+		fileWatcher = new FileWatcher();
+
+		globalRepo = new GlobalIdRepo();
 
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
@@ -547,7 +548,22 @@ public class PMS {
 			}
 		});
 
+		// Web stuff
+		if (configuration.useWebInterface()) {
+			web = new RemoteWeb(configuration.getWebPort());
+		}
+
+		infoDb = new InfoDb();
+		codes = new CodeDb();
+		masterCode = null;
+
 		RendererConfiguration.loadRendererConfigurations(configuration);
+		// Now that renderer confs are all loaded, we can start searching for renderers
+		UPNPHelper.getInstance().init();
+
+		// launch ChromecastMgr
+		jmDNS = null;
+		launchJmDNSRenders();
 
 		OutputParams outputParams = new OutputParams(configuration);
 
@@ -692,11 +708,6 @@ public class PMS {
 			return false;
 		}
 
-		// Web stuff
-		if (configuration.useWebInterface()) {
-			web = new RemoteWeb(configuration.getWebPort());
-		}
-
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
@@ -743,6 +754,7 @@ public class PMS {
 			}
 		});
 
+		configuration.setAutoSave();
 		UPNPHelper.sendAlive();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
@@ -815,7 +827,7 @@ public class PMS {
 	 */
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
-		return getSharedFoldersArray(false);
+		return getSharedFoldersArray(false, getConfiguration());
 	}
 
 	/**
@@ -823,7 +835,7 @@ public class PMS {
 	 */
 	@Deprecated
 	public File[] getFoldersConf() {
-		return getSharedFoldersArray(false);
+		return getSharedFoldersArray(false, getConfiguration());
 	}
 
 	/**
@@ -833,16 +845,20 @@ public class PMS {
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, null);
+		return getSharedFoldersArray(monitored, null, getConfiguration());
 	}
 
-	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags) {
+	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
+		return getSharedFoldersArray(monitored, null, configuration);
+	}
+
+	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
 		String folders;
 
 		if (monitored) {
-			folders = getConfiguration().getFoldersMonitored();
+			folders = configuration.getFoldersMonitored();
 		} else {
-			folders = getConfiguration().getFolders(tags);
+			folders = configuration.getFolders(tags);
 		}
 
 		if (folders == null || folders.length() == 0) {
@@ -1058,7 +1074,7 @@ public class PMS {
 		return FormatFactory.getAssociatedFormat(filename);
 	}
 
-	public static void main(String args[]) throws IOException, ConfigurationException {
+	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
 		boolean headless = true;
 
@@ -1125,6 +1141,8 @@ public class PMS {
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
 			LoggingConfigFileLoader.load();
 
+			LOGGER.debug(new Date().toString());
+
 			try {
 				getConfiguration().initCred();
 			} catch (IOException e) {
@@ -1161,6 +1179,10 @@ public class PMS {
 		return server;
 	}
 
+	public HttpServer getWebServer() {
+		return web == null ? null : web.getServer();
+	}
+
 	public void save() {
 		try {
 			configuration.save();
@@ -1184,6 +1206,28 @@ public class PMS {
 	 */
 	public static PmsConfiguration getConfiguration() {
 		return configuration;
+	}
+
+	/**
+	 * Retrieves the composite {@link net.pms.configuration.DeviceConfiguration DeviceConfiguration} object
+	 * that applies to this device, which acts as its {@link net.pms.configuration.PmsConfiguration PmsConfiguration}.
+	 *
+	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
+	 * is known or can be determined.
+	 *
+	 * @return The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 */
+	public static PmsConfiguration getConfiguration(RendererConfiguration r) {
+		return (r != null && (r instanceof DeviceConfiguration)) ? (DeviceConfiguration)r : configuration;
+	}
+
+	public static PmsConfiguration getConfiguration(OutputParams params) {
+		return getConfiguration(params != null ? params.mediaRenderer : null);
+	}
+
+	// Note: this should be used only when no RendererConfiguration or OutputParams is available
+	public static PmsConfiguration getConfiguration(DLNAResource dlna) {
+		return getConfiguration(dlna != null ? dlna.getDefaultRenderer() : null);
 	}
 
 	/**
@@ -1399,10 +1443,10 @@ public class PMS {
 	 */
 	public static boolean isHeadless() {
 		try {
-			javax.swing.JDialog d = new javax.swing.JDialog();
+			JDialog d = new JDialog();
 			d.dispose();
 			return false;
-		} catch (java.lang.NoClassDefFoundError | java.awt.HeadlessException | java.lang.InternalError e) {
+		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
 			return true;
 		}
 	}
@@ -1464,4 +1508,101 @@ public class PMS {
 	public static boolean isReady() {
 		return get().ready;
 	}
+
+	public List<RendererConfiguration> getRenders() {
+		return foundRenderers;
+	}
+
+	public static GlobalIdRepo getGlobalRepo() {
+		return get().globalRepo;
+	}
+
+	private InfoDb infoDb;
+	private CodeDb codes;
+	private CodeEnter masterCode;
+
+	public void infoDbAdd(File f, String formattedName) {
+		infoDb.backgroundAdd(f, formattedName);
+	}
+
+	public InfoDb infoDb() {
+		return infoDb;
+	}
+
+	public CodeDb codeDb() {
+		return codes;
+	}
+
+	public void setMasterCode(CodeEnter ce) {
+		masterCode = ce;
+	}
+
+	public boolean masterCodeValid() {
+		return (masterCode != null && masterCode.validCode(null));
+	}
+
+	public static FileWatcher getFileWatcher() {
+		return fileWatcher;
+	}
+
+	public static class DynamicPlaylist extends Playlist {
+		private long start;
+		private String savePath;
+
+		public DynamicPlaylist(String name, String dir, int mode) {
+			super(name, null, 0, mode);
+			savePath = dir;
+			start = 0;
+		}
+
+		@Override
+		public void clear() {
+			super.clear();
+			start = 0;
+		}
+
+		@Override
+		public void save() {
+			if (start == 0) {
+				start = System.currentTimeMillis();
+			}
+			Date d = new Date(start);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
+			list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
+		}
+	}
+
+	private DynamicPlaylist dynamicPls;
+
+	public Playlist getDynamicPls() {
+		if (dynamicPls == null) {
+			dynamicPls = new DynamicPlaylist(Messages.getString("PMS.146"),
+				configuration.getDynamicPlsSavePath(),
+				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
+		}
+		return dynamicPls;
+	}
+
+	private void launchJmDNSRenders() {
+		if (configuration.useChromecastExt()) {
+			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
+				try {
+					startjmDNS();
+					new ChromecastMgr(jmDNS);
+				} catch (Exception e) {
+					LOGGER.debug("Can't create chromecast mgr");
+				}
+			}
+			else {
+				LOGGER.info("No Chromecast render found. Please enable one and restart.");
+			}
+		}
+	}
+
+	private void startjmDNS() throws IOException{
+		if (jmDNS == null) {
+			jmDNS = JmDNS.create();
+		}
+	}
+
 }

@@ -87,10 +87,17 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		InetSocketAddress remoteAddress = (InetSocketAddress) e.getChannel().getRemoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
-		// Apply the IP filter
-		if (filterIp(ia)) {
+		// Is the request from our own Cling service, i.e. self-originating?
+		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
+			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT) != null &&
+			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
+
+		// Filter if required
+		if (isSelf || filterIp(ia)) {
 			e.getChannel().close();
-			LOGGER.trace("Access denied for address " + ia + " based on IP filter");
+			LOGGER.trace(isSelf ?
+				("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort()) :
+				("Access denied for address " + ia + " based on IP filter"));
 			return;
 		}
 
@@ -113,14 +120,14 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// Attempt 1: try to recognize the renderer by its socket address from previous requests
 		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
-		if (renderer == null) {
+		// If the renderer exists but isn't marked as loaded it means it's unrecognized
+		// by upnp and we still need to attempt http recognition here.
+		if (renderer == null || !renderer.loaded) {
 			// Attempt 2: try to recognize the renderer by matching headers
-			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries());
+			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
 		}
 
 		if (renderer != null) {
-			renderer.associateIP(ia);
-			PMS.get().setRendererFound(renderer);
 			request.setMediaRenderer(renderer);
 		}
 
@@ -209,17 +216,23 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// Still no media renderer recognized?
 		if (request.getMediaRenderer() == null) {
 
-			// Attempt 4: Not really an attempt; all other attempts to recognize
+			// Attempt 3: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			request.setMediaRenderer(RendererConfiguration.getDefaultConf());
-			LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
+			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
+			if (request.getMediaRenderer() != null) {
+				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getConfName());
 
-			if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
-				// We have found an unknown renderer
-				LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
-						+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-				PMS.get().setRendererFound(request.getMediaRenderer());
+				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
+					// We have found an unknown renderer
+					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
+							+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
+					PMS.get().setRendererFound(request.getMediaRenderer());
+				}
+			} else {
+				// If RendererConfiguration.resolve() didn't return the default renderer
+				// it means we know via upnp that it's not really a renderer.
+				return;
 			}
 		} else {
 			if (userAgentString != null) {
@@ -238,7 +251,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 
-		writeResponse(e, request, ia);
+		writeResponse(ctx, e, request, ia);
 	}
 
 	/**
@@ -253,7 +266,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(MessageEvent e, RequestV2 request, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
@@ -278,6 +291,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		// Attach it to the context so it can be invoked if connection is reset unexpectedly
+		ctx.setAttachment(startStopListenerDelegate);
 
 		try {
 			request.answer(response, e, close, startStopListenerDelegate);
@@ -300,8 +315,17 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
-		if (cause != null && !cause.getClass().equals(ClosedChannelException.class) && !cause.getClass().equals(IOException.class)) {
-			LOGGER.debug("Caught exception", cause);
+		if (cause != null) {
+			if (cause.getClass().equals(IOException.class)) {
+				LOGGER.debug("Connection error: " + cause);
+				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();
+				if (startStopListenerDelegate != null) {
+					LOGGER.debug("Premature end, stopping...");
+					startStopListenerDelegate.stop();
+				}
+			} else if (!cause.getClass().equals(ClosedChannelException.class)) {
+				LOGGER.debug("Caught exception: " + cause);
+			}
 		}
 		if (ch.isConnected()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);

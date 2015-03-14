@@ -18,8 +18,11 @@
  */
 package net.pms.configuration;
 
+import java.io.File;
 import java.util.*;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +38,8 @@ class ConfigurationReader {
 	private Map<String, Object> logMap = new HashMap<>();
 	private final Configuration configuration;
 	private final boolean logOverrides;
+	private Configuration dConf;
+	private String dTag;
 
 	ConfigurationReader(Configuration configuration) {
 		this(configuration, false); // don't log by default: just provide the getters
@@ -43,6 +48,10 @@ class ConfigurationReader {
 	ConfigurationReader(Configuration configuration, boolean logOverrides) {
 		this.configuration = configuration;
 		this.logOverrides = logOverrides;
+		dConf = (configuration instanceof CompositeConfiguration) ?
+			((CompositeConfiguration) configuration).getConfiguration(0) : null;
+		File f = dConf != null ? ((PropertiesConfiguration) dConf).getFile() : null;
+		dTag = f != null ? ("[" + f.getName() + "] ") : null;
 	}
 
 	// quote strings
@@ -77,10 +86,13 @@ class ConfigurationReader {
 		if (ObjectUtils.notEqual(oldValue, value)) {
 			logMap.put(key, value);
 
+			// Do an independant lookup to determine if the value's source was the device conf,
+			// and if so log it as a device override by explicitly identifying the source.
+			String src = (dConf != null && value != null && value.equals(dConf.getProperty(key))) ? dTag : "";
 			if (initialised) {
-				LOGGER.debug("Reading {}: default: {}, current: {}", key, quote(oldValue), quote(value));
+				LOGGER.debug("{}Reading {}: {} (default: {})", src, key, quote(value), quote(oldValue));
 			} else {
-				LOGGER.debug("Reading {}: default: {}, previous: {}, current: {}", key, quote(def), quote(oldValue), quote(value));
+				LOGGER.debug("{}Reading {}: {} (previous: {}, default: {})", src, key, quote(value), quote(oldValue), quote(def));
 			}
 		}
 	}
@@ -118,11 +130,34 @@ class ConfigurationReader {
 	 * @param def The default value to return when no valid key value can be found.
 	 * @return The value configured for the key.
 	 */
-	long getLong(String key, int def) {
+	long getLong(String key, long def) {
 		long value;
 
 		try {
 			value = configuration.getLong(key, def);
+		} catch (ConversionException e) {
+			value = def;
+		}
+
+		log(key, value, def);
+		return value;
+	}
+
+	/**
+	 * Return the <code>double</code> value for a given configuration key. First, the key
+	 * is looked up in the current configuration settings. If it exists and contains a
+	 * valid value, that value is returned. If the key contains an invalid value or
+	 * cannot be found, the specified default value is returned.
+	 *
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	double getDouble(String key, double def) {
+		double value;
+
+		try {
+			value = configuration.getDouble(key, def);
 		} catch (ConversionException e) {
 			value = def;
 		}

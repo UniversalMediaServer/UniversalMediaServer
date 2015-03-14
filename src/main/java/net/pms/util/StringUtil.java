@@ -1,8 +1,31 @@
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012  UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package net.pms.util;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Formatter;
 import java.util.Locale;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 
 public class StringUtil {
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
@@ -139,5 +162,51 @@ public class StringUtil {
 		}
 
 		return sb.toString();
+	}
+
+	/**
+	 * Removes leading zeros up to the nth char of an hh:mm:ss time string.
+	 *
+	 * @param t time string.
+	 * @param n position to stop checking
+	 *
+	 * @return the Shortened String.
+	 */
+	public static String shortTime(String t, int n) {
+		n = n < 8 ? n : 8;
+		if (!isBlank(t)) {
+			int i = t.indexOf(".");
+			// Throw out the decimal portion, if any
+			if (i > -1) {
+				t = t.substring(0, i);
+			}
+			for (i = 0; i < n; i++) {
+				if (t.charAt(i) != "00:00:00".charAt(i)) {
+					break;
+				}
+			}
+			return t.substring(i);
+		}
+		return "00:00:00".substring(n);
+	}
+
+	public static boolean isZeroTime(String t) {
+		return isBlank(t) || "00:00:00.000".contains(t);
+	}
+
+	/**
+	 * A unicode unescaper that translates unicode escapes, e.g. '\u005c', while leaving
+	 * intact any  sequences that can't be interpreted as escaped unicode.
+	 */
+	public static class LaxUnicodeUnescaper extends UnicodeUnescaper {
+		@Override
+		public int translate(CharSequence input, int index, Writer out) throws IOException {
+			try {
+				return super.translate(input, index, out);
+			} catch (IllegalArgumentException e) {
+				// Leave it alone and continue
+			}
+			return 0;
+		}
 	}
 }

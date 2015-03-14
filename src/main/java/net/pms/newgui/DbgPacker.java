@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.swing.*;
@@ -18,10 +19,12 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,8 +113,9 @@ public class DbgPacker implements ActionListener {
 
 		// add confs of connected renderers
 		for (RendererConfiguration r : RendererConfiguration.getConnectedRenderersConfigurations()) {
-			if (r.getFile() != null) {
-				add(r.getFile());
+			add(r.getFile());
+			if (((DeviceConfiguration)r).isCustomized()) {
+				add(((DeviceConfiguration)r).getParentFile());
 			}
 		}
 
@@ -132,19 +136,17 @@ public class DbgPacker implements ActionListener {
 
 	private void add(String[] files) {
 		for (String file : files) {
-			LOGGER.debug("adding " + file);
-			try {
-				items.put(new File(file).getCanonicalFile(), null);
-			} catch (IOException e) {
-			}
+			add(new File(file));
 		}
 	}
 
 	private void add(File file) {
-		LOGGER.debug("adding " + file.getAbsolutePath());
-		try {
-			items.put(file.getCanonicalFile(), null);
-		} catch (IOException e) {
+		if (file != null) {
+			LOGGER.debug("adding " + file.getAbsolutePath());
+			try {
+				items.put(file.getCanonicalFile(), null);
+			} catch (IOException e) {
+			}
 		}
 	}
 
@@ -162,6 +164,11 @@ public class DbgPacker implements ActionListener {
 			}
 			out.closeEntry();
 		}
+	}
+
+	public Set<File> getItems() {
+		poll();
+		return items.keySet();
 	}
 
 	private boolean saveDialog() {
@@ -247,7 +254,7 @@ public class DbgPacker implements ActionListener {
 		LOGGER.debug("reloading.");
 		((Window) c.getTopLevelAncestor()).dispose();
 		JOptionPane.showOptionDialog(
-			(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+			SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 			config(),
 			"Options",
 			JOptionPane.CLOSED_OPTION,

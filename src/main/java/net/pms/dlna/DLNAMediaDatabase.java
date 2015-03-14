@@ -23,7 +23,6 @@ import java.awt.Component;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
@@ -37,9 +36,6 @@ import static org.apache.commons.lang3.StringUtils.*;
 import org.h2.engine.Constants;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
-import org.h2.tools.DeleteDbFiles;
-import org.h2.tools.RunScript;
-import org.h2.tools.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +61,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "2";
+	private final String latestVersion = "3";
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -90,18 +86,9 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_GENRE = 64;
 
 	public DLNAMediaDatabase(String name) {
-		String dir = "database";
 		dbName = name;
-		File fileDir = new File(dir);
-
-		if (Platform.isWindows()) {
-			String profileDir = configuration.getProfileDirectory();
-			url = String.format("jdbc:h2:%s\\%s/%s", profileDir, dir, dbName);
-			fileDir = new File(profileDir, dir);
-		} else {
-			url = Constants.START_URL + dir + "/" + dbName;
-		}
-		dbDir = fileDir.getAbsolutePath();
+		dbDir = new File(Platform.isWindows() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
+		url = Constants.START_URL + dbDir + "/" + dbName;
 		LOGGER.debug("Using database URL: " + url);
 		LOGGER.info("Using database located at: " + dbDir);
 
@@ -141,7 +128,7 @@ public class DLNAMediaDatabase implements Runnable {
 				} else {
 					if (!net.pms.PMS.isHeadless()) {
 						JOptionPane.showMessageDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE);
@@ -775,24 +762,5 @@ public class DLNAMediaDatabase implements Runnable {
 	@Override
 	public void run() {
 		PMS.get().getRootFolder(null).scan();
-	}
-
-	public void compact() {
-		LOGGER.info("Compacting database...");
-		PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.3"));
-		String filename = "database/backup.sql";
-		try {
-			Script.execute(url, "sa", "", filename);
-			DeleteDbFiles.execute(dbDir, dbName, true);
-			RunScript.execute(url, "sa", "", filename, null, false);
-		} catch (SQLException se) {
-			LOGGER.error("Error in compacting database: ", se);
-		} finally {
-			File testsql = new File(filename);
-			if (testsql.exists() && !testsql.delete()) {
-				testsql.deleteOnExit();
-			}
-		}
-		PMS.get().getFrame().setStatusLine(null);
 	}
 }

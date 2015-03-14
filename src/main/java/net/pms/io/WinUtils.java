@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author zsombor
  */
-public class WinUtils extends BasicSystemUtils implements SystemUtils {
+public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -150,10 +150,10 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 				char test[] = new char[2 + pathname.length() * 2];
 				int r = Kernel32.INSTANCE.GetShortPathNameW(pathname, test, test.length);
 				if (r > 0) {
-					LOGGER.debug("Forcing short path name on " + pathname);
+					LOGGER.trace("Forcing short path name on " + pathname);
 					return Native.toString(test);
 				} else {
-					LOGGER.info("File does not exist? " + pathname);
+					LOGGER.debug("Can't find " + pathname);
 					return null;
 				}
 

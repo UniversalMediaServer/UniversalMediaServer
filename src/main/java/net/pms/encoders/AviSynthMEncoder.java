@@ -101,7 +101,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				configuration.setAvisynthInterFrame(interframe.isSelected());
 				if (configuration.getAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 						Messages.getString("AviSynthMEncoder.16"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE
@@ -222,7 +222,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, PmsConfiguration configuration) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
@@ -299,7 +299,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 					"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
 					"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
 					"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
+					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Faster\")\n";
 			}
 
 			String subLine = null;

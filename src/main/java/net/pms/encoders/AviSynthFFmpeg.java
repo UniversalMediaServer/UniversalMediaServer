@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
@@ -95,13 +94,13 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(filename, subTrack, -1, -1, null, null);
+		return getAVSScript(filename, subTrack, -1, -1, null, null, _configuration);
 	}
 
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, PmsConfiguration configuration) throws IOException {
 		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
@@ -174,7 +173,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
 					"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
 					"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
+					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Faster\")\n";
 			}
 
 			String subLine = null;
@@ -270,7 +269,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				configuration.setFfmpegAvisynthInterFrame(interframe.isSelected());
 				if (configuration.getFfmpegAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 						Messages.getString("AviSynthMEncoder.16"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE

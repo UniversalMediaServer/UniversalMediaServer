@@ -38,6 +38,7 @@ import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
+import net.pms.newgui.GuiUtil.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import org.apache.commons.lang3.StringUtils;
@@ -316,8 +317,8 @@ public class GeneralTab {
 		}
 
 		final KeyedComboBoxModel renderersKcbm = new KeyedComboBoxModel(
-			(Object[]) keyValues.toArray(new Object[keyValues.size()]),
-			(Object[]) nameValues.toArray(new Object[nameValues.size()]));
+			keyValues.toArray(new Object[keyValues.size()]),
+			nameValues.toArray(new Object[nameValues.size()]));
 		renderers = new JComboBox(renderersKcbm);
 		renderers.setEditable(false);
 		String defaultRenderer = configuration.getRendererDefault();
@@ -338,7 +339,7 @@ public class GeneralTab {
 					final JTextArea textArea = new JTextArea();
 					textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 					JScrollPane scrollPane = new JScrollPane(textArea);
-					scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
+					scrollPane.setPreferredSize(new Dimension(900, 450));
 
 					try {
 						try (FileInputStream fis = new FileInputStream(conf); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
@@ -587,8 +588,8 @@ public class GeneralTab {
 		}
 
 		final KeyedComboBoxModel renderersKcbm = new KeyedComboBoxModel(
-			(Object[]) keyValues.toArray(new Object[keyValues.size()]),
-			(Object[]) nameValues.toArray(new Object[nameValues.size()])
+			keyValues.toArray(new Object[keyValues.size()]),
+			nameValues.toArray(new Object[nameValues.size()])
 		);
 		renderers.setModel(renderersKcbm);
 		renderers.setEditable(false);
