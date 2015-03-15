@@ -538,7 +538,7 @@ public class SubtitleUtils {
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
 					if (timeMatcher.find()) {	
-						if (mode3D == Mode3D.OUL) {
+						if (mode3D == Mode3D.OUL || mode3D == Mode3D.HOUL) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,")
@@ -568,7 +568,7 @@ public class SubtitleUtils {
 							.append(String.format("%04d,", offset + depth3D))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
-						} else if (mode3D == Mode3D.SBSL) {
+						} else if (mode3D == Mode3D.SBSL || mode3D == Mode3D.HSBSL) {
 							int marginR1 = playResX + offset + depth3D;
 							int marginL2 = playResX + offset + depth3D;
 							outputString.append("Dialogue: 0,")
