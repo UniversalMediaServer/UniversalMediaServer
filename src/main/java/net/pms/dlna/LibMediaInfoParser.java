@@ -393,8 +393,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.startsWith("h263")) {
-			format = FormatConfiguration.H263;	
+		} else if (value.equals("d263") || value.equals("h263") || value.equals("l263") || value.equals("m263") || value.equals("s263") || value.equals("t263") || value.equals("u263") || value.equals("x263")) {
+			format = FormatConfiguration.H263;
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
