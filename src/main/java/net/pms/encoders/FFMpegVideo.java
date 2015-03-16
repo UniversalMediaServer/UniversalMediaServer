@@ -97,6 +97,7 @@ public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
 	private static final String SUB_DIR = "subs";
+	private static boolean isMuxable = false;
 
 	public FFMpegVideo() {
 	}
@@ -385,7 +386,12 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
+			if (isMuxable) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("copy");
+				transcodeOptions.add("-bsf:v");
+				transcodeOptions.add("h264_mp4toannexb");
+			} else if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {
@@ -867,9 +873,9 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
+		boolean deferToTsmuxer = true;
 		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
-			boolean deferToTsmuxer = true;
 			prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
 			if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
 				deferToTsmuxer = false;
@@ -923,7 +929,7 @@ public class FFMpegVideo extends Player {
 				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			}
 			if (deferToTsmuxer) {
-				TsMuxeRVideo tv = new TsMuxeRVideo();
+				/*TsMuxeRVideo tv = new TsMuxeRVideo();
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV() != null) {
@@ -936,7 +942,8 @@ public class FFMpegVideo extends Player {
 					}
 				}
 
-				return tv.launchTranscode(dlna, media, params);
+				return tv.launchTranscode(dlna, media, params);*/
+				isMuxable = true;
 			}
 		}
 
