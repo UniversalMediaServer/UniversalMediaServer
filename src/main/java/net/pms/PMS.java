@@ -734,7 +734,7 @@ public class PMS {
 						l.shutdown();
 					}
 
-//					UPNPHelper.shutDownListener();
+					UPNPHelper.shutDownListener();
 //					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");
 

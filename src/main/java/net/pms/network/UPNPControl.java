@@ -6,6 +6,9 @@ import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
@@ -77,6 +80,7 @@ import org.fourthline.cling.transport.spi.StreamServer;
 import org.fourthline.cling.transport.spi.NetworkAddressFactory;
 import org.fourthline.cling.transport.impl.NetworkAddressFactoryImpl;
 import org.fourthline.cling.transport.spi.InitializationException;
+import org.seamless.util.Exceptions;
 
 public class UPNPControl {
 	// Logger ids to write messages to the logs.
@@ -311,15 +315,15 @@ public class UPNPControl {
 	}
 
 	public void shutdown() {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
+//		new Thread(new Runnable() {
+//			@Override
+//			public void run() {
 				if (upnpService != null) {
 					LOGGER.debug("Stopping UPNP Services...");
 					upnpService.shutdown();
 				}
-			}
-		}).start();
+//			}
+//		}, "UPNP-shutdown").start();
 	}
 
 	public static boolean isMediaRenderer(Device d) {
@@ -836,8 +840,13 @@ public class UPNPControl {
 						}
 					);
 				}
+				@Override
+				protected ExecutorService createDefaultExecutorService() {
+					return Executors.newCachedThreadPool(new ClingThreadFactory());
+				}
 //				@Override
 //				public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
+////					return null;
 //					return new StreamServerImpl(
 //						new StreamServerConfigurationImpl(networkAddressFactory.getStreamListenPort()) {
 //							
@@ -883,7 +892,7 @@ public class UPNPControl {
 			upnpService = new UpnpServiceImpl(sc, rl) {
 				@Override
 				protected Router createRouter(ProtocolFactory protocolFactory, Registry registry) {
-					return new RouterImpl(getConfiguration(), protocolFactory) {
+					return new RouterImpl2(getConfiguration(), protocolFactory) {
 						@Override
 						public void received(UpnpStream stream) {
 							LOGGER.trace("RECV-UPNP {}:",stream);
@@ -931,8 +940,59 @@ public class UPNPControl {
  							}
 							return addrs;
 						}
+
 					};
 				}
+
+				@Override
+				synchronized public void shutdown() {
+					shutdown(false);
+				}
+
+				@Override
+				protected void shutdown(boolean separateThread) {
+					Runnable shutdown = new Runnable() {
+						@Override
+						public void run() {
+							LOGGER.info(">>> Shutting down UPnP service...");
+							shutdownRegistry();
+							shutdownRouter();
+							shutdownConfiguration();
+							LOGGER.info("<<< UPnP service shutdown completed");
+						}
+					};
+					if (separateThread) {
+						// This is not a daemon thread, it has to complete!
+						new Thread(shutdown).start();
+					} else {
+						shutdown.run();
+					}
+				}
+
+				@Override
+				protected void shutdownRegistry() {
+					getRegistry().shutdown();
+				}
+
+				@Override
+				protected void shutdownRouter() {
+					try {
+						getRouter().shutdown();
+					} catch (RouterException ex) {
+						Throwable cause = Exceptions.unwrap(ex);
+						if (cause instanceof InterruptedException) {
+							LOGGER.error( "Router shutdown was interrupted: " + ex, cause);
+						} else {
+							LOGGER.error( "Router error on shutdown: " + ex, cause);
+						}
+					}
+				}
+
+				@Override
+				protected void shutdownConfiguration() {
+					getConfiguration().shutdown();
+				}
+
 			};
 
 			localServer = createDevice();
