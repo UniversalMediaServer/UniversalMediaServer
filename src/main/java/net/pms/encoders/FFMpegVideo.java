@@ -391,6 +391,8 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("copy");
 				transcodeOptions.add("-bsf:v");
 				transcodeOptions.add("h264_mp4toannexb");
+				transcodeOptions.add("-fflags");
+				transcodeOptions.add("+genpts");
 			} else if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
