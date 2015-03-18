@@ -80,6 +80,11 @@ import org.fourthline.cling.transport.spi.StreamServer;
 import org.fourthline.cling.transport.spi.NetworkAddressFactory;
 import org.fourthline.cling.transport.impl.NetworkAddressFactoryImpl;
 import org.fourthline.cling.transport.spi.InitializationException;
+import org.fourthline.cling.transport.spi.MulticastReceiver;
+import org.fourthline.cling.transport.impl.MulticastReceiverImpl;
+import org.fourthline.cling.transport.impl.MulticastReceiverConfigurationImpl;
+import org.fourthline.cling.transport.impl.DatagramIOConfigurationImpl;
+import org.fourthline.cling.transport.spi.DatagramIO;
 import org.seamless.util.Exceptions;
 
 public class UPNPControl {
@@ -853,6 +858,19 @@ public class UPNPControl {
 //						}
 //					);
 //				}
+				@Override
+				public MulticastReceiver createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
+					return new MulticastReceiverImpl2(
+						new MulticastReceiverConfigurationImpl(
+							networkAddressFactory.getMulticastGroup(),
+							networkAddressFactory.getMulticastPort()
+						)
+					);
+				}
+				@Override
+				public DatagramIO createDatagramIO(NetworkAddressFactory networkAddressFactory) {
+					return new DatagramIOImpl2(new DatagramIOConfigurationImpl());
+				}
 			};
 
 			RegistryListener rl = new DefaultRegistryListener() {
