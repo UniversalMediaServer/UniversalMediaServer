@@ -70,7 +70,7 @@ public class DatagramIOImpl2 extends DatagramIOImpl {
 
 //	protected InetSocketAddress localAddress;
 //	protected MulticastSocket socket; // For sending unicast & multicast, and reveiving unicast
-	protected boolean stopping = false;
+	protected volatile boolean stopping = false;
 
 	public DatagramIOImpl2(DatagramIOConfigurationImpl configuration) {
 		super(configuration);
@@ -104,6 +104,7 @@ public class DatagramIOImpl2 extends DatagramIOImpl {
 	}
 
 	synchronized public void stop() {
+		LOGGER.debug("Stopping {}:{}", socket.getLocalAddress(), socket.getLocalPort());
 		stopping = true;
 		close();
 	}
@@ -137,6 +138,7 @@ public class DatagramIOImpl2 extends DatagramIOImpl {
 				router.received(datagramProcessor.read(localAddress.getAddress(), datagram));
 
 			} catch (SocketTimeoutException ex) {
+				LOGGER.debug("udp timeout on {}: stopping={}", socketAddr, stopping);
 				continue;
 			} catch (SocketException ex) {
 				LOGGER.debug("Socket closed");

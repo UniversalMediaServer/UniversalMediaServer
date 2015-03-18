@@ -60,7 +60,7 @@ public class MulticastReceiverImpl2 extends MulticastReceiverImpl {
 //	protected NetworkInterface multicastInterface;
 //	protected InetSocketAddress multicastAddress;
 //	protected MulticastSocket socket;
-	protected boolean stopping = false;
+	protected volatile boolean stopping = false;
 
 	public MulticastReceiverImpl2(MulticastReceiverConfigurationImpl configuration) {
 		super(configuration);
@@ -98,6 +98,7 @@ public class MulticastReceiverImpl2 extends MulticastReceiverImpl {
 	}
 
 	synchronized public void stop() {
+		LOGGER.debug("Stopping {}:{}", socket.getLocalAddress(), socket.getLocalPort());
 		stopping = true;
 		close();
 	}
@@ -145,6 +146,7 @@ public class MulticastReceiverImpl2 extends MulticastReceiverImpl {
 				router.received(datagramProcessor.read(receivedOnLocalAddress, datagram));
 
 			} catch (SocketTimeoutException ex) {
+				LOGGER.debug("udp timeout on {}: stopping={}", socketAddr, stopping);
 				continue;
 			} catch (SocketException ex) {
 				LOGGER.debug("Socket closed");
