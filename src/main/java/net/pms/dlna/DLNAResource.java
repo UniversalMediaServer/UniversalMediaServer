@@ -1932,15 +1932,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 																if (configuration.isAutoloadExternalSubtitles()) {
 																	// Subtitle is external and we want external subtitles, look no further
 																	matchedSub = present_sub;
-																	LOGGER.trace(" Found a match: " + matchedSub);
+																	LOGGER.trace("Found a match: " + matchedSub);
 																	break;
 																} else {
 																	// Subtitle is external but we do not want external subtitles, keep searching
-																	LOGGER.trace(" External subtitle ignored because of user setting: " + present_sub);
+																	LOGGER.trace("External subtitle ignored because of user setting: " + present_sub);
 																}
 															} else {
 																matchedSub = present_sub;
-																LOGGER.trace(" Found a match: " + matchedSub);
+																LOGGER.trace("Found a match: " + matchedSub);
 																if (configuration.isAutoloadExternalSubtitles()) {
 																	// Subtitle is internal and we will wait to see if an external one is available instead
 																	matchedEmbeddedSubtitle = true;
@@ -1962,7 +1962,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 									if (matchedSub != null && params.sid == null) {
 										if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
-											LOGGER.trace(" Disabled the subtitles: " + matchedSub);
+											LOGGER.trace("Disabled the subtitles: " + matchedSub);
 										} else {
 											params.sid = matchedSub;
 											media_subtitle = params.sid;
