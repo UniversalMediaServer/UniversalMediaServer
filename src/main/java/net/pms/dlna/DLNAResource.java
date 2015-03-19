@@ -2068,7 +2068,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										}
 
 										if (!finishedMatchingPreferences && params.sid == null) {
-											st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
+											st = new StringTokenizer(UMSUtils.getLangList(params.mediaRenderer), ",");
 											while (st.hasMoreTokens()) {
 												String lang = st.nextToken();
 												lang = lang.trim();
