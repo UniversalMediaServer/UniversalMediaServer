@@ -1847,7 +1847,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									// check for preferred audio
 									DLNAMediaAudio dtsTrack = null;
 									StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
-									while (st != null && st.hasMoreTokens()) {
+									while (st.hasMoreTokens()) {
 										String lang = st.nextToken().trim();
 										LOGGER.trace("Looking for an audio track with lang: " + lang);
 										for (DLNAMediaAudio audio : media.getAudioTracksList()) {
