@@ -1888,8 +1888,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 
 								if (!finishedMatchingPreferences && params.sid != null && !StringUtils.isEmpty(params.sid.getLiveSubURL())) {
-									// live subtitles
-									// currently only open subtitles
 									LOGGER.debug("Live subtitles " + params.sid.getLiveSubURL());
 									try {
 										matchedSub = params.sid;
@@ -1969,6 +1967,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												if (matchedSub != null && !matchedInternalSubtitles) {
 													break;
 												}
+											}
+										}
+									}
+
+									/**
+									 * Check for external subtitles that were skipped in the above code block
+									 * because they didn't match language preferences, if there wasn't already
+									 * a match and the user settings specify it.
+									 */
+									if (matchedSub == null && configuration.isForceExternalSubtitles()) {
+										for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
+											if (present_sub.getExternalFile() != null) {
+												matchedSub = present_sub;
+												LOGGER.trace("Matched external subtitles track that did not match language preferences: " + matchedSub);
+												break;
 											}
 										}
 									}
