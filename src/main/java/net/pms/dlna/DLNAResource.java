@@ -1843,12 +1843,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (mediaRenderer.isAccurateDLNAOrgPN()) {
 								boolean finishedMatchingPreferences = false;
 								OutputParams params = new OutputParams(configuration);
-								if (media != null) {
+								if (params.aid == null && media != null) {
 									// check for preferred audio
+									DLNAMediaAudio dtsTrack = null;
 									StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
 									while (st != null && st.hasMoreTokens()) {
-										String lang = st.nextToken();
-										lang = lang.trim();
+										String lang = st.nextToken().trim();
 										LOGGER.trace("Looking for an audio track with lang: " + lang);
 										for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 											if (audio.matchCode(lang)) {
@@ -1856,22 +1856,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												LOGGER.trace("Matched audio track: " + audio);
 												break;
 											}
-										}
-									}
-								}
 
-								// preferred audio not found take a default audio track, dts first if possible
-								if (params.aid == null && media != null && media.getAudioTracksList().size() > 0) {
-									for (DLNAMediaAudio audio : media.getAudioTracksList()) {
-										if (audio.isDTS()) {
-											params.aid = audio;
-											LOGGER.trace("Found priority audio track with DTS: " + audio);
-											break;
+											if (dtsTrack == null && audio.isDTS()) {
+												dtsTrack = audio;
+											}
 										}
 									}
 
-									params.aid = media.getAudioTracksList().get(0);
-									LOGGER.trace("Chose a default audio track: " + params.aid);
+									// preferred audio not found, take a default audio track, dts first if available
+									if (dtsTrack != null) {
+										params.aid = dtsTrack;
+										LOGGER.trace("Found priority audio track with DTS: " + dtsTrack);
+									} else {
+										params.aid = media.getAudioTracksList().get(0);
+										LOGGER.trace("Chose a default audio track: " + params.aid);
+									}
 								}
 
 								String currentLang = null;
