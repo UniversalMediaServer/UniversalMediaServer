@@ -1919,24 +1919,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
 
 											if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
-												if (sub.equals("off")) {						/**
-													* Ignore the "off" language for external subtitles if the user setting is enabled
-													* TODO: Prioritize multiple external subtitles properly instead of just taking the first one we load
-													*/
-												       if (configuration.isAutoloadExternalSubtitles()) {
-													       for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
-														       if (present_sub.getExternalFile() != null) {
-															       matchedSub = present_sub;
+												if (sub.equals("off")) {
+													/**
+													 * Ignore the "off" language for external subtitles if the user setting is enabled
+													 * TODO: Prioritize multiple external subtitles properly instead of just taking the first one we load
+													 */
+													if (configuration.isAutoloadExternalSubtitles()) {
+														for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
+															if (present_sub.getExternalFile() != null) {
+																matchedSub = present_sub;
 																matchedExternalSubtitles = true;
-															       LOGGER.trace("Ignoring the \"off\" language because there are external subtitles");
-															       break;
-														       }
-													       }
+																LOGGER.trace("Ignoring the \"off\" language because there are external subtitles");
+																break;
+															}
+														}
 													}
 													if (!matchedExternalSubtitles) {
-													       matchedSub = new DLNAMediaSubtitle();
-													       matchedSub.setLang("off");
-												       }
+														matchedSub = new DLNAMediaSubtitle();
+														matchedSub.setLang("off");
+													}
 												} else if (getMedia() != null) {
 													for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 														if (present_sub.matchCode(sub) || sub.equals("*")) {
