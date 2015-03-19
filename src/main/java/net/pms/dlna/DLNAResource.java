@@ -1843,7 +1843,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (mediaRenderer.isAccurateDLNAOrgPN()) {
 								boolean finishedMatchingPreferences = false;
 								OutputParams params = new OutputParams(configuration);
-								if (params.aid == null && media != null) {
+								if (params.aid == null && media != null && media.getFirstAudioTrack() != null) {
 									// check for preferred audio
 									DLNAMediaAudio dtsTrack = null;
 									StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
