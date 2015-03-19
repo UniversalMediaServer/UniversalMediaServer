@@ -352,7 +352,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		toolBar.add(reload);
-		toolBar.addSeparator();
+		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
 		quit.addActionListener(new ActionListener() {
 			@Override
