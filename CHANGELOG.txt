@@ -1,22 +1,31 @@
-5.1.0 - 2015-02-??
+5.1.0 - 2015-03-??
 
 	General:
 		Added 64-bit versions of FFmpeg for a ~10% increase in transcoding speed
+		Removed the "Save" button since changes to settings are now saved automatically
 		Improved detection of playback states
 		Improved connection awareness
 		Improved True Motion frame interpolation speed by up to 20%
+		Improved folder population speed
+		Improved support for 3GPP files
+		Improved descriptions of settings
 		Slightly altered the memory usage bar
 		Fixed the renderer SeekByTime setting
 		Fixed renderer detection and recognition in some cases
 		Fixed display names for videos that have the Track (song title) value set
 		Fixed incorrect ContentFeatures headers being sent to renderers (thanks, master-nevi!)
 		Fixed the web logviewer
+		Fixed bugs with 3D subtitles
+		Fixed the setting for using embedded subtitles styles
 	Renderers:
+		Fixed filename bug on Sony Bravia TVs
 		Improved support for LG LED-backlit LCD 2014 TVs
 		Improved support for Samsung H6203 TVs
 	Languages:
 		Made more strings translatable
 		Updated Czech translation
+		Updated Dutch translation (thanks, ler0y!)
+		Updated French translation (thanks, Kirvx!)
 		Updated Italian translation (thanks, bartsimp!)
 	External Components:
 		Updated Chromecast Java API to 0.0.6
