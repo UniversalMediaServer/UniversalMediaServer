@@ -2035,7 +2035,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 										if (!finishedMatchingPreferences && params.sid == null) {
 											st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
-											while (st != null && st.hasMoreTokens()) {
+											while (st.hasMoreTokens()) {
 												String lang = st.nextToken();
 												lang = lang.trim();
 												LOGGER.trace("Looking for a subtitle track with lang: " + lang);
