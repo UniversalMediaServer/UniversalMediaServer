@@ -1,6 +1,8 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -11,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
@@ -25,6 +28,7 @@ import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -32,7 +36,9 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
@@ -311,6 +317,38 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public List<String> getStringList(String key, String def) {
 		return configurationReader.getStringList(key, def);
+	}
+   	
+	public Color getRGBColor(String key, String defaultValue) {
+		String colorString = getString(key, defaultValue);
+		String[] colorElements = colorString.split(",");
+
+		int r = 0;
+		int g = 0;
+		int b = 0;
+		boolean parseSuccess = false;
+		if (colorElements.length == 3) {
+			try {
+				r = Integer.parseInt(colorElements[0]);
+				g = Integer.parseInt(colorElements[1]);
+				b = Integer.parseInt(colorElements[2]);
+				parseSuccess = true;
+			} catch (NumberFormatException ex) {
+				// This exception can occur if a color with the wrong format has been specified
+				LOGGER.warn(String.format("Failed to parse color '%s' for property %s. The color has to be specified like this: 'R,G,B'. E.g. '255,255,255'", colorString, key));
+			}
+		} else {
+			LOGGER.warn(String.format("Failed to parse color '%s' for property %s. The color has to be specified like this: 'R,G,B'. E.g. '255,255,255'", colorString, key));			
+		}
+
+		if (!parseSuccess) {
+			String[] defaultColorElements = defaultValue.split(",");
+			r = Integer.parseInt(defaultColorElements[0]);
+			g = Integer.parseInt(defaultColorElements[1]);
+			b = Integer.parseInt(defaultColorElements[2]);
+		}
+
+		return new Color(r, g, b);
 	}
 
 	@Deprecated

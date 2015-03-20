@@ -19,6 +19,8 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
+import java.awt.Color;
 import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,8 +28,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -38,6 +42,7 @@ import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -291,6 +296,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_BUMP_ADDRESS = "bump";
 	protected static final String KEY_BUMP_JS = "bump.js";
 	protected static final String KEY_BUMP_SKIN_DIR = "bump.skin";
+	protected static final String KEY_TOOLTIP_FOREGROUND_COLOR = "tooltip_foreground";
+	protected static final String KEY_TOOLTIP_BACKGROUND_COLOR = "tooltip_background";
 
 	// Deprecated settings
 	@Deprecated
@@ -3397,6 +3404,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
    	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
+	}
+   	
+	public Color getToolTipForegroundColor() {
+		return getRGBColor(KEY_TOOLTIP_FOREGROUND_COLOR, "255,255,255");
+	}
+
+	public Color getToolTipBackgroundColor() {
+		return getRGBColor(KEY_TOOLTIP_BACKGROUND_COLOR, "125,184,47");
 	}
 
    	
