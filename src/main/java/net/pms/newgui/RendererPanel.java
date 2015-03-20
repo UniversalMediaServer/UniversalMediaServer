@@ -18,7 +18,7 @@ import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.Messages;
-import net.pms.newgui.GuiUtil.CustomJButton;
+import net.pms.newgui.components.CustomJButton;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;

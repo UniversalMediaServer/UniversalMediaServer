@@ -40,7 +40,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.newgui.GuiUtil.CustomJButton;
+import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJTextField;
 import net.pms.util.FormLayoutUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -736,19 +737,7 @@ public class TranscodingTab {
 		CellConstraints cc = new CellConstraints();
 
 		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
-		defaultsubs = new JTextField(configuration.getSubtitlesLanguages()) {
-			private static final long serialVersionUID = -8503789181109686853L;
-
-			public JToolTip createToolTip() {
-				JToolTip tip = new HyperLinkToolTip();
-				tip.setComponent(this);
-				return tip;
-			}
-
-			public Point getToolTipLocation(MouseEvent event) {
-				return new Point(getWidth() / 2, getHeight() / 2);
-			}
-		};
+		defaultsubs = new CustomJTextField(configuration.getSubtitlesLanguages());
 		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override

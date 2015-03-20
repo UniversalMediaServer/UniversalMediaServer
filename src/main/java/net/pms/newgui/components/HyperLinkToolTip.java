@@ -1,4 +1,4 @@
-package net.pms.newgui;
+package net.pms.newgui.components;
 
 
 import java.awt.BorderLayout;
