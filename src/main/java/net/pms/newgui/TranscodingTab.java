@@ -736,7 +736,19 @@ public class TranscodingTab {
 		CellConstraints cc = new CellConstraints();
 
 		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
-		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
+		defaultsubs = new JTextField(configuration.getSubtitlesLanguages()) {
+			private static final long serialVersionUID = -8503789181109686853L;
+
+			public JToolTip createToolTip() {
+				JToolTip tip = new HyperLinkToolTip();
+				tip.setComponent(this);
+				return tip;
+			}
+
+			public Point getToolTipLocation(MouseEvent event) {
+				return new Point(getWidth() / 2, getHeight() / 2);
+			}
+		};
 		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
