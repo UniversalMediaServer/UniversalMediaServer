@@ -23,7 +23,6 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -32,9 +31,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-
 import javax.swing.*;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
@@ -44,7 +41,6 @@ import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

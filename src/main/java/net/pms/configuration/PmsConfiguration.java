@@ -28,10 +28,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
-
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -42,7 +40,6 @@ import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;

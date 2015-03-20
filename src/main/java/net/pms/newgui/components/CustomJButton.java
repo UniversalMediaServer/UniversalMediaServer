@@ -5,7 +5,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JToolTip;
-import net.pms.newgui.GuiUtil;
 
 public class CustomJButton extends JButton {
 	private static final long serialVersionUID = -528428545289132331L;

@@ -1,7 +1,6 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
-
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,7 +12,6 @@ import java.util.*;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
@@ -28,7 +26,6 @@ import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -36,9 +33,7 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
