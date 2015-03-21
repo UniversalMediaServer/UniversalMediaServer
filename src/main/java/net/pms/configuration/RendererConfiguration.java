@@ -314,36 +314,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return configurationReader.getStringList(key, def);
 	}
    	
-	public Color getRGBColor(String key, String defaultValue) {
+	public Color getColor(String key, String defaultValue) {
 		String colorString = getString(key, defaultValue);
-		String[] colorElements = colorString.split(",");
-
-		int r = 0;
-		int g = 0;
-		int b = 0;
-		boolean parseSuccess = false;
-		if (colorElements.length == 3) {
-			try {
-				r = Integer.parseInt(colorElements[0]);
-				g = Integer.parseInt(colorElements[1]);
-				b = Integer.parseInt(colorElements[2]);
-				parseSuccess = true;
-			} catch (NumberFormatException ex) {
-				// This exception can occur if a color with the wrong format has been specified
-				LOGGER.warn(String.format("Failed to parse color '%s' for property %s. The color has to be specified like this: 'R,G,B'. E.g. '255,255,255'", colorString, key));
-			}
-		} else {
-			LOGGER.warn(String.format("Failed to parse color '%s' for property %s. The color has to be specified like this: 'R,G,B'. E.g. '255,255,255'", colorString, key));			
-		}
-
-		if (!parseSuccess) {
-			String[] defaultColorElements = defaultValue.split(",");
-			r = Integer.parseInt(defaultColorElements[0]);
-			g = Integer.parseInt(defaultColorElements[1]);
-			b = Integer.parseInt(defaultColorElements[2]);
-		}
-
-		return new Color(r, g, b);
+		Color color = StringUtil.parseColor(colorString);
+		return color != null ? color : ! colorString.equals(defaultValue) ? StringUtil.parseColor(defaultValue) : null;
 	}
 
 	@Deprecated

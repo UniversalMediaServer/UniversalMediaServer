@@ -3399,16 +3399,16 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_CHROMECAST_EXT, true);
 	}
 
-   	public boolean isChromecastDbg() {
+	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
 	}
-   	
+
 	public Color getToolTipForegroundColor() {
-		return getRGBColor(KEY_TOOLTIP_FOREGROUND_COLOR, "255,255,255");
+		return getColor(KEY_TOOLTIP_FOREGROUND_COLOR, "255,255,255");
 	}
 
 	public Color getToolTipBackgroundColor() {
-		return getRGBColor(KEY_TOOLTIP_BACKGROUND_COLOR, "125,184,47");
+		return getColor(KEY_TOOLTIP_BACKGROUND_COLOR, "125,184,47");
 	}
 
    	
