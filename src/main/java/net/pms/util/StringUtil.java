@@ -221,10 +221,11 @@ public class StringUtil {
 	 *    java.awt.Color named color  - e.g. 'blue' or 'LIGHT_GRAY'
 	 */
 	public static Color parseColor(String colorString) {
+		colorString = colorString.trim();
 		try {
 			if (colorString.contains(",")) {
 				// Integer r,g,b[,a]
-				String[] colorElements = colorString.split(",");
+				String[] colorElements = colorString.split("\\s*,\\s*");
 				int r = Integer.parseInt(colorElements[0]);
 				int g = Integer.parseInt(colorElements[1]);
 				int b = Integer.parseInt(colorElements[2]);
@@ -232,9 +233,9 @@ public class StringUtil {
 				return new Color(r, g, b, a);
 
 			} else if (colorString.charAt(0) == '#') {
-				// Hex #[aa]rrggbb 
-				long argb = Long.parseLong((colorString.length() == 7 ? "ff" : "") + colorString.substring(1), 16);
-				return new Color((int)argb, true);
+				// Hex #[aa]rrggbb
+				long argb = Long.parseLong(colorString.substring(1), 16);
+				return new Color((int)argb, colorString.length() > 8);
 
 			} else {
 				// java.awt.Color named color
