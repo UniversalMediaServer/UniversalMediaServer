@@ -3411,11 +3411,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getColor(KEY_TOOLTIP_BACKGROUND_COLOR, "125,184,47");
 	}
 
-   	
-   	/**
+	/**
 	 * Enable the automatically saving of modified properties to the disk.
 	 */
-   	public void setAutoSave() {
-   		((PropertiesConfiguration)configuration).setAutoSave(true);
-   	}
+	public void setAutoSave() {
+		((PropertiesConfiguration) configuration).setAutoSave(true);
+	}
 }
