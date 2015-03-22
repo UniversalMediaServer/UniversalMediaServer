@@ -80,28 +80,38 @@ public class RemoteUtil {
 
 
 	public static void dump(final InputStream in, final OutputStream os) {
-		Runnable r = () -> {
-			byte[] buffer = new byte[32 * 1024];
-			int bytes;
-			int sendBytes = 0;
-			
-			try {
-				while ((bytes = in.read(buffer)) != -1) {
-					sendBytes += bytes;
-					os.write(buffer, 0, bytes);
-					os.flush();
-				}
-			} catch (IOException e) {
-				LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
-			} finally {
+		dump(in, os, null);
+	}
+
+	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				byte[] buffer = new byte[32 * 1024];
+				int bytes;
+				int sendBytes = 0;
+
 				try {
-					in.close();
+					while ((bytes = in.read(buffer)) != -1) {
+						sendBytes += bytes;
+						os.write(buffer, 0, bytes);
+						os.flush();
+					}
+				} catch (IOException e) {
+					LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
+				} finally {
+					try {
+						in.close();
+					} catch (IOException e) {
+					}
+				}
+				try {
+					os.close();
 				} catch (IOException e) {
 				}
-			}
-			try {
-				os.close();
-			} catch (IOException e) {
+				if (renderer != null) {
+					renderer.stop();
+				}
 			}
 		};
 		new Thread(r).start();

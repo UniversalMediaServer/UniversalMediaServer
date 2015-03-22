@@ -1284,7 +1284,7 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(videoRemuxTsMuxer, cc.xy(2, 5));
 
-		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isFFmpegFontConfig());
+		fc = new JCheckBox(Messages.getString("FFmpeg.3"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
 		fc.setToolTipText(Messages.getString("FFmpeg.0"));
 		fc.addItemListener((ItemEvent e) -> {

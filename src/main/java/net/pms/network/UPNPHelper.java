@@ -584,7 +584,10 @@ public class UPNPHelper extends UPNPControl {
 
 			// FIXME: when UpnpDetailsSearch is missing from the conf a upnp-advertising
 			// renderer could register twice if the http server sees it first
-			if (r != null && r.matchUPNPDetails(getDeviceDetailsString(d))) {
+
+			boolean distinct = r != null && StringUtils.isNotBlank(r.getUUID()) && ! uuid.equals(r.getUUID());
+
+			if (! distinct && r != null && (r.matchUPNPDetails(getDeviceDetailsString(d)) || ! r.loaded)) {
 				// Already seen by the http server
 				if (
 					ref != null &&
@@ -596,6 +599,7 @@ public class UPNPHelper extends UPNPControl {
 					LOGGER.debug("Switching to preferred renderer: " + ref.getRendererName());
 					r.inherit(ref);
 				}
+
 				// Make sure it's mapped
 				rendererMap.put(uuid, "0", r);
 				r.details = getDeviceDetails(d);
@@ -613,6 +617,7 @@ public class UPNPHelper extends UPNPControl {
 					// This is to allow initiation of upnp playback before http recognition has occurred.
 					r.inherit(r.getDefaultConf());
 					r.loaded = false;
+					LOGGER.debug("Marking upnp renderer \"{}\" at {} as unrecognized", r, socket);
 				}
 				if (r.associateIP(socket)) {
 					r.details = getDeviceDetails(d);

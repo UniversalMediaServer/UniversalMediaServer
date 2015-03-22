@@ -343,19 +343,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.setRollover(true);
 
 		toolBar.add(new JPanel());
-		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "button-save.png");
-		save.addActionListener((ActionEvent e) -> {
-			PMS.get().save();
-		});
-		toolBar.add(save);
-		toolBar.addSeparator();
 		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
 		reload.addActionListener((ActionEvent e) -> {
 			PMS.get().reset();
 		});
 		reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		toolBar.add(reload);
-		toolBar.addSeparator();
+		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
 		quit.addActionListener((ActionEvent e) -> {
 			quit();

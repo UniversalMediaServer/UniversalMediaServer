@@ -10,6 +10,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
+import net.pms.Messages;
 import net.pms.util.BasicPlayer;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
@@ -158,7 +159,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			}
 		}));
 		position.setHorizontalAlignment(SwingConstants.RIGHT);
-		position.setToolTipText("Show/hide details");
+		position.setToolTipText(Messages.getString("PlayerControlPanel.0"));
 	}
 
 	public void addVolumeControls(Container parent) {
@@ -247,7 +248,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				player.add(-1, uri.getText(), null, null, true);
 			}
 		});
-		a.setToolTipText("Add to playlist");
+		a.setToolTipText(Messages.getString("PlayerControlPanel.1"));
 		parent.add(a);
 		Button r = new Button(remove = new AbstractAction("", removeIcon) {
 			private static final long serialVersionUID = 8732700198165912103L;
@@ -257,7 +258,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				player.remove(uri.getText());
 			}
 		});
-		r.setToolTipText("Remove from playlist");
+		r.setToolTipText(Messages.getString("PlayerControlPanel.2"));
 		parent.add(r);
 		Button c = new Button(clear = new AbstractAction("", clearIcon) {
 			private static final long serialVersionUID = -2484978035031713948L;
@@ -267,7 +268,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				player.clear();
 			}
 		});
-		c.setToolTipText("Clear playlist");
+		c.setToolTipText(Messages.getString("PlayerControlPanel.3"));
 		parent.add(c);
 		parent.add(new Button(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;
