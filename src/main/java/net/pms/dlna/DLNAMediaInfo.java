@@ -2413,6 +2413,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private boolean isAnaglyph;
 	
 	public boolean stereoscopyIsAnaglyph() {
+		get3DLayout();
 		return isAnaglyph;
 	}
 

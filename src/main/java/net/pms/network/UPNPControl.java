@@ -54,6 +54,7 @@ public class UPNPControl {
 
 	public static final int ACTIVE = 0;
 	public static final int CONTROLS = 1;
+	public static final int RENEW = 2;
 	public static final int AVT = BasicPlayer.PLAYCONTROL;
 	public static final int RC = BasicPlayer.VOLUMECONTROL;
 	public static final int ANY = 0xff;
@@ -121,6 +122,9 @@ public class UPNPControl {
 					case ACTIVE:
 						i.setActive((boolean) value);
 						break;
+					case RENEW:
+						i.renew = (boolean) value;
+						break;
 					case CONTROLS:
 						i.controls = (int) value;
 						break;
@@ -137,11 +141,11 @@ public class UPNPControl {
 		protected ActionEvent event;
 		public String uuid;
 		public String instanceID = "0"; // FIXME: unclear in what precise context a media renderer's instanceID != 0
-		public HashMap<String, String> data;
+		public volatile HashMap<String, String> data;
 		public Map<String, String> details;
 		public LinkedHashSet<ActionListener> listeners;
 		private Thread monitor;
-		public boolean active;
+		public volatile boolean active, renew;
 
 		public Renderer(String uuid) {
 			this();
@@ -156,6 +160,7 @@ public class UPNPControl {
 			listeners = new LinkedHashSet<>();
 			event = new ActionEvent(this, 0, null);
 			monitor = null;
+			renew = false;
 			data.put("TransportState", "STOPPED");
 		}
 
@@ -188,7 +193,10 @@ public class UPNPControl {
 						data.put(o.getArgument().getName(), o.toString());
 //							if (DEBUG) LOGGER.debug(o.getArgument().getName() + ": " + o.toString());
 					}
-					alert();
+					if (! active) {
+						data.put("TransportState", "STOPPED");
+						alert();
+					}
 				}
 			}, "UPNP-" + d.getDetails().getFriendlyName());
 			monitor.start();
@@ -208,6 +216,10 @@ public class UPNPControl {
 
 		public void setActive(boolean b) {
 			active = b;
+		}
+
+		public boolean needsRenewal() {
+			return !active || renew;
 		}
 	}
 
@@ -271,7 +283,15 @@ public class UPNPControl {
 				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
 					super.remoteDeviceAdded(registry, d);
 					if (!addRenderer(d)) {
-						LOGGER.debug(d.getType().getType() + " found: " + d.toString());
+						LOGGER.debug("found device: {} {}", d.getType().getType(), d.toString());
+					}
+					// This may be unnecessary, but we might as well be thorough
+					if (d.hasEmbeddedDevices()) {
+						for (Device e : d.getEmbeddedDevices()) {
+							if (!addRenderer(e)) {
+								LOGGER.debug("found embedded device: {} {}", e.getType(), e.toString());
+							}
+						}
 					}
 				}
 
@@ -288,13 +308,10 @@ public class UPNPControl {
 				@Override
 				public void remoteDeviceUpdated(Registry registry, RemoteDevice d) {
 					super.remoteDeviceUpdated(registry, d);
-					String uuid = getUUID(d);
-					if (rendererMap.containsKey(uuid)) {
-						rendererMap.mark(uuid, ACTIVE, true);
-						rendererUpdated(d);
-					}
+					rendererUpdated(d);
 				}
 			};
+
 			upnpService = new UpnpServiceImpl(sc, rl);
 
 			// find all media renderers on the network
@@ -317,9 +334,10 @@ public class UPNPControl {
 		}).start();
 	}
 
-	public static boolean isMediaRenderer(DeviceType t) {
+	public static boolean isMediaRenderer(Device d) {
+		String t = d.getType().getType();
 		for (DeviceType r : mediaRendererTypes) {
-			if (r.equals(t)) {
+			if (r.getType().equals(t)) {
 				return true;
 			}
 		}
@@ -370,6 +388,9 @@ public class UPNPControl {
 	}
 
 	public static Map<String, String> getDeviceDetails(Device d) {
+		if (d == null) {
+			return null;
+		}
 		DeviceDetails dev = d.getDetails();
 		ManufacturerDetails man = dev.getManufacturerDetails();
 		ModelDetails model = dev.getModelDetails();
@@ -433,26 +454,33 @@ public class UPNPControl {
 		if (d != null) {
 			String uuid = getUUID(d);
 			String name = getFriendlyName(d);
-			if (isMediaRenderer(d.getType())) {
+			if (isMediaRenderer(d)) {
+				LOGGER.debug("Adding device: {} {}", d.getType(), d.toString());
 				rendererFound(d, uuid);
-				int ctrl = 0;
-				for (Service s : d.getServices()) {
-					String sid = s.getServiceId().getId();
-					LOGGER.debug("Subscribing to " + sid + " service on " + name);
-					if (sid.contains("AVTransport")) {
-						ctrl |= AVT;
-					} else if (sid.contains("RenderingControl")) {
-						ctrl |= RC;
-					}
-					upnpService.getControlPoint().execute(new SubscriptionCB(s));
-				}
 				rendererMap.mark(uuid, ACTIVE, true);
-				rendererMap.mark(uuid, CONTROLS, ctrl);
+				subscribeAll(d, uuid);
 				rendererReady(uuid);
 				return true;
 			}
 		}
 		return false;
+	}
+
+	protected void subscribeAll(Device d, String uuid) {
+		String name = getFriendlyName(d);
+		int ctrl = 0;
+		for (Service s : d.getServices()) {
+			String sid = s.getServiceId().getId();
+			LOGGER.debug("Subscribing to " + sid + " service on " + name);
+			if (sid.contains("AVTransport")) {
+				ctrl |= AVT;
+			} else if (sid.contains("RenderingControl")) {
+				ctrl |= RC;
+			}
+			upnpService.getControlPoint().execute(new SubscriptionCB(s));
+		}
+		rendererMap.mark(uuid, RENEW, false);
+		rendererMap.mark(uuid, CONTROLS, ctrl);
 	}
 
 	protected Renderer rendererFound(Device d, String uuid) {
@@ -464,6 +492,20 @@ public class UPNPControl {
 	}
 
 	protected void rendererUpdated(Device d) {
+		String uuid = getUUID(d);
+		if (rendererMap.containsKey(uuid)) {
+			if (rendererMap.get(uuid, "0").needsRenewal()) {
+				LOGGER.debug("Renewing subscriptions to ", getFriendlyName(d));
+				subscribeAll(d, uuid);
+			}
+			rendererMap.mark(uuid, ACTIVE, true);
+		} else if (isMediaRenderer(d)) {
+			// Shouldn't happen, but this would mean we somehow failed to identify it as a renderer before
+			LOGGER.debug("Updating device as {}: {}", d.getType().getType(), d.toString());
+			if (! addRenderer(d)) {
+				LOGGER.debug("Error adding {}: {}", d.getType(), d.toString());
+			}
+		}
 	}
 
 	protected void rendererRemoved(Device d) {
@@ -486,7 +528,8 @@ public class UPNPControl {
 		return null;
 	}
 
-	public static Device getDevice(InetAddress socket) {
+	// Returns the first device regardless of type at the given address, if any
+	public static Device getAnyDevice(InetAddress socket) {
 		for (Device d : upnpService.getRegistry().getDevices()) {
 			try {
 				InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
@@ -494,6 +537,21 @@ public class UPNPControl {
 					return d;
 				}
 			} catch (Exception e) {}
+		}
+		return null;
+	}
+
+	// Returns the first renderer at the given address, if any
+	public static Device getDevice(InetAddress socket) {
+		for (DeviceType r : mediaRendererTypes) {
+			for (Device d : upnpService.getRegistry().getDevices(r)) {
+				try {
+					InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
+					if (devsocket.equals(socket)) {
+						return d;
+					}
+				} catch (Exception e) {}
+			}
 		}
 		return null;
 	}
@@ -507,9 +565,9 @@ public class UPNPControl {
 
 	public static boolean isNonRenderer(InetAddress socket) {
 		Device d = getDevice(socket);
-		boolean b = (d != null && !rendererMap.containsKey(getUUID(d)));
+		boolean b = (d != null && !isMediaRenderer(d));
 		if (b) {
-			LOGGER.debug("Device at " + socket + " is a " + d.getType().getType() + ": " + d.toString());
+			LOGGER.debug("Device at {} is {}: {}", socket, d.getType(), d.toString());
 		}
 		return b;
 	}
@@ -536,6 +594,7 @@ public class UPNPControl {
 
 		@Override
 		public void eventReceived(GENASubscription subscription) {
+			rendererMap.mark(uuid, ACTIVE, true);
 			if (subscription.getCurrentValues().containsKey("LastChange")) {
 				xml2d(uuid, subscription.getCurrentValues().get("LastChange").toString(), null);
 			}
@@ -566,6 +625,7 @@ public class UPNPControl {
 				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId() +
 					" on " + uuid + ": " + reason);
 			}
+			rendererMap.mark(uuid, RENEW, true);
 		}
 
 		@Override
@@ -575,8 +635,9 @@ public class UPNPControl {
 	}
 
 	// Convenience functions for sending various upnp service requests
-	public static ActionInvocation send(Device dev, String instanceID, String service, String action, String... args) {
+	public static ActionInvocation send(final Device dev, String instanceID, String service, String action, String... args) {
 		Service svc = dev.findService(ServiceId.valueOf("urn:upnp-org:serviceId:" + service));
+		final String uuid = getUUID(dev);
 		if (svc != null) {
 			Action x = svc.getAction(action);
 			String name = getFriendlyName(dev);
@@ -590,7 +651,19 @@ public class UPNPControl {
 				if (log) {
 					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
 				}
-				new ActionCallback.Default(a, upnpService.getControlPoint()).run();
+				new ActionCallback(a, upnpService.getControlPoint()) {
+					@Override
+					public void success(ActionInvocation invocation) {
+						rendererMap.mark(uuid, ACTIVE, true);
+					}
+
+					@Override
+					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
+						LOGGER.debug("Action failed: {}", defaultMsg);
+						rendererMap.mark(uuid, ACTIVE, false);
+					}
+				}.run();
+
 				if (log) {
 					for (ActionArgumentValue arg : a.getOutput()) {
 						LOGGER.debug("Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());

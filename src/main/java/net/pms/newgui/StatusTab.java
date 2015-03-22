@@ -250,7 +250,7 @@ public class StatusTab {
 		memBarUI.setActiveLabel("{}", Color.red, 90);
 		memBarUI.addSegment("", memColor);
 		memBarUI.addSegment("", bufColor);
-		memBarUI.setTickMarks(100, "{}");
+		memBarUI.setTickMarks(getTickMarks(), "{}");
 		jpb.setUI(memBarUI);
 
 		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
@@ -337,23 +337,26 @@ public class StatusTab {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(() -> {
-					if (r.frame == null) {
-						JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
-						// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
-						// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
-						// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
-						r.frame = new JFrame(renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""));
-						r.panel = new RendererPanel(renderer);
-						r.frame.add(r.panel);
-						r.frame.setResizable(false);
-						r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
-						r.frame.pack();
-						r.frame.setLocationRelativeTo(top);
-						r.frame.setVisible(true);
-					} else {
-						r.frame.setVisible(true);
-						r.frame.toFront();
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						if (r.frame == null) {
+							JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+							// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
+							// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
+							// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
+							r.frame = new JFrame();
+							r.panel = new RendererPanel(renderer);
+							r.frame.add(r.panel);
+							r.panel.update();
+							r.frame.setResizable(false);
+							r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+							r.frame.setLocationRelativeTo(top);
+							r.frame.setVisible(true);
+						} else {
+							r.frame.setVisible(true);
+							r.frame.toFront();
+						}
 					}
 				});
 			}
@@ -434,6 +437,11 @@ public class StatusTab {
 			}
 		}
 		return bi;
+	}
+
+	private int getTickMarks() {
+		int mb = (int) (Runtime.getRuntime().maxMemory() / 1048576);
+		return mb < 1000 ? 100 : mb < 2500 ? 250 : mb < 5000 ? 500 : 1000;
 	}
 
 	public void updateMemoryUsage() {
