@@ -22,7 +22,7 @@ import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import net.pms.dlna.DLNAMediaSubtitle;
 import static net.pms.formats.v2.SubtitleType.VOBSUB;
-import static net.pms.formats.v2.SubtitleUtils.getSubCpOptionForMencoder;
+import static net.pms.util.SubtitleUtils.getSubCpOptionForMencoder;
 import org.apache.commons.io.FileUtils;
 import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Before;
