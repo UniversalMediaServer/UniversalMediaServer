@@ -2193,7 +2193,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return whether to use the embedded styles or ours
 	 */
 	public boolean isUseEmbeddedSubtitlesStyle() {
-		return getBoolean(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true) || getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
+		return getBoolean(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true);
 	}
 
 	public int getMEncoderOverscan() {
@@ -3398,4 +3398,12 @@ public class PmsConfiguration extends RendererConfiguration {
    	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
 	}
+
+   	
+   	/**
+	 * Enable the automatically saving of modified properties to the disk.
+	 */
+   	public void setAutoSave() {
+   		((PropertiesConfiguration)configuration).setAutoSave(true);
+   	}
 }

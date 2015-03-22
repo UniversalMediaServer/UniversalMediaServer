@@ -138,6 +138,6 @@ public class RemoteMediaHandler implements HttpHandler {
 		if (sid != null) {
 			dlna.setMediaSubtitle(sid);
 		}
-		RemoteUtil.dump(in, os);
+		RemoteUtil.dump(in, os, render);
 	}
 }

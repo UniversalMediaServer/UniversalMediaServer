@@ -221,7 +221,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// default renderer.
 			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
 			if (request.getMediaRenderer() != null) {
-				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
+				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getConfName());
 
 				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 					// We have found an unknown renderer
@@ -251,7 +251,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 
-		writeResponse(e, request, ia);
+		writeResponse(ctx, e, request, ia);
 	}
 
 	/**
@@ -266,7 +266,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(MessageEvent e, RequestV2 request, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
@@ -291,6 +291,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		// Attach it to the context so it can be invoked if connection is reset unexpectedly
+		ctx.setAttachment(startStopListenerDelegate);
 
 		try {
 			request.answer(response, e, close, startStopListenerDelegate);
@@ -313,8 +315,17 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
-		if (cause != null && !cause.getClass().equals(ClosedChannelException.class) && !cause.getClass().equals(IOException.class)) {
-			LOGGER.debug("Caught exception", cause);
+		if (cause != null) {
+			if (cause.getClass().equals(IOException.class)) {
+				LOGGER.debug("Connection error: " + cause);
+				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();
+				if (startStopListenerDelegate != null) {
+					LOGGER.debug("Premature end, stopping...");
+					startStopListenerDelegate.stop();
+				}
+			} else if (!cause.getClass().equals(ClosedChannelException.class)) {
+				LOGGER.debug("Caught exception: " + cause);
+			}
 		}
 		if (ch.isConnected()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
