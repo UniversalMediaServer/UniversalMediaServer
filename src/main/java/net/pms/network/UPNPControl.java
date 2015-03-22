@@ -392,6 +392,9 @@ public class UPNPControl {
 	}
 
 	public static Map<String, String> getDeviceDetails(Device d) {
+		if (d == null) {
+			return null;
+		}
 		DeviceDetails dev = d.getDetails();
 		ManufacturerDetails man = dev.getManufacturerDetails();
 		ModelDetails model = dev.getModelDetails();

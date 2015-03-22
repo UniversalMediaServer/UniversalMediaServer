@@ -104,14 +104,6 @@ public class DeviceConfiguration extends PmsConfiguration {
 		}
 	}
 
-	public String getName() {
-		return StringUtils.substringBefore(getRendererName(), "(").trim();
-	}
-
-	public String getId() {
-		return uuid != null ? uuid : getAddress().toString().substring(1);
-	}
-
 	public PropertiesConfiguration initConfiguration(InetAddress ia) {
 		String id = uuid != null ? uuid : ia != null ? ia.toString().substring(1) : null;
 		if (id != null && deviceConfs.containsKey(id)) {
@@ -204,11 +196,6 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return null;
 	}
 
-	public static String getDefaultFilename(DeviceConfiguration r) {
-		String id = r.getId();
-		return r.getName() + "-" + (id.startsWith("uuid:") ? id.substring(5, 11) : id) + ".conf";
-	}
-
 	public static File createDeviceFile(DeviceConfiguration r, String filename, boolean load) {
 		File file = null;
 		try {
@@ -226,7 +213,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			conf.add("# See DefaultRenderer.conf for descriptions of all possible renderer options");
 			conf.add("# and UMS.conf for program options.");
 			conf.add("");
-			conf.add("# Options in this file override the default settings for the specific " + r.getName() + " device(s) listed below.");
+			conf.add("# Options in this file override the default settings for the specific " + r.getSimpleName(r) + " device(s) listed below.");
 			conf.add("# Specify devices by uuid (or address if no uuid), separated by commas if more than one.");
 			conf.add("");
 			conf.add("device = " + r.getId());

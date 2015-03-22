@@ -221,7 +221,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// default renderer.
 			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
 			if (request.getMediaRenderer() != null) {
-				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
+				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getConfName());
 
 				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 					// We have found an unknown renderer
