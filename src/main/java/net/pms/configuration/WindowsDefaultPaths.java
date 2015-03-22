@@ -20,6 +20,7 @@
 
 package net.pms.configuration;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import net.pms.util.PropertiesUtil;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -31,6 +32,9 @@ class WindowsDefaultPaths implements ProgramPaths {
 
 	@Override
 	public String getFfmpegPath() {
+		if (Platform.is64Bit()) {
+			return getBinariesPath() + "win32/ffmpeg64.exe";
+		}
 		return getBinariesPath() + "win32/ffmpeg.exe";
 	}
 

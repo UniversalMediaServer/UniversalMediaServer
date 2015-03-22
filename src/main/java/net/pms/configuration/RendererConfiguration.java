@@ -601,17 +601,19 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
 		DeviceConfiguration r = null;
-		if (ref == null) {
+		boolean recognized = ref != null;
+		if (! recognized) {
 			ref = getDefaultConf();
 		}
 		try {
 			if (addressAssociation.containsKey(ia)) {
 				// Already seen, finish configuration if required
 				r = (DeviceConfiguration) addressAssociation.get(ia);
-				boolean higher = ref.getLoadingPriority() > r.getLoadingPriority() && ref != defaultConf;
+				boolean higher = ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
 				if (!r.loaded || higher) {
+					LOGGER.debug("Finishing configuration for {}", r);
 					if (higher) {
-						LOGGER.debug("Switching to higher priority renderer: " + ref.getRendererName());
+						LOGGER.debug("Switching to higher priority renderer: {}", ref);
 					}
 					r.inherit(ref);
 					// update gui
@@ -626,6 +628,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				r.active = true;
 			}
 		} catch (Exception e) {
+		}
+		if (! recognized) {
+			// Mark it as unloaded so actual recognition can happen later if upnp sees it.
+			LOGGER.debug("Marking renderer \"{}\" at {} as unrecognized", r, ia);
+			r.loaded = false;
 		}
 		return r;
 	}
@@ -646,10 +653,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return file;
 	}
 
+	public String getId() {
+		return uuid != null ? uuid : getAddress().toString().substring(1);
+	}
+
+	public static String getSimpleName(RendererConfiguration r) {
+		return StringUtils.substringBefore(r.getRendererName(), "(").trim();
+	}
+
+	public static String getDefaultFilename(RendererConfiguration r) {
+		String id = r.getId();
+		return (getSimpleName(r) + "-" + (id.startsWith("uuid:") ? id.substring(5, 11) : id)).replace(" ", "") + ".conf";
+	}
+
 	public File getUsableFile() {
 		File f = getFile();
 		if (f == null || f.equals(NOFILE)) {
-			f = new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf");
+			String name = getSimpleName(this);
+			f = new File(getRenderersDir(), name.equals(getSimpleName(defaultConf)) ? getDefaultFilename(this) :  (name.replace(" ", "") + ".conf"));
 		}
 		return f;
 	}
@@ -657,7 +678,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
 		try {
 			ArrayList<String> conf = new ArrayList<String>();
-			String name = r.getRendererName().split("\\(")[0].trim();
+			String name = getSimpleName(r);
 			Map<String, String> details = r.getUpnpDetails();
 			String detailmatcher = details == null ? "" :
 				(details.get("manufacturer") + " , " + details.get("modelName"));
@@ -702,7 +723,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			if (load) {
 				try {
-					r.init(file);
+					RendererConfiguration renderer = new RendererConfiguration(file);
+					enabledRendererConfs.add(renderer);
+					if (r instanceof DeviceConfiguration) {
+						((DeviceConfiguration)r).inherit(renderer);
+					}
 				} catch (ConfigurationException ce) {
 					LOGGER.debug("Error initializing renderer configuration: " + ce);
 				}
@@ -1279,9 +1304,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					private static final long serialVersionUID = -3998102753945339020L;
 
 					{
-						put("name", getRendererName());
+						put(Messages.getString("RendererPanel.10"), getRendererName());
 						if (getAddress() != null) {
-							put("address", getAddress().getHostAddress().toString());
+							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress().toString());
 						}
 					}	
 				};
@@ -1549,7 +1574,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return true if the renderer supports seek-by-time, false otherwise.
 	 */
 	public boolean isSeekByTime() {
-		return isSeekByTimeExclusive() || getBoolean(SEEK_BY_TIME, false);
+		return isSeekByTimeExclusive() || getString(SEEK_BY_TIME, "false").equalsIgnoreCase("true");
 	}
 
 	/**
@@ -1560,7 +1585,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * (i.e. not in conjunction with seek-by-byte), false otherwise.
 	 */
 	public boolean isSeekByTimeExclusive() {
-		return getString(SEEK_BY_TIME, "").equalsIgnoreCase("exclusive");
+		return getString(SEEK_BY_TIME, "false").equalsIgnoreCase("exclusive");
 	}
 
 	public boolean isMuxH264MpegTS() {
@@ -2363,9 +2388,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (dlna != null) {
 			player.getState().name = dlna.getDisplayName();
 			player.start();
-		} else if (player instanceof PlaybackTimer) {
-			player.getState().playback = BasicPlayer.STOPPED;
-			player.alert();
+		} else {
+			player.reset();
 		}
 	}
 

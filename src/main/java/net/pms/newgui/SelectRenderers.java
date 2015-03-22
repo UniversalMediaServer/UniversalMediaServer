@@ -178,12 +178,6 @@ public class SelectRenderers extends JPanel {
 			}
 
 			configuration.setSelectedRenderers(buildSelectedRenders.toString());
-			try {
-				configuration.save();
-			} catch (ConfigurationException e) {
-				LOGGER.error("Could not save configuration", e);
-			}
-
 		}
 	}
 }
