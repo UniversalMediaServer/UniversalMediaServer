@@ -23,6 +23,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -79,8 +80,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		RequestV2 request = null;
 		RendererConfiguration renderer = null;
 		String userAgentString = null;
-		StringBuilder unknownHeaders = new StringBuilder();
-		String separator = "";
+		ArrayList<String> identifiers = new ArrayList<>();
 
 		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) e.getMessage();
 
@@ -203,8 +203,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 						if (!isKnown) {
 							// Truly unknown header, therefore interesting. Save for later use.
-							unknownHeaders.append(separator).append(headerLine);
-							separator = ", ";
+							identifiers.add(headerLine);
 						}
 					}
 				}
@@ -214,20 +213,23 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		// Still no media renderer recognized?
-		if (request.getMediaRenderer() == null) {
+		if (renderer == null) {
 
 			// Attempt 3: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
-			if (request.getMediaRenderer() != null) {
-				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getConfName());
+			renderer = RendererConfiguration.resolve(ia, null);
+			request.setMediaRenderer(renderer);
+			if (renderer != null) {
+				LOGGER.trace("Using default media renderer: " + renderer.getConfName());
 
 				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 					// We have found an unknown renderer
-					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
-							+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-					PMS.get().setRendererFound(request.getMediaRenderer());
+					identifiers.add(0, "User-Agent: " + userAgentString);
+					renderer.setIdentifiers(identifiers);
+					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers:"
+						+ StringUtils.join(identifiers, ", "));
+					PMS.get().setRendererFound(renderer);
 				}
 			} else {
 				// If RendererConfiguration.resolve() didn't return the default renderer
@@ -239,7 +241,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				LOGGER.debug("HTTP User-Agent: " + userAgentString);
 			}
 
-			LOGGER.trace("Recognized media renderer: " + request.getMediaRenderer().getRendererName());
+			LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
 		}
 
 		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {

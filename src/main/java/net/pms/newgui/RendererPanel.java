@@ -226,8 +226,11 @@ public class RendererPanel extends JPanel {
 			fc.setSelectedFile(defaultRef);
 		}
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		if (fc.showDialog(this, Messages.getString("RendererPanel.9")) == JFileChooser.APPROVE_OPTION) {
-			return fc.getSelectedFile();
+		switch (fc.showDialog(this, Messages.getString("RendererPanel.9"))) {
+			case JFileChooser.APPROVE_OPTION:
+				return fc.getSelectedFile();
+			case JFileChooser.CANCEL_OPTION:
+				return RendererConfiguration.NOFILE;
 		}
 		return null;
 	}

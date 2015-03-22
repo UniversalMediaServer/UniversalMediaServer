@@ -55,6 +55,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
 	protected Matcher sortedHeaderMatcher;
+	protected List<String> identifiers = null;
 
 	public StatusTab.RendererItem gui;
 	public boolean loaded, fileless = false;
@@ -687,22 +688,48 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			ArrayList<String> conf = new ArrayList<>();
 			String name = getSimpleName(r);
 			Map<String, String> details = r.getUpnpDetails();
-			String detailmatcher = details == null ? "" :
-				(details.get("manufacturer") + " , " + details.get("modelName"));
+			List<String> headers = r.getIdentifiers();
+			boolean hasRef = ref != null && ref != NOFILE;
 
 			// Add the header and identifiers
 			conf.add("#----------------------------------------------------------------------------");
 			conf.add("# Auto-generated profile for " + name);
-			conf.add("#" + (ref == null ? "" : " Based on " + ref.getName()));
+			conf.add("#" + (hasRef ? " Based on " + ref.getName() : ""));
 			conf.add("# See DefaultRenderer.conf for a description of all possible configuration options.");
 			conf.add("#");
 			conf.add("");
 			conf.add(RENDERER_NAME + " = " + name);
-			conf.add(UPNP_DETAILS + " = " + detailmatcher);
+			if (headers != null || details != null) {
+				conf.add("");
+				conf.add("# ============================================================================");
+				conf.add("# This renderer has sent the following string/s:");
+				if (headers != null && headers.size() > 0) {
+					conf.add("#");
+					for (String h : headers) {
+						conf.add("# " + h);
+					}
+				}
+				if (details != null) {
+					details.remove("address");
+					details.remove("udn");
+					conf.add("#");
+					conf.add("# " + details);
+				}
+				conf.add("# ============================================================================");
+				conf.add("");
+			}
+			conf.add(USER_AGENT + " = ");
+			if (headers != null && headers.size() > 1) {
+				conf.add(USER_AGENT_ADDITIONAL_HEADER + " = ");
+				conf.add(USER_AGENT_ADDITIONAL_SEARCH + " = ");
+			}
+			if (details != null) {
+				conf.add(UPNP_DETAILS + " = " + details.get("manufacturer") + " , " + details.get("modelName"));
+			}
 			conf.add("");
 			// TODO: Set more properties automatically from UPNP info
 
-			if (ref != null) {
+			if (hasRef) {
 				// Copy the reference file, skipping its header and identifiers
 				Matcher skip = Pattern.compile(".*(" + RENDERER_ICON + "|" + RENDERER_NAME + "|" +
 					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
@@ -2476,5 +2503,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public int getMaxVolume() {
 		return getInt(MAX_VOLUME, 100);
+	}
+
+	public void setIdentifiers(List<String> identifiers) {
+		identifiers = identifiers;
+	}
+
+	public List<String> getIdentifiers() {
+		return identifiers;
 	}
 }
