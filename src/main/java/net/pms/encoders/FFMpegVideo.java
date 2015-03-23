@@ -51,7 +51,6 @@ import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
 import net.pms.io.PipeProcess;
@@ -63,7 +62,7 @@ import net.pms.network.HTTPResource;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.io.FileUtils;
+import net.pms.util.SubtitleUtils;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -1407,10 +1406,6 @@ public class FFMpegVideo extends Player {
 				pw.setStderrConsumer(ffParser);
 			}
 		}
-	}
-
-	public static void deleteSubs() {
-		FileUtils.deleteQuietly(new File(_configuration.getDataFile(SUB_DIR)));
 	}
 
 	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
