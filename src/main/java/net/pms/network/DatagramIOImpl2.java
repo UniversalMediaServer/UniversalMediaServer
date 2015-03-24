@@ -125,6 +125,7 @@ public class DatagramIOImpl2 extends DatagramIOImpl {
 				byte[] buf = new byte[getConfiguration().getMaxDatagramBytes()];
 				DatagramPacket datagram = new DatagramPacket(buf, buf.length);
 
+				LOGGER.debug("listening for udp messages on {}", socketAddr);
 				socket.receive(datagram);
 
 				LOGGER.debug(
@@ -134,8 +135,13 @@ public class DatagramIOImpl2 extends DatagramIOImpl {
 								+ " on: " + localAddress
 				);
 
-
-				router.received(datagramProcessor.read(localAddress.getAddress(), datagram));
+				if (! stopping) {
+					router.received(datagramProcessor.read(localAddress.getAddress(), datagram));
+					LOGGER.debug("udp datagram processed on {}", socketAddr);
+				} else {
+					LOGGER.debug("udp datagram skipped on {}: stopping={}", socketAddr, stopping);
+					break;
+				}
 
 			} catch (SocketTimeoutException ex) {
 				LOGGER.debug("udp timeout on {}: stopping={}", socketAddr, stopping);
