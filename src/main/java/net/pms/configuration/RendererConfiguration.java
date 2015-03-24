@@ -232,7 +232,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					try {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
-						String rendererName = r.getRendererName();
+						String rendererName = r.getConfName();
 						String renderersGroup = null; 
 						if (rendererName.indexOf(" ") > 0) {
 							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
@@ -280,7 +280,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			for (File f : renderersDir.listFiles()) {
 				if (f.getName().endsWith(".conf")) {
 					try {
-						allRenderersNames.add(new RendererConfiguration(f).getRendererName());
+						allRenderersNames.add(new RendererConfiguration(f).getConfName());
 					} catch (ConfigurationException ce) {
 						LOGGER.warn("Error loading " + f.getAbsolutePath());
 					}
@@ -579,7 +579,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public static RendererConfiguration getRendererConfigurationByName(String name) {
 		for (RendererConfiguration conf : enabledRendererConfs) {
-			if (conf.getRendererName().toLowerCase().contains(name.toLowerCase())) {
+			if (conf.getConfName().toLowerCase().contains(name.toLowerCase())) {
 				return conf;
 			}
 		}
@@ -804,34 +804,34 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return whether this renderer is an Xbox 360
 	 */
 	public boolean isXbox360() {
-		return getRendererName().toUpperCase().contains("XBOX 360");
+		return getConfName().toUpperCase().contains("XBOX 360");
 	}
 
 	/**
 	 * @return whether this renderer is an Xbox One
 	 */
 	public boolean isXboxOne() {
-		return getRendererName().toUpperCase().contains("XBOX ONE");
+		return getConfName().toUpperCase().contains("XBOX ONE");
 	}
 
 	public boolean isXBMC() {
-		return getRendererName().toUpperCase().contains("XBMC");
+		return getConfName().toUpperCase().contains("KODI") || getConfName().toUpperCase().contains("XBMC");
 	}
 
 	public boolean isPS3() {
-		return getRendererName().toUpperCase().contains("PLAYSTATION") || getRendererName().toUpperCase().contains("PS3");
+		return getConfName().toUpperCase().contains("PLAYSTATION") || getConfName().toUpperCase().contains("PS3");
 	}
 
 	public boolean isBRAVIA() {
-		return getRendererName().toUpperCase().contains("BRAVIA");
+		return getConfName().toUpperCase().contains("BRAVIA");
 	}
 
 	public boolean isFDSSDP() {
-		return getRendererName().toUpperCase().contains("FDSSDP");
+		return getConfName().toUpperCase().contains("FDSSDP");
 	}
 
 	public boolean isLG() {
-		return getRendererName().toUpperCase().contains("LG ");
+		return getConfName().toUpperCase().contains("LG ");
 	}
 
 	// Ditlew
@@ -2386,7 +2386,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 			int p1 = r1.getLoadingPriority();
 			int p2 = r2.getLoadingPriority();
-			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
+			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getConfName().compareToIgnoreCase(r2.getConfName());
 		}
 	};
 
