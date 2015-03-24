@@ -397,6 +397,7 @@ public class UPNPHelper extends UPNPControl {
 						elapsed = 0;
 					}
 				}
+				LOGGER.debug("Stopping upnp alive notifier");
 			}
 		};
 
@@ -539,9 +540,11 @@ public class UPNPHelper extends UPNPControl {
 	 * Shut down the threads that send ALIVE messages and listen to responses.
 	 */
 	public static void shutDownListener() {
-		instance.shutdown();
 //		listenerThread.interrupt();
 		aliveThread.interrupt();
+		// Wait for interrupt to take effect
+		sleep(2000);
+		instance.shutdown();
 	}
 
 //	/**
