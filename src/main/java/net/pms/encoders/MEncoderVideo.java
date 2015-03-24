@@ -932,9 +932,9 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isRescaleByRenderer() && params.mediaRenderer.isMaximumResolutionSpecified() && media.getWidth() < 720) {
+		if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer needs us to upscale the video.");
+			LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
 		}
 		if (deferToTsmuxer) {
 			String expertOptions[] = getSpecificCodecOptions(
