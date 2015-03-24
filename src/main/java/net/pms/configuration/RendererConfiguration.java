@@ -1839,6 +1839,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return whether the resolution is compatible with the renderer
 	 */
 	public boolean isResolutionCompatibleWithRenderer(int width, int height) {
+		// Check if the resolution is too high
 		if (
 			isMaximumResolutionSpecified() &&
 			(
@@ -1852,6 +1853,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				)
 			)
 		) {
+			return false;
+		}
+
+		// Check if the resolution is too low
+		if (!isRescaleByRenderer() && getMaxVideoWidth() < 720) {
 			return false;
 		}
 
