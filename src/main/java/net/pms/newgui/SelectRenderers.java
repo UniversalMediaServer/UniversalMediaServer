@@ -103,7 +103,7 @@ public class SelectRenderers extends JPanel {
 		TreePath root = new TreePath(allRenderers);
 		int i = 0;
 		for (String renderer : selectedRenderers) {
-			if (selectedRenderers.size() == 1) {
+			if (configuration.ALL_RENDERERS.equals(renderer)) {
 				renderersPath[i] = root;
 			} else {
 				int childNumber = allRenderers.getChildCount();
