@@ -867,6 +867,19 @@ public class DLNAMediaInfo implements Cloneable {
 					if (line.contains(input)) {
 						matchs = true;
 						container = line.substring(10, line.indexOf(',', 11)).trim();
+
+						/**
+						 * This method is very inaccurate because the Input line in the FFmpeg output
+						 * returns "mov,mp4,m4a,3gp,3g2,mj2" for all 6 of those formats, meaning that
+						 * we think they are all "mov".
+						 *
+						 * Here we workaround it by using the file extension, but the best idea is to
+						 * prevent using this method by using MediaInfo=true in renderer configs.
+						 */
+						if ("mov".equals(container)) {
+							container = line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf("'")).trim();
+							LOGGER.trace("Setting container to " + container + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
+						}
 					} else {
 						matchs = false;
 					}
