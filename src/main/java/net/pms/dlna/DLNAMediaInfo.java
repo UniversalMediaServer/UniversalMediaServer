@@ -22,20 +22,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
+import java.io.*;
+import java.util.*;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
@@ -1192,11 +1180,10 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (container.equals("3gp")) {
 				mimeType = HTTPResource.THREEGPP_TYPEMIME;
 			} else if (container.equals("3g2")) {
-				mimeType = HTTPResource.THREEGPP2_TYPEMIME;			
+				mimeType = HTTPResource.THREEGPP2_TYPEMIME;
 			} else if (container.equals("mov")) {
-				mimeType = HTTPResource.MOV_TYPEMIME;			
+				mimeType = HTTPResource.MOV_TYPEMIME;
 			}
-
 		} else if (codecV != null) {
 			if (codecV.equals("mjpeg") || "jpg".equals(container)) {
 				mimeType = HTTPResource.JPEG_TYPEMIME;
@@ -1209,7 +1196,6 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
 				mimeType = HTTPResource.MPEG_TYPEMIME;
 			}
-
 		} else if (codecV == null && codecA != null) {
 			if (codecA.contains("mp3")) {
 				mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
@@ -1224,7 +1210,6 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
 				mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 			}
-
 		} else {
 			mimeType = HTTPResource.getDefaultMimeType(type);
 		}
