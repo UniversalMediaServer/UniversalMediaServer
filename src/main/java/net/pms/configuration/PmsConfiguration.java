@@ -193,6 +193,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
 	protected static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
 	protected static final String KEY_MINIMIZED = "minimized";
+	protected static final String KEY_ONLYTRAY = "onlytray";
 	protected static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	protected static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	protected static final String KEY_NETWORK_INTERFACE = "network_interface";
@@ -1531,6 +1532,25 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setMinimized(boolean value) {
 		configuration.setProperty(KEY_MINIMIZED, value);
+	}
+
+	/**
+	 * Returns true if PMS should start only in the traybar.
+	 * Default value false: to start with a window.
+	 *
+	 * @return True if PMS should start only in the traybar, false otherwise.
+	 */
+	public boolean isOnlyTray() {
+		return getBoolean(KEY_ONLYTRAY, false);
+	}
+
+	/**
+	 * Set to true if PMS should start only in the traybar.
+	 *
+	 * @param value True if PMS should start only in the traybar, false otherwise.
+	 */
+	public void setOnlyTray(boolean value) {
+		configuration.setProperty(KEY_ONLYTRAY, value);
 	}
 
 	/**
