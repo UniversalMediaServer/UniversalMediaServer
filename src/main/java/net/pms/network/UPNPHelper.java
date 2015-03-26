@@ -76,6 +76,7 @@ public class UPNPHelper extends UPNPControl {
 
 	// The alive thread.
 	private static Thread aliveThread;
+	private static volatile boolean alive = true;
 
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -386,7 +387,7 @@ public class UPNPHelper extends UPNPControl {
 			public void run() {
 				int delay = 10;
 				int elapsed = 0;
-				while (! Thread.currentThread().isInterrupted()) {
+				while (alive) {
 					sleep(1000);
 					if (++elapsed == delay) {
 						sendAlive();
@@ -397,7 +398,7 @@ public class UPNPHelper extends UPNPControl {
 						elapsed = 0;
 					}
 				}
-				LOGGER.debug("Stopping upnp alive notifier");
+				LOGGER.debug("Stopped upnp alive notifier");
 			}
 		};
 
@@ -541,9 +542,14 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	public static void shutDownListener() {
 //		listenerThread.interrupt();
-		aliveThread.interrupt();
-		// Wait for interrupt to take effect
-		sleep(2000);
+		alive = false;
+		// Wait for alive thread to stop
+		try {
+			aliveThread.join();
+		} catch (InterruptedException e) {
+			LOGGER.debug("" + e);
+		}
+
 		instance.shutdown();
 	}
 
