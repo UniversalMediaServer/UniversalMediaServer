@@ -2506,7 +2506,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public void setIdentifiers(List<String> identifiers) {
-		identifiers = identifiers;
+		this.identifiers = identifiers;
 	}
 
 	public List<String> getIdentifiers() {
