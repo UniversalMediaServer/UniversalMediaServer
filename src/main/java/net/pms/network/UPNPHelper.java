@@ -95,7 +95,9 @@ public class UPNPHelper extends UPNPControl {
 
 	@Override
 	public void init() {
-		super.init();
+		if (configuration.isUpnpEnabled()) {
+			super.init();
+		}
 		getHttpControlHandler();
 	}
 
