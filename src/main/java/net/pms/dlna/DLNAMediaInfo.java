@@ -386,7 +386,7 @@ public class DLNAMediaInfo implements Cloneable {
 			forThumbnail.durationSec /= 2;
 		}
 
-		forThumbnail.parse(input, ext, type, true, resume);
+		forThumbnail.parse(input, ext, type, true, resume, null);
 		thumb = forThumbnail.thumb;
 	}
 
@@ -539,7 +539,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume) {
+	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume, RendererConfiguration mediaRenderer) {
 		int i = 0;
 
 		while (isParsing()) {
@@ -648,7 +648,7 @@ public class DLNAMediaInfo implements Cloneable {
 						ffmpeg_parsing = false;
 					}
 
-					if (audio.getSongname() == null || audio.getSongname().length() == 0) {
+					if (audio.getSongname() == null || audio.getSongname().length() == 0 || mediaRenderer.isUseTrackFileNames()) {
 						audio.setSongname(file.getName());
 					}
 
