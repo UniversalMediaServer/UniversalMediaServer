@@ -158,6 +158,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
+	protected static final String PREPEND_TRACK_NUMBERS = "PrependTrackNumbers";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String MAX_VOLUME = "MaxVolume";
 	protected static final String RENDERER_ICON = "RendererIcon";
@@ -2090,6 +2091,19 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
+	}
+
+	/**
+	 * Whether to prepend audio track numbers to audio titles.
+	 * e.g. "Stairway to Heaven" becomes "4: Stairway to Heaven".
+	 *
+	 * This is to provide a workaround for devices that order everything
+	 * alphabetically instead of in the order we give, like Samsung devices.
+	 *
+	 * @return whether to prepend audio track numbers to audio titles.
+	 */
+	public boolean isPrependTrackNumbers() {
+		return getBoolean(PREPEND_TRACK_NUMBERS, false);
 	}
 
 	public String getFFmpegVideoFilterOverride() {
