@@ -567,22 +567,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					String mimeType = defaultRenderer.getFormatConfiguration().match(child.media);
 					if (mimeType != null) {
 						// Media is streamable
-						if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
-							OutputParams params = new OutputParams(configuration);
-							Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
-							if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
-								child.media_subtitle = params.sid;
-								child.media_subtitle.setSubsStreamable(true);
-								LOGGER.trace("Set media_subtitle");
+						if (child.format.isVideo()) {
+							if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+								OutputParams params = new OutputParams(configuration);
+								Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
+								if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
+									child.media_subtitle = params.sid;
+									child.media_subtitle.setSubsStreamable(true);
+									LOGGER.trace("Set media_subtitle");
+								} else {
+									LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+								}
 							} else {
-								LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+								LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
 							}
-						} else {
-							LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
 						}
 
+						/**
+						 * Use the renderer's preferred MIME type for this file.
+						 */
 						if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
-							// Override with the preferred mime type of the renderer
 							LOGGER.trace("Overriding detected mime type \"{}\" for file \"{}\" with renderer preferred mime type \"{}\"",
 									child.media.getMimeType(), child.getName(), mimeType);
 							child.media.setMimeType(mimeType);
@@ -593,7 +597,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// Media is transcodable
 						LOGGER.trace("File \"{}\" can be transcoded", child.getName());
 					}
-				} else if (child.media != null && defaultRenderer != null) {
+				} else if (child.media != null && defaultRenderer != null && child.format.isVideo()) {
 					LOGGER.trace("Did not check for media_subtitle for \"{}\" because {} does not use MediaInfo, we will check for it soon", child.getName(), defaultRenderer);
 				}
 
