@@ -562,7 +562,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				boolean parserV2 = child.media != null && defaultRenderer != null && defaultRenderer.isMediaParserV2();
-				if (parserV2  && child.format.isVideo()) {
+				if (parserV2) {
 					// See which mime type the renderer prefers in case it supports the media
 					String mimeType = defaultRenderer.getFormatConfiguration().match(child.media);
 					if (mimeType != null) {
@@ -593,7 +593,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// Media is transcodable
 						LOGGER.trace("File \"{}\" can be transcoded", child.getName());
 					}
-				} else if (child.media != null && defaultRenderer != null && child.format.isVideo()) {
+				} else if (child.media != null && defaultRenderer != null) {
 					LOGGER.trace("Did not check for media_subtitle for \"{}\" because {} does not use MediaInfo, we will check for it soon", child.getName(), defaultRenderer);
 				}
 
