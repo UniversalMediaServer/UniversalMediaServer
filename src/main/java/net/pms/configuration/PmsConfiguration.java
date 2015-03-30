@@ -19,7 +19,6 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.io.File;
