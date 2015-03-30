@@ -1,6 +1,15 @@
 5.1.1 - 2015-??-??
 
 	General:
+		Added support for links in tooltips (thanks, taconaut!)
+		Added support for customizing background and foreground color in tooltips (thanks, taconaut!)
+		Added PrependTrackNumbers renderer option to ensure that renderers order audio by track number
+		Made the RescaleByRenderer setting more consistent
+		Fixed MP4, M4A and 3GP file compatibility on some renderers
+		Fixed bug with the renderer selection window
+		Fixed audio and image compatibility on some renderers
+	Renderers:
+		Made Samsung televisions and Blu-ray Disc players order audio by track number
 		
 
 5.1.0 - 2015-03-21
