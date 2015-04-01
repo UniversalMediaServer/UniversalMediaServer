@@ -287,8 +287,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
-		// Attach it to the context so it can be invoked if connection is reset unexpectedly
-		ctx.setAttachment(startStopListenerDelegate);
 
 		try {
 			request.answer(ctx, response, e, close, startStopListenerDelegate);
@@ -308,17 +306,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
-		if (cause != null) {
-			if (cause.getClass().equals(IOException.class)) {
-				LOGGER.debug("Connection error: " + cause);
-				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();
-				if (startStopListenerDelegate != null) {
-					LOGGER.debug("Premature end, stopping...");
-					startStopListenerDelegate.stop();
-				}
-			} else if (!cause.getClass().equals(ClosedChannelException.class)) {
-				LOGGER.debug("Caught exception: " + cause);
-			}
+		if (cause != null && !cause.getClass().equals(ClosedChannelException.class) && !cause.getClass().equals(IOException.class)) {
+			LOGGER.debug("Caught exception", cause);
 		}
 		if (ctx.channel().isActive()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
