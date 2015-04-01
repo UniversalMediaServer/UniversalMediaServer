@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.formats.v2;
+package net.pms.util;
 
 import java.awt.Color;
 import java.io.*;
@@ -27,21 +27,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.FileUtil;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -538,7 +543,7 @@ public class SubtitleUtils {
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
 					if (timeMatcher.find()) {	
-						if (mode3D == Mode3D.OUL) {
+						if (mode3D == Mode3D.OUL || mode3D == Mode3D.HOUL) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,")
@@ -568,7 +573,7 @@ public class SubtitleUtils {
 							.append(String.format("%04d,", offset + depth3D))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
-						} else if (mode3D == Mode3D.SBSL) {
+						} else if (mode3D == Mode3D.SBSL || mode3D == Mode3D.HSBSL) {
 							int marginR1 = playResX + offset + depth3D;
 							int marginL2 = playResX + offset + depth3D;
 							outputString.append("Dialogue: 0,")
@@ -618,5 +623,9 @@ public class SubtitleUtils {
 	public static String convertColorToAssHexFormat(Color color) {
 		String colour = Integer.toHexString(color.getRGB());
 		return "&H" + colour.substring(6, 8) + colour.substring(4, 6) + colour.substring(2, 4);
+	}
+
+	public static void deleteSubs() {
+		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
 	}
 }

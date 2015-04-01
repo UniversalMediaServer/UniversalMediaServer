@@ -754,6 +754,7 @@ public class PMS {
 			}
 		});
 
+		configuration.setAutoSave();
 		UPNPHelper.sendAlive();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);

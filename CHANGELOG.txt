@@ -1,7 +1,65 @@
-5.0.2 - 2015-02-??
+5.1.1 - 2015-??-??
 
 	General:
+		Added support for links in tooltips (thanks, taconaut!)
+		Added support for customizing background and foreground color in tooltips (thanks, taconaut!)
+		Added PrependTrackNumbers renderer option to ensure that renderers order audio by track number
+		Made the RescaleByRenderer setting more consistent
+		Fixed MP4, M4A and 3GP file compatibility on some renderers
+		Fixed bug with the renderer selection window
+		Fixed audio and image compatibility on some renderers
+	Renderers:
+		Made Samsung televisions and Blu-ray Disc players order audio by track number
 		
+
+5.1.0 - 2015-03-21
+
+	General:
+		Added 64-bit versions of FFmpeg for a ~10% increase in transcoding speed
+		Removed the "Save" button since changes to settings are now saved automatically
+		Improved detection of playback states
+		Improved connection awareness
+		Improved True Motion frame interpolation speed by up to 20%
+		Improved folder population speed
+		Improved support for 3GPP files
+		Improved descriptions of settings
+		Slightly altered the memory usage bar
+		Fixed the renderer SeekByTime setting
+		Fixed renderer detection and recognition in some cases
+		Fixed display names for videos that have the Track (song title) value set
+		Fixed incorrect ContentFeatures headers being sent to renderers (thanks, master-nevi!)
+		Fixed the web logviewer
+		Fixed bugs with 3D subtitles
+		Fixed the setting for using embedded subtitles styles
+	Renderers:
+		Fixed filename bug on Sony Bravia TVs
+		Improved support for LG LED-backlit LCD 2014 TVs
+		Improved support for Samsung H6203 TVs
+	Languages:
+		Made more strings translatable
+		Updated Czech translation
+		Updated Dutch translation (thanks, ler0y!)
+		Updated French translation (thanks, Kirvx!)
+		Updated Italian translation (thanks, bartsimp!)
+	External Components:
+		Updated Chromecast Java API to 0.0.6
+		Updated Commons Codec to 1.10
+		Updated FEST Util to 1.2.5
+		Updated FFmpeg for Windows and OS X, which:
+			Improved support for many containers and codecs
+			Fixed bugs
+		Updated Gson to 2.3.1
+		Updated h2database to 1.4.186, which:
+			Fixed memory issues
+			Fixed caching issues
+		Updated InterFrame to 2.8.0, which:
+			Increased processing speed by up to 20%
+			Reduced memory use
+			Reduced dependencies
+		Updated JDom to 2.0.2
+		Updated JUnit to 4.12
+		Updated Plexus Utils to 3.0.21
+		Updated slf4j to 1.7.10
 
 5.0.1 - 2015-02-16
 
