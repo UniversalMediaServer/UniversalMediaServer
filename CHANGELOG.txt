@@ -8,6 +8,7 @@
 		Fixed MP4, M4A and 3GP file compatibility on some renderers
 		Fixed bug with the renderer selection window
 		Fixed audio and image compatibility on some renderers
+		Fixed transcoding with subtitles on 64-bit systems
 	Renderers:
 		Made Samsung televisions and Blu-ray Disc players order audio by track number
 		
