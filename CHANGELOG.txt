@@ -1,4 +1,4 @@
-5.1.1 - 2015-??-??
+5.1.1 - 2015-04-03
 
 	General:
 		Added support for links in tooltips (thanks, taconaut!)
