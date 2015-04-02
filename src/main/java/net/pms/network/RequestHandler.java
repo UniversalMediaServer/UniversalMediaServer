@@ -73,7 +73,7 @@ public class RequestHandler implements Runnable {
 		try {
 			int receivedContentLength = -1;
 			String userAgentString = null;
-			ArrayList<String> identifiers = new ArrayList<>();
+			ArrayList<String> identifiers = new ArrayList<String>();
 			RendererConfiguration renderer = null;
 
 			InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
