@@ -578,12 +578,12 @@ public class PMS {
 			mplayer.runInNewThread();
 
 			/**
-			 * Note: This can be needed in case MPlayer and FFmpeg have been
-			 * compiled with a different version of fontconfig.
-			 * Since it's unpredictable on Linux we should always run this
-			 * on Linux, but it may be possible to sync versions on OS X.
+			 * Note: Different versions of fontconfig and bitness require
+			 * different caches, which is why here we ask FFmpeg (64-bit
+			 * if possible) to create a cache.
+			 * This should result in all of the necessary caches being built.
 			 */
-			if (!Platform.isWindows()) {
+			if (!Platform.isWindows() || Platform.is64Bit()) {
 				ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
 				ffmpeg.runInNewThread();
 			}

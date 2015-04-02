@@ -18,7 +18,7 @@ import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.Messages;
-import net.pms.newgui.GuiUtil.CustomJButton;
+import net.pms.newgui.components.CustomJButton;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
@@ -223,8 +223,11 @@ public class RendererPanel extends JPanel {
 			fc.setSelectedFile(defaultRef);
 		}
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		if (fc.showDialog(this, Messages.getString("RendererPanel.9")) == JFileChooser.APPROVE_OPTION) {
-			return fc.getSelectedFile();
+		switch (fc.showDialog(this, Messages.getString("RendererPanel.9"))) {
+			case JFileChooser.APPROVE_OPTION:
+				return fc.getSelectedFile();
+			case JFileChooser.CANCEL_OPTION:
+				return RendererConfiguration.NOFILE;
 		}
 		return null;
 	}
