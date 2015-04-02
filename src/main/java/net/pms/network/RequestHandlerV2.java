@@ -80,7 +80,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		RequestV2 request = null;
 		RendererConfiguration renderer = null;
 		String userAgentString = null;
-		ArrayList<String> identifiers = new ArrayList<>();
+		ArrayList<String> identifiers = new ArrayList<String>();
 
 		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) e.getMessage();
 
