@@ -20,14 +20,18 @@
 
 package net.pms.util;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Formatter;
 import java.util.Locale;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StringUtil {
+	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
@@ -208,5 +212,38 @@ public class StringUtil {
 			}
 			return 0;
 		}
+	}
+
+	/**
+	 * Interprets color strings of these forms:
+	 *    integer: r,g,b[,a]          - e.g. '125,184,47' or '125,184,47,128'
+	 *    hex: #[aa]rrggbb            - e.g. '#04DCF9' or '#8004DCF9'
+	 *    java.awt.Color named color  - e.g. 'blue' or 'LIGHT_GRAY'
+	 */
+	public static Color parseColor(String colorString) {
+		colorString = colorString.trim();
+		try {
+			if (colorString.contains(",")) {
+				// Integer r,g,b[,a]
+				String[] colorElements = colorString.split("\\s*,\\s*");
+				int r = Integer.parseInt(colorElements[0]);
+				int g = Integer.parseInt(colorElements[1]);
+				int b = Integer.parseInt(colorElements[2]);
+				int a = colorElements.length > 3 ? Integer.parseInt(colorElements[3]) : 255;
+				return new Color(r, g, b, a);
+
+			} else if (colorString.charAt(0) == '#') {
+				// Hex #[aa]rrggbb
+				long argb = Long.parseLong(colorString.substring(1), 16);
+				return new Color((int)argb, colorString.length() > 8);
+
+			} else {
+				// java.awt.Color named color
+				return (Color) Color.class.getField(colorString).get(null);
+			}
+		} catch (Exception e) {
+		}
+		LOGGER.warn("Unknown color '{}'. Color string must be rgb (integer R,G,B[,A] or hex #[AA]RRGGBB) or a standard java.awt.Color name", colorString);
+		return null;
 	}
 }

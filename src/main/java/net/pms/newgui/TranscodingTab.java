@@ -37,11 +37,12 @@ import javax.swing.tree.TreeSelectionModel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.newgui.GuiUtil.CustomJButton;
+import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJTextField;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -736,7 +737,7 @@ public class TranscodingTab {
 		CellConstraints cc = new CellConstraints();
 
 		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
-		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
+		defaultsubs = new CustomJTextField(configuration.getSubtitlesLanguages());
 		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
@@ -978,7 +979,7 @@ public class TranscodingTab {
 				if (newColor != null) {
 					subColor.setBackground(newColor);
 					configuration.setSubsColor(newColor.getRGB());
-					FFMpegVideo.deleteSubs(); // Color has been changed so all FFmpeg temporary subs will be deleted and make new
+					SubtitleUtils.deleteSubs(); // Color has been changed so all temporary subs will be deleted and make new
 				}
 			}
 		});

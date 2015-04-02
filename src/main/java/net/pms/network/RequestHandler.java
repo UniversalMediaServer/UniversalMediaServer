@@ -73,8 +73,7 @@ public class RequestHandler implements Runnable {
 		try {
 			int receivedContentLength = -1;
 			String userAgentString = null;
-			StringBuilder unknownHeaders = new StringBuilder();
-			String separator = "";
+			ArrayList<String> identifiers = new ArrayList<>();
 			RendererConfiguration renderer = null;
 
 			InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
@@ -207,8 +206,7 @@ public class RequestHandler implements Runnable {
 
 						if (!isKnown) {
 							// Truly unknown header, therefore interesting. Save for later use.
-							unknownHeaders.append(separator).append(headerLine);
-							separator = ", ";
+							identifiers.add(headerLine);
 						}
 					}
 				} catch (IllegalArgumentException e) {
@@ -218,18 +216,21 @@ public class RequestHandler implements Runnable {
 
 			if (request != null) {
 				// Still no media renderer recognized?
-				if (request.getMediaRenderer() == null) {
+				if (renderer == null) {
 					// Attempt 3: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
-					request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
-					if (request.getMediaRenderer() != null) {
-						LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getConfName());
+					renderer = RendererConfiguration.resolve(ia, null);
+					request.setMediaRenderer(renderer);
+					if (renderer != null) {
+						LOGGER.trace("Using default media renderer: " + renderer.getConfName());
 
 						if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 							// We have found an unknown renderer
-							LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString +
-									("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
+							identifiers.add(0, "User-Agent: " + userAgentString);
+							renderer.setIdentifiers(identifiers);
+							LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers:"
+								+ StringUtils.join(identifiers, ", "));
 						}
 					} else {
 						// If RendererConfiguration.resolve() didn't return the default renderer
@@ -238,9 +239,9 @@ public class RequestHandler implements Runnable {
 					}
 				} else {
 					if (userAgentString != null) {
-						LOGGER.debug("HTTP User-Agent: " + userAgentString);
+						LOGGER.trace("HTTP User-Agent: " + userAgentString);
 					}
-					LOGGER.trace("Recognized media renderer: " + request.getMediaRenderer().getRendererName());
+					LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
 				}
 			}
 
