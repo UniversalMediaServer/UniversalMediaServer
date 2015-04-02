@@ -562,27 +562,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				boolean parserV2 = child.media != null && defaultRenderer != null && defaultRenderer.isMediaParserV2();
-				if (parserV2  && child.format.isVideo()) {
+				if (parserV2) {
 					// See which mime type the renderer prefers in case it supports the media
 					String mimeType = defaultRenderer.getFormatConfiguration().match(child.media);
 					if (mimeType != null) {
 						// Media is streamable
-						if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
-							OutputParams params = new OutputParams(configuration);
-							Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
-							if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
-								child.media_subtitle = params.sid;
-								child.media_subtitle.setSubsStreamable(true);
-								LOGGER.trace("Set media_subtitle");
+						if (child.format.isVideo()) {
+							if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+								OutputParams params = new OutputParams(configuration);
+								Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
+								if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
+									child.media_subtitle = params.sid;
+									child.media_subtitle.setSubsStreamable(true);
+									LOGGER.trace("Set media_subtitle");
+								} else {
+									LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+								}
 							} else {
-								LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+								LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
 							}
-						} else {
-							LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
 						}
 
+						/**
+						 * Use the renderer's preferred MIME type for this file.
+						 */
 						if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
-							// Override with the preferred mime type of the renderer
 							LOGGER.trace("Overriding detected mime type \"{}\" for file \"{}\" with renderer preferred mime type \"{}\"",
 									child.media.getMimeType(), child.getName(), mimeType);
 							child.media.setMimeType(mimeType);
@@ -895,7 +899,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					LOGGER.trace(prependTraceReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), media.getAspectRatioContainer());
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the resolution is too high for the renderer.", getName());
+					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
 				} else if (media.getBitrate() > (renderer.getMaxBandwidth() / 2)) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the bitrate is too high.", getName());
@@ -1190,7 +1194,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configuration.getFolderLimit() && depthLimit()) {
-				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXbox360()) {
+				if (renderer.getConfName().equalsIgnoreCase("Playstation 3") || renderer.isXbox360()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
 				}
 

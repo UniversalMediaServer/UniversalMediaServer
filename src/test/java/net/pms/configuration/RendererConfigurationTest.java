@@ -110,16 +110,16 @@ public class RendererConfigurationTest {
 		testHeaders("Realtek", "User-Agent: RealtekVOD neon/0.27.2", "RealtekMediaCenter: RealtekVOD");
 
 		// SamsungAllShare:
-		testHeaders("Samsung AllShare C/D", "User-Agent: SEC_HHP_[HT]D5500/1.0");
-		testHeaders("Samsung AllShare C/D", "User-Agent: SEC_HHP_[TV]UE32D5000/1.0");
-		testHeaders("Samsung AllShare C/D", "User-Agent: SEC_HHP_[TV]PS51D6900/1.0");
-		testHeaders("Samsung AllShare C/D", "User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UE32D5000/1.0");
-		testHeaders("Samsung AllShare C/D", "User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UN55D6050/1.0");
-		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_ Family TV/1.0");
-		testHeaders("Samsung AllShare", "User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0");
+		testHeaders("Samsung C/D Series", "User-Agent: SEC_HHP_[HT]D5500/1.0");
+		testHeaders("Samsung C/D Series", "User-Agent: SEC_HHP_[TV]UE32D5000/1.0");
+		testHeaders("Samsung C/D Series", "User-Agent: SEC_HHP_[TV]PS51D6900/1.0");
+		testHeaders("Samsung C/D Series", "User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UE32D5000/1.0");
+		testHeaders("Samsung C/D Series", "User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UN55D6050/1.0");
+		testHeaders("Samsung E+ Series", "User-Agent: SEC_HHP_ Family TV/1.0");
+		testHeaders("Samsung E+ Series", "User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0");
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
-		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50");
-		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50");
+		testHeaders("Samsung E+ Series", "User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50");
+		testHeaders("Samsung E+ Series", "User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50");
 
 		// Samsung-SMT-G7400:
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
