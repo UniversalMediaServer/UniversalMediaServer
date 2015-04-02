@@ -22,20 +22,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
+import java.io.*;
+import java.util.*;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
@@ -398,7 +386,7 @@ public class DLNAMediaInfo implements Cloneable {
 			forThumbnail.durationSec /= 2;
 		}
 
-		forThumbnail.parse(input, ext, type, true, resume);
+		forThumbnail.parse(input, ext, type, true, resume, null);
 		thumb = forThumbnail.thumb;
 	}
 
@@ -551,7 +539,15 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
+	@Deprecated
 	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume) {
+		parse(inputFile, ext, type, thumbOnly, resume, null);
+	}
+
+	/**
+	 * Parse media without using MediaInfo.
+	 */
+	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume, RendererConfiguration renderer) {
 		int i = 0;
 
 		while (isParsing()) {
@@ -660,7 +656,11 @@ public class DLNAMediaInfo implements Cloneable {
 						ffmpeg_parsing = false;
 					}
 
-					if (audio.getSongname() == null || audio.getSongname().length() == 0) {
+					if (audio.getSongname() != null && audio.getSongname().length() > 0) {
+						if (renderer.isPrependTrackNumbers() && audio.getTrack() > 0) {
+							audio.setSongname(audio.getTrack() + ": " + audio.getSongname());
+						}
+					} else {
 						audio.setSongname(file.getName());
 					}
 
@@ -879,6 +879,19 @@ public class DLNAMediaInfo implements Cloneable {
 					if (line.contains(input)) {
 						matchs = true;
 						container = line.substring(10, line.indexOf(',', 11)).trim();
+
+						/**
+						 * This method is very inaccurate because the Input line in the FFmpeg output
+						 * returns "mov,mp4,m4a,3gp,3g2,mj2" for all 6 of those formats, meaning that
+						 * we think they are all "mov".
+						 *
+						 * Here we workaround it by using the file extension, but the best idea is to
+						 * prevent using this method by using MediaInfo=true in renderer configs.
+						 */
+						if ("mov".equals(container)) {
+							container = line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf("'")).trim();
+							LOGGER.trace("Setting container to " + container + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
+						}
 					} else {
 						matchs = false;
 					}
@@ -1195,11 +1208,10 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (container.equals("3gp")) {
 				mimeType = HTTPResource.THREEGPP_TYPEMIME;
 			} else if (container.equals("3g2")) {
-				mimeType = HTTPResource.THREEGPP2_TYPEMIME;			
+				mimeType = HTTPResource.THREEGPP2_TYPEMIME;
 			} else if (container.equals("mov")) {
-				mimeType = HTTPResource.MOV_TYPEMIME;			
+				mimeType = HTTPResource.MOV_TYPEMIME;
 			}
-
 		} else if (codecV != null) {
 			if (codecV.equals("mjpeg") || "jpg".equals(container)) {
 				mimeType = HTTPResource.JPEG_TYPEMIME;
@@ -1212,7 +1224,6 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
 				mimeType = HTTPResource.MPEG_TYPEMIME;
 			}
-
 		} else if (codecV == null && codecA != null) {
 			if (codecA.contains("mp3")) {
 				mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
@@ -1227,7 +1238,6 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
 				mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 			}
-
 		} else {
 			mimeType = HTTPResource.getDefaultMimeType(type);
 		}

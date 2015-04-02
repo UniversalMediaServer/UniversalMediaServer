@@ -5,6 +5,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
@@ -52,7 +53,15 @@ public class LibMediaInfoParser {
 		}
 	}
 
+	@Deprecated
 	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type) {
+		parse(media, inputFile, type, null);
+	}
+
+	/**
+	 * Parse media via MediaInfo.
+	 */
+	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type, RendererConfiguration renderer) {
 		File file = inputFile.getFile();
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.Open(file.getAbsolutePath()) > 0) {
 			try {
@@ -144,6 +153,15 @@ public class LibMediaInfoParser {
 						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
 						currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
+
+						if (currentAudioTrack.getSongname() != null && currentAudioTrack.getSongname().length() > 0) {
+							if (renderer.isPrependTrackNumbers() && currentAudioTrack.getTrack() > 0) {
+								currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
+							}
+						} else {
+							currentAudioTrack.setSongname(file.getName());
+						}
+
 						currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
 						currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
 						currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
