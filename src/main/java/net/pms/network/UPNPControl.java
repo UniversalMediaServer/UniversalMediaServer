@@ -289,14 +289,14 @@ public class UPNPControl {
 				@Override
 				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
 					super.remoteDeviceAdded(registry, d);
-					if (!addRenderer(d)) {
-						LOGGER.debug("found device: {} {}", d.getType().getType(), d.toString());
+					if (isBlocked(getUUID(d)) || !addRenderer(d)) {
+						LOGGER.debug("Ignoring device: {} {}", d.getType().getType(), d.toString());
 					}
 					// This may be unnecessary, but we might as well be thorough
 					if (d.hasEmbeddedDevices()) {
 						for (Device e : d.getEmbeddedDevices()) {
-							if (!addRenderer(e)) {
-								LOGGER.debug("found embedded device: {} {}", e.getType(), e.toString());
+							if (isBlocked(getUUID(e)) || !addRenderer(e)) {
+								LOGGER.debug("Ignoring embedded device: {} {}", e.getType(), e.toString());
 							}
 						}
 					}
@@ -460,13 +460,16 @@ public class UPNPControl {
 		return url;
 	}
 
+	protected boolean addRenderer(String uuid) {
+		Device d = getDevice(uuid);
+		return d != null ? addRenderer(d) : false;
+	}
+
 	protected synchronized boolean addRenderer(Device d) {
 		if (d != null) {
 			String uuid = getUUID(d);
-			String name = getFriendlyName(d);
-			if (isMediaRenderer(d)) {
+			if (isMediaRenderer(d) && rendererFound(d, uuid) != null) {
 				LOGGER.debug("Adding device: {} {}", d.getType(), d.toString());
-				rendererFound(d, uuid);
 				rendererMap.mark(uuid, ACTIVE, true);
 				subscribeAll(d, uuid);
 				rendererReady(uuid);
@@ -501,6 +504,10 @@ public class UPNPControl {
 	protected void rendererReady(String uuid) {
 	}
 
+	protected boolean isBlocked(String uuid) {
+		return false;
+	}
+
 	protected void rendererUpdated(Device d) {
 		String uuid = getUUID(d);
 		if (rendererMap.containsKey(uuid)) {
@@ -509,12 +516,6 @@ public class UPNPControl {
 				subscribeAll(d, uuid);
 			}
 			rendererMap.mark(uuid, ACTIVE, true);
-		} else if (isMediaRenderer(d)) {
-			// Shouldn't happen, but this would mean we somehow failed to identify it as a renderer before
-			LOGGER.debug("Updating device as {}: {}", d.getType().getType(), d.toString());
-			if (! addRenderer(d)) {
-				LOGGER.debug("Error adding {}: {}", d.getType(), d.toString());
-			}
 		}
 	}
 

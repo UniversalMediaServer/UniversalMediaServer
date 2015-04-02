@@ -581,6 +581,24 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
+	public static boolean activate(String uuid) {
+		if (! rendererMap.containsKey(uuid)) {
+			LOGGER.debug("Activating upnp service for {}", uuid);
+			return getInstance().addRenderer(uuid);
+		}
+		return true;
+	}
+
+	@Override
+	protected boolean isBlocked(String uuid) {
+		int mode = DeviceConfiguration.getDeviceUpnpMode(uuid, true);
+		if (mode != RendererConfiguration.ALLOW) {
+			LOGGER.debug("Upnp service is {} for {}", RendererConfiguration.getUpnpModeString(mode), uuid);
+			return true;
+		}
+		return false;
+	}
+
 	@Override
 	protected Renderer rendererFound(Device d, String uuid) {
 		// Create or retrieve an instance
@@ -589,6 +607,14 @@ public class UPNPHelper extends UPNPControl {
 			DeviceConfiguration r = (DeviceConfiguration) RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
 			RendererConfiguration ref = configuration.isRendererForceDefault() ?
 				null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+
+			if (r != null && ! r.isUpnpAllowed()) {
+				LOGGER.debug("Upnp service is {} for \"{}\"", r.getUpnpModeString(), r);
+				return null;
+			} else if (r == null && ref != null && ! ref.isUpnpAllowed()) {
+				LOGGER.debug("Upnp service is {} for {} devices", ref.getUpnpModeString(), ref);
+				return null;
+			}
 
 			// FIXME: when UpnpDetailsSearch is missing from the conf a upnp-advertising
 			// renderer could register twice if the http server sees it first

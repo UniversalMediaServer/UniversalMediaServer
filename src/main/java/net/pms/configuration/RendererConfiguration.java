@@ -188,6 +188,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
 	protected static final String TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE = "TranscodedVideoAudioSampleRate";
 	protected static final String UPNP_DETAILS = "UpnpDetailsSearch";
+	protected static final String UPNP_ALLOW = "UpnpAllow";
 	protected static final String USER_AGENT = "UserAgentSearch";
 	protected static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	protected static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
@@ -494,6 +495,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
 
 		addressAssociation.put(sa, this);
+		resetUpnpMode();
+
 		if (
 			(
 				pmsConfiguration.isAutomaticMaximumBitrate() ||
@@ -635,6 +638,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					PMS.get().setRendererFound(r);
 				}
 				r.active = true;
+				if (r.isUpnpPostponed()) {
+					r.setUpnpMode(ALLOW);
+				}
 			}
 		} catch (Exception e) {
 		}
@@ -2525,5 +2531,71 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public List<String> getIdentifiers() {
 		return identifiers;
+	}
+
+	/**
+	 * Upnp service startup management
+	 */
+
+	public static final int BLOCK = -2;
+	public static final int POSTPONE = -1;
+	public static final int NONE = 0;
+	public static final int ALLOW = 1;
+
+	protected volatile int upnpMode = NONE;
+
+	public static int getUpnpMode(String mode) {
+		if (mode != null) {
+			switch (mode.trim().toLowerCase()) {
+				case "false":    return BLOCK;
+				case "postpone": return POSTPONE;
+			}
+		}
+		return ALLOW;
+	}
+
+	public static String getUpnpModeString(int mode) {
+		switch (mode) {
+			case BLOCK:    return "blocked";
+			case POSTPONE: return "postponed";
+			case NONE:     return "unknown";
+		}
+		return "allowed";
+	}
+
+	public int getUpnpMode() {
+		if (upnpMode == NONE) {
+			upnpMode = getUpnpMode(getString(UPNP_ALLOW, "true"));
+		}
+		return upnpMode;
+	}
+
+	public String getUpnpModeString() {
+		return getUpnpModeString(upnpMode);
+	}
+
+	public void resetUpnpMode() {
+		setUpnpMode(getUpnpMode(getString(UPNP_ALLOW, "true")));
+	}
+
+	public void setUpnpMode(int mode) {
+		if (upnpMode != mode) {
+			upnpMode = mode;
+			if (upnpMode == ALLOW) {
+				String id = uuid != null ? uuid : DeviceConfiguration.getUuidOf(getAddress());
+				if (id != null) {
+					configuration.setProperty(UPNP_ALLOW, "true");
+					UPNPHelper.activate(id);
+				}
+			}
+		}
+	}
+
+	public boolean isUpnpPostponed() {
+		return getUpnpMode() == POSTPONE;
+	}
+
+	public boolean isUpnpAllowed() {
+		return getUpnpMode() > NONE;
 	}
 }
