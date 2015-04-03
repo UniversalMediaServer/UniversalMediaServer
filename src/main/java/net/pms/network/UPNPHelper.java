@@ -634,6 +634,9 @@ public class UPNPHelper extends UPNPControl {
 					r.inherit(ref);
 				}
 
+				// Update if we have a custom configuration for this uuid
+				r.setUUID(uuid);
+
 				// Make sure it's mapped
 				rendererMap.put(uuid, "0", r);
 				r.details = getDeviceDetails(d);
@@ -662,6 +665,7 @@ public class UPNPHelper extends UPNPControl {
 			return r;
 		} catch (Exception e) {
 			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
+			e.printStackTrace();
 		}
 		return null;
 	}

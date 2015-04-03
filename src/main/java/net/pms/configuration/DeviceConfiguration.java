@@ -105,6 +105,18 @@ public class DeviceConfiguration extends PmsConfiguration {
 		}
 	}
 
+	@Override
+	public void setUUID(String uuid) {
+		if (uuid != null && ! uuid.equals(this.uuid)) {
+			this.uuid = uuid;
+			// Switch to the custom device conf for this new uuid, if any
+			if (uuid != null && deviceConfs.containsKey(uuid) && deviceConf != deviceConfs.get(uuid)) {
+				deviceConf = initConfiguration(null);
+				reset();
+			}
+		}
+	}
+
 	public PropertiesConfiguration initConfiguration(InetAddress ia) {
 		String id = uuid != null ? uuid : ia != null ? ia.toString().substring(1) : null;
 		if (id != null && deviceConfs.containsKey(id)) {
