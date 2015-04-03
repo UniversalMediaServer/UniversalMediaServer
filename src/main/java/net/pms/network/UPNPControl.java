@@ -117,19 +117,22 @@ public class UPNPControl {
 		}
 
 		public void mark(String uuid, int property, Object value) {
-			for (T i : get(uuid).values()) {
-				switch (property) {
-					case ACTIVE:
-						i.setActive((boolean) value);
-						break;
-					case RENEW:
-						i.renew = (boolean) value;
-						break;
-					case CONTROLS:
-						i.controls = (int) value;
-						break;
-					default:
-						break;
+			HashMap<String, T> m = get(uuid);
+			if (m != null) {
+				for (T i : m.values()) {
+					switch (property) {
+						case ACTIVE:
+							i.setActive((boolean) value);
+							break;
+						case RENEW:
+							i.renew = (boolean) value;
+							break;
+						case CONTROLS:
+							i.controls = (int) value;
+							break;
+						default:
+							break;
+					}
 				}
 			}
 		}

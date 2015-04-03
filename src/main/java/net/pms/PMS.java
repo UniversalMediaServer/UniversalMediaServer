@@ -353,10 +353,12 @@ public class PMS {
 		LOGGER.info("Profile permissions: " + getPathPermissions(profilePath));
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
-		String webConfPath = configuration.getWebConfPath();
-		LOGGER.info("Web conf path: " + webConfPath);
-		LOGGER.info("Web conf permissions: " + getPathPermissions(webConfPath));
-		LOGGER.info("");
+		if (configuration.useWebInterface()) {
+			String webConfPath = configuration.getWebConfPath();
+			LOGGER.info("Web conf path: " + webConfPath);
+			LOGGER.info("Web conf permissions: " + getPathPermissions(webConfPath));
+			LOGGER.info("");
+		}
 
 		/**
 		 * Ensure the data directory is created. On Windows this is

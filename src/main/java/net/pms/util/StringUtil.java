@@ -221,8 +221,8 @@ public class StringUtil {
 	 *    java.awt.Color named color  - e.g. 'blue' or 'LIGHT_GRAY'
 	 */
 	public static Color parseColor(String colorString) {
-		colorString = colorString.trim();
 		try {
+			colorString = colorString.trim();
 			if (colorString.contains(",")) {
 				// Integer r,g,b[,a]
 				String[] colorElements = colorString.split("\\s*,\\s*");

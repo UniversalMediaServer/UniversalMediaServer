@@ -113,5 +113,14 @@ public class ChromecastMgr implements ServiceListener {
 			}
 			return player;
 		}
+
+		@Override
+		public InetAddress getAddress() {
+			try {
+				return InetAddress.getByName(api.getAddress());
+			} catch (Exception e) {
+				return null;
+			}
+		}
 	}
 }
