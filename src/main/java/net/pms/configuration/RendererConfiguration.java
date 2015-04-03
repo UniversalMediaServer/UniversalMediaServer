@@ -133,6 +133,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	protected static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	protected static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
+	protected static final String DEVICE_ID = "Device";
 	protected static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	protected static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	protected static final String DLNA_ORGPN_USE = "DLNAOrgPN";
@@ -943,6 +944,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (!loaded) {
 			configuration.clear();
 			loaded = load(f);
+		}
+
+		if (isUpnpAllowed() && uuid == null) {
+			String id = getDeviceId();
+			if (StringUtils.isNotBlank(id)) {
+				uuid = id;
+			}
 		}
 
 		mimes = new HashMap<>();
@@ -2531,6 +2539,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public List<String> getIdentifiers() {
 		return identifiers;
+	}
+
+	public String getDeviceId() {
+		String d = getString(DEVICE_ID, "");
+		if (StringUtils.isBlank(d)) {
+			// Backward compatibility
+			d = getString("device", "");
+		}
+		return d;
 	}
 
 	/**
