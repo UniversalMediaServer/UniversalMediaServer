@@ -495,10 +495,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
 
-		if (addressAssociation.put(sa, this) != null) {
-			// We've displaced a previous renderer at this address, so check 
-			// for any possible ghost renderer instances that should be deleted.
-			purge();
+		RendererConfiguration prev = addressAssociation.put(sa, this);
+		if (prev != null) {
+			// We've displaced a previous renderer at this address, so
+			// check  if it's a ghost instance that should be deleted.
+			verify(prev);
 		}
 		resetUpnpMode();
 
@@ -2620,16 +2621,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getUpnpMode() > NONE;
 	}
 
-	public static void purge() {
-		for (RendererConfiguration d : getConnectedRenderersConfigurations()) {
-			// FIXME: this is a very fallible, incomplete validity test for use only until
-			// we find something better. The assumption is that renderers unable determine
-			// their own address (i.e. non-upnp/web renderers that have lost their spot in the
-			// address association to a newer renderer at the same ip) are "invalid".
-			if (d.getUpnpMode() != BLOCK && d.getAddress() == null) {
-				LOGGER.debug("Purging {} as an invalid", d);
-				d.delete(0);
-			}
+	public static void verify(RendererConfiguration r) {
+		// FIXME: this is a very fallible, incomplete validity test for use only until
+		// we find something better. The assumption is that renderers unable determine
+		// their own address (i.e. non-upnp/web renderers that have lost their spot in the
+		// address association to a newer renderer at the same ip) are "invalid".
+		if (r.getUpnpMode() != BLOCK && r.getAddress() == null) {
+			LOGGER.debug("Purging renderer {} as invalid", r);
+			r.delete(0);
 		}
 	}
 }
