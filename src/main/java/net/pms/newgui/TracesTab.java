@@ -42,6 +42,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.ProcessUtil;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,6 +212,25 @@ public class TracesTab {
 		builder.add(label, cc.xy(3, 2));
 		builder.add(level, cc.xy(4, 2));
 
+		// Add buttons to pack logs (there may be more than one)
+		JPanel pLogPackButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		if (l.getLevel() != Level.TRACE) {
+			CustomJButton rebootTrace = new CustomJButton(Messages.getString("TracesTab.12"));
+			rebootTrace.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (l.getLevel() != Level.TRACE) {
+						int opt = JOptionPane.showConfirmDialog(null, Messages.getString("TracesTab.13"),
+							Messages.getString("TracesTab.14"), JOptionPane.YES_NO_OPTION);
+						if (opt == JOptionPane.YES_OPTION) {
+							ProcessUtil.reboot("trace");
+						}
+					}
+				}
+			});
+			pLogPackButtons.add(rebootTrace);
+		}
+
 		CustomJButton packDbg = new CustomJButton(Messages.getString("TracesTab.4"));
 		packDbg.addMouseListener(new MouseAdapter() {
 			@Override
@@ -221,7 +241,8 @@ public class TracesTab {
 					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 			}
 		});
-		builder.add(packDbg, cc.xy(1, 2));
+		pLogPackButtons.add(packDbg);
+		builder.add(pLogPackButtons, cc.xy(1, 2));
 
 		return builder.getPanel();
 	}
