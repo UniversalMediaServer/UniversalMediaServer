@@ -495,7 +495,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
 
-		addressAssociation.put(sa, this);
+		if (addressAssociation.put(sa, this) != null) {
+			// We've displaced a previous renderer at this address, so check 
+			// for any possible ghost renderer instances that should be deleted.
+			purge();
+		}
 		resetUpnpMode();
 
 		if (
@@ -2614,5 +2618,18 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isUpnpAllowed() {
 		return getUpnpMode() > NONE;
+	}
+
+	public static void purge() {
+		for (RendererConfiguration d : getConnectedRenderersConfigurations()) {
+			// FIXME: this is a very fallible, incomplete validity test for use only until
+			// we find something better. The assumption is that renderers unable determine
+			// their own address (i.e. non-upnp/web renderers that have lost their spot in the
+			// address association to a newer renderer at the same ip) are "invalid".
+			if (d.getUpnpMode() != BLOCK && d.getAddress() == null) {
+				LOGGER.debug("Purging {} as an invalid", d);
+				d.delete(0);
+			}
+		}
 	}
 }
