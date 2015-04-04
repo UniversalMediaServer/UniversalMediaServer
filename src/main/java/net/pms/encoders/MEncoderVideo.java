@@ -35,23 +35,18 @@ import java.util.List;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.GuiUtil.CustomJButton;
-import net.pms.util.CodecUtil;
-import net.pms.util.FileUtil;
-import net.pms.util.FormLayoutUtil;
-import net.pms.util.PlayerUtil;
-import net.pms.util.ProcessUtil;
+import net.pms.newgui.components.CustomJButton;
+import net.pms.util.*;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
@@ -936,6 +931,10 @@ public class MEncoderVideo extends Player {
 		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+		}
+		if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
 		}
 		if (deferToTsmuxer) {
 			String expertOptions[] = getSpecificCodecOptions(

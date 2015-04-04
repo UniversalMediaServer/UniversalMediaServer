@@ -38,6 +38,8 @@ public class OGG extends MP3 {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
+			"3ga",
+			"3gpa",
 			"aa3",
 			"aif",
 			"aiff",

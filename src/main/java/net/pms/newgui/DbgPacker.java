@@ -24,7 +24,7 @@ import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfigFileLoader;
-import net.pms.newgui.GuiUtil.CustomJButton;
+import net.pms.newgui.components.CustomJButton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
