@@ -409,7 +409,7 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("-f");
 				if (dtsRemux) {
 					transcodeOptions.add("mpeg2video");
-				} else if (renderer.isTranscodeToMPEGTS()) {
+				} else if (renderer.isTranscodeToMPEGTS() || isMuxable) {
 					transcodeOptions.add("mpegts");
 				} else {
 					transcodeOptions.add("vob");
