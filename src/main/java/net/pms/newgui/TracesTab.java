@@ -211,20 +211,24 @@ public class TracesTab {
 		JLabel label = new JLabel(Messages.getString("TracesTab.11") + ": ");
 		builder.add(label, cc.xy(3, 2));
 		builder.add(level, cc.xy(4, 2));
+		if (PMS.getTraceMode() == 2) {
+			// Forced trace mode
+			level.disable();
+		}
 
 		// Add buttons to pack logs (there may be more than one)
 		JPanel pLogPackButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		if (l.getLevel() != Level.TRACE) {
+
+		if (PMS.getTraceMode() == 0) {
+			// PMS was not started in trace mode
 			CustomJButton rebootTrace = new CustomJButton(Messages.getString("TracesTab.12"));
 			rebootTrace.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (l.getLevel() != Level.TRACE) {
-						int opt = JOptionPane.showConfirmDialog(null, Messages.getString("TracesTab.13"),
-							Messages.getString("TracesTab.14"), JOptionPane.YES_NO_OPTION);
-						if (opt == JOptionPane.YES_OPTION) {
-							ProcessUtil.reboot("trace");
-						}
+					int opt = JOptionPane.showConfirmDialog(null, Messages.getString("TracesTab.13"),
+						Messages.getString("TracesTab.14"), JOptionPane.YES_NO_OPTION);
+					if (opt == JOptionPane.YES_OPTION) {
+						ProcessUtil.reboot("trace");
 					}
 				}
 			});

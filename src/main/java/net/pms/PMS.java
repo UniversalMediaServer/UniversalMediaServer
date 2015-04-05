@@ -1080,7 +1080,6 @@ public class PMS {
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
 		boolean headless = true;
-		boolean forceTRACE = false;
 
 		if (args.length > 0) {
 			for (String arg : args) {
@@ -1101,7 +1100,7 @@ public class PMS {
 						displayProfileChooser = true;
 						break;
 					case TRACE:
-						forceTRACE = true;
+						traceMode = 2;
 						break;
 					default:
 						break;
@@ -1148,11 +1147,14 @@ public class PMS {
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
 			LoggingConfigFileLoader.load();
 
-			// Force TRACE logging
-			if (forceTRACE) {
-				LOGGER.debug("Forcing TRACE");
-				ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+			// Check TRACE mode
+			ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+			if (traceMode == 2) {
+				LOGGER.debug("Forcing debug level to TRACE");
 				l.setLevel(ch.qos.logback.classic.Level.TRACE);
+			} else {
+				// Remember whether logging level was TRACE at startup
+				traceMode = l.getLevel() == ch.qos.logback.classic.Level.TRACE ? 1 : 0;
 			}
 
 			LOGGER.debug(new Date().toString());
@@ -1619,4 +1621,10 @@ public class PMS {
 		}
 	}
 
+	// 0=not started in trace mode, 1=started in trace mode, 2=forced to trace mode
+	private static int traceMode = 0;
+
+	public static int getTraceMode() {
+		return traceMode;
+	}
 }
