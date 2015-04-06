@@ -43,7 +43,6 @@ public class SelectRenderers extends JPanel {
 	private JTree SrvTree;
 	private DefaultMutableTreeNode allRenderers;
 	private static final String allRenderersTreeName = configuration.ALL_RENDERERS;
-	private JPanel checkPanel;
 	private boolean init = false;
 
 	public SelectRenderers() {
