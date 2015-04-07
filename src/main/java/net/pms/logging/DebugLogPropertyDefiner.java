@@ -31,8 +31,25 @@ import org.apache.commons.io.FileUtils;
  * Logback PropertyDefiner to set the path for the <code>debug.log</code> file.
  * @author thomas@innot.de
  */
-public class DebugLogPathDefiner extends PropertyDefinerBase {
+public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+
+	String key;
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	@Override
+	public String getPropertyValue() {
+		switch (key) {
+			case "debugLogPath":
+				return getDebugLogPath();
+			case "rootLevel":
+				return getRootLevel();
+		}
+		return null;
+	}
 
 	/**
 	 * @return first writable folder in the following order:
@@ -50,8 +67,7 @@ public class DebugLogPathDefiner extends PropertyDefinerBase {
 	 *     4. Path to system temp folder.
 	 * </p>
 	 */
-	@Override
-	public String getPropertyValue() {
+	public String getDebugLogPath() {
 		if (Platform.isLinux()) {
 			final String username = System.getProperty("user.name");
 			final File logDirectory = new File("/var/log/universalmediaserver/" + username + "/");
@@ -77,5 +93,9 @@ public class DebugLogPathDefiner extends PropertyDefinerBase {
 		} catch (IOException ex) {
 			return System.getProperty("java.io.tmpdir");
 		}
+	}
+
+	public String getRootLevel() {
+		return configuration.getRootLogLevel();
 	}
 }

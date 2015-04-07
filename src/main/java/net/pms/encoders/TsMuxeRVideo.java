@@ -147,6 +147,7 @@ public class TsMuxeRVideo extends Player {
 			videoType = "V_MPEG-2";
 		}
 
+		String[] ffmpegCommands;
 		if (this instanceof TsMuxeRAudio && media.getFirstAudioTrack() != null) {
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "fakevideo", System.currentTimeMillis() + "videoout", false, true);
 
@@ -157,7 +158,7 @@ public class TsMuxeRVideo extends Player {
 				timeEndValue2 = "-y";
 			}
 
-			String[] ffmpegLPCMextract = new String[] {
+			ffmpegCommands = new String[] {
 				configuration.getFfmpegPath(),
 				timeEndValue1, timeEndValue2,
 				"-loop", "1",
@@ -175,7 +176,7 @@ public class TsMuxeRVideo extends Player {
 
 			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.maxBufferSize = 1;
-			ffVideo = new ProcessWrapperImpl(ffmpegLPCMextract, ffparams);
+			ffVideo = new ProcessWrapperImpl(ffmpegCommands, ffparams);
 
 			if (
 				filename.toLowerCase().endsWith(".flac") &&
@@ -243,7 +244,7 @@ public class TsMuxeRVideo extends Player {
 				evoValue2 = "1000000";
 			}
 
-			String[] ffmpegLPCMextract = new String[] {
+			ffmpegCommands = new String[] {
 				mencoderPath,
 				"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 				params.stdin != null ? "-" : filename,
@@ -282,7 +283,7 @@ public class TsMuxeRVideo extends Player {
 			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.maxBufferSize = 1;
 			ffparams.stdin = params.stdin;
-			ffVideo = new ProcessWrapperImpl(ffmpegLPCMextract, ffparams);
+			ffVideo = new ProcessWrapperImpl(ffmpegCommands, ffparams);
 
 			int numAudioTracks = 1;
 
@@ -362,7 +363,7 @@ public class TsMuxeRVideo extends Player {
 							mixer = getLPCMChannelMappingForMencoder(params.aid);
 						}
 
-						ffmpegLPCMextract = new String[] {
+						ffmpegCommands = new String[] {
 							mencoderPath,
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							params.stdin != null ? "-" : filename,
@@ -387,7 +388,7 @@ public class TsMuxeRVideo extends Player {
 						}
 					} else {
 						// AC-3 remux or encoding
-						ffmpegLPCMextract = new String[] {
+						ffmpegCommands = new String[] {
 							mencoderPath,
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							params.stdin != null ? "-" : filename,
@@ -413,7 +414,7 @@ public class TsMuxeRVideo extends Player {
 					ffparams.maxBufferSize = 1;
 					ffparams.stdin = params.stdin;
 					ffAudio = new ProcessWrapperImpl[numAudioTracks];
-					ffAudio[0] = new ProcessWrapperImpl(ffmpegLPCMextract, ffparams);
+					ffAudio[0] = new ProcessWrapperImpl(ffmpegCommands, ffparams);
 				} else {
 					ffAudioPipe = new PipeIPCProcess[numAudioTracks];
 					ffAudio = new ProcessWrapperImpl[numAudioTracks];
@@ -483,7 +484,7 @@ public class TsMuxeRVideo extends Player {
 								mixer = getLPCMChannelMappingForMencoder(audio);
 							}
 
-							ffmpegLPCMextract = new String[]{
+							ffmpegCommands = new String[]{
 								mencoderPath,
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								params.stdin != null ? "-" : filename,
@@ -503,7 +504,7 @@ public class TsMuxeRVideo extends Player {
 							};
 						} else {
 							// AC-3 remux or encoding
-							ffmpegLPCMextract = new String[]{
+							ffmpegCommands = new String[]{
 								mencoderPath,
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								params.stdin != null ? "-" : filename,
@@ -528,7 +529,7 @@ public class TsMuxeRVideo extends Player {
 						ffparams = new OutputParams(configuration);
 						ffparams.maxBufferSize = 1;
 						ffparams.stdin = params.stdin;
-						ffAudio[i] = new ProcessWrapperImpl(ffmpegLPCMextract, ffparams);
+						ffAudio[i] = new ProcessWrapperImpl(ffmpegCommands, ffparams);
 					}
 				}
 			}
@@ -543,7 +544,19 @@ public class TsMuxeRVideo extends Player {
 			pw.print(" --vbr");
 			pw.println(" --vbv-len=500");
 
-			String videoparams = "level=4.1, insertSEI, contSPS, track=1";
+			String sei = "insertSEI";
+			if (
+				params.mediaRenderer.isPS3() &&
+				filename.toLowerCase().contains("web-dl") ||
+				(
+					params.aid != null &&
+					params.aid.getFlavor() != null &&
+					params.aid.getFlavor().toLowerCase().contains("web-dl")
+				)
+			) {
+				sei = "forceSEI";
+			}
+			String videoparams = "level=4.1, " + sei + ", contSPS, track=1";
 			if (this instanceof TsMuxeRAudio) {
 				videoparams = "track=224";
 			}
