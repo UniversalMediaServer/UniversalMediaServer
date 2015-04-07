@@ -245,18 +245,13 @@ public class TsMuxeRVideo extends Player {
 			}
 
 			ffmpegCommands = new String[] {
-				mencoderPath,
+				configuration.getFfmpegPath(),
 				"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
-				params.stdin != null ? "-" : filename,
-				evoValue1, evoValue2,
-				"-really-quiet",
-				"-msglevel", "statusline=2",
-				"-ovc", "copy",
-				"-nosound",
-				"-mc", "0",
-				"-noskip",
-				"-of", "rawvideo",
-				"-o", ffVideoPipe.getInputPipe()
+				"-i", filename,
+				"-c", "copy",
+				"-f", "rawvideo",
+				"-y",
+				ffVideoPipe.getInputPipe()
 			};
 
 			InputFile newInput = new InputFile();
@@ -357,29 +352,15 @@ public class TsMuxeRVideo extends Player {
 						sm.setSampleFrequency(params.aid.getSampleRate() < 48000 ? 48000 : params.aid.getSampleRate());
 						sm.setBitsPerSample(16);
 
-						String mixer = null;
-
-						if (pcm && !dtsRemux && !encodedAudioPassthrough) {
-							mixer = getLPCMChannelMappingForMencoder(params.aid);
-						}
-
 						ffmpegCommands = new String[] {
-							mencoderPath,
+							configuration.getFfmpegPath(),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
-							params.stdin != null ? "-" : filename,
-							evoValue1, evoValue2,
-							"-really-quiet",
-							"-msglevel", "statusline=2",
-							"-channels", "" + sm.getNbChannels(),
-							"-ovc", "copy",
-							"-of", "rawaudio",
-							"-mc", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "0.1" : "0",
-							"-noskip",
-							"-oac", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
-							isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
-							singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + params.aid.getId()),
-							"-srate", "48000",
-							"-o", ffAudioPipe[0].getInputPipe()
+							"-i", filename,
+							"-ac", "" + sm.getNbChannels(),
+							"-f", "ac3",
+							"-c:a", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
+							"-y",
+							ffAudioPipe[0].getInputPipe()
 						};
 
 						// Use PCM trick when media renderer does not support DTS in MPEG
@@ -389,24 +370,15 @@ public class TsMuxeRVideo extends Player {
 					} else {
 						// AC-3 remux or encoding
 						ffmpegCommands = new String[] {
-							mencoderPath,
+							configuration.getFfmpegPath(),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
-							params.stdin != null ? "-" : filename,
-							evoValue1, evoValue2,
-							"-really-quiet",
-							"-msglevel", "statusline=2",
-							"-channels", "" + channels,
-							"-ovc", "copy",
-							"-of", "rawaudio",
-							"-mc", "0",
-							"-noskip",
-							"-oac", (ac3Remux) ? "copy" : "lavc",
-							params.aid.isAC3() ? "-fafmttag" : "-quiet", params.aid.isAC3() ? "0x2000" : "-quiet",
-							"-lavcopts", "acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") + ":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid),
-							"-af", "lavcresample=48000",
-							"-srate", "48000",
-							singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + params.aid.getId()),
-							"-o", ffAudioPipe[0].getInputPipe()
+							"-i", filename,
+							"-ac", "" + channels,
+							"-f", "ac3",
+							"-c:a", (ac3Remux) ? "copy" : "ac3",
+							"-ab", String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k",
+							"-y",
+							ffAudioPipe[0].getInputPipe()
 						};
 					}
 
