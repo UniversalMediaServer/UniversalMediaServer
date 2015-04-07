@@ -9,7 +9,14 @@
 		Let PMS decide the path for the logfile: either the current directory
 		or (when that is read only) the system temp directory.
 	-->
-	<define name="debugLogPath" class="net.pms.logging.DebugLogPathDefiner" />
+	<define name="debugLogPath" class="net.pms.logging.DebugLogPropertyDefiner">
+		<key>debugLogPath</key>
+	</define>
+
+	<!-- Get the user-preferred root logging level. -->
+	<define name="rootLevel" class="net.pms.logging.DebugLogPropertyDefiner">
+		<key>rootLevel</key>
+	</define>
 
 	<!-- Appender for the console -->
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
@@ -69,7 +76,7 @@
 	<logger name="httpclient.wire" level="WARN" />
 
 	<!-- Root logger defines the minimum log level for all loggers -->
-	<root level="DEBUG">
+	<root level="${rootLevel}">
 		<appender-ref ref="console" />
 
 		<!--

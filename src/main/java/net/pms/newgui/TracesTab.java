@@ -180,14 +180,18 @@ public class TracesTab {
 			Messages.getString("TracesTab.7"),
 			Messages.getString("TracesTab.8"),
 			Messages.getString("TracesTab.9"),
-			Messages.getString("TracesTab.10")
+			Messages.getString("TracesTab.10"),
+			Messages.getString("TracesTab.15"),
+			Messages.getString("TracesTab.16")
 		};
 		final int[] realLevel = {
 				Level.ERROR_INT,
 				Level.WARN_INT,
 				Level.INFO_INT,
 				Level.DEBUG_INT,
-				Level.TRACE_INT
+				Level.TRACE_INT,
+				Level.ALL_INT,
+				Level.OFF_INT
 		};
 		JComboBox level = new JComboBox(levels);
 		int curLev = l.getLevel().toInt();
@@ -203,9 +207,11 @@ public class TracesTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JComboBox cb = (JComboBox)e.getSource();
-				int newLevel = cb.getSelectedIndex();
-				l.setLevel(Level.toLevel(realLevel[newLevel]));
-				LOGGER.info("Changed debug level to " + l.getLevel().toString());
+				l.setLevel(Level.toLevel(realLevel[cb.getSelectedIndex()]));
+				Level level = l.getLevel();
+				configuration.setRootLogLevel(level);
+				// Note: depending on new level this may not actually print anything
+				LOGGER.info("Changed debug level to " + level);
 			}
 		});
 		JLabel label = new JLabel(Messages.getString("TracesTab.11") + ": ");
