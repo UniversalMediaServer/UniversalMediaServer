@@ -221,8 +221,8 @@ public class StringUtil {
 	 *    java.awt.Color named color  - e.g. 'blue' or 'LIGHT_GRAY'
 	 */
 	public static Color parseColor(String colorString) {
-		colorString = colorString.trim();
 		try {
+			colorString = colorString.trim();
 			if (colorString.contains(",")) {
 				// Integer r,g,b[,a]
 				String[] colorElements = colorString.split("\\s*,\\s*");
@@ -246,4 +246,20 @@ public class StringUtil {
 		LOGGER.warn("Unknown color '{}'. Color string must be rgb (integer R,G,B[,A] or hex #[AA]RRGGBB) or a standard java.awt.Color name", colorString);
 		return null;
 	}
+
+	/**
+	 * Returns the argument string surrounded with quotes if it contains a space,
+	 * otherwise returns the string as is.
+	 *
+	 * @param arg The argument string
+	 * @return The string, optionally in quotes. 
+	 */
+	public static String quoteArg(String arg) {
+		if (arg != null && arg.indexOf(' ') > -1) {
+			return "\"" + arg + "\"";
+		}
+
+		return arg;
+	}
+
 }
