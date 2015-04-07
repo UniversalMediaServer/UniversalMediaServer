@@ -543,7 +543,19 @@ public class TsMuxeRVideo extends Player {
 			pw.print(" --vbr");
 			pw.println(" --vbv-len=500");
 
-			String videoparams = "level=4.1, insertSEI, contSPS, track=1";
+			String sei = "insertSEI";
+			if (
+				params.mediaRenderer.isPS3() &&
+				filename.toLowerCase().contains("web-dl") ||
+				(
+					params.aid != null &&
+					params.aid.getFlavor() != null &&
+					params.aid.getFlavor().toLowerCase().contains("web-dl")
+				)
+			) {
+				sei = "forceSEI";
+			}
+			String videoparams = "level=4.1, " + sei + ", contSPS, track=1";
 			if (this instanceof TsMuxeRAudio) {
 				videoparams = "track=224";
 			}
