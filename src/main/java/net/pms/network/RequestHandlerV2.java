@@ -25,7 +25,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
-import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -291,8 +290,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
-		Attribute<StartStopListenerDelegate> attr = ctx.attr(startStop);
-		attr.set(startStopListenerDelegate);
+		ctx.attr(startStop).set(startStopListenerDelegate);
 
 		try {
 			request.answer(ctx, response, e, close, startStopListenerDelegate);
@@ -315,8 +313,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		if (cause != null) {
 			if (cause.getClass().equals(IOException.class)) {
 				LOGGER.debug("Connection error: " + cause);
-				Attribute<StartStopListenerDelegate> attr = ctx.attr(startStop);
-				StartStopListenerDelegate startStopListenerDelegate = attr.get();
+				StartStopListenerDelegate startStopListenerDelegate = ctx.attr(startStop).get();
 				if (startStopListenerDelegate != null) {
 					LOGGER.debug("Premature end, stopping...");
 					startStopListenerDelegate.stop();
