@@ -25,6 +25,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -52,6 +54,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	);
 
 	private volatile FullHttpRequest nettyRequest;
+	private final AttributeKey<StartStopListenerDelegate> startStop = AttributeKey.valueOf("startStop");
 
 	// Used to filter out known headers when the renderer is not recognized
 	private final static String[] KNOWN_HEADERS = {
@@ -287,6 +290,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		// Attach it to the context so it can be invoked if connection is reset unexpectedly
+		Attribute<StartStopListenerDelegate> attr = ctx.attr(startStop);
+		attr.set(startStopListenerDelegate);
 
 		try {
 			request.answer(ctx, response, e, close, startStopListenerDelegate);
@@ -306,8 +312,18 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
-		if (cause != null && !cause.getClass().equals(ClosedChannelException.class) && !cause.getClass().equals(IOException.class)) {
-			LOGGER.debug("Caught exception", cause);
+		if (cause != null) {
+			if (cause.getClass().equals(IOException.class)) {
+				LOGGER.debug("Connection error: " + cause);
+				Attribute<StartStopListenerDelegate> attr = ctx.attr(startStop);
+				StartStopListenerDelegate startStopListenerDelegate = attr.get();
+				if (startStopListenerDelegate != null) {
+					LOGGER.debug("Premature end, stopping...");
+					startStopListenerDelegate.stop();
+				}
+			} else if (!cause.getClass().equals(ClosedChannelException.class)) {
+				LOGGER.debug("Caught exception: " + cause);
+			}
 		}
 		if (ctx.channel().isActive()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
