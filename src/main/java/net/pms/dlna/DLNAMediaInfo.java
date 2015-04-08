@@ -274,6 +274,18 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String stereoscopy;
 
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String fileTitleFromMetadata;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String videoTrackTitleFromMetadata;
+
 	private boolean gen_thumb;
 
 	/**
@@ -325,6 +337,58 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		return muxable;
+	}
+
+	/**
+	 * Whether a file is a WEB-DL release.
+	 *
+	 * It's important for some devices like PS3 because WEB-DL files often have
+	 * some difference (possibly not starting on a keyframe or something to do with
+	 * SEI output from MEncoder, possibly something else) that makes the PS3 not
+	 * accept them when output from tsMuxeR via MEncoder.
+	 *
+	 * The above statement may not be applicable when using tsMuxeR via FFmpeg
+	 * so we should reappraise the situation if we make that change.
+	 *
+	 * It is unlikely it will return false-positives but it will return
+	 * false-negatives.
+	 *
+	 * @param filename the filename
+	 * @param params the file properties
+	 *
+	 * @return whether a file is a WEB-DL release
+	 */
+	public boolean isWebDl(String filename, OutputParams params) {
+		// Check the filename
+		if (filename.toLowerCase().replaceAll("\\-", "").contains("webdl")) {
+			return true;
+		}
+
+		// Check the metadata
+		if (
+			(
+				getFileTitleFromMetadata() != null &&
+				getFileTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				getVideoTrackTitleFromMetadata() != null &&
+				getVideoTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				params.aid != null &&
+				params.aid.getAudioTrackTitleFromMetadata() != null &&
+				params.aid.getAudioTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				params.sid != null &&
+				params.sid.getSubtitlesTrackTitleFromMetadata() != null &&
+				params.sid.getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			)
+		) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public Map<String, String> getExtras() {
@@ -1377,6 +1441,15 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(", attached fonts: ");
 		result.append(embeddedFontExists);
 
+		if (fileTitleFromMetadata != null) {
+			result.append(", file title from metadata: ");
+			result.append(fileTitleFromMetadata);
+		}
+		if (videoTrackTitleFromMetadata != null) {
+			result.append(", video track title from metadata: ");
+			result.append(videoTrackTitleFromMetadata);
+		}
+
 		for (DLNAMediaAudio audio : audioTracks) {
 			result.append("\n\tAudio track ");
 			result.append(audio.toString());
@@ -1899,6 +1972,22 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setEmbeddedFontExists(boolean exists) {
 		this.embeddedFontExists = exists;
+	}
+
+	public String getFileTitleFromMetadata() {
+		return fileTitleFromMetadata;
+	}
+
+	public void setFileTitleFromMetadata(String value) {
+		this.fileTitleFromMetadata = value;
+	}
+
+	public String getVideoTrackTitleFromMetadata() {
+		return videoTrackTitleFromMetadata;
+	}
+
+	public void setVideoTrackTitleFromMetadata(String value) {
+		this.videoTrackTitleFromMetadata = value;
 	}
 
 	/**
