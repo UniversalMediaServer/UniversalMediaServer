@@ -339,6 +339,58 @@ public class DLNAMediaInfo implements Cloneable {
 		return muxable;
 	}
 
+	/**
+	 * Whether a file is a WEB-DL release.
+	 *
+	 * It's important for some devices like PS3 because WEB-DL files often have
+	 * some difference (possibly not starting on a keyframe or something to do with
+	 * SEI output from MEncoder, possibly something else) that makes the PS3 not
+	 * accept them when output from tsMuxeR via MEncoder.
+	 *
+	 * The above statement may not be applicable when using tsMuxeR via FFmpeg
+	 * so we should reappraise the situation if we make that change.
+	 *
+	 * It is unlikely it will return false-positives but it will return
+	 * false-negatives.
+	 *
+	 * @param filename the filename
+	 * @param params the file properties
+	 *
+	 * @return whether a file is a WEB-DL release
+	 */
+	public boolean isWebDl(String filename, OutputParams params) {
+		// Check the filename
+		if (filename.toLowerCase().replaceAll("\\-", "").contains("webdl")) {
+			return true;
+		}
+
+		// Check the metadata
+		if (
+			(
+				getFileTitleFromMetadata() != null &&
+				getFileTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				getVideoTrackTitleFromMetadata() != null &&
+				getVideoTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				params.aid != null &&
+				params.aid.getAudioTrackTitleFromMetadata() != null &&
+				params.aid.getAudioTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				params.sid != null &&
+				params.sid.getSubtitlesTrackTitleFromMetadata() != null &&
+				params.sid.getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			)
+		) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public Map<String, String> getExtras() {
 		return extras;
 	}

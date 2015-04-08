@@ -889,14 +889,7 @@ public class FFMpegVideo extends Player {
 			if (
 				deferToTsmuxer == true &&
 				!params.mediaRenderer.isPS3() &&
-				(
-					filename.toLowerCase().contains("web-dl") ||
-					(
-						params.aid != null &&
-						params.aid.getFlavor() != null &&
-						params.aid.getFlavor().toLowerCase().contains("web-dl")
-					)
-				)
+				media.isWebDl(filename, params)
 			) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");

@@ -547,12 +547,7 @@ public class TsMuxeRVideo extends Player {
 			String sei = "insertSEI";
 			if (
 				params.mediaRenderer.isPS3() &&
-				filename.toLowerCase().contains("web-dl") ||
-				(
-					params.aid != null &&
-					params.aid.getFlavor() != null &&
-					params.aid.getFlavor().toLowerCase().contains("web-dl")
-				)
+				media.isWebDl(filename, params)
 			) {
 				sei = "forceSEI";
 			}
