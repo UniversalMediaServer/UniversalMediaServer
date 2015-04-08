@@ -274,6 +274,18 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String stereoscopy;
 
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String fileTitleFromMetadata;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String videoTrackTitleFromMetadata;
+
 	private boolean gen_thumb;
 
 	/**
@@ -1377,6 +1389,15 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(", attached fonts: ");
 		result.append(embeddedFontExists);
 
+		if (fileTitleFromMetadata != null) {
+			result.append(", file title from metadata: ");
+			result.append(fileTitleFromMetadata);
+		}
+		if (videoTrackTitleFromMetadata != null) {
+			result.append(", video track title from metadata: ");
+			result.append(videoTrackTitleFromMetadata);
+		}
+
 		for (DLNAMediaAudio audio : audioTracks) {
 			result.append("\n\tAudio track ");
 			result.append(audio.toString());
@@ -1899,6 +1920,22 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setEmbeddedFontExists(boolean exists) {
 		this.embeddedFontExists = exists;
+	}
+
+	public String getFileTitleFromMetadata() {
+		return fileTitleFromMetadata;
+	}
+
+	public void setFileTitleFromMetadata(String value) {
+		this.fileTitleFromMetadata = value;
+	}
+
+	public String getVideoTrackTitleFromMetadata() {
+		return videoTrackTitleFromMetadata;
+	}
+
+	public void setVideoTrackTitleFromMetadata(String value) {
+		this.videoTrackTitleFromMetadata = value;
 	}
 
 	/**

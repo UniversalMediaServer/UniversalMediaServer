@@ -35,10 +35,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
 	private SubtitleType type = UNKNOWN;
 
-	/*
-	 * This tells us whether the track is forced or not
-	 */
-	private String flavor;
+	private String subtitlesTrackTitleFromMetadata;
 
 	private File externalFile;
 	private String externalFileCharacterSet;
@@ -74,8 +71,12 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		result.append(getId());
 		result.append(", type: ");
 		result.append(type);
-		result.append(", flavor: ");
-		result.append(flavor);
+
+		if (subtitlesTrackTitleFromMetadata != null) {
+			result.append(", subtitles track title from metadata: ");
+			result.append(subtitlesTrackTitleFromMetadata);
+		}
+
 		result.append(", lang: ");
 		result.append(getLang());
 
@@ -120,17 +121,27 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return the flavor
+	 * @deprecated use getSubtitlesTrackTitleFromMetadata()
 	 */
+	@Deprecated
 	public String getFlavor() {
-		return flavor;
+		return getSubtitlesTrackTitleFromMetadata();
 	}
 
 	/**
-	 * @param flavor the flavor to set
+	 * @deprecated use setSubtitlesTrackTitleFromMetadata()
 	 */
-	public void setFlavor(String flavor) {
-		this.flavor = flavor;
+	@Deprecated
+	public void setFlavor(String value) {
+		setSubtitlesTrackTitleFromMetadata(value);
+	}
+
+	public String getSubtitlesTrackTitleFromMetadata() {
+		return subtitlesTrackTitleFromMetadata;
+	}
+
+	public void setSubtitlesTrackTitleFromMetadata(String value) {
+		this.subtitlesTrackTitleFromMetadata = value;
 	}
 
 	/**
