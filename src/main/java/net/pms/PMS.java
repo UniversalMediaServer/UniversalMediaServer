@@ -1153,8 +1153,8 @@ public class PMS {
 				LOGGER.debug("Forcing debug level to TRACE");
 				l.setLevel(ch.qos.logback.classic.Level.TRACE);
 			} else {
-				// Remember whether logging level was TRACE at startup
-				traceMode = l.getLevel() == ch.qos.logback.classic.Level.TRACE ? 1 : 0;
+				// Remember whether logging level was TRACE/ALL at startup
+				traceMode = l.getLevel().toInt() <= ch.qos.logback.classic.Level.TRACE_INT ? 1 : 0;
 			}
 
 			LOGGER.debug(new Date().toString());
