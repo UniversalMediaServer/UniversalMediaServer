@@ -1,7 +1,23 @@
 5.1.2 - 2015-04-??
 
 	General:
-		
+		Added "upnp_enable" user-level option
+		Added "log_level" user-level option
+		Added "UpnpAllow" renderer-level option
+		Added "Create TRACE logs" button
+		Added the ability to restart the program (not just the server)
+		Various minor fixes/improvements
+	Renderers:
+		Improved renderer detection/handling
+		Improved Android device detection
+		Improved PS3 muxing via tsMuxeR
+	External Components:
+		Updated JDom to 2.0.6
+		Updated Logback to 1.1.3
+		Updated MediaInfo to 0.7.73, which:
+			Added and improved support for many formats
+			Fixed bugs
+		Updated slf4j to 1.7.12
 
 5.1.1 - 2015-04-03
 
