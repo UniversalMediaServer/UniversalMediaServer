@@ -820,18 +820,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (renderer.isExternalSubtitlesFormatSupported(params.sid)) {
 								media_subtitle = params.sid;
 								media_subtitle.setSubsStreamable(true);
-								forceTranscode = true;
-								hasSubsToTranscode = true;
 								LOGGER.trace("This video has external subtitles that should be streamed");
 							} else {
+								forceTranscode = true;
+								hasSubsToTranscode = true;
 								LOGGER.trace("This video has external subtitles that should be transcoded");
 							}
 						} else if (params.sid.isEmbedded()) {
 							if (renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
-								forceTranscode = true;
-								hasSubsToTranscode = true;
 								LOGGER.trace("This video has embedded subtitles that should be streamed");
 							} else {
+								forceTranscode = true;
+								hasSubsToTranscode = true;
 								LOGGER.trace("This video has embedded subtitles that should be transcoded");
 							}
 						}
