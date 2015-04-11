@@ -72,7 +72,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		result.append(", type: ");
 		result.append(type);
 
-		if (subtitlesTrackTitleFromMetadata != null) {
+		if (subtitlesTrackTitleFromMetadata != null && !"".equals(subtitlesTrackTitleFromMetadata)) {
 			result.append(", subtitles track title from metadata: ");
 			result.append(subtitlesTrackTitleFromMetadata);
 		}
@@ -83,10 +83,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		if (externalFile != null) {
 			result.append(", externalFile: ");
 			result.append(externalFile.toString());
+			result.append(", external file character set: ");
+			result.append(externalFileCharacterSet);
 		}
-
-		result.append(", externalFileCharacterSet: ");
-		result.append(externalFileCharacterSet);
 
 		return result.toString();
 	}

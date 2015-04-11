@@ -1428,24 +1428,30 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(frameRate);
 
 		if (thumb != null) {
-			result.append(", thumb size : ");
+			result.append(", thumb size: ");
 			result.append(thumb.length);
 		}
+		if (muxingMode != null && !"".equals(muxingMode)) {
+			result.append(", muxing mode: ");
+			result.append(muxingMode);
+		}
 
-		result.append(", muxing mode: ");
-		result.append(muxingMode);
 		result.append(", mime type: ");
 		result.append(mimeType);
-		result.append(", matrix coefficients: ");
-		result.append(matrixCoefficients);
+
+		if (matrixCoefficients != null && !"".equals(matrixCoefficients)) {
+			result.append(", matrix coefficients: ");
+			result.append(matrixCoefficients);
+		}
+
 		result.append(", attached fonts: ");
 		result.append(embeddedFontExists);
 
-		if (fileTitleFromMetadata != null) {
+		if (fileTitleFromMetadata != null && !"".equals(fileTitleFromMetadata)) {
 			result.append(", file title from metadata: ");
 			result.append(fileTitleFromMetadata);
 		}
-		if (videoTrackTitleFromMetadata != null) {
+		if (videoTrackTitleFromMetadata != null && !"".equals(videoTrackTitleFromMetadata)) {
 			result.append(", video track title from metadata: ");
 			result.append(videoTrackTitleFromMetadata);
 		}
