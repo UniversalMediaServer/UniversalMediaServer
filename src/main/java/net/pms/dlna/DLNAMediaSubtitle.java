@@ -25,6 +25,7 @@ import java.io.IOException;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
 import net.pms.util.FileUtil;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +73,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		result.append(", type: ");
 		result.append(type);
 
-		if (subtitlesTrackTitleFromMetadata != null && !"".equals(subtitlesTrackTitleFromMetadata)) {
+		if (isNotBlank(subtitlesTrackTitleFromMetadata)) {
 			result.append(", subtitles track title from metadata: ");
 			result.append(subtitlesTrackTitleFromMetadata);
 		}

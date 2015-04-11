@@ -20,6 +20,7 @@ package net.pms.dlna;
 
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -265,7 +266,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		result.append(", lang: ");
 		result.append(getLang());
 
-		if (getAudioTrackTitleFromMetadata() != null && !"".equals(getAudioTrackTitleFromMetadata())) {
+		if (isNotBlank(getAudioTrackTitleFromMetadata())) {
 			result.append(", audio track title from metadata: ");
 			result.append(getAudioTrackTitleFromMetadata());
 		}
@@ -283,7 +284,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		result.append(", bits per sample: ");
 		result.append(getBitsperSample());
 
-		if (getArtist() != null && !"".equals(getArtist())) {
+		if (isNotBlank(getArtist())) {
 			result.append(", artist: ");
 			result.append(getArtist());
 			result.append(", album: ");
