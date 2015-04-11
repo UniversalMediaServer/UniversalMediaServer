@@ -40,7 +40,8 @@ import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
-import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -465,7 +466,7 @@ public class DLNAMediaInfo implements Cloneable {
 		File file = media.getFile();
 		boolean dvrms = file != null && file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
-		if (dvrms && StringUtils.isNotBlank(configuration.getFfmpegAlternativePath())) {
+		if (dvrms && isNotBlank(configuration.getFfmpegAlternativePath())) {
 			args[0] = configuration.getFfmpegAlternativePath();
 		}
 
@@ -1431,7 +1432,7 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append(", thumb size: ");
 			result.append(thumb.length);
 		}
-		if (muxingMode != null && !"".equals(muxingMode)) {
+		if (isNotBlank(muxingMode)) {
 			result.append(", muxing mode: ");
 			result.append(muxingMode);
 		}
@@ -1439,7 +1440,7 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(", mime type: ");
 		result.append(mimeType);
 
-		if (matrixCoefficients != null && !"".equals(matrixCoefficients)) {
+		if (isNotBlank(matrixCoefficients)) {
 			result.append(", matrix coefficients: ");
 			result.append(matrixCoefficients);
 		}
@@ -1447,11 +1448,11 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(", attached fonts: ");
 		result.append(embeddedFontExists);
 
-		if (fileTitleFromMetadata != null && !"".equals(fileTitleFromMetadata)) {
+		if (isNotBlank(fileTitleFromMetadata)) {
 			result.append(", file title from metadata: ");
 			result.append(fileTitleFromMetadata);
 		}
-		if (videoTrackTitleFromMetadata != null && !"".equals(videoTrackTitleFromMetadata)) {
+		if (isNotBlank(videoTrackTitleFromMetadata)) {
 			result.append(", video track title from metadata: ");
 			result.append(videoTrackTitleFromMetadata);
 		}
@@ -1904,7 +1905,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the formatted aspect ratio or null
 	 */
 	public String getFormattedAspectRatio(String aspect) {
-		if (aspect == null || StringUtils.isEmpty(aspect)) {
+		if (isBlank(aspect)) {
 			return null;
 		} else {
 			if (aspect.contains(":")) {
@@ -2386,7 +2387,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return whether the video track is 3D
 	 */
 	public boolean is3d() {
-		return StringUtils.isNotBlank(stereoscopy);
+		return isNotBlank(stereoscopy);
 	}
 
 	/**
