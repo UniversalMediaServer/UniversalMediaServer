@@ -265,7 +265,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		result.append(", lang: ");
 		result.append(getLang());
 
-		if (getAudioTrackTitleFromMetadata() != null) {
+		if (getAudioTrackTitleFromMetadata() != null && !"".equals(getAudioTrackTitleFromMetadata())) {
 			result.append(", audio track title from metadata: ");
 			result.append(getAudioTrackTitleFromMetadata());
 		}
@@ -275,7 +275,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		result.append(", sample frequency:");
 		result.append(getSampleFrequency());
 
-		if (getAudioProperties() != null) {
+		if (getAudioProperties() != null && getAudioProperties().getNumberOfChannels() != 0) {
 			result.append(", number of channels: ");
 			result.append(getAudioProperties().getNumberOfChannels());
 		}
@@ -283,7 +283,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		result.append(", bits per sample: ");
 		result.append(getBitsperSample());
 
-		if (getArtist() != null) {
+		if (getArtist() != null && !"".equals(getArtist())) {
 			result.append(", artist: ");
 			result.append(getArtist());
 			result.append(", album: ");
