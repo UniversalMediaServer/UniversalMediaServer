@@ -163,10 +163,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private ProcessWrapper externalProcess;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this field.
+	 * @deprecated Use #hasExternalSubtitles()
 	 */
 	@Deprecated
 	protected boolean srtFile;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this field.
+	 */
+	@Deprecated
+	protected boolean hasExternalSubtitles;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -568,7 +574,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (mimeType != null) {
 						// Media is streamable
 						if (child.format.isVideo()) {
-							if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+							if (!configuration.isDisableSubtitles() && child.hasExternalSubtitles() && defaultRenderer.isSubtitlesStreamingSupported()) {
 								OutputParams params = new OutputParams(configuration);
 								Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 								if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
@@ -825,7 +831,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				!configuration.isDisableSubtitles() &&
 				(
 					media.getSubtitleTracksList().size() > 0 ||
-					isSubsFile()
+					hasExternalSubtitles()
 				)
 			) {
 				boolean hasEmbeddedSubs = false;
@@ -835,7 +841,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (!parserV2) {
-					if (isSubsFile() && renderer != null && renderer.isSubtitlesStreamingSupported()) {
+					if (hasExternalSubtitles() && renderer != null && renderer.isSubtitlesStreamingSupported()) {
 						OutputParams params = new OutputParams(configuration);
 						Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
 						if (params.sid.isExternal() && renderer.isExternalSubtitlesFormatSupported(params.sid)) {
@@ -850,7 +856,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
-				if (isSubsFile()) {
+				if (hasExternalSubtitles()) {
 					if (media_subtitle == null) {
 						// Subtitles are not set for streaming
 						forceTranscode = true;
@@ -1530,7 +1536,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (
-			isSubsFile() &&
+			hasExternalSubtitles() &&
 			!isNamedNoEncoding &&
 			media_audio == null &&
 			media_subtitle == null &&
@@ -2112,7 +2118,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							 */
 							if (
 								media_subtitle == null &&
-								!isSubsFile() &&
+								!hasExternalSubtitles() &&
 								media != null &&
 								media.getDvdtrack() == 0 &&
 								isMuxableResult &&
@@ -3319,39 +3325,53 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @Deprecated use {@link #isSubsFile()} instead
+	 * @Deprecated use {@link #hasExternalSubtitles()} instead
 	 */
 	@Deprecated
 	protected boolean isSrtFile() {
-		return isSubsFile();
+		return hasExternalSubtitles();
 	}
 
 	/**
-	 * Returns true if this resource has subtitles in a file.
-	 *
-	 * @return the srtFile
-	 * @since 1.50
+	 * @Deprecated use {@link #hasExternalSubtitles()} instead
 	 */
+	@Deprecated
 	protected boolean isSubsFile() {
-		return srtFile;
+		return hasExternalSubtitles();
 	}
 
 	/**
-	 * @Deprecated use {@link #setSubsFile()} instead
+	 * Whether this resource has external subtitles.
+	 *
+	 * @return whether this resource has external subtitles
+	 */
+	protected boolean hasExternalSubtitles() {
+		return hasExternalSubtitles;
+	}
+
+	/**
+	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
 	 */
 	@Deprecated
 	protected void setSrtFile(boolean srtFile) {
-		setSubsFile(srtFile);
+		setHasExternalSubtitles(srtFile);
 	}
 
 	/**
-	 * Set to true if this resource has subtitles in a file.
-	 *
-	 * @param srtFile the srtFile to set
-	 * @since 1.50
+	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
 	 */
+	@Deprecated
 	protected void setSubsFile(boolean srtFile) {
-		this.srtFile = srtFile;
+		setHasExternalSubtitles(srtFile);
+	}
+
+	/**
+	 * Sets whether this resource has external subtitles.
+	 *
+	 * @param value whether this resource has external subtitles
+	 */
+	protected void setHasExternalSubtitles(boolean value) {
+		this.hasExternalSubtitles = value;
 	}
 
 	/**
