@@ -8,9 +8,15 @@
 		Added the ability to restart the program (not just the server)
 		Various minor fixes/improvements
 	Renderers:
+		Added DSD/DFF streaming support to Cambridge Audio Blu-ray Disc players
+		Added 3gp and 3g2 tags to DefaultRenderer.conf
 		Improved renderer detection/handling
 		Improved Android device detection
+		Improved detection of Panasonic AS600 Series TVs
 		Improved PS3 muxing via tsMuxeR
+		Improved support for Samsung D6400 TVs
+		Improved support for Samsung EH5300 TVs
+		Fixed support for MP3 files on some Samsung TVs and Blu-ray Disc players
 	External Components:
 		Updated JDom to 2.0.6
 		Updated Logback to 1.1.3
