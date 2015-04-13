@@ -2222,18 +2222,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		if (!isFolder()) {
-			if (
-				!configuration.isDisableSubtitles() &&
-				player == null &&
-				media_subtitle != null &&
-				media_subtitle.isStreamable()
-			) {
-				subsAreValidForStreaming = true;
-				LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
-			} else if (subsAreValidForStreaming) {
-				LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
-			} else {
-				LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
+			if (format != null && format.isVideo()) {
+				if (
+					!configuration.isDisableSubtitles() &&
+					player == null &&
+					media_subtitle != null &&
+					media_subtitle.isStreamable()
+				) {
+					subsAreValidForStreaming = true;
+					LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
+				} else if (subsAreValidForStreaming) {
+					LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
+				} else {
+					LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
+				}
 			}
 
 			openTag(sb, "item");
