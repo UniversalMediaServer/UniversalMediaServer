@@ -228,7 +228,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.186</version>
+			<version>1.4.187</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
