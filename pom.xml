@@ -91,8 +91,8 @@
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
 		<binary-revision>16</binary-revision>
 
-		<maven-javadoc-plugin-version>2.10.1</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.1.11</git-commit-id-plugin-version>
+		<maven-javadoc-plugin-version>2.10.2</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.1.13</git-commit-id-plugin-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -846,7 +846,7 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>3.0.0</version> <!-- This version works only with JDK 7-->
+							<version>3.0.1</version> <!-- This version works only with JDK 7-->
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
@@ -866,7 +866,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-pmd-plugin</artifactId>
-							<version>3.1</version>
+							<version>3.4</version>
 							<configuration>
 								<linkXref>false</linkXref>
 								<sourceEncoding>utf-8</sourceEncoding>
@@ -1006,7 +1006,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
 								<id>process-resources-windows</id>
