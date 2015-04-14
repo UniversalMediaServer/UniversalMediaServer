@@ -373,11 +373,13 @@ public class StatusTab {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
-				renderer.gui.label.setText(renderer.getRendererName());
-				// Update the popup panel if it's been opened
-				if (renderer.gui.panel != null) {
-					renderer.gui.panel.update();
+				if (renderer.gui != null) {
+					renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
+					renderer.gui.label.setText(renderer.getRendererName());
+					// Update the popup panel if it's been opened
+					if (renderer.gui.panel != null) {
+						renderer.gui.panel.update();
+					}
 				}
 			}
 		});

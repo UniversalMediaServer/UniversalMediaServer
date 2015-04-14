@@ -118,6 +118,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return super.associateIP(sa);
 	}
 
+	@Override
+	public InetAddress getAddress() {
+		try {
+			return InetAddress.getByName(ip);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	public void associatePort(int port) {
 		this.port = port;
 	}

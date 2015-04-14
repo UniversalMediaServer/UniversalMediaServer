@@ -68,6 +68,7 @@ public class PMS {
 	private static final String CONSOLE = "console";
 	private static final String NOCONSOLE = "noconsole";
 	private static final String PROFILES = "profiles";
+	private static final String TRACE = "trace";
 
 	/**
 	 * @deprecated The version has moved to the resources/project.properties file. Use {@link #getVersion()} instead.
@@ -353,10 +354,12 @@ public class PMS {
 		LOGGER.info("Profile permissions: " + getPathPermissions(profilePath));
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
-		String webConfPath = configuration.getWebConfPath();
-		LOGGER.info("Web conf path: " + webConfPath);
-		LOGGER.info("Web conf permissions: " + getPathPermissions(webConfPath));
-		LOGGER.info("");
+		if (configuration.useWebInterface()) {
+			String webConfPath = configuration.getWebConfPath();
+			LOGGER.info("Web conf path: " + webConfPath);
+			LOGGER.info("Web conf permissions: " + getPathPermissions(webConfPath));
+			LOGGER.info("");
+		}
 
 		/**
 		 * Ensure the data directory is created. On Windows this is
@@ -1090,6 +1093,8 @@ public class PMS {
 					System.setProperty(NOCONSOLE, Boolean.toString(true));
 				} else if (arg.equals(PROFILES)) {
 					displayProfileChooser = true;
+				} else if (arg.equals(TRACE)) {
+					traceMode = 2;
 				}
 			}
 		}
@@ -1132,6 +1137,16 @@ public class PMS {
 			// XXX not sure this is (still) true: the only filter
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
 			LoggingConfigFileLoader.load();
+
+			// Check TRACE mode
+			ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+			if (traceMode == 2) {
+				LOGGER.debug("Forcing debug level to TRACE");
+				l.setLevel(ch.qos.logback.classic.Level.TRACE);
+			} else {
+				// Remember whether logging level was TRACE/ALL at startup
+				traceMode = l.getLevel().toInt() <= ch.qos.logback.classic.Level.TRACE_INT ? 1 : 0;
+			}
 
 			LOGGER.debug(new Date().toString());
 
@@ -1603,4 +1618,10 @@ public class PMS {
 		}
 	}
 
+	// 0=not started in trace mode, 1=started in trace mode, 2=forced to trace mode
+	private static int traceMode = 0;
+
+	public static int getTraceMode() {
+		return traceMode;
+	}
 }
