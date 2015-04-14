@@ -133,6 +133,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	protected static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	protected static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
+	protected static final String DEVICE_ID = "Device";
 	protected static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	protected static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	protected static final String DLNA_ORGPN_USE = "DLNAOrgPN";
@@ -188,6 +189,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
 	protected static final String TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE = "TranscodedVideoAudioSampleRate";
 	protected static final String UPNP_DETAILS = "UpnpDetailsSearch";
+	protected static final String UPNP_ALLOW = "UpnpAllow";
 	protected static final String USER_AGENT = "UserAgentSearch";
 	protected static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	protected static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
@@ -234,6 +236,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getConfName();
+						allRenderersNames.add(rendererName);
 						String renderersGroup = null; 
 						if (rendererName.indexOf(" ") > 0) {
 							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
@@ -269,27 +272,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				}
 			}
 		}
+		Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
 		DeviceConfiguration.loadDeviceConfigurations(pmsConf);
-	}
-
-	private static void loadRenderersNames() {
-		File renderersDir = getRenderersDir();
-
-		if (renderersDir != null) {
-			LOGGER.info("Loading renderer names from " + renderersDir.getAbsolutePath());
-
-			for (File f : renderersDir.listFiles()) {
-				if (f.getName().endsWith(".conf")) {
-					try {
-						allRenderersNames.add(new RendererConfiguration(f).getConfName());
-					} catch (ConfigurationException ce) {
-						LOGGER.warn("Error loading " + f.getAbsolutePath());
-					}
-				}
-			}
-
-			Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
-		}
 	}
 
 	public int getInt(String key, int def) {
@@ -493,7 +477,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
 
-		addressAssociation.put(sa, this);
+		RendererConfiguration prev = addressAssociation.put(sa, this);
+		if (prev != null) {
+			// We've displaced a previous renderer at this address, so
+			// check  if it's a ghost instance that should be deleted.
+			verify(prev);
+		}
+		resetUpnpMode();
+
 		if (
 			(
 				pmsConfiguration.isAutomaticMaximumBitrate() ||
@@ -635,6 +626,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					PMS.get().setRendererFound(r);
 				}
 				r.active = true;
+				if (r.isUpnpPostponed()) {
+					r.setUpnpMode(ALLOW);
+				}
 			}
 		} catch (Exception e) {
 		}
@@ -937,6 +931,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (!loaded) {
 			configuration.clear();
 			loaded = load(f);
+		}
+
+		if (isUpnpAllowed() && uuid == null) {
+			String id = getDeviceId();
+			if (StringUtils.isNotBlank(id)) {
+				uuid = id;
+			}
 		}
 
 		mimes = new HashMap<>();
@@ -2108,10 +2109,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
-		if (allRenderersNames.isEmpty()) {
-			loadRenderersNames();
-		}
-
 		return allRenderersNames;
 	}
 
@@ -2508,5 +2505,91 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public List<String> getIdentifiers() {
 		return identifiers;
+	}
+
+	public String getDeviceId() {
+		String d = getString(DEVICE_ID, "");
+		if (StringUtils.isBlank(d)) {
+			// Backward compatibility
+			d = getString("device", "");
+		}
+		return d;
+	}
+
+	/**
+	 * Upnp service startup management
+	 */
+
+	public static final int BLOCK = -2;
+	public static final int POSTPONE = -1;
+	public static final int NONE = 0;
+	public static final int ALLOW = 1;
+
+	protected volatile int upnpMode = NONE;
+
+	public static int getUpnpMode(String mode) {
+		if (mode != null) {
+			switch (mode.trim().toLowerCase()) {
+				case "false":    return BLOCK;
+				case "postpone": return POSTPONE;
+			}
+		}
+		return ALLOW;
+	}
+
+	public static String getUpnpModeString(int mode) {
+		switch (mode) {
+			case BLOCK:    return "blocked";
+			case POSTPONE: return "postponed";
+			case NONE:     return "unknown";
+		}
+		return "allowed";
+	}
+
+	public int getUpnpMode() {
+		if (upnpMode == NONE) {
+			upnpMode = getUpnpMode(getString(UPNP_ALLOW, "true"));
+		}
+		return upnpMode;
+	}
+
+	public String getUpnpModeString() {
+		return getUpnpModeString(upnpMode);
+	}
+
+	public void resetUpnpMode() {
+		setUpnpMode(getUpnpMode(getString(UPNP_ALLOW, "true")));
+	}
+
+	public void setUpnpMode(int mode) {
+		if (upnpMode != mode) {
+			upnpMode = mode;
+			if (upnpMode == ALLOW) {
+				String id = uuid != null ? uuid : DeviceConfiguration.getUuidOf(getAddress());
+				if (id != null) {
+					configuration.setProperty(UPNP_ALLOW, "true");
+					UPNPHelper.activate(id);
+				}
+			}
+		}
+	}
+
+	public boolean isUpnpPostponed() {
+		return getUpnpMode() == POSTPONE;
+	}
+
+	public boolean isUpnpAllowed() {
+		return getUpnpMode() > NONE;
+	}
+
+	public static void verify(RendererConfiguration r) {
+		// FIXME: this is a very fallible, incomplete validity test for use only until
+		// we find something better. The assumption is that renderers unable determine
+		// their own address (i.e. non-upnp/web renderers that have lost their spot in the
+		// address association to a newer renderer at the same ip) are "invalid".
+		if (r.getUpnpMode() != BLOCK && r.getAddress() == null) {
+			LOGGER.debug("Purging renderer {} as invalid", r);
+			r.delete(0);
+		}
 	}
 }

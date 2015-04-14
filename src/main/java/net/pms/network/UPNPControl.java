@@ -117,19 +117,22 @@ public class UPNPControl {
 		}
 
 		public void mark(String uuid, int property, Object value) {
-			for (T i : get(uuid).values()) {
-				switch (property) {
-					case ACTIVE:
-						i.setActive((boolean) value);
-						break;
-					case RENEW:
-						i.renew = (boolean) value;
-						break;
-					case CONTROLS:
-						i.controls = (int) value;
-						break;
-					default:
-						break;
+			HashMap<String, T> m = get(uuid);
+			if (m != null) {
+				for (T i : m.values()) {
+					switch (property) {
+						case ACTIVE:
+							i.setActive((boolean) value);
+							break;
+						case RENEW:
+							i.renew = (boolean) value;
+							break;
+						case CONTROLS:
+							i.controls = (int) value;
+							break;
+						default:
+							break;
+					}
 				}
 			}
 		}
@@ -224,7 +227,7 @@ public class UPNPControl {
 	}
 
 	public static Device getDevice(String uuid) {
-		return uuid != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
+		return uuid != null && upnpService != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
 	}
 
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
@@ -282,14 +285,14 @@ public class UPNPControl {
 				@Override
 				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
 					super.remoteDeviceAdded(registry, d);
-					if (!addRenderer(d)) {
-						LOGGER.debug("found device: {} {}", d.getType().getType(), d.toString());
+					if (isBlocked(getUUID(d)) || !addRenderer(d)) {
+						LOGGER.debug("Ignoring device: {} {}", d.getType().getType(), d.toString());
 					}
 					// This may be unnecessary, but we might as well be thorough
 					if (d.hasEmbeddedDevices()) {
 						for (Device e : d.getEmbeddedDevices()) {
-							if (!addRenderer(e)) {
-								LOGGER.debug("found embedded device: {} {}", e.getType(), e.toString());
+							if (isBlocked(getUUID(e)) || !addRenderer(e)) {
+								LOGGER.debug("Ignoring embedded device: {} {}", e.getType(), e.toString());
 							}
 						}
 					}
@@ -450,13 +453,16 @@ public class UPNPControl {
 		return url;
 	}
 
+	protected boolean addRenderer(String uuid) {
+		Device d = getDevice(uuid);
+		return d != null ? addRenderer(d) : false;
+	}
+
 	protected synchronized boolean addRenderer(Device d) {
 		if (d != null) {
 			String uuid = getUUID(d);
-			String name = getFriendlyName(d);
-			if (isMediaRenderer(d)) {
+			if (isMediaRenderer(d) && rendererFound(d, uuid) != null) {
 				LOGGER.debug("Adding device: {} {}", d.getType(), d.toString());
-				rendererFound(d, uuid);
 				rendererMap.mark(uuid, ACTIVE, true);
 				subscribeAll(d, uuid);
 				rendererReady(uuid);
@@ -491,6 +497,10 @@ public class UPNPControl {
 	protected void rendererReady(String uuid) {
 	}
 
+	protected boolean isBlocked(String uuid) {
+		return false;
+	}
+
 	protected void rendererUpdated(Device d) {
 		String uuid = getUUID(d);
 		if (rendererMap.containsKey(uuid)) {
@@ -499,12 +509,6 @@ public class UPNPControl {
 				subscribeAll(d, uuid);
 			}
 			rendererMap.mark(uuid, ACTIVE, true);
-		} else if (isMediaRenderer(d)) {
-			// Shouldn't happen, but this would mean we somehow failed to identify it as a renderer before
-			LOGGER.debug("Updating device as {}: {}", d.getType().getType(), d.toString());
-			if (! addRenderer(d)) {
-				LOGGER.debug("Error adding {}: {}", d.getType(), d.toString());
-			}
 		}
 	}
 
@@ -530,27 +534,31 @@ public class UPNPControl {
 
 	// Returns the first device regardless of type at the given address, if any
 	public static Device getAnyDevice(InetAddress socket) {
-		for (Device d : upnpService.getRegistry().getDevices()) {
-			try {
-				InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
-				if (devsocket.equals(socket)) {
-					return d;
-				}
-			} catch (Exception e) {}
-		}
-		return null;
-	}
-
-	// Returns the first renderer at the given address, if any
-	public static Device getDevice(InetAddress socket) {
-		for (DeviceType r : mediaRendererTypes) {
-			for (Device d : upnpService.getRegistry().getDevices(r)) {
+		if (upnpService != null) {
+			for (Device d : upnpService.getRegistry().getDevices()) {
 				try {
 					InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
 					if (devsocket.equals(socket)) {
 						return d;
 					}
 				} catch (Exception e) {}
+			}
+		}
+		return null;
+	}
+
+	// Returns the first renderer at the given address, if any
+	public static Device getDevice(InetAddress socket) {
+		if (upnpService != null) {
+			for (DeviceType r : mediaRendererTypes) {
+				for (Device d : upnpService.getRegistry().getDevices(r)) {
+					try {
+						InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
+						if (devsocket.equals(socket)) {
+							return d;
+						}
+					} catch (Exception e) {}
+				}
 			}
 		}
 		return null;

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import net.pms.PMS;
+import net.pms.network.UPNPHelper;
 import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -28,6 +29,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	private PropertiesConfiguration deviceConf = null;
 	private RendererConfiguration ref = null;
 	private static HashMap<String, PropertiesConfiguration> deviceConfs;
+	private static HashMap<String, String> xref;
 	private static File deviceDir;
 
 	public DeviceConfiguration() {
@@ -103,6 +105,18 @@ public class DeviceConfiguration extends PmsConfiguration {
 		}
 	}
 
+	@Override
+	public void setUUID(String uuid) {
+		if (uuid != null && ! uuid.equals(this.uuid)) {
+			this.uuid = uuid;
+			// Switch to the custom device conf for this new uuid, if any
+			if (uuid != null && deviceConfs.containsKey(uuid) && deviceConf != deviceConfs.get(uuid)) {
+				deviceConf = initConfiguration(null);
+				reset();
+			}
+		}
+	}
+
 	public PropertiesConfiguration initConfiguration(InetAddress ia) {
 		String id = uuid != null ? uuid : ia != null ? ia.toString().substring(1) : null;
 		if (id != null && deviceConfs.containsKey(id)) {
@@ -163,6 +177,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 
 	public static void loadDeviceConfigurations(PmsConfiguration pmsConf) {
 		deviceConfs = new HashMap<>();
+		xref = new HashMap<>();
 		deviceDir = new File(pmsConf.getProfileDirectory(), "renderers");
 		if (deviceDir.exists()) {
 			LOGGER.info("Loading device configurations from " + deviceDir.getAbsolutePath());
@@ -195,6 +210,33 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return null;
 	}
 
+	public static int getDeviceUpnpMode(String id) {
+		return getDeviceUpnpMode(id, false);
+	}
+
+	public static int getDeviceUpnpMode(String id, boolean store) {
+		int mode = deviceConfs.containsKey(id) ? getUpnpMode(deviceConfs.get(id).getString(UPNP_ALLOW, "true")) : ALLOW;
+		if (store && id.startsWith("uuid:")) {
+			crossReference(id, UPNPHelper.getAddress(id));
+		}
+		return mode;
+	}
+
+	public static void crossReference(String uuid, InetAddress ia) {
+		// FIXME: this assumes one device per address
+		String address = ia.toString().substring(1);
+		xref.put(address, uuid);
+		xref.put(uuid, address);
+		if (deviceConfs.containsKey(uuid)) {
+			deviceConfs.put(address, deviceConfs.get(uuid));
+		}
+	}
+
+	public static String getUuidOf(InetAddress ia) {
+		// FIXME: this assumes one device per address
+		return ia != null ? xref.get(ia.toString().substring(1)) : null;
+	}
+
 	public static File createDeviceFile(DeviceConfiguration r, String filename, boolean load) {
 		File file = null;
 		try {
@@ -215,7 +257,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			conf.add("# Options in this file override the default settings for the specific " + r.getSimpleName(r) + " device(s) listed below.");
 			conf.add("# Specify devices by uuid (or address if no uuid), separated by commas if more than one.");
 			conf.add("");
-			conf.add("device = " + r.getId());
+			conf.add("Device = " + r.getId());
 
 			FileUtils.writeLines(file, "utf-8", conf, "\r\n");
 
