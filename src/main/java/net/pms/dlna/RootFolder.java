@@ -44,6 +44,7 @@ import net.pms.newgui.IFrame;
 import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
+import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -1164,6 +1165,16 @@ public class RootFolder extends DLNAResource {
 			});
 		}
 
+		// Reboot UMS
+		res.addChild(new VirtualVideoAction(Messages.getString("PMS.149"), true) {
+			@Override
+			public boolean enable() {
+				ProcessUtil.reboot();
+				// Reboot failed if we get here
+				return false;
+			}
+		});
+
 		addChild(res);
 	}
 
@@ -1299,6 +1310,7 @@ public class RootFolder extends DLNAResource {
 					return true;
 				}
 			});
+
 			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isHideLiveSubtitlesFolder()) {
 				@Override
 				public boolean enable() {

@@ -20,6 +20,7 @@ package net.pms.dlna;
 
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +109,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public String flavor;
+	public String audioTrackTitleFromMetadata;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -264,14 +265,18 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		result.append(getId());
 		result.append(", lang: ");
 		result.append(getLang());
-		result.append(", flavor: ");
-		result.append(getFlavor());
+
+		if (isNotBlank(getAudioTrackTitleFromMetadata())) {
+			result.append(", audio track title from metadata: ");
+			result.append(getAudioTrackTitleFromMetadata());
+		}
+
 		result.append(", audio codec: ");
 		result.append(getAudioCodec());
 		result.append(", sample frequency:");
 		result.append(getSampleFrequency());
 
-		if (getAudioProperties() != null) {
+		if (getAudioProperties() != null && getAudioProperties().getNumberOfChannels() != 0) {
 			result.append(", number of channels: ");
 			result.append(getAudioProperties().getNumberOfChannels());
 		}
@@ -279,7 +284,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		result.append(", bits per sample: ");
 		result.append(getBitsperSample());
 
-		if (getArtist() != null) {
+		if (isNotBlank(getArtist())) {
 			result.append(", artist: ");
 			result.append(getArtist());
 			result.append(", album: ");
@@ -549,23 +554,27 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Returns the flavor for the audio.
-	 *
-	 * @return The flavor.
-	 * @since 1.50
+	 * @deprecated use getAudioTrackTitleFromMetadata()
 	 */
+	@Deprecated
 	public String getFlavor() {
-		return flavor;
+		return getAudioTrackTitleFromMetadata();
 	}
 
 	/**
-	 * Sets the flavor for the audio.
-	 *
-	 * @param flavor The flavor to set.
-	 * @since 1.50
+	 * @deprecated use setAudioTrackTitleFromMetadata()
 	 */
-	public void setFlavor(String flavor) {
-		this.flavor = flavor;
+	@Deprecated
+	public void setFlavor(String value) {
+		setAudioTrackTitleFromMetadata(value);
+	}
+
+	public String getAudioTrackTitleFromMetadata() {
+		return audioTrackTitleFromMetadata;
+	}
+
+	public void setAudioTrackTitleFromMetadata(String value) {
+		this.audioTrackTitleFromMetadata = value;
 	}
 
 	/**

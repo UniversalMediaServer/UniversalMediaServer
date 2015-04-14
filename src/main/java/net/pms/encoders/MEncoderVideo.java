@@ -47,6 +47,7 @@ import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.*;
+import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
@@ -579,21 +580,6 @@ public class MEncoderVideo extends Player {
 		return defaultArgsArray;
 	}
 
-	/**
-	 * Returns the argument string surrounded with quotes if it contains a space,
-	 * otherwise returns the string as is.
-	 *
-	 * @param arg The argument string
-	 * @return The string, optionally in quotes. 
-	 */
-	private String quoteArg(String arg) {
-		if (arg != null && arg.indexOf(' ') > -1) {
-			return "\"" + arg + "\"";
-		}
-
-		return arg;
-	}
-
 	private String[] sanitizeArgs(String[] args) {
 		List<String> sanitized = new ArrayList<>();
 		int i = 0;
@@ -912,14 +898,7 @@ public class MEncoderVideo extends Player {
 		if (
 			deferToTsmuxer == true &&
 			!params.mediaRenderer.isPS3() &&
-			(
-				filename.toLowerCase().contains("web-dl") ||
-				(
-					params.aid != null &&
-					params.aid.getFlavor() != null &&
-					params.aid.getFlavor().toLowerCase().contains("web-dl")
-				)
-			)
+			media.isWebDl(filename, params)
 		) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");

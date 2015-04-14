@@ -22,6 +22,8 @@ public class HyperLinkToolTip extends JToolTip {
 
 	private static final long serialVersionUID = -8107203112982951774L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(HyperLinkToolTip.class);	
+	private static ColorUIResource fg = new ColorUIResource(PMS.getConfiguration().getToolTipForegroundColor());
+	private static ColorUIResource bg = new ColorUIResource(PMS.getConfiguration().getToolTipBackgroundColor());
 	
 	private JEditorPane editorPane;
 
@@ -31,8 +33,8 @@ public class HyperLinkToolTip extends JToolTip {
 		editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 		editorPane.setContentType("text/html");
 		editorPane.setEditable(false);
-		editorPane.setForeground(new ColorUIResource(PMS.getConfiguration().getToolTipForegroundColor()));
-		editorPane.setBackground(new ColorUIResource(PMS.getConfiguration().getToolTipBackgroundColor()));
+		editorPane.setForeground(fg);
+		editorPane.setBackground(bg);
 
 		editorPane.addHyperlinkListener(new HyperlinkListener() {
 			public void hyperlinkUpdate(HyperlinkEvent e) {
