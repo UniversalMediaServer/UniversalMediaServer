@@ -1,4 +1,4 @@
-5.1.2 - 2015-04-??
+5.1.2 - 2015-04-15
 
 	General:
 		Added "upnp_enable" user-level option
