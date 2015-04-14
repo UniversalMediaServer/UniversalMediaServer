@@ -634,7 +634,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								 * Use the renderer's preferred MIME type for this file.
 								 */
 								if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
-									LOGGER.trace("Using renderer-defined MIME type \"{}\" instead of \"{}\" for \"{}\"", mimeType, child.media.getMimeType(), child.getName());
 									child.media.setMimeType(mimeType);
 								}
 
