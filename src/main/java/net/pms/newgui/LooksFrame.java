@@ -302,6 +302,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			title = title + " - " + Messages.getString("LooksFrame.26");
 		}
 
+		if (PMS.getTraceMode() == 2) {
+			// Forced trace mode
+			title = title + "  [" + Messages.getString("TracesTab.10").toUpperCase() + "]";
+		}
+
 		this.setTitle(title);
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		Dimension screenSize = getToolkit().getScreenSize();
