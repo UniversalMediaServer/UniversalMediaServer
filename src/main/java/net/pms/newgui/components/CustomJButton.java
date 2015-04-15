@@ -2,6 +2,8 @@ package net.pms.newgui.components;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+
+import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JToolTip;
@@ -9,8 +11,13 @@ import javax.swing.JToolTip;
 public class CustomJButton extends JButton {
 	private static final long serialVersionUID = -528428545289132331L;
 
-	public CustomJButton(String string) {
-		super(string);
+	public CustomJButton() {
+		super();
+		this.setRequestFocusEnabled(false);
+	}
+
+	public CustomJButton(Action a) {
+		super(a);
 		this.setRequestFocusEnabled(false);
 	}
 
@@ -19,8 +26,13 @@ public class CustomJButton extends JButton {
 		this.setRequestFocusEnabled(false);
 	}
 
-	public CustomJButton(String string, Icon icon) {
-		super(string, icon);
+	public CustomJButton(String text) {
+		super(text);
+		this.setRequestFocusEnabled(false);
+	}
+
+	public CustomJButton(String text, Icon icon) {
+		super(text, icon);
 		this.setRequestFocusEnabled(false);
 	}
 
