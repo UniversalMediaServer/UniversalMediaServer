@@ -159,12 +159,13 @@ public class LibMediaInfoParser {
 						currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
 
-						if (currentAudioTrack.getSongname() != null && currentAudioTrack.getSongname().length() > 0) {
-							if (renderer.isPrependTrackNumbers() && currentAudioTrack.getTrack() > 0) {
-								currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
-							}
-						} else {
-							currentAudioTrack.setSongname(file.getName());
+						if (
+							renderer.isPrependTrackNumbers() &&
+							currentAudioTrack.getTrack() > 0 &&
+							currentAudioTrack.getSongname() != null &&
+							currentAudioTrack.getSongname().length() > 0
+						) {
+							currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
 						}
 
 						currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));

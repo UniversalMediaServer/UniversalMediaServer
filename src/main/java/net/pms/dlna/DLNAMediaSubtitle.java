@@ -23,8 +23,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import net.pms.formats.v2.SubtitleType;
-import static net.pms.formats.v2.SubtitleType.*;
+import static net.pms.formats.v2.SubtitleType.UNKNOWN;
 import net.pms.util.FileUtil;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +73,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		result.append(", type: ");
 		result.append(type);
 
-		if (subtitlesTrackTitleFromMetadata != null) {
+		if (isNotBlank(subtitlesTrackTitleFromMetadata)) {
 			result.append(", subtitles track title from metadata: ");
 			result.append(subtitlesTrackTitleFromMetadata);
 		}
@@ -83,10 +84,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		if (externalFile != null) {
 			result.append(", externalFile: ");
 			result.append(externalFile.toString());
+			result.append(", external file character set: ");
+			result.append(externalFileCharacterSet);
 		}
-
-		result.append(", externalFileCharacterSet: ");
-		result.append(externalFileCharacterSet);
 
 		return result.toString();
 	}

@@ -108,7 +108,7 @@ public class PlaySub extends DLNAResource {
 	}
 
 	@Override
-	public boolean isSubsFile() {
+	public boolean hasExternalSubtitles() {
 		return true;
 	}
 }
