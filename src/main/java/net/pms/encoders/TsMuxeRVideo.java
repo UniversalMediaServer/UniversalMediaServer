@@ -37,23 +37,12 @@ import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.InputFile;
+import net.pms.dlna.*;
 import net.pms.formats.Format;
-import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
-import net.pms.io.OutputParams;
-import net.pms.io.PipeIPCProcess;
-import net.pms.io.PipeProcess;
-import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
-import net.pms.io.StreamModifier;
+import net.pms.io.*;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.PlayerUtil;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,17 +221,7 @@ public class TsMuxeRVideo extends Player {
 			params.waitbeforestart = 5000;
 			params.manageFastStart();
 
-			String mencoderPath = configuration.getMencoderPath();
-
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
-
-			// Special handling for evo files
-			String evoValue1 = "-quiet";
-			String evoValue2 = "-quiet";
-			if (filename.toLowerCase().endsWith(".evo")) {
-				evoValue1 = "-psprobe";
-				evoValue2 = "1000000";
-			}
 
 			ffmpegCommands = new String[] {
 				configuration.getFfmpegPath(),
@@ -297,16 +276,6 @@ public class TsMuxeRVideo extends Player {
 				if (numAudioTracks <= 1) {
 					ffAudioPipe = new PipeIPCProcess[numAudioTracks];
 					ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
-
-					/**
-					 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-					 *
-					 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
-					 * because MEncoder can't handle those files, which are very common these days.
-					boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
-						(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
-						(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
-					 */
 
 					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
 					ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
@@ -394,16 +363,6 @@ public class TsMuxeRVideo extends Player {
 						DLNAMediaAudio audio = media.getAudioTracksList().get(i);
 						ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
 
-						/**
-						 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-						 *
-						 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
-						 * because MEncoder can't handle those files, which are very common these days.
-						boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
-							(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
-							(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
-						 */
-
 						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
 						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
 						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
@@ -451,50 +410,30 @@ public class TsMuxeRVideo extends Player {
 								ffAudioPipe[i].setModifier(sm);
 							}
 
-							String mixer = null;
-							if (pcm && !dtsRemux && !encodedAudioPassthrough) {
-								mixer = getLPCMChannelMappingForMencoder(audio);
-							}
-
-							ffmpegCommands = new String[]{
-								mencoderPath,
+							ffmpegCommands = new String[] {
+								configuration.getFfmpegPath(),
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
-								params.stdin != null ? "-" : filename,
-								evoValue1, evoValue2,
-								"-really-quiet",
-								"-msglevel", "statusline=2",
-								"-channels", "" + sm.getNbChannels(),
-								"-ovc", "copy",
-								"-of", "rawaudio",
-								"-mc", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "0.1" : "0",
-								"-noskip",
-								"-oac", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
-								isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
-								singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + audio.getId()),
-								"-srate", "48000",
-								"-o", ffAudioPipe[i].getInputPipe()
+								"-i", filename,
+								"-ac", "" + sm.getNbChannels(),
+								"-f", "ac3",
+								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
+								"-c:a", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
+								"-y",
+								ffAudioPipe[i].getInputPipe()
 							};
 						} else {
 							// AC-3 remux or encoding
-							ffmpegCommands = new String[]{
-								mencoderPath,
+							ffmpegCommands = new String[] {
+								configuration.getFfmpegPath(),
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
-								params.stdin != null ? "-" : filename,
-								evoValue1, evoValue2,
-								"-really-quiet",
-								"-msglevel", "statusline=2",
-								"-channels", "" + channels,
-								"-ovc", "copy",
-								"-of", "rawaudio",
-								"-mc", "0",
-								"-noskip",
-								"-oac", (ac3Remux) ? "copy" : "lavc",
-								audio.isAC3() ? "-fafmttag" : "-quiet", audio.isAC3() ? "0x2000" : "-quiet",
-								"-lavcopts", "acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") + ":abitrate=" + CodecUtil.getAC3Bitrate(configuration, audio),
-								"-af", "lavcresample=48000",
-								"-srate", "48000",
-								singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + audio.getId()),
-								"-o", ffAudioPipe[i].getInputPipe()
+								"-i", filename,
+								"-ac", "" + channels,
+								"-f", "ac3",
+								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
+								"-c:a", (ac3Remux) ? "copy" : "ac3",
+								"-ab", String.valueOf(CodecUtil.getAC3Bitrate(configuration, audio)) + "k",
+								"-y",
+								ffAudioPipe[i].getInputPipe()
 							};
 						}
 
@@ -538,16 +477,6 @@ public class TsMuxeRVideo extends Player {
 				boolean dtsRemux;
 				boolean encodedAudioPassthrough;
 				boolean pcm;
-
-				/**
-				 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-				 *
-				 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
-				 * because MEncoder can't handle those files, which are very common these days.
-				boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
-					(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
-					(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
-				 */
 
 				encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
 				ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
@@ -601,16 +530,6 @@ public class TsMuxeRVideo extends Player {
 					boolean dtsRemux;
 					boolean encodedAudioPassthrough;
 					boolean pcm;
-
-					/**
-					 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-					 *
-					 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
-					 * because MEncoder can't handle those files, which are very common these days.
-					boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
-						(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
-						(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
-					 */
 
 					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
 					ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
