@@ -3241,8 +3241,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
 	}
 
+	/**
+	 * Default port for the WEB interface is 80. When there is a conflict with
+	 * other WEB server it could be changed to the recommended value 9001
+	 */
 	public int getWebPort() {
-		return getInt(KEY_WEB_PORT, 0);
+		return getInt(KEY_WEB_PORT, 80);
 	}
 
 	public boolean useWebInterface() {

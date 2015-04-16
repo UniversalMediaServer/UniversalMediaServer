@@ -711,6 +711,9 @@ public class PMS {
 			return false;
 		}
 
+		String webAddress = web.getAddress().endsWith("80") ? web.getAddress().substring(0, web.getAddress().indexOf(":")) : web.getAddress();
+		LOGGER.info("WEB interface available at: http://" + webAddress);
+
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
