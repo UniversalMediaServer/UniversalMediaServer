@@ -711,8 +711,7 @@ public class PMS {
 			return false;
 		}
 
-		String webAddress = web.getAddress().endsWith("80") ? web.getAddress().substring(0, web.getAddress().indexOf(":")) : web.getAddress();
-		LOGGER.info("WEB interface available at: http://" + webAddress);
+		LOGGER.info("WEB interface is available at: http://" + web.getAddress());
 
 		// initialize the cache
 		if (configuration.getUseCache()) {

@@ -3242,11 +3242,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Default port for the WEB interface is 80. When there is a conflict with
-	 * other WEB server it could be changed to the recommended value 9001
+	 * Default port for the WEB interface.
 	 */
 	public int getWebPort() {
-		return getInt(KEY_WEB_PORT, 80);
+		return getInt(KEY_WEB_PORT, 9001);
 	}
 
 	public boolean useWebInterface() {
