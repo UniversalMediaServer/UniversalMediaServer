@@ -551,11 +551,6 @@ public class PMS {
 			}
 		});
 
-		// Web stuff
-		if (configuration.useWebInterface()) {
-			web = new RemoteWeb(configuration.getWebPort());
-		}
-
 		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
@@ -691,6 +686,24 @@ public class PMS {
 			LOGGER.info("Maybe another process is running or the hostname is wrong.");
 		}
 
+		// Web stuff
+		if (configuration.useWebInterface()) {
+			try {
+				web = new RemoteWeb(configuration.getWebPort());
+			} catch (Exception e) {
+				LOGGER.debug("Couldn't start WEB interface for port: " + configuration.getWebPort() + ". Maybe another process is using that port.");
+				try {
+					LOGGER.debug("UMS will try to start WEB interface for the backup port: " + configuration.getBackupWebPort());
+					web = new RemoteWeb(configuration.getBackupWebPort());
+				} catch (Exception e1) {
+					LOGGER.debug("Couldn't start WEB interface " + e1);
+				}
+			} finally {
+				String webAddress = web.getAddress().endsWith(":80") ? web.getAddress().substring(0, web.getAddress().indexOf(":")) : web.getAddress();
+				LOGGER.info("WEB interface is available at: http://" + webAddress);
+			}
+		}
+
 		new Thread("Connection Checker") {
 			@Override
 			public void run() {
@@ -710,8 +723,6 @@ public class PMS {
 		if (!binding) {
 			return false;
 		}
-
-		LOGGER.info("WEB interface is available at: http://" + web.getAddress());
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
