@@ -5,6 +5,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
@@ -52,7 +53,15 @@ public class LibMediaInfoParser {
 		}
 	}
 
+	@Deprecated
 	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type) {
+		parse(media, inputFile, type, null);
+	}
+
+	/**
+	 * Parse media via MediaInfo.
+	 */
+	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type, RendererConfiguration renderer) {
 		File file = inputFile.getFile();
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.Open(file.getAbsolutePath()) > 0) {
 			try {
@@ -74,6 +83,10 @@ public class LibMediaInfoParser {
 				value = MI.Get(general, 0, "Cover_Data");
 				if (isNotBlank(value)) {
 					media.setThumb(getCover(value));
+				}
+				value = MI.Get(general, 0, "Title");
+				if (isNotBlank(value)) {
+					media.setFileTitleFromMetadata(value);
 				}
 				value = MI.Get(general, 0, "Attachements");
 				if (isNotBlank(value)) {
@@ -106,6 +119,7 @@ public class LibMediaInfoParser {
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
+							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
 							value = MI.Get(video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name);
 							if (isNotBlank(value)) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
@@ -139,11 +153,21 @@ public class LibMediaInfoParser {
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile").toLowerCase(), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID").toLowerCase(), file);
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
-						currentAudioTrack.setFlavor(getFlavor(MI.Get(audio, i, "Title")));
+						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
 						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
 						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
 						currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
+
+						if (
+							renderer.isPrependTrackNumbers() &&
+							currentAudioTrack.getTrack() > 0 &&
+							currentAudioTrack.getSongname() != null &&
+							currentAudioTrack.getSongname().length() > 0
+						) {
+							currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
+						}
+
 						currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
 						currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
 						currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
@@ -205,7 +229,7 @@ public class LibMediaInfoParser {
 						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "Format")));
 						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "CodecID")));
 						currentSubTrack.setLang(getLang(MI.Get(text, i, "Language/String")));
-						currentSubTrack.setFlavor(getFlavor(MI.Get(text, i, "Title")));
+						currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
 						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 						value = MI.Get(text, i, "ID/String");
 						if (isNotBlank(value)) {
@@ -393,8 +417,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.startsWith("h263")) {
-			format = FormatConfiguration.H263;	
+		} else if (value.startsWith("h263") || value.startsWith("s263") || value.startsWith("u263")) {
+			format = FormatConfiguration.H263;
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
@@ -663,6 +687,10 @@ public class LibMediaInfoParser {
 		return value;
 	}
 
+	/**
+	 * @deprecated use trim()
+	 */
+	@Deprecated
 	public static String getFlavor(String value) {
 		value = value.trim();
 		return value;

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
-
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -18,8 +17,8 @@ import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
+import net.pms.util.SubtitleUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;

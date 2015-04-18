@@ -34,32 +34,31 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.util.tree.CheckTreeManager;
-import org.apache.commons.configuration.ConfigurationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SelectRenderers extends JPanel {
 	private static final long serialVersionUID = -2724796596060834064L;
 	private static PmsConfiguration configuration = PMS.getConfiguration();
-	private static ArrayList<String> allRenderersNames = RendererConfiguration.getAllRenderersNames();
 	private static List<String> selectedRenderers = configuration.getSelectedRenderers();
-	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private CheckTreeManager checkTreeManager;
-	private final JTree SrvTree;
-	private final DefaultMutableTreeNode allRenderers;
-	private String rootName = Messages.getString("GeneralTab.13");
+	private JTree SrvTree;
+	private DefaultMutableTreeNode allRenderers;
+	private static final String allRenderersTreeName = configuration.ALL_RENDERERS;
+	private boolean init = false;
 
 	public SelectRenderers() {
 		super(new BorderLayout());
+	}
+
+	public void build() {
 		JPanel checkPanel = new JPanel();
 		checkPanel.applyComponentOrientation(ComponentOrientation.getOrientation(new Locale(configuration.getLanguage())));
 		add(checkPanel, BorderLayout.LINE_START);
-		allRenderers = new DefaultMutableTreeNode(rootName);
+		allRenderers = new DefaultMutableTreeNode(Messages.getString("GeneralTab.13"));
 		DefaultMutableTreeNode renderersGroup = null;
 		String lastGroup = null;
 		String groupName;
 		boolean firstLoop = true;
-		for (String renderer : allRenderersNames) {
+		for (String renderer : RendererConfiguration.getAllRenderersNames()) {
 			if (lastGroup != null && renderer.startsWith(lastGroup)) {
 				if (renderer.indexOf(" ") > 0 ) {
 					renderersGroup.add(new DefaultMutableTreeNode(renderer.substring(renderer.indexOf(" "))));
@@ -97,13 +96,18 @@ public class SelectRenderers extends JPanel {
 	 * Create the GUI and show it.
 	 */
 	public void showDialog() {
+		if (!init) {
+			// Initial call
+			build();
+			init = true;
+		}
 		// Refresh setting if modified
 		selectedRenderers = configuration.getSelectedRenderers();
 		TreePath[] renderersPath = new TreePath[selectedRenderers.size()];
 		TreePath root = new TreePath(allRenderers);
 		int i = 0;
 		for (String renderer : selectedRenderers) {
-			if (selectedRenderers.size() == 1) {
+			if (allRenderersTreeName.equals(renderer)) {
 				renderersPath[i] = root;
 			} else {
 				int childNumber = allRenderers.getChildCount();
@@ -170,7 +174,7 @@ public class SelectRenderers extends JPanel {
 					}
 				} else {
 					if (selected.length == 1) {
-						nameStr.append(configuration.ALL_RENDERERS);
+						nameStr.append(allRenderersTreeName);
 					}
 				}
 

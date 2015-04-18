@@ -35,23 +35,19 @@ import java.util.List;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.GuiUtil.CustomJButton;
-import net.pms.util.CodecUtil;
-import net.pms.util.FileUtil;
-import net.pms.util.FormLayoutUtil;
-import net.pms.util.PlayerUtil;
-import net.pms.util.ProcessUtil;
+import net.pms.newgui.components.CustomJButton;
+import net.pms.util.*;
+import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
@@ -584,21 +580,6 @@ public class MEncoderVideo extends Player {
 		return defaultArgsArray;
 	}
 
-	/**
-	 * Returns the argument string surrounded with quotes if it contains a space,
-	 * otherwise returns the string as is.
-	 *
-	 * @param arg The argument string
-	 * @return The string, optionally in quotes. 
-	 */
-	private String quoteArg(String arg) {
-		if (arg != null && arg.indexOf(' ') > -1) {
-			return "\"" + arg + "\"";
-		}
-
-		return arg;
-	}
-
 	private String[] sanitizeArgs(String[] args) {
 		List<String> sanitized = new ArrayList<>();
 		int i = 0;
@@ -917,14 +898,7 @@ public class MEncoderVideo extends Player {
 		if (
 			deferToTsmuxer == true &&
 			!params.mediaRenderer.isPS3() &&
-			(
-				filename.toLowerCase().contains("web-dl") ||
-				(
-					params.aid != null &&
-					params.aid.getFlavor() != null &&
-					params.aid.getFlavor().toLowerCase().contains("web-dl")
-				)
-			)
+			media.isWebDl(filename, params)
 		) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
@@ -936,6 +910,10 @@ public class MEncoderVideo extends Player {
 		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+		}
+		if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
 		}
 		if (deferToTsmuxer) {
 			String expertOptions[] = getSpecificCodecOptions(

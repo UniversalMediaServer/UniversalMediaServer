@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -54,6 +55,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
 	protected Matcher sortedHeaderMatcher;
+	protected List<String> identifiers = null;
 
 	public StatusTab.RendererItem gui;
 	public boolean loaded, fileless = false;
@@ -131,21 +133,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	protected static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	protected static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
+	protected static final String DEVICE_ID = "Device";
 	protected static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	protected static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	protected static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	protected static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
-	protected static final String LIMIT_FOLDERS = "LimitFolders";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
-	protected static final String IMAGE = "Image";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
+	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
+	protected static final String LIMIT_FOLDERS = "LimitFolders";
+	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
 	protected static final String MAX_VIDEO_HEIGHT = "MaxVideoHeight";
 	protected static final String MAX_VIDEO_WIDTH = "MaxVideoWidth";
+	protected static final String MAX_VOLUME = "MaxVolume";
 	protected static final String MEDIAPARSERV2 = "MediaInfo";
 	protected static final String MEDIAPARSERV2_THUMB = "MediaParserV2_ThumbnailGeneration";
 	protected static final String MIME_TYPES_CHANGES = "MimeTypesChanges";
@@ -156,8 +161,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
-	protected static final String LOADING_PRIORITY = "LoadingPriority";
-	protected static final String MAX_VOLUME = "MaxVolume";
+	protected static final String PREPEND_TRACK_NUMBERS = "PrependTrackNumbers";
 	protected static final String RENDERER_ICON = "RendererIcon";
 	protected static final String RENDERER_NAME = "RendererName";
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -175,19 +179,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
 	protected static final String TEXTWRAP = "TextWrap";
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
-	protected static final String THUMBNAIL_SIZE = "ThumbnailSize";
 	protected static final String THUMBNAIL_BG = "ThumbnailBackground";
-	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
+	protected static final String THUMBNAIL_SIZE = "ThumbnailSize";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
+	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	protected static final String TRANSCODE_EXT = "TranscodeExtensions";
 	protected static final String TRANSCODE_FAST_START = "TranscodeFastStart";
 	protected static final String TRANSCODE_VIDEO = "TranscodeVideo";
 	protected static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
 	protected static final String TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE = "TranscodedVideoAudioSampleRate";
+	protected static final String UPNP_DETAILS = "UpnpDetailsSearch";
+	protected static final String UPNP_ALLOW = "UpnpAllow";
+	protected static final String USER_AGENT = "UserAgentSearch";
 	protected static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	protected static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
-	protected static final String USER_AGENT = "UserAgentSearch";
-	protected static final String UPNP_DETAILS = "UpnpDetailsSearch";
 	protected static final String USE_CLOSED_CAPTION = "UseClosedCaption";
 	protected static final String USE_SAME_EXTENSION = "UseSameExtension";
 	protected static final String VIDEO = "Video";
@@ -230,7 +235,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					try {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
-						String rendererName = r.getRendererName();
+						String rendererName = r.getConfName();
+						allRenderersNames.add(rendererName);
 						String renderersGroup = null; 
 						if (rendererName.indexOf(" ") > 0) {
 							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
@@ -266,27 +272,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				}
 			}
 		}
+		Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
 		DeviceConfiguration.loadDeviceConfigurations(pmsConf);
-	}
-
-	private static void loadRenderersNames() {
-		File renderersDir = getRenderersDir();
-
-		if (renderersDir != null) {
-			LOGGER.info("Loading renderer names from " + renderersDir.getAbsolutePath());
-
-			for (File f : renderersDir.listFiles()) {
-				if (f.getName().endsWith(".conf")) {
-					try {
-						allRenderersNames.add(new RendererConfiguration(f).getRendererName());
-					} catch (ConfigurationException ce) {
-						LOGGER.warn("Error loading " + f.getAbsolutePath());
-					}
-				}
-			}
-
-			Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
-		}
 	}
 
 	public int getInt(String key, int def) {
@@ -311,6 +298,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public List<String> getStringList(String key, String def) {
 		return configurationReader.getStringList(key, def);
+	}
+   	
+	public Color getColor(String key, String defaultValue) {
+		String colorString = getString(key, defaultValue);
+		Color color = StringUtil.parseColor(colorString);
+		return color != null ? color : ! colorString.equals(defaultValue) ? StringUtil.parseColor(defaultValue) : null;
 	}
 
 	@Deprecated
@@ -484,7 +477,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
 
-		addressAssociation.put(sa, this);
+		RendererConfiguration prev = addressAssociation.put(sa, this);
+		if (prev != null) {
+			// We've displaced a previous renderer at this address, so
+			// check  if it's a ghost instance that should be deleted.
+			verify(prev);
+		}
+		resetUpnpMode();
+
 		if (
 			(
 				pmsConfiguration.isAutomaticMaximumBitrate() ||
@@ -571,7 +571,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public static RendererConfiguration getRendererConfigurationByName(String name) {
 		for (RendererConfiguration conf : enabledRendererConfs) {
-			if (conf.getRendererName().toLowerCase().contains(name.toLowerCase())) {
+			if (conf.getConfName().toLowerCase().contains(name.toLowerCase())) {
 				return conf;
 			}
 		}
@@ -626,6 +626,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					PMS.get().setRendererFound(r);
 				}
 				r.active = true;
+				if (r.isUpnpPostponed()) {
+					r.setUpnpMode(ALLOW);
+				}
 			}
 		} catch (Exception e) {
 		}
@@ -680,22 +683,48 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			ArrayList<String> conf = new ArrayList<>();
 			String name = getSimpleName(r);
 			Map<String, String> details = r.getUpnpDetails();
-			String detailmatcher = details == null ? "" :
-				(details.get("manufacturer") + " , " + details.get("modelName"));
+			List<String> headers = r.getIdentifiers();
+			boolean hasRef = ref != null && ref != NOFILE;
 
 			// Add the header and identifiers
 			conf.add("#----------------------------------------------------------------------------");
 			conf.add("# Auto-generated profile for " + name);
-			conf.add("#" + (ref == null ? "" : " Based on " + ref.getName()));
+			conf.add("#" + (hasRef ? " Based on " + ref.getName() : ""));
 			conf.add("# See DefaultRenderer.conf for a description of all possible configuration options.");
 			conf.add("#");
 			conf.add("");
 			conf.add(RENDERER_NAME + " = " + name);
-			conf.add(UPNP_DETAILS + " = " + detailmatcher);
+			if (headers != null || details != null) {
+				conf.add("");
+				conf.add("# ============================================================================");
+				conf.add("# This renderer has sent the following string/s:");
+				if (headers != null && headers.size() > 0) {
+					conf.add("#");
+					for (String h : headers) {
+						conf.add("# " + h);
+					}
+				}
+				if (details != null) {
+					details.remove("address");
+					details.remove("udn");
+					conf.add("#");
+					conf.add("# " + details);
+				}
+				conf.add("# ============================================================================");
+				conf.add("");
+			}
+			conf.add(USER_AGENT + " = ");
+			if (headers != null && headers.size() > 1) {
+				conf.add(USER_AGENT_ADDITIONAL_HEADER + " = ");
+				conf.add(USER_AGENT_ADDITIONAL_SEARCH + " = ");
+			}
+			if (details != null) {
+				conf.add(UPNP_DETAILS + " = " + details.get("manufacturer") + " , " + details.get("modelName"));
+			}
 			conf.add("");
 			// TODO: Set more properties automatically from UPNP info
 
-			if (ref != null) {
+			if (hasRef) {
 				// Copy the reference file, skipping its header and identifiers
 				Matcher skip = Pattern.compile(".*(" + RENDERER_ICON + "|" + RENDERER_NAME + "|" +
 					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
@@ -770,34 +799,34 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return whether this renderer is an Xbox 360
 	 */
 	public boolean isXbox360() {
-		return getRendererName().toUpperCase().contains("XBOX 360");
+		return getConfName().toUpperCase().contains("XBOX 360");
 	}
 
 	/**
 	 * @return whether this renderer is an Xbox One
 	 */
 	public boolean isXboxOne() {
-		return getRendererName().toUpperCase().contains("XBOX ONE");
+		return getConfName().toUpperCase().contains("XBOX ONE");
 	}
 
 	public boolean isXBMC() {
-		return getRendererName().toUpperCase().contains("XBMC");
+		return getConfName().toUpperCase().contains("KODI") || getConfName().toUpperCase().contains("XBMC");
 	}
 
 	public boolean isPS3() {
-		return getRendererName().toUpperCase().contains("PLAYSTATION") || getRendererName().toUpperCase().contains("PS3");
+		return getConfName().toUpperCase().contains("PLAYSTATION") || getConfName().toUpperCase().contains("PS3");
 	}
 
 	public boolean isBRAVIA() {
-		return getRendererName().toUpperCase().contains("BRAVIA");
+		return getConfName().toUpperCase().contains("BRAVIA");
 	}
 
 	public boolean isFDSSDP() {
-		return getRendererName().toUpperCase().contains("FDSSDP");
+		return getConfName().toUpperCase().contains("FDSSDP");
 	}
 
 	public boolean isLG() {
-		return getRendererName().toUpperCase().contains("LG ");
+		return getConfName().toUpperCase().contains("LG ");
 	}
 
 	// Ditlew
@@ -902,6 +931,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (!loaded) {
 			configuration.clear();
 			loaded = load(f);
+		}
+
+		if (isUpnpAllowed() && uuid == null) {
+			String id = getDeviceId();
+			if (StringUtils.isNotBlank(id)) {
+				uuid = id;
+			}
 		}
 
 		mimes = new HashMap<>();
@@ -1832,6 +1868,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return whether the resolution is compatible with the renderer
 	 */
 	public boolean isResolutionCompatibleWithRenderer(int width, int height) {
+		// Check if the resolution is too high
 		if (
 			isMaximumResolutionSpecified() &&
 			(
@@ -1845,6 +1882,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				)
 			)
 		) {
+			return false;
+		}
+
+		// Check if the resolution is too low
+		if (!isRescaleByRenderer() && getMaxVideoWidth() < 720) {
 			return false;
 		}
 
@@ -2052,15 +2094,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(RESCALE_BY_RENDERER, true);
 	}
 
+	/**
+	 * Whether to prepend audio track numbers to audio titles.
+	 * e.g. "Stairway to Heaven" becomes "4: Stairway to Heaven".
+	 *
+	 * This is to provide a workaround for devices that order everything
+	 * alphabetically instead of in the order we give, like Samsung devices.
+	 *
+	 * @return whether to prepend audio track numbers to audio titles.
+	 */
+	public boolean isPrependTrackNumbers() {
+		return getBoolean(PREPEND_TRACK_NUMBERS, false);
+	}
+
 	public String getFFmpegVideoFilterOverride() {
 		return getString(OVERRIDE_FFMPEG_VF, "");
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
-		if (allRenderersNames.isEmpty()) {
-			loadRenderersNames();
-		}
-
 		return allRenderersNames;
 	}
 
@@ -2346,7 +2397,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 			int p1 = r1.getLoadingPriority();
 			int p2 = r2.getLoadingPriority();
-			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
+			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getConfName().compareToIgnoreCase(r2.getConfName());
 		}
 	};
 
@@ -2463,5 +2514,99 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public int getMaxVolume() {
 		return getInt(MAX_VOLUME, 100);
+	}
+
+	public void setIdentifiers(List<String> identifiers) {
+		this.identifiers = identifiers;
+	}
+
+	public List<String> getIdentifiers() {
+		return identifiers;
+	}
+
+	public String getDeviceId() {
+		String d = getString(DEVICE_ID, "");
+		if (StringUtils.isBlank(d)) {
+			// Backward compatibility
+			d = getString("device", "");
+		}
+		return d;
+	}
+
+	/**
+	 * Upnp service startup management
+	 */
+
+	public static final int BLOCK = -2;
+	public static final int POSTPONE = -1;
+	public static final int NONE = 0;
+	public static final int ALLOW = 1;
+
+	protected volatile int upnpMode = NONE;
+
+	public static int getUpnpMode(String mode) {
+		if (mode != null) {
+			switch (mode.trim().toLowerCase()) {
+				case "false":    return BLOCK;
+				case "postpone": return POSTPONE;
+			}
+		}
+		return ALLOW;
+	}
+
+	public static String getUpnpModeString(int mode) {
+		switch (mode) {
+			case BLOCK:    return "blocked";
+			case POSTPONE: return "postponed";
+			case NONE:     return "unknown";
+		}
+		return "allowed";
+	}
+
+	public int getUpnpMode() {
+		if (upnpMode == NONE) {
+			upnpMode = getUpnpMode(getString(UPNP_ALLOW, "true"));
+		}
+		return upnpMode;
+	}
+
+	public String getUpnpModeString() {
+		return getUpnpModeString(upnpMode);
+	}
+
+	public void resetUpnpMode() {
+		setUpnpMode(getUpnpMode(getString(UPNP_ALLOW, "true")));
+	}
+
+	public void setUpnpMode(int mode) {
+		if (upnpMode != mode) {
+			upnpMode = mode;
+			if (upnpMode == ALLOW) {
+				String id = uuid != null ? uuid : DeviceConfiguration.getUuidOf(getAddress());
+				if (id != null) {
+					configuration.setProperty(UPNP_ALLOW, "true");
+					UPNPHelper.activate(id);
+				}
+			}
+		}
+	}
+
+	public boolean isUpnpPostponed() {
+		return getUpnpMode() == POSTPONE;
+	}
+
+	public boolean isUpnpAllowed() {
+		return getUpnpMode() > NONE;
+	}
+
+	public static void verify(RendererConfiguration r) {
+		// FIXME: this is a very fallible, incomplete validity test for use only until
+		// we find something better. The assumption is that renderers unable determine
+		// their own address (i.e. non-upnp/web renderers that have lost their spot in the
+		// address association to a newer renderer at the same ip) are "invalid".
+		if (r.getUpnpMode() != BLOCK && r.getAddress() == null) {
+			LOGGER.debug("Purging renderer {} as invalid", r);
+			r.delete(0);
+		}
 	}
 }

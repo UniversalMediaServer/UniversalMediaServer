@@ -25,12 +25,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -51,20 +46,13 @@ import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.formats.v2.SubtitleUtils;
-import net.pms.io.OutputParams;
-import net.pms.io.PipeIPCProcess;
-import net.pms.io.PipeProcess;
-import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
-import net.pms.io.StreamModifier;
-import net.pms.io.OutputTextLogger;
+import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.io.FileUtils;
 import static net.pms.util.StringUtil.*;
+import net.pms.util.SubtitleUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -96,7 +84,6 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	private static final String SUB_DIR = "subs";
 
 	public FFMpegVideo() {
 	}
@@ -902,14 +889,7 @@ public class FFMpegVideo extends Player {
 			if (
 				deferToTsmuxer == true &&
 				!params.mediaRenderer.isPS3() &&
-				(
-					filename.toLowerCase().contains("web-dl") ||
-					(
-						params.aid != null &&
-						params.aid.getFlavor() != null &&
-						params.aid.getFlavor().toLowerCase().contains("web-dl")
-					)
-				)
+				media.isWebDl(filename, params)
 			) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
@@ -921,6 +901,10 @@ public class FFMpegVideo extends Player {
 			if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+			}
+			if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
 			}
 			if (deferToTsmuxer) {
 				TsMuxeRVideo tv = new TsMuxeRVideo();
@@ -1290,7 +1274,7 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(videoRemuxTsMuxer, cc.xy(2, 5));
 
-		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isFFmpegFontConfig());
+		fc = new JCheckBox(Messages.getString("FFmpeg.3"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
 		fc.setToolTipText(Messages.getString("FFmpeg.0"));
 		fc.addItemListener(new ItemListener() {
@@ -1407,10 +1391,6 @@ public class FFMpegVideo extends Player {
 				pw.setStderrConsumer(ffParser);
 			}
 		}
-	}
-
-	public static void deleteSubs() {
-		FileUtils.deleteQuietly(new File(_configuration.getDataFile(SUB_DIR)));
 	}
 
 	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {

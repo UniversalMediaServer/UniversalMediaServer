@@ -19,6 +19,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+import java.awt.Color;
 import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -75,16 +76,18 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	protected static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	protected static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
-	protected static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
-	protected static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
-	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	protected static final String KEY_ATZ_LIMIT = "atz_limit";
+	protected static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
+	protected static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
 	protected static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	protected static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
+	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
 	protected static final String KEY_AUDIO_LANGUAGES = "audio_languages";
+	protected static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
 	protected static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
 	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
+	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
 	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
@@ -97,53 +100,56 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ASS_SCALE = "subtitles_ass_scale";
 	protected static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
 	protected static final String KEY_BUFFER_MAX = "buffer_max";
+	protected static final String KEY_BUMP_ADDRESS = "bump";
 	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
+	protected static final String KEY_BUMP_JS = "bump.js";
+	protected static final String KEY_BUMP_SKIN_DIR = "bump.skin";
 	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
-	protected static final String KEY_CHROMECAST_EXT = "chromecast_extension";
 	protected static final String KEY_CHROMECAST_DBG = "chromecast_debug";
+	protected static final String KEY_CHROMECAST_EXT = "chromecast_extension";
 	protected static final String KEY_CODE_CHARS = "code_charset";
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
-	protected static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
-	public static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
+	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
+	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	protected static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	protected static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
-	protected static final String KEY_DYNAMIC_PLS_HIDE = "dynamic_playlist_hide_folder";
 	protected static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
+	protected static final String KEY_DYNAMIC_PLS_HIDE = "dynamic_playlist_hide_folder";
 	protected static final String KEY_DYNAMIC_PLS_SAVE_PATH = "dynamic_playlist_save_path";
-	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
 	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
-	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
-	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
-	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	protected static final String KEY_FFMPEG_MENCODER_SUBTITLES = "ffmpeg_mencoder_subtitles";
+	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
+	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
 	protected static final String KEY_FOLDERS = "folders";
 	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
 	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
 	protected static final String KEY_FONT = "subtitles_font";
-	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
-	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
 	protected static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	protected static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
-	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
-	public static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
+	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
+	public    static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
-	protected static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
 	protected static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
 	protected static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
+	protected static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
+	protected static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 	protected static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	protected static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
@@ -152,31 +158,32 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	protected static final String KEY_IP_FILTER = "ip_filter";
 	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
-	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
-	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	protected static final String KEY_LANGUAGE = "language";
+	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
+	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
+	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
-	protected static final String KEY_MEDIA_LIB_SORT = "media_lib_sort";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
+	protected static final String KEY_MEDIA_LIB_SORT = "media_lib_sort";
 	protected static final String KEY_MENCODER_ASS = "mencoder_ass";
 	protected static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
+	protected static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
 	protected static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_custom_options";
 	protected static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	protected static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
 	protected static final String KEY_MENCODER_INTELLIGENT_SYNC = "mencoder_intelligent_sync";
 	protected static final String KEY_MENCODER_MAX_THREADS = "mencoder_max_threads";
-	protected static final String KEY_MENCODER_MT = "mencoder_mt";
 	protected static final String KEY_MENCODER_MUX_COMPATIBLE = "mencoder_mux_compatible";
+	protected static final String KEY_MENCODER_MT = "mencoder_mt";
+	protected static final String KEY_MENCODER_NO_OUT_OF_SYNC = "mencoder_nooutofsync";
 	protected static final String KEY_MENCODER_NOASS_BLUR = "mencoder_noass_blur";
 	protected static final String KEY_MENCODER_NOASS_OUTLINE = "mencoder_noass_outline";
 	protected static final String KEY_MENCODER_NOASS_SCALE = "mencoder_noass_scale";
 	protected static final String KEY_MENCODER_NOASS_SUBPOS = "mencoder_noass_subpos";
-	protected static final String KEY_MENCODER_NO_OUT_OF_SYNC = "mencoder_nooutofsync";
 	protected static final String KEY_MENCODER_NORMALIZE_VOLUME = "mencoder_normalize_volume";
 	protected static final String KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT = "mencoder_overscan_compensation_height";
 	protected static final String KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH = "mencoder_overscan_compensation_width";
-	protected static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
 	protected static final String KEY_MENCODER_REMUX_MPEG2 = "mencoder_remux_mpeg2";
 	protected static final String KEY_MENCODER_SCALER = "mencoder_scaler";
 	protected static final String KEY_MENCODER_SCALEX = "mencoder_scalex";
@@ -187,37 +194,33 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_MENCODER_YADIF = "mencoder_yadif";
 	protected static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
 	protected static final String KEY_MIN_PLAY_TIME = "min_playtime";
-	protected static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	protected static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
+	protected static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	protected static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
 	protected static final String KEY_MINIMIZED = "minimized";
 	protected static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	protected static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	protected static final String KEY_NETWORK_INTERFACE = "network_interface";
-	protected static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
-	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
-	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
-	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
-	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
 	protected static final String KEY_PING_PATH = "ping_path";
-	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
 	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL= "playlist_auto_add_all";
+	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
 	protected static final String KEY_PLAYLIST_AUTO_PLAY= "playlist_auto_play";
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
-	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
+	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
 	protected static final String KEY_PROFILE_NAME = "name";
 	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
 	protected static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	protected static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
 	protected static final String KEY_RESUME = "resume";
-	protected static final String KEY_RESUME_REWIND = "resume_rewind";
 	protected static final String KEY_RESUME_BACK = "resume_back";
 	protected static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
+	protected static final String KEY_RESUME_REWIND = "resume_rewind";
+	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
@@ -229,6 +232,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SERVER_NAME = "server_name";
 	protected static final String KEY_SERVER_PORT = "port";
 	protected static final String KEY_SHARES = "shares";
+	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
+	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
+	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	protected static final String KEY_SINGLE = "single_instance";
 	protected static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	protected static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
@@ -236,43 +242,45 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SORT_PATHS = "sort_paths";
 	protected static final String KEY_SPEED_DBG = "speed_debug";
 	protected static final String KEY_SUBS_COLOR = "subtitles_color";
-	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	protected static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	protected static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
 	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
 	protected static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
 	protected static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
+	protected static final String KEY_TOOLTIP_BACKGROUND_COLOR = "tooltip_background";
+	protected static final String KEY_TOOLTIP_FOREGROUND_COLOR = "tooltip_foreground";
 	protected static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
 	protected static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	protected static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
+	protected static final String KEY_UPNP_ENABLED = "upnp_enable";
 	protected static final String KEY_UPNP_PORT = "upnp_port";
 	protected static final String KEY_USE_CACHE = "use_cache";
+	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	protected static final String KEY_USE_IMDB_INFO = "use_imdb_info";
 	protected static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
-	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
 	protected static final String KEY_UUID = "uuid";
 	protected static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
 	protected static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
 	protected static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
-	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
-	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	protected static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
-	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
-	protected static final String KEY_VLC_SCALE = "vlc_scale";
-	protected static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	protected static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
+	protected static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
+	protected static final String KEY_VLC_SCALE = "vlc_scale";
+	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
+	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
+	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
 	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome_mkv_as_webm_spoof";
-	protected static final String KEY_WEB_FIREFOX_LINUX_MP4 = "web_firefox_linux_mp4";
 	protected static final String KEY_WEB_CONF_PATH = "web_conf";
 	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	protected static final String KEY_WEB_CONTROL = "web_control";
 	protected static final String KEY_WEB_ENABLE = "web_enable";
+	protected static final String KEY_WEB_FIREFOX_LINUX_MP4 = "web_firefox_linux_mp4";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
 	protected static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
@@ -281,16 +289,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
 	protected static final String KEY_WEB_LOW_SPEED = "web_low_speed";
 	protected static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
-	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
+	protected static final String KEY_WEB_PATH = "web_path";
 	protected static final String KEY_WEB_SIZE = "web_size";
 	protected static final String KEY_WEB_SUBS_TRANS = "web_subtitles_transcoded";
 	protected static final String KEY_WEB_THREADS = "web_threads";
+	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
-	protected static final String KEY_WEB_PATH = "web_path";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
-	protected static final String KEY_BUMP_ADDRESS = "bump";
-	protected static final String KEY_BUMP_JS = "bump.js";
-	protected static final String KEY_BUMP_SKIN_DIR = "bump.skin";
 
 	// Deprecated settings
 	@Deprecated
@@ -1061,7 +1066,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns a string of audio language and subtitle language pairs
 	 * ordered by priority to try to match. Audio language
-	 * and subtitle language should be comma separated as a pair,
+	 * and subtitle language should be comma-separated as a pair,
 	 * individual pairs should be semicolon separated. "*" can be used to
 	 * match any language. Subtitle language can be defined as "off".
 	 * Default value is <code>"*,*"</code>.
@@ -1076,9 +1081,25 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * Sets a string of audio language and subtitle language pairs
+	 * ordered by priority to try to match. Audio language
+	 * and subtitle language should be comma-separated as a pair,
+	 * individual pairs should be semicolon separated. "*" can be used to
+	 * match any language. Subtitle language can be defined as "off".
+	 *
+	 * Example: <code>"en,off;jpn,eng;*,eng;*;*"</code>.
+	 *
+	 * @param value The audio and subtitle languages priority string.
+	 */
+	public void setAudioSubLanguages(String value) {
+		configuration.setProperty(KEY_AUDIO_SUB_LANGS, value);
+	}
+
+	/**
 	 * Returns whether or not MEncoder should use FriBiDi mode, which
 	 * is needed to display subtitles in languages that read from right to
 	 * left, like Arabic, Farsi, Hebrew, Urdu, etc. Default value is false.
+	 *
 	 * @return True if FriBiDi mode should be used, false otherwise.
 	 */
 	public boolean isMencoderSubFribidi() {
@@ -1089,6 +1110,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Returns the character encoding (or code page) that should used
 	 * for displaying non-Unicode external subtitles. Default is empty string
 	 * (do not force encoding with -subcp key).
+	 *
 	 * @return The character encoding.
 	 */
 	public String getSubtitlesCodepage() {
@@ -1096,8 +1118,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns whether or not MEncoder should use fontconfig for displaying
-	 * subtitles. Default is false.
+	 * Whether MEncoder should use fontconfig for displaying subtitles.
+	 *
 	 * @return True if fontconfig should be used, false otherwise.
 	 */
 	public boolean isMencoderFontConfig() {
@@ -1107,6 +1129,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Set to true if MEncoder should be forced to use the framerate that is
 	 * parsed by FFmpeg.
+	 *
 	 * @param value Set to true if the framerate should be forced, false
 	 *              otherwise.
 	 */
@@ -1115,8 +1138,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if MEncoder should be forced to use the framerate that is
+	 * Whether MEncoder should be forced to use the framerate that is
 	 * parsed by FFmpeg.
+	 *
 	 * @return True if the framerate should be forced, false otherwise.
 	 */
 	public boolean isMencoderForceFps() {
@@ -1134,9 +1158,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Sets the subtitle language priority as a comma
-	 * separated string. For example: <code>"eng,fre,jpn,ger,und"</code>,
-	 * where "und" stands for "undefined".
+	 * Sets the subtitle language priority as a comma-separated string.
+	 *
+	 * Example: <code>"eng,fre,jpn,ger,und"</code>, where "und" stands for
+	 * "undefined".
+	 *
 	 * @param value The subtitle language priority string.
 	 */
 	public void setSubtitlesLanguages(String value) {
@@ -1146,6 +1172,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the ISO 639 language code for the subtitle language that should
 	 * be forced.
+	 *
 	 * @param value The subtitle language code.
 	 */
 	public void setForcedSubtitleLanguage(String value) {
@@ -1155,6 +1182,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the tag string that identifies the subtitle language that
 	 * should be forced.
+	 *
 	 * @param value The tag string.
 	 */
 	public void setForcedSubtitleTags(String value) {
@@ -1162,20 +1190,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Sets a string of audio language and subtitle language pairs
-	 * ordered by priority to try to match. Audio language
-	 * and subtitle language should be comma separated as a pair,
-	 * individual pairs should be semicolon separated. "*" can be used to
-	 * match any language. Subtitle language can be defined as "off". For
-	 * example: <code>"en,off;jpn,eng;*,eng;*;*"</code>.
-	 * @param value The audio and subtitle languages priority string.
-	 */
-	public void setAudioSubLanguages(String value) {
-		configuration.setProperty(KEY_AUDIO_SUB_LANGS, value);
-	}
-
-	/**
 	 * Returns custom commandline options to pass on to MEncoder.
+	 *
 	 * @return The custom options string.
 	 */
 	public String getMencoderCustomOptions() {
@@ -1184,6 +1200,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets custom commandline options to pass on to MEncoder.
+	 *
 	 * @param value The custom options string.
 	 */
 	public void setMencoderCustomOptions(String value) {
@@ -1193,6 +1210,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the character encoding (or code page) that should be used
 	 * for displaying non-Unicode external subtitles. Default is empty (autodetect).
+	 *
 	 * @param value The character encoding.
 	 */
 	public void setSubtitlesCodepage(String value) {
@@ -1203,6 +1221,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Sets whether or not MEncoder should use FriBiDi mode, which
 	 * is needed to display subtitles in languages that read from right to
 	 * left, like Arabic, Farsi, Hebrew, Urdu, etc. Default value is false.
+	 *
 	 * @param value Set to true if FriBiDi mode should be used.
 	 */
 	public void setMencoderSubFribidi(boolean value) {
@@ -1211,6 +1230,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets the name of a TrueType font to use for subtitles.
+	 *
 	 * @param value The font name.
 	 */
 	public void setFont(String value) {
@@ -1222,6 +1242,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * platforms. Set to true if MEncoder supports them. Default should be
 	 * true on Windows and OS X, false otherwise.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
+	 *
 	 * @param value Set to true if MEncoder supports ASS/SSA subtitles.
 	 */
 	public void setMencoderAss(boolean value) {
@@ -1231,6 +1252,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets whether or not MEncoder should use fontconfig for displaying
 	 * subtitles.
+	 *
 	 * @param value Set to true if fontconfig should be used.
 	 */
 	public void setMencoderFontConfig(boolean value) {
@@ -1240,6 +1262,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets whether or not the Pulse Code Modulation audio format should be
 	 * forced.
+	 *
 	 * @param value Set to true if PCM should be forced.
 	 */
 	public void setAudioUsePCM(boolean value) {
@@ -1249,6 +1272,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets whether or not the Pulse Code Modulation audio format should be
 	 * used only for HQ audio codecs.
+	 *
 	 * @param value Set to true if PCM should be used only for HQ audio.
 	 */
 	public void setMencoderUsePcmForHQAudioOnly(boolean value) {
@@ -1256,8 +1280,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if archives (e.g. .zip or .rar) should be browsable by
-	 * PMS, false otherwise.
+	 * Whether archives (e.g. .zip or .rar) should be browsable.
+	 *
 	 * @return True if archives should be browsable.
 	 */
 	public boolean isArchiveBrowsing() {
@@ -1265,8 +1289,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set to true if archives (e.g. .zip or .rar) should be browsable by
-	 * PMS, false otherwise.
+	 * Sets whether archives (e.g. .zip or .rar) should be browsable.
+	 *
 	 * @param value Set to true if archives should be browsable.
 	 */
 	public void setArchiveBrowsing(boolean value) {
@@ -1276,6 +1300,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns true if MEncoder should use the deinterlace filter, false
 	 * otherwise.
+	 *
 	 * @return True if the deinterlace filter should be used.
 	 */
 	public boolean isMencoderYadif() {
@@ -1285,6 +1310,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Set to true if MEncoder should use the deinterlace filter, false
 	 * otherwise.
+	 *
 	 * @param value Set ot true if the deinterlace filter should be used.
 	 */
 	public void setMencoderYadif(boolean value) {
@@ -1292,7 +1318,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if MEncoder should be used to upscale the video to an
+	 * Whether MEncoder should be used to upscale the video to an
 	 * optimal resolution. Default value is false, meaning the renderer will
 	 * upscale the video itself.
 	 *
@@ -3215,8 +3241,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
 	}
 
+	/**
+	 * Default port for the WEB interface.
+	 */
 	public int getWebPort() {
-		return getInt(KEY_WEB_PORT, 0);
+		return getInt(KEY_WEB_PORT, 9001);
 	}
 
 	public boolean useWebInterface() {
@@ -3395,15 +3424,35 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_CHROMECAST_EXT, true);
 	}
 
-   	public boolean isChromecastDbg() {
+	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
 	}
 
-   	
-   	/**
+	public Color getToolTipForegroundColor() {
+		return getColor(KEY_TOOLTIP_FOREGROUND_COLOR, "255,255,255");
+	}
+
+	public Color getToolTipBackgroundColor() {
+		return getColor(KEY_TOOLTIP_BACKGROUND_COLOR, "125,184,47");
+	}
+
+	/**
 	 * Enable the automatically saving of modified properties to the disk.
 	 */
-   	public void setAutoSave() {
-   		((PropertiesConfiguration)configuration).setAutoSave(true);
-   	}
+	public void setAutoSave() {
+		((PropertiesConfiguration) configuration).setAutoSave(true);
+	}
+
+	public boolean isUpnpEnabled() {
+		return getBoolean(KEY_UPNP_ENABLED, true);
+	}
+
+	public String getRootLogLevel() {
+		String level = getString(KEY_ROOT_LOG_LEVEL, "DEBUG").toUpperCase();
+		return "ALL TRACE DEBUG INFO WARN ERROR OFF".contains(level) ? level : "DEBUG";
+	}
+
+	public void setRootLogLevel(ch.qos.logback.classic.Level level) {
+		configuration.setProperty(KEY_ROOT_LOG_LEVEL, level.toString());
+	}
 }

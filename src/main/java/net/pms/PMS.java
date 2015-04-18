@@ -68,6 +68,7 @@ public class PMS {
 	private static final String CONSOLE = "console";
 	private static final String NOCONSOLE = "noconsole";
 	private static final String PROFILES = "profiles";
+	private static final String TRACE = "trace";
 
 	/**
 	 * @deprecated The version has moved to the resources/project.properties file. Use {@link #getVersion()} instead.
@@ -353,10 +354,12 @@ public class PMS {
 		LOGGER.info("Profile permissions: " + getPathPermissions(profilePath));
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
-		String webConfPath = configuration.getWebConfPath();
-		LOGGER.info("Web conf path: " + webConfPath);
-		LOGGER.info("Web conf permissions: " + getPathPermissions(webConfPath));
-		LOGGER.info("");
+		if (configuration.useWebInterface()) {
+			String webConfPath = configuration.getWebConfPath();
+			LOGGER.info("Web conf path: " + webConfPath);
+			LOGGER.info("Web conf permissions: " + getPathPermissions(webConfPath));
+			LOGGER.info("");
+		}
 
 		/**
 		 * Ensure the data directory is created. On Windows this is
@@ -581,12 +584,12 @@ public class PMS {
 			mplayer.runInNewThread();
 
 			/**
-			 * Note: This can be needed in case MPlayer and FFmpeg have been
-			 * compiled with a different version of fontconfig.
-			 * Since it's unpredictable on Linux we should always run this
-			 * on Linux, but it may be possible to sync versions on OS X.
+			 * Note: Different versions of fontconfig and bitness require
+			 * different caches, which is why here we ask FFmpeg (64-bit
+			 * if possible) to create a cache.
+			 * This should result in all of the necessary caches being built.
 			 */
-			if (!Platform.isWindows()) {
+			if (!Platform.isWindows() || Platform.is64Bit()) {
 				ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
 				ffmpeg.runInNewThread();
 			}
@@ -707,6 +710,8 @@ public class PMS {
 		if (!binding) {
 			return false;
 		}
+
+		LOGGER.info("WEB interface is available at: " + web.getUrl());
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
@@ -1096,6 +1101,9 @@ public class PMS {
 					case PROFILES:
 						displayProfileChooser = true;
 						break;
+					case TRACE:
+						traceMode = 2;
+						break;
 					default:
 						break;
 				}
@@ -1140,6 +1148,16 @@ public class PMS {
 			// XXX not sure this is (still) true: the only filter
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
 			LoggingConfigFileLoader.load();
+
+			// Check TRACE mode
+			ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+			if (traceMode == 2) {
+				LOGGER.debug("Forcing debug level to TRACE");
+				l.setLevel(ch.qos.logback.classic.Level.TRACE);
+			} else {
+				// Remember whether logging level was TRACE/ALL at startup
+				traceMode = l.getLevel().toInt() <= ch.qos.logback.classic.Level.TRACE_INT ? 1 : 0;
+			}
 
 			LOGGER.debug(new Date().toString());
 
@@ -1605,4 +1623,10 @@ public class PMS {
 		}
 	}
 
+	// 0=not started in trace mode, 1=started in trace mode, 2=forced to trace mode
+	private static int traceMode = 0;
+
+	public static int getTraceMode() {
+		return traceMode;
+	}
 }

@@ -1,22 +1,85 @@
-5.1.0 - 2015-02-??
+5.1.3 - 2015-04-??
+
+	General:
+		
+
+5.1.2 - 2015-04-15
+
+	General:
+		Added "upnp_enable" user-level option
+		Added "log_level" user-level option
+		Added "UpnpAllow" renderer-level option
+		Added "Create TRACE logs" button
+		Added the ability to restart the program (not just the server)
+		Fixed videos being muxed instead of streamed
+		Various minor fixes/improvements
+	Renderers:
+		Added DSD/DFF streaming support to Cambridge Audio Blu-ray Disc players
+		Added more tags to DefaultRenderer.conf
+		Improved renderer detection/handling
+		Improved Android device detection
+		Improved detection of Panasonic AS600 Series TVs
+		Improved PS3 muxing via tsMuxeR
+		Improved support for Samsung D6400 TVs
+		Improved support for Samsung EH5300 TVs
+		Improved support for transcoding to Technisat S1+
+		Fixed support for MP3 files on some Samsung TVs and Blu-ray Disc players
+	External Components:
+		Updated h2database to 1.4.187
+		Updated JDom to 2.0.6
+		Updated Logback to 1.1.3
+		Updated Maven AntRun Plugin to 1.8
+		Updated Maven Findbugs Plugin to 3.0.1
+		Updated Maven Git Commit ID Plugin to 2.1.13
+		Updated Maven Javadoc Plugin to 2.10.2
+		Updated Maven PMD Plugin to 3.4
+		Updated MediaInfo to 0.7.73, which:
+			Added and improved support for many formats
+			Fixed bugs
+		Updated slf4j to 1.7.12
+
+5.1.1 - 2015-04-03
+
+	General:
+		Added support for links in tooltips (thanks, taconaut!)
+		Added support for customizing background and foreground color in tooltips (thanks, taconaut!)
+		Added PrependTrackNumbers renderer option to ensure that renderers order audio by track number (thanks, javand!)
+		Made the RescaleByRenderer setting more consistent
+		Fixed MP4, M4A and 3GP file compatibility on some renderers
+		Fixed bug with the renderer selection window
+		Fixed audio and image compatibility on some renderers
+		Fixed transcoding with subtitles on 64-bit systems
+	Renderers:
+		Made Samsung televisions and Blu-ray Disc players order audio by track number
+
+5.1.0 - 2015-03-21
 
 	General:
 		Added 64-bit versions of FFmpeg for a ~10% increase in transcoding speed
+		Removed the "Save" button since changes to settings are now saved automatically
 		Improved detection of playback states
 		Improved connection awareness
 		Improved True Motion frame interpolation speed by up to 20%
+		Improved folder population speed
+		Improved support for 3GPP files
+		Improved descriptions of settings
 		Slightly altered the memory usage bar
 		Fixed the renderer SeekByTime setting
 		Fixed renderer detection and recognition in some cases
 		Fixed display names for videos that have the Track (song title) value set
 		Fixed incorrect ContentFeatures headers being sent to renderers (thanks, master-nevi!)
 		Fixed the web logviewer
+		Fixed bugs with 3D subtitles
+		Fixed the setting for using embedded subtitles styles
 	Renderers:
+		Fixed filename bug on Sony Bravia TVs
 		Improved support for LG LED-backlit LCD 2014 TVs
 		Improved support for Samsung H6203 TVs
 	Languages:
 		Made more strings translatable
 		Updated Czech translation
+		Updated Dutch translation (thanks, ler0y!)
+		Updated French translation (thanks, Kirvx!)
 		Updated Italian translation (thanks, bartsimp!)
 	External Components:
 		Updated Chromecast Java API to 0.0.6

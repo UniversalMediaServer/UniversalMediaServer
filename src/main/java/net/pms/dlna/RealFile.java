@@ -54,7 +54,7 @@ public class RealFile extends MapFile {
 		File file = this.getFile();
 		resolveFormat();
 		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
-			setSubsFile(FileUtil.isSubtitlesExists(file, null));
+			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
@@ -191,7 +191,7 @@ public class RealFile extends MapFile {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 				} else {
 					// Don't think that will ever happen
-					getMedia().parse(input, getFormat(), getType(), false, isResume());
+					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
 				}
 
 				if (found && configuration.getUseCache()) {

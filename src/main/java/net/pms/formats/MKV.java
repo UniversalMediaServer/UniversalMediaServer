@@ -50,6 +50,7 @@ public class MKV extends MPG {
 		return new String[] {
 			"3g2",
 			"3gp",
+			"3gp2",
 			"asf",
 			"asx",
 			"dv",
