@@ -1,10 +1,16 @@
 package net.pms.remote;
 
 import com.sun.net.httpserver.*;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +18,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+
 import javax.net.ssl.*;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -20,6 +28,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -40,11 +49,11 @@ public class RemoteWeb {
 	private static final int defaultPort = configuration.getWebPort();
 	
 
-	public RemoteWeb() {
+	public RemoteWeb() throws Exception {
 		this(defaultPort);
 	}
 
-	public RemoteWeb(int port) {
+	public RemoteWeb(int port) throws Exception {
 		if (port <= 0) {
 			port = defaultPort;
 		}
@@ -59,40 +68,36 @@ public class RemoteWeb {
 			"file:" + configuration.getWebPath() + "/"
 		);
 
-		try {
-			readCred();
+		readCred();
 
-			// Setup the socket address
-			InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
+		// Setup the socket address
+		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
-			// initialise the HTTP(S) server
-			if (configuration.getWebHttps()) {
-				server = httpsServer(address);
-			} else {
-				server = HttpServer.create(address, 0);
-			}
-
-			int threads = configuration.getWebThreads();
-
-			// Add context handlers
-			addCtx("/", new RemoteStartHandler(this));
-			addCtx("/browse", new RemoteBrowseHandler(this));
-			RemotePlayHandler playHandler = new RemotePlayHandler(this);
-			addCtx("/play", playHandler);
-			addCtx("/playstatus", playHandler);
-			addCtx("/playlist", playHandler);
-			addCtx("/media", new RemoteMediaHandler(this));
-			addCtx("/fmedia", new RemoteMediaHandler(this, true));
-			addCtx("/thumb", new RemoteThumbHandler(this));
-			addCtx("/raw", new RemoteRawHandler(this));
-			addCtx("/files", new RemoteFileHandler(this));
-			addCtx("/doc", new RemoteDocHandler(this));
-			addCtx("/poll", new RemotePollHandler(this));
-			server.setExecutor(Executors.newFixedThreadPool(threads));
-			server.start();
-		} catch (Exception e) {
-			LOGGER.debug("Couldn't start RemoteWEB " + e);
+		// initialise the HTTP(S) server
+		if (configuration.getWebHttps()) {
+			server = httpsServer(address);
+		} else {
+			server = HttpServer.create(address, 0);
 		}
+
+		int threads = configuration.getWebThreads();
+
+		// Add context handlers
+		addCtx("/", new RemoteStartHandler(this));
+		addCtx("/browse", new RemoteBrowseHandler(this));
+		RemotePlayHandler playHandler = new RemotePlayHandler(this);
+		addCtx("/play", playHandler);
+		addCtx("/playstatus", playHandler);
+		addCtx("/playlist", playHandler);
+		addCtx("/media", new RemoteMediaHandler(this));
+		addCtx("/fmedia", new RemoteMediaHandler(this, true));
+		addCtx("/thumb", new RemoteThumbHandler(this));
+		addCtx("/raw", new RemoteRawHandler(this));
+		addCtx("/files", new RemoteFileHandler(this));
+		addCtx("/doc", new RemoteDocHandler(this));
+		addCtx("/poll", new RemotePollHandler(this));
+		server.setExecutor(Executors.newFixedThreadPool(threads));
+		server.start();
 	}
 
 	private HttpServer httpsServer(InetSocketAddress address) throws Exception {

@@ -3187,6 +3187,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_HTTPS = "use_https";
 	protected static final String KEY_WEB_PORT = "web_port";
 	protected static final int WEB_MAX_THREADS = 100;
+	protected static final int BACKUP_WEB_INTERFACE_PORT = 9001;
 
 	public boolean getNoFolders(String tag) {
 		if (tag == null) {
@@ -3241,11 +3242,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
 	}
 
-	/**
-	 * Default port for the WEB interface.
-	 */
 	public int getWebPort() {
-		return getInt(KEY_WEB_PORT, 9001);
+		return getInt(KEY_WEB_PORT, 80);
+	}
+
+	public int getBackupWebPort() {
+		return BACKUP_WEB_INTERFACE_PORT;
 	}
 
 	public boolean useWebInterface() {
