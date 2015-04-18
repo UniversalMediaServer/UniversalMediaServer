@@ -3241,8 +3241,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
 	}
 
+	/**
+	 * Default port for the WEB interface.
+	 */
 	public int getWebPort() {
-		return getInt(KEY_WEB_PORT, 0);
+		return getInt(KEY_WEB_PORT, 9001);
 	}
 
 	public boolean useWebInterface() {

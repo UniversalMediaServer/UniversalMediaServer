@@ -711,6 +711,8 @@ public class PMS {
 			return false;
 		}
 
+		LOGGER.info("WEB interface is available at: http://" + web.getAddress());
+
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
