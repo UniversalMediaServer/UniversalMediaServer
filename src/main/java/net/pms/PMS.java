@@ -711,7 +711,7 @@ public class PMS {
 			return false;
 		}
 
-		LOGGER.info("WEB interface is available at: http://" + web.getAddress());
+		LOGGER.info("WEB interface is available at: " + web.getUrl());
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
