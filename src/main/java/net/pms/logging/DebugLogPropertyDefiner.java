@@ -42,9 +42,9 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 
 	@Override
 	public String getPropertyValue() {
-		if (key == "debugLogPath") {
+		if (key.equals("debugLogPath")) {
 			return getDebugLogPath();
-		} else if (key == "rootLevel") {
+		} else if (key.equals("rootLevel")) {
 			return getRootLevel();
 		}
 		return null;
