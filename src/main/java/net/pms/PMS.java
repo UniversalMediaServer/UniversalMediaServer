@@ -713,14 +713,6 @@ public class PMS {
 
 		if (web.getServer() != null) {
 			LOGGER.info("WEB interface is available at: " + web.getUrl());
-			if (configuration.getWebPort() != 80) {
-				LOGGER.info("# NOTE:");
-				LOGGER.info("# You can try to use port 80 in case there is not running any other program on the PC");
-				LOGGER.info("# using that port. Port 80 has an benefit that is not necessary to implicitly define");
-				LOGGER.info("# the port and only lokalhost (e.g. http://192.168.0.100) is nedded to open the web");
-				LOGGER.info("# interface. Also the web can be opened only by http://[pc name] which is useful in case");
-				LOGGER.info("# the DHCP is used in the network and address for PC runing UMS is assined dynamically.");
-			}
 		}
 
 		// initialize the cache
