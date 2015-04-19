@@ -616,11 +616,12 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
+				//LOGGER.trace(content);
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
 					containerID = getEnclosingValue(content, "<ContainerID", "</ContainerID>");
-					if (containerID == null) {
+					if (containerID == null || (xbox360 && !containerID.contains("$"))) {
 						objectID = "0";
 					} else {
 						objectID = containerID;
@@ -692,18 +693,6 @@ public class RequestV2 extends HTTPResource {
 					mediaRenderer,
 					searchCriteria
 				);
-
-				if (xbox360 && files.isEmpty()) {
-					// do it again...
-					files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
-						"0",
-						browseDirectChildren,
-						startingIndex,
-						requestCount,
-						mediaRenderer,
-						searchCriteria
-					);
-				}
 
 				if (searchCriteria != null && files != null) {
 					UMSUtils.postSearch(files, searchCriteria);
@@ -787,7 +776,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				LOGGER.trace(response.toString());
+				//LOGGER.trace(response.toString());
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());
