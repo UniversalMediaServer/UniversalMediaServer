@@ -2385,7 +2385,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return
 	 */
 	public boolean isFFmpegDeferToMEncoderForSubtitles() {
-		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, false);
+		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, true);
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
