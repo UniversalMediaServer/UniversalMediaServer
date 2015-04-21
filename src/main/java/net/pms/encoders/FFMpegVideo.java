@@ -840,7 +840,7 @@ public class FFMpegVideo extends Player {
 			)
 		) {
 			boolean deferToMencoder = false;
-			if (configuration.isFFmpegDeferToMEncoderForProblematicSubtitles()) {
+			if (configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() && params.sid.isEmbedded()) {
 				deferToMencoder = true;
 				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
 			} else if (media.isEmbeddedFontExists()) {
