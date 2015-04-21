@@ -1915,14 +1915,7 @@ public class MEncoderVideo extends Player {
 			String vfValuePrepend = "expand=";
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
-				if (videoAspectRatio > rendererAspectRatio) {
-					scaleHeight = (int) Math.round(scaleWidth / rendererAspectRatio);
-				} else {
-					scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
-				}
-
-				scaleWidth  = convertToModX(scaleWidth, 4);
-				scaleHeight = convertToModX(scaleHeight, 4);
+				dlna.getResolutionForKeepAR(scaleWidth, scaleHeight);
 
 				/**
 				 * Now we know which resolution we want the video to be, let's see if MEncoder
