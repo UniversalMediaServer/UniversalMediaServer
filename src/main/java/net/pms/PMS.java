@@ -711,7 +711,7 @@ public class PMS {
 			return false;
 		}
 
-		if (web.getServer() != null) {
+		if (web != null && web.getServer() != null) {
 			LOGGER.info("WEB interface is available at: " + web.getUrl());
 		}
 
