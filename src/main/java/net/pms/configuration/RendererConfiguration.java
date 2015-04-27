@@ -589,7 +589,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return null;
 	}
 
-	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details/*, InetAddress ia, String uuid*/) {
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.matchUPNPDetails(details)) {
 				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
