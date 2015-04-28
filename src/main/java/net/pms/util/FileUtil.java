@@ -14,8 +14,11 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
-import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang3.StringUtils.*;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.tika.language.LanguageIdentifier;
+import org.apache.tika.parser.txt.CharsetDetector;
+import org.apache.tika.parser.txt.CharsetMatch;
 import org.codehaus.plexus.util.StringUtils;
 import static org.mozilla.universalchardet.Constants.*;
 import org.mozilla.universalchardet.UniversalDetector;
@@ -689,6 +692,30 @@ public class FileUtil {
 		}
 		universalDetector.dataEnd();
 		String encoding = universalDetector.getDetectedCharset();
+		if (encoding == null) { //universal detector failed so try to find charset with the Apache Tika
+			InputStream in = new BufferedInputStream(new FileInputStream(file));
+			try {
+				CharsetDetector detector = new CharsetDetector();
+				detector.enableInputFilter(true);
+				detector.setText(in);
+				CharsetMatch [] matches = detector.detectAll();
+				CharsetMatch mm = null;
+				for ( CharsetMatch m : matches ) {
+					if ( mm == null || mm.getConfidence() < m.getConfidence() ) {
+						mm = m;
+					}
+				}
+
+				if ( mm != null ) {
+					encoding = mm.getName().toUpperCase();
+					;LOGGER.debug("Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
+				} else {
+					LOGGER.debug("Tika no encoding detected for {}.", file.getAbsolutePath());
+				}
+			} finally {
+				in.close();
+			}
+		}
 
 		if (encoding != null) {
 			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
@@ -696,9 +723,12 @@ public class FileUtil {
 			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
 		}
 
-		universalDetector.reset();
+	    return encoding;
+	}
 
-		return encoding;
+	public String identifyLanguage(String text) {
+	    LanguageIdentifier identifier = new LanguageIdentifier(text);
+	    return identifier.getLanguage();
 	}
 
 	/**
