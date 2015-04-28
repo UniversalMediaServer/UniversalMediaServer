@@ -708,9 +708,7 @@ public class FileUtil {
 
 				if ( mm != null ) {
 					encoding = mm.getName().toUpperCase();
-					;LOGGER.debug("Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
-				} else {
-					LOGGER.debug("Tika no encoding detected for {}.", file.getAbsolutePath());
+					LOGGER.debug("Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
 				}
 			} finally {
 				in.close();
