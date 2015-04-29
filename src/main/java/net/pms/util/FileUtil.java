@@ -16,7 +16,6 @@ import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.tika.language.LanguageIdentifier;
 import org.apache.tika.parser.txt.CharsetDetector;
 import org.apache.tika.parser.txt.CharsetMatch;
 import org.codehaus.plexus.util.StringUtils;
@@ -690,8 +689,14 @@ public class FileUtil {
 				universalDetector.handleData(buf, 0, numberOfBytesRead);
 			}
 		}
+
 		universalDetector.dataEnd();
 		String encoding = universalDetector.getDetectedCharset();
+		LOGGER.debug("UniversalDetector detected encoding for {} is {}.", file.getAbsolutePath(), encoding); // only for testing
+		universalDetector.reset();
+
+		encoding = null; // only for testing
+
 		if (encoding == null) { //universal detector failed so try to find charset with the Apache Tika
 			InputStream in = new BufferedInputStream(new FileInputStream(file));
 			try {
@@ -708,7 +713,16 @@ public class FileUtil {
 
 				if ( mm != null ) {
 					encoding = mm.getName().toUpperCase();
-					LOGGER.debug("Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
+
+					// following code is only for testing and will be removed
+					LOGGER.debug("Apache Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
+					if (encoding != null && !encoding.equals(CHARSET_UTF_8)) {
+						String language = mm.getLanguage();
+						int confidence = mm.getConfidence();
+						LOGGER.debug("Detected language is {} with confidence {}%.", language, confidence);
+					}
+					
+					
 				}
 			} finally {
 				in.close();
@@ -720,13 +734,10 @@ public class FileUtil {
 		} else {
 			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
 		}
-
+		
+		
+		
 	    return encoding;
-	}
-
-	public String identifyLanguage(String text) {
-	    LanguageIdentifier identifier = new LanguageIdentifier(text);
-	    return identifier.getLanguage();
 	}
 
 	/**
