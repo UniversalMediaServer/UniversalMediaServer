@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -38,21 +37,20 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.FileUtil;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
+	public static final String CHARSET_WINDOWS_1250 = "WINDOWS-1250".intern();
+	public static final String CHARSET_ISO_8859_2 = "ISO-8859-2".intern();
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -69,6 +67,9 @@ public class SubtitleUtils {
 			put(CHARSET_ISO_8859_7, "ISO-8859-7");
 			// Western Europe
 			put(CHARSET_WINDOWS_1252, "cp1252");
+			// Central / Eastern Europe
+			put(CHARSET_WINDOWS_1250, "cp1250");
+			put(CHARSET_ISO_8859_2, "ISO-8859-2");
 			// Hebrew
 			put(CHARSET_WINDOWS_1255, "cp1255");
 			put(CHARSET_ISO_8859_8, "ISO-8859-8");
