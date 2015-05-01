@@ -14,12 +14,12 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
+import static net.pms.util.SubtitleUtils.*;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.parser.txt.CharsetDetector;
 import org.apache.tika.parser.txt.CharsetMatch;
 import org.codehaus.plexus.util.StringUtils;
-import static org.mozilla.universalchardet.Constants.*;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -675,11 +675,11 @@ public class FileUtil {
 	 * non-Unicode files.
 	 *
 	 * @param file File to detect charset/encoding
-	 * @return file's charset {@link org.mozilla.universalchardet.Constants}
-	 *         or null if not detected
+	 * @return file's charset or null if not detected
 	 * @throws IOException
 	 */
 	public static String getFileCharset(File file) throws IOException {
+		// UniversalDetector will be completely removed
 		byte[] buf = new byte[4096];
 		final UniversalDetector universalDetector;
 		try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
@@ -695,38 +695,34 @@ public class FileUtil {
 		LOGGER.debug("UniversalDetector detected encoding for {} is {}.", file.getAbsolutePath(), encoding); // only for testing
 		universalDetector.reset();
 
-		encoding = null; // only for testing
-
-		if (encoding == null) { //universal detector failed so try to find charset with the Apache Tika
-			InputStream in = new BufferedInputStream(new FileInputStream(file));
-			try {
-				CharsetDetector detector = new CharsetDetector();
-				detector.enableInputFilter(true);
-				detector.setText(in);
-				CharsetMatch [] matches = detector.detectAll();
-				CharsetMatch mm = null;
-				for ( CharsetMatch m : matches ) {
-					if ( mm == null || mm.getConfidence() < m.getConfidence() ) {
-						mm = m;
-					}
+		InputStream in = new BufferedInputStream(new FileInputStream(file));
+		try {
+			CharsetDetector detector = new CharsetDetector();
+			detector.enableInputFilter(true);
+			detector.setText(in);
+			CharsetMatch [] matches = detector.detectAll();
+			CharsetMatch mm = null;
+			for ( CharsetMatch m : matches ) {
+				if ( mm == null || mm.getConfidence() < m.getConfidence() ) {
+					mm = m;
 				}
-
-				if ( mm != null ) {
-					encoding = mm.getName().toUpperCase();
-
-					// following code is only for testing and will be removed
-					LOGGER.debug("Apache Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
-					if (encoding != null && !encoding.equals(CHARSET_UTF_8)) {
-						String language = mm.getLanguage();
-						int confidence = mm.getConfidence();
-						LOGGER.debug("Detected language is {} with confidence {}%.", language, confidence);
-					}
-					
-					
-				}
-			} finally {
-				in.close();
 			}
+
+			if ( mm != null ) {
+				encoding = mm.getName().toUpperCase();
+
+				// following code is only for testing and will be removed
+				LOGGER.debug("Apache Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
+				if (encoding != null && !encoding.equals(CHARSET_UTF_8)) {
+					String language = mm.getLanguage();
+					int confidence = mm.getConfidence();
+					LOGGER.debug("Detected language is {} with confidence {}%.", language, confidence);
+				}
+					
+					
+			}
+		} finally {
+			in.close();
 		}
 
 		if (encoding != null) {
@@ -734,8 +730,6 @@ public class FileUtil {
 		} else {
 			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
 		}
-		
-		
 		
 	    return encoding;
 	}
