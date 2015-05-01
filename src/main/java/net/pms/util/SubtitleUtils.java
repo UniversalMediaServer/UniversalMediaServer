@@ -55,7 +55,7 @@ public class SubtitleUtils {
 	public static final String CHARSET_ISO_8859_1	= "ISO-8859-1".intern();
 	public static final String CHARSET_ISO_8859_2	= "ISO-8859-2".intern();
 	public static final String CHARSET_ISO_8859_5	= "ISO-8859-5".intern();
-	public static final String CHARSET_ISO_8859_6	= "ISO-8859-5".intern();
+	public static final String CHARSET_ISO_8859_6	= "ISO-8859-6".intern();
 	public static final String CHARSET_ISO_8859_7	= "ISO-8859-7".intern();
 	public static final String CHARSET_ISO_8859_8	= "ISO-8859-8".intern();
 	public static final String CHARSET_ISO_8859_9	= "ISO-8859-9".intern();
