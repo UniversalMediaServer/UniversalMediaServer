@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -16,6 +17,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.util.SubtitleUtils.*;
 import static org.apache.commons.lang3.StringUtils.*;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.parser.txt.CharsetDetector;
 import org.apache.tika.parser.txt.CharsetMatch;
@@ -670,6 +672,12 @@ public class FileUtil {
 		return found;
 	}
 
+	private static String externalSubsLang;
+
+	public static String getExtSubsLang() {
+		return externalSubsLang;
+	}
+
 	/**
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
@@ -695,6 +703,7 @@ public class FileUtil {
 		LOGGER.debug("UniversalDetector detected encoding for {} is {}.", file.getAbsolutePath(), encoding); // only for testing
 		universalDetector.reset();
 
+		externalSubsLang = null;
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
 		try {
 			CharsetDetector detector = new CharsetDetector();
@@ -702,24 +711,23 @@ public class FileUtil {
 			detector.setText(in);
 			CharsetMatch [] matches = detector.detectAll();
 			CharsetMatch mm = null;
-			for ( CharsetMatch m : matches ) {
-				if ( mm == null || mm.getConfidence() < m.getConfidence() ) {
+			for (CharsetMatch m : matches) {
+				if (mm == null || mm.getConfidence() < m.getConfidence()) {
 					mm = m;
 				}
 			}
 
-			if ( mm != null ) {
+			if (mm != null) {
 				encoding = mm.getName().toUpperCase();
+				externalSubsLang = mm.getLanguage();
 
 				// following code is only for testing and will be removed
 				LOGGER.debug("Apache Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
 				if (encoding != null && !encoding.equals(CHARSET_UTF_8)) {
-					String language = mm.getLanguage();
 					int confidence = mm.getConfidence();
-					LOGGER.debug("Detected language is {} with confidence {}%.", language, confidence);
+					LOGGER.debug("Detected language is {} with confidence {}%.", externalSubsLang, confidence);
 				}
-					
-					
+
 			}
 		} finally {
 			in.close();

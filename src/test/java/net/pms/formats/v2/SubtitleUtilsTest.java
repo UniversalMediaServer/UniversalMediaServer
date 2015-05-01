@@ -95,9 +95,9 @@ public class SubtitleUtilsTest {
 		sub6.setExternalFile(file_cp1250);
 		assertThat(getSubCpOptionForMencoder(sub6)).isEqualTo("cp1250");
 
-		File file_cp852 = FileUtils.toFile(CLASS.getResource("../../util/hungarian-iso-8859-2.srt"));
+		File file_iso_8859_2 = FileUtils.toFile(CLASS.getResource("../../util/hungarian-iso-8859-2.srt"));
 		DLNAMediaSubtitle sub7 = new DLNAMediaSubtitle();
-		sub7.setExternalFile(file_cp852);
+		sub7.setExternalFile(file_iso_8859_2);
 		assertThat(getSubCpOptionForMencoder(sub7)).isEqualTo("ISO-8859-2");
 	}
 
