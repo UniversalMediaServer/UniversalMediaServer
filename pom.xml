@@ -347,11 +347,6 @@
 			<version>${xmlwise-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.googlecode.juniversalchardet</groupId>
-			<artifactId>juniversalchardet</artifactId>
-			<version>1.0.3</version>
-		</dependency>
-		<dependency>
 			<groupId>sevenzip</groupId>
 			<artifactId>jbinding</artifactId>
 			<version>${sevenzip-version}</version>
