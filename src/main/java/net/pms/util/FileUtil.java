@@ -14,13 +14,12 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
-import static net.pms.util.SubtitleUtils.*;
+import static net.pms.util.Constants.*;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.parser.txt.CharsetDetector;
 import org.apache.tika.parser.txt.CharsetMatch;
 import org.codehaus.plexus.util.StringUtils;
-import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -688,22 +687,7 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static String getFileCharset(File file) throws IOException {
-		// UniversalDetector will be completely removed
-		byte[] buf = new byte[4096];
-		final UniversalDetector universalDetector;
-		try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-			universalDetector = new UniversalDetector(null);
-			int numberOfBytesRead;
-			while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
-				universalDetector.handleData(buf, 0, numberOfBytesRead);
-			}
-		}
-
-		universalDetector.dataEnd();
-		String encoding = universalDetector.getDetectedCharset();
-		LOGGER.debug("UniversalDetector detected encoding for {} is {}.", file.getAbsolutePath(), encoding); // only for testing
-		universalDetector.reset();
-
+		String encoding = null;
 		externalSubsLang = null;
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
 		try {

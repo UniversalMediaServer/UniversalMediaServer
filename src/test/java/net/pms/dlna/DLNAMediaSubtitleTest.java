@@ -22,7 +22,7 @@ import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import static net.pms.formats.v2.SubtitleType.*;
-import static net.pms.util.SubtitleUtils.*;
+import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
 import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Before;
