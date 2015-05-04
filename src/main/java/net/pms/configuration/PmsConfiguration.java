@@ -128,7 +128,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
-	protected static final String KEY_FFMPEG_MENCODER_SUBTITLES = "ffmpeg_mencoder_subtitles";
+	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
@@ -2362,23 +2362,43 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
-	 * subtitles that need to be transcoded.
-	 *
-	 * @param value
+	 * @see #setFFmpegDeferToMEncoderForEmbeddedSubtitles(boolean)
+	 * @deprecated
 	 */
+	@Deprecated
 	public void setFFmpegDeferToMEncoderForSubtitles(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_MENCODER_SUBTITLES, value);
+		setFFmpegDeferToMEncoderForProblematicSubtitles(value);
+	}
+
+	/**
+	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles() 
+	 * @deprecated
+	 */
+	@Deprecated
+	public boolean isFFmpegDeferToMEncoderForSubtitles() {
+		return isFFmpegDeferToMEncoderForProblematicSubtitles();
 	}
 
 	/**
 	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
-	 * subtitles that need to be transcoded.
+	 * subtitles that need to be transcoded which FFmpeg will need to
+	 * initially parse, which can cause timeouts.
+	 *
+	 * @param value
+	 */
+	public void setFFmpegDeferToMEncoderForProblematicSubtitles(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, value);
+	}
+
+	/**
+	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
+	 * subtitles that need to be transcoded which FFmpeg will need to
+	 * initially parse, which can cause timeouts.
 	 *
 	 * @return
 	 */
-	public boolean isFFmpegDeferToMEncoderForSubtitles() {
-		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, false);
+	public boolean isFFmpegDeferToMEncoderForProblematicSubtitles() {
+		return getBoolean(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, true);
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
@@ -3234,8 +3254,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
 	}
 
+	/**
+	 * Default port for the WEB interface.
+	 */
 	public int getWebPort() {
-		return getInt(KEY_WEB_PORT, 0);
+		return getInt(KEY_WEB_PORT, 9001);
 	}
 
 	public boolean useWebInterface() {

@@ -59,7 +59,7 @@ public class GlobalIdRepo {
 		}
 	}
 
-	public int parseIndex(String id) {
+	public static int parseIndex(String id) {
 		try {
 			// Id strings may have optional tags beginning with $ appended, e.g. '1234$Temp'
 			return Integer.parseInt(StringUtils.substringBefore(id, "$"));
