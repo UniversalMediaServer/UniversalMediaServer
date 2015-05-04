@@ -513,7 +513,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
 		RendererConfiguration r = addressAssociation.get(sa);
 		if (r != null) {
-			LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on address " + sa);
+			LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on address " + sa);
 		}
 		return r;
 	}
@@ -537,7 +537,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			boolean isNew = !addressAssociation.containsKey(ia);
 			r = resolve(ia, ref);
 			if (r != null) {
-				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+				LOGGER.debug("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 			}
 		}
 		return r;
@@ -546,12 +546,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
 		if (_pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
-			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
+			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
 		}
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.match(sortedHeaders)) {
-				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 				return r;
 			}
 		}
@@ -589,10 +589,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return null;
 	}
 
-	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details/*, InetAddress ia, String uuid*/) {
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.matchUPNPDetails(details)) {
-				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
+				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
 				return r;
 			}
 		}

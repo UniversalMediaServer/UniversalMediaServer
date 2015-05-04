@@ -711,6 +711,10 @@ public class PMS {
 			return false;
 		}
 
+		if (web != null && web.getServer() != null) {
+			LOGGER.info("WEB interface is available at: " + web.getUrl());
+		}
+
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
@@ -1395,6 +1399,10 @@ public class PMS {
 		String pid;
 		try (BufferedReader in = new BufferedReader(new FileReader(pidFile()))) {
 			pid = in.readLine();
+		}
+
+		if (pid == null) {
+			return;
 		}
 
 		if (Platform.isWindows()) {
