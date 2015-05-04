@@ -38,6 +38,7 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 *(in alphabetical order)*
 * chocolateboy
 * ditlew
+* ExSport
 * happy.neko
 * Raptor399
 * Redlum

@@ -947,7 +947,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (child != found) {
 				// Replace
 				child.parent = this;
-				child.setIndexId(Integer.parseInt(found.getInternalId()));
+				child.setIndexId(GlobalIdRepo.parseIndex((found.getInternalId())));
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
@@ -2180,6 +2180,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
+		boolean xbox360 = mediaRenderer.isXbox360();
 		if (!isFolder()) {
 			if (format != null && format.isVideo()) {
 				if (
@@ -2202,7 +2203,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			openTag(sb, "container");
 		}
 
-		addAttribute(sb, "id", getResourceId());
+		String id = getResourceId();
+		if (xbox360) {
+			// Ensure the xbox 360 doesn't confuse our ids with its own virtual folder ids.
+			id += "$";
+		}
+		addAttribute(sb, "id", id);
 
 		if (isFolder()) {
 			if (!isDiscovered() && childrenNumber() == 0) {
@@ -2216,7 +2222,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addAttribute(sb, "childCount", childrenNumber());
 			}
 		}
-		addAttribute(sb, "parentID", getParentId());
+		id = getParentId();
+		if (xbox360 && getFakeParentId() == null) {
+			// Ensure the xbox 360 doesn't confuse our ids with its own virtual folder ids.
+			id += "$";
+		}
+		addAttribute(sb, "parentID", id);
 		addAttribute(sb, "restricted", "true");
 		endTag(sb);
 		StringBuilder wireshark = new StringBuilder();
@@ -2426,15 +2437,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (isFolder()) {
 				uclass = "object.container.storageFolder";
-				boolean xbox360 = mediaRenderer.isXbox360();
-				if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("7")) {
-					uclass = "object.container.album.musicAlbum";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("6")) {
-					uclass = "object.container.person.musicArtist";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("5")) {
-					uclass = "object.container.genre.musicGenre";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("F")) {
-					uclass = "object.container.playlistContainer";
+				if (xbox360 && getFakeParentId() != null) {
+					if (getFakeParentId().equals("7")) {
+						uclass = "object.container.album.musicAlbum";
+					} else if (getFakeParentId().equals("6")) {
+						uclass = "object.container.person.musicArtist";
+					} else if (getFakeParentId().equals("5")) {
+						uclass = "object.container.genre.musicGenre";
+					} else if (getFakeParentId().equals("F")) {
+						uclass = "object.container.playlistContainer";
+					}
 				}
 			} else if (getFormat() != null && getFormat().isVideo()) {
 				uclass = "object.item.videoItem";
