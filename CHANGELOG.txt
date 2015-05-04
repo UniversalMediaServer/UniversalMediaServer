@@ -13,6 +13,7 @@
 		Improved detection of Xbox One
 		Improved detection of several Samsung TVs
 	Languages:
+		Updated Dutch translation (thanks, leroy!)
 		Updated Spanish translation (thanks, AlfredoRamos!)
 
 5.1.2 - 2015-04-15
