@@ -1269,7 +1269,7 @@
 			Mac OSX Java 6 Build profile: takes care of building the final package for Mac OSX Java 6 builds
 		-->
 		<profile>
-			<id>osx</id>
+			<id>osx-java6</id>
 			<activation>
 				<activeByDefault>false</activeByDefault>
 			</activation>
@@ -1442,7 +1442,7 @@
                         Note: This does not make the .dmg you will have to do that manually. Use the open source dmgCreator
                 -->
                 <profile>
-                    <id>java-7-8-osx</id>
+                    <id>osx-java7/8</id>
                     <activation>
                         <activeByDefault>false</activeByDefault>
                     </activation>
