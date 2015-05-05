@@ -392,9 +392,15 @@ public class StatusTab {
 
 			if (icon.matches(".*\\S+://.*")) {
 				try {
-					return ImageIO.read(new URL(icon));
+					bi = ImageIO.read(new URL(icon));
 				} catch (Exception e) {
-					LOGGER.debug("Failed to read icon url: " + e);
+					LOGGER.debug("Error reading icon url: " + e);
+				}
+				if (bi != null) {
+					return bi;
+				} else {
+					LOGGER.debug("Unable to read icon url \"{}\", using 'unknown.png' instead.", icon);
+					icon = "unknown.png";
 				}
 			}
 
@@ -440,6 +446,9 @@ public class StatusTab {
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			}
+		}
+		if (bi == null) {
+			LOGGER.debug("Failed to load icon: " + icon);
 		}
 		return bi;
 	}

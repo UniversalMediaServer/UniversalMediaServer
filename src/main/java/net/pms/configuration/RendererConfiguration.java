@@ -1557,12 +1557,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The renderer icon.
 	 */
 	public String getRendererIcon() {
-		String icon = getString(RENDERER_ICON, "unknown.png");
+		String icon = getDefaultIcon();
 		String deviceIcon = null;
 		if (icon.equals("unknown.png")) {
 			deviceIcon = UPNPHelper.getDeviceIcon(this, 140);
 		}
 		return deviceIcon == null ? icon : deviceIcon;
+	}
+
+	public String getDefaultIcon() {
+		return getString(RENDERER_ICON, "unknown.png");
 	}
 
 	/**
