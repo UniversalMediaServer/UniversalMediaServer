@@ -399,8 +399,8 @@ public class StatusTab {
 				if (bi != null) {
 					return bi;
 				} else {
-					LOGGER.debug("Unable to read icon url \"{}\", using 'unknown.png' instead.", icon);
-					icon = "unknown.png";
+					LOGGER.debug("Unable to read icon url \"{}\", using '{}' instead.", RendererConfiguration.UNKNOWN_ICON);
+					icon = RendererConfiguration.UNKNOWN_ICON;
 				}
 			}
 

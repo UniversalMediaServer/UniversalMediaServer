@@ -200,6 +200,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 
 	private static int maximumBitrateTotal = 0;
+	public static final String UNKNOWN_ICON = "unknown.png";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -1552,21 +1553,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	/**
 	 * Returns the icon to use for displaying this renderer in PMS as defined
-	 * in the renderer configurations. Default value is "unknown.png".
+	 * in the renderer configurations. Default value is UNKNOWN_ICON.
 	 *
 	 * @return The renderer icon.
 	 */
 	public String getRendererIcon() {
-		String icon = getDefaultIcon();
+		String icon = getString(RENDERER_ICON, UNKNOWN_ICON);
 		String deviceIcon = null;
-		if (icon.equals("unknown.png")) {
+		if (icon.equals(UNKNOWN_ICON)) {
 			deviceIcon = UPNPHelper.getDeviceIcon(this, 140);
 		}
 		return deviceIcon == null ? icon : deviceIcon;
-	}
-
-	public String getDefaultIcon() {
-		return getString(RENDERER_ICON, "unknown.png");
 	}
 
 	/**
