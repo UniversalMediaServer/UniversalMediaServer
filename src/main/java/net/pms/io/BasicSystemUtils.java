@@ -22,6 +22,8 @@ import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.NetworkInterface;
@@ -155,6 +157,7 @@ public class BasicSystemUtils implements SystemUtils {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					frame.setVisible(true);
+					frame.setExtendedState(frame.getExtendedState() & 0xe); // switch off bit 1
 				}
 			});
 
@@ -177,10 +180,30 @@ public class BasicSystemUtils implements SystemUtils {
 			trayIcon.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					frame.setVisible(true);
-					frame.setFocusable(true);
+					if (frame.getExtendedState() == LooksFrame.NORMAL
+							|| frame.getExtendedState() == LooksFrame.MAXIMIZED_BOTH) {
+						frame.setVisible(!PMS.getConfiguration().isOnlyTray());
+						frame.setExtendedState(frame.getExtendedState() | LooksFrame.ICONIFIED);
+						
+					} else if (frame.getExtendedState() == LooksFrame.ICONIFIED
+							|| frame.getExtendedState() == (LooksFrame.ICONIFIED | LooksFrame.MAXIMIZED_BOTH)) {
+						frame.setVisible(true);
+						frame.setFocusable(true);
+						frame.setExtendedState(frame.getExtendedState() & 0xe); // switch off bit 1
+					}
 				}
 			});
+
+			frame.addWindowStateListener(new WindowStateListener() {
+				@Override
+				public void windowStateChanged(WindowEvent e) {
+					if (e.getNewState() == LooksFrame.ICONIFIED
+							|| e.getNewState() == (LooksFrame.ICONIFIED | LooksFrame.MAXIMIZED_BOTH)) {
+						frame.setVisible(!PMS.getConfiguration().isOnlyTray());
+					}
+				}
+			});
+
 			try {
 				tray.add(trayIcon);
 			} catch (AWTException e) {

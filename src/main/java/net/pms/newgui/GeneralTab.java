@@ -53,6 +53,7 @@ public class GeneralTab {
 
 	public JCheckBox smcheckBox;
 	private JCheckBox autoStart;
+	private JCheckBox onlyTrayCheckBox;
 	private JCheckBox autoUpdateCheckBox;
 	private JCheckBox hideAdvancedOptions;
 	private JCheckBox newHTTPEngine;
@@ -174,7 +175,9 @@ public class GeneralTab {
 			ypos += 2;
 		}
 
-		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		int xpos = 1;
+		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
+		xpos += 2;
 
 		if (Platform.isWindows()) {
 			autoStart = new JCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
@@ -185,7 +188,19 @@ public class GeneralTab {
 					configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(xpos, ypos, 3), colSpec, orientation));
+			xpos += 4;
+		}
+		if (SystemTray.isSupported()) {
+			onlyTrayCheckBox = new JCheckBox(Messages.getString("NetworkTab.74"), configuration.isOnlyTray());
+			onlyTrayCheckBox.setContentAreaFilled(false);
+			onlyTrayCheckBox.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setOnlyTray((e.getStateChange() == ItemEvent.SELECTED));
+				}
+			});
+			builder.add(onlyTrayCheckBox, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 		}
 		ypos += 2;
 

@@ -330,8 +330,21 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			((screenSize.width > paneSize.width) ? ((screenSize.width - paneSize.width) / 2) : 0),
 			((screenSize.height > paneSize.height) ? ((screenSize.height - paneSize.height) / 2) : 0)
 		);
-		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
+		if (configuration.isMinimized()) {
+			if (configuration.isOnlyTray()) {
+				setVisible(false);
+				setExtendedState(LooksFrame.ICONIFIED);
+			} else {
+				setVisible(true);
+				setExtendedState(LooksFrame.NORMAL);
+			}
+		} else if (System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
+			if (configuration.isOnlyTray()) {
+				setExtendedState(LooksFrame.ICONIFIED);
+			} else {
+				setExtendedState(LooksFrame.NORMAL);
+			}
 		}
 		PMS.get().getRegistry().addSystemTray(this);
 	}
