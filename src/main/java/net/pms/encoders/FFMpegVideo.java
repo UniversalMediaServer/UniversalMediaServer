@@ -48,6 +48,7 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -1262,7 +1263,7 @@ public class FFMpegVideo extends Player {
 				configuration.setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(multithreading, cc.xy(2, 3));
+		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
 
 		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
 		videoRemuxTsMuxer.setContentAreaFilled(false);
@@ -1272,7 +1273,7 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(videoRemuxTsMuxer, cc.xy(2, 5));
+		builder.add(GuiUtil.getPreferredSizeComponent(videoRemuxTsMuxer), cc.xy(2, 5));
 
 		fc = new JCheckBox(Messages.getString("FFmpeg.3"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
@@ -1283,7 +1284,7 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(fc, cc.xy(2, 7));
+		builder.add(GuiUtil.getPreferredSizeComponent(fc), cc.xy(2, 7));
 
 		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForProblematicSubtitles());
 		deferToMEncoderForSubtitles.setContentAreaFilled(false);
@@ -1294,7 +1295,7 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegDeferToMEncoderForProblematicSubtitles(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(deferToMEncoderForSubtitles, cc.xy(2, 9));
+		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
 
 		return builder.getPanel();
 	}
