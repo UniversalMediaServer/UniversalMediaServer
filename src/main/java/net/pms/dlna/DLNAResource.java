@@ -1516,7 +1516,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			displayName = player != null ? ("[" + player.name() + "]") : "";
-			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getAudioTrackTitleFromMetadata() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")") : "") + "}";
 		}
 
 		if (
@@ -1536,7 +1536,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "");
+			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getSubtitlesTrackTitleFromMetadata() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getSubtitlesTrackTitleFromMetadata() + ")") : "");
 			if (subsAreValidForStreaming) {
 				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription + "}";
 			} else {
@@ -1994,15 +1994,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
 													st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
 
-													while (sub.getFlavor() != null && st.hasMoreTokens()) {
+													while (sub.getSubtitlesTrackTitleFromMetadata() != null && st.hasMoreTokens()) {
 														String forcedTags = st.nextToken();
 														forcedTags = forcedTags.trim();
 
 														if (
-															sub.getFlavor().toLowerCase().contains(forcedTags) &&
+															sub.getSubtitlesTrackTitleFromMetadata().toLowerCase().contains(forcedTags) &&
 															Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
 														) {
-															LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getFlavor());
+															LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getSubtitlesTrackTitleFromMetadata());
 															LOGGER.trace("Forced subtitles track: " + sub);
 
 															if (sub.getExternalFile() != null) {
