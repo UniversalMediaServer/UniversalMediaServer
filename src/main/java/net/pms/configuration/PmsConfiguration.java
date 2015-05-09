@@ -128,7 +128,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
-	protected static final String KEY_FFMPEG_MENCODER_SUBTITLES = "ffmpeg_mencoder_subtitles";
+	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
@@ -1066,7 +1066,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns a string of audio language and subtitle language pairs
 	 * ordered by priority to try to match. Audio language
-	 * and subtitle language should be comma separated as a pair,
+	 * and subtitle language should be comma-separated as a pair,
 	 * individual pairs should be semicolon separated. "*" can be used to
 	 * match any language. Subtitle language can be defined as "off".
 	 * Default value is <code>"*,*"</code>.
@@ -1081,9 +1081,25 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * Sets a string of audio language and subtitle language pairs
+	 * ordered by priority to try to match. Audio language
+	 * and subtitle language should be comma-separated as a pair,
+	 * individual pairs should be semicolon separated. "*" can be used to
+	 * match any language. Subtitle language can be defined as "off".
+	 *
+	 * Example: <code>"en,off;jpn,eng;*,eng;*;*"</code>.
+	 *
+	 * @param value The audio and subtitle languages priority string.
+	 */
+	public void setAudioSubLanguages(String value) {
+		configuration.setProperty(KEY_AUDIO_SUB_LANGS, value);
+	}
+
+	/**
 	 * Returns whether or not MEncoder should use FriBiDi mode, which
 	 * is needed to display subtitles in languages that read from right to
 	 * left, like Arabic, Farsi, Hebrew, Urdu, etc. Default value is false.
+	 *
 	 * @return True if FriBiDi mode should be used, false otherwise.
 	 */
 	public boolean isMencoderSubFribidi() {
@@ -1094,6 +1110,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Returns the character encoding (or code page) that should used
 	 * for displaying non-Unicode external subtitles. Default is empty string
 	 * (do not force encoding with -subcp key).
+	 *
 	 * @return The character encoding.
 	 */
 	public String getSubtitlesCodepage() {
@@ -1101,8 +1118,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns whether or not MEncoder should use fontconfig for displaying
-	 * subtitles. Default is false.
+	 * Whether MEncoder should use fontconfig for displaying subtitles.
+	 *
 	 * @return True if fontconfig should be used, false otherwise.
 	 */
 	public boolean isMencoderFontConfig() {
@@ -1112,6 +1129,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Set to true if MEncoder should be forced to use the framerate that is
 	 * parsed by FFmpeg.
+	 *
 	 * @param value Set to true if the framerate should be forced, false
 	 *              otherwise.
 	 */
@@ -1120,8 +1138,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if MEncoder should be forced to use the framerate that is
+	 * Whether MEncoder should be forced to use the framerate that is
 	 * parsed by FFmpeg.
+	 *
 	 * @return True if the framerate should be forced, false otherwise.
 	 */
 	public boolean isMencoderForceFps() {
@@ -1139,9 +1158,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Sets the subtitle language priority as a comma
-	 * separated string. For example: <code>"eng,fre,jpn,ger,und"</code>,
-	 * where "und" stands for "undefined".
+	 * Sets the subtitle language priority as a comma-separated string.
+	 *
+	 * Example: <code>"eng,fre,jpn,ger,und"</code>, where "und" stands for
+	 * "undefined".
+	 *
 	 * @param value The subtitle language priority string.
 	 */
 	public void setSubtitlesLanguages(String value) {
@@ -1151,6 +1172,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the ISO 639 language code for the subtitle language that should
 	 * be forced.
+	 *
 	 * @param value The subtitle language code.
 	 */
 	public void setForcedSubtitleLanguage(String value) {
@@ -1160,6 +1182,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the tag string that identifies the subtitle language that
 	 * should be forced.
+	 *
 	 * @param value The tag string.
 	 */
 	public void setForcedSubtitleTags(String value) {
@@ -1167,20 +1190,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Sets a string of audio language and subtitle language pairs
-	 * ordered by priority to try to match. Audio language
-	 * and subtitle language should be comma separated as a pair,
-	 * individual pairs should be semicolon separated. "*" can be used to
-	 * match any language. Subtitle language can be defined as "off". For
-	 * example: <code>"en,off;jpn,eng;*,eng;*;*"</code>.
-	 * @param value The audio and subtitle languages priority string.
-	 */
-	public void setAudioSubLanguages(String value) {
-		configuration.setProperty(KEY_AUDIO_SUB_LANGS, value);
-	}
-
-	/**
 	 * Returns custom commandline options to pass on to MEncoder.
+	 *
 	 * @return The custom options string.
 	 */
 	public String getMencoderCustomOptions() {
@@ -1189,6 +1200,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets custom commandline options to pass on to MEncoder.
+	 *
 	 * @param value The custom options string.
 	 */
 	public void setMencoderCustomOptions(String value) {
@@ -1198,6 +1210,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the character encoding (or code page) that should be used
 	 * for displaying non-Unicode external subtitles. Default is empty (autodetect).
+	 *
 	 * @param value The character encoding.
 	 */
 	public void setSubtitlesCodepage(String value) {
@@ -1208,6 +1221,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Sets whether or not MEncoder should use FriBiDi mode, which
 	 * is needed to display subtitles in languages that read from right to
 	 * left, like Arabic, Farsi, Hebrew, Urdu, etc. Default value is false.
+	 *
 	 * @param value Set to true if FriBiDi mode should be used.
 	 */
 	public void setMencoderSubFribidi(boolean value) {
@@ -1216,6 +1230,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets the name of a TrueType font to use for subtitles.
+	 *
 	 * @param value The font name.
 	 */
 	public void setFont(String value) {
@@ -1227,6 +1242,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * platforms. Set to true if MEncoder supports them. Default should be
 	 * true on Windows and OS X, false otherwise.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
+	 *
 	 * @param value Set to true if MEncoder supports ASS/SSA subtitles.
 	 */
 	public void setMencoderAss(boolean value) {
@@ -1236,6 +1252,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets whether or not MEncoder should use fontconfig for displaying
 	 * subtitles.
+	 *
 	 * @param value Set to true if fontconfig should be used.
 	 */
 	public void setMencoderFontConfig(boolean value) {
@@ -1245,6 +1262,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets whether or not the Pulse Code Modulation audio format should be
 	 * forced.
+	 *
 	 * @param value Set to true if PCM should be forced.
 	 */
 	public void setAudioUsePCM(boolean value) {
@@ -1254,6 +1272,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets whether or not the Pulse Code Modulation audio format should be
 	 * used only for HQ audio codecs.
+	 *
 	 * @param value Set to true if PCM should be used only for HQ audio.
 	 */
 	public void setMencoderUsePcmForHQAudioOnly(boolean value) {
@@ -1261,8 +1280,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if archives (e.g. .zip or .rar) should be browsable by
-	 * PMS, false otherwise.
+	 * Whether archives (e.g. .zip or .rar) should be browsable.
+	 *
 	 * @return True if archives should be browsable.
 	 */
 	public boolean isArchiveBrowsing() {
@@ -1270,8 +1289,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set to true if archives (e.g. .zip or .rar) should be browsable by
-	 * PMS, false otherwise.
+	 * Sets whether archives (e.g. .zip or .rar) should be browsable.
+	 *
 	 * @param value Set to true if archives should be browsable.
 	 */
 	public void setArchiveBrowsing(boolean value) {
@@ -1281,6 +1300,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns true if MEncoder should use the deinterlace filter, false
 	 * otherwise.
+	 *
 	 * @return True if the deinterlace filter should be used.
 	 */
 	public boolean isMencoderYadif() {
@@ -1290,6 +1310,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Set to true if MEncoder should use the deinterlace filter, false
 	 * otherwise.
+	 *
 	 * @param value Set ot true if the deinterlace filter should be used.
 	 */
 	public void setMencoderYadif(boolean value) {
@@ -1297,7 +1318,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if MEncoder should be used to upscale the video to an
+	 * Whether MEncoder should be used to upscale the video to an
 	 * optimal resolution. Default value is false, meaning the renderer will
 	 * upscale the video itself.
 	 *
@@ -2348,23 +2369,43 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
-	 * subtitles that need to be transcoded.
-	 *
-	 * @param value
+	 * @see #setFFmpegDeferToMEncoderForEmbeddedSubtitles(boolean)
+	 * @deprecated
 	 */
+	@Deprecated
 	public void setFFmpegDeferToMEncoderForSubtitles(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_MENCODER_SUBTITLES, value);
+		setFFmpegDeferToMEncoderForProblematicSubtitles(value);
+	}
+
+	/**
+	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles() 
+	 * @deprecated
+	 */
+	@Deprecated
+	public boolean isFFmpegDeferToMEncoderForSubtitles() {
+		return isFFmpegDeferToMEncoderForProblematicSubtitles();
 	}
 
 	/**
 	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
-	 * subtitles that need to be transcoded.
+	 * subtitles that need to be transcoded which FFmpeg will need to
+	 * initially parse, which can cause timeouts.
+	 *
+	 * @param value
+	 */
+	public void setFFmpegDeferToMEncoderForProblematicSubtitles(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, value);
+	}
+
+	/**
+	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
+	 * subtitles that need to be transcoded which FFmpeg will need to
+	 * initially parse, which can cause timeouts.
 	 *
 	 * @return
 	 */
-	public boolean isFFmpegDeferToMEncoderForSubtitles() {
-		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, false);
+	public boolean isFFmpegDeferToMEncoderForProblematicSubtitles() {
+		return getBoolean(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, true);
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
@@ -3220,8 +3261,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
 	}
 
+	/**
+	 * Default port for the WEB interface.
+	 */
 	public int getWebPort() {
-		return getInt(KEY_WEB_PORT, 0);
+		return getInt(KEY_WEB_PORT, 9001);
 	}
 
 	public boolean useWebInterface() {

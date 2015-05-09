@@ -38,6 +38,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
+import net.pms.formats.Format;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
@@ -376,31 +377,34 @@ public class RequestV2 extends HTTPResource {
 						}
 					}
 
-					if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
-						// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
-						String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-						if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
-							// Device allows a custom subtitle HTTP header; construct it
-							DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
-							if (sub != null) {
-								String subtitleUrl;
-								String subExtension = sub.getType().getExtension();
-								if (isNotBlank(subExtension)) {
-									subExtension = "." + subExtension;
-								}
-								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-									':' + PMS.get().getServer().getPort() + "/get/" +
-									id + "/subtitle0000" + subExtension;
+					Format format = dlna.getFormat();
+					if (format != null && format.isVideo()) {
+						if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
+							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
+							String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
+							if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
+								// Device allows a custom subtitle HTTP header; construct it
+								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+								if (sub != null) {
+									String subtitleUrl;
+									String subExtension = sub.getType().getExtension();
+									if (isNotBlank(subExtension)) {
+										subExtension = "." + subExtension;
+									}
+									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+										':' + PMS.get().getServer().getPort() + "/get/" +
+										id + "/subtitle0000" + subExtension;
 
-								output.headers().set(subtitleHttpHeader, subtitleUrl);
+									output.headers().set(subtitleHttpHeader, subtitleUrl);
+								} else {
+									LOGGER.trace("Did not send subtitle headers because dlna.getMediaSubtitle returned null");
+								}
 							} else {
-								LOGGER.trace("Did not send subtitle headers because dlna.getMediaSubtitle returned null");
+								LOGGER.trace("Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader returned either null or blank");
 							}
 						} else {
-							LOGGER.trace("Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader returned either null or blank");
+							LOGGER.trace("Did not send subtitle headers because dlna.getMedia returned null or configuration.isDisableSubtitles was true");
 						}
-					} else {
-						LOGGER.trace("Did not send subtitle headers because dlna.getMedia returned null or configuration.isDisableSubtitles was true");
 					}
 
 					String name = dlna.getDisplayName(mediaRenderer);
@@ -612,11 +616,12 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
+				//LOGGER.trace(content);
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
 					containerID = getEnclosingValue(content, "<ContainerID", "</ContainerID>");
-					if (containerID == null) {
+					if (containerID == null || (xbox360 && !containerID.contains("$"))) {
 						objectID = "0";
 					} else {
 						objectID = containerID;
@@ -688,18 +693,6 @@ public class RequestV2 extends HTTPResource {
 					mediaRenderer,
 					searchCriteria
 				);
-
-				if (xbox360 && files.isEmpty()) {
-					// do it again...
-					files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
-						"0",
-						browseDirectChildren,
-						startingIndex,
-						requestCount,
-						mediaRenderer,
-						searchCriteria
-					);
-				}
 
 				if (searchCriteria != null && files != null) {
 					UMSUtils.postSearch(files, searchCriteria);
@@ -783,7 +776,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				LOGGER.trace(response.toString());
+				//LOGGER.trace(response.toString());
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());

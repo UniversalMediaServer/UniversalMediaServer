@@ -898,14 +898,7 @@ public class MEncoderVideo extends Player {
 		if (
 			deferToTsmuxer == true &&
 			!params.mediaRenderer.isPS3() &&
-			(
-				filename.toLowerCase().contains("web-dl") ||
-				(
-					params.aid != null &&
-					params.aid.getFlavor() != null &&
-					params.aid.getFlavor().toLowerCase().contains("web-dl")
-				)
-			)
+			media.isWebDl(filename, params)
 		) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
@@ -1931,7 +1924,23 @@ public class MEncoderVideo extends Player {
 				scaleWidth  = convertToModX(scaleWidth, 4);
 				scaleHeight = convertToModX(scaleHeight, 4);
 
-				vfValuePrepend += "::::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
+				/**
+				 * Now we know which resolution we want the video to be, let's see if MEncoder
+				 * can be trusted to output it using only the expand filter, or if we need to
+				 * be extra careful and use scale too (which is slower).
+				 *
+				 * For now I'm not sure exactly how MEncoder decides which resolution to
+				 * output so this is some cautious math. If someone does extensive testing
+				 * in the future it can be made less cautious.
+				 */
+				if (
+					(scaleWidth + 4) > params.mediaRenderer.getMaxVideoWidth() ||
+					(scaleHeight + 4) > params.mediaRenderer.getMaxVideoHeight()
+				) {
+					vfValuePrepend += "::::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
+				} else {
+					vfValuePrepend += "::::0:16/9:4";
+				}
 			} else {
 				vfValuePrepend += "-" + (scaleWidth % 4) + ":-" + (scaleHeight % 4);
 			}
