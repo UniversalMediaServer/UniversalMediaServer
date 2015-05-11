@@ -263,7 +263,7 @@ public class StatusTab {
 
 		bitrateLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
-		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xyw(1, 1, 3, "left, top"), colSpec, orientation));
+		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
 
 		currentBitrateLabel = new JLabel(Messages.getString("StatusTab.14"));
 		currentBitrateLabel.setForeground(fgColor);
