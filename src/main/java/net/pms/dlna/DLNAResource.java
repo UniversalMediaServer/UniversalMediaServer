@@ -947,7 +947,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (child != found) {
 				// Replace
 				child.parent = this;
-				child.setIndexId(Integer.parseInt(found.getInternalId()));
+				child.setIndexId(GlobalIdRepo.parseIndex((found.getInternalId())));
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
@@ -1516,7 +1516,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			displayName = player != null ? ("[" + player.name() + "]") : "";
-			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getAudioTrackTitleFromMetadata() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")") : "") + "}";
 		}
 
 		if (
@@ -1536,7 +1536,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "");
+			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getSubtitlesTrackTitleFromMetadata() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getSubtitlesTrackTitleFromMetadata() + ")") : "");
 			if (subsAreValidForStreaming) {
 				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription + "}";
 			} else {
@@ -1994,15 +1994,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
 													st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
 
-													while (sub.getFlavor() != null && st.hasMoreTokens()) {
+													while (sub.getSubtitlesTrackTitleFromMetadata() != null && st.hasMoreTokens()) {
 														String forcedTags = st.nextToken();
 														forcedTags = forcedTags.trim();
 
 														if (
-															sub.getFlavor().toLowerCase().contains(forcedTags) &&
+															sub.getSubtitlesTrackTitleFromMetadata().toLowerCase().contains(forcedTags) &&
 															Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
 														) {
-															LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getFlavor());
+															LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getSubtitlesTrackTitleFromMetadata());
 															LOGGER.trace("Forced subtitles track: " + sub);
 
 															if (sub.getExternalFile() != null) {
@@ -2180,6 +2180,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
+		boolean xbox360 = mediaRenderer.isXbox360();
 		if (!isFolder()) {
 			if (format != null && format.isVideo()) {
 				if (
@@ -2202,7 +2203,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			openTag(sb, "container");
 		}
 
-		addAttribute(sb, "id", getResourceId());
+		String id = getResourceId();
+		if (xbox360) {
+			// Ensure the xbox 360 doesn't confuse our ids with its own virtual folder ids.
+			id += "$";
+		}
+		addAttribute(sb, "id", id);
 
 		if (isFolder()) {
 			if (!isDiscovered() && childrenNumber() == 0) {
@@ -2216,7 +2222,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addAttribute(sb, "childCount", childrenNumber());
 			}
 		}
-		addAttribute(sb, "parentID", getParentId());
+		id = getParentId();
+		if (xbox360 && getFakeParentId() == null) {
+			// Ensure the xbox 360 doesn't confuse our ids with its own virtual folder ids.
+			id += "$";
+		}
+		addAttribute(sb, "parentID", id);
 		addAttribute(sb, "restricted", "true");
 		endTag(sb);
 		StringBuilder wireshark = new StringBuilder();
@@ -2426,15 +2437,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (isFolder()) {
 				uclass = "object.container.storageFolder";
-				boolean xbox360 = mediaRenderer.isXbox360();
-				if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("7")) {
-					uclass = "object.container.album.musicAlbum";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("6")) {
-					uclass = "object.container.person.musicArtist";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("5")) {
-					uclass = "object.container.genre.musicGenre";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("F")) {
-					uclass = "object.container.playlistContainer";
+				if (xbox360 && getFakeParentId() != null) {
+					if (getFakeParentId().equals("7")) {
+						uclass = "object.container.album.musicAlbum";
+					} else if (getFakeParentId().equals("6")) {
+						uclass = "object.container.person.musicArtist";
+					} else if (getFakeParentId().equals("5")) {
+						uclass = "object.container.genre.musicGenre";
+					} else if (getFakeParentId().equals("F")) {
+						uclass = "object.container.playlistContainer";
+					}
 				}
 			} else if (getFormat() != null && getFormat().isVideo()) {
 				uclass = "object.item.videoItem";

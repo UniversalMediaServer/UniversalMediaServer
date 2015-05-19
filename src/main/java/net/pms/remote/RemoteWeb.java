@@ -71,11 +71,10 @@ public class RemoteWeb {
 					server = httpsServer(address);
 				} catch (Exception e) {
 					LOGGER.warn("Error: Failed to start WEB interface on HTTPS: " + e);
-					LOGGER.warn("Starting WEB interface on HTTP instead.");
+					LOGGER.info("To enable HTTPS please generate a self-signed keystore file called 'UMS.jks' using the java 'keytool' commandline utility.");
 					server = null;
 				}
-			}
-			if (server == null) {
+			} else {
 				server = HttpServer.create(address, 0);
 			}
 
