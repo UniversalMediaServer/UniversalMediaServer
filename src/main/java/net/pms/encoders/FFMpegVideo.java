@@ -900,8 +900,12 @@ public class FFMpegVideo extends Player {
 				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 			}
 			if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
-				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+				if (params.mediaRenderer.getKeepAspectRatioTolerance() >= ((Float.parseFloat(media.getAspectRatioContainer())/1.777777777777778*100.0f)-100)) {
+					LOGGER.trace("Video aspect ratio distortion [" + media.getAspectRatioContainer() + "] is within defined tolerance [" + params.mediaRenderer.getKeepAspectRatioTolerance() + "%].");
+				} else {
+					deferToTsmuxer = false;
+					LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+				}
 			}
 			if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				deferToTsmuxer = false;

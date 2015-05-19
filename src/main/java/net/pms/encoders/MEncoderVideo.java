@@ -20,11 +20,13 @@ package net.pms.encoders;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -32,7 +34,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
+
 import javax.swing.*;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
@@ -49,10 +53,13 @@ import net.pms.newgui.GuiUtil;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.quoteArg;
+
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -909,8 +916,12 @@ public class MEncoderVideo extends Player {
 			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 		}
 		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+			if (params.mediaRenderer.getKeepAspectRatioTolerance() >= ((Float.parseFloat(media.getAspectRatioContainer())/1.777777777777778*100.0f)-100)) {
+				LOGGER.trace("Video aspect ratio distortion [" + media.getAspectRatioContainer() + "] is within defined tolerance [" + params.mediaRenderer.getKeepAspectRatioTolerance() + "%].");
+			} else {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+			}
 		}
 		if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 			deferToTsmuxer = false;

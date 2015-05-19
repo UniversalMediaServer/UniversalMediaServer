@@ -145,6 +145,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
+	protected static final String KEEP_ASPECT_RATIO_TOLERANCE = "KeepAspectRatioTolerance";
 	protected static final String LIMIT_FOLDERS = "LimitFolders";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
@@ -2078,6 +2079,19 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
+	}
+
+	/**
+	 * The number represents percentage tolerance from ideal 16:9 AR. Within this
+	 * tolerance file will not be transcoded due to wrong AR.
+	 * Useful for files with almost invisible AR distortion like AR = 1.85 (~5%).
+	 * User can tune value between acceptable distortion and transcoding overhead
+	 * invoked by transcoding.
+	 *
+	 * @return
+	 */
+	public int getKeepAspectRatioTolerance() {
+		return getInt(KEEP_ASPECT_RATIO_TOLERANCE, 0);
 	}
 
 	/**
