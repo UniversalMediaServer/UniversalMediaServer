@@ -384,7 +384,7 @@ public class FFMpegVideo extends Player {
 				}
 				if (!customFFmpegOptions.contains("-preset")) {
 					transcodeOptions.add("-preset");
-					transcodeOptions.add("superfast");
+					transcodeOptions.add("ultrafast");
 				}
 				if (!customFFmpegOptions.contains("-level")) {
 					transcodeOptions.add("-level");
