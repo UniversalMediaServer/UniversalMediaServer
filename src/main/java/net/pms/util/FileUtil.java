@@ -634,13 +634,13 @@ public class FileUtil {
 									sub.setLang(DLNAMediaSubtitle.UND);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
 									if (code.length() > 0) {
-										sub.setFlavor(code);
-										if (sub.getFlavor().contains("-")) {
-											String flavorLang = sub.getFlavor().substring(0, sub.getFlavor().indexOf('-'));
-											String flavorTitle = sub.getFlavor().substring(sub.getFlavor().indexOf('-') + 1);
+										sub.setSubtitlesTrackTitleFromMetadata(code);
+										if (sub.getSubtitlesTrackTitleFromMetadata().contains("-")) {
+											String flavorLang = sub.getSubtitlesTrackTitleFromMetadata().substring(0, sub.getSubtitlesTrackTitleFromMetadata().indexOf('-'));
+											String flavorTitle = sub.getSubtitlesTrackTitleFromMetadata().substring(sub.getSubtitlesTrackTitleFromMetadata().indexOf('-') + 1);
 											if (Iso639.getCodeList().contains(flavorLang)) {
 												sub.setLang(flavorLang);
-												sub.setFlavor(flavorTitle);
+												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
 											}
 										}
 									}

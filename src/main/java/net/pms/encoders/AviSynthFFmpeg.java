@@ -45,6 +45,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
@@ -259,7 +260,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				configuration.setFfmpegAviSynthMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(multithreading, cc.xy(2, 3));
+		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
 
 		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getFfmpegAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
@@ -277,7 +278,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 			}
 		});
-		builder.add(interframe, cc.xy(2, 5));
+		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
 
 		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getFfmpegAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
@@ -287,7 +288,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				configuration.setFfmpegAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(interframegpu, cc.xy(2, 7));
+		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
 
 		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getFfmpegAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
@@ -297,7 +298,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				configuration.setFfmpegAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(convertfps, cc.xy(2, 9));
+		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 9));
 
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override

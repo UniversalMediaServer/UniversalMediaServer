@@ -89,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>16</binary-revision>
+		<binary-revision>19</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.2</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.13</git-commit-id-plugin-version>
@@ -120,13 +120,11 @@
 			</snapshots>
 		</repository>
 
-		<!-- netty -->
+		<!-- Maven Central -->
 		<repository>
-			<id>jboss</id>
-			<url>http://repository.jboss.org/</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
+			<id>maven-central</id>
+			<name>Maven Central Repository</name>
+			<url>http://repo.maven.apache.org/maven2/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -137,19 +135,6 @@
 			<id>google-gson</id>
 			<name>google-gson</name>
 			<url>https://google-gson.googlecode.com/svn/mavenrepo/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-
-		<!-- JBoss.org repository -->
-		<repository>
-			<id>jboss.releases</id>
-			<name>JBoss releases</name>
-			<url>https://repository.jboss.org/nexus/content/repositories/releases/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -262,8 +247,8 @@
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.9.6.Final</version>
+			<artifactId>netty-all</artifactId>
+			<version>4.0.28.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
