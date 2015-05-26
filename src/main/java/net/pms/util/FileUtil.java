@@ -705,15 +705,8 @@ public class FileUtil {
 			if (mm != null) {
 				encoding = mm.getName().toUpperCase();
 				externalSubsLang = mm.getLanguage();
-
-				// following code is only for testing and will be removed
-				LOGGER.debug("Apache Tika detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
-				if (encoding != null && !encoding.equals(CHARSET_UTF_8)) {
-					int confidence = mm.getConfidence();
-					LOGGER.debug("Detected language is {} with confidence {}%.", externalSubsLang, confidence);
-				}
-
 			}
+
 		} finally {
 			in.close();
 		}
