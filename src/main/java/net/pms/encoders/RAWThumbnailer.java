@@ -4,9 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.swing.JComponent;
-
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
@@ -19,7 +17,6 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,15 +66,15 @@ public class RAWThumbnailer extends Player {
 			return null;
 		}
 
-		byte copy[] = null;
+		byte image[] = null;
 		try {
-			copy = convertRAWtoJPEG(params, filename);
+			image = convertRAWtoJPEG(params, filename);
 		} catch (IOException e) {
 			LOGGER.debug("Error converting RAW to JPEG", e);
 		}
 
 		ProcessWrapper pw;
-		pw = new InternalJavaProcessImpl(new ByteArrayInputStream(copy));
+		pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 		configuration = prev;
 		return pw;
 	}
