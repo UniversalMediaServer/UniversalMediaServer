@@ -4,7 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
 import javax.swing.JComponent;
+
+import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -16,6 +19,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,24 +65,19 @@ public class RAWThumbnailer extends Player {
 		params.hidebuffer = true;
 		final String filename = dlna.getSystemName();
 
-		if (media == null || media.getThumb() == null) {
+		if (media == null) {
 			return null;
 		}
 
-		if (media.getThumb().length == 0) {
-			try {
-				media.setThumb(getThumbnail(params, filename));
-			} catch (Exception e) {
-				LOGGER.error("Error extracting thumbnail", e);
-				return null;
-			}
+		byte copy[] = null;
+		try {
+			copy = convertRAWtoJPEG(params, filename);
+		} catch (IOException e) {
+			LOGGER.debug("Error converting RAW to JPEG", e);
 		}
 
-		byte copy[] = new byte[media.getThumb().length];
-		System.arraycopy(media.getThumb(), 0, copy, 0, media.getThumb().length);
-		media.setThumb(new byte[0]);
-
-		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(copy));
+		ProcessWrapper pw;
+		pw = new InternalJavaProcessImpl(new ByteArrayInputStream(copy));
 		configuration = prev;
 		return pw;
 	}
@@ -105,7 +104,7 @@ public class RAWThumbnailer extends Player {
 
 	// Called from net.pms.formats.RAW.parse XXX even if the engine is disabled
 	// May also be called from launchTranscode
-	public static byte[] getThumbnail(OutputParams params, String fileName) throws Exception {
+	public static byte[] convertRAWtoJPEG(OutputParams params, String fileName) throws IOException {
 		PmsConfiguration configuration = PMS.getConfiguration(params);
 		params.log = false;
 
@@ -128,6 +127,18 @@ public class RAWThumbnailer extends Player {
 		byte b[] = baos.toByteArray();
 		baos.close();
 		return b;
+	}
+
+	// Create the thumbnail image using the Thumbnailator library
+	public static byte[] getThumbnail(String fileName) throws IOException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Thumbnails.of(fileName)
+					.size(320, 180)
+					.outputFormat("JPEG")
+					.outputQuality(1.0f)
+					.toOutputStream(out);
+
+		return out.toByteArray();
 	}
 
 	/**

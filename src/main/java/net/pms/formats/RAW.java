@@ -122,11 +122,11 @@ public class RAW extends JPG {
 			}
 
 			if (media.getWidth() > 0) {
-				media.setThumb(RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath()));
-				if (media.getThumb() != null) {
-					media.setSize(media.getThumb().length);
+				if (configuration.getImageThumbnailsEnabled()) {
+					media.setThumb(RAWThumbnailer.getThumbnail(file.getFile().getAbsolutePath()));
 				}
 
+				media.setSize(RAWThumbnailer.convertRAWtoJPEG(params, file.getFile().getAbsolutePath()).length);
 				media.setCodecV("raw");
 				media.setContainer("raw");
 			}
