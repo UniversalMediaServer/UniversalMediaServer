@@ -127,6 +127,7 @@ public class RAW extends JPG {
 			if (media.getWidth() > 0) {
 				byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath());
 				media.setSize(image.length);
+				// XXX why the image size is set to thumbnail size and the codecV and container is set to RAW when thumbnail is in the JPEG format
 				media.setCodecV("raw");
 				media.setContainer("raw");
 
