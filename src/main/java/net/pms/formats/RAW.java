@@ -3,7 +3,6 @@ package net.pms.formats;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -13,7 +12,6 @@ import net.pms.dlna.InputFile;
 import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
