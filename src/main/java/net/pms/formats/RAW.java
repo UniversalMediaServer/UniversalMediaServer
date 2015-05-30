@@ -1,6 +1,9 @@
 package net.pms.formats;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
+import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -118,17 +121,27 @@ public class RAW extends JPG {
 					String sz = s.substring(13);
 					media.setWidth(Integer.parseInt(sz.substring(0, sz.indexOf('x')).trim()));
 					media.setHeight(Integer.parseInt(sz.substring(sz.indexOf('x') + 1).trim()));
+					break;
 				}
 			}
 
 			if (media.getWidth() > 0) {
-				media.setThumb(RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath()));
-				if (media.getThumb() != null) {
-					media.setSize(media.getThumb().length);
-				}
-
+				byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath());
+				media.setSize(image.length);
+				// XXX why the image size is set to thumbnail size and the codecV and container is set to RAW when thumbnail is in the JPEG format
 				media.setCodecV("raw");
 				media.setContainer("raw");
+
+				if (configuration.getImageThumbnailsEnabled()) {
+					// Resize the thumbnail image using the Thumbnailator library
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					Thumbnails.of(new ByteArrayInputStream(image))
+								.size(320, 180)
+								.outputFormat("JPEG")
+								.outputQuality(1.0f)
+								.toOutputStream(out);
+					media.setThumb(out.toByteArray());
+				}
 			}
 
 			media.finalize(type, file);

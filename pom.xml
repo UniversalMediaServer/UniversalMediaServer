@@ -140,7 +140,7 @@
 			</snapshots>
 		</repository>
 
-		<!-- for jai-imageio-core-standalone, which is used by Thumbnailator -->
+		<!-- for jai-imageio-core-standalone, which is used by Thumbnailator 
 		<repository>
 			<releases />
 			<snapshots>
@@ -150,6 +150,7 @@
 			<name>myGrid Repository</name>
 			<url>http://build.mygrid.org.uk/maven/repository</url>
 		</repository>
+		-->
 
 		<repository>
 			<id>4thline-repo</id>
@@ -281,11 +282,18 @@
 			https://code.google.com/p/thumbnailator/issues/detail?id=32
 			https://github.com/stain/jai-imageio-core
 			http://stackoverflow.com/questions/1209583/using-java-advanced-imaging-with-maven
-		-->
+		
 		<dependency>
 			<groupId>net.java.dev.jai-imageio</groupId>
 			<artifactId>jai-imageio-core-standalone</artifactId>
 			<version>1.2-pre-dr-b04-2011-07-04</version>
+		</dependency>
+		-->
+		
+		<dependency>
+    		<groupId>com.github.jai-imageio</groupId>
+    		<artifactId>jai-imageio-core</artifactId>
+    		<version>1.3.0</version>
 		</dependency>
 
 		<dependency>
