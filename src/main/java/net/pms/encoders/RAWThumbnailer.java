@@ -73,8 +73,7 @@ public class RAWThumbnailer extends Player {
 			LOGGER.debug("Error converting RAW to JPEG", e);
 		}
 
-		ProcessWrapper pw;
-		pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
+		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 		configuration = prev;
 		return pw;
 	}
