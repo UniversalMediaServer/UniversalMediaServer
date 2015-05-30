@@ -630,7 +630,7 @@ public class UPNPHelper extends UPNPControl {
 				) {
 					// The upnp-matched reference conf is different from the previous
 					// http-matched conf and has equal or higher priority, so update.
-					LOGGER.debug("Switching to preferred renderer: " + ref.getRendererName());
+					LOGGER.debug("Switching to preferred renderer: " + ref);
 					r.inherit(ref);
 				}
 
@@ -642,7 +642,7 @@ public class UPNPHelper extends UPNPControl {
 				r.details = getDeviceDetails(d);
 				// Update gui
 				PMS.get().updateRenderer(r);
-				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + r.details);
+				LOGGER.debug("Found upnp service for \"{}\" with dlna details: {}", r, r.details);
 			} else {
 				// It's brand new
 				r = (DeviceConfiguration) rendererMap.get(uuid, "0");
@@ -659,7 +659,7 @@ public class UPNPHelper extends UPNPControl {
 				if (r.associateIP(socket)) {
 					r.details = getDeviceDetails(d);
 					PMS.get().setRendererFound(r);
-					LOGGER.debug("New renderer found: " + r.getRendererName() + ": " + r.details);
+					LOGGER.debug("New renderer found: \"{}\" with dlna details: {}", r, r.details);
 				}
 			}
 			return r;
