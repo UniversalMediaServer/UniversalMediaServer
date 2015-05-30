@@ -148,7 +148,7 @@
 			</snapshots>
 			<id>mygrid-repository</id>
 			<name>myGrid Repository</name>
-			<url>http://www.mygrid.org.uk/maven/repository</url>
+			<url>http://build.mygrid.org.uk/maven/repository</url>
 		</repository>
 
 		<repository>
@@ -427,7 +427,7 @@
 			<!-- 1) package unfiltered resources -->
 
 			<!--
-				This needs to be defined explicitly if a <resources>...</resources> 
+				This needs to be defined explicitly if a <resources>...</resources>
 				section is used
 			-->
 			<resource>
@@ -663,15 +663,15 @@
 				exist in a public Maven repository. That is why we store some jar files in the
 				"src/main/external-resources/lib" directory and have this plugin take care of
 				the installation at build time.
-				
+
 				Note: The plugin does not work automatically in Maven 3. To install the required
 				dependencies execute the following commands:
-				
+
 				mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
 				mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
-				
+
 				Checksums can be calculated with "openssl sha1 [filename]".
-				
+
 				See: http://code.google.com/p/maven-external-dependency-plugin/issues/detail?id=8#c4
 			-->
 			<plugin>
@@ -1100,7 +1100,7 @@
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
-						"pms.nsi" and "setup.nsi" files. 
+						"pms.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
@@ -1247,7 +1247,7 @@
 						</executions>
 					</plugin>
 				</plugins>
-			</build>			
+			</build>
 		</profile>
 
 		<!--
@@ -1528,6 +1528,6 @@
 					</plugin>
 				</plugins>
 			</build>
-		</profile> 		
+		</profile>
 	</profiles>
 </project>
