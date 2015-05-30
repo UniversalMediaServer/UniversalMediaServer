@@ -121,6 +121,7 @@ public class RAW extends JPG {
 					String sz = s.substring(13);
 					media.setWidth(Integer.parseInt(sz.substring(0, sz.indexOf('x')).trim()));
 					media.setHeight(Integer.parseInt(sz.substring(sz.indexOf('x') + 1).trim()));
+					break;
 				}
 			}
 
