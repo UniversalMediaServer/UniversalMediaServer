@@ -1,6 +1,10 @@
 package net.pms.formats;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
+
+import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -9,6 +13,7 @@ import net.pms.dlna.InputFile;
 import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,13 +127,22 @@ public class RAW extends JPG {
 			}
 
 			if (media.getWidth() > 0) {
-				if (configuration.getImageThumbnailsEnabled()) {
-					media.setThumb(RAWThumbnailer.getThumbnail(file.getFile().getAbsolutePath()));
-				}
-
-				media.setSize(RAWThumbnailer.convertRAWtoJPEG(params, file.getFile().getAbsolutePath()).length);
+				byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath());
+				media.setSize(image.length);
 				media.setCodecV("raw");
 				media.setContainer("raw");
+
+				if (configuration.getImageThumbnailsEnabled()) {
+					// Resize the thumbnail image using the Thumbnailator library
+					ByteArrayInputStream in = new ByteArrayInputStream(image);
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					Thumbnails.of(in)
+								.size(320, 180)
+								.outputFormat("JPEG")
+								.outputQuality(1.0f)
+								.toOutputStream(out);
+					media.setThumb(out.toByteArray());
+				}
 			}
 
 			media.finalize(type, file);

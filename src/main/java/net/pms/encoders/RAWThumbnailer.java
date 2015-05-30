@@ -68,9 +68,9 @@ public class RAWThumbnailer extends Player {
 
 		byte image[] = null;
 		try {
-			image = convertRAWtoJPEG(params, filename);
+			image = getThumbnail(params, filename);
 		} catch (IOException e) {
-			LOGGER.debug("Error converting RAW to JPEG", e);
+			LOGGER.error("Error extracting thumbnail", e);
 		}
 
 		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
@@ -100,7 +100,7 @@ public class RAWThumbnailer extends Player {
 
 	// Called from net.pms.formats.RAW.parse XXX even if the engine is disabled
 	// May also be called from launchTranscode
-	public static byte[] convertRAWtoJPEG(OutputParams params, String fileName) throws IOException {
+	public static byte[] getThumbnail(OutputParams params, String fileName) throws IOException {
 		PmsConfiguration configuration = PMS.getConfiguration(params);
 		params.log = false;
 
@@ -123,18 +123,6 @@ public class RAWThumbnailer extends Player {
 		byte b[] = baos.toByteArray();
 		baos.close();
 		return b;
-	}
-
-	// Create the thumbnail image using the Thumbnailator library
-	public static byte[] getThumbnail(String fileName) throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		Thumbnails.of(fileName)
-					.size(320, 180)
-					.outputFormat("JPEG")
-					.outputQuality(1.0f)
-					.toOutputStream(out);
-
-		return out.toByteArray();
 	}
 
 	/**
