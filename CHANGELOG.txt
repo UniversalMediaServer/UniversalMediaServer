@@ -9,11 +9,13 @@
 	Languages:
 		Updated French translation (thanks, Kirvx!)
 	External Components:
-		Updated FFmpeg for Windows, which:
+		Updated FFmpeg to builds from 20150521, which:
 			Improved support for many containers and codecs
 			Fixed bugs
 		Updated InterFrame to 2.8.2, which:
 			Improved speed
+		Updated MediaInfo to 0.7.74, which:
+			Improved detection of file information
 		Updated Netty to 4.0.28, which:
 			Improved network operations
 
