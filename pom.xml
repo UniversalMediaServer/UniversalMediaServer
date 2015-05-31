@@ -139,19 +139,6 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-
-		<!-- for jai-imageio-core-standalone, which is used by Thumbnailator 
-		<repository>
-			<releases />
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>mygrid-repository</id>
-			<name>myGrid Repository</name>
-			<url>http://build.mygrid.org.uk/maven/repository</url>
-		</repository>
-		-->
-
 		<repository>
 			<id>4thline-repo</id>
 			<url>http://4thline.org/m2</url>
@@ -269,27 +256,6 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>[0.4, 0.5)</version>
 		</dependency>
-
-		<!--
-			this is not used on its own, but rather provides
-			ImageReader subclasses that make support for additional
-			formats (e.g. TIFF) available to the ImageIO API, and thus
-			to Thumbnailator (our built-in image thumbnailer).
-
-			XXX be careful upgrading this. this version is redistributable;
-			other versions may not be:
-
-			https://code.google.com/p/thumbnailator/issues/detail?id=32
-			https://github.com/stain/jai-imageio-core
-			http://stackoverflow.com/questions/1209583/using-java-advanced-imaging-with-maven
-		
-		<dependency>
-			<groupId>net.java.dev.jai-imageio</groupId>
-			<artifactId>jai-imageio-core-standalone</artifactId>
-			<version>1.2-pre-dr-b04-2011-07-04</version>
-		</dependency>
-		-->
-		
 		<dependency>
     		<groupId>com.github.jai-imageio</groupId>
     		<artifactId>jai-imageio-core</artifactId>
