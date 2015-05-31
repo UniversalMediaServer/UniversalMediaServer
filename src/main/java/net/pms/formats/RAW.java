@@ -99,8 +99,6 @@ public class RAW extends JPG {
 		try {
 			OutputParams params = new OutputParams(configuration);
 			params.waitbeforestart = 1;
-			params.minBufferSize = 1;
-			params.maxBufferSize = 5;
 			params.hidebuffer = true;
 
 			String cmdArray[] = new String[4];
