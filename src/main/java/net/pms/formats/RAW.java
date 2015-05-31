@@ -134,9 +134,8 @@ public class RAW extends JPG {
 
 				if (configuration.getImageThumbnailsEnabled()) {
 					// Resize the thumbnail image using the Thumbnailator library
-					ByteArrayInputStream in = new ByteArrayInputStream(image);
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					Thumbnails.of(in)
+					Thumbnails.of(new ByteArrayInputStream(image))
 								.size(320, 180)
 								.outputFormat("JPEG")
 								.outputQuality(1.0f)
