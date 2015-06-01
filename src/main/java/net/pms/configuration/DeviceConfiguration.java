@@ -110,7 +110,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		if (uuid != null && ! uuid.equals(this.uuid)) {
 			this.uuid = uuid;
 			// Switch to the custom device conf for this new uuid, if any
-			if (uuid != null && deviceConfs.containsKey(uuid) && deviceConf != deviceConfs.get(uuid)) {
+			if (deviceConfs.containsKey(uuid) && deviceConf != deviceConfs.get(uuid)) {
 				deviceConf = initConfiguration(null);
 				reset();
 			}
