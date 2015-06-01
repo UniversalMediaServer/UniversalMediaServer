@@ -491,7 +491,7 @@
 						-->
 						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
 					</configuration>
-					<version>2.18</version>
+					<version>2.18.1</version>
 				</plugin>
 
 				<!--
