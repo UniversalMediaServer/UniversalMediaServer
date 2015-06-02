@@ -57,7 +57,7 @@ public class RAWThumbnailer extends Player {
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		params.waitbeforestart = 1;
 		params.minBufferSize = 1;
-		params.maxBufferSize = 5;
+		params.maxBufferSize = 6;
 		params.hidebuffer = true;
 		final String filename = dlna.getSystemName();
 
