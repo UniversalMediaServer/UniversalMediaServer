@@ -31,9 +31,8 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
@@ -738,7 +737,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							header &&
 							(
 								line.startsWith("#") ||
-								isBlank(line)
+								StringUtils.isBlank(line)
 							)
 						)
 					) {
@@ -978,11 +977,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			while (st.hasMoreTokens()) {
 				String tok = st.nextToken().trim();
-				if (isBlank(tok)) {
+				if (StringUtils.isBlank(tok)) {
 					continue;
 				}
 				tok = tok.replaceAll("###0", " ").replaceAll("###n", "\n").replaceAll("###r", "\r");
-				if (isBlank(org)) {
+				if (StringUtils.isBlank(org)) {
 					org = tok;
 				} else {
 					charMap.put(org, tok);
@@ -1780,9 +1779,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public String getCustomFFmpegMPEG2Options() {
 		String mpegSettings = getCustomMEncoderMPEG2Options();
+		if (StringUtils.isBlank(mpegSettings)) {
+			return "";
+		}
 
+		return convertMencoderSettingToFFmpegFormat(mpegSettings);
+	}
+
+	/**
+	 * Converts the MEncoder's quality settings format to FFmpeg's.
+	 *
+	 * @return The FFmpeg format.
+	 */
+	public String convertMencoderSettingToFFmpegFormat(String mpegSettings) {
 		String mpegSettingsArray[] = mpegSettings.split(":");
-
 		String pairArray[];
 		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
@@ -2413,7 +2423,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
 		}
 
-		if (isBlank(bitrate)) {
+		if (StringUtils.isBlank(bitrate)) {
 			bitrate = "0";
 		}
 

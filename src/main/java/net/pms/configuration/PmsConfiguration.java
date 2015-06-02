@@ -1808,36 +1808,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public String getMPEG2MainSettingsFFmpeg() {
 		String mpegSettings = getMPEG2MainSettings();
-
-		if (mpegSettings.contains("Automatic")) {
+		if (StringUtils.isBlank(mpegSettings) || mpegSettings.contains("Automatic")) {
 			return mpegSettings;
 		}
 
-		String mpegSettingsArray[] = mpegSettings.split(":");
-
-		String pairArray[];
-		StringBuilder returnString = new StringBuilder();
-		for (String pair : mpegSettingsArray) {
-			pairArray = pair.split("=");
-			switch (pairArray[0]) {
-				case "keyint":
-					returnString.append("-g ").append(pairArray[1]).append(" ");
-					break;
-				case "vqscale":
-					returnString.append("-q:v ").append(pairArray[1]).append(" ");
-					break;
-				case "vqmin":
-					returnString.append("-qmin ").append(pairArray[1]).append(" ");
-					break;
-				case "vqmax":
-					returnString.append("-qmax ").append(pairArray[1]).append(" ");
-					break;
-				default:
-					break;
-			}
-		}
-
-		return returnString.toString();
+		return convertMencoderSettingToFFmpegFormat(mpegSettings);
 	}
 
 	public void setFfmpegMultithreading(boolean value) {
