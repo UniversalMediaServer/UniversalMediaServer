@@ -306,6 +306,11 @@
 			<version>${xmlwise-version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.googlecode.juniversalchardet</groupId>
+			<artifactId>juniversalchardet</artifactId>
+			<version>1.0.3</version>
+		</dependency>
+		<dependency>
 			<groupId>sevenzip</groupId>
 			<artifactId>jbinding</artifactId>
 			<version>${sevenzip-version}</version>
@@ -386,11 +391,6 @@
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
 			<version>3.19.0-GA</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parsers</artifactId>
-			<version>1.8</version>
 		</dependency>
 	</dependencies>
 	<build>

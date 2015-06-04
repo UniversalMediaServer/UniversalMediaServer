@@ -14,12 +14,11 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
-import static net.pms.util.Constants.*;
-import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.tika.parser.txt.CharsetDetector;
-import org.apache.tika.parser.txt.CharsetMatch;
+import static org.apache.commons.lang3.StringUtils.*;
 import org.codehaus.plexus.util.StringUtils;
+import static org.mozilla.universalchardet.Constants.*;
+import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -669,55 +668,37 @@ public class FileUtil {
 		return found;
 	}
 
-	private static String externalSubsLang;
-
-	/**
-	 * Get the language of the external subtitles file detected by {@link #getFileCharset(File file)} method
-	 */
-	public static String getExtSubsLang() {
-		return externalSubsLang;
-	}
-
 	/**
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
 	 * @param file File to detect charset/encoding
-	 * @return file's charset or null if not detected
+	 * @return file's charset {@link org.mozilla.universalchardet.Constants}
+	 *         or null if not detected
 	 * @throws IOException
 	 */
 	public static String getFileCharset(File file) throws IOException {
-		String encoding = null;
-		externalSubsLang = null;
-		InputStream in = new BufferedInputStream(new FileInputStream(file));
-		try {
-			CharsetDetector detector = new CharsetDetector();
-			detector.enableInputFilter(true);
-			detector.setText(in);
-			CharsetMatch [] matches = detector.detectAll();
-			CharsetMatch mm = null;
-			for (CharsetMatch m : matches) {
-				if (mm == null || mm.getConfidence() < m.getConfidence()) {
-					mm = m;
-				}
+		byte[] buf = new byte[4096];
+		final UniversalDetector universalDetector;
+		try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+			universalDetector = new UniversalDetector(null);
+			int numberOfBytesRead;
+			while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
+				universalDetector.handleData(buf, 0, numberOfBytesRead);
 			}
-
-			if (mm != null) {
-				encoding = mm.getName().toUpperCase();
-				externalSubsLang = mm.getLanguage();
-			}
-
-		} finally {
-			in.close();
 		}
+		universalDetector.dataEnd();
+		String encoding = universalDetector.getDetectedCharset();
 
 		if (encoding != null) {
 			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
 		} else {
 			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
 		}
-		
-	    return encoding;
+
+		universalDetector.reset();
+
+		return encoding;
 	}
 
 	/**
