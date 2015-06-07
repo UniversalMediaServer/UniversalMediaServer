@@ -4,6 +4,9 @@
 		Limits clickable areas of settings more precisely
 		Uses a default renderer image when none exist
 		Made H.264 transcoding faster
+		Improved stability and speed with large amounts of images
+		Expanded code testing coverage (thanks, Jensaarai!)
+		Code optimizations
 	Renderers:
 		Improved support for Panasonic VT60 TVs
 	Languages:
@@ -14,6 +17,11 @@
 			Fixed bugs
 		Updated InterFrame to 2.8.2, which:
 			Improved speed
+		Updated Maven Assembly Plugin to 2.5.4
+		Updated Maven Compiler Plugin to 3.3
+		Updated Maven Git Commit ID Plugin to 2.1.15
+		Updated Maven Javadoc Plugin to 2.10.3
+		Updated Maven Surefire Plugin to 2.18.1
 		Updated MediaInfo to 0.7.74, which:
 			Improved detection of file information
 		Updated Netty to 4.0.28, which:
