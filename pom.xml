@@ -91,8 +91,8 @@
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
 		<binary-revision>22</binary-revision>
 
-		<maven-javadoc-plugin-version>2.10.2</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.1.13</git-commit-id-plugin-version>
+		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
