@@ -1,4 +1,4 @@
-5.1.4 - 2015-06-??
+5.1.4 - 2015-06-14
 
 	General:
 		Limits clickable areas of settings more precisely
