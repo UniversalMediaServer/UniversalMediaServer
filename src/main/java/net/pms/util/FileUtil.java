@@ -14,11 +14,12 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
-import org.apache.commons.io.FilenameUtils;
+import net.pms.util.charsetdetector.CharsetDetector;
+import net.pms.util.charsetdetector.CharsetMatch;
+import static net.pms.util.Constants.*;
 import static org.apache.commons.lang3.StringUtils.*;
+import org.apache.commons.io.FilenameUtils;
 import org.codehaus.plexus.util.StringUtils;
-import static org.mozilla.universalchardet.Constants.*;
-import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,6 +194,7 @@ public class FileUtil {
 		String formattedName;
 		String formattedNameTemp;
 		String searchFormattedName;
+		boolean loopedOnce = false;
 
 		// These are false unless we recognize that we could use some info on the video from IMDB
 		boolean isEpisodeToLookup = false;
@@ -233,7 +235,16 @@ public class FileUtil {
 
 			// Capitalize the first letter of each word if the string contains no capital letters
 			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = StringUtils.capitaliseAllWords(formattedName);
+				formattedNameTemp = "";
+				for (String part : formattedName.split(" - ")) {
+					if (loopedOnce) {
+						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
+					} else {
+						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
+					}
+					loopedOnce = true;
+				}
+				formattedName = formattedNameTemp;
 			}
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons that are double episodes
@@ -258,7 +269,16 @@ public class FileUtil {
 
 			// Capitalize the first letter of each word if the string contains no capital letters
 			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = StringUtils.capitaliseAllWords(formattedName);
+				formattedNameTemp = "";
+				for (String part : formattedName.split(" - ")) {
+					if (loopedOnce) {
+						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
+					} else {
+						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
+					}
+					loopedOnce = true;
+				}
+				formattedName = formattedNameTemp;
 			}
 		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
@@ -284,7 +304,16 @@ public class FileUtil {
 
 			// Capitalize the first letter of each word if the string contains no capital letters
 			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = StringUtils.capitaliseAllWords(formattedName);
+				formattedNameTemp = "";
+				for (String part : formattedName.split(" - ")) {
+					if (loopedOnce) {
+						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
+					} else {
+						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
+					}
+					loopedOnce = true;
+				}
+				formattedName = formattedNameTemp;
 			}
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons
@@ -309,7 +338,16 @@ public class FileUtil {
 
 			// Capitalize the first letter of each word if the string contains no capital letters
 			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = StringUtils.capitaliseAllWords(formattedName);
+				formattedNameTemp = "";
+				for (String part : formattedName.split(" - ")) {
+					if (loopedOnce) {
+						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
+					} else {
+						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
+					}
+					loopedOnce = true;
+				}
+				formattedName = formattedNameTemp;
 			}
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
@@ -333,7 +371,16 @@ public class FileUtil {
 
 			// Capitalize the first letter of each word if the string contains no capital letters
 			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = StringUtils.capitaliseAllWords(formattedName);
+				formattedNameTemp = "";
+				for (String part : formattedName.split(" - ")) {
+					if (loopedOnce) {
+						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
+					} else {
+						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
+					}
+					loopedOnce = true;
+				}
+				formattedName = formattedNameTemp;
 			}
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
 			// This matches scene and most p2p movies
@@ -349,6 +396,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = convertLowerCaseStringToTitleCase(formattedName);
+			}
 		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
 
@@ -357,18 +409,33 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = convertLowerCaseStringToTitleCase(formattedName);
+			}
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = convertLowerCaseStringToTitleCase(formattedName);
+			}
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = convertLowerCaseStringToTitleCase(formattedName);
+			}
 		} else if (formattedName.matches(commonFileEndsMatch)) {
 			// This is probably a movie that doesn't specify a year
 			isMovieToLookup = true;
@@ -380,6 +447,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = convertLowerCaseStringToTitleCase(formattedName);
+			}
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
 			// This matches anime with a hash at the end of the name
 
@@ -408,6 +480,11 @@ public class FileUtil {
 			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
 				isEpisodeToLookup = true;
 				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
+			}
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = convertLowerCaseStringToTitleCase(formattedName);
 			}
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
@@ -438,6 +515,11 @@ public class FileUtil {
 				isEpisodeToLookup = true;
 				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
 			}
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = convertLowerCaseStringToTitleCase(formattedName);
+			}
 		}
 
 		// Add episode name (if not there)
@@ -453,6 +535,48 @@ public class FileUtil {
 		}
 
 		return formattedName;
+	}
+
+	/**
+	 * Converts a lower case string to title case.
+	 *
+	 * It is not very smart right now so it can be expanded to be more reliable.
+	 *
+	 * @param value the string to convert
+	 *
+	 * @return the converted string
+	 */
+	public static String convertLowerCaseStringToTitleCase(String value) {
+		String convertedValue = "";
+		boolean loopedOnce = false;
+
+		for (String word : value.split(" ")) {
+			if (loopedOnce) {
+				switch (word) {
+					case "a":
+					case "an":
+					case "and":
+					case "in":
+					case "it":
+					case "for":
+					case "of":
+					case "on":
+					case "the":
+					case "to":
+					case "vs":
+						convertedValue += ' ' + word;
+						break;
+					default:
+						convertedValue += ' ' + word.substring(0, 1).toUpperCase() + word.substring(1);
+				}
+			} else {
+				// Always capitalize the first letter of the string
+				convertedValue += word.substring(0, 1).toUpperCase() + word.substring(1);
+			}
+			loopedOnce = true;
+		}
+
+		return convertedValue;
 	}
 
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
@@ -629,13 +753,13 @@ public class FileUtil {
 									sub.setLang(DLNAMediaSubtitle.UND);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
 									if (code.length() > 0) {
-										sub.setFlavor(code);
-										if (sub.getFlavor().contains("-")) {
-											String flavorLang = sub.getFlavor().substring(0, sub.getFlavor().indexOf('-'));
-											String flavorTitle = sub.getFlavor().substring(sub.getFlavor().indexOf('-') + 1);
+										sub.setSubtitlesTrackTitleFromMetadata(code);
+										if (sub.getSubtitlesTrackTitleFromMetadata().contains("-")) {
+											String flavorLang = sub.getSubtitlesTrackTitleFromMetadata().substring(0, sub.getSubtitlesTrackTitleFromMetadata().indexOf('-'));
+											String flavorTitle = sub.getSubtitlesTrackTitleFromMetadata().substring(sub.getSubtitlesTrackTitleFromMetadata().indexOf('-') + 1);
 											if (Iso639.getCodeList().contains(flavorLang)) {
 												sub.setLang(flavorLang);
-												sub.setFlavor(flavorTitle);
+												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
 											}
 										}
 									}
@@ -664,37 +788,55 @@ public class FileUtil {
 		return found;
 	}
 
+	private static String externalSubsLang;
+
+	/**
+	 * Get the language of the external subtitles file detected by {@link #getFileCharset(File file)} method
+	 */
+	public static String getExtSubsLang() {
+		return externalSubsLang;
+	}
+
 	/**
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
 	 * @param file File to detect charset/encoding
-	 * @return file's charset {@link org.mozilla.universalchardet.Constants}
-	 *         or null if not detected
+	 * @return file's charset or null if not detected
 	 * @throws IOException
 	 */
 	public static String getFileCharset(File file) throws IOException {
-		byte[] buf = new byte[4096];
-		final UniversalDetector universalDetector;
-		try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
-			universalDetector = new UniversalDetector(null);
-			int numberOfBytesRead;
-			while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
-				universalDetector.handleData(buf, 0, numberOfBytesRead);
+		String encoding = null;
+		externalSubsLang = null;
+		InputStream in = new BufferedInputStream(new FileInputStream(file));
+		try {
+			CharsetDetector detector = new CharsetDetector();
+			detector.enableInputFilter(true);
+			detector.setText(in);
+			CharsetMatch [] matches = detector.detectAll();
+			CharsetMatch mm = null;
+			for (CharsetMatch m : matches) {
+				if (mm == null || mm.getConfidence() < m.getConfidence()) {
+					mm = m;
+				}
 			}
+
+			if (mm != null) {
+				encoding = mm.getName().toUpperCase();
+				externalSubsLang = mm.getLanguage();
+			}
+
+		} finally {
+			in.close();
 		}
-		universalDetector.dataEnd();
-		String encoding = universalDetector.getDetectedCharset();
 
 		if (encoding != null) {
 			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
 		} else {
 			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
 		}
-
-		universalDetector.reset();
-
-		return encoding;
+		
+	    return encoding;
 	}
 
 	/**

@@ -1050,7 +1050,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										audio.setFlavor(line.substring(aa + 2, bb));
+										audio.setAudioTrackTitleFromMetadata(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1177,7 +1177,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										lang.setFlavor(line.substring(aa + 2, bb));
+										lang.setSubtitlesTrackTitleFromMetadata(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {

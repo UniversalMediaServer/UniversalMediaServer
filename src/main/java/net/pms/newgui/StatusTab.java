@@ -263,7 +263,7 @@ public class StatusTab {
 
 		bitrateLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
-		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xyw(1, 1, 3, "left, top"), colSpec, orientation));
+		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
 
 		currentBitrateLabel = new JLabel(Messages.getString("StatusTab.14"));
 		currentBitrateLabel.setForeground(fgColor);
@@ -386,9 +386,15 @@ public class StatusTab {
 
 			if (icon.matches(".*\\S+://.*")) {
 				try {
-					return ImageIO.read(new URL(icon));
+					bi = ImageIO.read(new URL(icon));
 				} catch (Exception e) {
-					LOGGER.debug("Failed to read icon url: " + e);
+					LOGGER.debug("Error reading icon url: " + e);
+				}
+				if (bi != null) {
+					return bi;
+				} else {
+					LOGGER.debug("Unable to read icon url \"{}\", using '{}' instead.", RendererConfiguration.UNKNOWN_ICON);
+					icon = RendererConfiguration.UNKNOWN_ICON;
 				}
 			}
 
@@ -434,6 +440,9 @@ public class StatusTab {
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			}
+		}
+		if (bi == null) {
+			LOGGER.debug("Failed to load icon: " + icon);
 		}
 		return bi;
 	}

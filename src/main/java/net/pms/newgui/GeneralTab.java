@@ -160,7 +160,7 @@ public class GeneralTab {
 			appendProfileName.addItemListener((ItemEvent e) -> {
 				configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED));
 			});
-			builder.add(appendProfileName, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(appendProfileName), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
 		}
 
@@ -172,7 +172,7 @@ public class GeneralTab {
 			autoStart.addItemListener((ItemEvent e) -> {
 				configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
 			});
-			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		}
 		ypos += 2;
 
@@ -232,7 +232,7 @@ public class GeneralTab {
 		autoUpdateCheckBox.addItemListener((ItemEvent e) -> {
 			configuration.setAutoUpdate((e.getStateChange() == ItemEvent.SELECTED));
 		});
-		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(autoUpdateCheckBox), FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		ypos += 2;
 		if (!Build.isUpdatable()) {
 			checkForUpdates.setEnabled(false);
@@ -244,7 +244,7 @@ public class GeneralTab {
 		hideAdvancedOptions.addActionListener((ActionEvent e) -> {
 			configuration.setHideAdvancedOptions(hideAdvancedOptions.isSelected());
 		});
-		builder.add(hideAdvancedOptions, FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(hideAdvancedOptions), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
 		runWizardOnProgramStartup = new JCheckBox(Messages.getString("GeneralTab.9"), configuration.isRunWizard());
@@ -252,7 +252,7 @@ public class GeneralTab {
 		runWizardOnProgramStartup.addActionListener((ActionEvent e) -> {
 			configuration.setRunWizard(runWizardOnProgramStartup.isSelected());
 		});
-		builder.add(runWizardOnProgramStartup, FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(runWizardOnProgramStartup), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
@@ -262,7 +262,7 @@ public class GeneralTab {
 			singleInstance.addActionListener((ActionEvent e) -> {
 				configuration.setRunSingleInstance(singleInstance.isSelected());
 			});
-			builder.add(singleInstance, FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(singleInstance), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 			ypos += 2;
 		}
 
@@ -427,7 +427,7 @@ public class GeneralTab {
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
-			builder.add(adaptBitrate, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(adaptBitrate), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
 
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.31"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
