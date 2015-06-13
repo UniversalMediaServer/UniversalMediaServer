@@ -4,10 +4,26 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+
 import javax.swing.*;
+
 import org.apache.commons.lang3.StringUtils;
 
 public final class GuiUtil {
+	
+	/**
+	 * Wraps a {@link JComponent} into a {@link JPanel} using a {@link BorderLayout}, adding it to WEST.<br>
+	 * If using this method for e.g. a {@link JCheckBox} and adding it to a layout, the {@link JCheckBox} won't 
+	 * span the entire space and thus, it won't change the checked state if clicking outside of it.
+	 *
+	 * @param component the component
+	 * @return the preferred size component
+	 */
+	public static JComponent getPreferredSizeComponent(JComponent component) {
+		JPanel pWrap = new JPanel(new BorderLayout());
+		pWrap.add(component, BorderLayout.WEST);
+		return pWrap;
+	}
 
 	/**
 	 * DefaultComboBoxModel does not take arguments on Java 6.

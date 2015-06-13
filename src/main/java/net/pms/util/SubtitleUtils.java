@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -37,16 +36,13 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import static net.pms.util.Constants.*;
 import net.pms.util.FileUtil;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.mozilla.universalchardet.Constants.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,20 +60,29 @@ public class SubtitleUtils {
 			put(CHARSET_MACCYRILLIC, "enca:ru:cp1251");
 			put(CHARSET_WINDOWS_1251, "enca:ru:cp1251");
 			put(CHARSET_IBM866, "enca:ru:cp1251");
+			// Central / Eastern Europe
+			put(CHARSET_WINDOWS_1250, "cp1250");
+			put(CHARSET_ISO_8859_2, "ISO-8859-2");
+			// Western Europe
+			put(CHARSET_WINDOWS_1252, "cp1252");
+			put(CHARSET_ISO_8859_1, "ISO-8859-1");
 			// Greek
 			put(CHARSET_WINDOWS_1253, "cp1253");
 			put(CHARSET_ISO_8859_7, "ISO-8859-7");
-			// Western Europe
-			put(CHARSET_WINDOWS_1252, "cp1252");
+			// Turkish
+			put(CHARSET_WINDOWS_1254, "cp1254");
+			put(CHARSET_ISO_8859_9, "ISO-8859-9");
 			// Hebrew
 			put(CHARSET_WINDOWS_1255, "cp1255");
 			put(CHARSET_ISO_8859_8, "ISO-8859-8");
+			// Arabic
+			put(CHARSET_WINDOWS_1256, "cp1256");
+			put(CHARSET_ISO_8859_6, "ISO-8859-6");
 			// Chinese
 			put(CHARSET_ISO_2022_CN, "ISO-2022-CN");
 			put(CHARSET_BIG5, "enca:zh:big5");
 			put(CHARSET_GB18030, "enca:zh:big5");
 			put(CHARSET_EUC_TW, "enca:zh:big5");
-			put(CHARSET_HZ_GB_2312, "enca:zh:big5");
 			// Korean
 			put(CHARSET_ISO_2022_KR, "cp949");
 			put(CHARSET_EUC_KR, "euc-kr");
@@ -87,6 +92,7 @@ public class SubtitleUtils {
 			put(CHARSET_SHIFT_JIS, "shift-jis");
 		}
 	};
+
 	private static final String SUB_DIR = "subs";
 
 	/**

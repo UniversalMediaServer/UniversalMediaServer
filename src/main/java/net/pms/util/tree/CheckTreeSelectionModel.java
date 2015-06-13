@@ -25,9 +25,6 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 			return false;
 		}
 		TreePath[] selectionPaths = getSelectionPaths();
-		if (selectionPaths == null) {
-			return false;
-		}
 		for (TreePath selectionPath : selectionPaths) {
 			if (isDescendant(selectionPath, path)) {
 				return true;
