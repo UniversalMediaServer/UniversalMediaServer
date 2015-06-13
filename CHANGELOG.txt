@@ -1,4 +1,4 @@
-5.1.4 - 2015-05-??
+5.1.4 - 2015-06-??
 
 	General:
 		Limits clickable areas of settings more precisely
@@ -6,6 +6,8 @@
 		Made H.264 transcoding faster
 		Improved stability and speed with large amounts of images
 		Expanded code testing coverage (thanks, Jensaarai!)
+		Improved detection of languages
+		Improved filename prettifying
 		Code optimizations
 	Renderers:
 		Improved support for Panasonic VT60 TVs
