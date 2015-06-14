@@ -15,24 +15,21 @@
 		Improved filename prettifying
 		Code optimizations
 	Renderers:
-		Improved support for Panasonic VT60 TVs
+		Improved support for DTS audio on Panasonic VT60 TVs
 	Languages:
 		Updated French translation (thanks, Kirvx!)
 	External Components:
 		Updated FFmpeg to builds from 20150521, which:
 			Improved support for many containers and codecs
 			Fixed bugs
-		Updated InterFrame to 2.8.2, which:
-			Improved speed
+		Updated InterFrame to 2.8.2, which improved speed
 		Updated Maven Assembly Plugin to 2.5.4
 		Updated Maven Compiler Plugin to 3.3
 		Updated Maven Git Commit ID Plugin to 2.1.15
 		Updated Maven Javadoc Plugin to 2.10.3
 		Updated Maven Surefire Plugin to 2.18.1
-		Updated MediaInfo to 0.7.74, which:
-			Improved detection of file information
-		Updated Netty to 4.0.28, which:
-			Improved network operations
+		Updated MediaInfo to 0.7.74, which improved detection of file information
+		Updated Netty to 4.0.28, which improved network operations (thanks, mfulgo!)
 
 5.1.3 - 2015-05-05
 
