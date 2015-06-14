@@ -24,7 +24,7 @@ import java.io.FileNotFoundException;
 import static net.pms.formats.v2.SubtitleType.*;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
-import static org.fest.assertions.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;

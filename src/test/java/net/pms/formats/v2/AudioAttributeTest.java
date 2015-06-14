@@ -19,7 +19,7 @@
 package net.pms.formats.v2;
 
 import static net.pms.formats.v2.AudioAttribute.*;
-import static org.fest.assertions.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 
 public class AudioAttributeTest {
