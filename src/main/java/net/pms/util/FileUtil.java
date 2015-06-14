@@ -523,7 +523,7 @@ public class FileUtil {
 		}
 
 		// Add episode name (if not there)
-		if (isEpisodeToLookup || isMovieToLookup) {
+		if (file != null && (isEpisodeToLookup || isMovieToLookup)) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
 				PMS.get().infoDbAdd(file, searchFormattedName);

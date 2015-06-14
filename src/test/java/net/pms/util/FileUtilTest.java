@@ -43,6 +43,44 @@ public class FileUtilTest {
 	}
 
 	@Test
+	public void testIsUrl() throws Exception {
+		assertThat(FileUtil.isUrl("universalmediaserver.com")).isFalse();
+		assertThat(FileUtil.isUrl("http://www.universalmediaserver.com")).isTrue();
+	}
+
+	@Test
+	public void testGetProtocol() throws Exception {
+		assertThat(FileUtil.getProtocol("universalmediaserver.com")).isNull();
+		assertThat(FileUtil.getProtocol("http://www.universalmediaserver.com")).isEqualTo("http");
+	}
+
+	@Test
+	public void testUrlJoin() throws Exception {
+		assertThat(FileUtil.urlJoin("", "http://www.universalmediaserver.com")).isEqualTo("http://www.universalmediaserver.com");
+		assertThat(FileUtil.urlJoin("http://www.universalmediaserver.com", "index.php")).isEqualTo("http://www.universalmediaserver.com/index.php");
+	}
+
+	@Test
+	public void testGetUrlExtension() throws Exception {
+		assertThat(FileUtil.getUrlExtension("filename")).isNull();
+		assertThat(FileUtil.getUrlExtension("http://www.universalmediaserver.com/file.html?foo=bar")).isEqualTo("html");
+	}
+
+	@Test
+	public void testGetFileNameWithoutExtension() throws Exception {
+		assertThat(FileUtil.getFileNameWithoutExtension("filename.mkv")).isEqualTo("filename");
+	}
+
+	/**
+	 * Note: The method this is testing handles numerous inputs, so this test
+	 * could get very large. It should get much larger than it is now.
+	 */
+	@Test
+	public void testGetFileNameWithRewriting() throws Exception {
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E01E02.720p.mkv", null)).isEqualTo("Universal Media Server - 101-102");
+	}
+
+	@Test
 	public void testGetFileCharset_WINDOWS_1251() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
 		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_WINDOWS_1251);
