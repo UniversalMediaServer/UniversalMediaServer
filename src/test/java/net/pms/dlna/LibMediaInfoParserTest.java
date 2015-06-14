@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import com.sun.syndication.io.impl.Base64;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.*;
 
 public class LibMediaInfoParserTest {
 	@Test
