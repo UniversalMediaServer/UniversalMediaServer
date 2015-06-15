@@ -19,6 +19,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.io.File;
@@ -27,8 +28,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -39,6 +42,7 @@ import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -261,6 +265,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	protected static final String KEY_UUID = "uuid";
 	protected static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
+	protected static final String KEY_VIDEOTRANSCODE_ASPECT_RATIO_TOLERANCE = "keep_aspect_ratio_tolerance";
 	protected static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
 	protected static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
 	protected static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
@@ -2579,6 +2584,24 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setVideoTranscodeStartDelay(int value) {
 		configuration.setProperty(KEY_VIDEOTRANSCODE_START_DELAY, value);
+	}
+
+	/**
+	 * The number represents percentage tolerance from ideal 16:9 AR. Within this
+	 * tolerance file will not be transcoded due to wrong AR.
+	 * Useful for files with almost invisible AR distortion like AR = 1.85 (~5%).
+	 * User can tune value between acceptable distortion and overhead
+	 * invoked by transcoding.
+	 *
+	 * @return
+	 */
+
+	public int getVideoTranscodeARTolerance() {
+		return getInt(KEY_VIDEOTRANSCODE_ASPECT_RATIO_TOLERANCE, 5);
+	}
+
+	public void setVideoTranscodeARTolerance(int value) {
+		configuration.setProperty(KEY_VIDEOTRANSCODE_ASPECT_RATIO_TOLERANCE, value);
 	}
 
 	public boolean isAudioResample() {
