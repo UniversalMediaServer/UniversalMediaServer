@@ -2311,10 +2311,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 					if (media.getResolution() != null) {
 						if (player != null && mediaRenderer.isKeepAspectRatio()) {
-							int scaleWidth = media.getWidth();
-							int scaleHeight = media.getHeight();
-							getResolutionForKeepAR(scaleWidth, scaleHeight);
-							addAttribute(sb, "resolution", scaleWidth + "x" + scaleHeight);
+							addAttribute(sb, "resolution", getResolutionForKeepAR(media.getWidth(), media.getHeight()));
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());
 						}
@@ -4038,9 +4035,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-
-	public void getResolutionForKeepAR(int scaleWidth, int scaleHeight) {
-		double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
+	public String getResolutionForKeepAR(int scaleWidth, int scaleHeight) {
+		double videoAspectRatio = (double) scaleWidth / (double) scaleHeight;
 		double rendererAspectRatio = 1.777777777777778;
 		if (videoAspectRatio > rendererAspectRatio) {
 			scaleHeight = (int) Math.round(scaleWidth / rendererAspectRatio);
@@ -4048,7 +4044,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
 		}
 
-		scaleWidth  = player.convertToModX(scaleWidth, 4);
-		scaleHeight = player.convertToModX(scaleHeight, 4);
+		scaleWidth  = Player.convertToModX(scaleWidth, 4);
+		scaleHeight = Player.convertToModX(scaleHeight, 4);
+		return scaleWidth + "x" + scaleHeight;
 	}
 }

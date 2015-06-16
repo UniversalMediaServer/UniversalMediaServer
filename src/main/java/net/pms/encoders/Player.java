@@ -496,7 +496,7 @@ public abstract class Player {
 	 *
 	 * @return the number divisible by mod
 	 */
-	public int convertToModX(int number, int mod) {
+	public static int convertToModX(int number, int mod) {
 		if (number % mod != 0) {
 			number -= (number % mod);
 		}
