@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -49,6 +50,7 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2319,7 +2321,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 					if (media.getResolution() != null) {
-						addAttribute(sb, "resolution", media.getResolution());
+						if (player != null && mediaRenderer.isKeepAspectRatio()) {
+							addAttribute(sb, "resolution", getResolutionForKeepAR(media.getWidth(), media.getHeight()));
+						} else {
+							addAttribute(sb, "resolution", media.getResolution());
+						}
+						
 					}
 					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
 					if (firstAudioTrack != null) {
@@ -4038,5 +4045,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			vva.setParent(this);
 			dynamicPls.addChildInternal(vva);
 		}
+	}
+
+	public String getResolutionForKeepAR(int scaleWidth, int scaleHeight) {
+		double videoAspectRatio = (double) scaleWidth / (double) scaleHeight;
+		double rendererAspectRatio = 1.777777777777778;
+		if (videoAspectRatio > rendererAspectRatio) {
+			scaleHeight = (int) Math.round(scaleWidth / rendererAspectRatio);
+		} else {
+			scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
+		}
+
+		scaleWidth  = Player.convertToModX(scaleWidth, 4);
+		scaleHeight = Player.convertToModX(scaleHeight, 4);
+		return scaleWidth + "x" + scaleHeight;
 	}
 }
