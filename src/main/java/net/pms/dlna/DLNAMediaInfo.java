@@ -1909,14 +1909,19 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public String getFormattedAspectRatio(String aspect) {
 		if (isBlank(aspect)) {
+			LOGGER.info("~Aspect is blank");
 			return null;
 		} else {
 			if (aspect.contains(":")) {
+				LOGGER.info("~Aspect = " + aspect);
 				return aspect;
 			} else {
 				double exactAspectRatio = Double.parseDouble(aspect);
 				double arDistortion = Math.abs(1-(exactAspectRatio/1.777777777777778))*100d;
 				double arTolerance = configuration.getVideoTranscodeARTolerance();
+				LOGGER.info("~exactAspectRatio = " + exactAspectRatio);
+				LOGGER.info("~arDistortion = " + arDistortion);
+				LOGGER.info("~arTolerance = " + arTolerance);
 				if (arTolerance >= arDistortion) {
 					LOGGER.trace("Video aspect ratio distortion [" + exactAspectRatio + " (" + arDistortion + "%)] is within defined tolerance [" + arTolerance + "%].");
 					return "16:9";
@@ -1925,6 +1930,7 @@ public class DLNAMediaInfo implements Cloneable {
 				} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
 					return "5:4";
 				} else {
+					LOGGER.info("~Aspect set to null");
 					return null;
 				}
 			}

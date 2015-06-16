@@ -907,6 +907,7 @@ public class FFMpegVideo extends Player {
 			}
 			if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
 				deferToTsmuxer = false;
+				LOGGER.info("#Aspect will be forced = " + media.getAspectRatioContainer());
 				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			}
 			if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
