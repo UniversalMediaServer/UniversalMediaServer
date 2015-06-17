@@ -111,11 +111,10 @@ public class LibMediaInfoParser {
 							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID").toLowerCase(), file);
 							media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
-							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
 							media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
 							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
 							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
-							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/Stri"));
+							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/Strimg"));
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
