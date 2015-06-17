@@ -36,6 +36,7 @@ public class LibMediaInfoParser {
 			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
 			MI.Option("ParseSpeed", "0");
 			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
+//			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
 		}
 
 		base64 = new Base64();
@@ -114,7 +115,7 @@ public class LibMediaInfoParser {
 							media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
 							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
 							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
-							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/Stri"));
+							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
