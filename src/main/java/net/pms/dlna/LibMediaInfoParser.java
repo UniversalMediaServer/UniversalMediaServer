@@ -114,7 +114,7 @@ public class LibMediaInfoParser {
 							media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
 							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
 							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
-							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/Strimg"));
+							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/Stri"));
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
