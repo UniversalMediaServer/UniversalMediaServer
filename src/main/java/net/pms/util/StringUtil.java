@@ -99,8 +99,6 @@ public class StringUtil {
 		s = s.replace("\"", "&quot;");
 		s = s.replace("'", "&apos;");
 
-		s = s.replace("&", "&amp;");
-		
 		return s;
 	}
 
