@@ -14,3 +14,4 @@ pms.iml
 target
 *.orig
 
+/win32/service
