@@ -371,7 +371,7 @@ public class Request extends HTTPResource {
 									}
 									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
 										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000" + subExtension;
+										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 									output(output, subtitleHttpHeader + ": " + subtitleUrl);
 								}
