@@ -876,33 +876,6 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>${maven-javadoc-plugin-version}</version>
 			</plugin>
-
-			<!-- Plugin to move the service wrapper into the working directory (for debugging in IDE) -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>${maven-antrun-plugin-version}</version>
-				<executions>
-					<execution>
-						<id>process-resources-web</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target>
-								<!-- Make sure the destination folders exist. -->
-								<mkdir dir="${project.basedir}/win32/service" />
-								
-								<!-- Copy all the resources into the working directory -->
-								<copy todir="${project.basedir}/win32/service" overwrite="true">
-									<fileset dir="${project.binaries}/win32/service" />
-								</copy>
-							</target>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 	<profiles>
@@ -944,7 +917,7 @@
 			</pluginRepositories>
 
 			<build>
-				<plugins>
+				<plugins>					
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -1067,6 +1040,12 @@
 										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
+										
+										<!-- Make sure the destination folder for the service wrapper exists and copy the files. -->
+										<mkdir dir="${project.basedir}/win32/service" />
+										<copy todir="${project.basedir}/win32/service" overwrite="true">
+											<fileset dir="${project.binaries}/win32/service" />
+										</copy>
 									</target>
 								</configuration>
 							</execution>
