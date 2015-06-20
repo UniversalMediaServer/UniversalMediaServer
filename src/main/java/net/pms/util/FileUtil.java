@@ -14,11 +14,11 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
+import static net.pms.util.Constants.*;
 import net.pms.util.charsetdetector.CharsetDetector;
 import net.pms.util.charsetdetector.CharsetMatch;
-import static net.pms.util.Constants.*;
-import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.io.FilenameUtils;
+import static org.apache.commons.lang3.StringUtils.*;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -523,7 +523,7 @@ public class FileUtil {
 		}
 
 		// Add episode name (if not there)
-		if (isEpisodeToLookup || isMovieToLookup) {
+		if (file != null && (isEpisodeToLookup || isMovieToLookup)) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
 				PMS.get().infoDbAdd(file, searchFormattedName);

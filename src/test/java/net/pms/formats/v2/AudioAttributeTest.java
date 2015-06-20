@@ -19,16 +19,16 @@
 package net.pms.formats.v2;
 
 import static net.pms.formats.v2.AudioAttribute.*;
-import org.fest.assertions.Assertions;
+import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 
 public class AudioAttributeTest {
 	@Test
 	public void testGetAudioAttributeByLibMediaInfoKeyValuePair_matchingKeyValuePairs() throws Exception {
-		Assertions.assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Channel(s)                       : 6")).isEqualTo(CHANNELS_NUMBER);
-		Assertions.assertThat(getAudioAttributeByLibMediaInfoKeyValuePair(" Channel(s):6")).isEqualTo(CHANNELS_NUMBER);
-		Assertions.assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Video_Delay                      : 0")).isEqualTo(DELAY);
-		Assertions.assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("SamplingRate                     : 48000")).isEqualTo(SAMPLE_FREQUENCY);
+		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Channel(s)                       : 6")).isEqualTo(CHANNELS_NUMBER);
+		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair(" Channel(s):6")).isEqualTo(CHANNELS_NUMBER);
+		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Video_Delay                      : 0")).isEqualTo(DELAY);
+		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("SamplingRate                     : 48000")).isEqualTo(SAMPLE_FREQUENCY);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

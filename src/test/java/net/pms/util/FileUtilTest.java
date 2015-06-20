@@ -24,7 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
@@ -40,6 +40,44 @@ public class FileUtilTest {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
+	}
+
+	@Test
+	public void testIsUrl() throws Exception {
+		assertThat(FileUtil.isUrl("universalmediaserver.com")).isFalse();
+		assertThat(FileUtil.isUrl("http://www.universalmediaserver.com")).isTrue();
+	}
+
+	@Test
+	public void testGetProtocol() throws Exception {
+		assertThat(FileUtil.getProtocol("universalmediaserver.com")).isNull();
+		assertThat(FileUtil.getProtocol("http://www.universalmediaserver.com")).isEqualTo("http");
+	}
+
+	@Test
+	public void testUrlJoin() throws Exception {
+		assertThat(FileUtil.urlJoin("", "http://www.universalmediaserver.com")).isEqualTo("http://www.universalmediaserver.com");
+		assertThat(FileUtil.urlJoin("http://www.universalmediaserver.com", "index.php")).isEqualTo("http://www.universalmediaserver.com/index.php");
+	}
+
+	@Test
+	public void testGetUrlExtension() throws Exception {
+		assertThat(FileUtil.getUrlExtension("filename")).isNull();
+		assertThat(FileUtil.getUrlExtension("http://www.universalmediaserver.com/file.html?foo=bar")).isEqualTo("html");
+	}
+
+	@Test
+	public void testGetFileNameWithoutExtension() throws Exception {
+		assertThat(FileUtil.getFileNameWithoutExtension("filename.mkv")).isEqualTo("filename");
+	}
+
+	/**
+	 * Note: The method this is testing handles numerous inputs, so this test
+	 * could get very large. It should get much larger than it is now.
+	 */
+	@Test
+	public void testGetFileNameWithRewriting() throws Exception {
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E01E02.720p.mkv", null)).isEqualTo("Universal Media Server - 101-102");
 	}
 
 	@Test

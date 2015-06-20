@@ -19,7 +19,7 @@
 package net.pms.formats.v2;
 
 import ch.qos.logback.classic.LoggerContext;
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
