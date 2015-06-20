@@ -1274,34 +1274,40 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (container.equals("mov")) {
 				mimeType = HTTPResource.MOV_TYPEMIME;
 			}
-		} else if (codecV != null) {
-			if (codecV.equals("mjpeg") || "jpg".equals(container)) {
-				mimeType = HTTPResource.JPEG_TYPEMIME;
-			} else if ("png".equals(codecV) || "png".equals(container)) {
-				mimeType = HTTPResource.PNG_TYPEMIME;
-			} else if ("gif".equals(codecV) || "gif".equals(container)) {
-				mimeType = HTTPResource.GIF_TYPEMIME;
-			} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
-				mimeType = HTTPResource.MP4_TYPEMIME;
-			} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
-				mimeType = HTTPResource.MPEG_TYPEMIME;
+		}
+
+		if (mimeType == null) {
+			if (codecV != null) {
+				if (codecV.equals("mjpeg") || "jpg".equals(container)) {
+					mimeType = HTTPResource.JPEG_TYPEMIME;
+				} else if ("png".equals(codecV) || "png".equals(container)) {
+					mimeType = HTTPResource.PNG_TYPEMIME;
+				} else if ("gif".equals(codecV) || "gif".equals(container)) {
+					mimeType = HTTPResource.GIF_TYPEMIME;
+				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
+					mimeType = HTTPResource.MP4_TYPEMIME;
+				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
+					mimeType = HTTPResource.MPEG_TYPEMIME;
+				}
+			} else if (codecV == null && codecA != null) {
+				if (codecA.contains("mp3")) {
+					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else if (codecA.contains("aac")) {
+					mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
+				} else if (codecA.contains("flac")) {
+					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
+				} else if (codecA.contains("vorbis")) {
+					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
+					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
+				} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
+					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				}
 			}
-		} else if (codecV == null && codecA != null) {
-			if (codecA.contains("mp3")) {
-				mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-			} else if (codecA.contains("aac")) {
-				mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
-			} else if (codecA.contains("flac")) {
-				mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
-			} else if (codecA.contains("vorbis")) {
-				mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
-			} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
-				mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-			} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
-				mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+
+			if (mimeType == null) {
+				mimeType = HTTPResource.getDefaultMimeType(type);
 			}
-		} else {
-			mimeType = HTTPResource.getDefaultMimeType(type);
 		}
 
 		if (getFirstAudioTrack() == null || !(type == Format.AUDIO && getFirstAudioTrack().getBitsperSample() == 24 && getFirstAudioTrack().getSampleRate() > 48000)) {
