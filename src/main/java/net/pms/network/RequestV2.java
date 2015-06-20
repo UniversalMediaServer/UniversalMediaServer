@@ -905,10 +905,6 @@ public class RequestV2 extends HTTPResource {
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) {
-						LOGGER.trace("The channel future completed:");
-						LOGGER.trace("  isSuccess: " + future.isSuccess());
-						LOGGER.trace("  isCancelled: " + future.isCancelled());
-						LOGGER.trace("  getCause: ", future.cause());
 						try {
 							PMS.get().getRegistry().reenableGoToSleep();
 							inputStream.close();
