@@ -13,5 +13,5 @@ pms.iml
 .settings
 target
 *.orig
-
-/win32/service
+win32/
+*.sublime-*
