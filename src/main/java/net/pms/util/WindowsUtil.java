@@ -7,7 +7,7 @@ import net.pms.io.ProcessWrapperImpl;
 /**
  * Utility class for Windows
  */
-public class WindowsUtil {	
+public class WindowsUtil {
 	/**
 	 * Private constructor to avoid instantiating this class
 	 */
@@ -28,6 +28,7 @@ public class WindowsUtil {
 	 * Executes the needed commands in order to install the Windows service
 	 * that starts whenever the machine is started.
 	 * This function is called from the General tab.
+	 *
 	 * @return true if UMS could be installed as a Windows service.
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
@@ -55,5 +56,4 @@ public class WindowsUtil {
 		pwuninstall.runInSameThread();
 		return true;
 	}
-
 }

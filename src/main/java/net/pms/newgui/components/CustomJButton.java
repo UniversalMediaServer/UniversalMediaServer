@@ -10,7 +10,7 @@ public class CustomJButton extends JButton {
 	public CustomJButton() {
 		super();
 	}
-	
+
 	public CustomJButton(String string) {
 		super(string);
 		this.setRequestFocusEnabled(false);
@@ -26,9 +26,10 @@ public class CustomJButton extends JButton {
 		this.setRequestFocusEnabled(false);
 	}
 
+	@Override
 	public JToolTip createToolTip() {
-	    JToolTip tip = new HyperLinkToolTip();
-	    tip.setComponent(this);
-	    return tip;
+		JToolTip tip = new HyperLinkToolTip();
+		tip.setComponent(this);
+		return tip;
 	}
 }

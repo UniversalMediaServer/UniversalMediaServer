@@ -23,20 +23,13 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-
 import javax.swing.*;
-
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -45,7 +38,6 @@ import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.WindowsUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -526,23 +518,21 @@ public class GeneralTab {
 	 *  - Set the button and tooltip text
 	 *  - Add the correct action listener
 	 */
-	private void refreshInstallServiceButtonState() {		
+	private void refreshInstallServiceButtonState() {
 		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
 			installService.setEnabled(false);
 		} else {
 			installService.setEnabled(true);
-			
+
 			boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
-			
-			if(isUmsServiceInstalled) {
-				// The 'Universal Media Server' service is installed
-				
+
+			if (isUmsServiceInstalled) {
 				// Update button text and tooltip
 				installService.setText(Messages.getString("GeneralTab.2"));
 				installService.setToolTipText(null);
 
 				// Remove all attached action listeners
-				for(ActionListener al : installService.getActionListeners()){
+				for (ActionListener al : installService.getActionListeners()) {
 					installService.removeActionListener(al);
 				}
 
@@ -555,7 +545,7 @@ public class GeneralTab {
 
 						// Refresh the button state after it has been clicked
 						refreshInstallServiceButtonState();
-						
+
 						JOptionPane.showMessageDialog(
 							looksFrame,
 							Messages.getString("GeneralTab.3"),
@@ -565,27 +555,25 @@ public class GeneralTab {
 					}
 				});
 			} else {
-				// The 'Universal Media Server' service is not installed
-				
 				// Update button text and tooltip
 				installService.setText(Messages.getString("NetworkTab.4"));
 				installService.setToolTipText(Messages.getString("NetworkTab.63"));
 
 				// Remove all attached action listeners
-				for(ActionListener al : installService.getActionListeners()){
+				for (ActionListener al : installService.getActionListeners()) {
 					installService.removeActionListener(al);
 				}
-				
+
 				// Attach the button clicked action listener
 				installService.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (WindowsUtil.installWin32Service()) {
 							LOGGER.info(Messages.getString("PMS.41"));
-							
+
 							// Refresh the button state after it has been clicked
 							refreshInstallServiceButtonState();
-							
+
 							JOptionPane.showMessageDialog(
 								looksFrame,
 								Messages.getString("NetworkTab.11") +
