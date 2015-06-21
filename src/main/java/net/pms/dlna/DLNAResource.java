@@ -859,18 +859,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
 			} else if (format.isVideo() && parserV2) {
-				if (
-					renderer.isKeepAspectRatio() &&
-					!"16:9".equals(media.getAspectRatioContainer())
-				) {
-					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), media.getAspectRatioContainer());
-				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+				if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
 				} else if (media.getBitrate() > (renderer.getMaxBandwidth() / 2)) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the bitrate is too high.", getName());
+				} else if (renderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
+					if ("1.85:1".equals(media.getAspectRatioContainer()) && !configuration.isVideoTranscodeForceExactAR()) {
+						LOGGER.trace("File \"{}\" will be streamed because the minimal distortion of aspect ratio 1.85:1 is allowed.");
+					} else {
+						isIncompatible = true;
+						LOGGER.trace(prependTraceReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), media.getAspectRatioContainer());
+					}
 				}
 			}
 
