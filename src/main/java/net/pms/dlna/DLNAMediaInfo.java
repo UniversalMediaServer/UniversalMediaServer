@@ -24,7 +24,9 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+
 import javax.imageio.ImageIO;
+
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -42,6 +44,7 @@ import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -1912,19 +1915,28 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public String getFormattedAspectRatio(String aspect) {
 		if (isBlank(aspect)) {
+			LOGGER.info("~Aspect is blank");
 			return null;
 		} else {
 			if (aspect.contains(":")) {
+				LOGGER.info("~Aspect = " + aspect);
 				return aspect;
 			} else {
 				double exactAspectRatio = Double.parseDouble(aspect);
-				if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
+				double arDistortion = Math.abs(1-(exactAspectRatio/1.777777777777778))*100d;
+				double arTolerance = configuration.getVideoTranscodeARTolerance();
+				LOGGER.info("~exactAspectRatio = " + exactAspectRatio);
+				LOGGER.info("~arDistortion = " + arDistortion);
+				LOGGER.info("~arTolerance = " + arTolerance);
+				if (arTolerance >= arDistortion) {
+					LOGGER.trace("Video aspect ratio distortion [" + exactAspectRatio + " (" + arDistortion + "%)] is within defined tolerance [" + arTolerance + "%].");
 					return "16:9";
 				} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
 					return "4:3";
 				} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
 					return "5:4";
 				} else {
+					LOGGER.info("~Aspect set to null");
 					return null;
 				}
 			}
