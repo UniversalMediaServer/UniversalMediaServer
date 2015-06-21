@@ -148,11 +148,11 @@ public class RemoteUtil {
 		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress()) || !PMS.isReady();
 	}
 
-	private static Range nullRange(long len) {
-		return Range.create(0, len, 0.0, 0.0);
+	private static Range.Byte nullRange(long len) {
+		return new Range.Byte(0L, len);
 	}
 
-	public static Range parseRange(Headers hdr, long len) {
+	public static Range.Byte parseRange(Headers hdr, long len) {
 		if (hdr == null) {
 			return nullRange(len);
 		}
@@ -165,7 +165,7 @@ public class RemoteUtil {
 		String[] tmp = range.split("=")[1].split("-");
 		long start = Long.parseLong(tmp[0]);
 		long end = tmp.length == 1 ? len : Long.parseLong(tmp[1]);
-		return Range.create(start, end, 0.0, 0.0);
+		return new Range.Byte(start, end);
 	}
 
 	public static void sendLogo(HttpExchange t) throws IOException {
