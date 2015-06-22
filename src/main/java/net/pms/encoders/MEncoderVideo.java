@@ -113,6 +113,7 @@ public class MEncoderVideo extends Player {
 	protected boolean ac3Remux;
 	protected boolean isTranscodeToMPEGTS;
 	protected boolean isTranscodeToH264;
+	protected boolean isTranscodeToAAC;
 	protected boolean wmv;
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
@@ -546,6 +547,10 @@ public class MEncoderVideo extends Player {
 			defaultArgsList.add("copy");
 		} else if (pcm) {
 			defaultArgsList.add("pcm");
+		} else if (isTranscodeToAAC) {
+			defaultArgsList.add("faac");
+			defaultArgsList.add("-faacopts");
+			defaultArgsList.add("br=320:mpeg=4:object=2");
 		} else {
 			defaultArgsList.add("lavc");
 		}
@@ -977,6 +982,7 @@ public class MEncoderVideo extends Player {
 
 		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
 		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265();
+		isTranscodeToAAC    = params.mediaRenderer.isTranscodeToAAC();
 
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
@@ -1131,7 +1137,6 @@ public class MEncoderVideo extends Player {
 		if (combinedCustomOptions.contains("-channels")) {
 			channelsString = "";
 		}
-		LOGGER.trace("channels=" + channels);
 
 		StringTokenizer st = new StringTokenizer(
 			channelsString +
@@ -1198,7 +1203,7 @@ public class MEncoderVideo extends Player {
 			// Set audio codec and bitrate if audio is being transcoded
 			String acodec   = "";
 			String abitrate = "";
-			if (!ac3Remux && !dtsRemux) {
+			if (!ac3Remux && !dtsRemux && !isTranscodeToAAC) {
 				// Set the audio codec used by Lavc
 				if (!combinedCustomOptions.contains("acodec=")) {
 					acodec = ":acodec=";

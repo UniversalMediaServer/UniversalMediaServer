@@ -393,7 +393,7 @@ public class RequestV2 extends HTTPResource {
 									}
 									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
 										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000" + subExtension;
+										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 									output.headers().set(subtitleHttpHeader, subtitleUrl);
 								} else {
@@ -905,10 +905,6 @@ public class RequestV2 extends HTTPResource {
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) {
-						LOGGER.trace("The channel future completed:");
-						LOGGER.trace("  isSuccess: " + future.isSuccess());
-						LOGGER.trace("  isCancelled: " + future.isCancelled());
-						LOGGER.trace("  getCause: ", future.cause());
 						try {
 							PMS.get().getRegistry().reenableGoToSleep();
 							inputStream.close();

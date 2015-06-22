@@ -132,8 +132,10 @@ public class DbgPacker implements ActionListener {
 
 		add(new File(profileDirectory, "WEB.conf"));
 		add(new File(configuration.getProfilePath()));
-		add(new File(debug_log + ".prev"));
-		add(new File(debug_log));
+		if (debug_log != null){
+			add(new File(debug_log + ".prev"));
+			add(new File(debug_log));
+		}
 	}
 
 	private void add(String[] files) {
