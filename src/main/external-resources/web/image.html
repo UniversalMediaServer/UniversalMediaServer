@@ -40,14 +40,14 @@
 			function zoom(rx, ry) {
 				var w = img.prop('naturalWidth'),
 					h = img.prop('naturalHeight');
-				if(w > img.width() || h > img.height()) {
+				if (w > img.width() || h > img.height()) {
 					img.addClass('zoomin');
 					img.removeClass('zoomout');
 					window.scrollTo(0, 0);
 					imgcontainer.addClass('noScroll');
 				} else {
 					img.removeClass('zoomin');
-					if(w > imgcontainer.width() || h > imgcontainer.height()) {
+					if (w > imgcontainer.width() || h > imgcontainer.height()) {
 						imgcontainer.removeClass('noScroll');
 						img.addClass('zoomout');
 						if (rx || ry) {
@@ -87,10 +87,10 @@
 			<div id="ImageContainer" style="display:none">
 				<img id="Image" class="imgfit" src="/raw/{{id1}}" alt="" onclick="fit(event)"><br>
 			</div>
-				<div id="ImageToolbar">
-					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
-					<button id="next" onclick="next()"{{nextAttr}}>>></button>
-				</div>
+			<div id="ImageToolbar">
+				<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+				<button id="next" onclick="next()"{{nextAttr}}>>></button>
+			</div>
 		</div>
 	</body>
 </html>
