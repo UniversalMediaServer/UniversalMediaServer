@@ -237,6 +237,7 @@ public class DbgPacker implements ActionListener {
 				File file = str.equals("showzip") ? new File(dbg_zip).getParentFile() : new File(str);
 				boolean exists = file.isFile() && file.exists();
 				if (!exists) {
+					file.getParentFile().mkdirs();
 					file.createNewFile();
 				}
 				java.awt.Desktop.getDesktop().open(file);
