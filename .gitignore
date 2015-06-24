@@ -17,3 +17,4 @@ win32/
 *.sublime-*
 /web
 /plugins
+/extras
