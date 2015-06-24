@@ -12,9 +12,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -25,9 +27,12 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.newgui.components.CustomJButton;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
 
 public class DbgPacker implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
@@ -240,12 +245,21 @@ public class DbgPacker implements ActionListener {
 					file.getParentFile().mkdirs();
 					file.createNewFile();
 				}
-				java.awt.Desktop.getDesktop().open(file);
+				try {
+					java.awt.Desktop.getDesktop().open(file);
+				} catch (IOException e2) {
+					LOGGER.warn("Failed to open default desktop application: " + e2);
+					if (Platform.isWindows()) {
+						JOptionPane.showMessageDialog(null, Messages.getString("TracesTab.17") + e2, Messages.getString("TracesTab.6"),JOptionPane.ERROR_MESSAGE);
+					} else {
+						JOptionPane.showMessageDialog(null, Messages.getString("TracesTab.18") + e2, Messages.getString("TracesTab.6"), JOptionPane.ERROR_MESSAGE);
+					}						
+				}
 				if (!exists) {
 					reload((JComponent) e.getSource());
 				}
 			} catch (IOException e1) {
-				LOGGER.debug("Failed to open default desktop application: " + e1);
+				LOGGER.debug("An error occurred while opening/creating file \"" + str + "\": " + e1);
 			}
 		}
 	}
