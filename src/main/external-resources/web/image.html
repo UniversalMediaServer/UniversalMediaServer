@@ -62,7 +62,7 @@
 				}
 			}
 
-			$(window).bind('load resize', function() {
+			$(window).bind('load resize', function(event) {
 				if (!img) {
 					img = $('#Image');
 					imgcontainer = $('#ImageContainer');
@@ -71,8 +71,10 @@
 				var top = $('#Menu').height();
 				imgcontainer.css({ top: '' + top + 'px' });
 				imgcontainer.height($('body').height() - top);
-				zoomed = true;
-				fit();
+				zoom();
+				if (event.type === 'load') {
+					imgcontainer.show();
+				}
 			});
 		</script>
 
@@ -82,7 +84,7 @@
 				<a href="/doc" id="DocButton" title="Documentation"></a>
 			</div>
 
-			<div id="ImageContainer">
+			<div id="ImageContainer" style="display:none">
 				<img id="Image" class="imgfit" src="/raw/{{id1}}" alt="" onclick="fit(event)"><br>
 			</div>
 				<div id="ImageToolbar">
