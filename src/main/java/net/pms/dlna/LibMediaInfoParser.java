@@ -36,6 +36,7 @@ public class LibMediaInfoParser {
 			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
 			MI.Option("ParseSpeed", "0");
 			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
+//			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
 		}
 
 		base64 = new Base64();
@@ -84,6 +85,10 @@ public class LibMediaInfoParser {
 				if (isNotBlank(value)) {
 					media.setThumb(getCover(value));
 				}
+				value = MI.Get(general, 0, "Title");
+				if (isNotBlank(value)) {
+					media.setFileTitleFromMetadata(value);
+				}
 				value = MI.Get(general, 0, "Attachements");
 				if (isNotBlank(value)) {
 					media.setEmbeddedFontExists(true);
@@ -107,14 +112,14 @@ public class LibMediaInfoParser {
 							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID").toLowerCase(), file);
 							media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
-							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
 							media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
 							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
 							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
-							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/Stri"));
+							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
+							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
 							value = MI.Get(video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name);
 							if (isNotBlank(value)) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
@@ -148,18 +153,19 @@ public class LibMediaInfoParser {
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile").toLowerCase(), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID").toLowerCase(), file);
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
-						currentAudioTrack.setFlavor(getFlavor(MI.Get(audio, i, "Title")));
+						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
 						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
 						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
 						currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
 
-						if (currentAudioTrack.getSongname() != null && currentAudioTrack.getSongname().length() > 0) {
-							if (renderer.isPrependTrackNumbers() && currentAudioTrack.getTrack() > 0) {
-								currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
-							}
-						} else {
-							currentAudioTrack.setSongname(file.getName());
+						if (
+							renderer.isPrependTrackNumbers() &&
+							currentAudioTrack.getTrack() > 0 &&
+							currentAudioTrack.getSongname() != null &&
+							currentAudioTrack.getSongname().length() > 0
+						) {
+							currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
 						}
 
 						currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
@@ -223,7 +229,7 @@ public class LibMediaInfoParser {
 						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "Format")));
 						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "CodecID")));
 						currentSubTrack.setLang(getLang(MI.Get(text, i, "Language/String")));
-						currentSubTrack.setFlavor(getFlavor(MI.Get(text, i, "Title")));
+						currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
 						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 						value = MI.Get(text, i, "ID/String");
 						if (isNotBlank(value)) {
@@ -411,8 +417,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.startsWith("h263")) {
-			format = FormatConfiguration.H263;	
+		} else if (value.startsWith("h263") || value.startsWith("s263") || value.startsWith("u263")) {
+			format = FormatConfiguration.H263;
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
@@ -681,6 +687,10 @@ public class LibMediaInfoParser {
 		return value;
 	}
 
+	/**
+	 * @deprecated use trim()
+	 */
+	@Deprecated
 	public static String getFlavor(String value) {
 		value = value.trim();
 		return value;

@@ -415,15 +415,15 @@ public abstract class Player {
 					if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
 						st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
 
-						while (sub.getFlavor() != null && st.hasMoreTokens()) {
+						while (sub.getSubtitlesTrackTitleFromMetadata() != null && st.hasMoreTokens()) {
 							String forcedTags = st.nextToken();
 							forcedTags = forcedTags.trim();
 
 							if (
-								sub.getFlavor().toLowerCase().contains(forcedTags) &&
+								sub.getSubtitlesTrackTitleFromMetadata().toLowerCase().contains(forcedTags) &&
 								Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
 							) {
-								LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getFlavor());
+								LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getSubtitlesTrackTitleFromMetadata());
 								LOGGER.trace("Forced subtitles track: " + sub);
 
 								if (sub.getExternalFile() != null) {
@@ -496,7 +496,7 @@ public abstract class Player {
 	 *
 	 * @return the number divisible by mod
 	 */
-	public int convertToModX(int number, int mod) {
+	public static int convertToModX(int number, int mod) {
 		if (number % mod != 0) {
 			number -= (number % mod);
 		}

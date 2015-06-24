@@ -31,9 +31,8 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
@@ -200,6 +199,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 
 	private static int maximumBitrateTotal = 0;
+	public static final String UNKNOWN_ICON = "unknown.png";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -236,6 +236,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getConfName();
+						allRenderersNames.add(rendererName);
 						String renderersGroup = null; 
 						if (rendererName.indexOf(" ") > 0) {
 							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
@@ -271,27 +272,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				}
 			}
 		}
+		Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
 		DeviceConfiguration.loadDeviceConfigurations(pmsConf);
-	}
-
-	private static void loadRenderersNames() {
-		File renderersDir = getRenderersDir();
-
-		if (renderersDir != null) {
-			LOGGER.info("Loading renderer names from " + renderersDir.getAbsolutePath());
-
-			for (File f : renderersDir.listFiles()) {
-				if (f.getName().endsWith(".conf")) {
-					try {
-						allRenderersNames.add(new RendererConfiguration(f).getConfName());
-					} catch (ConfigurationException ce) {
-						LOGGER.warn("Error loading " + f.getAbsolutePath());
-					}
-				}
-			}
-
-			Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
-		}
 	}
 
 	public int getInt(String key, int def) {
@@ -531,7 +513,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
 		RendererConfiguration r = addressAssociation.get(sa);
 		if (r != null) {
-			LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on address " + sa);
+			LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on address " + sa);
 		}
 		return r;
 	}
@@ -555,7 +537,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			boolean isNew = !addressAssociation.containsKey(ia);
 			r = resolve(ia, ref);
 			if (r != null) {
-				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+				LOGGER.debug("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 			}
 		}
 		return r;
@@ -564,12 +546,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
 		if (_pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
-			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
+			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
 		}
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.match(sortedHeaders)) {
-				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 				return r;
 			}
 		}
@@ -607,10 +589,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return null;
 	}
 
-	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details/*, InetAddress ia, String uuid*/) {
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.matchUPNPDetails(details)) {
-				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
+				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
 				return r;
 			}
 		}
@@ -755,7 +737,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							header &&
 							(
 								line.startsWith("#") ||
-								isBlank(line)
+								StringUtils.isBlank(line)
 							)
 						)
 					) {
@@ -832,7 +814,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isPS3() {
-		return getConfName().toUpperCase().contains("PLAYSTATION") || getConfName().toUpperCase().contains("PS3");
+		return getConfName().toUpperCase().contains("PLAYSTATION 3") || getConfName().toUpperCase().contains("PS3");
 	}
 
 	public boolean isBRAVIA() {
@@ -995,11 +977,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			while (st.hasMoreTokens()) {
 				String tok = st.nextToken().trim();
-				if (isBlank(tok)) {
+				if (StringUtils.isBlank(tok)) {
 					continue;
 				}
 				tok = tok.replaceAll("###0", " ").replaceAll("###n", "\n").replaceAll("###r", "\r");
-				if (isBlank(org)) {
+				if (StringUtils.isBlank(org)) {
 					org = tok;
 				} else {
 					charMap.put(org, tok);
@@ -1570,14 +1552,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	/**
 	 * Returns the icon to use for displaying this renderer in PMS as defined
-	 * in the renderer configurations. Default value is "unknown.png".
+	 * in the renderer configurations. Default value is UNKNOWN_ICON.
 	 *
 	 * @return The renderer icon.
 	 */
 	public String getRendererIcon() {
-		String icon = getString(RENDERER_ICON, "unknown.png");
+		String icon = getString(RENDERER_ICON, UNKNOWN_ICON);
 		String deviceIcon = null;
-		if (icon.equals("unknown.png")) {
+		if (icon.equals(UNKNOWN_ICON)) {
 			deviceIcon = UPNPHelper.getDeviceIcon(this, 140);
 		}
 		return deviceIcon == null ? icon : deviceIcon;
@@ -1797,9 +1779,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public String getCustomFFmpegMPEG2Options() {
 		String mpegSettings = getCustomMEncoderMPEG2Options();
+		if (StringUtils.isBlank(mpegSettings)) {
+			return "";
+		}
 
+		return convertMencoderSettingToFFmpegFormat(mpegSettings);
+	}
+
+	/**
+	 * Converts the MEncoder's quality settings format to FFmpeg's.
+	 *
+	 * @return The FFmpeg format.
+	 */
+	public String convertMencoderSettingToFFmpegFormat(String mpegSettings) {
 		String mpegSettingsArray[] = mpegSettings.split(":");
-
 		String pairArray[];
 		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
@@ -2130,10 +2123,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
-		if (allRenderersNames.isEmpty()) {
-			loadRenderersNames();
-		}
-
 		return allRenderersNames;
 	}
 
@@ -2434,7 +2423,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
 		}
 
-		if (isBlank(bitrate)) {
+		if (StringUtils.isBlank(bitrate)) {
 			bitrate = "0";
 		}
 

@@ -57,28 +57,22 @@ public class RAWThumbnailer extends Player {
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		params.waitbeforestart = 1;
 		params.minBufferSize = 1;
-		params.maxBufferSize = 5;
+		params.maxBufferSize = 6;
 		params.hidebuffer = true;
 		final String filename = dlna.getSystemName();
 
-		if (media == null || media.getThumb() == null) {
+		if (media == null) {
 			return null;
 		}
 
-		if (media.getThumb().length == 0) {
-			try {
-				media.setThumb(getThumbnail(params, filename));
-			} catch (Exception e) {
-				LOGGER.error("Error extracting thumbnail", e);
-				return null;
-			}
+		byte image[] = null;
+		try {
+			image = getThumbnail(params, filename);
+		} catch (IOException e) {
+			LOGGER.error("Error extracting thumbnail", e);
 		}
 
-		byte copy[] = new byte[media.getThumb().length];
-		System.arraycopy(media.getThumb(), 0, copy, 0, media.getThumb().length);
-		media.setThumb(new byte[0]);
-
-		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(copy));
+		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 		configuration = prev;
 		return pw;
 	}
@@ -105,7 +99,7 @@ public class RAWThumbnailer extends Player {
 
 	// Called from net.pms.formats.RAW.parse XXX even if the engine is disabled
 	// May also be called from launchTranscode
-	public static byte[] getThumbnail(OutputParams params, String fileName) throws Exception {
+	public static byte[] getThumbnail(OutputParams params, String fileName) throws IOException {
 		PmsConfiguration configuration = PMS.getConfiguration(params);
 		params.log = false;
 

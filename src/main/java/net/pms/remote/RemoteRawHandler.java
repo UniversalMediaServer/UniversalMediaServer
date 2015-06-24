@@ -45,9 +45,12 @@ public class RemoteRawHandler implements HttpHandler {
 		DLNAResource dlna = res.get(0);
 		long len = dlna.length();
 		dlna.setPlayer(null);
-		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
-		Range.Byte rb = range.asByteRange();
+		Range.Byte range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
 		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
+		if (len == 0) {
+			// For web resources actual length may be unknown until we open the stream
+			len = dlna.length();
+		}
 		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
 		Headers hdr = t.getResponseHeaders();
 		LOGGER.debug("dumping media " + mime + " " + dlna);
@@ -57,7 +60,7 @@ public class RemoteRawHandler implements HttpHandler {
 		hdr.add("Connection", "keep-alive");
 		hdr.add("Transfer-Encoding", "chunked");
 		if (in.available() != len) {
-			hdr.add("Content-Range", "bytes " + rb.getStart() + "-" + in.available() + "/" + len);
+			hdr.add("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
 			t.sendResponseHeaders(206, in.available());
 		} else {
 			t.sendResponseHeaders(200, 0);

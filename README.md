@@ -1,8 +1,9 @@
-# Universal Media Server 
+# Universal Media Server
+[![Build Status](http://universalmediaserver-ci.hopto.org:9999/job/ums%20trunk/badge/icon)](http://universalmediaserver-ci.hopto.org:9999/job/ums%20trunk/)
 
 [<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA-compliant UPnP Media Server.
-It was originally based on PS3 Media Server by shagrath.
-UMS was started by SubJunk, an official developer of PMS, in order to ensure greater stability and file-compatibility.
+It is capable of sharing video, audio and images between most modern devices.
+It was originally based on PS3 Media Server by shagrath, in order to ensure greater stability and file-compatibility.
 
 To see a comparison of popular media servers, [click here][2]
 
@@ -31,22 +32,20 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 * [FAQ][13]
 * [Wiki][14]
 
-
 ## Thanks
 
 ##### Thanks for major code contributions:
 *(in alphabetical order)*
 * chocolateboy
 * ditlew
+* ExSport
 * happy.neko
 * Raptor399
 * Redlum
 * renszarv
-* skeptical
 * taconaut
 * tcox
 * tomeko
-
 
 ##### Thanks for documentation and contributions to the community:
 
@@ -56,6 +55,7 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 ##### Thanks for significant/frequent language translations:
 
 * AlfredoRamos
+* Kirvx
 * leroy
 * Tianuchka
 

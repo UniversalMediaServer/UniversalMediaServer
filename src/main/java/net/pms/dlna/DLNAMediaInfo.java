@@ -40,7 +40,8 @@ import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
-import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -274,6 +275,18 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String stereoscopy;
 
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String fileTitleFromMetadata;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String videoTrackTitleFromMetadata;
+
 	private boolean gen_thumb;
 
 	/**
@@ -325,6 +338,58 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		return muxable;
+	}
+
+	/**
+	 * Whether a file is a WEB-DL release.
+	 *
+	 * It's important for some devices like PS3 because WEB-DL files often have
+	 * some difference (possibly not starting on a keyframe or something to do with
+	 * SEI output from MEncoder, possibly something else) that makes the PS3 not
+	 * accept them when output from tsMuxeR via MEncoder.
+	 *
+	 * The above statement may not be applicable when using tsMuxeR via FFmpeg
+	 * so we should reappraise the situation if we make that change.
+	 *
+	 * It is unlikely it will return false-positives but it will return
+	 * false-negatives.
+	 *
+	 * @param filename the filename
+	 * @param params the file properties
+	 *
+	 * @return whether a file is a WEB-DL release
+	 */
+	public boolean isWebDl(String filename, OutputParams params) {
+		// Check the filename
+		if (filename.toLowerCase().replaceAll("\\-", "").contains("webdl")) {
+			return true;
+		}
+
+		// Check the metadata
+		if (
+			(
+				getFileTitleFromMetadata() != null &&
+				getFileTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				getVideoTrackTitleFromMetadata() != null &&
+				getVideoTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				params.aid != null &&
+				params.aid.getAudioTrackTitleFromMetadata() != null &&
+				params.aid.getAudioTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				params.sid != null &&
+				params.sid.getSubtitlesTrackTitleFromMetadata() != null &&
+				params.sid.getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			)
+		) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public Map<String, String> getExtras() {
@@ -401,7 +466,7 @@ public class DLNAMediaInfo implements Cloneable {
 		File file = media.getFile();
 		boolean dvrms = file != null && file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
-		if (dvrms && StringUtils.isNotBlank(configuration.getFfmpegAlternativePath())) {
+		if (dvrms && isNotBlank(configuration.getFfmpegAlternativePath())) {
 			args[0] = configuration.getFfmpegAlternativePath();
 		}
 
@@ -991,7 +1056,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										audio.setFlavor(line.substring(aa + 2, bb));
+										audio.setAudioTrackTitleFromMetadata(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1118,7 +1183,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										lang.setFlavor(line.substring(aa + 2, bb));
+										lang.setSubtitlesTrackTitleFromMetadata(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1209,34 +1274,40 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (container.equals("mov")) {
 				mimeType = HTTPResource.MOV_TYPEMIME;
 			}
-		} else if (codecV != null) {
-			if (codecV.equals("mjpeg") || "jpg".equals(container)) {
-				mimeType = HTTPResource.JPEG_TYPEMIME;
-			} else if ("png".equals(codecV) || "png".equals(container)) {
-				mimeType = HTTPResource.PNG_TYPEMIME;
-			} else if ("gif".equals(codecV) || "gif".equals(container)) {
-				mimeType = HTTPResource.GIF_TYPEMIME;
-			} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
-				mimeType = HTTPResource.MP4_TYPEMIME;
-			} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
-				mimeType = HTTPResource.MPEG_TYPEMIME;
+		}
+
+		if (mimeType == null) {
+			if (codecV != null) {
+				if (codecV.equals("mjpeg") || "jpg".equals(container)) {
+					mimeType = HTTPResource.JPEG_TYPEMIME;
+				} else if ("png".equals(codecV) || "png".equals(container)) {
+					mimeType = HTTPResource.PNG_TYPEMIME;
+				} else if ("gif".equals(codecV) || "gif".equals(container)) {
+					mimeType = HTTPResource.GIF_TYPEMIME;
+				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
+					mimeType = HTTPResource.MP4_TYPEMIME;
+				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
+					mimeType = HTTPResource.MPEG_TYPEMIME;
+				}
+			} else if (codecV == null && codecA != null) {
+				if (codecA.contains("mp3")) {
+					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else if (codecA.contains("aac")) {
+					mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
+				} else if (codecA.contains("flac")) {
+					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
+				} else if (codecA.contains("vorbis")) {
+					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
+					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
+				} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
+					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				}
 			}
-		} else if (codecV == null && codecA != null) {
-			if (codecA.contains("mp3")) {
-				mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-			} else if (codecA.contains("aac")) {
-				mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
-			} else if (codecA.contains("flac")) {
-				mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
-			} else if (codecA.contains("vorbis")) {
-				mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
-			} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
-				mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-			} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
-				mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+
+			if (mimeType == null) {
+				mimeType = HTTPResource.getDefaultMimeType(type);
 			}
-		} else {
-			mimeType = HTTPResource.getDefaultMimeType(type);
 		}
 
 		if (getFirstAudioTrack() == null || !(type == Format.AUDIO && getFirstAudioTrack().getBitsperSample() == 24 && getFirstAudioTrack().getSampleRate() > 48000)) {
@@ -1364,18 +1435,33 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(frameRate);
 
 		if (thumb != null) {
-			result.append(", thumb size : ");
+			result.append(", thumb size: ");
 			result.append(thumb.length);
 		}
+		if (isNotBlank(muxingMode)) {
+			result.append(", muxing mode: ");
+			result.append(muxingMode);
+		}
 
-		result.append(", muxing mode: ");
-		result.append(muxingMode);
 		result.append(", mime type: ");
 		result.append(mimeType);
-		result.append(", matrix coefficients: ");
-		result.append(matrixCoefficients);
+
+		if (isNotBlank(matrixCoefficients)) {
+			result.append(", matrix coefficients: ");
+			result.append(matrixCoefficients);
+		}
+
 		result.append(", attached fonts: ");
 		result.append(embeddedFontExists);
+
+		if (isNotBlank(fileTitleFromMetadata)) {
+			result.append(", file title from metadata: ");
+			result.append(fileTitleFromMetadata);
+		}
+		if (isNotBlank(videoTrackTitleFromMetadata)) {
+			result.append(", video track title from metadata: ");
+			result.append(videoTrackTitleFromMetadata);
+		}
 
 		for (DLNAMediaAudio audio : audioTracks) {
 			result.append("\n\tAudio track ");
@@ -1825,7 +1911,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the formatted aspect ratio or null
 	 */
 	public String getFormattedAspectRatio(String aspect) {
-		if (aspect == null || StringUtils.isEmpty(aspect)) {
+		if (isBlank(aspect)) {
 			return null;
 		} else {
 			if (aspect.contains(":")) {
@@ -1899,6 +1985,22 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setEmbeddedFontExists(boolean exists) {
 		this.embeddedFontExists = exists;
+	}
+
+	public String getFileTitleFromMetadata() {
+		return fileTitleFromMetadata;
+	}
+
+	public void setFileTitleFromMetadata(String value) {
+		this.fileTitleFromMetadata = value;
+	}
+
+	public String getVideoTrackTitleFromMetadata() {
+		return videoTrackTitleFromMetadata;
+	}
+
+	public void setVideoTrackTitleFromMetadata(String value) {
+		this.videoTrackTitleFromMetadata = value;
 	}
 
 	/**
@@ -2291,7 +2393,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return whether the video track is 3D
 	 */
 	public boolean is3d() {
-		return StringUtils.isNotBlank(stereoscopy);
+		return isNotBlank(stereoscopy);
 	}
 
 	/**

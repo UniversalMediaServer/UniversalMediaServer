@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -49,6 +50,7 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,10 +165,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private ProcessWrapper externalProcess;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this field.
+	 * @deprecated Use #hasExternalSubtitles()
 	 */
 	@Deprecated
 	protected boolean srtFile;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this field.
+	 */
+	@Deprecated
+	protected boolean hasExternalSubtitles;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -561,46 +569,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addResumeFile = true;
 				}
 
-				boolean parserV2 = child.media != null && defaultRenderer != null && defaultRenderer.isMediaParserV2();
-				if (parserV2) {
-					// See which mime type the renderer prefers in case it supports the media
-					String mimeType = defaultRenderer.getFormatConfiguration().match(child.media);
-					if (mimeType != null) {
-						// Media is streamable
-						if (child.format.isVideo()) {
-							if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
-								OutputParams params = new OutputParams(configuration);
-								Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
-								if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
-									child.media_subtitle = params.sid;
-									child.media_subtitle.setSubsStreamable(true);
-									LOGGER.trace("Set media_subtitle");
-								} else {
-									LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
-								}
-							} else {
-								LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
-							}
-						}
-
-						/**
-						 * Use the renderer's preferred MIME type for this file.
-						 */
-						if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
-							LOGGER.trace("Overriding detected mime type \"{}\" for file \"{}\" with renderer preferred mime type \"{}\"",
-									child.media.getMimeType(), child.getName(), mimeType);
-							child.media.setMimeType(mimeType);
-						}
-
-						LOGGER.trace("File \"{}\" can be streamed with mime type \"{}\"", child.getName(), child.media.getMimeType());
-					} else {
-						// Media is transcodable
-						LOGGER.trace("File \"{}\" can be transcoded", child.getName());
-					}
-				} else if (child.media != null && defaultRenderer != null && child.format.isVideo()) {
-					LOGGER.trace("Did not check for media_subtitle for \"{}\" because {} does not use MediaInfo, we will check for it soon", child.getName(), defaultRenderer);
-				}
-
 				if (child.format != null) {
 					String configurationSkipExtensions = configuration.getDisableTranscodeForExtensions();
 					String rendererSkipExtensions = null;
@@ -655,8 +623,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						// If no preferred player could be determined from the name, try to
 						// match a player based on media information and format.
-						if (player == null) {
+						if (player == null || (hasExternalSubtitles() && defaultRenderer.isSubtitlesStreamingSupported())) {
 							player = child.resolvePlayer(defaultRenderer);
+						}
+
+						boolean parserV2 = child.media != null && defaultRenderer != null && defaultRenderer.isMediaParserV2();
+						if (parserV2) {
+							// See which MIME type the renderer prefers in case it supports the media
+							String mimeType = defaultRenderer.getFormatConfiguration().match(child.media);
+							if (mimeType != null) {
+								/**
+								 * Use the renderer's preferred MIME type for this file.
+								 */
+								if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
+									child.media.setMimeType(mimeType);
+								}
+
+								LOGGER.trace("File \"{}\" will be sent with MIME type \"{}\"", child.getName(), child.media.getMimeType());
+							}
 						}
 
 						child.setPlayer(player);
@@ -816,61 +800,45 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			boolean hasSubsToTranscode = false;
 
+			boolean hasEmbeddedSubs = false;
+			for (DLNAMediaSubtitle s : media.getSubtitleTracksList()) {
+				hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
+			}
+
 			/**
-			 * Figure out how to handle subtitles for this file if it's a video, subtitles
-			 * are enabled, and subtitles exist.
+			 * At this stage, we know the media is compatible with the renderer based on its
+			 * "Supported" lines, and can therefore be streamed to the renderer without a
+			 * player. However, other details about the media can change this, such as
+			 * whether it has subtitles that match this user's language settings, so here we
+			 * perform those checks.
 			 */
-			if (
-				format.isVideo() &&
-				!configuration.isDisableSubtitles() &&
-				(
-					media.getSubtitleTracksList().size() > 0 ||
-					isSubsFile()
-				)
-			) {
-				boolean hasEmbeddedSubs = false;
-
-				for (DLNAMediaSubtitle s : media.getSubtitleTracksList()) {
-					hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
-				}
-
-				if (!parserV2) {
-					if (isSubsFile() && renderer != null && renderer.isSubtitlesStreamingSupported()) {
-						OutputParams params = new OutputParams(configuration);
-						Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
-						if (params.sid.isExternal() && renderer.isExternalSubtitlesFormatSupported(params.sid)) {
-							media_subtitle = params.sid;
-							media_subtitle.setSubsStreamable(true);
-							LOGGER.trace("Set media_subtitle");
-						} else {
-							LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+			if (format.isVideo() && !configuration.isDisableSubtitles()) {
+				if (hasEmbeddedSubs || hasExternalSubtitles()) {
+					OutputParams params = new OutputParams(configuration);
+					Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
+					if (params.sid != null) {
+						if (params.sid.isExternal()) {
+							if (renderer.isExternalSubtitlesFormatSupported(params.sid)) {
+								media_subtitle = params.sid;
+								media_subtitle.setSubsStreamable(true);
+								LOGGER.trace("This video has external subtitles that should be streamed");
+							} else {
+								forceTranscode = true;
+								hasSubsToTranscode = true;
+								LOGGER.trace("This video has external subtitles that should be transcoded");
+							}
+						} else if (params.sid.isEmbedded()) {
+							if (renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
+								LOGGER.trace("This video has embedded subtitles that should be streamed");
+							} else {
+								forceTranscode = true;
+								hasSubsToTranscode = true;
+								LOGGER.trace("This video has embedded subtitles that should be transcoded");
+							}
 						}
-					} else {
-						LOGGER.trace("Did not set media_subtitle because this file does not have external subtitles, or the renderer does not support streaming subtitles");
 					}
-				}
-
-				if (isSubsFile()) {
-					if (media_subtitle == null) {
-						// Subtitles are not set for streaming
-						forceTranscode = true;
-						hasSubsToTranscode = true;
-						LOGGER.trace("Subtitles for \"{}\" need to be transcoded because media_subtitle is null", getName());
-					} else {
-						LOGGER.trace("Subtitles for \"{}\" will not be transcoded because media_subtitle is not null", getName());
-					}
-				} else if (hasEmbeddedSubs) {
-					if (
-						renderer != null &&
-						(media_subtitle != null && !renderer.isEmbeddedSubtitlesFormatSupported(media_subtitle)) ||
-						!renderer.isEmbeddedSubtitlesSupported()
-					) {
-						forceTranscode = true;
-						hasSubsToTranscode = true;
-						LOGGER.trace("Subtitles for \"{}\" need to be transcoded because the renderer does not support internal subtitles", getName());
-					} else {
-						LOGGER.trace("Subtitles for \"{}\" will not be transcoded because the renderer supports internal subtitles", getName());
-					}
+				} else {
+					LOGGER.trace("This video does not have subtitles");
 				}
 			}
 
@@ -890,7 +858,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			) {
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
-			} else if (renderer != null && format.isVideo()) {
+			} else if (format.isVideo() && parserV2) {
 				if (
 					renderer.isKeepAspectRatio() &&
 					!"16:9".equals(media.getAspectRatioContainer())
@@ -981,7 +949,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (child != found) {
 				// Replace
 				child.parent = this;
-				child.setIndexId(Integer.parseInt(found.getInternalId()));
+				child.setIndexId(GlobalIdRepo.parseIndex((found.getInternalId())));
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
@@ -1530,7 +1498,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (
-			isSubsFile() &&
+			hasExternalSubtitles() &&
 			!isNamedNoEncoding &&
 			media_audio == null &&
 			media_subtitle == null &&
@@ -1550,7 +1518,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			displayName = player != null ? ("[" + player.name() + "]") : "";
-			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getAudioTrackTitleFromMetadata() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")") : "") + "}";
 		}
 
 		if (
@@ -1570,7 +1538,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "");
+			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getSubtitlesTrackTitleFromMetadata() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getSubtitlesTrackTitleFromMetadata() + ")") : "");
 			if (subsAreValidForStreaming) {
 				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription + "}";
 			} else {
@@ -2028,15 +1996,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
 													st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
 
-													while (sub.getFlavor() != null && st.hasMoreTokens()) {
+													while (sub.getSubtitlesTrackTitleFromMetadata() != null && st.hasMoreTokens()) {
 														String forcedTags = st.nextToken();
 														forcedTags = forcedTags.trim();
 
 														if (
-															sub.getFlavor().toLowerCase().contains(forcedTags) &&
+															sub.getSubtitlesTrackTitleFromMetadata().toLowerCase().contains(forcedTags) &&
 															Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
 														) {
-															LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getFlavor());
+															LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getSubtitlesTrackTitleFromMetadata());
 															LOGGER.trace("Forced subtitles track: " + sub);
 
 															if (sub.getExternalFile() != null) {
@@ -2112,7 +2080,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							 */
 							if (
 								media_subtitle == null &&
-								!isSubsFile() &&
+								!hasExternalSubtitles() &&
 								media != null &&
 								media.getDvdtrack() == 0 &&
 								isMuxableResult &&
@@ -2214,19 +2182,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
+		boolean xbox360 = mediaRenderer.isXbox360();
 		if (!isFolder()) {
-			if (
-				!configuration.isDisableSubtitles() &&
-				player == null &&
-				media_subtitle != null &&
-				media_subtitle.isStreamable()
-			) {
-				subsAreValidForStreaming = true;
-				LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
-			} else if (subsAreValidForStreaming) {
-				LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
-			} else {
-				LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
+			if (format != null && format.isVideo()) {
+				if (
+					!configuration.isDisableSubtitles() &&
+					player == null &&
+					media_subtitle != null &&
+					media_subtitle.isStreamable()
+				) {
+					subsAreValidForStreaming = true;
+					LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
+				} else if (subsAreValidForStreaming) {
+					LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
+				} else {
+					LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
+				}
 			}
 
 			openTag(sb, "item");
@@ -2234,7 +2205,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			openTag(sb, "container");
 		}
 
-		addAttribute(sb, "id", getResourceId());
+		String id = getResourceId();
+		if (xbox360) {
+			// Ensure the xbox 360 doesn't confuse our ids with its own virtual folder ids.
+			id += "$";
+		}
+		addAttribute(sb, "id", id);
 
 		if (isFolder()) {
 			if (!isDiscovered() && childrenNumber() == 0) {
@@ -2248,7 +2224,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addAttribute(sb, "childCount", childrenNumber());
 			}
 		}
-		addAttribute(sb, "parentID", getParentId());
+		id = getParentId();
+		if (xbox360 && getFakeParentId() == null) {
+			// Ensure the xbox 360 doesn't confuse our ids with its own virtual folder ids.
+			id += "$";
+		}
+		addAttribute(sb, "parentID", id);
 		addAttribute(sb, "restricted", "true");
 		endTag(sb);
 		StringBuilder wireshark = new StringBuilder();
@@ -2320,7 +2301,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (getFormat() != null && getFormat().isVideo() && media != null && media.isMediaparsed()) {
-					if (player == null && media != null) {
+					if (player == null) {
 						wireshark.append(" size=").append(media.getSize());
 						addAttribute(sb, "size", media.getSize());
 					} else {
@@ -2340,7 +2321,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 					if (media.getResolution() != null) {
-						addAttribute(sb, "resolution", media.getResolution());
+						if (player != null && mediaRenderer.isKeepAspectRatio()) {
+							addAttribute(sb, "resolution", getResolutionForKeepAR(media.getWidth(), media.getHeight()));
+						} else {
+							addAttribute(sb, "resolution", media.getResolution());
+						}
+						
 					}
 					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
 					if (firstAudioTrack != null) {
@@ -2458,15 +2444,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (isFolder()) {
 				uclass = "object.container.storageFolder";
-				boolean xbox360 = mediaRenderer.isXbox360();
-				if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("7")) {
-					uclass = "object.container.album.musicAlbum";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("6")) {
-					uclass = "object.container.person.musicArtist";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("5")) {
-					uclass = "object.container.genre.musicGenre";
-				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("F")) {
-					uclass = "object.container.playlistContainer";
+				if (xbox360 && getFakeParentId() != null) {
+					if (getFakeParentId().equals("7")) {
+						uclass = "object.container.album.musicAlbum";
+					} else if (getFakeParentId().equals("6")) {
+						uclass = "object.container.person.musicArtist";
+					} else if (getFakeParentId().equals("5")) {
+						uclass = "object.container.genre.musicGenre";
+					} else if (getFakeParentId().equals("F")) {
+						uclass = "object.container.playlistContainer";
+					}
 				}
 			} else if (getFormat() != null && getFormat().isVideo()) {
 				uclass = "object.item.videoItem";
@@ -3319,39 +3306,53 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @Deprecated use {@link #isSubsFile()} instead
+	 * @Deprecated use {@link #hasExternalSubtitles()} instead
 	 */
 	@Deprecated
 	protected boolean isSrtFile() {
-		return isSubsFile();
+		return hasExternalSubtitles();
 	}
 
 	/**
-	 * Returns true if this resource has subtitles in a file.
-	 *
-	 * @return the srtFile
-	 * @since 1.50
+	 * @Deprecated use {@link #hasExternalSubtitles()} instead
 	 */
+	@Deprecated
 	protected boolean isSubsFile() {
-		return srtFile;
+		return hasExternalSubtitles();
 	}
 
 	/**
-	 * @Deprecated use {@link #setSubsFile()} instead
+	 * Whether this resource has external subtitles.
+	 *
+	 * @return whether this resource has external subtitles
+	 */
+	protected boolean hasExternalSubtitles() {
+		return hasExternalSubtitles;
+	}
+
+	/**
+	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
 	 */
 	@Deprecated
 	protected void setSrtFile(boolean srtFile) {
-		setSubsFile(srtFile);
+		setHasExternalSubtitles(srtFile);
 	}
 
 	/**
-	 * Set to true if this resource has subtitles in a file.
-	 *
-	 * @param srtFile the srtFile to set
-	 * @since 1.50
+	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
 	 */
+	@Deprecated
 	protected void setSubsFile(boolean srtFile) {
-		this.srtFile = srtFile;
+		setHasExternalSubtitles(srtFile);
+	}
+
+	/**
+	 * Sets whether this resource has external subtitles.
+	 *
+	 * @param value whether this resource has external subtitles
+	 */
+	protected void setHasExternalSubtitles(boolean value) {
+		this.hasExternalSubtitles = value;
 	}
 
 	/**
@@ -4044,5 +4045,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			vva.setParent(this);
 			dynamicPls.addChildInternal(vva);
 		}
+	}
+
+	public String getResolutionForKeepAR(int scaleWidth, int scaleHeight) {
+		double videoAspectRatio = (double) scaleWidth / (double) scaleHeight;
+		double rendererAspectRatio = 1.777777777777778;
+		if (videoAspectRatio > rendererAspectRatio) {
+			scaleHeight = (int) Math.round(scaleWidth / rendererAspectRatio);
+		} else {
+			scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
+		}
+
+		scaleWidth  = Player.convertToModX(scaleWidth, 4);
+		scaleHeight = Player.convertToModX(scaleHeight, 4);
+		return scaleWidth + "x" + scaleHeight;
 	}
 }

@@ -22,11 +22,11 @@ import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.mozilla.universalchardet.Constants;
 import org.slf4j.LoggerFactory;
 
 public class FileUtilTest {
@@ -43,69 +43,107 @@ public class FileUtilTest {
 	}
 
 	@Test
+	public void testIsUrl() throws Exception {
+		assertThat(FileUtil.isUrl("universalmediaserver.com")).isFalse();
+		assertThat(FileUtil.isUrl("http://www.universalmediaserver.com")).isTrue();
+	}
+
+	@Test
+	public void testGetProtocol() throws Exception {
+		assertThat(FileUtil.getProtocol("universalmediaserver.com")).isNull();
+		assertThat(FileUtil.getProtocol("http://www.universalmediaserver.com")).isEqualTo("http");
+	}
+
+	@Test
+	public void testUrlJoin() throws Exception {
+		assertThat(FileUtil.urlJoin("", "http://www.universalmediaserver.com")).isEqualTo("http://www.universalmediaserver.com");
+		assertThat(FileUtil.urlJoin("http://www.universalmediaserver.com", "index.php")).isEqualTo("http://www.universalmediaserver.com/index.php");
+	}
+
+	@Test
+	public void testGetUrlExtension() throws Exception {
+		assertThat(FileUtil.getUrlExtension("filename")).isNull();
+		assertThat(FileUtil.getUrlExtension("http://www.universalmediaserver.com/file.html?foo=bar")).isEqualTo("html");
+	}
+
+	@Test
+	public void testGetFileNameWithoutExtension() throws Exception {
+		assertThat(FileUtil.getFileNameWithoutExtension("filename.mkv")).isEqualTo("filename");
+	}
+
+	/**
+	 * Note: The method this is testing handles numerous inputs, so this test
+	 * could get very large. It should get much larger than it is now.
+	 */
+	@Test
+	public void testGetFileNameWithRewriting() throws Exception {
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E01E02.720p.mkv", null)).isEqualTo("Universal Media Server - 101-102");
+	}
+
+	@Test
 	public void testGetFileCharset_WINDOWS_1251() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_WINDOWS_1251);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_WINDOWS_1251);
 	}
 
 	@Test
 	public void testGetFileCharset_IBM866() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-ibm866.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_IBM866);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_IBM866);
 	}
 
 	@Test
 	public void testGetFileCharset_KOI8_R() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-koi8-r.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_KOI8_R);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_KOI8_R);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF8_without_BOM() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_8);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_8);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF8_with_BOM() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_8);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_8);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF16_LE() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_16LE);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_16LE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF16_BE() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_16BE);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_16BE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF32_LE() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf32-le.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_32LE);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_32LE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF32_BE() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf32-be.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_32BE);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_32BE);
 	}
 
 	@Test
 	public void testGetFileCharset_BIG5() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_GB18030);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_GB18030);
 	}
 
 	@Test
 	public void testGetFileCharset_GB2312() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_BIG5);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_BIG5);
 	}
 
 	@Test

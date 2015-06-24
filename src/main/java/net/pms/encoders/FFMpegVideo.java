@@ -48,6 +48,7 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -391,7 +392,7 @@ public class FFMpegVideo extends Player {
 				}
 				if (!customFFmpegOptions.contains("-preset")) {
 					transcodeOptions.add("-preset");
-					transcodeOptions.add("superfast");
+					transcodeOptions.add("ultrafast");
 				}
 				if (!customFFmpegOptions.contains("-level")) {
 					transcodeOptions.add("-level");
@@ -848,7 +849,7 @@ public class FFMpegVideo extends Player {
 			)
 		) {
 			boolean deferToMencoder = false;
-			if (configuration.isFFmpegDeferToMEncoderForSubtitles()) {
+			if (configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() && params.sid.isEmbedded()) {
 				deferToMencoder = true;
 				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
 			} else if (media.isEmbeddedFontExists()) {
@@ -897,14 +898,7 @@ public class FFMpegVideo extends Player {
 			if (
 				deferToTsmuxer == true &&
 				!params.mediaRenderer.isPS3() &&
-				(
-					filename.toLowerCase().contains("web-dl") ||
-					(
-						params.aid != null &&
-						params.aid.getFlavor() != null &&
-						params.aid.getFlavor().toLowerCase().contains("web-dl")
-					)
-				)
+				media.isWebDl(filename, params)
 			) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
@@ -1278,7 +1272,7 @@ public class FFMpegVideo extends Player {
 				configuration.setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(multithreading, cc.xy(2, 3));
+		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
 
 		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
 		videoRemuxTsMuxer.setContentAreaFilled(false);
@@ -1288,7 +1282,7 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(videoRemuxTsMuxer, cc.xy(2, 5));
+		builder.add(GuiUtil.getPreferredSizeComponent(videoRemuxTsMuxer), cc.xy(2, 5));
 
 		fc = new JCheckBox(Messages.getString("FFmpeg.3"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
@@ -1299,18 +1293,18 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(fc, cc.xy(2, 7));
+		builder.add(GuiUtil.getPreferredSizeComponent(fc), cc.xy(2, 7));
 
-		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForSubtitles());
+		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForProblematicSubtitles());
 		deferToMEncoderForSubtitles.setContentAreaFilled(false);
 		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("FFmpeg.2"));
 		deferToMEncoderForSubtitles.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegDeferToMEncoderForSubtitles(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setFFmpegDeferToMEncoderForProblematicSubtitles(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(deferToMEncoderForSubtitles, cc.xy(2, 9));
+		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
 
 		return builder.getPanel();
 	}
