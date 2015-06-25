@@ -940,6 +940,9 @@ public class FFMpegVideo extends Player {
 			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
 		}
 
+		cmdList.add("-tune");
+		cmdList.add("zerolatency");
+
 		// Now configure the output streams
 
 		// Encoder threads
