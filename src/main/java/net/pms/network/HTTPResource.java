@@ -200,7 +200,6 @@ public class HTTPResource {
 		return bytes.toByteArray();
 	}
 
-
 	/**
 	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
 	 * @param mimetype MIME type to customize.
