@@ -378,6 +378,8 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {
 						transcodeOptions.add("libx264");
+						transcodeOptions.add("-tune");
+						transcodeOptions.add("zerolatency");
 					} else {
 						transcodeOptions.add("libx265");
 					}
@@ -939,9 +941,6 @@ public class FFMpegVideo extends Player {
 			cmdList.add("-map");
 			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
 		}
-
-		cmdList.add("-tune");
-		cmdList.add("zerolatency");
 
 		// Now configure the output streams
 
