@@ -190,7 +190,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 						}
 
 						// It may be unusual but already known
-						if (renderer != null) {
+						if (!isKnown && renderer != null) {
 							String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
 							if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
 								isKnown = true;
