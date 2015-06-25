@@ -1,7 +1,22 @@
 5.1.5 - 2015-06-??
 
 	General:
-		
+		Made tsMuxeR use FFmpeg instead of MEncoder
+		Made tsMuxeR transcode audio to AAC if the renderer expects AAC
+		Improved FFmpeg responsiveness during fast-forward and rewind
+		Improved automatic rescaling
+		Fixed detection of aspect ratios
+		Merged the install/uninstall Windows Service buttons into one button (thanks, taconaut!)
+		Add zoom/fit to web image viewer
+		Fixed a bug with sending external subtitles
+		Fixed MIME type finalization when parsing media
+		Fixed transcoding to AAC via MEncoder
+		Support late resolution of media length
+		Expanded code testing for improved stability
+	Renderers:
+		Added support for Sony PlayStation 4
+	External Components:
+		Rolled back FFmpeg on OS X to fix transcoding for some users
 
 5.1.4 - 2015-06-14
 
