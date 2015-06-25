@@ -2103,7 +2103,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					} else if (media != null) {
 						if (media.isMpegTS()) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(localizationValue);
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
 							if (media.isH264()) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
 								if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
@@ -2114,7 +2114,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(localizationValue);
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
 				} else if (mime.equals(JPEG_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_LRG";
 				} else if (mime.equals(AUDIO_MP3_TYPEMIME)) {
