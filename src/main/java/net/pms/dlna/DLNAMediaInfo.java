@@ -24,7 +24,9 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+
 import javax.imageio.ImageIO;
+
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -42,6 +44,7 @@ import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -670,7 +673,15 @@ public class DLNAMediaInfo implements Cloneable {
 							} else if (ah.getChannels() != null && ah.getChannels().toLowerCase().contains("stereo")) {
 								audio.getAudioProperties().setNumberOfChannels(2);
 							} else if (ah.getChannels() != null) {
-								audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));
+								try {
+									if (Integer.parseInt(ah.getChannels()) > 0) {
+										audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));										
+									} else {
+										LOGGER.warn(String.format("Invalid number of audio channels (%s) for file: %s",ah.getChannels(),af.getFile().getName()));
+									}
+								} catch (NumberFormatException e) {
+									LOGGER.warn(String.format("Couldn't figure out the number audio channels (%s) for file: %s",ah.getChannels(),af.getFile().getName())); 
+								}
 							}
 
 							audio.setCodecA(ah.getEncodingType().toLowerCase());
