@@ -137,6 +137,8 @@ public class TsMuxeRVideo extends Player {
 			videoType = "V_MPEG-2";
 		}
 
+		boolean aacTranscode = false;
+
 		String[] ffmpegCommands;
 		if (this instanceof TsMuxeRAudio && media.getFirstAudioTrack() != null) {
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "fakevideo", System.currentTimeMillis() + "videoout", false, true);
@@ -282,7 +284,7 @@ public class TsMuxeRVideo extends Player {
 					ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
 
 					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
-					ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+					ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !params.mediaRenderer.isTranscodeToAAC();
 					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
@@ -341,8 +343,24 @@ public class TsMuxeRVideo extends Player {
 						if (!params.mediaRenderer.isMuxDTSToMpeg()) {
 							ffAudioPipe[0].setModifier(sm);
 						}
+					} else if (!ac3Remux && params.mediaRenderer.isTranscodeToAAC()) {
+						// AAC audio
+						ffmpegCommands = new String[] {
+							configuration.getFfmpegPath(),
+							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
+							"-i", filename,
+							"-ac", "" + channels,
+							"-f", "adts",
+							"-c:a", "aac",
+							"-strict", "experimental",
+							"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
+							"-tune", "zerolatency",
+							"-y",
+							ffAudioPipe[0].getInputPipe()
+						};
+						aacTranscode = true;
 					} else {
-						// AC-3 remux or encoding
+						// AC-3 audio
 						ffmpegCommands = new String[] {
 							configuration.getFfmpegPath(),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
@@ -370,7 +388,7 @@ public class TsMuxeRVideo extends Player {
 						ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
 
 						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
-						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !params.mediaRenderer.isTranscodeToAAC();
 						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 						pcm = configuration.isAudioUsePCM() &&
@@ -428,6 +446,23 @@ public class TsMuxeRVideo extends Player {
 								"-y",
 								ffAudioPipe[i].getInputPipe()
 							};
+						} else if (!ac3Remux && params.mediaRenderer.isTranscodeToAAC()) {
+							// AAC audio
+							ffmpegCommands = new String[] {
+								configuration.getFfmpegPath(),
+								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
+								"-i", filename,
+								"-ac", "" + channels,
+								"-f", "adts",
+								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
+								"-c:a", "aac",
+								"-strict", "experimental",
+								"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
+								"-tune", "zerolatency",
+								"-y",
+								ffAudioPipe[i].getInputPipe()
+							};
+							aacTranscode = true;
 						} else {
 							// AC-3 remux or encoding
 							ffmpegCommands = new String[] {
@@ -487,7 +522,7 @@ public class TsMuxeRVideo extends Player {
 				boolean pcm;
 
 				encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
-				ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+				ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !params.mediaRenderer.isTranscodeToAAC();
 				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 				pcm = configuration.isAudioUsePCM() &&
@@ -512,6 +547,8 @@ public class TsMuxeRVideo extends Player {
 				if (ac3Remux) {
 					// AC-3 remux takes priority
 					type = "A_AC3";
+				} else if (aacTranscode) {
+					type = "A_AAC";
 				} else {
 					if (pcm || this instanceof TsMuxeRAudio) {
 						type = "A_LPCM";
