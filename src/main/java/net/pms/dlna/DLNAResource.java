@@ -523,7 +523,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (parent != null) {
 			defaultRenderer = parent.getDefaultRenderer();
-		}
+		}	
 
 		if (PMS.filter(defaultRenderer, child)) {
 			LOGGER.debug("Resource " + child.getName() + " is filtered out for render " + defaultRenderer.getRendererName());
@@ -548,6 +548,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
+				// Do not add unsupported media format to the list
+				if ((child.format != null && defaultRenderer != null) &&
+						(
+							child.format.isVideo() && !defaultRenderer.isVideoSupported() || 
+							child.format.isAudio() && !defaultRenderer.isAudioSupported() || 
+							child.format.isImage() && !defaultRenderer.isImageSupported()
+						)
+					){
+					LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
+					children.remove(child);
+					return;
+				}
+
 				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
 
 				if (allChildrenAreFolders && !child.isFolder()) {
