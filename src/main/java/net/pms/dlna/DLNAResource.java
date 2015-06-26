@@ -549,13 +549,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			if (child.isValid()) {
 				// Do not add unsupported media format to the list
-				if ((child.format != null && defaultRenderer != null) &&
-						(
-							child.format.isVideo() && !defaultRenderer.isVideoSupported() || 
-							child.format.isAudio() && !defaultRenderer.isAudioSupported() || 
-							child.format.isImage() && !defaultRenderer.isImageSupported()
-						)
-					){
+				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)){
 					LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
 					children.remove(child);
 					return;
