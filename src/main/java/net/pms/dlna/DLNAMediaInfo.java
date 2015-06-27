@@ -455,7 +455,17 @@ public class DLNAMediaInfo implements Cloneable {
 		thumb = forThumbnail.thumb;
 	}
 
+	/**
+	 * @see #getFFmpegThumbnail(net.pms.dlna.InputFile, boolean, net.pms.configuration.RendererConfiguration)
+	 * @deprecated
+	 * @return 
+	 */
+	@Deprecated
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media, boolean resume) {
+		return getFFmpegThumbnail(media, resume, null);
+	}
+
+	private ProcessWrapperImpl getFFmpegThumbnail(InputFile media, boolean resume, RendererConfiguration renderer) {
 		/**
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
@@ -487,8 +497,19 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args[5] = "-an";
 		args[6] = "-an";
+
+		// Thumbnail resolution
+		int thumbnailWidth  = 320;
+		int thumbnailHeight = 180;
+		double thumbnailRatio  = 1.78;
+		if (renderer != null) {
+			thumbnailWidth  = renderer.getThumbnailWidth();
+			thumbnailHeight = renderer.getThumbnailHeight();
+			thumbnailRatio  = renderer.getThumbnailWidth() / renderer.getThumbnailHeight();
+		}
+
 		args[7] = "-vf";
-		args[8] = "scale='if(gt(a,16/9),320,-1)':'if(gt(a,16/9),-1,180)', pad=320:180:(320-iw)/2:(180-ih)/2";
+		args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")', pad=" + thumbnailWidth + ":" + thumbnailHeight + ":(" + thumbnailWidth + "-iw)/2:(" + thumbnailHeight + "-ih)/2";
 		args[9] = "-vframes";
 		args[10] = "1";
 		args[11] = "-f";
@@ -807,7 +828,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 			if (ffmpeg_parsing) {
 				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
-					pw = getFFMpegThumbnail(inputFile, resume);
+					pw = getFFmpegThumbnail(inputFile, resume, renderer);
 				}
 
 				boolean dvrms = false;

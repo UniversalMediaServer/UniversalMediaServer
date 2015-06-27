@@ -178,8 +178,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
 	protected static final String TEXTWRAP = "TextWrap";
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
-	protected static final String THUMBNAIL_BG = "ThumbnailBackground";
-	protected static final String THUMBNAIL_SIZE = "ThumbnailSize";
+	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
+	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
 	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	protected static final String TRANSCODE_EXT = "TranscodeExtensions";
@@ -197,6 +197,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String VIDEO = "Video";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
+
+	// Deprecated property names
+	@Deprecated
+	protected static final String THUMBNAIL_BG = "ThumbnailBackground";
+	@Deprecated
+	protected static final String THUMBNAIL_SIZE = "ThumbnailSize";
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
@@ -778,12 +784,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return rank;
 	}
 
+	/**
+	 * @see #getThumbnailWidth()
+	 * @see #getThumbnailHeight()
+	 * @deprecated
+	 */
+	@Deprecated
 	public String getThumbSize() {
-		return getString(THUMBNAIL_SIZE, "");
+		return getThumbnailWidth() + "x" + getThumbnailHeight();
 	}
 
 	public String getThumbBG() {
 		return getString(THUMBNAIL_BG, "");
+	}
+
+	public int getThumbnailWidth() {
+		return getInt(THUMBNAIL_WIDTH, 320);
+	}
+
+	public int getThumbnailHeight() {
+		return getInt(THUMBNAIL_HEIGHT, 180);
 	}
 
 	/**
