@@ -28,7 +28,6 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -50,7 +49,6 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -525,7 +523,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (parent != null) {
 			defaultRenderer = parent.getDefaultRenderer();
-		}
+		}	
 
 		if (PMS.filter(defaultRenderer, child)) {
 			LOGGER.debug("Resource " + child.getName() + " is filtered out for render " + defaultRenderer.getRendererName());
@@ -550,6 +548,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
+				// Do not add unsupported media format to the list
+				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)){
+					LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
+					children.remove(child);
+					return;
+				}
+
 				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
 
 				if (allChildrenAreFolders && !child.isFolder()) {
@@ -2105,7 +2110,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					} else if (media != null) {
 						if (media.isMpegTS()) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(localizationValue);
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
 							if (media.isH264()) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
 								if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
@@ -2116,7 +2121,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(localizationValue);
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
 				} else if (mime.equals(JPEG_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_LRG";
 				} else if (mime.equals(AUDIO_MP3_TYPEMIME)) {

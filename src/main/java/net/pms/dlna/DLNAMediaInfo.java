@@ -1596,7 +1596,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isHDVideo() {
-		return (width > 1200 || height > 700);
+		return (width > 864 || height > 540);
 	}
 
 	public boolean isMpegTS() {

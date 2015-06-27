@@ -275,8 +275,12 @@ form#SearchForm {
 	text-decoration: none !important;
 }
 
+.noScroll {
+	overflow: hidden !important;
+}
+
 .noHzScroll {
-	overflow-x: hidden;
+	overflow-x: hidden !important;
 }
 
 ::cue {
@@ -339,4 +343,40 @@ form#SearchForm {
 
 .notice .err {
 	background: url('/files/err32.png') no-repeat;
+}
+
+#ImageContainer {
+	position: relative;
+}
+
+#Image {
+	display: block;
+	margin: auto;
+}
+
+.imgfit {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.zoomin:hover {
+	cursor: -moz-zoom-in;
+	cursor: -webkit-zoom-in;
+	cursor: zoom-in;
+}
+
+.zoomout:hover {
+	cursor: -moz-zoom-out;
+	cursor: -webkit-zoom-out;
+	cursor: zoom-out;
+}
+
+#ImageToolbar {
+	display: block;
+	position: fixed;
+	bottom: 0;
+	z-index: 2147483647;
+	width:50%;
+	margin: 0;
+	left: 45%;
 }
