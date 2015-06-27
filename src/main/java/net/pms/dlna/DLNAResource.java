@@ -523,7 +523,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (parent != null) {
 			defaultRenderer = parent.getDefaultRenderer();
-		}	
+		}
 
 		if (PMS.filter(defaultRenderer, child)) {
 			LOGGER.debug("Resource " + child.getName() + " is filtered out for render " + defaultRenderer.getRendererName());
