@@ -154,7 +154,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 				InputFile input = new InputFile();
 				input.setPush(this);
 				input.setSize(length());
-				getFormat().parse(getMedia(), input, getType(), null);
+				getFormat().parse(getMedia(), input, getType());
 			}
 		}
 	}
