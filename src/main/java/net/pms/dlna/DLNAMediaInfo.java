@@ -1277,18 +1277,27 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		if (container != null) {
-			if (container.equals("avi")) {
-				mimeType = HTTPResource.AVI_TYPEMIME;
-			} else if (container.equals("asf") || container.equals("wmv")) {
-				mimeType = HTTPResource.WMV_TYPEMIME;
-			} else if (container.equals("matroska") || container.equals("mkv")) {
-				mimeType = HTTPResource.MATROSKA_TYPEMIME;
-			} else if (container.equals("3gp")) {
-				mimeType = HTTPResource.THREEGPP_TYPEMIME;
-			} else if (container.equals("3g2")) {
-				mimeType = HTTPResource.THREEGPP2_TYPEMIME;
-			} else if (container.equals("mov")) {
-				mimeType = HTTPResource.MOV_TYPEMIME;
+			switch (container) {
+				case "avi":
+					mimeType = HTTPResource.AVI_TYPEMIME;
+					break;
+				case "asf":
+				case "wmv":
+					mimeType = HTTPResource.WMV_TYPEMIME;
+					break;
+				case "matroska":
+				case "mkv":
+					mimeType = HTTPResource.MATROSKA_TYPEMIME;
+					break;
+				case "3gp":
+					mimeType = HTTPResource.THREEGPP_TYPEMIME;
+					break;
+				case "3g2":
+					mimeType = HTTPResource.THREEGPP2_TYPEMIME;
+					break;
+				case "mov":
+					mimeType = HTTPResource.MOV_TYPEMIME;
+					break;
 			}
 		}
 
