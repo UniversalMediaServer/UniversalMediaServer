@@ -2966,14 +2966,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// need to override if some thumbnail work is to be done when mediaparserv2 enabled
 	}
 
+	@Deprecated
+	protected void checkThumbnail(InputFile inputFile) {
+		checkThumbnail(inputFile, null);
+	}
+
 	/**
 	 * Checks if a thumbnail exists, and, if not, generates one (if possible).
 	 * Called from Request/RequestV2 in response to thumbnail requests e.g. HEAD /get/0$1$0$42$3/thumbnail0000%5BExample.mkv
 	 * Calls DLNAMediaInfo.generateThumbnail, which in turn calls DLNAMediaInfo.parse.
 	 *
 	 * @param inputFile File to check or generate the thumbnail for.
+	 * @param renderer The renderer profile
 	 */
-	protected void checkThumbnail(InputFile inputFile) {
+	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
 		if (media != null && !media.isThumbready() && configuration.isThumbnailGenerationEnabled()) {
 			Double seekPosition = (double) configuration.getThumbnailSeekPos();
 			if (isResume()) {
@@ -2984,7 +2990,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume());
+			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume(), renderer);
 			if (!isResume() && media.getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), media);
 			}

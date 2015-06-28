@@ -440,7 +440,12 @@ public class DLNAMediaInfo implements Cloneable {
 		gen_thumb = false;
 	}
 
+	@Deprecated
 	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume) {
+		generateThumbnail(input, ext, type, seekPosition, resume, null);
+	}
+
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume, RendererConfiguration renderer) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
 		forThumbnail.gen_thumb = true;
 		forThumbnail.durationSec = getDurationInSeconds();
@@ -451,18 +456,8 @@ public class DLNAMediaInfo implements Cloneable {
 			forThumbnail.durationSec /= 2;
 		}
 
-		forThumbnail.parse(input, ext, type, true, resume, null);
+		forThumbnail.parse(input, ext, type, true, resume, renderer);
 		thumb = forThumbnail.thumb;
-	}
-
-	/**
-	 * @see #getFFmpegThumbnail(net.pms.dlna.InputFile, boolean, net.pms.configuration.RendererConfiguration)
-	 * @deprecated
-	 * @return 
-	 */
-	@Deprecated
-	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media, boolean resume) {
-		return getFFmpegThumbnail(media, resume, null);
 	}
 
 	private ProcessWrapperImpl getFFmpegThumbnail(InputFile media, boolean resume, RendererConfiguration renderer) {
@@ -505,7 +500,7 @@ public class DLNAMediaInfo implements Cloneable {
 		if (renderer != null) {
 			thumbnailWidth  = renderer.getThumbnailWidth();
 			thumbnailHeight = renderer.getThumbnailHeight();
-			thumbnailRatio  = renderer.getThumbnailWidth() / renderer.getThumbnailHeight();
+			thumbnailRatio  = renderer.getThumbnailRatio();
 		}
 
 		args[7] = "-vf";
@@ -743,7 +738,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					if (audio.getSongname() != null && audio.getSongname().length() > 0) {
-						if (renderer.isPrependTrackNumbers() && audio.getTrack() > 0) {
+						if (renderer != null && renderer.isPrependTrackNumbers() && audio.getTrack() > 0) {
 							audio.setSongname(audio.getTrack() + ": " + audio.getSongname());
 						}
 					} else {
