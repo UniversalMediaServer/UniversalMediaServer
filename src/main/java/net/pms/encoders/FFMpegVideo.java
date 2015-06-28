@@ -379,8 +379,6 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("copy");
 				transcodeOptions.add("-bsf:v");
 				transcodeOptions.add("h264_mp4toannexb");
-				transcodeOptions.add("-fflags");
-				transcodeOptions.add("+genpts");
 			} else if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
@@ -389,6 +387,8 @@ public class FFMpegVideo extends Player {
 					} else {
 						transcodeOptions.add("libx265");
 					}
+					transcodeOptions.add("-tune");
+					transcodeOptions.add("zerolatency");
 				}
 				if (!customFFmpegOptions.contains("-preset")) {
 					transcodeOptions.add("-preset");
@@ -771,6 +771,8 @@ public class FFMpegVideo extends Player {
 
 		setAudioAndSubs(filename, media, params);
 		cmdList.add(executable());
+		cmdList.add("-fflags");
+		cmdList.add("+genpts");
 
 		// Prevent FFmpeg timeout
 		cmdList.add("-y");
@@ -949,9 +951,6 @@ public class FFMpegVideo extends Player {
 			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
 		}
 
-		cmdList.add("-tune");
-		cmdList.add("zerolatency");
-
 		// Now configure the output streams
 
 		// Encoder threads
@@ -999,7 +998,7 @@ public class FFMpegVideo extends Player {
 
 				if (!customFFmpegOptions.contains("-ac ") && channels > 0) {
 					cmdList.add("-ac");
-					cmdList.add(String.valueOf(channels));
+					cmdList.add("2");
 				}
 
 				if (!customFFmpegOptions.contains("-ab ")) {
@@ -1007,7 +1006,7 @@ public class FFMpegVideo extends Player {
 					if (renderer.isTranscodeToAAC()) {
 						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
 					} else {
-						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
+						cmdList.add("384k");
 					}
 				}
 			}
