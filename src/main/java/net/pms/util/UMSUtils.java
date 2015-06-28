@@ -167,29 +167,12 @@ public class UMSUtils {
 		return dateFormat.format(date) + " " + messageDisplay[1];
 	}
 
-	private static int getHW(String[] s, int pos) {
-		if (pos > s.length - 1) {
-			return 0;
-		}
-		try {
-			return Integer.parseInt(s[pos].trim());
-		} catch (NumberFormatException e) {
-			return 0;
-		}
-	}
-
 	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
 		if (in == null) {
 			return in;
 		}
-		String ts = r.getThumbSize();
-		if (StringUtils.isEmpty(ts) && StringUtils.isEmpty(r.getThumbBG())) {
-			// no need to convert here
-			return in;
-		}
-		int w;
-		int h;
-		Color col = null;
+
+//		Color col = null;
 		BufferedImage img;
 		try {
 			img = ImageIO.read(in);
@@ -199,20 +182,29 @@ public class UMSUtils {
 			LOGGER.debug("couldn't read thumb to manipulate it " + e);
 			img = null; // to make sure
 		}
+
 		if (img == null) {
 			return in;
 		}
-		w = img.getWidth();
-		h = img.getHeight();
-		if (StringUtils.isNotEmpty(ts)) {
+
+		int w = img.getWidth();
+		int h = img.getHeight();
+		int rw = r.getThumbnailWidth();
+		int rh = r.getThumbnailHeight();
+		if (w != rw || h != rh) {
 			// size limit thumbnail
-			w = getHW(ts.split("x"), 0);
-			h = getHW(ts.split("x"), 1);
+			w = rw;
+			h = rh;
 			if (w == 0 || h == 0) {
-				LOGGER.debug("bad thumb size {} skip scaling", ts);
+				LOGGER.debug("bad thumb size {}x{} skip scaling", rw, rh);
 				w = h = 0; // just to make sure
 			}
 		}
+
+		if (w == 0 && h == 0) {
+			return in;
+		}
+/*
 		if (StringUtils.isNotEmpty(r.getThumbBG())) {
 			try {
 				Field field = Color.class.getField(r.getThumbBG());
@@ -221,15 +213,18 @@ public class UMSUtils {
 				LOGGER.debug("bad color name " + r.getThumbBG());
 			}
 		}
+
 		if (w == 0 && h == 0 && col == null) {
 			return in;
 		}
+*/
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		BufferedImage img1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = img1.createGraphics();
-		if (col != null) {
+/*		if (col != null) {
 			g.setColor(col);
 		}
+*/
 		g.fillRect(0, 0, w, h);
 		g.drawImage(img, 0, 0, w, h, null);
 		ImageIO.write(img1, "jpeg", out);
