@@ -955,7 +955,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		if (isUpnpAllowed() && uuid == null) {
 			String id = getDeviceId();
-			if (StringUtils.isNotBlank(id)) {
+			if (StringUtils.isNotBlank(id) && !id.contains(",")) {
 				uuid = id;
 			}
 		}
@@ -2561,6 +2561,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			// Backward compatibility
 			d = getString("device", "");
 		}
+		// Note: this might be a comma-separated list of ids
 		return d;
 	}
 
