@@ -245,4 +245,20 @@ public class HTTPResource {
 
 		return "MPEG_TS_SD_EU";
 	}
+
+	public final String getMPEG_TS_EULocalizedValue(int index, boolean isHD) {
+		String definition = "SD";
+		if (isHD) {
+			definition = "HD";
+		}
+
+		if (index == 1) {
+			return "MPEG_TS_" + definition + "_NA";
+		}
+		if (index == 2) {
+			return "MPEG_TS_" + definition + "_JP";
+		}
+
+		return "MPEG_TS_" + definition + "_EU";
+	}
 }
