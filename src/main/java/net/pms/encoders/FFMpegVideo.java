@@ -378,11 +378,11 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {
 						transcodeOptions.add("libx264");
-						transcodeOptions.add("-tune");
-						transcodeOptions.add("zerolatency");
 					} else {
 						transcodeOptions.add("libx265");
 					}
+					transcodeOptions.add("-tune");
+					transcodeOptions.add("zerolatency");
 				}
 				if (!customFFmpegOptions.contains("-preset")) {
 					transcodeOptions.add("-preset");
