@@ -97,7 +97,7 @@ public class FFmpegOptions extends optionsHashMap {
 			} else if (line.equals("Output:")) {
 				break;
 			} else if (add) {
-				protocols.add(line);
+				protocols.add(line.trim());
 
 			// old style - see http://git.videolan.org/?p=ffmpeg.git;a=commitdiff;h=cdc6a87f193b1bf99a640a44374d4f2597118959
 			} else if (line.startsWith("I.. = Input")) {

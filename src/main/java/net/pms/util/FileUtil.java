@@ -812,8 +812,7 @@ public class FileUtil {
 	public static String getFileCharset(File file) throws IOException {
 		String encoding = null;
 		externalSubsLang = null;
-		InputStream in = new BufferedInputStream(new FileInputStream(file));
-		try {
+		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
 			CharsetDetector detector = new CharsetDetector();
 			detector.enableInputFilter(true);
 			detector.setText(in);
@@ -829,9 +828,6 @@ public class FileUtil {
 				encoding = mm.getName().toUpperCase();
 				externalSubsLang = mm.getLanguage();
 			}
-
-		} finally {
-			in.close();
 		}
 
 		if (encoding != null) {
@@ -839,8 +835,8 @@ public class FileUtil {
 		} else {
 			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
 		}
-		
-	    return encoding;
+
+		return encoding;
 	}
 
 	/**
