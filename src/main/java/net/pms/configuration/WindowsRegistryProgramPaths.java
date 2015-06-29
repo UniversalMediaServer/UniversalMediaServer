@@ -21,12 +21,15 @@
 package net.pms.configuration;
 
 import java.io.File;
+
 import net.pms.PMS;
 import net.pms.io.SystemUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class WindowsRegistryProgramPaths implements ProgramPaths {
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsRegistryProgramPaths.class);
 	private final ProgramPaths defaults;
 

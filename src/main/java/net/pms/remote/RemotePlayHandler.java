@@ -2,11 +2,13 @@ package net.pms.remote;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -19,6 +21,7 @@ import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.util.SubtitleUtils;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -102,6 +105,7 @@ public class RemotePlayHandler implements HttpHandler {
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
+		@SuppressWarnings("unused")
 		String coverImage = "";
 		if (r instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly

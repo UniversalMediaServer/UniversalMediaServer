@@ -448,10 +448,10 @@ public class ExternalFactory {
 	private static void postInstall(Class<?> clazz) {
 		Method postInstall;
 		try {
-			postInstall = clazz.getDeclaredMethod("postInstall", null);
+			postInstall = clazz.getDeclaredMethod("postInstall", (Class<?>[]) null);
 
 			if (Modifier.isStatic(postInstall.getModifiers())) {
-				postInstall.invoke(null, null);
+				postInstall.invoke((Object[]) null, (Object[]) null);
 			}
 		}
 

@@ -1,6 +1,7 @@
 package net.pms.network;
 
 import com.sun.net.httpserver.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.net.URLDecoder;
 import java.util.*;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -17,6 +19,7 @@ import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.StringUtil;
 import net.pms.util.BasicPlayer.Logical;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -34,6 +37,7 @@ public class PlayerControlHandler implements HttpHandler {
 	private String bumpAddress;
 	private RendererConfiguration defaultRenderer;
 	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
+	@SuppressWarnings("unused")
 	private File bumpjs, skindir;
 
 	public PlayerControlHandler(RemoteWeb web) {
@@ -249,6 +253,7 @@ public class PlayerControlHandler implements HttpHandler {
 			? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
 
+	@SuppressWarnings("unused")
 	private String getId(String uri) {
 		return uri.startsWith("/play/") ? uri.substring(6) : "";
 	}

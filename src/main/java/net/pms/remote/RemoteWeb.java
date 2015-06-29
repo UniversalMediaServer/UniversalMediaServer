@@ -1,6 +1,7 @@
 package net.pms.remote;
 
 import com.sun.net.httpserver.*;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -12,7 +13,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+
 import javax.net.ssl.*;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -20,6 +23,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -402,6 +406,7 @@ public class RemoteWeb {
 
 	static class RemoteStartHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 		private RemoteWeb parent;
 
@@ -431,6 +436,7 @@ public class RemoteWeb {
 
 	static class RemoteDocHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDocHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 
 		private RemoteWeb parent;
@@ -493,7 +499,9 @@ public class RemoteWeb {
 	}
 
 	static class RemotePollHandler implements HttpHandler {
+		@SuppressWarnings("unused")
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemotePollHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 
 		private RemoteWeb parent;
@@ -508,6 +516,7 @@ public class RemoteWeb {
 			if (RemoteUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			@SuppressWarnings("unused")
 			String p = t.getRequestURI().getPath();
 			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();

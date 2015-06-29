@@ -21,6 +21,7 @@ package net.pms.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class OutputTextLogger extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextLogger.class);
+	@SuppressWarnings("unused")
 	private ProcessWrapperImpl pw;
 
 	public OutputTextLogger(InputStream inputStream) {
