@@ -290,6 +290,8 @@ public abstract class Format implements Cloneable {
 	public boolean skip(String extensions, String moreExtensions) {
 		if ("*".equals(extensions)) {
 			return true;
+		} else if ("*".equals(moreExtensions)) {
+			return true;
 		}
 
 		if (extensions != null && extensions.length() > 0) {
