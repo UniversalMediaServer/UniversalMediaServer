@@ -42,12 +42,13 @@ public class HTTPResource {
 	public static final String UNKNOWN_IMAGE_TYPEMIME = "image/jpeg";
 	public static final String UNKNOWN_AUDIO_TYPEMIME = "audio/mpeg";
 	public static final String AUDIO_MP3_TYPEMIME = "audio/mpeg";
-	public static final String AUDIO_MP4_TYPEMIME = "audio/x-m4a";
+	public static final String AUDIO_M4A_TYPEMIME = "audio/x-m4a";
 	public static final String AUDIO_WAV_TYPEMIME = "audio/wav";
 	public static final String AUDIO_WMA_TYPEMIME = "audio/x-ms-wma";
 	public static final String AUDIO_FLAC_TYPEMIME = "audio/x-flac";
 	public static final String AUDIO_OGG_TYPEMIME = "audio/x-ogg";
 	public static final String AUDIO_LPCM_TYPEMIME = "audio/L16";
+	public static final String AUDIO_ADTS_TYPEMIME = "audio/vnd.dlna.adts";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String AVI_TYPEMIME = "video/avi";

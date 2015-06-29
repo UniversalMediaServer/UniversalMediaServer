@@ -19,13 +19,17 @@
 package net.pms.dlna;
 
 import com.sun.jna.Platform;
+
 import java.io.*;
 import java.util.ArrayList;
+
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.formats.M4A;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +53,6 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse
 	public boolean isValid() {
 		File file = this.getFile();
 		resolveFormat();
@@ -189,6 +192,12 @@ public class RealFile extends MapFile {
 
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
+					// Special case for MP4 audio files, they have gotten container "m4a" during LibMediaInfoParser.parse so we need to change the format to "m4a" as well
+					if (getFormat().getMatchedExtension().equals("mp4") && getMedia().getContainer().equals("m4a")) {
+						setFormat(new M4A());
+						getFormat().setType(Format.AUDIO);
+						getFormat().setMatchedExtension("m4a");						
+					}
 				} else {
 					// Don't think that will ever happen
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());

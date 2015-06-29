@@ -1284,6 +1284,10 @@ public class DLNAMediaInfo implements Cloneable {
 				mimeType = HTTPResource.THREEGPP2_TYPEMIME;
 			} else if (container.equals("mov")) {
 				mimeType = HTTPResource.MOV_TYPEMIME;
+			} else if (container.equals("adts")) {
+				mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;				
+			} else if (container.equals("m4a"))	{
+				mimeType = HTTPResource.AUDIO_M4A_TYPEMIME;
 			}
 		}
 
@@ -1303,8 +1307,6 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (codecV == null && codecA != null) {
 				if (codecA.contains("mp3")) {
 					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-				} else if (codecA.contains("aac")) {
-					mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
 				} else if (codecA.contains("flac")) {
 					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
 				} else if (codecA.contains("vorbis")) {

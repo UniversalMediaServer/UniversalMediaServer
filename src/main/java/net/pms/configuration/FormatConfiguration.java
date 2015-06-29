@@ -76,6 +76,7 @@ public class FormatConfiguration {
 	public static final String MOV = "mov";
 	public static final String MP3 = "mp3";
 	public static final String MP4 = "mp4";
+	public static final String M4A = "m4a";
 	public static final String MPA = "mpa";
 	public static final String MPC = "mpc";
 	public static final String MPEG1 = "mpeg1";
@@ -470,6 +471,20 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getExtras()
+			);
+			// UGLY hack, but we need to send audio bitrate instead of container bitrate for audio
+		} else if (media.getMimeType().startsWith("audio")){
+			DLNAMediaAudio audio = media.getFirstAudioTrack();
+			return match(
+				media.getContainer(),
+				media.getCodecV(),
+				audio.getCodecA(),
+				audio.getAudioProperties().getNumberOfChannels(),
+				audio.getSampleRate(),
+				audio.getBitRate(),
+				media.getWidth(),
+				media.getHeight(),
+				media.getExtras()				
 			);
 		} else {
 			String finalMimeType = null;

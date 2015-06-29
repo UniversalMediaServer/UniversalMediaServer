@@ -260,16 +260,18 @@ public class LibMediaInfoParser {
 				 * Format profile                           : Base Media / Version 2
 				 * Codec ID                                 : mp42
 				 *
-				 * As a workaround, set container type to AAC for MP4 files that have a single AAC audio track and no video.
+				 * As a workaround, set container type to M4A for MP4 files that have a single AAC audio track and no video.
 				 */
 				if (
 					FormatConfiguration.MP4.equals(media.getContainer()) &&
 					isBlank(media.getCodecV()) &&
 					media.getAudioTracksList() != null &&
 					media.getAudioTracksList().size() == 1 &&
-					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
+					(FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA()) 
+					|| FormatConfiguration.AAC_HE.equals(media.getAudioTracksList().get(0).getCodecA())
+					|| FormatConfiguration.ALAC.equals(media.getAudioTracksList().get(0).getCodecA()))
 				) {
-					media.setContainer(FormatConfiguration.AAC);
+					media.setContainer(FormatConfiguration.M4A);
 				}
 
 				/**
