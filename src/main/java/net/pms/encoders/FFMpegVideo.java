@@ -869,10 +869,6 @@ public class FFMpegVideo extends Player {
 		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
-				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
-			}
 			if (deferToTsmuxer == true && !params.mediaRenderer.isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
