@@ -868,7 +868,7 @@ public class FFMpegVideo extends Player {
 		boolean deferToTsmuxer = true;
 		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
-			prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
+			prependTraceReason = "Not muxing the video stream because ";
 			if (deferToTsmuxer == true && !params.mediaRenderer.isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
@@ -893,14 +893,6 @@ public class FFMpegVideo extends Player {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
 			}
-			if (
-				deferToTsmuxer == true &&
-				!params.mediaRenderer.isPS3() &&
-				media.isWebDl(filename, params)
-			) {
-				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
-			}
 			if (deferToTsmuxer == true && "bt.601".equals(media.getMatrixCoefficients())) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
@@ -914,20 +906,6 @@ public class FFMpegVideo extends Player {
 				LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
 			}
 			if (deferToTsmuxer) {
-				/*TsMuxeRVideo tv = new TsMuxeRVideo();
-				params.forceFps = media.getValidFps(false);
-
-				if (media.getCodecV() != null) {
-					if (media.isH264()) {
-						params.forceType = "V_MPEG4/ISO/AVC";
-					} else if (media.getCodecV().startsWith("mpeg2")) {
-						params.forceType = "V_MPEG-2";
-					} else if (media.getCodecV().equals("vc1")) {
-						params.forceType = "V_MS/VFW/WVC1";
-					}
-				}
-
-				return tv.launchTranscode(dlna, media, params);*/
 				isMuxable = true;
 			}
 		}
