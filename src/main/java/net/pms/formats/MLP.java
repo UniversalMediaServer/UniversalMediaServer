@@ -15,18 +15,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */package net.pms.formats;
+ */
+package net.pms.formats;
 
-public class FLAC extends Format {
+public class MLP extends Format {
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.FLAC;
+		return Identifier.MLP;
 	}
 
-	public FLAC() {
+	public MLP() {
 		type = AUDIO;
 		secondaryFormat = new AudioAsVideo();
 	}
@@ -36,10 +37,7 @@ public class FLAC extends Format {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] {
-			"fla",
-			"flac",
-		};
+		return new String[] { "mlp" };
 	}
 
 	/**
@@ -60,5 +58,5 @@ public class FLAC extends Format {
 	@Override
 	public boolean transcodable() {
 		return true;
-	}	
+	}
 }

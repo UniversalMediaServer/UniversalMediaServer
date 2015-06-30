@@ -18,7 +18,7 @@
  */
 package net.pms.formats;
 
-public class OGG extends MP3 {
+public class OGG extends Format {
 	/**
 	 * {@inheritDoc} 
 	 */
@@ -27,6 +27,10 @@ public class OGG extends MP3 {
 		return Identifier.OGG;
 	}
 
+	public OGG() {
+		type = AUDIO;
+	}
+	
 	@Override
 	public boolean transcodable() {
 		return true;
@@ -38,25 +42,10 @@ public class OGG extends MP3 {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
-			"3ga",
-			"3gpa",
-			"aa3",
-			"ac3",
-			"aif",
-			"aiff",
-			"amr",
-			"ape",
-			"at3",
-			"dts",
-			"mka",
-			"mp2",
-			"mpc",
 			"ogg",
-			"oma",
-			"ra",
-			"shn",
-			"tta",
-			"wv"
+			"oga",
+			"spx",
+			"opus",
 		};
 	}
 
