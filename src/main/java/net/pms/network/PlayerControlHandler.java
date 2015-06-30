@@ -1,7 +1,6 @@
 package net.pms.network;
 
 import com.sun.net.httpserver.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,7 +9,6 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.net.URLDecoder;
 import java.util.*;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -19,7 +17,6 @@ import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.StringUtil;
 import net.pms.util.BasicPlayer.Logical;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

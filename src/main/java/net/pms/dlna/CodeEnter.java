@@ -4,7 +4,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
