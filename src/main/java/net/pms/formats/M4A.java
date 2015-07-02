@@ -13,22 +13,13 @@
  */
 package net.pms.formats;
 
-public class M4A extends Format {
+public class M4A extends AudioFile {
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
 	public Identifier getIdentifier() {
 		return Identifier.M4A;
-	}
-
-	public M4A() {
-		type = AUDIO;
-	}
-	
-	@Override
-	public boolean transcodable() {
-		return true;
 	}
 
 	/**

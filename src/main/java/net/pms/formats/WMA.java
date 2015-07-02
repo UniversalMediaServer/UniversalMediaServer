@@ -18,17 +18,13 @@
  */
 package net.pms.formats;
 
-public class WMA extends Format {
+public class WMA extends AudioFile {
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
 	public Identifier getIdentifier() {
 		return Identifier.WMA;
-	}
-
-	public WMA() {
-		type = AUDIO;
 	}
 
 	/**
@@ -51,11 +47,6 @@ public class WMA extends Format {
 	@Deprecated
 	@Override
 	public boolean ps3compatible() {
-		return true;
-	}
-
-	@Override
-	public boolean transcodable() {
 		return true;
 	}
 }

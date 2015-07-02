@@ -61,7 +61,7 @@ public final class FormatFactory {
 		new RA(),
 		new AIFF(),
 		new THREEGA(),
-		new APE(),
+		new MonkeysAudio(),
 		new TTA(),
 		new MKA(),
 		new MPC(),

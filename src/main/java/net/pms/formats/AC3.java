@@ -18,7 +18,7 @@
  */
 package net.pms.formats;
 
-public class AC3 extends Format {
+public class AC3 extends AudioFile {
 	/**
 	 * {@inheritDoc} 
 	 */
@@ -27,35 +27,11 @@ public class AC3 extends Format {
 		return Identifier.AC3;
 	}
 
-	public AC3() {
-		type = AUDIO;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] { "ac3" };
-	}
-
-	/**
-	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.
-	 * <p>
-	 * Returns whether or not a format can be handled by the PS3 natively.
-	 * This means the format can be streamed to PS3 instead of having to be
-	 * transcoded.
-	 * 
-	 * @return True if the format can be handled by PS3, false otherwise.
-	 */
-	@Deprecated
-	@Override
-	public boolean ps3compatible() {
-		return false;
-	}
-
-	@Override
-	public boolean transcodable() {
-		return true;
 	}
 }

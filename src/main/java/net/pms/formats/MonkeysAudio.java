@@ -18,13 +18,13 @@
  */
 package net.pms.formats;
 
-public class MPGAudio extends AudioFile {
+public class MonkeysAudio extends AudioFile {
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.MPA;
+		return Identifier.APE;
 	}
 
 	/**
@@ -32,6 +32,6 @@ public class MPGAudio extends AudioFile {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "mpa", "mp2" };
+		return new String[] { "ape" };
 	}
 }

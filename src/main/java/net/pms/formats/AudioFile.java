@@ -18,25 +18,10 @@
  */
 package net.pms.formats;
 
-public class APE extends Format {
-	/**
-	 * {@inheritDoc} 
-	 */
-	@Override
-	public Identifier getIdentifier() {
-		return Identifier.APE;
-	}
+public abstract class AudioFile extends Format {
 
-	public APE() {
+	public AudioFile() {
 		type = AUDIO;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String[] getSupportedExtensions() {
-		return new String[] { "ape" };
 	}
 
 	/**
