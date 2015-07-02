@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 public class WebRender extends DeviceConfiguration implements RendererConfiguration.OutputOverride {
 	private String user;
 	private String ip;
+	@SuppressWarnings("unused")
 	private int port;
 	private String ua;
 	private String defaultMime;
@@ -421,6 +422,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("matroska");
 	}
 
+	@SuppressWarnings("unused")
 	private void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));

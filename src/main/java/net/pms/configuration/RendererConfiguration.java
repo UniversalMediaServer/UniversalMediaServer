@@ -2543,10 +2543,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
-	public static final String INFO = "info";
-	public static final String OK = "okay";
-	public static final String WARN = "warn";
-	public static final String ERR = "err";
+	public final String INFO = "info";
+	public final String OK = "okay";
+	public final String WARN = "warn";
+	public final String ERR = "err";
 
 	public void notify(String type, String msg) {
 		// Implemented by subclasses

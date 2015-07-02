@@ -102,6 +102,7 @@ public class RemotePlayHandler implements HttpHandler {
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
+		@SuppressWarnings("unused")
 		String coverImage = "";
 		if (r instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
