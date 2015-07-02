@@ -48,7 +48,7 @@ public class FormatConfiguration {
 	public static final String AIFF = "aiff";
 	public static final String ALAC = "alac";
 	public static final String AMR = "amr";
-	public static final String APE = "ape";
+	public static final String MONKEYS_AUDIO = "ape";
 	public static final String ATRAC = "atrac";
 	public static final String AVI = "avi";
 	public static final String BMP = "bmp";
@@ -74,6 +74,7 @@ public class FormatConfiguration {
 	public static final String MJPEG = "mjpeg";
 	public static final String MLP = "mlp";
 	public static final String MOV = "mov";
+	public static final String MP2 = "mp2";
 	public static final String MP3 = "mp3";
 	public static final String MP4 = "mp4";
 	public static final String M4A = "m4a";
