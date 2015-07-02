@@ -304,6 +304,20 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is Matroska Audio.
+	 */
+	public boolean isMKA() {
+		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.MKA);
+	}
+
+	/**
+	 * @return True if the audio codec is 3GA.
+	 */
+	public boolean is3GA() {
+		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.THREEGA);
+	}
+
+	/**
 	 * @return True if the audio codec is Vorbis.
 	 */
 	public boolean isVorbis() {
@@ -372,8 +386,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "LPCM";
 		} else if (isVorbis()) {
 			return "Vorbis";
-		} else if (isAAC()) {
-			return "AAC";
+		} else if (isAACLC()) {
+			return "AAC LC";
+		} else if (isHEAAC()) {
+			return "HE-AAC";
 		} else if (isMP3()) {
 			return "MP3";
 		} else if (isWMA()) {
@@ -408,6 +424,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "TTA";
 		} else if (isWavPack()) {
 			return "WavPack";
+		} else if (isMKA()) {
+			return "Matroska Audio";
+		} else if (is3GA()) {
+			return "3GA";
 		} else if (isMpegAudio()) {
 			return "Mpeg Audio";
 		} else if (isADPCM()) {

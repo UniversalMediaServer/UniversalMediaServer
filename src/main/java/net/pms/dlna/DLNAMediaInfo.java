@@ -27,6 +27,7 @@ import java.util.*;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
@@ -1306,12 +1307,59 @@ public class DLNAMediaInfo implements Cloneable {
 				case "mov":
 					mimeType = HTTPResource.MOV_TYPEMIME;
 					break;
-				case "adts":
+				case FormatConfiguration.ADTS:
 					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
 					break;
-				case "m4a":
+				case FormatConfiguration.M4A:
 					mimeType = HTTPResource.AUDIO_M4A_TYPEMIME;
 					break;
+				case FormatConfiguration.AC3:
+					mimeType = HTTPResource.AUDIO_AC3_TYPEMIME;
+					break;
+				case FormatConfiguration.EAC3:
+					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
+					break;
+				case FormatConfiguration.MPA:
+					mimeType = HTTPResource.AUDIO_MPA_TYPEMIME;
+					break;
+				case FormatConfiguration.MP2:
+					mimeType = HTTPResource.AUDIO_MP2_TYPEMIME;
+					break;
+				case FormatConfiguration.AIFF:
+					mimeType = HTTPResource.AUDIO_AIFF_TYPEMIME;
+					break;
+				case FormatConfiguration.ATRAC:
+					mimeType = HTTPResource.AUDIO_ATRAC_TYPEMIME;
+					break;
+				case FormatConfiguration.MKA:
+					mimeType = HTTPResource.AUDIO_MKA_TYPEMIME;
+					break;
+				case FormatConfiguration.MLP:
+					mimeType = HTTPResource.AUDIO_MLP_TYPEMIME;
+					break;
+				case FormatConfiguration.MONKEYS_AUDIO:
+					mimeType = HTTPResource.AUDIO_APE_TYPEMIME;
+					break;
+				case FormatConfiguration.MPC:
+					mimeType = HTTPResource.AUDIO_MPC_TYPEMIME;
+					break;
+				case FormatConfiguration.RA:
+					mimeType = HTTPResource.AUDIO_RA_TYPEMIME;
+					break;
+				case FormatConfiguration.SHORTEN:
+					mimeType = HTTPResource.AUDIO_SHN_TYPEMIME;
+					break;
+				case FormatConfiguration.THREEGA:
+					mimeType = HTTPResource.AUDIO_3GA_TYPEMIME;
+					break;
+				case FormatConfiguration.TTA:
+					mimeType = HTTPResource.AUDIO_TTA_TYPEMIME;
+					break;
+				case FormatConfiguration.WAVPACK:
+					mimeType = HTTPResource.AUDIO_WV_TYPEMIME;
+					break;					
+				case FormatConfiguration.OGG:
+					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
 			}
 		}
 
@@ -1331,14 +1379,24 @@ public class DLNAMediaInfo implements Cloneable {
 			} else if (codecV == null && codecA != null) {
 				if (codecA.contains("mp3")) {
 					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.MPA)) {
+					mimeType = HTTPResource.AUDIO_MPA_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.MP2)) {
+					mimeType = HTTPResource.AUDIO_MP2_TYPEMIME;
 				} else if (codecA.contains("flac")) {
 					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
 				} else if (codecA.contains("vorbis")) {
-					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+					mimeType = HTTPResource.AUDIO_VORBIS_TYPEMIME;
 				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
 				} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
 					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.DTS)) {
+					mimeType = HTTPResource.AUDIO_DTS_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.DTSHD)) {
+					mimeType = HTTPResource.AUDIO_DTSHD_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.EAC3)) {
+					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
 				}
 			}
 

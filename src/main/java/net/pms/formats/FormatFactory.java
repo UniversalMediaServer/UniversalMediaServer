@@ -56,6 +56,7 @@ public final class FormatFactory {
 		new WAV(),
 		new WMA(),
 		new AC3(),
+		new EAC3(),
 		new DTS(),
 		new ATRAC(),
 		new RA(),

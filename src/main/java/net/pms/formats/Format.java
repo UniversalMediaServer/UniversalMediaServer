@@ -64,6 +64,7 @@ public abstract class Format implements Cloneable {
 		ADTS,
 		MPA,
 		AC3,
+		EAC3,
 		DTS,
 		ATRAC,
 		RA,

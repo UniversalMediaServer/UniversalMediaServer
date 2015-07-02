@@ -18,13 +18,13 @@
  */
 package net.pms.formats;
 
-public class WavPack extends AudioFile {
+public class EAC3 extends AudioFile {
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.WV;
+		return Identifier.EAC3;
 	}
 
 	/**
@@ -32,6 +32,6 @@ public class WavPack extends AudioFile {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "wv", "wvp" };
+		return new String[] { "eac3" };
 	}
 }

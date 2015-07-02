@@ -383,7 +383,9 @@ public class LibMediaInfoParser {
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		String format = null;
 
-		if (value.startsWith("3g2")) {
+		if (isBlank(value)) {
+			return;
+		} else if (value.startsWith("3g2")) {
 			format = FormatConfiguration.THREEGPP2;
 		} else if (value.startsWith("3gp")) {
 			format = FormatConfiguration.THREEGPP;
