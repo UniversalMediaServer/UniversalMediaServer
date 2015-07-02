@@ -263,6 +263,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Deprecated
 	protected long lastRefreshTime;
 
+	@SuppressWarnings("unused")
 	private String lastSearch;
 
 	private VirtualFolder dynamicPls;

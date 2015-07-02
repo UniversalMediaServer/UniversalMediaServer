@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class WindowsRegistryProgramPaths implements ProgramPaths {
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsRegistryProgramPaths.class);
 	private final ProgramPaths defaults;
 

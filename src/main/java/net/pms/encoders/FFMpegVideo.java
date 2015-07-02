@@ -764,8 +764,10 @@ public class FFMpegVideo extends Player {
 		List<String> cmdList = new ArrayList<>();
 		boolean avisynth = avisynth();
 		if (params.timeseek > 0) {
-			params.waitbeforestart = 200;
-		} else {
+			params.waitbeforestart = 1;
+		} else if (renderer.isTranscodeFastStart()){
+			params.manageFastStart();
+		} else {	
 			params.waitbeforestart = 2500;
 		}
 
