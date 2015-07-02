@@ -459,7 +459,15 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.MP3);
 				}
 			}
-		} else if (value.equals("ma")) {
+		} else if (value.equals("layer 2")) {
+			// just for audio files:
+			if (audio.getCodecA() != null && media.getContainer() != null && 
+				audio.getCodecA().equals(FormatConfiguration.MPA) && media.getContainer().equals(FormatConfiguration.MPA)) {
+				format = FormatConfiguration.MP2;
+				media.setContainer(FormatConfiguration.MP2);
+			}
+			
+		} else if (value.equals ("ma") || value.equals("ma / core")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;
 			}
@@ -511,7 +519,7 @@ public class LibMediaInfoParser {
 		} else if (value.equals("flac")) {
 			format = FormatConfiguration.FLAC;
 		} else if (value.equals("monkey's audio")) {
-			format = FormatConfiguration.APE;
+			format = FormatConfiguration.MONKEYS_AUDIO;
 		} else if (value.contains("musepack")) {
 			format = FormatConfiguration.MPC;
 		} else if (value.contains("wavpack")) {
