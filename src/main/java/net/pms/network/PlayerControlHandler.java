@@ -34,6 +34,7 @@ public class PlayerControlHandler implements HttpHandler {
 	private String bumpAddress;
 	private RendererConfiguration defaultRenderer;
 	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
+	@SuppressWarnings("unused")
 	private File bumpjs, skindir;
 
 	public PlayerControlHandler(RemoteWeb web) {
@@ -249,6 +250,7 @@ public class PlayerControlHandler implements HttpHandler {
 			? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
 
+	@SuppressWarnings("unused")
 	private String getId(String uri) {
 		return uri.startsWith("/play/") ? uri.substring(6) : "";
 	}

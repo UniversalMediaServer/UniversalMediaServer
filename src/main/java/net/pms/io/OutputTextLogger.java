@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class OutputTextLogger extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextLogger.class);
+	@SuppressWarnings("unused")
 	private ProcessWrapperImpl pw;
 
 	public OutputTextLogger(InputStream inputStream) {
