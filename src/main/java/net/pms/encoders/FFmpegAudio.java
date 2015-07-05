@@ -247,6 +247,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		// TODO: Matching on file format isn't really enough, codec should also be evaluated
 		if (
 			PlayerUtil.isAudio(resource, Format.Identifier.AC3) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.ADPCM) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.ADTS) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.AIFF) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.APE) ||
@@ -264,6 +265,7 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.RA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.SHN) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.THREEGA) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.THD) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.TTA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.WAV) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.WMA) ||

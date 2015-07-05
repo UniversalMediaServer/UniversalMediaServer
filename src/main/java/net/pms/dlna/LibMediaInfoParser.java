@@ -453,6 +453,8 @@ public class LibMediaInfoParser {
 			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
 				format = FormatConfiguration.MPEG1;
 			}
+		} else if (value.equals("au") || value.equals("uLaw/AU Audio File")) {
+			format = FormatConfiguration.AU;
 		} else if (value.equals("layer 3")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.MPA)) {
 				format = FormatConfiguration.MP3;
@@ -461,14 +463,11 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.MP3);
 				}
 			}
-		} else if (value.equals("layer 2")) {
-			// just for audio files:
-			if (audio.getCodecA() != null && media.getContainer() != null && 
-				audio.getCodecA().equals(FormatConfiguration.MPA) && media.getContainer().equals(FormatConfiguration.MPA)) {
-				format = FormatConfiguration.MP2;
-				media.setContainer(FormatConfiguration.MP2);
-			}
-			
+		} else if (value.equals("layer 2") && audio.getCodecA() != null && media.getContainer() != null && 
+				   audio.getCodecA().equals(FormatConfiguration.MPA) && media.getContainer().equals(FormatConfiguration.MPA)) {
+			// only for audio files:
+			format = FormatConfiguration.MP2;
+			media.setContainer(FormatConfiguration.MP2);						
 		} else if (value.equals ("ma") || value.equals("ma / core")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;

@@ -1307,6 +1307,9 @@ public class DLNAMediaInfo implements Cloneable {
 				case "mov":
 					mimeType = HTTPResource.MOV_TYPEMIME;
 					break;
+				case FormatConfiguration.ADPCM:
+					mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
+					break;
 				case FormatConfiguration.ADTS:
 					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
 					break;
@@ -1352,6 +1355,9 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.THREEGA:
 					mimeType = HTTPResource.AUDIO_3GA_TYPEMIME;
 					break;
+				case FormatConfiguration.TRUEHD:
+					mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
+					break;
 				case FormatConfiguration.TTA:
 					mimeType = HTTPResource.AUDIO_TTA_TYPEMIME;
 					break;
@@ -1360,6 +1366,10 @@ public class DLNAMediaInfo implements Cloneable {
 					break;					
 				case FormatConfiguration.OGG:
 					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+					break;
+				case FormatConfiguration.AU:
+					mimeType = HTTPResource.AUDIO_AU_TYPEMIME;
+					break;
 			}
 		}
 
@@ -1391,6 +1401,8 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
 				} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
 					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.TRUEHD)) {
+					mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
 				} else if (codecA.equals(FormatConfiguration.DTS)) {
 					mimeType = HTTPResource.AUDIO_DTS_TYPEMIME;
 				} else if (codecA.equals(FormatConfiguration.DTSHD)) {
