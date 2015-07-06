@@ -452,7 +452,7 @@ public class FFMpegVideo extends Player {
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0 && !isMuxable) {
 			if (rendererMaxBitrates[0] < 0) {
 				// odd specail case here
 				// this is -1 so we guess that 300 kbps is good
@@ -537,7 +537,7 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
+		if (isXboxOneWebVideo || (!params.mediaRenderer.isTranscodeToH264() && !isMuxable)) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -565,7 +565,7 @@ public class FFMpegVideo extends Player {
 			}
 			String[] customOptions = StringUtils.split(mpeg2Options);
 			videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
-		} else {
+		} else if (!isMuxable) {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
 
