@@ -98,14 +98,13 @@ public class StringUtil {
 		s = s.replace("<", "&lt;");
 		s = s.replace(">", "&gt;");
 		/* Skip encoding/escaping ' and " for compatibility with some renderers
-		 * This might need to be made into a renderer option if other renderers require them to be encoded
+		 * This might need to be made into a renderer option if some renderers require them to be encoded
 		 * s = s.replace("\"", "&quot;");
 		 * s = s.replace("'", "&apos;");
 		 */
 		
 		// The second encoding/escaping of & is not a bug, it's what effectively adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
-
 		return s;
 	}
 
