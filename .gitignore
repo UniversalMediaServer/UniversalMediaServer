@@ -15,3 +15,7 @@ target
 *.orig
 win32/
 *.sublime-*
+/web
+/plugins
+/extras
+Thumbs.db
