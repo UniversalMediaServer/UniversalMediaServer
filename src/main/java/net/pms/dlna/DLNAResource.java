@@ -1539,8 +1539,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				audioLanguage = "";
 			}
 
+			String audioTrackTitle = "";
+			if (
+				getMediaAudio().getAudioTrackTitleFromMetadata() != null &&
+				!"".equals(getMediaAudio().getAudioTrackTitleFromMetadata()) &&
+				mediaRenderer != null &&
+				mediaRenderer.isShowAudioMetadata()
+			) {
+				audioTrackTitle = " (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")";
+			}
+
 			displayName = player != null ? ("[" + player.name() + "]") : "";
-			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getAudioTrackTitleFromMetadata() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")") : "") + "}";
+			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + audioTrackTitle + "}";
 		}
 
 		if (
@@ -1560,7 +1570,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getSubtitlesTrackTitleFromMetadata() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getSubtitlesTrackTitleFromMetadata() + ")") : "");
+			String subtitlesTrackTitle = "";
+			if (
+				media_subtitle.getSubtitlesTrackTitleFromMetadata() != null &&
+				!"".equals(media_subtitle.getSubtitlesTrackTitleFromMetadata()) &&
+				mediaRenderer != null &&
+				mediaRenderer.isShowSubMetadata()
+			) {
+				subtitlesTrackTitle = " (" + media_subtitle.getSubtitlesTrackTitleFromMetadata() + ")";
+			}
+
+			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + subtitlesTrackTitle;
 			if (subsAreValidForStreaming) {
 				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription + "}";
 			} else {
