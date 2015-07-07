@@ -1207,6 +1207,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				notifyRefresh();
 			} */
 			if (forced) {
+				// This seems to follow the same code path as the else below in the case of MapFile, because
+				// refreshChildren calls shouldRefresh -> isRefreshNeeded -> doRefreshChildren, which is what happens below
+				// (refreshChildren is not overridden in MapFile) 
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
