@@ -1050,7 +1050,6 @@ public class PMS {
 
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
-		boolean headless = true;
 
 		if (args.length > 0) {
 			for (String arg : args) {
@@ -1086,9 +1085,7 @@ public class PMS {
 				if (System.getProperty(NOCONSOLE) == null) {
 					System.setProperty(CONSOLE, Boolean.toString(true));
 				}
-			} else {
-				headless = false;
-			}
+			} 
 		} catch (Throwable t) {
 			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
 
@@ -1097,7 +1094,7 @@ public class PMS {
 			}
 		}
 
-		if (!headless && displayProfileChooser) {
+		if (!isHeadless() && displayProfileChooser) {
 			ProfileChooser.display();
 		}
 
@@ -1151,7 +1148,7 @@ public class PMS {
 
 			LOGGER.error(errorMessage);
 
-			if (!headless && instance != null) {
+			if (!isHeadless() && instance != null) {
 				JOptionPane.showMessageDialog(
 					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
 					errorMessage,
@@ -1428,18 +1425,23 @@ public class PMS {
 		PlayerFactory.registerPlayer(player);
 	}
 
-	/*
+	private static Boolean headless = null;
+	
+	/**
 	 * Check if UMS is running in headless (console) mode, since some Linux
 	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
 	 */
 	public static boolean isHeadless() {
-		try {
-			JDialog d = new JDialog();
-			d.dispose();
-			return false;
-		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-			return true;
-		}
+		if (headless == null) {
+			try {
+				JDialog d = new JDialog();
+				d.dispose();
+				headless = new Boolean(false);
+			} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
+				headless = new Boolean(true);				
+			}
+		}		
+		return headless.booleanValue();
 	}
 
 	private RemoteWeb web;
