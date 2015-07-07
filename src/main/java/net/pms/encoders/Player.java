@@ -221,6 +221,7 @@ public abstract class Player {
 	 * The parameters to populate.
 	 */
 	public static void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params) {
+		// Use device-specific pms conf
 		PmsConfiguration configuration = PMS.getConfiguration(params);
 		if (params.aid == null && media != null && media.getFirstAudioTrack() != null) {
 			// check for preferred audio
@@ -267,6 +268,7 @@ public abstract class Player {
 	 * The parameters to populate.
 	 */
 	public static void setSubtitleOutputParameters(String fileName, DLNAMediaInfo media, OutputParams params) {
+		// Use device-specific pms conf
 		PmsConfiguration configuration = PMS.getConfiguration(params);
 		String currentLang = null;
 		DLNAMediaSubtitle matchedSub = null;
