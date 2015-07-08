@@ -178,6 +178,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	 * for the buffers dimensions and behavior.
 	 */
 	public BufferedOutputFileImpl(OutputParams params) {
+		// Use device-specific pms conf
 		configuration = PMS.getConfiguration(params);
 		this.renderer = params.mediaRenderer;
 		this.forcefirst = (configuration.getTrancodeBlocksMultipleConnections() && configuration.getTrancodeKeepFirstConnections());

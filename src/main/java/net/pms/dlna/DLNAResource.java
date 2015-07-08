@@ -765,6 +765,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return A player if transcoding or null if streaming
 	 */
 	public Player resolvePlayer(RendererConfiguration renderer) {
+		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
 		Player player = null;
@@ -956,7 +957,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (child != found) {
 				// Replace
 				child.parent = this;
-				child.setIndexId(GlobalIdRepo.parseIndex((found.getInternalId())));
+				child.setIndexId(GlobalIdRepo.parseIndex(found.getInternalId()));
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
@@ -1172,6 +1173,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
+		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
@@ -1466,6 +1468,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return String representing the item.
 	 */
 	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
+		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		// displayName shouldn't be cached, since device configurations may differ
 //		if (displayName != null) { // cached
@@ -1792,6 +1795,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
 	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
+		// Use device-specific pms conf, if any
+		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		String mime = getRendererMimeType(mediaRenderer);
 
 		String dlnaOrgPnFlags = null;
@@ -2224,12 +2229,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
+		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = mediaRenderer.isXbox360();
+		String fakeFileExtension = "";
 		if (!isFolder()) {
 			if (format != null && format.isVideo()) {
+				// Hack for making PS4 play transcoded content
+				if ("video/mpeg".equals(getRendererMimeType(mediaRenderer)) && mediaRenderer.isPS4()) {
+					fakeFileExtension = ".ts";
+				}
+
 				if (
 					!configuration.isDisableSubtitles() &&
 					player == null &&
@@ -2453,7 +2465,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark.append(" ").append(getFileURL());
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);
-				sb.append(getFileURL());
+				sb.append(getFileURL()).append(fakeFileExtension);
 				closeTag(sb, "res");
 			}
 		}
@@ -2751,6 +2763,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private long lastStart;
 
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
 
@@ -3009,6 +3022,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param renderer The renderer profile
 	 */
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
+		// Use device-specific pms conf, if any
+		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		if (media != null && !media.isThumbready() && configuration.isThumbnailGenerationEnabled()) {
 			Double seekPosition = (double) configuration.getThumbnailSeekPos();
 			if (isResume()) {
