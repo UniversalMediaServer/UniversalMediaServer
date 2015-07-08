@@ -73,11 +73,12 @@ public class LoggingConfigFileLoader {
 	 * <strong>Note:</strong> Any error messages generated while parsing the
 	 * config file are dumped only to <code>stdout</code>.
 	 */
-	public static void load() {
+	public static boolean load() {
 		// Note: Do not use any logging method in this method!
 		// Any status output needs to go to the console.
 
 		boolean headless = !(System.getProperty("console") == null);
+		boolean loaded = false;
 
 		File file = null;
 
@@ -90,8 +91,9 @@ public class LoggingConfigFileLoader {
 		}
 
 		if (!file.exists()) {
-			// No problem, the internal logback.xml is used.
-			return;
+			// Unpredictable: Any logback.xml found in the Classpath is loaded, if that fails defaulting to BasicConfigurator
+			// See http://logback.qos.ch/xref/ch/qos/logback/classic/BasicConfigurator.html
+			return loaded;
 		}
 
 		// Now get logback to actually use the config file
@@ -100,7 +102,7 @@ public class LoggingConfigFileLoader {
 		if (!(ilf instanceof LoggerContext)) {
 			// Not using LogBack.
 			// Can't configure the logger, so just exit
-			return;
+			return loaded;
 		}
 
 		LoggerContext lc = (LoggerContext) ilf;
@@ -115,6 +117,7 @@ public class LoggingConfigFileLoader {
 
 			// Save the filepath after loading the file
 			filepath = file.getAbsolutePath();
+			loaded = true;
 		} catch (JoranException je) {}
 
 		for (Logger LOGGER : lc.getLoggerList()) {
@@ -131,6 +134,7 @@ public class LoggingConfigFileLoader {
 		}
 
 		StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
+		return loaded;
 	}
 
 	public static HashMap<String, String> getLogFilePaths() {

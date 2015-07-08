@@ -1113,7 +1113,10 @@ public class PMS {
 			// need the PmsConfiguration.
 			// XXX not sure this is (still) true: the only filter
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
-			LoggingConfigFileLoader.load();
+			if (!LoggingConfigFileLoader.load()) {
+				LOGGER.warn("Could not load logback configuration file (logback.xml or logback.headless.xml).");
+				LOGGER.warn("Falling back to somewhat unpredictable defaults, probably only logging to console.");
+			}
 
 			// Check TRACE mode
 			ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
