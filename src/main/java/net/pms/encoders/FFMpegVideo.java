@@ -381,6 +381,8 @@ public class FFMpegVideo extends Player {
 					} else {
 						transcodeOptions.add("libx265");
 					}
+					transcodeOptions.add("-tune");
+					transcodeOptions.add("zerolatency");
 				}
 				if (!customFFmpegOptions.contains("-preset")) {
 					transcodeOptions.add("-preset");
@@ -722,6 +724,7 @@ public class FFMpegVideo extends Player {
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
+		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
@@ -756,8 +759,10 @@ public class FFMpegVideo extends Player {
 		List<String> cmdList = new ArrayList<String>();
 		boolean avisynth = avisynth();
 		if (params.timeseek > 0) {
-			params.waitbeforestart = 200;
-		} else {
+			params.waitbeforestart = 1;
+		} else if (renderer.isTranscodeFastStart()){
+			params.manageFastStart();
+		} else {	
 			params.waitbeforestart = 2500;
 		}
 

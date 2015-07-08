@@ -117,6 +117,7 @@ public class MEncoderVideo extends Player {
 	protected boolean ac3Remux;
 	protected boolean isTranscodeToMPEGTS;
 	protected boolean isTranscodeToH264;
+	protected boolean isTranscodeToAAC;
 	protected boolean wmv;
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
@@ -550,6 +551,10 @@ public class MEncoderVideo extends Player {
 			defaultArgsList.add("copy");
 		} else if (pcm) {
 			defaultArgsList.add("pcm");
+		} else if (isTranscodeToAAC) {
+			defaultArgsList.add("faac");
+			defaultArgsList.add("-faacopts");
+			defaultArgsList.add("br=320:mpeg=4:object=2");
 		} else {
 			defaultArgsList.add("lavc");
 		}
@@ -682,6 +687,7 @@ public class MEncoderVideo extends Player {
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
+		// Use device-specific pms conf
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -786,6 +792,7 @@ public class MEncoderVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		params.manageFastStart();
@@ -974,6 +981,7 @@ public class MEncoderVideo extends Player {
 
 		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
 		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265();
+		isTranscodeToAAC    = params.mediaRenderer.isTranscodeToAAC();
 
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
@@ -1128,7 +1136,6 @@ public class MEncoderVideo extends Player {
 		if (combinedCustomOptions.contains("-channels")) {
 			channelsString = "";
 		}
-		LOGGER.trace("channels=" + channels);
 
 		StringTokenizer st = new StringTokenizer(
 			channelsString +
@@ -1195,7 +1202,7 @@ public class MEncoderVideo extends Player {
 			// Set audio codec and bitrate if audio is being transcoded
 			String acodec   = "";
 			String abitrate = "";
-			if (!ac3Remux && !dtsRemux) {
+			if (!ac3Remux && !dtsRemux && !isTranscodeToAAC) {
 				// Set the audio codec used by Lavc
 				if (!combinedCustomOptions.contains("acodec=")) {
 					acodec = ":acodec=";
@@ -1909,14 +1916,9 @@ public class MEncoderVideo extends Player {
 			String vfValuePrepend = "expand=";
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
-				if (videoAspectRatio > rendererAspectRatio) {
-					scaleHeight = (int) Math.round(scaleWidth / rendererAspectRatio);
-				} else {
-					scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
-				}
-
-				scaleWidth  = convertToModX(scaleWidth, 4);
-				scaleHeight = convertToModX(scaleHeight, 4);
+				String resolution = dlna.getResolutionForKeepAR(scaleWidth, scaleHeight);
+				scaleWidth = Integer.valueOf(substringBefore(resolution, "x"));
+				scaleHeight = Integer.valueOf(substringAfter(resolution, "x"));
 
 				/**
 				 * Now we know which resolution we want the video to be, let's see if MEncoder

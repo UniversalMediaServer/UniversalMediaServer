@@ -243,7 +243,7 @@ public class ProcessUtil {
 		} else {
 			// We're running a script that will eventually restart UMS 
 			if (env == null) {
-				env = new HashMap<String,String>();
+				env = new HashMap<String, String>();
 			}
 			// Tell the script how to restart UMS
 			env.put("RESTART_CMD", StringUtils.join(reboot, " "));
@@ -276,8 +276,8 @@ public class ProcessUtil {
 	public static ArrayList<String> getUMSCommand() {
 		ArrayList<String> reboot = new ArrayList<String>();
 		reboot.add(StringUtil.quoteArg(
-			 System.getProperty("java.home") + File.separator + "bin" + File.separator +
-			 ((Platform.isWindows() && System.console() == null) ? "javaw" : "java")));
+			System.getProperty("java.home") + File.separator + "bin" + File.separator +
+			((Platform.isWindows() && System.console() == null) ? "javaw" : "java")));
 		for (String jvmArg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
 			reboot.add(StringUtil.quoteArg(jvmArg));
 		}

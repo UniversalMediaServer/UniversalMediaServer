@@ -197,7 +197,12 @@ public class DeviceConfiguration extends PmsConfiguration {
 		String filename = f.getName();
 		try {
 			conf.load(f);
-			String[] ids = conf.getStringArray("device");
+			String s = conf.getString(DEVICE_ID, "");
+			if (s.isEmpty() && conf.containsKey("device")) {
+				// Backward compatibility
+				s = conf.getString("device", "");
+			}
+			String[] ids = s.split("\\s*,\\s*");
 			for (String id : ids) {
 				if (StringUtils.isNotBlank(id)) {
 					deviceConfs.put(id, conf);
@@ -258,7 +263,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			conf.add("# Options in this file override the default settings for the specific " + r.getSimpleName(r) + " device(s) listed below.");
 			conf.add("# Specify devices by uuid (or address if no uuid), separated by commas if more than one.");
 			conf.add("");
-			conf.add("Device = " + r.getId());
+			conf.add(DEVICE_ID + " = " + r.getId());
 
 			FileUtils.writeLines(file, "utf-8", conf, "\r\n");
 

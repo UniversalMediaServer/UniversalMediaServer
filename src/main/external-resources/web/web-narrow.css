@@ -23,3 +23,8 @@ ul#Media {
 #ContentPage #Menu #HomeButton {
 	height: 51px;
 }
+
+#ImageContainer {
+	position: static;
+}
+

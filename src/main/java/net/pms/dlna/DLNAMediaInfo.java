@@ -440,7 +440,12 @@ public class DLNAMediaInfo implements Cloneable {
 		gen_thumb = false;
 	}
 
+	@Deprecated
 	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume) {
+		generateThumbnail(input, ext, type, seekPosition, resume, null);
+	}
+
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume, RendererConfiguration renderer) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
 		forThumbnail.gen_thumb = true;
 		forThumbnail.durationSec = getDurationInSeconds();
@@ -451,11 +456,11 @@ public class DLNAMediaInfo implements Cloneable {
 			forThumbnail.durationSec /= 2;
 		}
 
-		forThumbnail.parse(input, ext, type, true, resume, null);
+		forThumbnail.parse(input, ext, type, true, resume, renderer);
 		thumb = forThumbnail.thumb;
 	}
 
-	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media, boolean resume) {
+	private ProcessWrapperImpl getFFmpegThumbnail(InputFile media, boolean resume, RendererConfiguration renderer) {
 		/**
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
@@ -487,8 +492,19 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args[5] = "-an";
 		args[6] = "-an";
+
+		// Thumbnail resolution
+		int thumbnailWidth  = 320;
+		int thumbnailHeight = 180;
+		double thumbnailRatio  = 1.78;
+		if (renderer != null) {
+			thumbnailWidth  = renderer.getThumbnailWidth();
+			thumbnailHeight = renderer.getThumbnailHeight();
+			thumbnailRatio  = renderer.getThumbnailRatio();
+		}
+
 		args[7] = "-vf";
-		args[8] = "scale='if(gt(a,16/9),320,-1)':'if(gt(a,16/9),-1,180)', pad=320:180:(320-iw)/2:(180-ih)/2";
+		args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")', pad=" + thumbnailWidth + ":" + thumbnailHeight + ":(" + thumbnailWidth + "-iw)/2:(" + thumbnailHeight + "-ih)/2";
 		args[9] = "-vframes";
 		args[10] = "1";
 		args[11] = "-f";
@@ -722,7 +738,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					if (audio.getSongname() != null && audio.getSongname().length() > 0) {
-						if (renderer.isPrependTrackNumbers() && audio.getTrack() > 0) {
+						if (renderer != null && renderer.isPrependTrackNumbers() && audio.getTrack() > 0) {
 							audio.setSongname(audio.getTrack() + ": " + audio.getSongname());
 						}
 					} else {
@@ -807,7 +823,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 			if (ffmpeg_parsing) {
 				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
-					pw = getFFMpegThumbnail(inputFile, resume);
+					pw = getFFmpegThumbnail(inputFile, resume, renderer);
 				}
 
 				boolean dvrms = false;
@@ -1264,47 +1280,53 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		if (container != null) {
-			if (container.equals("avi")) {
+			if ("avi".equals(container)) {
 				mimeType = HTTPResource.AVI_TYPEMIME;
-			} else if (container.equals("asf") || container.equals("wmv")) {
+			} else if ("asf".equals(container) || "wmv".equals(container)) {
 				mimeType = HTTPResource.WMV_TYPEMIME;
-			} else if (container.equals("matroska") || container.equals("mkv")) {
+			} else if ("matroska".equals(container) || "mkv".equals(container)) {
 				mimeType = HTTPResource.MATROSKA_TYPEMIME;
-			} else if (container.equals("3gp")) {
+			} else if ("3gp".equals(container)) {
 				mimeType = HTTPResource.THREEGPP_TYPEMIME;
-			} else if (container.equals("3g2")) {
+			} else if ("3g2".equals(container)) {
 				mimeType = HTTPResource.THREEGPP2_TYPEMIME;
-			} else if (container.equals("mov")) {
+			} else if ("mov".equals(container)) {
 				mimeType = HTTPResource.MOV_TYPEMIME;
 			}
-		} else if (codecV != null) {
-			if (codecV.equals("mjpeg") || "jpg".equals(container)) {
-				mimeType = HTTPResource.JPEG_TYPEMIME;
-			} else if ("png".equals(codecV) || "png".equals(container)) {
-				mimeType = HTTPResource.PNG_TYPEMIME;
-			} else if ("gif".equals(codecV) || "gif".equals(container)) {
-				mimeType = HTTPResource.GIF_TYPEMIME;
-			} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
-				mimeType = HTTPResource.MP4_TYPEMIME;
-			} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
-				mimeType = HTTPResource.MPEG_TYPEMIME;
+		}
+
+		if (mimeType == null) {
+			if (codecV != null) {
+				if (codecV.equals("mjpeg") || "jpg".equals(container)) {
+					mimeType = HTTPResource.JPEG_TYPEMIME;
+				} else if ("png".equals(codecV) || "png".equals(container)) {
+					mimeType = HTTPResource.PNG_TYPEMIME;
+				} else if ("gif".equals(codecV) || "gif".equals(container)) {
+					mimeType = HTTPResource.GIF_TYPEMIME;
+				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
+					mimeType = HTTPResource.MP4_TYPEMIME;
+				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
+					mimeType = HTTPResource.MPEG_TYPEMIME;
+				}
+			} else if (codecV == null && codecA != null) {
+				if (codecA.contains("mp3")) {
+					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else if (codecA.contains("aac")) {
+					mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
+				} else if (codecA.contains("flac")) {
+					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
+				} else if (codecA.contains("vorbis")) {
+					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
+					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
+				} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
+					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				}
 			}
-		} else if (codecV == null && codecA != null) {
-			if (codecA.contains("mp3")) {
-				mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-			} else if (codecA.contains("aac")) {
-				mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
-			} else if (codecA.contains("flac")) {
-				mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
-			} else if (codecA.contains("vorbis")) {
-				mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
-			} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
-				mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-			} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
-				mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+
+			if (mimeType == null) {
+				mimeType = HTTPResource.getDefaultMimeType(type);
 			}
-		} else {
-			mimeType = HTTPResource.getDefaultMimeType(type);
 		}
 
 		if (getFirstAudioTrack() == null || !(type == Format.AUDIO && getFirstAudioTrack().getBitsperSample() == 24 && getFirstAudioTrack().getSampleRate() > 48000)) {
@@ -1582,7 +1604,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isHDVideo() {
-		return (width > 1200 || height > 700);
+		return (width > 864 || height > 540);
 	}
 
 	public boolean isMpegTS() {

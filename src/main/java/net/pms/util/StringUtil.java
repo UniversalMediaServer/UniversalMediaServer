@@ -35,6 +35,7 @@ public class StringUtil {
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
+	public static final String NEWLINE_CHARACTER = System.getProperty("line.separator");
 
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.

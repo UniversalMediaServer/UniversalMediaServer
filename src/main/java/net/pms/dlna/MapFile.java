@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 public class MapFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
 	private List<File> discoverable;
+	private List<File> emptyFoldersToRescan;
 	private String forcedName;
 
 	private ArrayList<RealFile> searchList;
@@ -98,6 +99,14 @@ public class MapFile extends DLNAResource {
 					/* Optionally ignore empty directories */
 					if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
 						LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
+						// Keep track of the fact that we have empty folders, so when we're asked if we should refresh,
+						// we can re-scan the folders in this list to see if they contain something relevant
+						if (emptyFoldersToRescan == null) {
+							emptyFoldersToRescan = new ArrayList<File>();
+						}
+						if (!emptyFoldersToRescan.contains(f)) {
+							emptyFoldersToRescan.add(f);
+						}									
 					} else { // Otherwise add the file
 						RealFile rf = new RealFile(f);
 						if (searchList != null) {
@@ -207,6 +216,14 @@ public class MapFile extends DLNAResource {
 				}
 				if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
 					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
+					// Keep track of the fact that we have empty folders, so when we're asked if we should refresh,
+					// we can re-scan the folders in this list to see if they contain something relevant
+					if (emptyFoldersToRescan == null) {
+						emptyFoldersToRescan = new ArrayList<File>();
+					}
+					if (!emptyFoldersToRescan.contains(f)) {
+						emptyFoldersToRescan.add(f);
+					}				
 					continue;
 				}
 
@@ -268,8 +285,18 @@ public class MapFile extends DLNAResource {
 				modified = Math.max(modified, f.lastModified());
 			}
 		}
-
-		return (getLastRefreshTime() < modified) || (configuration.getSortMethod(getPath()) == UMSUtils.SORT_RANDOM);
+		
+		// Check if any of our previously empty folders now have content
+		boolean emptyFolderNowNotEmpty = false;
+		if (emptyFoldersToRescan != null) {			
+			for (File emptyFile : emptyFoldersToRescan) {
+				if (FileUtil.isFolderRelevant(emptyFile, configuration)) {
+					emptyFolderNowNotEmpty = true;
+					break;
+				}
+			}			
+		}
+		return (getLastRefreshTime() < modified) || (configuration.getSortMethod(getPath()) == UMSUtils.SORT_RANDOM || emptyFolderNowNotEmpty);
 	}
 
 	@Override
@@ -329,6 +356,7 @@ public class MapFile extends DLNAResource {
 			addChild(new MapFile(f));
 		} */
 		getChildren().clear();
+		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
 		discoverable = null;
 		discoverChildren(str);
 		analyzeChildren(-1);

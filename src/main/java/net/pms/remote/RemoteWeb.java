@@ -405,6 +405,7 @@ public class RemoteWeb {
 
 	static class RemoteStartHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 		private RemoteWeb parent;
 
@@ -434,6 +435,7 @@ public class RemoteWeb {
 
 	static class RemoteDocHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDocHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 
 		private RemoteWeb parent;
@@ -496,7 +498,9 @@ public class RemoteWeb {
 	}
 
 	static class RemotePollHandler implements HttpHandler {
+		@SuppressWarnings("unused")
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemotePollHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 
 		private RemoteWeb parent;
@@ -511,6 +515,7 @@ public class RemoteWeb {
 			if (RemoteUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			@SuppressWarnings("unused")
 			String p = t.getRequestURI().getPath();
 			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();

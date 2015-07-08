@@ -97,6 +97,7 @@ public class Request extends HTTPResource {
 
 	public void setMediaRenderer(RendererConfiguration mediaRenderer) {
 		this.mediaRenderer = mediaRenderer;
+		// Use device-specific pms conf
 		configuration = PMS.getConfiguration(mediaRenderer);
 	}
 
@@ -371,7 +372,7 @@ public class Request extends HTTPResource {
 									}
 									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
 										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000" + subExtension;
+										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 									output(output, subtitleHttpHeader + ": " + subtitleUrl);
 								}
@@ -722,7 +723,7 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				//LOGGER.trace(response.toString());
+				LOGGER.trace(response.toString());
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			if (soapaction == null) {

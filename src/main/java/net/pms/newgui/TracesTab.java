@@ -221,7 +221,7 @@ public class TracesTab {
 		builder.add(level, cc.xy(4, 2));
 		if (PMS.getTraceMode() == 2) {
 			// Forced trace mode
-			level.disable();
+			level.setEnabled(false);
 		}
 
 		// Add buttons to pack logs (there may be more than one)

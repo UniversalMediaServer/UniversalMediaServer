@@ -189,6 +189,7 @@ public class OpenSubtitle {
 		if (StringUtils.isEmpty(info)) {
 			return "";
 		}
+		@SuppressWarnings("unused")
 		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		LOGGER.debug("info is " + info);
 		return info;

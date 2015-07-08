@@ -431,6 +431,7 @@ public class VLCVideo extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getSystemName();
