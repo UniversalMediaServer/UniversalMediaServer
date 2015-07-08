@@ -1,4 +1,4 @@
-5.2.0 - 2015-07-??
+5.2.0 - 2015-07-09
 
 	General:
 		Made tsMuxeR use FFmpeg instead of MEncoder
