@@ -2234,8 +2234,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = mediaRenderer.isXbox360();
+		String fakeFileExtension = "";
 		if (!isFolder()) {
 			if (format != null && format.isVideo()) {
+				// Hack for making PS4 play transcoded content
+				if ("video/mpeg".equals(getRendererMimeType(mediaRenderer)) && mediaRenderer.isPS4()) {
+					fakeFileExtension = "ts";
+				}
+
 				if (
 					!configuration.isDisableSubtitles() &&
 					player == null &&
@@ -2459,7 +2465,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark.append(" ").append(getFileURL());
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);
-				sb.append(getFileURL());
+				sb.append(getFileURL()).append(fakeFileExtension);
 				closeTag(sb, "res");
 			}
 		}

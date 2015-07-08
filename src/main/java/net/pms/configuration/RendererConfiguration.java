@@ -846,6 +846,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getConfName().toUpperCase().contains("PLAYSTATION 3") || getConfName().toUpperCase().contains("PS3");
 	}
 
+	public boolean isPS4() {
+		return getConfName().toUpperCase().contains("PLAYSTATION 4");
+	}
+
 	public boolean isBRAVIA() {
 		return getConfName().toUpperCase().contains("BRAVIA");
 	}
