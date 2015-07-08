@@ -2239,7 +2239,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (format != null && format.isVideo()) {
 				// Hack for making PS4 play transcoded content
 				if ("video/mpeg".equals(getRendererMimeType(mediaRenderer)) && mediaRenderer.isPS4()) {
-					fakeFileExtension = "ts";
+					fakeFileExtension = ".ts";
 				}
 
 				if (
