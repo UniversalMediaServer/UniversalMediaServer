@@ -90,7 +90,7 @@ public class FFmpegOptions extends optionsHashMap {
 		String output = ProcessUtil.run(configuration.getFfmpegPath(), "-protocols");
 		boolean add = false;
 		boolean old = false;
-		for (String line : output.split("\n")) {
+		for (String line : output.split("\\s*\n\\s*")) {
 			// new style
 			if (line.equals("Input:")) {
 				add = true;

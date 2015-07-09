@@ -159,6 +159,7 @@ public class UMSUtils {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
 		if (in == null) {
 			return in;

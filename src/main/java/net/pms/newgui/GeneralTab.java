@@ -26,13 +26,10 @@ import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import javax.swing.*;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -40,6 +37,7 @@ import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
+import net.pms.util.WindowsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +70,7 @@ public class GeneralTab {
 	private JCheckBox runWizardOnProgramStartup;
 	private LooksFrame looksFrame;
 	private JCheckBox singleInstance;
+	private CustomJButton installService;
 
 	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -177,47 +176,10 @@ public class GeneralTab {
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
-			CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
-			service.setToolTipText(Messages.getString("NetworkTab.63"));
-			service.addActionListener((ActionEvent e) -> {
-				if (PMS.get().installWin32Service()) {
-					LOGGER.info(Messages.getString("PMS.41"));
-					JOptionPane.showMessageDialog(
-						looksFrame,
-						Messages.getString("NetworkTab.11") +
-							Messages.getString("NetworkTab.12"),
-						Messages.getString("Dialog.Information"),
-						JOptionPane.INFORMATION_MESSAGE
-					);
-				} else {
-					JOptionPane.showMessageDialog(
-						looksFrame,
-						Messages.getString("NetworkTab.14"),
-						Messages.getString("Dialog.Error"),
-						JOptionPane.ERROR_MESSAGE
-					);
-				}
-			});
-			builder.add(service, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
-				service.setEnabled(false);
-			}
+			installService = new CustomJButton();
+			refreshInstallServiceButtonState();
 
-			CustomJButton serviceUninstall = new CustomJButton(Messages.getString("GeneralTab.2"));
-			serviceUninstall.addActionListener((ActionEvent e) -> {
-				PMS.get().uninstallWin32Service();
-				LOGGER.info(Messages.getString("GeneralTab.3"));
-				JOptionPane.showMessageDialog(
-					looksFrame,
-					Messages.getString("GeneralTab.3"),
-					Messages.getString("Dialog.Information"),
-					JOptionPane.INFORMATION_MESSAGE
-				);
-			});
-			builder.add(serviceUninstall, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
-			if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
-				serviceUninstall.setEnabled(false);
-			}
+			builder.add(installService, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			ypos += 2;
 		}
 
@@ -497,6 +459,89 @@ public class GeneralTab {
 		);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
+	}
+
+	/**
+	 * Refreshes the state of the button to install/uninstall the Windows service for UMS
+	 * depending if the service has been installed or not.
+	 *  - Set the button and tooltip text
+	 *  - Add the correct action listener
+	 */
+	private void refreshInstallServiceButtonState() {
+		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
+			installService.setEnabled(false);
+		} else {
+			installService.setEnabled(true);
+
+			boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+
+			if (isUmsServiceInstalled) {
+				// Update button text and tooltip
+				installService.setText(Messages.getString("GeneralTab.2"));
+				installService.setToolTipText(null);
+
+				// Remove all attached action listeners
+				for (ActionListener al : installService.getActionListeners()) {
+					installService.removeActionListener(al);
+				}
+
+				// Attach the button clicked action listener
+				installService.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						WindowsUtil.uninstallWin32Service();
+						LOGGER.info(Messages.getString("GeneralTab.3"));
+
+						// Refresh the button state after it has been clicked
+						refreshInstallServiceButtonState();
+
+						JOptionPane.showMessageDialog(
+							looksFrame,
+							Messages.getString("GeneralTab.3"),
+							Messages.getString("Dialog.Information"),
+							JOptionPane.INFORMATION_MESSAGE
+						);
+					}
+				});
+			} else {
+				// Update button text and tooltip
+				installService.setText(Messages.getString("NetworkTab.4"));
+				installService.setToolTipText(Messages.getString("NetworkTab.63"));
+
+				// Remove all attached action listeners
+				for (ActionListener al : installService.getActionListeners()) {
+					installService.removeActionListener(al);
+				}
+
+				// Attach the button clicked action listener
+				installService.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						if (WindowsUtil.installWin32Service()) {
+							LOGGER.info(Messages.getString("PMS.41"));
+
+							// Refresh the button state after it has been clicked
+							refreshInstallServiceButtonState();
+
+							JOptionPane.showMessageDialog(
+								looksFrame,
+								Messages.getString("NetworkTab.11") +
+								Messages.getString("NetworkTab.12"),
+								Messages.getString("Dialog.Information"),
+								JOptionPane.INFORMATION_MESSAGE
+							);
+						} else {
+							JOptionPane.showMessageDialog(
+								looksFrame,
+								Messages.getString("NetworkTab.14"),
+								Messages.getString("Dialog.Error"),
+								JOptionPane.ERROR_MESSAGE
+							);
+						}
+					}
+				});
+			}
+		}
 	}
 
 	private KeyedComboBoxModel createNetworkInterfacesModel() {

@@ -41,8 +41,10 @@ public class OGG extends MP3 {
 			"3ga",
 			"3gpa",
 			"aa3",
+			"ac3",
 			"aif",
 			"aiff",
+			"amr",
 			"ape",
 			"at3",
 			"dts",
@@ -53,6 +55,7 @@ public class OGG extends MP3 {
 			"oma",
 			"ra",
 			"shn",
+			"tta",
 			"wv"
 		};
 	}

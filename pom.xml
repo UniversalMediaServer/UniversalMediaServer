@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>5.1.4</version>
+	<version>5.2.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,7 +69,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>5.1.4</project.version.short>
+		<project.version.short>5.2.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -89,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>23</binary-revision>
+		<binary-revision>24</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
@@ -236,7 +236,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.0.28.Final</version>
+			<version>4.0.29.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -327,9 +327,10 @@
 			<version>1.2.5</version>
 		</dependency>
 		<dependency>
-			<groupId>org.easytesting</groupId>
-			<artifactId>fest-assert</artifactId>
-			<version>1.4</version>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<!-- use 3.0.0 for Java 8 projects -->
+			<version>2.1.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -1040,6 +1041,12 @@
 										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
+
+										<!-- Make sure the destination folder for the service wrapper exists and copy the files. -->
+										<mkdir dir="${project.basedir}/win32/service" />
+										<copy todir="${project.basedir}/win32/service" overwrite="true">
+											<fileset dir="${project.binaries}/win32/service" />
+										</copy>
 									</target>
 								</configuration>
 							</execution>

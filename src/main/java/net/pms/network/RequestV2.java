@@ -94,6 +94,7 @@ public class RequestV2 extends HTTPResource {
 
 	public void setMediaRenderer(RendererConfiguration mediaRenderer) {
 		this.mediaRenderer = mediaRenderer;
+		// Use device-specific pms conf
 		configuration = PMS.getConfiguration(mediaRenderer);
 	}
 
@@ -393,7 +394,7 @@ public class RequestV2 extends HTTPResource {
 									}
 									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
 										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000" + subExtension;
+										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 									output.headers().set(subtitleHttpHeader, subtitleUrl);
 								} else {
@@ -776,7 +777,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				//LOGGER.trace(response.toString());
+				LOGGER.trace(response.toString());
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());
@@ -902,16 +903,20 @@ public class RequestV2 extends HTTPResource {
 				ChannelFuture chunkWriteFuture = ctx.writeAndFlush(new ChunkedStream(inputStream, BUFFER_SIZE));
 
 				// Add a listener to clean up after sending the entire response body.
-				chunkWriteFuture.addListener((ChannelFutureListener) (ChannelFuture future1) -> {
-					LOGGER.trace("The channel future completed:");
-					LOGGER.trace("  isSuccess: " + future1.isSuccess());
-					LOGGER.trace("  isCancelled: " + future1.isCancelled());
-					LOGGER.trace("  getCause: ", future1.cause());
-					try {
-						PMS.get().getRegistry().reenableGoToSleep();
-						inputStream.close();
-					} catch (IOException e1) {
-						LOGGER.debug("Caught exception", e1);
+				chunkWriteFuture.addListener(new ChannelFutureListener() {
+					@Override
+					public void operationComplete(ChannelFuture future) {
+						try {
+							PMS.get().getRegistry().reenableGoToSleep();
+							inputStream.close();
+						} catch (IOException e) {
+							LOGGER.debug("Caught exception", e);
+						}
+
+						// Always close the channel after the response is sent because of
+						// a freeze at the end of video when the channel is not closed.
+						future.channel().close();
+						startStopListenerDelegate.stop();
 					}
 					// Always close the channel after the response is sent because of
 					// a freeze at the end of video when the channel is not closed.

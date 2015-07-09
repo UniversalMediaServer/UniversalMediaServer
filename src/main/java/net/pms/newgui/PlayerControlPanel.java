@@ -19,6 +19,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 8972730138916895247L;
 
 	private BasicPlayer.Logical player;
+	@SuppressWarnings("unused")
 	private AbstractAction add, remove, clear, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
 	private Button position;
 	private JSlider volumeSlider;

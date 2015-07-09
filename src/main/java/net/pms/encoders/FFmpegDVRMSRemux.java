@@ -126,6 +126,7 @@ public class FFmpegDVRMSRemux extends Player {
 		OutputParams params
 	) {
 		PmsConfiguration prev = configuration;
+		// Use device-specific pms conf
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<>();
