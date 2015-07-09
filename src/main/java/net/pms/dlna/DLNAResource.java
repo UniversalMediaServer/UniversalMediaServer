@@ -2672,18 +2672,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.error("stopPlaying sleep interrupted", e);
 			}
 			
-			if (start != startTime) {
-				return;
-			}
-			
 			synchronized (requestIdToRefcount) {
 				final Integer refCount = requestIdToRefcount.get(requestId);
 				assert refCount != null;
 				assert refCount > 0;
 				requestIdToRefcount.put(requestId, refCount - 1);
+				if (start != startTime) {
+					return;
+				}
 				
 				Runnable r = () -> {
 					if (refCount == 1) {
+						requestIdToRefcount.put(requestId, 0);
 						InetAddress rendererIp;
 						try {
 							rendererIp = InetAddress.getByName(rendererId);
@@ -2693,7 +2693,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							} else {
 								renderer = render;
 							}
-
+							
 							String rendererName = "unknown renderer";
 							try {
 								// Reset only if another item hasn't already begun playing
@@ -2702,6 +2702,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 								rendererName = renderer.getRendererName();
 							} catch (NullPointerException e) { }
+							
 							if (!quietPlay()) {
 								LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
 								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
@@ -2709,8 +2710,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} catch (UnknownHostException ex) {
 							LOGGER.debug("" + ex);
 						}
-
-						startTime = System.currentTimeMillis();
+						
+						internalStop();
 						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof StartStopListener) {
 								// run these asynchronously for slow handlers (e.g. logging, scrobbling)
@@ -2721,8 +2722,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										LOGGER.error("Notification of donePlaying event failed for StartStopListener {}", listener.getClass(), t);
 									}
 								};
-
-								new Thread(fireStartStopEvent, "StartPlaying Event for " + listener.name()).start();
+								
+								new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
 							}
 						}
 					}
@@ -2730,95 +2731,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				
 				new Thread(r, "StopPlaying Event").start();
 			}
-		}
-	}
-
-	/**
-	 * Plugin implementation. When this item is going to stop playing, it will notify all the StartStopListener
-	 * objects available.
-	 *
-	 * @see StartStopListener
-	 */
-	public void stopPlaying(final String rendererId, final RendererConfiguration render) {
-		final DLNAResource self = this;
-		final String requestId = getRequestId(rendererId);
-		Runnable defer = new Runnable() {
-			@Override
-			public void run() {
-				long start = startTime;
-				try {
-					Thread.sleep(STOP_PLAYING_DELAY);
-				} catch (InterruptedException e) {
-					LOGGER.error("stopPlaying sleep interrupted", e);
-				}
-
-				synchronized (requestIdToRefcount) {
-					final Integer refCount = requestIdToRefcount.get(requestId);
-					assert refCount != null;
-					assert refCount > 0;
-					requestIdToRefcount.put(requestId, refCount - 1);
-					if (start != startTime) {
-						return;
-					}
-
-					Runnable r = new Runnable() {
-						@Override
-						public void run() {
-							if (refCount == 1) {
-								requestIdToRefcount.put(requestId, 0);
-								InetAddress rendererIp;
-								try {
-									rendererIp = InetAddress.getByName(rendererId);
-									RendererConfiguration renderer;
-									if (render == null) {
-										renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-									} else {
-										renderer = render;
-									}
-
-									String rendererName = "unknown renderer";
-									try {
-										// Reset only if another item hasn't already begun playing
-										if (renderer.getPlayingRes() == self) {
-											renderer.setPlayingRes(null);
-										}
-										rendererName = renderer.getRendererName();
-									} catch (NullPointerException e) { }
-
-									if (!quietPlay()) {
-										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
-										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
-									}
-								} catch (UnknownHostException ex) {
-									LOGGER.debug("" + ex);
-								}
-
-								internalStop();
-								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-									if (listener instanceof StartStopListener) {
-										// run these asynchronously for slow handlers (e.g. logging, scrobbling)
-										Runnable fireStartStopEvent = new Runnable() {
-											@Override
-											public void run() {
-												try {
-													((StartStopListener) listener).donePlaying(media, self);
-												} catch (Throwable t) {
-													LOGGER.error("Notification of donePlaying event failed for StartStopListener {}", listener.getClass(), t);
-												}
-											}
-										};
-
-										new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
-									}
-								}
-							}
-						}
-					};
-
-					new Thread(r, "StopPlaying Event").start();
-				}
-			}
 		};
+
+		new Thread(defer, "StopPlaying Event Deferrer").start();
 	}
 
 	/**

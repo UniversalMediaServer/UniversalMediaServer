@@ -903,20 +903,12 @@ public class RequestV2 extends HTTPResource {
 				ChannelFuture chunkWriteFuture = ctx.writeAndFlush(new ChunkedStream(inputStream, BUFFER_SIZE));
 
 				// Add a listener to clean up after sending the entire response body.
-				chunkWriteFuture.addListener(new ChannelFutureListener() {
-					@Override
-					public void operationComplete(ChannelFuture future) {
-						try {
-							PMS.get().getRegistry().reenableGoToSleep();
-							inputStream.close();
-						} catch (IOException e) {
-							LOGGER.debug("Caught exception", e);
-						}
-
-						// Always close the channel after the response is sent because of
-						// a freeze at the end of video when the channel is not closed.
-						future.channel().close();
-						startStopListenerDelegate.stop();
+				chunkWriteFuture.addListener((ChannelFutureListener) (ChannelFuture future1) -> {
+					try {
+						PMS.get().getRegistry().reenableGoToSleep();
+						inputStream.close();
+					} catch (IOException e1) {
+						LOGGER.debug("Caught exception", e1);
 					}
 					// Always close the channel after the response is sent because of
 					// a freeze at the end of video when the channel is not closed.
