@@ -507,7 +507,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 			if (pmsConfFile.isFile()) {
 				if (FileUtil.isFileReadable(pmsConfFile)) {
-					((PropertiesConfiguration)configuration).load(PROFILE_PATH);
+					((PropertiesConfiguration)configuration).load(pmsConfFile.toURI().toString());
 				} else {
 					LOGGER.warn("Can't load {}", PROFILE_PATH);
 				}
