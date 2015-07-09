@@ -29,6 +29,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
+import net.pms.PMS;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,24 @@ public class LoggingConfigFileLoader {
 		}
 	}
 
+	private static File getFile(String[] fileList) {
+		for (String fileName : fileList) {
+			fileName = fileName.trim();
+			if (fileName.length() > 0) {
+				if (fileName.matches("\\[PROFILE_DIR\\].*")) {
+					String s = PMS.getConfiguration().getProfileDirectory().replace("\\","/");
+					fileName = fileName.replaceAll("\\[PROFILE_DIR\\]", s);
+				}
+				File file = new File(fileName.trim());
+				if (file.exists() && file.canRead()) {
+					return file;
+				}
+			}
+		}
+		return null;
+	}
+
+	
 	/**
 	 * Loads the (optional) Logback configuration file.
 	 * 
@@ -83,14 +102,14 @@ public class LoggingConfigFileLoader {
 		File file = null;
 
 		if (headless) {
-			file = new File(PropertiesUtil.getProjectProperties().get("project.logback.headless"));
+			file = getFile(PropertiesUtil.getProjectProperties().get("project.logback.headless").split(","));
 		}
 
-		if (file == null || !file.exists()) {
-			file = new File(PropertiesUtil.getProjectProperties().get("project.logback"));
+		if (file == null) {
+			file = getFile(PropertiesUtil.getProjectProperties().get("project.logback").split(","));			
 		}
 
-		if (!file.exists()) {
+		if (file == null) {
 			// Unpredictable: Any logback.xml found in the Classpath is loaded, if that fails defaulting to BasicConfigurator
 			// See http://logback.qos.ch/xref/ch/qos/logback/classic/BasicConfigurator.html
 			return loaded;
