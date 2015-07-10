@@ -2456,7 +2456,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				endTag(sb);
-				// Add transcoded format extension to the output stream URL. TODO the same should be add to files in the TRANSCODE folder.
+				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
 				if (player != null) {
 					if (mediaRenderer.isTranscodeToMPEGTS()) {
