@@ -24,18 +24,26 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
 import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import javax.swing.*;
+import javax.swing.text.Document;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -50,6 +58,10 @@ import org.slf4j.LoggerFactory;
 public class TracesTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
 	private PmsConfiguration configuration;
+	private JTextField jSearchBox;
+	private JCheckBox jCSSearch, jRESearch, jMLSearch;
+	private Pattern searchPattern = null;
+	private JLabel jSearchOutput = new JLabel();
 	private JTextArea jList;
 	protected JScrollPane jListPane;
 
@@ -110,23 +122,137 @@ public class TracesTab {
 		}
 	}
 
+	private void searchTraces() {
+		boolean found = false;
+		Matcher match = null;
+		Document document = jList.getDocument();
+		int flags = Pattern.UNICODE_CASE;
+		String find = jSearchBox.getText();
+
+		if (find.isEmpty()) {
+			jSearchOutput.setText(""); 
+		} else if (document.getLength() > 0) {
+			if (jMLSearch.isSelected()) flags += Pattern.DOTALL + Pattern.MULTILINE;
+			if (!jRESearch.isSelected()) flags += Pattern.LITERAL;
+			if (!jCSSearch.isSelected()) flags += Pattern.CASE_INSENSITIVE;
+			try {
+				if (searchPattern == null || find != searchPattern.pattern() || flags != searchPattern.flags()) { 
+					searchPattern = Pattern.compile(find, flags);
+				}
+				match = searchPattern.matcher(document.getText(0,document.getLength()));
+				found = match.find(jList.getCaretPosition());
+				if (!found && match.hitEnd()) {
+					found = match.find(0);
+				}				
+				
+				if (found) {
+					jList.requestFocusInWindow();
+					Rectangle viewRect = jList.modelToView(match.start());
+					Rectangle viewRectEnd = jList.modelToView(match.end());
+					if (viewRectEnd.x < viewRect.x) viewRectEnd.x = jList.getWidth();
+					viewRect.width = viewRectEnd.x - viewRect.x;
+					viewRect.height += viewRectEnd.y - viewRect.y;
+					jList.scrollRectToVisible(viewRect);
+					jList.setCaretPosition(match.start());
+					jList.moveCaretPosition(match.end());
+					jSearchOutput.setText("");
+				} else {
+					jSearchOutput.setText(String.format(Messages.getString("TracesTab.21"), jSearchBox.getText()));
+				}
+			} catch (PatternSyntaxException pe) {
+				jSearchOutput.setText(String.format(Messages.getString("TracesTab.22"),pe.getLocalizedMessage()));
+			} catch (Exception ex) {
+				LOGGER.debug("Exception caught while searching traces list: "+ex);
+				jSearchOutput.setText(Messages.getString("TracesTab.23"));
+			}
+		}
+	}
+	
 	public JComponent build() {
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-		String colSpec = FormLayoutUtil.getColSpec("pref, pref:grow, pref, pref, pref:grow, pref", orientation);
+		String colSpec = FormLayoutUtil.getColSpec("pref, pref:grow, pref, pref, pref, pref", orientation);
 
 		int cols = colSpec.split(",").length;
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"fill:10:grow, p"
+			"p, fill:10:grow, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 
+		// Create the search box
+		JPanel jSearchPanel = new JPanel();
+		jSearchPanel.setLayout(new BoxLayout(jSearchPanel,BoxLayout.LINE_AXIS));
+		jSearchPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+		JLabel jSearchLabel = new JLabel(Messages.getString("PMS.144") + ":",SwingConstants.RIGHT);
+		jSearchLabel.setDisplayedMnemonic(KeyEvent.VK_S);
+		jSearchPanel.add(jSearchLabel);
+		jSearchPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		
+		jSearchBox = new JTextField();
+		jSearchBox.setBackground(new Color(248,248,248));
+		jSearchLabel.setLabelFor(jSearchBox);
+		jSearchPanel.add(jSearchBox);
+		jSearchPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		
+		JButton jSearchButton = new JButton(Messages.getString("PMS.144"));
+		jSearchPanel.add(jSearchButton);
+		jSearchPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		jCSSearch = new JCheckBox(Messages.getString("TracesTab.19"), configuration.getGUILogSearchCaseSensitive());
+		jSearchPanel.add(jCSSearch);
+		jSearchPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		jRESearch = new JCheckBox("RegEx",configuration.getGUILogSearchRegEx());
+		jSearchPanel.add(jRESearch);
+		jSearchPanel.add(Box.createRigidArea(new Dimension(5,0)));
+		jMLSearch = new JCheckBox(Messages.getString("TracesTab.20"),configuration.getGUILogSearchMultiLine());
+		jSearchPanel.add(jMLSearch);
+
+		jSearchBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				searchTraces();
+			}			
+		});
+
+		jSearchButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				searchTraces();
+			}			
+		});
+		
+		jCSSearch.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				configuration.setGUILogSearchCaseSensitive(jCSSearch.isSelected());
+			}
+			
+		});
+
+		jRESearch.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				configuration.setGUILogSearchRegEx(jRESearch.isSelected());
+			}
+			
+		});
+
+		jMLSearch.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				configuration.setGUILogSearchMultiLine(jMLSearch.isSelected());
+			}
+			
+		});
+
+		builder.add(jSearchPanel, cc.xyw(1, 1, cols));
+		
+		
 		// Create traces text box
 		jList = new JTextArea();
 		jList.setEditable(false);
@@ -144,10 +270,22 @@ public class TracesTab {
 
 		popup.add(defaultItem);
 		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
+		jList.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					searchTraces();
+				}
+			}
+			@Override
+			public void keyReleased(KeyEvent e) {}
+			@Override
+			public void keyTyped(KeyEvent e) {}			
+		});
 
 		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
-		builder.add(jListPane, cc.xyw(1, 1, cols));
+		builder.add(jListPane, cc.xyw(1, 2, cols));
 
 		// Add buttons to open logfiles (there may be more than one)
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -172,7 +310,7 @@ public class TracesTab {
 			});
 			pLogFileButtons.add(b);
 		}
-		builder.add(pLogFileButtons, cc.xy(cols, 2));
+		builder.add(pLogFileButtons, cc.xy(cols, 3));
 
 		final ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 		final String[] levels = {
@@ -215,8 +353,8 @@ public class TracesTab {
 			}
 		});
 		JLabel label = new JLabel(Messages.getString("TracesTab.11") + ": ");
-		builder.add(label, cc.xy(3, 2));
-		builder.add(level, cc.xy(4, 2));
+		builder.add(label, cc.xy(4, 3));
+		builder.add(level, cc.xy(5, 3));
 		if (PMS.getTraceMode() == 2) {
 			// Forced trace mode
 			level.setEnabled(false);
@@ -252,7 +390,8 @@ public class TracesTab {
 			}
 		});
 		pLogPackButtons.add(packDbg);
-		builder.add(pLogPackButtons, cc.xy(1, 2));
+		builder.add(pLogPackButtons, cc.xy(1, 3));
+		builder.add(jSearchOutput, cc.xy(2, 3));
 
 		return builder.getPanel();
 	}

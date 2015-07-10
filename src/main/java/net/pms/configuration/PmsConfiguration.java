@@ -142,6 +142,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
 	public    static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	protected static final String KEY_GUI_LOG_SEARCH_CASE_SENSITIVE = "gui_log_search_case_sensitive";
+	protected static final String KEY_GUI_LOG_SEARCH_MULTILINE = "gui_log_search_multiline";
+	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
@@ -2820,6 +2823,54 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_GPU_ACCELERATION, value);
 	}
 
+	/**
+	 * Get the state of the GUI log tab "Case sensitive" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchCaseSensitive() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "Case sensitive" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchCaseSensitive(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, value);
+	}
+	
+	/**
+	 * Get the state of the GUI log tab "Multiline" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchMultiLine() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_MULTILINE, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "Multiline" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchMultiLine(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_MULTILINE, value);
+	}
+	
+	/**
+	 * Get the state of the GUI log tab "RegEx" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchRegEx() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_USE_REGEX, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "RegEx" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchRegEx(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
+	}
+	
 	/**
 	 * Finds out whether the program has admin rights.
 	 * It only checks on Windows and returns true if on a non-Windows OS.
