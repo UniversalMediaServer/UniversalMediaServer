@@ -26,14 +26,10 @@ import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import javax.swing.*;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -41,6 +37,7 @@ import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
+import net.pms.util.WindowsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +70,7 @@ public class GeneralTab {
 	private JCheckBox runWizardOnProgramStartup;
 	private LooksFrame looksFrame;
 	private JCheckBox singleInstance;
+	private CustomJButton installService;
 
 	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -170,7 +168,7 @@ public class GeneralTab {
 					configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(appendProfileName, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(appendProfileName), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
 		}
 
@@ -185,58 +183,15 @@ public class GeneralTab {
 					configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		}
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
-			CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
-			service.setToolTipText(Messages.getString("NetworkTab.63"));
-			service.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (PMS.get().installWin32Service()) {
-						LOGGER.info(Messages.getString("PMS.41"));
-						JOptionPane.showMessageDialog(
-							looksFrame,
-							Messages.getString("NetworkTab.11") +
-							Messages.getString("NetworkTab.12"),
-							Messages.getString("Dialog.Information"),
-							JOptionPane.INFORMATION_MESSAGE
-						);
-					} else {
-						JOptionPane.showMessageDialog(
-							looksFrame,
-							Messages.getString("NetworkTab.14"),
-							Messages.getString("Dialog.Error"),
-							JOptionPane.ERROR_MESSAGE
-						);
-					}
-				}
-			});
-			builder.add(service, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
-				service.setEnabled(false);
-			}
+			installService = new CustomJButton();
+			refreshInstallServiceButtonState();
 
-			CustomJButton serviceUninstall = new CustomJButton(Messages.getString("GeneralTab.2"));
-			serviceUninstall.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					PMS.get().uninstallWin32Service();
-					LOGGER.info(Messages.getString("GeneralTab.3"));
-					JOptionPane.showMessageDialog(
-						looksFrame,
-						Messages.getString("GeneralTab.3"),
-						Messages.getString("Dialog.Information"),
-						JOptionPane.INFORMATION_MESSAGE
-					);
-				}
-			});
-			builder.add(serviceUninstall, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
-			if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
-				serviceUninstall.setEnabled(false);
-			}
+			builder.add(installService, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			ypos += 2;
 		}
 
@@ -257,7 +212,7 @@ public class GeneralTab {
 				configuration.setAutoUpdate((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(autoUpdateCheckBox), FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		ypos += 2;
 		if (!Build.isUpdatable()) {
 			checkForUpdates.setEnabled(false);
@@ -272,7 +227,7 @@ public class GeneralTab {
 				configuration.setHideAdvancedOptions(hideAdvancedOptions.isSelected());
 			}
 		});
-		builder.add(hideAdvancedOptions, FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(hideAdvancedOptions), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
 		runWizardOnProgramStartup = new JCheckBox(Messages.getString("GeneralTab.9"), configuration.isRunWizard());
@@ -283,7 +238,7 @@ public class GeneralTab {
 				configuration.setRunWizard(runWizardOnProgramStartup.isSelected());
 			}
 		});
-		builder.add(runWizardOnProgramStartup, FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(runWizardOnProgramStartup), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
@@ -296,7 +251,7 @@ public class GeneralTab {
 					configuration.setRunSingleInstance(singleInstance.isSelected());
 				}
 			});
-			builder.add(singleInstance, FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(singleInstance), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 			ypos += 2;
 		}
 
@@ -470,7 +425,7 @@ public class GeneralTab {
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
-			builder.add(adaptBitrate, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(adaptBitrate), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
 
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.31"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
@@ -555,6 +510,89 @@ public class GeneralTab {
 		);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
+	}
+
+	/**
+	 * Refreshes the state of the button to install/uninstall the Windows service for UMS
+	 * depending if the service has been installed or not.
+	 *  - Set the button and tooltip text
+	 *  - Add the correct action listener
+	 */
+	private void refreshInstallServiceButtonState() {
+		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
+			installService.setEnabled(false);
+		} else {
+			installService.setEnabled(true);
+
+			boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+
+			if (isUmsServiceInstalled) {
+				// Update button text and tooltip
+				installService.setText(Messages.getString("GeneralTab.2"));
+				installService.setToolTipText(null);
+
+				// Remove all attached action listeners
+				for (ActionListener al : installService.getActionListeners()) {
+					installService.removeActionListener(al);
+				}
+
+				// Attach the button clicked action listener
+				installService.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						WindowsUtil.uninstallWin32Service();
+						LOGGER.info(Messages.getString("GeneralTab.3"));
+
+						// Refresh the button state after it has been clicked
+						refreshInstallServiceButtonState();
+
+						JOptionPane.showMessageDialog(
+							looksFrame,
+							Messages.getString("GeneralTab.3"),
+							Messages.getString("Dialog.Information"),
+							JOptionPane.INFORMATION_MESSAGE
+						);
+					}
+				});
+			} else {
+				// Update button text and tooltip
+				installService.setText(Messages.getString("NetworkTab.4"));
+				installService.setToolTipText(Messages.getString("NetworkTab.63"));
+
+				// Remove all attached action listeners
+				for (ActionListener al : installService.getActionListeners()) {
+					installService.removeActionListener(al);
+				}
+
+				// Attach the button clicked action listener
+				installService.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						if (WindowsUtil.installWin32Service()) {
+							LOGGER.info(Messages.getString("PMS.41"));
+
+							// Refresh the button state after it has been clicked
+							refreshInstallServiceButtonState();
+
+							JOptionPane.showMessageDialog(
+								looksFrame,
+								Messages.getString("NetworkTab.11") +
+								Messages.getString("NetworkTab.12"),
+								Messages.getString("Dialog.Information"),
+								JOptionPane.INFORMATION_MESSAGE
+							);
+						} else {
+							JOptionPane.showMessageDialog(
+								looksFrame,
+								Messages.getString("NetworkTab.14"),
+								Messages.getString("Dialog.Error"),
+								JOptionPane.ERROR_MESSAGE
+							);
+						}
+					}
+				});
+			}
+		}
 	}
 
 	private KeyedComboBoxModel createNetworkInterfacesModel() {

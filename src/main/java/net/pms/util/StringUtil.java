@@ -35,6 +35,7 @@ public class StringUtil {
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
+	public static final String NEWLINE_CHARACTER = System.getProperty("line.separator");
 
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
@@ -87,7 +88,7 @@ public class StringUtil {
 	}
 
 	/**
-	 * Does basic transformations between characters and their HTML representation with ampersands.
+	 * Does double transformations between &<> characters and their XML representation with ampersands.
 	 *
 	 * @param s String to be encoded
 	 * @return Encoded String
@@ -96,10 +97,14 @@ public class StringUtil {
 		s = s.replace("&", "&amp;");
 		s = s.replace("<", "&lt;");
 		s = s.replace(">", "&gt;");
-		s = s.replace("\"", "&quot;");
-		s = s.replace("'", "&apos;");
+		/* Skip encoding/escaping ' and " for compatibility with some renderers
+		 * This might need to be made into a renderer option if some renderers require them to be encoded
+		 * s = s.replace("\"", "&quot;");
+		 * s = s.replace("'", "&apos;");
+		 */
+		
+		// The second encoding/escaping of & is not a bug, it's what effectively adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
-
 		return s;
 	}
 

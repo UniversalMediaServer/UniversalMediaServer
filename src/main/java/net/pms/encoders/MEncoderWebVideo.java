@@ -90,6 +90,7 @@ public class MEncoderWebVideo extends Player {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
+		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		params.minBufferSize = params.minFileSize;

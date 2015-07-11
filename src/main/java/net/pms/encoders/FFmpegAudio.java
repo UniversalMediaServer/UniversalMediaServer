@@ -39,6 +39,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +84,7 @@ public class FFmpegAudio extends FFMpegVideo {
 				configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(noresample, cc.xy(2, 3));
+		builder.add(GuiUtil.getPreferredSizeComponent(noresample), cc.xy(2, 3));
 
 		return builder.getPanel();
 	}
@@ -137,6 +138,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		OutputParams params
 	) throws IOException {
 		PmsConfiguration prev = configuration;
+		// Use device-specific pms conf
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		params.maxBufferSize = configuration.getMaxAudioBuffer();

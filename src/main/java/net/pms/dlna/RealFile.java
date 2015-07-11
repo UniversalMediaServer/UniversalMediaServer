@@ -284,7 +284,7 @@ public class RealFile extends MapFile {
 	public void checkThumbnail() {
 		InputFile input = new InputFile();
 		input.setFile(getFile());
-		checkThumbnail(input);
+		checkThumbnail(input, getParent().getDefaultRenderer());
 	}
 
 	@Override

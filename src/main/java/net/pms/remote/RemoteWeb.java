@@ -67,7 +67,13 @@ public class RemoteWeb {
 
 			// initialise the HTTP(S) server
 			if (configuration.getWebHttps()) {
-				server = httpsServer(address);
+				try {
+					server = httpsServer(address);
+				} catch (Exception e) {
+					LOGGER.warn("Error: Failed to start WEB interface on HTTPS: " + e);
+					LOGGER.info("To enable HTTPS please generate a self-signed keystore file called 'UMS.jks' using the java 'keytool' commandline utility.");
+					server = null;
+				}
 			} else {
 				server = HttpServer.create(address, 0);
 			}
@@ -96,10 +102,6 @@ public class RemoteWeb {
 	}
 
 	private HttpServer httpsServer(InetSocketAddress address) throws Exception {
-		HttpsServer server = HttpsServer.create(address, 0);
-
-		sslContext = SSLContext.getInstance("TLS");
-
 		// Initialize the keystore
 		char[] password = "umsums".toCharArray();
 		ks = KeyStore.getInstance("JKS");
@@ -114,6 +116,8 @@ public class RemoteWeb {
 		tmf = TrustManagerFactory.getInstance("SunX509");
 		tmf.init(ks);
 
+		HttpsServer server = HttpsServer.create(address, 0);
+		sslContext = SSLContext.getInstance("TLS");
 		sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
 		server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
@@ -398,6 +402,7 @@ public class RemoteWeb {
 
 	static class RemoteStartHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 		private RemoteWeb parent;
 
@@ -427,6 +432,7 @@ public class RemoteWeb {
 
 	static class RemoteDocHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDocHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 
 		private RemoteWeb parent;
@@ -481,12 +487,17 @@ public class RemoteWeb {
 	}
 
 	public String getUrl() {
-		return (server instanceof HttpsServer ? "https://" : "http://") +
-			PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
+		if (server != null) {
+			return (server instanceof HttpsServer ? "https://" : "http://") +
+				PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
+		}
+		return null;
 	}
 
 	static class RemotePollHandler implements HttpHandler {
+		@SuppressWarnings("unused")
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemotePollHandler.class);
+		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 
 		private RemoteWeb parent;
@@ -501,6 +512,7 @@ public class RemoteWeb {
 			if (RemoteUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			@SuppressWarnings("unused")
 			String p = t.getRequestURI().getPath();
 			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();

@@ -711,7 +711,9 @@ public class PMS {
 			return false;
 		}
 
-		LOGGER.info("WEB interface is available at: " + web.getUrl());
+		if (web != null && web.getServer() != null) {
+			LOGGER.info("WEB interface is available at: " + web.getUrl());
+		}
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
@@ -792,39 +794,6 @@ public class PMS {
 				}
 			}
 		}
-	}
-
-	/**
-	 * Executes the needed commands in order to install the Windows service
-	 * that starts whenever the machine is started.
-	 * This function is called from the General tab.
-	 * @return true if UMS could be installed as a Windows service.
-	 * @see net.pms.newgui.GeneralTab#build()
-	 */
-	public boolean installWin32Service() {
-		PMS.get().uninstallWin32Service();
-		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-i", "wrapper.conf"};
-		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, new OutputParams(configuration));
-		pwinstall.runInSameThread();
-		return pwinstall.isSuccess();
-	}
-
-	/**
-	 * Executes the needed commands in order to remove the Windows service.
-	 * This function is called from the General tab.
-	 *
-	 * TODO: Make it detect if the uninstallation was successful
-	 *
-	 * @return true
-	 * @see net.pms.newgui.GeneralTab#build()
-	 */
-	public boolean uninstallWin32Service() {
-		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-r", "wrapper.conf"};
-		OutputParams output = new OutputParams(configuration);
-		output.noexitcheck = true;
-		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, output);
-		pwuninstall.runInSameThread();
-		return true;
 	}
 
 	/**
@@ -1081,7 +1050,6 @@ public class PMS {
 
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
-		boolean headless = true;
 
 		if (args.length > 0) {
 			for (String arg : args) {
@@ -1117,9 +1085,7 @@ public class PMS {
 				if (System.getProperty(NOCONSOLE) == null) {
 					System.setProperty(CONSOLE, Boolean.toString(true));
 				}
-			} else {
-				headless = false;
-			}
+			} 
 		} catch (Throwable t) {
 			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
 
@@ -1128,7 +1094,7 @@ public class PMS {
 			}
 		}
 
-		if (!headless && displayProfileChooser) {
+		if (!isHeadless() && displayProfileChooser) {
 			ProfileChooser.display();
 		}
 
@@ -1182,7 +1148,7 @@ public class PMS {
 
 			LOGGER.error(errorMessage);
 
-			if (!headless && instance != null) {
+			if (!isHeadless() && instance != null) {
 				JOptionPane.showMessageDialog(
 					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
 					errorMessage,
@@ -1399,6 +1365,10 @@ public class PMS {
 			pid = in.readLine();
 		}
 
+		if (pid == null) {
+			return;
+		}
+
 		if (Platform.isWindows()) {
 			if (verifyPidName(pid)) {
 				pb = new ProcessBuilder("taskkill", "/F", "/PID", pid, "/T");
@@ -1455,18 +1425,23 @@ public class PMS {
 		PlayerFactory.registerPlayer(player);
 	}
 
-	/*
+	private static Boolean headless = null;
+	
+	/**
 	 * Check if UMS is running in headless (console) mode, since some Linux
 	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
 	 */
 	public static boolean isHeadless() {
-		try {
-			JDialog d = new JDialog();
-			d.dispose();
-			return false;
-		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-			return true;
-		}
+		if (headless == null) {
+			try {
+				JDialog d = new JDialog();
+				d.dispose();
+				headless = new Boolean(false);
+			} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
+				headless = new Boolean(true);				
+			}
+		}		
+		return headless.booleanValue();
 	}
 
 	private RemoteWeb web;
