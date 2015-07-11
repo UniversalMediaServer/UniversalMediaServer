@@ -2234,14 +2234,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = mediaRenderer.isXbox360();
-		String fakeFileExtension = "";
 		if (!isFolder()) {
 			if (format != null && format.isVideo()) {
-				// Hack for making PS4 play transcoded content
-				if ("video/mpeg".equals(getRendererMimeType(mediaRenderer)) && mediaRenderer.isPS4()) {
-					fakeFileExtension = ".ts";
-				}
-
 				if (
 					!configuration.isDisableSubtitles() &&
 					player == null &&
@@ -2462,10 +2456,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				endTag(sb);
-				wireshark.append(" ").append(getFileURL());
+				// Add transcoded format extension to the output stream URL.
+				String transcodedExtension = "";
+				if (player != null) {
+					if (mediaRenderer.isTranscodeToMPEGTS()) {
+						transcodedExtension = "_transcoded_to.ts";
+					} else if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
+						transcodedExtension = "_transcoded_to.vob";
+					} else if (mediaRenderer.isTranscodeToWMV()) {
+						transcodedExtension = "_transcoded_to.wmv";
+					}
+				}
+				wireshark.append(" ").append(getFileURL()).append(transcodedExtension);
+				sb.append(getFileURL()).append(transcodedExtension);
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);
-				sb.append(getFileURL()).append(fakeFileExtension);
 				closeTag(sb, "res");
 			}
 		}

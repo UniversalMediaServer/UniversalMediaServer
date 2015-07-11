@@ -1,3 +1,16 @@
+5.2.1 - 2015-07-11
+
+	General:
+		Improved efficiency of configuration file loading (thanks, Nadahar!)
+		Improved support for quotation marks and apostrophes on some renderers (thanks, Nadahar!)
+		Fixed broken 32-bit MediaInfo dependency
+	Renderers:
+		Fixed Xbox One thumbnails
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated MediaInfo to 0.7.75
+
 5.2.0 - 2015-07-09
 
 	General:
