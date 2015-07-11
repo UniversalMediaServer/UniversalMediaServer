@@ -8,8 +8,6 @@
 		Fixed Xbox One thumbnails
 	Languages:
 		Updated Spanish translation (thanks, AlfredoRamos!)
-	External Components:
-		Updated MediaInfo to 0.7.75
 
 5.2.0 - 2015-07-09
 
