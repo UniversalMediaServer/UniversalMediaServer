@@ -1,4 +1,4 @@
-5.2.1 - 2015-07-??
+5.2.1 - 2015-07-11
 
 	General:
 		Improved efficiency of configuration file loading (thanks, Nadahar!)
