@@ -59,6 +59,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -732,7 +733,7 @@ public class PMS {
 		ready = true;
 
 		// UPNPHelper.sendByeBye();
-		Runtime.getRuntime().addShutdownHook(new Thread("PMS Listeners Stopper") {
+		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
 			@Override
 			public void run() {
 				try {
@@ -758,6 +759,17 @@ public class PMS {
 				} catch (InterruptedException e) {
 					LOGGER.debug("Caught exception", e);
 				}
+				LOGGER.info("Stopping " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
+				/* Stopping logging gracefully (flushing logs)
+				* No logging is available after this point
+				*/
+				ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
+				if (iLoggerContext instanceof LoggerContext) {
+					((LoggerContext) iLoggerContext).stop();					
+				} else {
+					LOGGER.error("Unable to shut down logging gracfully");
+				}
+				
 			}
 		});
 
