@@ -25,7 +25,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
-import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.CustomJButton;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +42,7 @@ public class DbgPacker implements ActionListener {
 
 	public DbgPacker() {
 		items = new LinkedHashMap<>();
-		debug_log = LoggingConfigFileLoader.getLogFilePaths().get("debug.log");
+		debug_log = LoggingConfig.getLogFilePaths().get("debug.log");
 		dbg_zip = debug_log.replace("debug.log", "ums_dbg.zip");
 	}
 

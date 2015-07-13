@@ -46,7 +46,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.FrameAppender;
-import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
@@ -325,9 +325,9 @@ public class PMS {
 			throw new IOException("Cannot write to Java temp directory");
 		}
 
-		LOGGER.info("Logging config file: " + LoggingConfigFileLoader.getConfigFilePath());
+		LOGGER.info("Logging config file: " + LoggingConfig.getConfigFilePath());
 
-		HashMap<String, String> lfps = LoggingConfigFileLoader.getLogFilePaths();
+		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
 		// debug.log filename(s) and path(s)
 		if (lfps != null && lfps.size() > 0) {
@@ -1125,8 +1125,10 @@ public class PMS {
 			// need the PmsConfiguration.
 			// XXX not sure this is (still) true: the only filter
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
-			if (!LoggingConfigFileLoader.load()) {
-				LOGGER.warn("Could not load logback configuration file (logback.xml or logback.headless.xml).");
+			if (LoggingConfig.loadFile()) {
+				LOGGER.info("LogBack started with configuration file: " + LoggingConfig.getConfigFilePath());
+			} else {
+				LOGGER.warn("Could not load LogBack configuration file (logback.xml or logback.headless.xml).");
 				LOGGER.warn("Falling back to somewhat unpredictable defaults, probably only logging to console.");
 			}
 
@@ -1139,6 +1141,21 @@ public class PMS {
 				// Remember whether logging level was TRACE/ALL at startup
 				traceMode = l.getLevel().toInt() <= ch.qos.logback.classic.Level.TRACE_INT ? 1 : 0;
 			}
+
+			if (traceMode != 2 && configuration.getLoggingUseSyslog()) {
+				LoggingConfig.setSyslog();
+			}
+			if (traceMode != 2 && configuration.getLoggingBuffered()) {
+				LoggingConfig.setBuffered(true);
+			}
+
+			//TODO: Temp
+			Appender<ILoggingEvent> le = l.getAppender("syslog");
+			/*if (le.isStarted()) {
+				LOGGER.debug("Syslog is started");
+			} else {
+				LOGGER.debug("Syslog is not started");
+			}*/
 
 			LOGGER.debug(new Date().toString());
 

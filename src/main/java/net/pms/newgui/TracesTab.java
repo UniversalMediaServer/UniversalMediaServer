@@ -47,7 +47,7 @@ import javax.swing.text.Document;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
@@ -289,7 +289,7 @@ public class TracesTab {
 
 		// Add buttons to open logfiles (there may be more than one)
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		HashMap<String, String> logFiles = LoggingConfigFileLoader.getLogFilePaths();
+		HashMap<String, String> logFiles = LoggingConfig.getLogFilePaths();
 		for (String loggerName : logFiles.keySet()) {
 			String loggerNameDisplay = loggerName;
 			if ("debug.log".equals(loggerName)) {

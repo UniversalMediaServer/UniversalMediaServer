@@ -165,6 +165,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
+	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
+	protected static final String KEY_LOGGING_SYSLOG_FACILITY = "logging_syslog_facility";
+	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
+	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
+	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -3022,6 +3027,54 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setLiveSubtitlesTimeout(int t) {
 		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
+	}
+
+	public boolean getLoggingBuffered() {
+		return getBoolean(KEY_LOGGING_BUFFERED, false);
+	}
+	
+	public void setLoggingBuffered(boolean value) {
+		configuration.setProperty(KEY_LOGGING_BUFFERED, value);
+	}
+	
+	public String getLoggingSyslogFacility() {
+		return getString(KEY_LOGGING_SYSLOG_FACILITY, "USER");
+	}
+	
+	public void setLoggingSyslogFacility(String value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_FACILITY, value);
+	}
+	
+	public void setLoggingSyslogFacilityDefault() {
+		setLoggingSyslogFacility("USER");
+	}
+	
+	public String getLoggingSyslogHost() {
+		return getString(KEY_LOGGING_SYSLOG_HOST, "");
+	}
+	
+	public void setLoggingSyslogHost(String value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_HOST, value);
+	}
+	
+	public int getLoggingSyslogPort() {
+		return getInt(KEY_LOGGING_SYSLOG_PORT, 514);
+	}
+	
+	public void setLoggingSyslogPort(int value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_PORT, value);
+	}
+
+	public void setLoggingSyslogPortDefault() {
+		setLoggingSyslogPort(514);
+	}
+	
+	public boolean getLoggingUseSyslog() {
+		return getBoolean(KEY_LOGGING_USE_SYSLOG, false);
+	}
+	
+	public void setLoggingUseSyslog(boolean value) {
+		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
 	}
 
 	public boolean isVlcUseHardwareAccel() {
