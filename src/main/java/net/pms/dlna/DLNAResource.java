@@ -2463,7 +2463,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						transcodedExtension = "_transcoded_to.ts";
 					} else if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
 						transcodedExtension = "_transcoded_to.vob";
-					} else if (mediaRenderer.isTranscodeToWMV()) {
+					} else if (mediaRenderer.isTranscodeToWMV()&& !mediaRenderer.isXbox360()) {
 						transcodedExtension = "_transcoded_to.wmv";
 					}
 				}
