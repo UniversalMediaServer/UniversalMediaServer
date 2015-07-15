@@ -48,10 +48,9 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.logging.LoggingConfig;
-import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.*;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
-import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +61,7 @@ public class TracesTab {
 	private JCheckBox jCSSearch, jRESearch, jMLSearch;
 	private Pattern searchPattern = null;
 	private JLabel jSearchOutput = new JLabel();
-	private JTextArea jList;
+	private TextAreaFIFO jList;
 	protected JScrollPane jListPane;
 
 	class PopupTriggerMouseListener extends MouseAdapter {
@@ -107,7 +106,7 @@ public class TracesTab {
 	}
 	
 	public void append(String msg) {
-		getList().append(UMSUtils.logFormat(msg));
+		getList().append(msg);
 		final JScrollBar vbar = jListPane.getVerticalScrollBar();
 
 		// If scrollbar was already at the bottom we schedule a new
@@ -254,7 +253,7 @@ public class TracesTab {
 		
 		
 		// Create traces text box
-		jList = new JTextArea();
+		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer());
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
 		jList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));

@@ -45,6 +45,7 @@ import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
+import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
@@ -1062,7 +1063,8 @@ public class PMS {
 
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
-
+		CacheLogger.startCaching();
+		
 		if (args.length > 0) {
 			for (String arg : args) {
 				switch (arg) {
@@ -1119,38 +1121,38 @@ public class PMS {
 			setConfiguration(new PmsConfiguration());
 			assert getConfiguration() != null;
 
-			// Load the (optional) logback config file.
+			// Load the (optional) LogBack config file.
 			// This has to be called after 'new PmsConfiguration'
-			// as the logging starts immediately and some filters
-			// need the PmsConfiguration.
-			// XXX not sure this is (still) true: the only filter
-			// we use is ch.qos.logback.classic.filter.ThresholdFilter
-			if (LoggingConfig.loadFile()) {
-				LOGGER.info("LogBack started with configuration file: " + LoggingConfig.getConfigFilePath());
-			} else {
-				LOGGER.warn("Could not load LogBack configuration file (logback.xml or logback.headless.xml).");
-				LOGGER.warn("Falling back to somewhat unpredictable defaults, probably only logging to console.");
-			}
+			LoggingConfig.loadFile();
 
 			// Check TRACE mode
-			ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 			if (traceMode == 2) {
+				LoggingConfig.setRootLevel(Level.TRACE);
 				LOGGER.debug("Forcing debug level to TRACE");
-				l.setLevel(ch.qos.logback.classic.Level.TRACE);
 			} else {
 				// Remember whether logging level was TRACE/ALL at startup
-				traceMode = l.getLevel().toInt() <= ch.qos.logback.classic.Level.TRACE_INT ? 1 : 0;
+				traceMode = LoggingConfig.getRootLevel().toInt() <= Level.TRACE_INT ? 1 : 0;
 			}
 
+			// Configure syslog unless in forced trace mode
 			if (traceMode != 2 && configuration.getLoggingUseSyslog()) {
 				LoggingConfig.setSyslog();
 			}
+			// Configure log buffering
 			if (traceMode != 2 && configuration.getLoggingBuffered()) {
 				LoggingConfig.setBuffered(true);
+			} else if (traceMode == 2) {
+				// force unbuffered regardless of logback.xml if in forced trace mode
+				LOGGER.debug("Forcing unbuffered logging");
+				LoggingConfig.setBuffered(false);
 			}
 
+			// Write buffered messages to the log now that logger is configured
+			CacheLogger.stopAndFlush();
+			//((LogBuffer) logBuffer).flush(LOGGER);
+
 			//TODO: Temp
-			Appender<ILoggingEvent> le = l.getAppender("syslog");
+			//Appender<ILoggingEvent> le = l.getAppender("syslog");
 			/*if (le.isStarted()) {
 				LOGGER.debug("Syslog is started");
 			} else {

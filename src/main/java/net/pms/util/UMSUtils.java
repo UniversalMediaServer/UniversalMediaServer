@@ -27,8 +27,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.Collator;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -157,14 +155,6 @@ public class UMSUtils {
 				});
 				break;
 		}
-	}
-
-	public static String logFormat(String msg) {
-		DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss");
-		Date date = new Date();
-
-		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
-		return dateFormat.format(date) + " " + messageDisplay[1];
 	}
 
 	private static int getHW(String[] s, int pos) {

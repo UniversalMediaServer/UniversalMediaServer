@@ -18,9 +18,11 @@
  */
 package net.pms.logging;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -37,8 +39,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.util.Iterators;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
@@ -49,11 +53,19 @@ import org.slf4j.LoggerFactory;
  * @author thomas@innot.de
  */
 public class LoggingConfig {
+	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfig.class);
 	private static String filepath = null;
 	private static HashMap<String, String> logFilePaths = new HashMap<>(); // key: appender name, value: log file path
 	private static LoggerContext loggerContext = null;
+	private static Logger rootLogger;
 	private static SyslogAppender syslog;
+	private static boolean syslogDisabled = false;
 	private static enum ActionType {START, STOP, NONE};
+	private static Level consoleLevel = null;
+	private static Level tracesLevel = null;
+	private static ThresholdFilter consoleFilter = null;
+	private static ThresholdFilter tracesFilter = null;
+	private static LinkedList<Appender<ILoggingEvent>> syslogDetachedAppenders = new LinkedList<Appender<ILoggingEvent>>();
 
 	/**
 	 * Gets the full path of a successfully loaded Logback configuration file.
@@ -104,22 +116,25 @@ public class LoggingConfig {
 	 * <strong>Note:</strong> Any error messages generated while parsing the
 	 * config file are dumped only to <code>stdout</code>.
 	 */
-	public static boolean loadFile() {
-		// Note: Do not use any logging method in this method!
-		// Any status output needs to go to the console.
-
+	public static void loadFile() {
 		boolean headless = !(System.getProperty("console") == null);
-		boolean loaded = false;
 		File file = null;
 
 		ILoggerFactory ilf = LoggerFactory.getILoggerFactory();
 		if (!(ilf instanceof LoggerContext)) {
 			// Not using LogBack.
 			// Can't configure the logger, so just exit
-			return loaded;
+			LOGGER.debug("Not using LogBack, aborting LogBack configuration");
+			return;
 		}
 		loggerContext = (LoggerContext) ilf;
-		
+		rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+		if (rootLogger == null) {
+			// Shouldn't be possible
+			LOGGER.error("Couldn't find root logger, aborting LogBack configuration");
+			return;
+		}
+
 		if (headless) {
 			file = getFile(PropertiesUtil.getProjectProperties().get("project.logback.headless").split(","));
 		}
@@ -131,41 +146,181 @@ public class LoggingConfig {
 		if (file == null) {
 			// Unpredictable: Any logback.xml found in the Classpath is loaded, if that fails defaulting to BasicConfigurator
 			// See http://logback.qos.ch/xref/ch/qos/logback/classic/BasicConfigurator.html
-			return loaded;
+			LOGGER.warn("Could not load LogBack configuration file from " + (headless ? 
+					PropertiesUtil.getProjectProperties().get("project.logback.headless") + ", " : "") + 
+					PropertiesUtil.getProjectProperties().get("project.logback"));
+			LOGGER.warn("Falling back to somewhat unpredictable defaults, probably only logging to console.");
+			return;
 		}
 
 		// Now get logback to actually use the config file
 
+		JoranConfigurator configurator = new JoranConfigurator();
+		configurator.setContext(loggerContext);
 		try {
-			JoranConfigurator configurator = new JoranConfigurator();
-			configurator.setContext(loggerContext);
 			// the context was probably already configured by
 			// default configuration rules
 			loggerContext.reset();
+			// Do not log between loggerContext.reset() and CacheLogger.initContext()
 			configurator.doConfigure(file);
-
-			// Save the filepath after loading the file
+			if (CacheLogger.isActive()) {
+				CacheLogger.initContext();
+			}
+			// Save the file path after loading the file
 			filepath = file.getAbsolutePath();
-			loaded = true;
-		} catch (JoranException je) {}
+			LOGGER.debug("LogBack started with configuration file: {}", filepath);
+		} catch (JoranException je) {
+			try {					
+				System.err.println("LogBack configuration failed: " + je.getLocalizedMessage());
+				System.err.println("Trying to create \"emergency\" configuration");
+				// Try to create "emergency" appenders for some logging if configuration fails
+				if (PMS.isHeadless()) {
+					ConsoleAppender<ILoggingEvent> ca = new ConsoleAppender<ILoggingEvent>();
+					PatternLayoutEncoder pe = new PatternLayoutEncoder();
+					pe.setPattern("%-5level %d{HH:mm:ss.SSS} [%thread] %logger %msg%n");
+					pe.setContext(loggerContext);
+					pe.start();
+					ca.setEncoder(pe);
+					ca.setContext(loggerContext);
+					ca.setName("Emergency Console");
+					ca.start();
+					loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(ca);
+				} else {
+					FrameAppender<ILoggingEvent> fa = new FrameAppender<ILoggingEvent>();
+					PatternLayoutEncoder pe = new PatternLayoutEncoder();
+					pe.setPattern("%-5level %d{HH:mm:ss.SSS} [%thread] %logger %msg%n");
+					pe.setContext(loggerContext);
+					pe.start();
+					fa.setEncoder(pe);
+					fa.setContext(loggerContext);
+					fa.setName("Emergency Frame");
+					fa.start();
+					loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(fa);
+				}
+				System.err.println("LogBack \"emergency\" configuration applied.");
+			} catch (Exception e) {
+				System.err.println("LogBack \"emergency\" configuration failed with: " + e);
+			}
+			if (CacheLogger.isActive()) {
+				CacheLogger.initContext();
+			}
+			LOGGER.error("Logback configuration failed with: {}", je.getLocalizedMessage());
+			StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
+			return;
+		}
 
+		// Build the iterator
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		// Add CacheLogger appenders if CacheLogger is active
+		if (CacheLogger.isActive()) {
+			iterators.addIterator(CacheLogger.iteratorForAppenders());
+		}
+		// syslogDetachedAppenders can't be populated at this stage, so no reason to iterate it.
+		// Iterate loggerContext even if CacheLogger is active as there could still be
+		// non-root appenders there.
 		for (Logger LOGGER : loggerContext.getLoggerList()) {
-			Iterator<Appender<ILoggingEvent>> it = LOGGER.iteratorForAppenders();
+			iterators.addIterator(LOGGER.iteratorForAppenders());
+		}
+		// Iterate
+		
+		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();
+		while (it.hasNext()) {
+			Appender<ILoggingEvent> appender = it.next();
+			
+			if (appender instanceof FileAppender) {
+				FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
+				logFilePaths.put(fa.getName(), fa.getFile());
+			} else if (appender instanceof SyslogAppender) {
+				syslogDisabled = true;
+			}
+		}
+		
+		// Set filters for console and traces
+		setConfigurableFilters(true, true);
 
+		StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
+		return;
+	}
+
+	private static void setConfigurableFilters(boolean setConsole, boolean setTraces) {
+		PmsConfiguration configuration = PMS.getConfiguration();
+
+		if (setConsole) {
+			Level level = configuration.getLoggingFilterConsole();
+			if (consoleLevel == null || consoleLevel != level) {
+				consoleLevel = level;
+			} else {
+				setConsole = false;
+			}
+		}
+		if (setTraces) {
+			Level level = configuration.getLoggingFilterLogsTab();
+			if (tracesLevel == null || tracesLevel != level) {
+				tracesLevel = level;
+			} else {
+				setTraces = false;
+			}
+		}
+
+		if (setConsole || setTraces) {
+
+			// Since Console- and FrameAppender will exist at root level and won't be detached by syslog,
+			// there's no reason to build an iterator as this should suffice.
+			Iterator<Appender<ILoggingEvent>> it = CacheLogger.isActive() ? CacheLogger.iteratorForAppenders() : rootLogger.iteratorForAppenders();
 			while (it.hasNext()) {
-				Appender<ILoggingEvent> ap = it.next();
+				Appender<ILoggingEvent> appender = it.next();
 
-				if (ap instanceof FileAppender) {
-					FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) ap;
-					logFilePaths.put(fa.getName(), fa.getFile());
+				if (setConsole && appender instanceof ConsoleAppender) {
+					ConsoleAppender<ILoggingEvent> ca = (ConsoleAppender<ILoggingEvent>) appender;
+					if (consoleFilter == null && ca.getCopyOfAttachedFiltersList().isEmpty()) {
+						consoleFilter = new ThresholdFilter();
+						ca.addFilter(consoleFilter);
+						consoleFilter.setLevel(consoleLevel.levelStr);
+						consoleFilter.start();
+					} else if (consoleFilter == null) { 
+						LOGGER.debug("ConsoleAppender filter is already set in LogBack configuration, skipping internal filter");
+					} else {
+						consoleFilter.setLevel(consoleLevel.levelStr);
+					}
+				}
+				if (setTraces && appender instanceof FrameAppender) {
+					FrameAppender<ILoggingEvent> fa = (FrameAppender<ILoggingEvent>) appender;
+					if (tracesFilter == null && fa.getCopyOfAttachedFiltersList().isEmpty()) {
+						tracesFilter = new ThresholdFilter();
+						fa.addFilter(tracesFilter);
+						tracesFilter.setLevel(tracesLevel.levelStr);
+						tracesFilter.start();
+					} else if (tracesFilter == null) { 
+						LOGGER.debug("FrameAppender filter is already set in LogBack configuration, skipping internal filter");						
+					} else {
+						tracesFilter.setLevel(tracesLevel.levelStr);
+					}
 				}
 			}
 		}
-				
-		StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
-		return loaded;
 	}
 
+	/**
+	 * Finds and configures the console appender with a filter with
+	 * the logging level from configuration provided that it's not already
+	 * configured in logback.xml or logback.headless.xml.
+	 */
+	public static void setConsoleFilter() {
+		setConfigurableFilters(true, false);
+	}
+
+	/**
+	 * Finds and configures the frame appender with a filter with
+	 * the logging level from configuration provided that it's not already
+	 * configured in logback.xml or logback.headless.xml.
+	 */
+	public static void setTracesFilter() {
+		setConfigurableFilters(false, true);
+	}
+
+	public static boolean syslogDisabled() {
+		return syslogDisabled;
+	}
 	/**
 	* Adds/modifies/removes a syslog appender based on PmsConfiguration and disables/enables file appenders 
 	* for easier access to syslog logging for users without in-depth knowledge of LogBack.
@@ -174,133 +329,178 @@ public class LoggingConfig {
 	* Must be called after {@link #loadFile()} and after UMS configuration is loaded.
 	*/
 	public static void setSyslog() {
-		org.slf4j.Logger logger = LoggerFactory.getLogger(PMS.class);
-		boolean found = false;
 		ActionType action = ActionType.NONE;
 		PmsConfiguration configuration = PMS.getConfiguration();
 
 		if (loggerContext == null) {
-			logger.error("Unknown loggerContext, aborting syslog configuration. Make sure that loadFile() has been called first");
+			LOGGER.error("Unknown loggerContext, aborting syslog configuration. Make sure that loadFile() has been called first.");
+			return;
+		} else if (syslogDisabled) {
+			//Only create a new syslog appender if there's no syslog appender configured already
+			LOGGER.warn("A syslog appender is already configured, aborting syslog configuration");
 			return;
 		}
 
 		if (configuration.getLoggingUseSyslog()) {
 			// Check for valid parameters
 			if (configuration.getLoggingSyslogHost().isEmpty()) {
-				logger.error("Empty syslog hostname, syslog configuration aborted");
+				LOGGER.error("Empty syslog hostname, syslog configuration aborted");
 				return;
 			}
 			try {
 				InetAddress.getByName(configuration.getLoggingSyslogHost());
 			} catch (UnknownHostException e) {
-				logger.error(String.format("Unknown syslog hostname '%s', syslog configuration aborted",configuration.getLoggingSyslogHost()));
-				return;			
+				LOGGER.error("Unknown syslog hostname {}, syslog configuration aborted",configuration.getLoggingSyslogHost());
+				return;
 			}
 			if (configuration.getLoggingSyslogPort() < 1 && configuration.getLoggingSyslogPort() > 65535) {
-				logger.error(String.format("Invalid syslog port %d, using default", configuration.getLoggingSyslogPort()));
+				LOGGER.error("Invalid syslog port {}, using default", configuration.getLoggingSyslogPort());
 				configuration.setLoggingSyslogPortDefault();
 			}
 			if (!configuration.getLoggingSyslogFacility().toLowerCase().matches(
 				"auth|authpriv|daemon|cron|ftp|lpr|kern|mail|news|syslog|user|uucp|local0|local1|local2|local3|local4|local5|local6|local7")) {
-				logger.error(String.format("Invalid syslog facility %s, using default", configuration.getLoggingSyslogFacility()));
-				configuration.setLoggingSyslogFacilityDefault();			
+				LOGGER.error("Invalid syslog facility \"{}\", using default", configuration.getLoggingSyslogFacility());
+				configuration.setLoggingSyslogFacilityDefault();
 			}
-		}
-
-		Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
-		if (rootLogger == null) {
-			logger.error("Couldn't find root logger, aborting");
-			return;
 		}
 
 		if (configuration.getLoggingUseSyslog() && syslog == null) {
-			// UMS haven't already configured one, but there can be another syslog appender there from custom LogBack configuration
-			//Check that syslog isn't already configured
-			Iterator<Appender<ILoggingEvent>> it = rootLogger.iteratorForAppenders();
-			while (it.hasNext()) {
-				Appender<ILoggingEvent> appender = it.next();
-				if (appender instanceof SyslogAppender) {
-					found = true;
-					break;
-				}
-			}
-			//Only create a new appender if there's no syslog appender there already
-			if (found) {
-				logger.warn("A syslog appender is already configured, aborting syslog configuration");
-				return;
-			}
-			SyslogAppender syslog = new SyslogAppender();
+			syslog = new SyslogAppender();
 			syslog.setContext(loggerContext);
 			syslog.setSuffixPattern("UMS [%thread] %msg");
 			syslog.setName("UMS syslog");
-			rootLogger.addAppender(syslog);
 			action = ActionType.START;
-		} else if (!configuration.getLoggingUseSyslog() && syslog != null && syslog.isStarted()) {
+		} else if (!configuration.getLoggingUseSyslog() && syslog != null) {
 			action = ActionType.STOP;
 		}
 		if (syslog != null && (action == ActionType.START || action == ActionType.NONE)) {
 			syslog.setSyslogHost(configuration.getLoggingSyslogHost());
 			syslog.setPort(configuration.getLoggingSyslogPort());
-			syslog.setFacility(configuration.getLoggingSyslogFacility().toUpperCase());			
+			syslog.setFacility(configuration.getLoggingSyslogFacility().toUpperCase());
+			syslog.start();
 		}
 		if (action == ActionType.START || action == ActionType.STOP) {
-			
-			Iterator<Appender<ILoggingEvent>> it = rootLogger.iteratorForAppenders();
-			
+
+			Iterator<Appender<ILoggingEvent>> it = CacheLogger.isActive() ? CacheLogger.iteratorForAppenders() : rootLogger.iteratorForAppenders();
 			while (it.hasNext()) {
 				Appender<ILoggingEvent> appender = it.next();
-				
-				if (appender instanceof FileAppender) {
-					FileAppender<ILoggingEvent> fileAppender = (FileAppender<ILoggingEvent>) appender;
-					if (action == ActionType.START && fileAppender.isStarted()) {
-						fileAppender.stop();
-					} else if (action == ActionType.STOP && !fileAppender.isStarted()) {
-						fileAppender.start();
-					}
-				} else if (appender == syslog) {
-					if (action == ActionType.START) {
-						syslog.start();
+
+				if (action == ActionType.START && appender instanceof FileAppender) {
+					if (CacheLogger.isActive()) {
+						CacheLogger.removeAppender(appender);
 					} else {
-						syslog.stop();
+						rootLogger.detachAppender(appender);
+					}
+					syslogDetachedAppenders.add(appender);
+					// If syslog is disabled later and this appender reactivated, append to the file instead of truncate
+					((FileAppender<ILoggingEvent>) appender).setAppend(true);
+				} else if (action == ActionType.STOP && appender == syslog) {
+					if (CacheLogger.isActive()) {
+						CacheLogger.removeAppender(syslog);
+					} else {
+						rootLogger.detachAppender(syslog);
+					}
+					syslog.stop();
+					syslog = null;
+				}
+			}
+
+			if (action == ActionType.START) {
+				if (CacheLogger.isActive()) {
+					CacheLogger.addAppender(syslog);
+				} else {
+					rootLogger.addAppender(syslog);
+				}
+				LOGGER.info("Syslog logging started, file logging disabled");
+			} else {
+				it = syslogDetachedAppenders.iterator();
+				while (it.hasNext()) {
+					Appender<ILoggingEvent> appender = it.next();
+					if (CacheLogger.isActive()) {
+						CacheLogger.addAppender(appender);
+					} else {
+						rootLogger.addAppender(appender);
 					}
 				}
+				syslogDetachedAppenders.clear();
+				LOGGER.info("Syslog logging stopped, file logging enabled");
 			}
 		}
 	}
-	
+
 	/**
-	* Adds/modifies/removes a syslog appender based on PmsConfiguration and disables/enables file appenders 
-	* for easier access to syslog logging for users without in-depth knowledge of LogBack.
-	* Stops file appenders if syslog is started and vice versa.<P>
+	* Turns ImmediateFlush off or on (!buffered) for all encoders descending from 
+	* LayoutWrappingEncoder for appenders descending from OutputStreamAppender
+	* except ConsoleAppender. The purpose is to turn on or off buffering/flushing
+	* for all file logging appenders.
 	* 
-	* Must be called after {@link #loadFile()} and after UMS configuration is loaded.
+	* Must be called after {@link #loadFile()}.
+	* 
+	* @param buffered whether or not file logging should be buffered or flush immediately
 	*/
-	public static void setBuffered(boolean buffered) {
-		org.slf4j.Logger logger = LoggerFactory.getLogger(PMS.class);
-		
+	public static void setBuffered(boolean buffered) {		
 		if (loggerContext == null) {
-			logger.error("Unknown loggerContext, aborting buffered logging. Make sure that loadFile() has been called first");
+			LOGGER.error("Unknown loggerContext, aborting buffered logging. Make sure that loadFile() has been called first.");
 			return;
 		}
 
-		for (Logger LOGGER : loggerContext.getLoggerList()) {
-			Iterator<Appender<ILoggingEvent>> it = LOGGER.iteratorForAppenders();
-			
-			while (it.hasNext()) {
-				Appender<ILoggingEvent> appender = it.next();
-				
-				if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
-					// Appender has Encoder property
-					Encoder<ILoggingEvent> encoder = ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
-					if (encoder instanceof LayoutWrappingEncoder) {
-						// Encoder has ImmideateFlush property
-						((LayoutWrappingEncoder<ILoggingEvent>) encoder).setImmediateFlush(!buffered);
-					}
+		// Build iterator
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		// Add CacheLogger or rootLogger appenders depending on whether CacheLogger is active.
+		if (CacheLogger.isActive()) {
+			iterators.addIterator(CacheLogger.iteratorForAppenders());
+		} else {
+			iterators.addIterator(rootLogger.iteratorForAppenders());
+		}
+		// If syslog is active there probably are detached appenders there as well
+		if (!syslogDetachedAppenders.isEmpty()) {
+			iterators.addList(syslogDetachedAppenders);
+		}
+		
+		// Iterate
+		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();		
+		while (it.hasNext()) {
+			Appender<ILoggingEvent> appender = it.next();
+
+			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
+				// Appender has Encoder property
+				Encoder<ILoggingEvent> encoder = ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
+				if (encoder instanceof LayoutWrappingEncoder) {
+					// Encoder has ImmediateFlush property
+					((LayoutWrappingEncoder<ILoggingEvent>) encoder).setImmediateFlush(!buffered);
 				}
 			}
 		}
 	}
-	
+
+	/**
+	* Sets the root logger level.
+	* 
+	* Must be called after {@link #loadFile()}.
+	* 
+	* @param level the new root logger level.
+	*/
+	public static void setRootLevel(Level level) {
+		if (loggerContext == null) {
+			LOGGER.error("Unknown loggerContext, aborting forced trace. Make sure that loadFile() has been called first");
+			return;
+		}		
+		rootLogger.setLevel(level);
+	}
+
+	/**
+	* Gets the root logger level.
+	* 
+	* Must be called after {@link #loadFile()}.
+	*/
+	public static Level getRootLevel() {
+		if (loggerContext == null) {
+			LOGGER.error("Unknown loggerContext, aborting getRootLevel. Make sure that loadFile() has been called first");
+			return Level.OFF;
+		}
+		return rootLogger.getLevel();
+	}
+
 	public static HashMap<String, String> getLogFilePaths() {
 		return logFilePaths;
 	}

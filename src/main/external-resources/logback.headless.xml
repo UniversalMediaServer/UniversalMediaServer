@@ -1,4 +1,4 @@
-<configuration debug="true">
+<configuration>
 	<!--
 		See http://logback.qos.ch/manual/ for more information on how to
 		configure the Logback logging engine.
@@ -6,7 +6,7 @@
 	-->
 
 	<!--
-		Let PMS decide the path for the logfile: either the current directory
+		Let UMS decide the path for the logfile: either the current directory
 		or (when that is read only) the system temp directory.
 	-->
 	<define name="debugLogPath" class="net.pms.logging.DebugLogPropertyDefiner">
@@ -20,10 +20,7 @@
 
 	<!-- Appender for the console -->
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-		<!-- Only log INFO and higher -->
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>INFO</level>
-		</filter>
+		<!-- No threshold filtering, log everything the root logger allows -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>

@@ -18,6 +18,7 @@
  */
 package net.pms.configuration;
 
+import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
@@ -166,6 +167,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
+	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
+	protected static final String KEY_LOGGING_FILTER_LOGS_TAB = "logging_filter_logs_tab";
+	protected static final String KEY_LOGGING_LOGS_TAB_LINEBUFFER = "logging_logs_tab_linebuffer";
 	protected static final String KEY_LOGGING_SYSLOG_FACILITY = "logging_syslog_facility";
 	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
 	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
@@ -3035,6 +3039,31 @@ public class PmsConfiguration extends RendererConfiguration {
 	
 	public void setLoggingBuffered(boolean value) {
 		configuration.setProperty(KEY_LOGGING_BUFFERED, value);
+	}
+	
+	public Level getLoggingFilterConsole() {
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"),Level.INFO);
+	}
+	
+	public void setLoggingFilterConsole(Level value) {
+		configuration.setProperty(KEY_LOGGING_FILTER_CONSOLE, value.levelStr);
+	}
+	
+	public Level getLoggingFilterLogsTab() {
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"),Level.INFO);
+	}
+	
+	public void setLoggingFilterLogsTab(Level value) {
+		configuration.setProperty(KEY_LOGGING_FILTER_LOGS_TAB, value.levelStr);
+	}
+	
+	public int getLoggingLogsTabLinebuffer() {
+		int i = getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER,1000);
+		return i >= 100 ? i : 100;
+	}
+	
+	public void setLoggingLogsTabLinebuffer(int value) {
+		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value >= 100 ? value : 100);
 	}
 	
 	public String getLoggingSyslogFacility() {
