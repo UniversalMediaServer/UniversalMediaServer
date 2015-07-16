@@ -1,0 +1,66 @@
+You can find some helpful files in the root folder of the repository if you're
+using Eclipse as your IDE. To import UMS into Eclipse as a project, go to:
+File -> Import -> Maven -> Existing Maven Project
+and browse to the root of the UMS git repository. Naming the project "ums" will
+make the included debug configuration work without further configuration.
+
+- UMS.launch:
+    This is a pre-configured debug configuration for Eclipse that will only
+    work without editing if your Eclipse project is called "ums". To run UMS
+    in Eclipse, simply select the file and either press F11 or choose debug from
+    the main menu or the context menu.
+
+The other files are "code style" helper files. None of these are absolute,
+UMS' code certainly doesn't adhere absolutely to them. They must be seen as
+helpful guides only.
+
+Here's a description of how to configure them in Eclipse:
+
+- Eclipse.Cleanup.xml:
+    You can import import this file as a "Clean Up profile" to make
+    "Eclipse Clean Up" work more in line with UMS' code style. Give it a name,
+    e.g "UMS" and it can be assigned either globally or per project.
+
+    It can be assigned either globally under:
+    Window -> Preferences -> Java -> Code Style -> Clean Up
+
+    or per project under:
+    Project -> Properties -> Java Code Style -> Clean Up
+
+- Eclipse.CodeTemplates.xml:
+    You can import import this file as a "Code Templates profile" to make
+    Eclipse's code templates work more in line with UMS' code style. Give
+    it a name, e.g "UMS" and it can be assigned either globally or per project.
+
+    It can be assigned either globally under:
+    Window -> Preferences -> Java -> Code Style -> Code Templates
+
+    or per project under:
+    Project -> Properties -> Java Code Style -> Code Templates
+
+- Eclipse.Formatter.xml:
+    You can import import this file as a "Formatter profile" to make
+    Eclipse's formatter work more in line with UMS' code style. Give
+    it a name, e.g "UMS" and it can be assigned either globally or per project.
+
+    It can be assigned either globally under:
+    Window -> Preferences -> Java -> Code Style -> Formatter
+
+    or per project under:
+    Project -> Properties -> Java Code Style -> Formatter
+
+- CheckStyle.xml:
+    You can use this file with CheckStyle independent from Eclipse. If you
+    use the Eclipse CheckStyle plugin, you can create a new
+    "CheckStyle profile" called for example "UMS" and then assign it either
+    globally or per project. You define CheckStyle profiles under the global
+    CheckStyle configuration:
+    Window -> Preferences -> CheckStyle
+
+    When creating a new profile, you can choose either
+    "External Configuration File" or "Project Relative Configuration" and
+    point to this file.
+
+    The profile can then either be set as the global default or assigned to a
+    project under:
+    Project -> Properties -> CheckStyle
