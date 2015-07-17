@@ -53,6 +53,7 @@ public class OGG extends MP3 {
 			"mpc",
 			"ogg",
 			"oma",
+			"opus",
 			"ra",
 			"shn",
 			"tta",
