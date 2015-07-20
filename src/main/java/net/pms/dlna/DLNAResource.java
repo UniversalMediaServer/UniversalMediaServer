@@ -2459,14 +2459,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
 				if (player != null) {
-					if (mediaRenderer.isTranscodeToMPEGTS()) {
+					if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
+						transcodedExtension = "_transcoded_to.mpg";
+					} else if (mediaRenderer.isTranscodeToMPEGTS()) {
 						transcodedExtension = "_transcoded_to.ts";
-					} else if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
-						transcodedExtension = "_transcoded_to.vob";
-					} else if (mediaRenderer.isTranscodeToWMV()) {
+					} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
 						transcodedExtension = "_transcoded_to.wmv";
 					}
 				}
+
 				wireshark.append(" ").append(getFileURL()).append(transcodedExtension);
 				sb.append(getFileURL()).append(transcodedExtension);
 				LOGGER.trace("Network debugger: " + wireshark.toString());
