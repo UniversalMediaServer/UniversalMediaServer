@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
 
 public class DbgPacker implements ActionListener {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DbgPacker.class);
 
 	private LinkedHashMap<File, JCheckBox> items;
 	private String debug_log, dbg_zip;
@@ -98,7 +98,7 @@ public class DbgPacker implements ActionListener {
 		// call the client callbacks
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 			if (listener instanceof DebugPacker) {
-				LOGGER.debug("found client " + listener.name());
+				LOGGER.debug("Found client {}",listener.name());
 				Object obj = ((DebugPacker) listener).dbgpack_cb();
 				if (obj instanceof String) {
 					add(((String) obj).split(","));
@@ -147,7 +147,7 @@ public class DbgPacker implements ActionListener {
 
 	private void add(File file) {
 		if (file != null) {
-			LOGGER.debug("adding " + file.getAbsolutePath());
+			LOGGER.debug("adding {}",file.getAbsolutePath());
 			try {
 				items.put(file.getCanonicalFile(), null);
 			} catch (IOException e) {
@@ -159,7 +159,7 @@ public class DbgPacker implements ActionListener {
 		byte[] buf = new byte[1024];
 		int len;
 		if (!f.exists()) {
-			LOGGER.debug("DbgPack file " + f.getAbsolutePath() + " does not exist - ignoring");
+			LOGGER.debug("DbgPack file {} does not exist - ignoring",f.getAbsolutePath());
 			return;
 		}
 		try (FileInputStream in = new FileInputStream(f)) {
@@ -221,13 +221,13 @@ public class DbgPacker implements ActionListener {
 				for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
 					if (item.getValue().isSelected()) {
 						File file = item.getKey();
-						LOGGER.debug("packing " + file.getAbsolutePath());
+						LOGGER.debug("Packing {}",file.getAbsolutePath());
 						writeToZip(zos, file);
 					}
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.debug("error packing zip file " + e);
+			LOGGER.debug("Error packing zip file: {}", e.getLocalizedMessage());
 		}
 	}
 
@@ -248,7 +248,7 @@ public class DbgPacker implements ActionListener {
 				try {
 					java.awt.Desktop.getDesktop().open(file);
 				} catch (IOException e2) {
-					LOGGER.warn("Failed to open default desktop application: " + e2);
+					LOGGER.warn("Failed to open default desktop application: {}", e2);
 					if (Platform.isWindows()) {
 						JOptionPane.showMessageDialog(null, Messages.getString("TracesTab.17") + e2, Messages.getString("TracesTab.6"),JOptionPane.ERROR_MESSAGE);
 					} else {
@@ -259,14 +259,14 @@ public class DbgPacker implements ActionListener {
 					reload((JComponent) e.getSource());
 				}
 			} catch (IOException e1) {
-				LOGGER.debug("An error occurred while opening/creating file \"" + str + "\": " + e1);
+				LOGGER.debug("An error occurred while opening/creating file \"{}\": {}", str, e1);
 			}
 		}
 	}
 
 	private void reload(JComponent c) {
 		// Rebuild and restart
-		LOGGER.debug("reloading.");
+		LOGGER.debug("Reloading...");
 		((Window) c.getTopLevelAncestor()).dispose();
 		JOptionPane.showOptionDialog(
 			SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),

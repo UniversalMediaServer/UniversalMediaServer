@@ -471,6 +471,7 @@ public class LoggingConfig {
 				}
 			}
 		}
+		LOGGER.info("Buffered logging turned {}", buffered ? "ON" : "OFF");
 	}
 
 	/**

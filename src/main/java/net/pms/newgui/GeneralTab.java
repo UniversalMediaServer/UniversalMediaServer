@@ -225,6 +225,10 @@ public class GeneralTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				configuration.setHideAdvancedOptions(hideAdvancedOptions.isSelected());
+				if (hideAdvancedOptions.isSelected())
+					looksFrame.setViewLevel(ViewLevel.NORMAL);
+				else
+					looksFrame.setViewLevel(ViewLevel.ADVANCED);
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(hideAdvancedOptions), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));

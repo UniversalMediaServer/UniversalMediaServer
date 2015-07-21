@@ -61,6 +61,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
 	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
 	protected static final int DEFAULT_SERVER_PORT = 5001;
+	// 90000 lines is approximately 10 MiB depending on locale and message length
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
@@ -3059,11 +3063,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	
 	public int getLoggingLogsTabLinebuffer() {
 		int i = getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER,1000);
-		return i >= 100 ? i : 100;
+		i = Math.min(Math.max(i, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		return i;
 	}
 	
 	public void setLoggingLogsTabLinebuffer(int value) {
-		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value >= 100 ? value : 100);
+		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value);
 	}
 	
 	public String getLoggingSyslogFacility() {
@@ -3087,11 +3093,18 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 	
 	public int getLoggingSyslogPort() {
-		return getInt(KEY_LOGGING_SYSLOG_PORT, 514);
+		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
+		if (i < 1 || i > 65535)
+			return 514;
+		else
+			return i;
 	}
 	
 	public void setLoggingSyslogPort(int value) {
-		configuration.setProperty(KEY_LOGGING_SYSLOG_PORT, value);
+		if (value < 1 || value > 65535)
+			setLoggingSyslogPortDefault();
+		else
+			configuration.setProperty(KEY_LOGGING_SYSLOG_PORT, value);
 	}
 
 	public void setLoggingSyslogPortDefault() {
