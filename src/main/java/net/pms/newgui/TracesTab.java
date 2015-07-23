@@ -271,9 +271,11 @@ public class TracesTab {
 
 		JLabel jFilterLabel = new JLabel(Messages.getString("TracesTab.24") + ":");
 		jFilterLabel.setDisplayedMnemonic(KeyEvent.VK_F);
+		jFilterLabel.setToolTipText(Messages.getString("TracesTab.33"));
 		jTracesFilter = new CustomJComboBox<String>(levelStrings);
 		jTracesFilter.setSelectedIndex(findLevelsIdx(configuration.getLoggingFilterLogsTab()));
 		jFilterLabel.setLabelFor(jTracesFilter);
+		jTracesFilter.setToolTipText(Messages.getString("TracesTab.33"));
 		jTracesFilter.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -289,23 +291,28 @@ public class TracesTab {
 
 		jSearchBox = new CustomJTextField();
 		jSearchBox.setBackground(new Color(248,248,248));
+		jSearchBox.setToolTipText(Messages.getString("TracesTab.34"));
 		jSearchPanel.add(jSearchBox);
 		jSearchPanel.add(Box.createRigidArea(new Dimension(5,0)));
 
 		JButton jSearchButton = new JButton(Messages.getString("PMS.144"));
 		jSearchButton.setMnemonic(KeyEvent.VK_S);
+		jSearchButton.setToolTipText(Messages.getString("TracesTab.34"));
 		jSearchPanel.add(jSearchButton);
 		jSearchPanel.add(jCSSpace = Box.createRigidArea(new Dimension(5,0)));
 		jCSSearch = new CustomJCheckBox(Messages.getString("TracesTab.19"), configuration.getGUILogSearchCaseSensitive());
 		jCSSearch.setMnemonic(KeyEvent.VK_C);
+		jCSSearch.setToolTipText(Messages.getString("TracesTab.35"));
 		jSearchPanel.add(jCSSearch);
 		jSearchPanel.add(jRESpace = Box.createRigidArea(new Dimension(5,0)));
 		jRESearch = new CustomJCheckBox("RegEx",configuration.getGUILogSearchRegEx());
 		jRESearch.setMnemonic(KeyEvent.VK_R);
+		jRESearch.setToolTipText(Messages.getString("TracesTab.36"));
 		jSearchPanel.add(jRESearch);
 		jSearchPanel.add(jMLSpace = Box.createRigidArea(new Dimension(5,0)));
 		jMLSearch = new CustomJCheckBox(Messages.getString("TracesTab.20"),configuration.getGUILogSearchMultiLine());
 		jMLSearch.setMnemonic(KeyEvent.VK_M);
+		jMLSearch.setToolTipText(Messages.getString("TracesTab.37"));
 		jSearchPanel.add(jMLSearch);
 
 		jSearchPanel.add(jBufferSpace1 = Box.createRigidArea(new Dimension(4,0)));
@@ -313,19 +320,20 @@ public class TracesTab {
 		jSearchPanel.add(jBufferSpace2 = Box.createRigidArea(new Dimension(4,0)));
 		jBufferLabel = new JLabel(Messages.getString("TracesTab.17"));
 		jBufferLabel.setDisplayedMnemonic(KeyEvent.VK_B);
+		jBufferLabel.setToolTipText(Messages.getString("TracesTab.38"));
 		jLineBuffer = new CustomJSpinner(new SpinnerIntModel(
 			configuration.getLoggingLogsTabLinebuffer(),
 			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN,
 			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
 			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_STEP
 		), true);
+		jLineBuffer.setToolTipText(Messages.getString("TracesTab.38"));
 		jBufferLabel.setLabelFor(jLineBuffer);
 		jSearchPanel.add(jBufferLabel);
 		jSearchPanel.add(jBufferSpace3 = Box.createRigidArea(new Dimension(5,0)));
 		jSearchPanel.add(jLineBuffer);
 
 		jLineBuffer.addChangeListener(new ChangeListener() {
-
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				jList.setMaxLines((int) jLineBuffer.getValue());
@@ -352,7 +360,6 @@ public class TracesTab {
 			public void actionPerformed(ActionEvent e) {
 				configuration.setGUILogSearchCaseSensitive(jCSSearch.isSelected());
 			}
-
 		});
 
 		jRESearch.addActionListener(new ActionListener() {
@@ -405,6 +412,7 @@ public class TracesTab {
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
 		builder.add(jListPane, cc.xyw(1, 2, cols));
 
+		// Create the logging options panel
 		jOptionsPanel = new JPanel();
 		jOptionsPanel.setLayout(new BoxLayout(jOptionsPanel,BoxLayout.LINE_AXIS));
 		jOptionsPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -420,6 +428,7 @@ public class TracesTab {
 
 		jBuffered = new CustomJCheckBox(Messages.getString("TracesTab.25"), configuration.getLoggingBuffered());
 		jBuffered.setMnemonic(KeyEvent.VK_U);
+		jBuffered.setToolTipText(Messages.getString("TracesTab.43"));
 		jBuffered.setHorizontalTextPosition(SwingConstants.LEADING);
 		jBuffered.addActionListener(new ActionListener() {
 			@Override
@@ -437,6 +446,7 @@ public class TracesTab {
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		jUseSyslog = new CustomJCheckBox(Messages.getString("TracesTab.27"),configuration.getLoggingUseSyslog());
 		jUseSyslog.setMnemonic(KeyEvent.VK_Y);
+		jUseSyslog.setToolTipText(Messages.getString("TracesTab.44"));
 		jUseSyslog.setHorizontalTextPosition(SwingConstants.LEADING);
 		jUseSyslog.addActionListener(new ActionListener() {
 			@Override
@@ -459,10 +469,12 @@ public class TracesTab {
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		JLabel jSyslogHostLabel = new JLabel(Messages.getString("TracesTab.28"));
 		jSyslogHostLabel.setDisplayedMnemonic(KeyEvent.VK_N);
+		jSyslogHostLabel.setToolTipText(Messages.getString("TracesTab.45"));
 		jOptionsPanel.add(jSyslogHostLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		jSyslogHost = new CustomJTextField(configuration.getLoggingSyslogHost(),10);
 		jSyslogHostLabel.setLabelFor(jSyslogHost);
+		jSyslogHost.setToolTipText(Messages.getString("TracesTab.45"));
 		jSyslogHost.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {}
@@ -499,18 +511,22 @@ public class TracesTab {
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		JLabel jSyslogPortLabel = new JLabel(Messages.getString("TracesTab.29"));
+		jSyslogPortLabel.setToolTipText(Messages.getString("TracesTab.46"));
 		jOptionsPanel.add(jSyslogPortLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		jSyslogPort = new CustomJSpinner(new SpinnerIntModel(configuration.getLoggingSyslogPort(),1,65535), true);
+		jSyslogPort.setToolTipText(Messages.getString("TracesTab.46"));
 		jSyslogPortLabel.setLabelFor(jSyslogPort);
 		jOptionsPanel.add(jSyslogPort);
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		JLabel jSyslogFacilityLabel = new JLabel(Messages.getString("TracesTab.30"));
 		jSyslogFacilityLabel.setDisplayedMnemonic(KeyEvent.VK_A);
+		jSyslogFacilityLabel.setToolTipText(Messages.getString("TracesTab.47"));
 		jOptionsPanel.add(jSyslogFacilityLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		jSyslogFacility = new CustomJComboBox<String>(syslogFacilities);
+		jSyslogFacility.setToolTipText(Messages.getString("TracesTab.47"));
 		jSyslogFacilityLabel.setLabelFor(jSyslogFacility);
 		jOptionsPanel.add(jSyslogFacility);
 
@@ -519,6 +535,7 @@ public class TracesTab {
 
 		jShowOptions = new CustomJCheckBox(Messages.getString("TracesTab.18"), PMS.getTraceMode() != 2 && configuration.getLoggingUseSyslog());
 		jShowOptions.setHorizontalTextPosition(SwingConstants.LEADING);
+		jShowOptions.setToolTipText(Messages.getString("TracesTab.41"));
 		jShowOptions.setMnemonic(KeyEvent.VK_G);
 		jShowOptions.setEnabled(PMS.getTraceMode() != 2);
 		jShowOptions.addActionListener(new ActionListener() {
@@ -563,10 +580,12 @@ public class TracesTab {
 
 		JLabel rootLevelLabel = new JLabel(Messages.getString("TracesTab.11") + ": ");
 		rootLevelLabel.setDisplayedMnemonic(KeyEvent.VK_L);
+		rootLevelLabel.setToolTipText(Messages.getString("TracesTab.42"));
 
 		CustomJComboBox<String> rootLevel = new CustomJComboBox<String>(levelStrings);
 		rootLevelLabel.setLabelFor(rootLevel);
 		rootLevel.setSelectedIndex(findLevelsIdx(rootLogger.getLevel()));
+		rootLevel.setToolTipText(Messages.getString("TracesTab.42"));
 		rootLevel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -597,6 +616,7 @@ public class TracesTab {
 		if (PMS.getTraceMode() == 0) {
 			// PMS was not started in trace mode
 			CustomJButton rebootTrace = new CustomJButton(Messages.getString("TracesTab.12"));
+			rebootTrace.setToolTipText(Messages.getString("TracesTab.39"));
 			rebootTrace.setMnemonic(KeyEvent.VK_T);
 			rebootTrace.addActionListener(new ActionListener() {
 				@Override
@@ -613,6 +633,7 @@ public class TracesTab {
 
 		CustomJButton packDbg = new CustomJButton(Messages.getString("TracesTab.4"));
 		packDbg.setMnemonic(KeyEvent.VK_P);
+		packDbg.setToolTipText(Messages.getString("TracesTab.40"));
 		packDbg.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
