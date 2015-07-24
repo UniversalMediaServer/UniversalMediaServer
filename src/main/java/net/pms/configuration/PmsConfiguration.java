@@ -170,6 +170,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
+	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
 	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
 	protected static final String KEY_LOGGING_FILTER_LOGS_TAB = "logging_filter_logs_tab";
@@ -387,7 +388,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		under multiple profiles without fiddling with environment variables, properties or
 		command-line arguments.
 
-		1) if UMS_PROFILE is not set, UMS.conf is located in: 
+		1) if UMS_PROFILE is not set, UMS.conf is located in:
 
 			Windows:             %ALLUSERSPROFILE%\$build
 			Mac OS X:            $HOME/Library/Application Support/$build
@@ -2369,7 +2370,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles() 
+	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles()
 	 * @deprecated
 	 */
 	@Deprecated
@@ -2709,7 +2710,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getWebConfPath() {
 		// Initialise this here rather than in the constructor
 		// or statically so that custom settings are logged
-		// to the debug.log/Logs tab.
+		// to the logfile/Logs tab.
 		if (WEB_CONF_PATH == null) {
 			WEB_CONF_PATH = FileUtil.getFileLocation(
 				getString(KEY_WEB_CONF_PATH, null),
@@ -2851,7 +2852,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setGUILogSearchCaseSensitive(boolean value) {
 		configuration.setProperty(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, value);
 	}
-	
+
 	/**
 	 * Get the state of the GUI log tab "Multiline" check box
 	 * @return true if enabled, false if disabled
@@ -2867,7 +2868,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setGUILogSearchMultiLine(boolean value) {
 		configuration.setProperty(KEY_GUI_LOG_SEARCH_MULTILINE, value);
 	}
-	
+
 	/**
 	 * Get the state of the GUI log tab "RegEx" check box
 	 * @return true if enabled, false if disabled
@@ -2883,7 +2884,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setGUILogSearchRegEx(boolean value) {
 		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
 	}
-	
+
 	/**
 	 * Finds out whether the program has admin rights.
 	 * It only checks on Windows and returns true if on a non-Windows OS.
@@ -2892,6 +2893,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * JRE newer than 1.6.0_31 installed.
 	 *
 	 * TODO: We should make it check for rights on other operating systems.
+	 * TODO: Add Windows 10
 	 */
 	public boolean isAdmin() {
 		if (
@@ -3024,7 +3026,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public int liveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
 	}
-	
+
 	public boolean isLiveSubtitlesKeep() {
 		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
 	}
@@ -3037,61 +3039,69 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
 	}
 
+	public String getLogFileName() {
+		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
+		if (FileUtil.isValidFileName(s))
+			return s;
+		else
+			return "debug.log";
+	}
+
 	public boolean getLoggingBuffered() {
 		return getBoolean(KEY_LOGGING_BUFFERED, false);
 	}
-	
+
 	public void setLoggingBuffered(boolean value) {
 		configuration.setProperty(KEY_LOGGING_BUFFERED, value);
 	}
-	
+
 	public Level getLoggingFilterConsole() {
 		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"),Level.INFO);
 	}
-	
+
 	public void setLoggingFilterConsole(Level value) {
 		configuration.setProperty(KEY_LOGGING_FILTER_CONSOLE, value.levelStr);
 	}
-	
+
 	public Level getLoggingFilterLogsTab() {
 		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"),Level.INFO);
 	}
-	
+
 	public void setLoggingFilterLogsTab(Level value) {
 		configuration.setProperty(KEY_LOGGING_FILTER_LOGS_TAB, value.levelStr);
 	}
-	
+
 	public int getLoggingLogsTabLinebuffer() {
 		int i = getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER,1000);
 		i = Math.min(Math.max(i, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 		return i;
 	}
-	
+
 	public void setLoggingLogsTabLinebuffer(int value) {
 		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value);
 	}
-	
+
 	public String getLoggingSyslogFacility() {
 		return getString(KEY_LOGGING_SYSLOG_FACILITY, "USER");
 	}
-	
+
 	public void setLoggingSyslogFacility(String value) {
 		configuration.setProperty(KEY_LOGGING_SYSLOG_FACILITY, value);
 	}
-	
+
 	public void setLoggingSyslogFacilityDefault() {
 		setLoggingSyslogFacility("USER");
 	}
-	
+
 	public String getLoggingSyslogHost() {
 		return getString(KEY_LOGGING_SYSLOG_HOST, "");
 	}
-	
+
 	public void setLoggingSyslogHost(String value) {
 		configuration.setProperty(KEY_LOGGING_SYSLOG_HOST, value);
 	}
-	
+
 	public int getLoggingSyslogPort() {
 		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
 		if (i < 1 || i > 65535)
@@ -3099,7 +3109,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		else
 			return i;
 	}
-	
+
 	public void setLoggingSyslogPort(int value) {
 		if (value < 1 || value > 65535)
 			setLoggingSyslogPortDefault();
@@ -3110,11 +3120,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setLoggingSyslogPortDefault() {
 		setLoggingSyslogPort(514);
 	}
-	
+
 	public boolean getLoggingUseSyslog() {
 		return getBoolean(KEY_LOGGING_USE_SYSLOG, false);
 	}
-	
+
 	public void setLoggingUseSyslog(boolean value) {
 		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
 	}

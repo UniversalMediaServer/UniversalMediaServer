@@ -19,6 +19,8 @@
 
 package net.pms;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
@@ -46,6 +48,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
+import net.pms.logging.DebugLogPropertyDefiner;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
@@ -60,6 +63,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
+import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -330,18 +334,22 @@ public class PMS {
 
 		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
-		// debug.log filename(s) and path(s)
+		// Logfile name(s) and path(s)
 		if (lfps != null && lfps.size() > 0) {
 			if (lfps.size() == 1) {
 				Entry<String, String> entry = lfps.entrySet().iterator().next();
-				LOGGER.info(String.format("%s: %s", entry.getKey(), entry.getValue()));
+				if (entry.getKey().toLowerCase().equals("default.log")) {
+					LOGGER.info("Logfile: {}", entry.getValue());
+				} else {
+					LOGGER.info("{}: {}", entry.getKey(), entry.getValue());
+				}
 			} else {
 				LOGGER.info("Logging to multiple files:");
 				Iterator<Entry<String, String>> logsIterator = lfps.entrySet().iterator();
 				Entry<String, String> entry;
 				while (logsIterator.hasNext()) {
 					entry = logsIterator.next();
-					LOGGER.info(String.format("%s: %s", entry.getKey(), entry.getValue()));
+					LOGGER.info("{}: {}", entry.getKey(), entry.getValue());
 				}
 			}
 		}
@@ -766,11 +774,11 @@ public class PMS {
 				*/
 				ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
 				if (iLoggerContext instanceof LoggerContext) {
-					((LoggerContext) iLoggerContext).stop();					
+					((LoggerContext) iLoggerContext).stop();
 				} else {
 					LOGGER.error("Unable to shut down logging gracfully");
 				}
-				
+
 			}
 		});
 
@@ -1064,7 +1072,7 @@ public class PMS {
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
 		CacheLogger.startCaching();
-		
+
 		if (args.length > 0) {
 			for (String arg : args) {
 				switch (arg) {
@@ -1099,7 +1107,7 @@ public class PMS {
 				if (System.getProperty(NOCONSOLE) == null) {
 					System.setProperty(CONSOLE, Boolean.toString(true));
 				}
-			} 
+			}
 		} catch (Throwable t) {
 			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
 
@@ -1113,13 +1121,14 @@ public class PMS {
 		}
 
 		try {
-			FileUtils.copyFile(new File("debug.log"), new File("debug.log.prev"));
-		} catch (Exception e) {
-		}
-
-		try {
 			setConfiguration(new PmsConfiguration());
 			assert getConfiguration() != null;
+
+			// Rename previous log file to .prev
+			// Log file location is unknown at this point, it's finally decided during loadFile() below
+			// but the file is also truncated at the same time, so we'll have to try a qualified guess
+			// for the file location.
+			renameOldLogFile();
 
 			// Load the (optional) LogBack config file.
 			// This has to be called after 'new PmsConfiguration'
@@ -1149,15 +1158,6 @@ public class PMS {
 
 			// Write buffered messages to the log now that logger is configured
 			CacheLogger.stopAndFlush();
-			//((LogBuffer) logBuffer).flush(LOGGER);
-
-			//TODO: Temp
-			//Appender<ILoggingEvent> le = l.getAppender("syslog");
-			/*if (le.isStarted()) {
-				LOGGER.debug("Syslog is started");
-			} else {
-				LOGGER.debug("Syslog is not started");
-			}*/
 
 			LOGGER.debug(new Date().toString());
 
@@ -1335,6 +1335,33 @@ public class PMS {
 	}
 
 	/**
+	 * Try to rename old logfile to <filename>.prev
+	 */
+	private static void renameOldLogFile() {
+		DebugLogPropertyDefiner propertyDefiner = new DebugLogPropertyDefiner();
+		String fullLogFileName = propertyDefiner.getLogFilePath();
+		fullLogFileName = FileUtil.appendPathSeparator(fullLogFileName);
+		fullLogFileName += propertyDefiner.getLogFileName();
+		String newLogFileName = fullLogFileName + ".prev";
+
+		try {
+			File logFile = new File(newLogFileName);
+			if (logFile.exists()) {
+				Files.delete(logFile);
+			}
+			logFile = new File(fullLogFileName);
+			if (logFile.exists()) {
+				File newFile = new File(newLogFileName);
+				if (!logFile.renameTo(newFile)) {
+					LOGGER.warn("Could not rename \"{}\" to \"{}\"",fullLogFileName,newLogFileName);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}",fullLogFileName,newLogFileName,e);
+		}
+	}
+
+	/**
 	 * Restart handling
 	 */
 	private static void killOld() {
@@ -1460,7 +1487,7 @@ public class PMS {
 	}
 
 	private static Boolean headless = null;
-	
+
 	/**
 	 * Check if UMS is running in headless (console) mode, since some Linux
 	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
@@ -1472,9 +1499,9 @@ public class PMS {
 				d.dispose();
 				headless = new Boolean(false);
 			} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-				headless = new Boolean(true);				
+				headless = new Boolean(true);
 			}
-		}		
+		}
 		return headless.booleanValue();
 	}
 
@@ -1632,9 +1659,16 @@ public class PMS {
 		}
 	}
 
-	// 0=not started in trace mode, 1=started in trace mode, 2=forced to trace mode
 	private static int traceMode = 0;
 
+	/**
+	 * Returns current trace mode state
+	 *
+	 * @return
+	 *			0 = Not started in trace mode<br>
+	 *			1 = Started in trace mode<br>
+	 *			2 = Forced to trace mode
+	 */
 	public static int getTraceMode() {
 		return traceMode;
 	}

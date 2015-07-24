@@ -31,7 +31,7 @@ SyntaxHighlighter.brushes.log = function() { this.regexList = _log; };
 SyntaxHighlighter.brushes.log.prototype = new SyntaxHighlighter.Highlighter();
 SyntaxHighlighter.brushes.log.aliases  = ['log'];
 
-// debug.log brush
+// logfile brush
 SyntaxHighlighter.brushes.debug_log = function() {
 	this.regexList = _log.concat([
 		{ css: 'plain',   regex: /with class .+\"/g },

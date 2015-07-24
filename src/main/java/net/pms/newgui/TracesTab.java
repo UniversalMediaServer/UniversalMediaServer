@@ -553,11 +553,11 @@ public class TracesTab {
 		HashMap<String, String> logFiles = LoggingConfig.getLogFilePaths();
 		for (String loggerName : logFiles.keySet()) {
 			String loggerNameDisplay = loggerName;
-			if ("debug.log".equals(loggerName)) {
+			if (loggerName.toLowerCase().startsWith("default.log")) {
 				loggerNameDisplay = Messages.getString("TracesTab.5");
 			}
 			CustomJButton b = new CustomJButton(loggerNameDisplay);
-			if ("debug.log".equals(loggerName)) {
+			if (!loggerName.equals(loggerNameDisplay)) {
 				b.setMnemonic(KeyEvent.VK_O);
 			}
 			b.setToolTipText(logFiles.get(loggerName));
