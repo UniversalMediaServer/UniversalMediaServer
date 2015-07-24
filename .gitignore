@@ -19,3 +19,4 @@ win32/
 /plugins
 /extras
 Thumbs.db
+*.bak
