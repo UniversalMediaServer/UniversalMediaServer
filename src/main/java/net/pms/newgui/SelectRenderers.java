@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,7 +69,7 @@ public class SelectRenderers extends JPanel {
 				if (!firstLoop) {
 					allRenderers.add(renderersGroup);
 				}
-				
+
 				if (renderer.indexOf(" ") > 0) {
 					groupName = renderer.substring(0, renderer.indexOf(" "));
 					renderersGroup = new DefaultMutableTreeNode(groupName);
@@ -78,14 +78,14 @@ public class SelectRenderers extends JPanel {
 					groupName = renderer;
 					renderersGroup = new DefaultMutableTreeNode(groupName);
 				}
-				
+
 				lastGroup = groupName;
 				firstLoop = false;
 			}
 		}
 
 		SrvTree = new JTree(new DefaultTreeModel(allRenderers));
-		checkTreeManager = new CheckTreeManager(SrvTree); 
+		checkTreeManager = new CheckTreeManager(SrvTree);
 		checkPanel.add(new JScrollPane(SrvTree));
 		checkPanel.setSize(400, 500);
 
@@ -128,11 +128,11 @@ public class SelectRenderers extends JPanel {
 										break;
 									}
 								}
-							
-								break;	
+
+								break;
 							}
 						}
-						
+
 					}
 				}
 			}

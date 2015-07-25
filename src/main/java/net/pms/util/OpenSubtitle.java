@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -75,10 +75,10 @@ public class OpenSubtitle {
 			long position = chunkSizeForFile;
 			long tailChunkPosition = length - chunkSizeForFile;
 
-			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks 
+			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks
 			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
 
-			// Second chunk, or the rest of the data if length is smaller than two chunks 
+			// Second chunk, or the rest of the data if length is smaller than two chunks
 			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
 
 			head = computeHashForChunk(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile));

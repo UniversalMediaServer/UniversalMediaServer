@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -149,7 +149,7 @@ public class ProcessUtil {
 							p.exitValue();
 						} catch (IllegalThreadStateException itse) { // still running: nuke it
 							// kill -14 (ALRM) works (for MEncoder) and is less dangerous than kill -9
-							// so try that first 
+							// so try that first
 							if (!kill(pid, 14)) {
 								try {
 									// This is a last resort, so let's not be too eager
@@ -235,7 +235,7 @@ public class ProcessUtil {
 			// We're doing a straight reboot
 			cmd = reboot;
 		} else {
-			// We're running a script that will eventually restart UMS 
+			// We're running a script that will eventually restart UMS
 			if (env == null) {
 				env = new HashMap<>();
 			}

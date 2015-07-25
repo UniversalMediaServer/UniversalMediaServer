@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -228,12 +228,12 @@ public class FormatConfiguration {
 		 * or 0, its value is skipped for making the match. If any of the
 		 * non-null parameters does not match, false is returned. For example,
 		 * assume a configuration that contains only the following line:
-		 * 
+		 *
 		 * Supported = f:mp4 n:2
-		 *  
+		 *
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, null) = true
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, null) = false 
-		 * match("wav", null, null, 2, 0, 0, 0, 0, null) = false 
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, null) = false
+		 * match("wav", null, null, 2, 0, 0, 0, 0, null) = false
 		 *
 		 * @param format
 		 * @param videoCodec
@@ -322,7 +322,7 @@ public class FormatConfiguration {
 						LOGGER.trace("Gmc value \"{}\" failed to match support line {}", miExtras.get(MI_GMC), supportLine);
 						return false;
 					}
-					
+
 					if (key.equals(MI_GOP) && miExtras.get(MI_GOP) != null && miExtras.get(MI_GOP).matcher("static").matches() && value.equals("variable")) {
 						LOGGER.trace("GOP value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
@@ -489,7 +489,7 @@ public class FormatConfiguration {
 				audio.getBitRate(),
 				media.getWidth(),
 				media.getHeight(),
-				media.getExtras()				
+				media.getExtras()
 			);
 		} else {
 			String finalMimeType = null;

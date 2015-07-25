@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -102,7 +102,7 @@ public class StringUtil {
 		 * s = s.replace("\"", "&quot;");
 		 * s = s.replace("'", "&apos;");
 		 */
-		
+
 		// The second encoding/escaping of & is not a bug, it's what effectively adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
 		return s;
@@ -257,7 +257,7 @@ public class StringUtil {
 	 * otherwise returns the string as is.
 	 *
 	 * @param arg The argument string
-	 * @return The string, optionally in quotes. 
+	 * @return The string, optionally in quotes.
 	 */
 	public static String quoteArg(String arg) {
 		if (arg != null && arg.indexOf(' ') > -1) {
