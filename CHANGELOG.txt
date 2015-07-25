@@ -1,4 +1,21 @@
-5.2.0-b1 - 2015-06-??
+5.2.2 - 2015-07-??
+	General:
+		
+	External Components:
+		Updated MediaInfo to 0.7.75
+
+5.2.1 - 2015-07-11
+
+	General:
+		Improved efficiency of configuration file loading (thanks, Nadahar!)
+		Improved support for quotation marks and apostrophes on some renderers (thanks, Nadahar!)
+		Fixed broken 32-bit MediaInfo dependency
+	Renderers:
+		Fixed Xbox One thumbnails
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+
+5.2.0 - 2015-07-09
 
 	General:
 		Made tsMuxeR use FFmpeg instead of MEncoder
@@ -12,11 +29,25 @@
 		Fixed MIME type finalization when parsing media
 		Fixed transcoding to AAC via MEncoder
 		Support late resolution of media length
+		Improved the accuracy of video metadata
+		Added ThumbnailWidth and ThumbnailHeight renderer settings
+		Added support for file extensions: AC3, AMR and TTA (thanks, ler0y!)
+		Fixed custom device configuration loading
+		Added more logging
+		Fixed folders not showing if they were previously empty, with "hide empty folders" enabled (thanks, jensaarai!)
+		Cleaned up the titles in the transcode folder in some cases
+		Various minor improvements/fixes
 		Expanded code testing for improved stability
 	Renderers:
 		Added support for Sony PlayStation 4
+		Improved thumbnail display on Panasonic TVs
+		Improved thumbnail display on Microsoft Xbox One
+	Languages:
+		Updated English translation (thanks, Nadahar!)
+		Updated Norwegian translation (thanks, Nadahar!)
 	External Components:
 		Rolled back FFmpeg on OS X to fix transcoding for some users
+		Updated Netty to 4.0.29
 
 5.1.4 - 2015-06-14
 

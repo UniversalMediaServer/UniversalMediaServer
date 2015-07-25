@@ -105,7 +105,6 @@ public class StringUtil {
 		
 		// The second encoding/escaping of & is not a bug, it's what effectively adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
-
 		return s;
 	}
 
