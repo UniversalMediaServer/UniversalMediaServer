@@ -210,9 +210,15 @@ public class TracesTab {
 		if (find.isEmpty()) {
 			jSearchOutput.setText("");
 		} else if (document.getLength() > 0) {
-			if (jMLSearch.isSelected()) flags += Pattern.DOTALL + Pattern.MULTILINE;
-			if (!jRESearch.isSelected()) flags += Pattern.LITERAL;
-			if (!jCSSearch.isSelected()) flags += Pattern.CASE_INSENSITIVE;
+			if (jMLSearch.isSelected()) {
+				flags += Pattern.DOTALL + Pattern.MULTILINE;
+			}
+			if (!jRESearch.isSelected()) {
+				flags += Pattern.LITERAL;
+			}
+			if (!jCSSearch.isSelected()) {
+				flags += Pattern.CASE_INSENSITIVE;
+			}
 			try {
 				if (searchPattern == null || find != searchPattern.pattern() || flags != searchPattern.flags()) {
 					searchPattern = Pattern.compile(find, flags);
@@ -227,7 +233,9 @@ public class TracesTab {
 					jList.requestFocusInWindow();
 					Rectangle viewRect = jList.modelToView(match.start());
 					Rectangle viewRectEnd = jList.modelToView(match.end());
-					if (viewRectEnd.x < viewRect.x) viewRectEnd.x = jList.getWidth();
+					if (viewRectEnd.x < viewRect.x) {
+						viewRectEnd.x = jList.getWidth();
+					}
 					viewRect.width = viewRectEnd.x - viewRect.x;
 					viewRect.height += viewRectEnd.y - viewRect.y;
 					jList.scrollRectToVisible(viewRect);
@@ -542,8 +550,9 @@ public class TracesTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				jOptionsPanel.setVisible(jShowOptions.isSelected());
-				if (jShowOptions.isSelected())
+				if (jShowOptions.isSelected()) {
 					jBuffered.requestFocusInWindow();
+				}
 			}
 		});
 		builder.add(jShowOptions, cc.xy(3, 4));

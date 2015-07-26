@@ -1213,11 +1213,13 @@ public class FileUtil {
 	 */
 	public static boolean isValidFileName(String fileName) {
 		if (Platform.isWindows()) {
-			if (fileName.matches("^[^\"*:<>?/\\\\]+$"))
+			if (fileName.matches("^[^\"*:<>?/\\\\]+$")) {
 				return true;
+			}
 		} else if (Platform.isMac()) {
-			if (fileName.matches("^[^:/]+$"))
+			if (fileName.matches("^[^:/]+$")) {
 				return true;
+			}
 		} else {
 			// Assuming POSIX
 			if (fileName.matches("^[A-Za-z0-9._][A-Za-z0-9._-]*$")) {

@@ -3041,10 +3041,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getLogFileName() {
 		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
-		if (FileUtil.isValidFileName(s))
+		if (FileUtil.isValidFileName(s)) {
 			return s;
-		else
+		} else {
 			return "debug.log";
+		}
 	}
 
 	public boolean getLoggingBuffered() {
@@ -3104,17 +3105,19 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getLoggingSyslogPort() {
 		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
-		if (i < 1 || i > 65535)
+		if (i < 1 || i > 65535) {
 			return 514;
-		else
+		} else {
 			return i;
+		}
 	}
 
 	public void setLoggingSyslogPort(int value) {
-		if (value < 1 || value > 65535)
+		if (value < 1 || value > 65535) {
 			setLoggingSyslogPortDefault();
-		else
+		} else {
 			configuration.setProperty(KEY_LOGGING_SYSLOG_PORT, value);
+		}
 	}
 
 	public void setLoggingSyslogPortDefault() {

@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -104,16 +104,17 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 	}
 
 	protected JComponent createEditor(SpinnerModel model) {
-		if (model instanceof SpinnerDateModel)
+		if (model instanceof SpinnerDateModel) {
 			return new DateEditor(this);
-		else if (model instanceof SpinnerNumberModel)
+		} else if (model instanceof SpinnerNumberModel) {
 			return new NumberEditor(this);
-		else if (model instanceof SpinnerListModel)
+		} else if (model instanceof SpinnerListModel) {
 			return new ListEditor(this);
-		else if (model instanceof SpinnerIntModel)
+		} else if (model instanceof SpinnerIntModel) {
 			return new IntegerEditor(this);
-		else
+		} else {
 			return new DefaultEditor(this);
+		}
 	}
 
 	public JToolTip createToolTip() {

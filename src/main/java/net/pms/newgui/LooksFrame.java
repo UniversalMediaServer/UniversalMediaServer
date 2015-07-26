@@ -89,7 +89,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private JLabel status;
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
-	
+
 	public ViewLevel getViewLevel() {
 		return viewLevel;
 	}
@@ -200,10 +200,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		// Set view level, can be omitted if ViewLevel is implemented in configuration
 		// by setting the view level as variable initialization
-		if (configuration.isHideAdvancedOptions()) 
+		if (configuration.isHideAdvancedOptions()) {
 			viewLevel = ViewLevel.NORMAL;
-		else
+		} else {
 			viewLevel = ViewLevel.ADVANCED;
+		}
 
 		// Global options
 		Options.setTabIconsEnabled(true);
@@ -418,7 +419,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tt = new TracesTab(configuration, this);
 		gt = new GeneralTab(configuration, this);
 		pt = new PluginTab(configuration, this);
-		nt = new NavigationShareTab(configuration, this);		
+		nt = new NavigationShareTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 

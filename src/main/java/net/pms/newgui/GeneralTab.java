@@ -225,10 +225,11 @@ public class GeneralTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				configuration.setHideAdvancedOptions(hideAdvancedOptions.isSelected());
-				if (hideAdvancedOptions.isSelected())
+				if (hideAdvancedOptions.isSelected()) {
 					looksFrame.setViewLevel(ViewLevel.NORMAL);
-				else
+				} else {
 					looksFrame.setViewLevel(ViewLevel.ADVANCED);
+				}
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(hideAdvancedOptions), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
@@ -266,7 +267,7 @@ public class GeneralTab {
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
 		if (allConfs != null) {
-			sortRendererConfiurationsByName(allConfs);			
+			sortRendererConfiurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
 					keyValues.add(renderer.getRendererName());
@@ -459,7 +460,7 @@ public class GeneralTab {
 			ypos += 2;
 
 			final SelectRenderers selectRenderers = new SelectRenderers();
-			
+
 			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			final CustomJButton setRenderers = new CustomJButton(Messages.getString("GeneralTab.5"));
 			setRenderers.addActionListener(new ActionListener() {
@@ -652,7 +653,7 @@ public class GeneralTab {
 			}
 		});
 	}
-	
+
 	private void sortRendererConfiurationsByName(ArrayList<RendererConfiguration> rendererConfigurations){
 		Collections.sort(rendererConfigurations , new Comparator<RendererConfiguration>() {
 
@@ -661,15 +662,15 @@ public class GeneralTab {
 				if(o1 == null && o2 == null){
 					return 0;
 				}
-				
+
 				if(o1 == null) {
 					return 1;
 				}
-				
+
 				if(o2 == null) {
 					return -1;
 				}
-				
+
 				return o1.getRendererName().toLowerCase().compareTo(o2.getRendererName().toLowerCase());
 			}
 		});

@@ -776,7 +776,7 @@ public class PMS {
 				if (iLoggerContext instanceof LoggerContext) {
 					((LoggerContext) iLoggerContext).stop();
 				} else {
-					LOGGER.error("Unable to shut down logging gracfully");
+					LOGGER.error("Unable to shut down logging gracefully");
 				}
 
 			}
