@@ -165,7 +165,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		cmdList.add(executable());
 
 		cmdList.add("-loglevel");
-		
+
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
 			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
@@ -185,6 +185,9 @@ public class FFmpegAudio extends FFMpegVideo {
 
 		cmdList.add("-i");
 		cmdList.add(filename);
+
+		// Make sure FFmpeg doesn't try to encode embedded images into the stream
+		cmdList.add("-vn");
 
 		// Encoder threads
 		if (nThreads > 0) {
