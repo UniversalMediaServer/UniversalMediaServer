@@ -49,13 +49,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Simple loader for logback configuration files.
- * 
- * @author thomas@innot.de
+ *
+ * @author thomas@innot.de, expanded by Nadahar
  */
 public class LoggingConfig {
 	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfig.class);
 	private static String filepath = null;
-	private static HashMap<String, String> logFilePaths = new HashMap<>(); // key: appender name, value: log file path
+	private static HashMap<String, String> logFilePaths = new HashMap<String, String>(); // key: appender name, value: log file path
 	private static LoggerContext loggerContext = null;
 	private static Logger rootLogger;
 	private static SyslogAppender syslog;
@@ -69,10 +69,10 @@ public class LoggingConfig {
 
 	/**
 	 * Gets the full path of a successfully loaded Logback configuration file.
-	 * 
+	 *
 	 * If the configuration file could not be loaded the string
 	 * <code>internal defaults</code> is returned.
-	 * 
+	 *
 	 * @return pathname or <code>null</code>
 	 */
 	public static String getConfigFilePath() {
@@ -100,19 +100,19 @@ public class LoggingConfig {
 		return null;
 	}
 
-	
+
 	/**
 	 * Loads the (optional) Logback configuration file.
-	 * 
+	 *
 	 * It loads the file defined in the <code>project.logback</code> property from the current
 	 * directory and (re-)initializes Logback with this file. If running
 	 * headless (<code>System.Property("console")</code> set), then the
 	 * alternative config file defined in <code>project.logback.headless</code> is tried first.
-	 * 
+	 *
 	 * If no config file can be found in the CWD, then nothing is loaded and
 	 * Logback will use the logback.xml file on the classpath as a default. If
 	 * this doesn't exist then a basic console appender is used as fallback.
-	 * 
+	 *
 	 * <strong>Note:</strong> Any error messages generated while parsing the
 	 * config file are dumped only to <code>stdout</code>.
 	 */
@@ -140,14 +140,14 @@ public class LoggingConfig {
 		}
 
 		if (file == null) {
-			file = getFile(PropertiesUtil.getProjectProperties().get("project.logback").split(","));			
+			file = getFile(PropertiesUtil.getProjectProperties().get("project.logback").split(","));
 		}
 
 		if (file == null) {
 			// Unpredictable: Any logback.xml found in the Classpath is loaded, if that fails defaulting to BasicConfigurator
 			// See http://logback.qos.ch/xref/ch/qos/logback/classic/BasicConfigurator.html
-			LOGGER.warn("Could not load LogBack configuration file from " + (headless ? 
-					PropertiesUtil.getProjectProperties().get("project.logback.headless") + ", " : "") + 
+			LOGGER.warn("Could not load LogBack configuration file from " + (headless ?
+					PropertiesUtil.getProjectProperties().get("project.logback.headless") + ", " : "") +
 					PropertiesUtil.getProjectProperties().get("project.logback"));
 			LOGGER.warn("Falling back to somewhat unpredictable defaults, probably only logging to console.");
 			return;
@@ -170,7 +170,7 @@ public class LoggingConfig {
 			filepath = file.getAbsolutePath();
 			LOGGER.debug("LogBack started with configuration file: {}", filepath);
 		} catch (JoranException je) {
-			try {					
+			try {
 				System.err.println("LogBack configuration failed: " + je.getLocalizedMessage());
 				System.err.println("Trying to create \"emergency\" configuration");
 				// Try to create "emergency" appenders for some logging if configuration fails
@@ -222,11 +222,11 @@ public class LoggingConfig {
 			iterators.addIterator(LOGGER.iteratorForAppenders());
 		}
 		// Iterate
-		
+
 		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();
 		while (it.hasNext()) {
 			Appender<ILoggingEvent> appender = it.next();
-			
+
 			if (appender instanceof FileAppender) {
 				FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
 				logFilePaths.put(fa.getName(), fa.getFile());
@@ -234,7 +234,7 @@ public class LoggingConfig {
 				syslogDisabled = true;
 			}
 		}
-		
+
 		// Set filters for console and traces
 		setConfigurableFilters(true, true);
 
@@ -277,7 +277,7 @@ public class LoggingConfig {
 						ca.addFilter(consoleFilter);
 						consoleFilter.setLevel(consoleLevel.levelStr);
 						consoleFilter.start();
-					} else if (consoleFilter == null) { 
+					} else if (consoleFilter == null) {
 						LOGGER.debug("ConsoleAppender filter is already set in LogBack configuration, skipping internal filter");
 					} else {
 						consoleFilter.setLevel(consoleLevel.levelStr);
@@ -290,8 +290,8 @@ public class LoggingConfig {
 						fa.addFilter(tracesFilter);
 						tracesFilter.setLevel(tracesLevel.levelStr);
 						tracesFilter.start();
-					} else if (tracesFilter == null) { 
-						LOGGER.debug("FrameAppender filter is already set in LogBack configuration, skipping internal filter");						
+					} else if (tracesFilter == null) {
+						LOGGER.debug("FrameAppender filter is already set in LogBack configuration, skipping internal filter");
 					} else {
 						tracesFilter.setLevel(tracesLevel.levelStr);
 					}
@@ -322,10 +322,10 @@ public class LoggingConfig {
 		return syslogDisabled;
 	}
 	/**
-	* Adds/modifies/removes a syslog appender based on PmsConfiguration and disables/enables file appenders 
+	* Adds/modifies/removes a syslog appender based on PmsConfiguration and disables/enables file appenders
 	* for easier access to syslog logging for users without in-depth knowledge of LogBack.
 	* Stops file appenders if syslog is started and vice versa.<P>
-	* 
+	*
 	* Must be called after {@link #loadFile()} and after UMS configuration is loaded.
 	*/
 	public static void setSyslog() {
@@ -429,16 +429,16 @@ public class LoggingConfig {
 	}
 
 	/**
-	* Turns ImmediateFlush off or on (!buffered) for all encoders descending from 
+	* Turns ImmediateFlush off or on (!buffered) for all encoders descending from
 	* LayoutWrappingEncoder for appenders descending from OutputStreamAppender
 	* except ConsoleAppender. The purpose is to turn on or off buffering/flushing
 	* for all file logging appenders.
-	* 
+	*
 	* Must be called after {@link #loadFile()}.
-	* 
+	*
 	* @param buffered whether or not file logging should be buffered or flush immediately
 	*/
-	public static void setBuffered(boolean buffered) {		
+	public static void setBuffered(boolean buffered) {
 		if (loggerContext == null) {
 			LOGGER.error("Unknown loggerContext, aborting buffered logging. Make sure that loadFile() has been called first.");
 			return;
@@ -456,9 +456,9 @@ public class LoggingConfig {
 		if (!syslogDetachedAppenders.isEmpty()) {
 			iterators.addList(syslogDetachedAppenders);
 		}
-		
+
 		// Iterate
-		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();		
+		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();
 		while (it.hasNext()) {
 			Appender<ILoggingEvent> appender = it.next();
 
@@ -476,22 +476,22 @@ public class LoggingConfig {
 
 	/**
 	* Sets the root logger level.
-	* 
+	*
 	* Must be called after {@link #loadFile()}.
-	* 
+	*
 	* @param level the new root logger level.
 	*/
 	public static void setRootLevel(Level level) {
 		if (loggerContext == null) {
 			LOGGER.error("Unknown loggerContext, aborting forced trace. Make sure that loadFile() has been called first");
 			return;
-		}		
+		}
 		rootLogger.setLevel(level);
 	}
 
 	/**
 	* Gets the root logger level.
-	* 
+	*
 	* Must be called after {@link #loadFile()}.
 	*/
 	public static Level getRootLevel() {

@@ -48,7 +48,7 @@ import sun.util.resources.LocaleData;
  *
  * @author Nadahar
  */
-@SuppressWarnings({ "serial", "restriction", "rawtypes" })
+@SuppressWarnings({ "serial", "rawtypes" })
 
 public class CustomJSpinner extends javax.swing.JSpinner {
 
@@ -141,7 +141,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 	            return;
 	        }
 
-	        int value = (int) spinner.getValue();
+	        int value = (Integer) spinner.getValue();
 	        value -= e.getWheelRotation() * stepSize;
 	        if (value == minimum + stepSize && minimum % stepSize != 0) {
 	        	value = ((minimum / stepSize) * stepSize) + stepSize;

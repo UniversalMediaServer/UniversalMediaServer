@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -52,7 +51,7 @@ public class DbgPacker implements ActionListener {
 				Map.Entry<String, String> entry = logFilePaths.entrySet().iterator().next();
 				defaultLogFile = entry.getValue();
 			}
-			zippedLogFile = Paths.get(defaultLogFile).getParent().toString();
+			zippedLogFile = new File(defaultLogFile).getParent().toString();
 		} else {
 			// Fall back to getting the default folder
 			zippedLogFile = new DebugLogPropertyDefiner().getLogFilePath();

@@ -344,7 +344,7 @@ public class TracesTab {
 		jLineBuffer.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				jList.setMaxLines((int) jLineBuffer.getValue());
+				jList.setMaxLines((Integer) jLineBuffer.getValue());
 				configuration.setLoggingLogsTabLinebuffer(jList.getMaxLines());
 			}
 		});

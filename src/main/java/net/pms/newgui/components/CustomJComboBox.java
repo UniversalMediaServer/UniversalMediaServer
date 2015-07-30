@@ -25,7 +25,7 @@ import javax.swing.JToolTip;
 import javax.swing.JComboBox;
 
 /**
- * A subclass of {@link javax.swing.JComboBox} with a custom <code>ToolTip</code> handler 
+ * A subclass of {@link javax.swing.JComboBox} with a custom <code>ToolTip</code> handler
  */
 
 public class CustomJComboBox<E> extends JComboBox<E> {

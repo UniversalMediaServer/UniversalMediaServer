@@ -24,10 +24,10 @@ import javax.swing.AbstractSpinnerModel;
 import javax.swing.SpinnerModel;
 
 /**
- * An integer based spinner similar to {@link javax.swing.SpinnerNumberModel}, but 
- * with different minimum and maximum alignment in that minimum and maximum don't 
+ * An integer based spinner similar to {@link javax.swing.SpinnerNumberModel}, but
+ * with different minimum and maximum alignment in that minimum and maximum don't
  * have to be a multiple of step size.
- * 
+ *
  * @author Nadahar
  */
 public class SpinnerIntModel extends AbstractSpinnerModel implements Serializable, SpinnerModel  {
@@ -65,7 +65,7 @@ public class SpinnerIntModel extends AbstractSpinnerModel implements Serializabl
 	public SpinnerIntModel(int value, int minimum, int maximum) {
 		this(value, minimum, maximum, 1);
 	}
-	
+
 	/**
 	 * Constructs an integer based <code>SpinnerModel</code>. Any
 	 * change of value will be in <code>stepSize</code>.
@@ -75,7 +75,7 @@ public class SpinnerIntModel extends AbstractSpinnerModel implements Serializabl
 	public SpinnerIntModel(int value, int stepSize) {
 		this(value, Integer.MIN_VALUE, Integer.MAX_VALUE, stepSize);
 	}
-	
+
 	/**
 	 * Constructs an integer based <code>SpinnerModel</code>. Any
 	 * change of value will of size 1.
@@ -89,27 +89,27 @@ public class SpinnerIntModel extends AbstractSpinnerModel implements Serializabl
 		this.minimum = minimum;
 		fireStateChanged();
     }
-	
+
     public int getMinimum() {
         return minimum;
     }
-    
+
     public void setMaximum(int maximum) {
     	this.maximum = maximum;
     	fireStateChanged();
     }
-    
+
     public int getMaximum() {
     	return maximum;
     }
-    
+
     public void setStepSize(int stepSize) {
         if (stepSize != this.stepSize) {
             this.stepSize = stepSize;
             fireStateChanged();
         }
     }
-    
+
     public int getStepSize() {
     	return stepSize;
     }
@@ -138,7 +138,7 @@ public class SpinnerIntModel extends AbstractSpinnerModel implements Serializabl
 	public Object getValue() {
 		return new Integer(value);
 	}
-	
+
 	public int getIntValue() {
 		return value;
 	}
@@ -148,12 +148,12 @@ public class SpinnerIntModel extends AbstractSpinnerModel implements Serializabl
 		if (!(value instanceof Integer)) {
 			throw new IllegalArgumentException("value must be integer");
 		}
-		if ((int) value != this.value) {
-			this.value = (int) value;
+		if ((Integer) value != this.value) {
+			this.value = (Integer) value;
 			fireStateChanged();
 		}
 	}
-	
+
 	public void setIntValue(int value) {
 		if (value != this.value) {
 			this.value = value;
