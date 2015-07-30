@@ -193,10 +193,12 @@ public class RealFile extends MapFile {
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 					// Special case for MP4 audio files, they have gotten container "m4a" during LibMediaInfoParser.parse so we need to change the format to "m4a" as well
-					if (getFormat().getMatchedExtension().equals("mp4") && getMedia().getContainer().equals("m4a")) {
+					if (
+						getFormat().getMatchedExtension() != null && getFormat().getMatchedExtension().equals("mp4") &&
+						getMedia() != null && getMedia().getContainer() != null && getMedia().getContainer().equals("m4a")) {
 						setFormat(new M4A());
 						getFormat().setType(Format.AUDIO);
-						getFormat().setMatchedExtension("m4a");						
+						getFormat().setMatchedExtension("m4a");
 					}
 				} else {
 					// Don't think that will ever happen
