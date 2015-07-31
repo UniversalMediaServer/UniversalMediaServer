@@ -127,7 +127,7 @@ public class MEncoderVideo extends Player {
 		Messages.getString("MEncoderVideo.78") +
 		Messages.getString("MEncoderVideo.135") +
 		"\n" +
-		"container == iso :: -nosync\n" +
+		//"container == iso :: -nosync\n" +  // This breaks DVD ISO playback sync
 		"(container == avi || container == matroska) && vcodec == mpeg4 && acodec == mp3 :: -mc 0.1\n" +
 		"container == flv :: -mc 0.1\n" +
 		"container == mov :: -mc 0.1\n" +
