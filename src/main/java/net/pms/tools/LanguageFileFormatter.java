@@ -59,6 +59,7 @@ public class LanguageFileFormatter {
 		boolean sort = false;
 		boolean indent = false;
 		boolean unindent = false;
+		boolean deleteSelected = false;
 
 		for (String arg : args) {
 
@@ -74,6 +75,8 @@ public class LanguageFileFormatter {
 					indent = true;
 				} else if (arg.equals("-U")) {
 					unindent = true;
+				} else if (arg.equals("-DEL")) {
+					deleteSelected = true;
 				} else {
 					System.err.println("Invalid argument " + arg);
 					System.exit(1);
@@ -123,6 +126,10 @@ public class LanguageFileFormatter {
 			if (sort && lines != null) {
 				Collections.sort(lines, LineComparator.getComparator());
 			}
+			if (deleteSelected) {
+				deleteSelected(lines);
+			}
+
 			if (indent) {
 				indent(lines);
 			}
@@ -301,6 +308,74 @@ public class LanguageFileFormatter {
 			if (line.line.indexOf("=") > 0) {
 				String[] lineParts = line.line.split("=", 2);
 				line.line = String.format("%s=%s", lineParts[0].trim(), lineParts[1].trim());
+			}
+		}
+	}
+
+	private static void deleteSelected(ArrayList<LineStruct> lines) {
+		final String[] DELETEKEYS = {
+			"AviSynthFFmpeg.0",
+			"AviSynthMEncoder.2",
+			"DLNAMediaDatabase.0",
+			"DLNAMediaDatabase.3",
+			"FFmpegDVRMSRemux.1",
+			"FoldTab.1",
+			"FoldTab.6",
+			"FoldTab.11",
+			"FoldTab.53",
+			"GeneralTab.4",
+			"GeneralTab.7",
+			"GeneralTab.8",
+			"MEncoderVideo.1",
+			"MEncoderVideo.5",
+			"PMS.5",
+			"PMS.6",
+			"PMS.7",
+			"PMS.137",
+			"StatusTab.7",
+			"StatusTab.8",
+			"StatusTab.10",
+			"TrTab2.2",
+			"TrTab2.3",
+			"TrTab2.4",
+			"TrTab2.12",
+			"TrTab2.13",
+			"TrTab2.39",
+			"TrTab2.40",
+			"TrTab2.41",
+			"TrTab2.42",
+			"TrTab2.43",
+			"TrTab2.44",
+			"TrTab2.66",
+			"TrTab2.69",
+			"TsMuxeRVideo.0",
+			"TsMuxeRVideo.1",
+			"TsMuxeRVideo.3",
+			"VlcTrans.1",
+			"VlcTrans.2",
+			"VlcTrans.4",
+			"VlcTrans.6",
+			"VlcTrans.7",
+			"VlcTrans.8",
+			"VlcTrans.9",
+			"VlcTrans.10",
+			"VlcTrans.11",
+			"VlcTrans.17",
+			"VlcTrans.18",
+			"VlcTrans.19",
+			"VlcTrans.20",
+		};
+
+		if (lines == null) {
+			return;
+		}
+
+		for (int i = lines.size() - 1; i > -1; i--) {
+			for (String key : DELETEKEYS) {
+				if (key.equalsIgnoreCase(lines.get(i).group + "." + lines.get(i).name)) {
+					lines.remove(i);
+					break;
+				}
 			}
 		}
 	}
