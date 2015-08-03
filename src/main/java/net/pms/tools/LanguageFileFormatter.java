@@ -126,6 +126,8 @@ public class LanguageFileFormatter {
 			if (sort && lines != null) {
 				Collections.sort(lines, LineComparator.getComparator());
 			}
+			checkDuplicateKeys(lines);
+
 			if (deleteSelected) {
 				deleteSelected(lines);
 			}
@@ -157,8 +159,10 @@ public class LanguageFileFormatter {
 		Pattern pa = Pattern.compile("(?<!\\\\)\\\\u[0-9A-F]{4}");
 		Matcher ma = pa.matcher(s);
 		while (ma.find()) {
-			s = s.replace(ma.group(0), ma.group(0).toLowerCase());
-			ma = pa.matcher(s);
+			if (!ma.group(0).toLowerCase().equals(ma.group(0))) {
+				s = s.replace(ma.group(0), ma.group(0).toLowerCase());
+				ma = pa.matcher(s);
+			}
 		}
 
 		// Convert unicode characters to codes
@@ -312,6 +316,21 @@ public class LanguageFileFormatter {
 		}
 	}
 
+	private static void checkDuplicateKeys(ArrayList<LineStruct> lines) {
+		if (lines == null) {
+			return;
+		}
+
+		for (int i = 0; i < lines.size(); i++) {
+			for (int j = i + 1; j < lines.size(); j++) {
+				if (lines.get(i).group.equals(lines.get(j).group) && lines.get(i).name.equals(lines.get(j).name)) {
+					LOGGER.warn("Warning: Key \"{}\" is duplicated.", lines.get(i).group + "." + lines.get(i).name);
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unused")
 	private static void deleteSelected(ArrayList<LineStruct> lines) {
 		final String[] DELETEKEYS = {
 			"AviSynthFFmpeg.0",
