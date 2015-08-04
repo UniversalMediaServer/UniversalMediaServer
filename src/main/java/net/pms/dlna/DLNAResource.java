@@ -1222,7 +1222,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (forced) {
 				// This seems to follow the same code path as the else below in the case of MapFile, because
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded -> doRefreshChildren, which is what happens below
-				// (refreshChildren is not overridden in MapFile) 
+				// (refreshChildren is not overridden in MapFile)
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -2320,7 +2320,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			"dc:title",
 			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
 		);
-		wireshark.append("\"").append(title).append("\"");
+		if (LOGGER.isTraceEnabled()) {
+			wireshark.append("\"").append(title).append("\"");
+		}
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
@@ -2351,33 +2353,45 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 				String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, c);
 				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer);
-				wireshark.append(" ").append(tempString);
+				if (LOGGER.isTraceEnabled()) {
+					wireshark.append(" ").append(tempString);
+				}
 				addAttribute(sb, "protocolInfo", tempString);
 				if (subsAreValidForStreaming && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", media_subtitle.getType().getExtension().toUpperCase());
-					wireshark.append(" pv:subtitleFileType=").append(media_subtitle.getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(media_subtitle));
-					wireshark.append(" pv:subtitleFileUri=").append(getSubsURL(media_subtitle));
+					if (LOGGER.isTraceEnabled()) {
+						wireshark.append(" pv:subtitleFileType=").append(media_subtitle.getType().getExtension().toUpperCase());
+						wireshark.append(" pv:subtitleFileUri=").append(getSubsURL(media_subtitle));
+					}
 				}
 
 				if (getFormat() != null && getFormat().isVideo() && media != null && media.isMediaparsed()) {
 					if (player == null) {
-						wireshark.append(" size=").append(media.getSize());
+						if (LOGGER.isTraceEnabled()) {
+							wireshark.append(" size=").append(media.getSize());
+						}
 						addAttribute(sb, "size", media.getSize());
 					} else {
 						long transcoded_size = mediaRenderer.getTranscodedSize();
 						if (transcoded_size != 0) {
-							wireshark.append(" size=").append(transcoded_size);
+							if (LOGGER.isTraceEnabled()) {
+								wireshark.append(" size=").append(transcoded_size);
+							}
 							addAttribute(sb, "size", transcoded_size);
 						}
 					}
 
 					if (media.getDuration() != null) {
 						if (getSplitRange().isEndLimitAvailable()) {
-							wireshark.append(" duration=").append(convertTimeToString(getSplitRange().getDuration(), DURATION_TIME_FORMAT));
+							if (LOGGER.isTraceEnabled()) {
+								wireshark.append(" duration=").append(convertTimeToString(getSplitRange().getDuration(), DURATION_TIME_FORMAT));
+							}
 							addAttribute(sb, "duration", convertTimeToString(getSplitRange().getDuration(), DURATION_TIME_FORMAT));
 						} else {
-							wireshark.append(" duration=").append(media.getDurationString());
+							if (LOGGER.isTraceEnabled()) {
+								wireshark.append(" duration=").append(media.getDurationString());
+							}
 							addAttribute(sb, "duration", media.getDurationString());
 						}
 					}
@@ -2388,7 +2402,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());
 						}
-						
+
 					}
 
 					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
@@ -2403,20 +2417,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else if (getFormat() != null && getFormat().isImage()) {
 					if (media != null && media.isMediaparsed()) {
-						wireshark.append(" size=").append(media.getSize());
+						if (LOGGER.isTraceEnabled()) {
+							wireshark.append(" size=").append(media.getSize());
+						}
 						addAttribute(sb, "size", media.getSize());
 						if (media.getResolution() != null) {
 							addAttribute(sb, "resolution", media.getResolution());
 						}
 					} else {
-						wireshark.append(" size=").append(length());
+						if (LOGGER.isTraceEnabled()) {
+							wireshark.append(" size=").append(length());
+						}
 						addAttribute(sb, "size", length());
 					}
 				} else if (getFormat() != null && getFormat().isAudio()) {
 					if (media != null && media.isMediaparsed()) {
 						addAttribute(sb, "bitrate", media.getBitrate());
 						if (media.getDuration() != null) {
-							wireshark.append(" duration=").append(convertTimeToString(media.getDuration(), DURATION_TIME_FORMAT));
+							if (LOGGER.isTraceEnabled()) {
+								wireshark.append(" duration=").append(convertTimeToString(media.getDuration(), DURATION_TIME_FORMAT));
+							}
 							addAttribute(sb, "duration", convertTimeToString(media.getDuration(), DURATION_TIME_FORMAT));
 						}
 
@@ -2429,7 +2449,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (player == null) {
-							wireshark.append(" size=").append(media.getSize());
+							if (LOGGER.isTraceEnabled()) {
+								wireshark.append(" size=").append(media.getSize());
+							}
 							addAttribute(sb, "size", media.getSize());
 						} else {
 							// Calculate WAV size
@@ -2451,16 +2473,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 								int finalSize = (int) (media.getDurationInSeconds() * defaultFrequency * 2 * na);
 								LOGGER.trace("Calculated size for " + getSystemName() + ": " + finalSize);
-								wireshark.append(" size=").append(finalSize);
+								if (LOGGER.isTraceEnabled()) {
+									wireshark.append(" size=").append(finalSize);
+								}
 								addAttribute(sb, "size", finalSize);
 							}
 						}
 					} else {
-						wireshark.append(" size=").append(length());
+						if (LOGGER.isTraceEnabled()) {
+							wireshark.append(" size=").append(length());
+						}
 						addAttribute(sb, "size", length());
 					}
 				} else {
-					wireshark.append(" size=").append(DLNAMediaInfo.TRANS_SIZE).append(" duration=09:59:59");
+					if (LOGGER.isTraceEnabled()) {
+						wireshark.append(" size=").append(DLNAMediaInfo.TRANS_SIZE).append(" duration=09:59:59");
+					}
 					addAttribute(sb, "size", DLNAMediaInfo.TRANS_SIZE);
 					addAttribute(sb, "duration", "09:59:59");
 					addAttribute(sb, "bitrate", "1000000");
@@ -2479,9 +2507,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
-				wireshark.append(" ").append(getFileURL()).append(transcodedExtension);
+				if (LOGGER.isTraceEnabled()) {
+					wireshark.append(" ").append(getFileURL()).append(transcodedExtension);
+				}
 				sb.append(getFileURL()).append(transcodedExtension);
-				LOGGER.trace("Network debugger: " + wireshark.toString());
+				LOGGER.trace("Network debugger: {}", wireshark.toString());
 				wireshark.setLength(0);
 				closeTag(sb, "res");
 			}
