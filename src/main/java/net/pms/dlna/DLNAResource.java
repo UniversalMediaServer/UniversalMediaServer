@@ -2498,13 +2498,30 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
 				if (player != null) {
-					if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
-						transcodedExtension = "_transcoded_to.mpg";
-					} else if (mediaRenderer.isTranscodeToMPEGTS()) {
-						transcodedExtension = "_transcoded_to.ts";
-					} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-						transcodedExtension = "_transcoded_to.wmv";
+					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
+					if (
+						player.getClass().equals(FFMpegVideo.class) || player.getClass().equals(MEncoderVideo.class) || player.getClass().equals(TsMuxeRVideo.class) ||
+						player.getClass().equals(AviSynthFFmpeg.class) || player.getClass().equals(AviSynthMEncoder.class) || player.getClass().equals(VLCVideo.class) ||
+						player.getClass().equals(FFmpegWebVideo.class) || player.getClass().equals(MEncoderWebVideo.class) || player.getClass().equals(VLCWebVideo.class) ||
+						player.getClass().equals(VideoLanVideoStreaming.class)
+					) {
+						if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
+							transcodedExtension = "_transcoded_to.mpg";
+						} else if (mediaRenderer.isTranscodeToMPEGTS()) {
+							transcodedExtension = "_transcoded_to.ts";
+						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
+							transcodedExtension = "_transcoded_to.wmv";
+						}
+					} else if (player.getClass().equals(FFmpegAudio.class) || player.getClass().equals(VideoLanAudioStreaming.class)) {
+						if (mediaRenderer.isTranscodeToMP3()) {
+							transcodedExtension = "_transcoded_to.mp3";
+						} else if (mediaRenderer.isTranscodeToWAV()) {
+							transcodedExtension = "_transcoded_to.wav";
+						} else if (mediaRenderer.isTranscodeToLPCM()) {
+							transcodedExtension = "_transcoded_to.pcm";
+						}
 					}
+					//TODO: What about TsMuxeRAudio, FFmpegDVRMSRemux, RAWThumbnailer?
 				}
 
 				if (LOGGER.isTraceEnabled()) {
