@@ -51,6 +51,7 @@ public class HTTPResource {
 	public static final String AUDIO_APE_TYPEMIME = "audio/x-ape";
 	public static final String AUDIO_ATRAC_TYPEMIME = "audio/atrac-x";
 	public static final String AUDIO_AU_TYPEMIME = "audio/basic";
+	public static final String AUDIO_DSD_TYPEMIME = "audio/dsd";
 	public static final String AUDIO_DTS_TYPEMIME = "audio/vnd.dts";
 	public static final String AUDIO_DTSHD_TYPEMIME = "audio/vnd.dts.hd";
 	public static final String AUDIO_EAC3_TYPEMIME = "audio/Eac3";
@@ -186,11 +187,11 @@ public class HTTPResource {
 	 */
 	protected static byte[] downloadAndSendBinary(String u, boolean saveOnDisk, File f) throws IOException {
 		URL url = new URL(u);
-		
+
 		// The URL may contain user authentication information
 		Authenticator.setDefault(new HTTPResourceAuthenticator());
 		HTTPResourceAuthenticator.addURL(url);
-		
+
 		LOGGER.debug("Retrieving " + url.toString());
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		URLConnection conn = url.openConnection();

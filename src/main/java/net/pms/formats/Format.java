@@ -53,6 +53,7 @@ public abstract class Format implements Cloneable {
 		AU,
 		AUDIO_AS_VIDEO,
 		BMP,
+		DSD,
 		DTS,
 		DVRMS,
 		EAC3,

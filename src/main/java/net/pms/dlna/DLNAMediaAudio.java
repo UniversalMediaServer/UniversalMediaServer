@@ -175,7 +175,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	public boolean isADPCM() {
 		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.ADPCM);
 	}
-	
+
 	/**
 	 * @return True if the audio codec is AIFF.
 	 */
@@ -203,7 +203,14 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	public boolean isCook() {
 		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.COOK);
 	}
-	
+
+	/**
+	 * @return True if the audio codec is DSD Audio.
+	 */
+	public boolean isDSDAudio() {
+		return getCodecA() != null && (getCodecA().equalsIgnoreCase(FormatConfiguration.DSDAudio));
+	}
+
 	/**
 	 * @return True if the audio codec is DTS.
 	 */
@@ -238,7 +245,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	public boolean isHEAAC() {
 		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.AAC_HE);
 	}
-	
+
 	/**
 	 * @return True if the audio codec is Matroska Audio.
 	 */
@@ -348,7 +355,28 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is WMA.
 	 */
 	public boolean isWMA() {
-		return getCodecA() != null && getCodecA().startsWith("wm");
+		return getCodecA() != null && getCodecA().equals(FormatConfiguration.WMA);
+	}
+
+	/**
+	 * @return True if the audio codec is WMA Lossless.
+	 */
+	public boolean isWMALossless() {
+		return getCodecA() != null && getCodecA().equals(FormatConfiguration.WMALOSSLESS);
+	}
+
+	/**
+	 * @return True if the audio codec is WMA Pro.
+	 */
+	public boolean isWMAPro() {
+		return getCodecA() != null && getCodecA().equals(FormatConfiguration.WMAPRO);
+	}
+
+	/**
+	 * @return True if the audio codec is WMA Voice.
+	 */
+	public boolean isWMAVoice() {
+		return getCodecA() != null && getCodecA().equals(FormatConfiguration.WMAVOICE);
 	}
 
 	/**
@@ -362,9 +390,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is lossless.
 	 */
 	public boolean isLossless() {
-		return 
+		return
 			getCodecA() != null && (isPCM() || isFLAC() || isMLP() || isShorten() || isTrueHD() ||
-				isWavPack() || isALAC() || isMonkeysAudio()) || isRALF() || isTTA();
+				isWavPack() || isALAC() || isMonkeysAudio()) || isRALF() || isTTA() || isWMALossless();
 	}
 
 	/**
@@ -389,6 +417,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "ATRAC";
 		} else if (isCook()) {
 			return "Cook";
+		} else if (isDSDAudio()) {
+			return "DSD Audio";
 		} else if (isDTS()) {
 			return "DTS";
 		} else if (isDTSHD()) {
@@ -431,6 +461,12 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "WavPack";
 		} else if (isWMA()) {
 			return "WMA";
+		} else if (isWMALossless()) {
+			return "WMA Lossless";
+		} else if (isWMAPro()) {
+			return "WMA Pro";
+		} else if (isWMAVoice()) {
+			return "WMA Voice";
 		}
 		return getCodecA() != null ? getCodecA() : "-";
 	}

@@ -267,7 +267,7 @@ public class LibMediaInfoParser {
 					isBlank(media.getCodecV()) &&
 					media.getAudioTracksList() != null &&
 					media.getAudioTracksList().size() == 1 &&
-					(FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA()) 
+					(FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
 					|| FormatConfiguration.AAC_HE.equals(media.getAudioTracksList().get(0).getCodecA())
 					|| FormatConfiguration.ALAC.equals(media.getAudioTracksList().get(0).getCodecA()))
 				) {
@@ -463,11 +463,11 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.MP3);
 				}
 			}
-		} else if (value.equals("layer 2") && audio.getCodecA() != null && media.getContainer() != null && 
+		} else if (value.equals("layer 2") && audio.getCodecA() != null && media.getContainer() != null &&
 				   audio.getCodecA().equals(FormatConfiguration.MPA) && media.getContainer().equals(FormatConfiguration.MPA)) {
 			// only for audio files:
 			format = FormatConfiguration.MP2;
-			media.setContainer(FormatConfiguration.MP2);						
+			media.setContainer(FormatConfiguration.MP2);
 		} else if (value.equals ("ma") || value.equals("ma / core")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;
@@ -512,10 +512,24 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.DTS;
 		} else if (value.equals("mpeg audio")) {
 			format = FormatConfiguration.MPA;
-		} else if (value.equals("161") || value.startsWith("wma")) {
+		} else if (value.startsWith("wma")) {
 			format = FormatConfiguration.WMA;
 			if (media.getCodecV() == null) {
-				media.setContainer(FormatConfiguration.WMA);
+				media.setContainer(format);
+			}
+		} else if (
+			streamType == StreamType.Audio && media.getCodecV() == null && audio != null && audio.getCodecA() != null &&
+			audio.getCodecA() == FormatConfiguration.WMA &&
+			(value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A"))
+		) {
+			if (value.equals("161")) {
+				format = FormatConfiguration.WMA;
+			} else if (value.equals("162")) {
+				format = FormatConfiguration.WMAPRO;
+			} else if (value.equals("163")) {
+				format = FormatConfiguration.WMALOSSLESS;
+			} else if (value.equalsIgnoreCase("A")) {
+				format = FormatConfiguration.WMAVOICE;
 			}
 		} else if (value.equals("flac")) {
 			format = FormatConfiguration.FLAC;

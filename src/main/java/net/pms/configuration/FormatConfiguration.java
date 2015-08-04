@@ -37,7 +37,8 @@ public class FormatConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatConfiguration.class);
 	private ArrayList<SupportSpec> supportSpecs;
 	// Use old parser for JPEG files (MediaInfo does not support EXIF)
-	private static final String[] PARSER_V1_EXTENSIONS = new String[]{".jpg", ".jpe", ".jpeg"};
+	// Use old parser for DSF/DFF files (MediaInfo does not yet support DSD Audio: http://sourceforge.net/p/mediainfo/feature-requests/454/)
+	private static final String[] PARSER_V1_EXTENSIONS = new String[]{".jpg", ".jpe", ".jpeg", ".dff", ".dsf"};
 	public static final String THREEGPP = "3gp";
 	public static final String THREEGPP2 = "3g2";
 	public static final String THREEGA = "3ga";
@@ -56,6 +57,7 @@ public class FormatConfiguration {
 	public static final String CINEPACK = "cvid";
 	public static final String COOK = "cook";
 	public static final String DIVX = "divx";
+	public static final String DSDAudio = "dsd";
 	public static final String DTS = "dts";
 	public static final String DTSHD = "dtshd";
 	public static final String DV = "dv";
@@ -110,6 +112,9 @@ public class FormatConfiguration {
 	public static final String WAVPACK = "wavpack";
 	public static final String WEBM = "webm";
 	public static final String WMA = "wma";
+	public static final String WMALOSSLESS = "wmalossless";
+	public static final String WMAPRO = "wmapro";
+	public static final String WMAVOICE = "wmavoice";
 	public static final String WMV = "wmv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
 	public static final String und = "und";

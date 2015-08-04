@@ -45,6 +45,7 @@ public final class FormatFactory {
 		new ATRAC(),
 		new AU(),
 		new BMP(),
+		new DSDAudio(),
 		new DTS(),
 		new DVRMS(),
 		new EAC3(),
@@ -81,7 +82,7 @@ public final class FormatFactory {
 	 * The list of registered formats.
 	 */
 	private static List<Format> formats = new ArrayList<>(Arrays.asList(FORMATS));
-	
+
 	/**
 	 * This class is not meant to be instantiated.
 	 */
@@ -101,7 +102,7 @@ public final class FormatFactory {
 	 * of that format. Matching is done by the file extension (e.g. ".gif") or
 	 * protocol (e.g. "http://") of the filename. Will return <code>null</code>
 	 * if no match can be made.
-	 * 
+	 *
 	 * @param filename The filename to match.
 	 * @return The format.
 	 * @see Format#match(String)

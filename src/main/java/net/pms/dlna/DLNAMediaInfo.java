@@ -482,7 +482,7 @@ public class DLNAMediaInfo implements Cloneable {
 		} else {
 			args[2] = "" + configuration.getThumbnailSeekPos();
 		}
-		
+
 		args[3] = "-i";
 
 		if (file != null) {
@@ -689,12 +689,12 @@ public class DLNAMediaInfo implements Cloneable {
 							} else if (ah.getChannels() != null) {
 								try {
 									if (Integer.parseInt(ah.getChannels()) > 0) {
-										audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));										
+										audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));
 									} else {
 										LOGGER.debug(String.format("Invalid number of audio channels (%s) for file: %s",ah.getChannels(),af.getFile().getName()));
 									}
 								} catch (NumberFormatException e) {
-									LOGGER.debug(String.format("Couldn't figure out the number audio channels (%s) for file: %s",ah.getChannels(),af.getFile().getName())); 
+									LOGGER.debug(String.format("Couldn't figure out the number audio channels (%s) for file: %s",ah.getChannels(),af.getFile().getName()));
 								}
 							}
 
@@ -712,7 +712,7 @@ public class DLNAMediaInfo implements Cloneable {
 								thumb = t.getArtworkList().get(0).getBinaryData();
 							} else {
 								if (configuration.getAudioThumbnailMethod() > 0) {
-									thumb = 
+									thumb =
 										CoverUtil.get().getThumbnailFromArtistAlbum(
 											configuration.getAudioThumbnailMethod() == 1 ?
 												CoverUtil.AUDIO_AMAZON :
@@ -815,7 +815,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Create the thumbnail image using the Thumbnailator library
 					try {
-						ByteArrayOutputStream out = new ByteArrayOutputStream();	
+						ByteArrayOutputStream out = new ByteArrayOutputStream();
 						Thumbnails.of(file)
 								.size(320, 180)
 								.outputFormat("JPEG")
@@ -1319,6 +1319,9 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.AC3:
 					mimeType = HTTPResource.AUDIO_AC3_TYPEMIME;
 					break;
+				case FormatConfiguration.DSDAudio:
+					mimeType = HTTPResource.AUDIO_DSD_TYPEMIME;
+					break;
 				case FormatConfiguration.EAC3:
 					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
 					break;
@@ -1363,7 +1366,10 @@ public class DLNAMediaInfo implements Cloneable {
 					break;
 				case FormatConfiguration.WAVPACK:
 					mimeType = HTTPResource.AUDIO_WV_TYPEMIME;
-					break;					
+					break;
+				case FormatConfiguration.WMA:
+					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
+					break;
 				case FormatConfiguration.OGG:
 					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
 					break;
@@ -1649,7 +1655,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * plugins rely on it we can simplify things by removing that parameter.
 	 *
 	 * @param ratios
-	 * @return 
+	 * @return
 	 */
 	public String getAspectRatioMencoderMpegopts(boolean ratios) {
 		String a = null;
@@ -2637,9 +2643,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 		return null;
 	}
-	
+
 	private boolean isAnaglyph;
-	
+
 	public boolean stereoscopyIsAnaglyph() {
 		get3DLayout();
 		return isAnaglyph;
