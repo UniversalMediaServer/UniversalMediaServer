@@ -84,11 +84,15 @@ public class SelectRenderers extends JPanel {
 			}
 		}
 
+		// add the last group to the list
+		if (renderersGroup != null) {
+			allRenderers.add(renderersGroup);
+		}
+
 		SrvTree = new JTree(new DefaultTreeModel(allRenderers));
 		checkTreeManager = new CheckTreeManager(SrvTree); 
 		checkPanel.add(new JScrollPane(SrvTree));
 		checkPanel.setSize(400, 500);
-
 	}
 
 	/**
