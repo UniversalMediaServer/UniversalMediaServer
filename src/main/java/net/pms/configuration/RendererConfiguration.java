@@ -247,15 +247,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						r.rank = rank++;
 						String rendererName = r.getConfName();
 						allRenderersNames.add(rendererName);
-						String renderersGroup = null; 
+						String renderersGroup = null;
 						if (rendererName.indexOf(" ") > 0) {
 							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
 						}
-						
+
 						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
 							enabledRendererConfs.add(r);
+							LOGGER.trace("Added {} configuration", rendererName);
 						} else {
-							LOGGER.debug("Ignored " + rendererName + " configuration");
+							LOGGER.debug("Ignored {} configuration", rendererName);
 						}
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
@@ -309,7 +310,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public List<String> getStringList(String key, String def) {
 		return configurationReader.getStringList(key, def);
 	}
-   	
+
 	public Color getColor(String key, String defaultValue) {
 		String colorString = getString(key, defaultValue);
 		Color color = StringUtil.parseColor(colorString);
@@ -434,7 +435,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
 			r.rootFolder = null;
 		}
-		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since 
+		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since
 		// these are now for reference only and never actually populate their root folders.
 		for (RendererConfiguration r : enabledRendererConfs) {
 			r.rootFolder = null;
@@ -1380,7 +1381,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						if (getAddress() != null) {
 							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress().toString());
 						}
-					}	
+					}
 				};
 			}
 		}
