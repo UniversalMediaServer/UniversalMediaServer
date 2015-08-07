@@ -1243,9 +1243,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Override
 	public void run() {
 		if (first == null) {
-			resolve();
+			syncResolve();
 			if (second != null) {
-				second.resolve();
+				second.syncResolve();
 			}
 		}
 	}
@@ -1417,7 +1417,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Hook to lazily initialise immutable resources e.g. ISOs, zip files &amp;c.
 	 *
 	 * @since 1.90.0
-	 * @see #resolve()
+	 * @see #syncResolve()
 	 */
 	protected void resolveOnce() { }
 
@@ -1439,7 +1439,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * removed from it (if supported). There are other mechanisms for that e.g.
 	 * {@link #doRefreshChildren()} (see {@link Feed} for an example).
 	 */
-	public synchronized void resolve() {
+	public synchronized final void syncResolve() {
+		resolve();
+	}
+
+	/**
+	 * @deprecated Use {@link #syncResolve()} instead
+	 */
+	public void resolve() {
 		if (!resolved) {
 			resolveOnce();
 			// if resolve() isn't overridden, this file/folder is immutable
@@ -4028,7 +4035,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				setDefaultRenderer(r);
 				// Now add the item and resolve its rendering details
 				add(d);
-				d.resolve();
+				d.syncResolve();
 				// Restore our previous renderer
 				setDefaultRenderer(prev);
 			}
