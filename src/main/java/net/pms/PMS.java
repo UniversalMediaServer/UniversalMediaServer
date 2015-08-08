@@ -410,7 +410,7 @@ public class PMS {
 				// The user has chosen to run the wizard
 
 				// Total number of questions
-				int numberOfQuestions = 4;
+				int numberOfQuestions = 3;
 
 				// The current question number
 				int currentQuestionNumber = 1;
