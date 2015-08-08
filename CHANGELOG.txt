@@ -1,4 +1,4 @@
-5.2.2 - 2015-08-??
+5.2.2 - 2015-08-09
 	General:
 		Fixed audio transcoding with embedded images (thanks, Nadahar!)
                 Improved MIME type handling
