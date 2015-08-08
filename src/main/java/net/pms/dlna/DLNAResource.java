@@ -1222,7 +1222,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (forced) {
 				// This seems to follow the same code path as the else below in the case of MapFile, because
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded -> doRefreshChildren, which is what happens below
-				// (refreshChildren is not overridden in MapFile) 
+				// (refreshChildren is not overridden in MapFile)
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -2388,7 +2388,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());
 						}
-						
+
 					}
 
 					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
@@ -2469,13 +2469,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				endTag(sb);
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
-				if (player != null) {
-					if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
-						transcodedExtension = "_transcoded_to.mpg";
-					} else if (mediaRenderer.isTranscodeToMPEGTS()) {
-						transcodedExtension = "_transcoded_to.ts";
-					} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-						transcodedExtension = "_transcoded_to.wmv";
+				if (player != null && media != null) {
+					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
+					if (media.isVideo()) {
+						if (mediaRenderer.isTranscodeToMPEGTS()) {
+							transcodedExtension = "_transcoded_to.ts";
+						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
+							transcodedExtension = "_transcoded_to.wmv";
+						} else {
+							transcodedExtension = "_transcoded_to.mpg";
+						}
+					} else if (media.isAudio()) {
+						if (mediaRenderer.isTranscodeToMP3()) {
+							transcodedExtension = "_transcoded_to.mp3";
+						} else if (mediaRenderer.isTranscodeToWAV()) {
+							transcodedExtension = "_transcoded_to.wav";
+						} else {
+							transcodedExtension = "_transcoded_to.pcm";
+						}
 					}
 				}
 
