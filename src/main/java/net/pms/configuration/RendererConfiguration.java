@@ -211,6 +211,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return defaultConf;
 	}
 
+	public ConfigurationReader getConfigurationReader() {
+		return configurationReader;
+	}
+
 	/**
 	 * Load all renderer configuration files and set up the default renderer.
 	 *
@@ -243,11 +247,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						r.rank = rank++;
 						String rendererName = r.getConfName();
 						allRenderersNames.add(rendererName);
-						String renderersGroup = null; 
+						String renderersGroup = null;
 						if (rendererName.indexOf(" ") > 0) {
 							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
 						}
-						
+
 						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
 							enabledRendererConfs.add(r);
 						} else {
@@ -303,9 +307,28 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public List<String> getStringList(String key, String def) {
-		return configurationReader.getStringList(key, def);
+		List<String> result = configurationReader.getStringList(key, def);
+		if (result.size() == 1 && result.get(0).equalsIgnoreCase("None")) {
+			return new ArrayList<String>();
+		} else {
+			return result;
+		}
 	}
-   	
+
+	public void setStringList(String key, List<String> value) {
+		String result = "";
+		for (String element : value) {
+			if (!result.isEmpty()) {
+				result += ", ";
+			}
+			result += element;
+		}
+		if (result.isEmpty()) {
+			result = "None";
+		}
+		configuration.setProperty(key, result);
+	}
+
 	public Color getColor(String key, String defaultValue) {
 		String colorString = getString(key, defaultValue);
 		Color color = StringUtil.parseColor(colorString);
@@ -430,7 +453,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
 			r.rootFolder = null;
 		}
-		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since 
+		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since
 		// these are now for reference only and never actually populate their root folders.
 		for (RendererConfiguration r : enabledRendererConfs) {
 			r.rootFolder = null;
@@ -1377,7 +1400,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						if (getAddress() != null) {
 							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress().toString());
 						}
-					}	
+					}
 				};
 			}
 		}

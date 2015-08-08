@@ -23,6 +23,7 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import net.pms.PMS;
+import net.pms.configuration.ConfigurationReader;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
@@ -42,12 +43,17 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 
 	@Override
 	public String getPropertyValue() {
+		String result = null;
+		ConfigurationReader configurationReader = configuration.getConfigurationReader();
+		boolean saveLogOverride = configurationReader.getLogOverrides();
+		configurationReader.setLogOverrides(false);
 		if (key.equals("debugLogPath")) {
-			return getDebugLogPath();
-		} else if (key.equals("rootLevel")) {
-			return getRootLevel();
+				result = getDebugLogPath();
+			} else if (key.equals("rootLevel")) {
+				result = getRootLevel();
 		}
-		return null;
+		configurationReader.setLogOverrides(saveLogOverride);
+		return result;
 	}
 
 	/**

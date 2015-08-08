@@ -25,6 +25,7 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -113,18 +114,20 @@ public class HelpTab {
 	 */
 	public void updateContents() {
 		if (editorPane != null) {
-			try {
-				// Read the HTML help file
-				String documentationDir = PropertiesUtil.getProjectProperties().get("project.documentation.dir");
-				String helpPage = PMS.getHelpPage();
-				File file = new File(documentationDir + "/" + helpPage);
-
-				// Display the HTML help file in the editor
-				editorPane.setPage(file.toURI().toURL());
-			} catch (MalformedURLException e) {
-				LOGGER.debug("Caught exception", e);
-			} catch (IOException e) {
-				LOGGER.debug("Caught exception", e);
+			String documentationDir = PropertiesUtil.getProjectProperties().get("project.documentation.dir");
+			String helpPage = PMS.getHelpPage();
+			File file = new File(documentationDir + "/" + helpPage);
+			if (file.exists()) {
+				try {
+					// Display the HTML help file in the editor
+					editorPane.setPage(file.toURI().toURL());
+				} catch (MalformedURLException e) {
+					LOGGER.debug("Caught exception", e);
+				} catch (IOException e) {
+					LOGGER.debug("Caught exception", e);
+				}
+			} else {
+				LOGGER.info("Couldn't find help file \"{}/{}\". Help will not be available.", documentationDir, helpPage);
 			}
 		}
 	}

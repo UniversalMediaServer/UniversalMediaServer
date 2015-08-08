@@ -371,7 +371,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		under multiple profiles without fiddling with environment variables, properties or
 		command-line arguments.
 
-		1) if UMS_PROFILE is not set, UMS.conf is located in: 
+		1) if UMS_PROFILE is not set, UMS.conf is located in:
 
 			Windows:             %ALLUSERSPROFILE%\$build
 			Mac OS X:            $HOME/Library/Application Support/$build
@@ -1466,7 +1466,17 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value The comma-separated list of selected renderers.
 	 */
 	public void setSelectedRenderers(String value) {
+		if (value.isEmpty()) {
+			value = "None";
+		}
 		configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+	}
+
+	/**
+	 * @param value a string list of renderers.
+	 */
+	public void setSelectedRenderers(List<String> value) {
+		setStringList(KEY_SELECTED_RENDERERS, value);
 	}
 
 	/**
@@ -2353,7 +2363,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles() 
+	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles()
 	 * @deprecated
 	 */
 	@Deprecated
@@ -2960,7 +2970,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public int liveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
 	}
-	
+
 	public boolean isLiveSubtitlesKeep() {
 		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
 	}
