@@ -1,8 +1,23 @@
-5.2.2 - 2015-07-??
+5.2.2 - 2015-08-09
 	General:
-		
+		Fixed audio transcoding with embedded images (thanks, Nadahar!)
+                Improved MIME type handling
+                Improved logging
+                Expanded filename prettifying
+                Improved renderer selection interface (thanks, Nadahar!)
+                Improved file support (thanks, Nadahar!)
+                Speed improvements
+        Renderers:
+                Improved support for Xbox 360
+        Languages:
+                Updated all languages to remove unused translations (thanks, ler0y and Nadahar!)
+                Updated Dutch translation (thanks, ler0y!)
+                Updated English (thanks, ler0y!)
+                Updated Polish translation (thanks, Karol Szastok!)
 	External Components:
+                Updated FFmpeg for Windows
 		Updated MediaInfo to 0.7.75
+                Updated Netty to 3.10.4
 
 5.2.1 - 2015-07-11
 

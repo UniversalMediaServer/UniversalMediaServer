@@ -39,7 +39,7 @@ public class RendererConfigurationTest {
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset(); 
+		context.reset();
 
 		// Set locale to EN to ignore translations for renderers
 		Locale.setDefault(Locale.ENGLISH);
@@ -72,8 +72,8 @@ public class RendererConfigurationTest {
 		testHeaders(null, "X-Unknown-Header: Unknown Content");
 
 		// AirPlayer:
-		testHeaders("AirPlayer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
-		testHeaders("AirPlayer", "User-Agent: Lavf52.54.0");
+		testHeaders("Apple AirPlayer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
+		testHeaders("Apple AirPlayer", "User-Agent: Lavf52.54.0");
 
 		// BraviaEX:
 		testHeaders("Sony Bravia EX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";");
@@ -85,10 +85,10 @@ public class RendererConfigurationTest {
 		testHeaders("D-Link DSM-510", "User-Agent: DLNADOC/1.50 INTEL_NMPR/2.1");
 
 		// iPad-iPhone:
-		testHeaders("iPad / iPhone", "User-Agent: 8player lite 2.2.3 (iPad; iPhone OS 5.0.1; nl_NL)");
-		testHeaders("iPad / iPhone", "User-Agent: yxplayer2%20lite/1.2.7 CFNetwork/485.13.9 Darwin/11.0.0");
-		testHeaders("iPad / iPhone", "User-Agent: MPlayer 1.0rc4-4.2.1");
-		testHeaders("iPad / iPhone", "User-Agent: NSPlayer/4.1.0.3856");
+		testHeaders("Apple iPad / iPhone", "User-Agent: 8player lite 2.2.3 (iPad; iPhone OS 5.0.1; nl_NL)");
+		testHeaders("Apple iPad / iPhone", "User-Agent: yxplayer2%20lite/1.2.7 CFNetwork/485.13.9 Darwin/11.0.0");
+		testHeaders("Apple iPad / iPhone", "User-Agent: MPlayer 1.0rc4-4.2.1");
+		testHeaders("Apple iPad / iPhone", "User-Agent: NSPlayer/4.1.0.3856");
 
 		// Microsoft Xbox One:
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: Xbox-SystemOS");
@@ -218,7 +218,7 @@ public class RendererConfigurationTest {
 	 * Test a particular set of headers to see if it returns the correct
 	 * renderer. Set the correct renderer name to <code>null</code> to require
 	 * that nothing matches at all.
-	 * 
+	 *
 	 * @param correctRendererName
 	 *            The name of the renderer.
 	 * @param headerLines

@@ -50,8 +50,10 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 		switch (key) {
 			case "debugLogPath":
 				result = getDebugLogPath();
+				break;
 			case "rootLevel":
 				result = getRootLevel();
+				break;
 		}
 		configurationReader.setLogOverrides(saveLogOverride);
 		return result;

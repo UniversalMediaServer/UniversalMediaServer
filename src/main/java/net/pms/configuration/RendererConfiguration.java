@@ -308,7 +308,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public List<String> getStringList(String key, String def) {
-		return configurationReader.getStringList(key, def);
+		List<String> result = configurationReader.getStringList(key, def);
+		if (result.size() == 1 && result.get(0).equalsIgnoreCase("None")) {
+			return new ArrayList<String>();
+		} else {
+			return result;
+		}
+	}
+
+	public void setStringList(String key, List<String> value) {
+		String result = "";
+		for (String element : value) {
+			if (!result.isEmpty()) {
+				result += ", ";
+			}
+			result += element;
+		}
+		if (result.isEmpty()) {
+			result = "None";
+		}
+		configuration.setProperty(key, result);
 	}
 
 	public Color getColor(String key, String defaultValue) {
@@ -1243,9 +1262,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (isMediaParserV2()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToMPEGPSMPEG2AC3()) { // Default video transcoding mime type. Check it first
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
-				} else if (isTranscodeToMPEGTSH264AC3()) {
+				if (isTranscodeToMPEGTSH264AC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
 				} else if (isTranscodeToMPEGTSH264AAC()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC);
@@ -1257,6 +1274,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
+				} else {
+					// Default video transcoding mime type
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				}
 			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToWAV()) {
