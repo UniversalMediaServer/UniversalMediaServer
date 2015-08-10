@@ -96,18 +96,6 @@ public class TracesTab {
 	
 	public void append(String msg) {
 		getList().append(UMSUtils.logFormat(msg));
-		final JScrollBar vbar = jListPane.getVerticalScrollBar();
-
-		// If scrollbar was already at the bottom we schedule a new
-		// scroll event to scroll to the bottom again
-		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
-			EventQueue.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					vbar.setValue(vbar.getMaximum());
-				}
-			});
-		}
 	}
 
 	public JComponent build() {
