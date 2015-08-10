@@ -147,6 +147,7 @@ public class TracesTab {
 
 		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
+		new SmartScroller(jListPane);
 		builder.add(jListPane, cc.xyw(1, 1, cols));
 
 		// Add buttons to open logfiles (there may be more than one)
