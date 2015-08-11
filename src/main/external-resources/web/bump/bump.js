@@ -110,7 +110,7 @@ var bump = (function() {
 			var found = -1;
 			var playlist = vars['playlist'];
 			for(var i=0; i < playlist.length; i++) {
-				if (playlist[i][0] === here[0]) {
+				if (playlist[i][0] === here[0] && !playlist[i][2].indexOf('$i$') === 0) {
 					found = i;
 				}
 			}
