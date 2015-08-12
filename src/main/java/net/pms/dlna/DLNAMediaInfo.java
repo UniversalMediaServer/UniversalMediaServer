@@ -850,7 +850,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 					container = codecV;
 					imageCount++;
-				} catch (Throwable e) {
+				} catch (ImageReadException e) {
+					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
+				} catch (IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 				}
 				if (configuration.getImageThumbnailsEnabled() && gen_thumb) {

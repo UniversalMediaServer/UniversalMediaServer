@@ -48,9 +48,9 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 		boolean saveLogOverride = configurationReader.getLogOverrides();
 		configurationReader.setLogOverrides(false);
 		if (key.equals("debugLogPath")) {
-				result = getDebugLogPath();
-			} else if (key.equals("rootLevel")) {
-				result = getRootLevel();
+			result = getDebugLogPath();
+		} else if (key.equals("rootLevel")) {
+			result = getRootLevel();
 		}
 		configurationReader.setLogOverrides(saveLogOverride);
 		return result;

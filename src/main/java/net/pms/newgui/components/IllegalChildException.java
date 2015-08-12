@@ -20,7 +20,6 @@
 package net.pms.newgui.components;
 
 public class IllegalChildException extends Exception {
-
 	private static final long serialVersionUID = 1152260088011461750L;
 
 	public IllegalChildException() {
@@ -37,10 +36,4 @@ public class IllegalChildException extends Exception {
 	public IllegalChildException(String message, Throwable cause) {
 		super(message, cause);
 	}
-
-	public IllegalChildException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 }
