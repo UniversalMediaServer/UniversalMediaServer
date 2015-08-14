@@ -2893,7 +2893,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * JRE newer than 1.6.0_31 installed.
 	 *
 	 * TODO: We should make it check for rights on other operating systems.
-	 * TODO: Add Windows 10
 	 */
 	public boolean isAdmin() {
 		if (
@@ -3073,9 +3072,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public int getLoggingLogsTabLinebuffer() {
-		int i = getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER,1000);
-		i = Math.min(Math.max(i, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
-		return i;
+		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 	}
 
 	public void setLoggingLogsTabLinebuffer(int value) {

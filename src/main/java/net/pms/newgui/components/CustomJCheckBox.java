@@ -29,7 +29,7 @@ public class CustomJCheckBox extends JCheckBox  {
 	}
 
 	public CustomJCheckBox(String text, boolean selected) {
-	    super(text);
+	    super(text, selected);
 	}
 
 	public CustomJCheckBox(String text, Icon icon) {

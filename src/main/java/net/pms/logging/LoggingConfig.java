@@ -32,6 +32,7 @@ import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.OutputStreamAppender;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
+import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import java.io.File;
@@ -40,6 +41,8 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.util.Iterators;
@@ -63,8 +66,6 @@ public class LoggingConfig {
 	private static enum ActionType {START, STOP, NONE};
 	private static Level consoleLevel = null;
 	private static Level tracesLevel = null;
-	private static ThresholdFilter consoleFilter = null;
-	private static ThresholdFilter tracesFilter = null;
 	private static LinkedList<Appender<ILoggingEvent>> syslogDetachedAppenders = new LinkedList<Appender<ILoggingEvent>>();
 
 	/**
@@ -75,7 +76,7 @@ public class LoggingConfig {
 	 *
 	 * @return pathname or <code>null</code>
 	 */
-	public static String getConfigFilePath() {
+	public static synchronized String getConfigFilePath() {
 		if (filepath != null) {
 			return filepath;
 		} else {
@@ -116,7 +117,7 @@ public class LoggingConfig {
 	 * <strong>Note:</strong> Any error messages generated while parsing the
 	 * config file are dumped only to <code>stdout</code>.
 	 */
-	public static void loadFile() {
+	public static synchronized void loadFile() {
 		boolean headless = !(System.getProperty("console") == null);
 		File file = null;
 
@@ -161,6 +162,7 @@ public class LoggingConfig {
 			// the context was probably already configured by
 			// default configuration rules
 			loggerContext.reset();
+			loggerContext.getStatusManager().clear();
 			// Do not log between loggerContext.reset() and CacheLogger.initContext()
 			configurator.doConfigure(file);
 			if (CacheLogger.isActive()) {
@@ -242,8 +244,12 @@ public class LoggingConfig {
 		return;
 	}
 
-	private static void setConfigurableFilters(boolean setConsole, boolean setTraces) {
+	private static synchronized void setConfigurableFilters(boolean setConsole, boolean setTraces) {
 		PmsConfiguration configuration = PMS.getConfiguration();
+		if (loggerContext == null) {
+			LOGGER.error("Unknown loggerContext, aborting buffered logging. Make sure that loadFile() has been called first.");
+			return;
+		}
 
 		if (setConsole) {
 			Level level = configuration.getLoggingFilterConsole();
@@ -272,28 +278,42 @@ public class LoggingConfig {
 
 				if (setConsole && appender instanceof ConsoleAppender) {
 					ConsoleAppender<ILoggingEvent> ca = (ConsoleAppender<ILoggingEvent>) appender;
-					if (consoleFilter == null && ca.getCopyOfAttachedFiltersList().isEmpty()) {
-						consoleFilter = new ThresholdFilter();
+					boolean createNew = true;
+					if (!ca.getCopyOfAttachedFiltersList().isEmpty()) {
+						for (Filter<ILoggingEvent> filter : ca.getCopyOfAttachedFiltersList()) {
+							if (filter instanceof ThresholdFilter) {
+								createNew = false;
+								((ThresholdFilter) filter).setLevel(consoleLevel.levelStr);
+								((ThresholdFilter) filter).start();
+							}
+						}
+					}
+					if (createNew) {
+						ThresholdFilter consoleFilter = new ThresholdFilter();
 						ca.addFilter(consoleFilter);
 						consoleFilter.setLevel(consoleLevel.levelStr);
+						consoleFilter.setContext(loggerContext);
 						consoleFilter.start();
-					} else if (consoleFilter == null) {
-						LOGGER.debug("ConsoleAppender filter is already set in LogBack configuration, skipping internal filter");
-					} else {
-						consoleFilter.setLevel(consoleLevel.levelStr);
 					}
 				}
 				if (setTraces && appender instanceof FrameAppender) {
 					FrameAppender<ILoggingEvent> fa = (FrameAppender<ILoggingEvent>) appender;
-					if (tracesFilter == null && fa.getCopyOfAttachedFiltersList().isEmpty()) {
-						tracesFilter = new ThresholdFilter();
+					boolean createNew = true;
+					if (!fa.getCopyOfAttachedFiltersList().isEmpty()) {
+						for (Filter<ILoggingEvent> filter : fa.getCopyOfAttachedFiltersList()) {
+							if (filter instanceof ThresholdFilter) {
+								createNew = false;
+								((ThresholdFilter) filter).setLevel(tracesLevel.levelStr);
+								((ThresholdFilter) filter).start();
+							}
+						}
+					}
+					if (createNew) {
+						ThresholdFilter tracesFilter = new ThresholdFilter();
 						fa.addFilter(tracesFilter);
 						tracesFilter.setLevel(tracesLevel.levelStr);
+						tracesFilter.setContext(loggerContext);
 						tracesFilter.start();
-					} else if (tracesFilter == null) {
-						LOGGER.debug("FrameAppender filter is already set in LogBack configuration, skipping internal filter");
-					} else {
-						tracesFilter.setLevel(tracesLevel.levelStr);
 					}
 				}
 			}
@@ -318,17 +338,26 @@ public class LoggingConfig {
 		setConfigurableFilters(false, true);
 	}
 
-	public static boolean syslogDisabled() {
+	/**
+	 * Shows whether or not UMS' automated syslog function is disabled because
+	 * one or more syslog appenders are manually configured in LogBack
+	 * configuration.
+	 * @return the status.
+	 */
+	public static synchronized boolean isSyslogDisabled() {
 		return syslogDisabled;
 	}
+
 	/**
-	* Adds/modifies/removes a syslog appender based on PmsConfiguration and disables/enables file appenders
-	* for easier access to syslog logging for users without in-depth knowledge of LogBack.
-	* Stops file appenders if syslog is started and vice versa.<P>
+	* Adds/modifies/removes a syslog appender based on PmsConfiguration and
+	* disables/enables file appenders for easier access to syslog logging for
+	* users without in-depth knowledge of LogBack. Stops file appenders if
+	* syslog is started and vice versa.<P>
 	*
-	* Must be called after {@link #loadFile()} and after UMS configuration is loaded.
+	* Must be called after {@link #loadFile()} and after UMS configuration is
+	* loaded.
 	*/
-	public static void setSyslog() {
+	public static synchronized void setSyslog() {
 		ActionType action = ActionType.NONE;
 		PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -438,7 +467,7 @@ public class LoggingConfig {
 	*
 	* @param buffered whether or not file logging should be buffered or flush immediately
 	*/
-	public static void setBuffered(boolean buffered) {
+	public static synchronized void setBuffered(boolean buffered) {
 		if (loggerContext == null) {
 			LOGGER.error("Unknown loggerContext, aborting buffered logging. Make sure that loadFile() has been called first.");
 			return;
@@ -481,7 +510,7 @@ public class LoggingConfig {
 	*
 	* @param level the new root logger level.
 	*/
-	public static void setRootLevel(Level level) {
+	public static synchronized void setRootLevel(Level level) {
 		if (loggerContext == null) {
 			LOGGER.error("Unknown loggerContext, aborting forced trace. Make sure that loadFile() has been called first");
 			return;
@@ -494,7 +523,7 @@ public class LoggingConfig {
 	*
 	* Must be called after {@link #loadFile()}.
 	*/
-	public static Level getRootLevel() {
+	public static synchronized Level getRootLevel() {
 		if (loggerContext == null) {
 			LOGGER.error("Unknown loggerContext, aborting getRootLevel. Make sure that loadFile() has been called first");
 			return Level.OFF;
@@ -502,7 +531,87 @@ public class LoggingConfig {
 		return rootLogger.getLevel();
 	}
 
-	public static HashMap<String, String> getLogFilePaths() {
+	public static synchronized void forceVerboseFileEncoder() {
+		final String timeStampFormat = "yyyy-MM-dd HH:mm:ss.SSS";
+		if (loggerContext == null) {
+			LOGGER.error("Unknown loggerContext, aborting buffered logging. Make sure that loadFile() has been called first.");
+			return;
+		}
+
+		// Build iterator
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		// Add CacheLogger or rootLogger appenders depending on whether CacheLogger is active.
+		if (CacheLogger.isActive()) {
+			iterators.addIterator(CacheLogger.iteratorForAppenders());
+		} else {
+			iterators.addIterator(rootLogger.iteratorForAppenders());
+		}
+		// If syslog is active there probably are detached appenders there as well
+		if (!syslogDetachedAppenders.isEmpty()) {
+			iterators.addList(syslogDetachedAppenders);
+		}
+
+		// Iterate
+		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();
+		while (it.hasNext()) {
+			Appender<ILoggingEvent> appender = it.next();
+
+			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
+				// Appender has Encoder property
+				Encoder<ILoggingEvent> encoder = ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
+				if (encoder instanceof PatternLayoutEncoder) {
+					// Encoder has pattern
+					PatternLayoutEncoder patternEncoder = (PatternLayoutEncoder) encoder;
+					String logPattern = patternEncoder.getPattern();
+
+					// Set timestamp format
+					Pattern pattern = Pattern.compile("%((date|d)(\\{([^\\}]*)\\})?)(?=\\s)");
+					Matcher matcher = pattern.matcher(logPattern);
+					if (matcher.find()) {
+						boolean replace = true;
+						if (matcher.group(4) != null && matcher.group(4).equals(timeStampFormat)) {
+							replace = false;
+						}
+						if (replace) {
+							logPattern = logPattern.replaceFirst(pattern.pattern(), "%d{" + timeStampFormat + "}");
+						}
+					} else {
+						if (logPattern.startsWith("%-5level")) {
+							logPattern = logPattern.substring(0,8) + " %d{" + timeStampFormat + "}" + logPattern.substring(8);
+						} else {
+							logPattern = "d%{" + timeStampFormat + "} " + logPattern;
+						}
+					}
+
+					// Make sure %logger is included
+					pattern = Pattern.compile("((%logger|%lo|%c)(\\{\\d+\\})?)(?=\\s)");
+					matcher = pattern.matcher(logPattern);
+					if (matcher.find()) {
+						boolean replace = true;
+						if (matcher.group().equals("%logger")) {
+							replace = false;
+						}
+						if (replace) {
+							logPattern = logPattern.replaceFirst(pattern.pattern(), "%logger");
+						}
+					} else {
+						if (logPattern.contains("%msg")) {
+							logPattern = logPattern.substring(0,logPattern.indexOf("%msg")) + "%logger " + logPattern.substring(logPattern.indexOf("%msg"));
+						} else {
+							logPattern = "%logger " + logPattern;
+						}
+					}
+
+					// Activate changes
+					patternEncoder.setPattern(logPattern);
+					patternEncoder.start();
+				}
+			}
+		}
+		LOGGER.info("Verbose file logging pattern enforced");
+	}
+
+	public static synchronized HashMap<String, String> getLogFilePaths() {
 		return logFilePaths;
 	}
 }

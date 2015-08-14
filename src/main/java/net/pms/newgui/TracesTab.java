@@ -220,7 +220,7 @@ public class TracesTab {
 				flags += Pattern.CASE_INSENSITIVE;
 			}
 			try {
-				if (searchPattern == null || find != searchPattern.pattern() || flags != searchPattern.flags()) {
+				if (searchPattern == null || !find.equals(searchPattern.pattern()) || flags != searchPattern.flags()) {
 					searchPattern = Pattern.compile(find, flags);
 				}
 				match = searchPattern.matcher(document.getText(0,document.getLength()));

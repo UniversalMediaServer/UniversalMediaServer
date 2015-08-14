@@ -1151,8 +1151,9 @@ public class PMS {
 				LoggingConfig.setBuffered(true);
 			} else if (traceMode == 2) {
 				// force unbuffered regardless of logback.xml if in forced trace mode
-				LOGGER.debug("Forcing unbuffered logging");
+				LOGGER.debug("Forcing unbuffered verbose logging");
 				LoggingConfig.setBuffered(false);
+				LoggingConfig.forceVerboseFileEncoder();
 			}
 
 			// Write buffered messages to the log now that logger is configured

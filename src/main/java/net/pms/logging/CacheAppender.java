@@ -34,7 +34,7 @@ import ch.qos.logback.core.status.ErrorStatus;
 public class CacheAppender<E> extends AppenderBase<E> {
 
 	private LinkedList<E> eventList = new LinkedList<E>();
-	
+
 	@Override
 	protected void append(E eventObject) {
 		try {
@@ -48,8 +48,7 @@ public class CacheAppender<E> extends AppenderBase<E> {
 
 	public void flush(Logger rootLogger) {
 		while (!eventList.isEmpty()) {
-			ILoggingEvent lEvent = (ILoggingEvent) eventList.poll();
-			rootLogger.callAppenders(lEvent);
+			rootLogger.callAppenders((ILoggingEvent) eventList.poll());
 		}
 	}
 }

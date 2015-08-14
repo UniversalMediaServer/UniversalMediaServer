@@ -116,9 +116,9 @@ public class SpinnerIntModel extends AbstractSpinnerModel implements Serializabl
 
     private int incrValue(int dir) {
     	int newValue = value + stepSize * dir;
-        if (newValue == minimum + stepSize && minimum % stepSize != 0) {
+        if (dir > 0 && newValue == minimum + stepSize && minimum % stepSize != 0) {
         	newValue = ((minimum / stepSize) * stepSize) + stepSize;
-        } else if (newValue == maximum - stepSize && maximum % stepSize != 0) {
+        } else if (dir < 0 && newValue == maximum - stepSize && maximum % stepSize != 0) {
         	newValue = (maximum / stepSize) * stepSize;
         }
 		return Math.min(Math.max(newValue, minimum),maximum);
@@ -126,17 +126,17 @@ public class SpinnerIntModel extends AbstractSpinnerModel implements Serializabl
 
 	@Override
 	public Object getNextValue() {
-        return new Integer(incrValue(+1));
+        return Integer.valueOf(incrValue(+1));
 	}
 
 	@Override
 	public Object getPreviousValue() {
-        return new Integer(incrValue(-1));
+        return Integer.valueOf(incrValue(-1));
 	}
 
 	@Override
 	public Object getValue() {
-		return new Integer(value);
+		return Integer.valueOf(value);
 	}
 
 	public int getIntValue() {

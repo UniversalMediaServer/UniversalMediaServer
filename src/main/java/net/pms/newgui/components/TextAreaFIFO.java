@@ -25,18 +25,21 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.configuration.PmsConfiguration;
 
 
 /**
  * A modified JTextArea which only keeps a given number of lines and disposes
  * of the oldest first when the given number is exceeded.
- * 
+ *
  * @author Nadahar
  */
 @SuppressWarnings("serial")
 public class TextAreaFIFO extends JTextArea implements DocumentListener {
-    private int maxLines;
+	private static final Logger LOGGER = LoggerFactory.getLogger(TextAreaFIFO.class);
+	private int maxLines;
 
     public TextAreaFIFO(int lines) {
         maxLines = lines;
@@ -64,7 +67,7 @@ public class TextAreaFIFO extends JTextArea implements DocumentListener {
             try {
                 getDocument().remove(0, firstLine.getEndOffset());
             } catch (BadLocationException ble) {
-                System.out.println(ble);
+            	LOGGER.warn("Can't remove excess lines: {}", ble);
             }
         }
     }
@@ -82,7 +85,7 @@ public class TextAreaFIFO extends JTextArea implements DocumentListener {
      * @param lines the new number of kept lines
      */
     public void setMaxLines(int lines) {
-		lines = Math.min(Math.max(lines, PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN),PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX);    	
+		lines = Math.min(Math.max(lines, PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN),PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX);
     	maxLines = lines;
-    }    
+    }
 }

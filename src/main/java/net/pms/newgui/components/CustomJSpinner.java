@@ -123,7 +123,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 	    return tip;
 	}
 
-	protected class MouseWheelRoll  implements MouseWheelListener {
+	protected static class MouseWheelRoll  implements MouseWheelListener {
 
 		private int minimum, maximum, stepSize;
 		private CustomJSpinner spinner;
@@ -143,9 +143,9 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 
 	        int value = (Integer) spinner.getValue();
 	        value -= e.getWheelRotation() * stepSize;
-	        if (value == minimum + stepSize && minimum % stepSize != 0) {
+	        if (e.getWheelRotation() < 0 && value == minimum + stepSize && minimum % stepSize != 0) {
 	        	value = ((minimum / stepSize) * stepSize) + stepSize;
-	        } else if (value == maximum - stepSize && maximum % stepSize != 0) {
+	        } else if (e.getWheelRotation() > 0 && value == maximum - stepSize && maximum % stepSize != 0) {
 	        	value = (maximum / stepSize) * stepSize;
 	        }
 			value = Math.min(Math.max(value, minimum),maximum);
