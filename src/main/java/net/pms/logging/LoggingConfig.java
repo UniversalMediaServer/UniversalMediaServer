@@ -38,6 +38,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -398,6 +399,7 @@ public class LoggingConfig {
 			syslog.setContext(loggerContext);
 			syslog.setSuffixPattern("UMS [%thread] %msg");
 			syslog.setName("UMS syslog");
+			syslog.setCharset(StandardCharsets.UTF_8);
 			action = ActionType.START;
 		} else if (!configuration.getLoggingUseSyslog() && syslog != null) {
 			action = ActionType.STOP;

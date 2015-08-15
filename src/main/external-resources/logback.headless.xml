@@ -27,6 +27,7 @@
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
 		<!-- No threshold filtering, log everything the root logger allows -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<encoding>UTF-8</encoding>
 			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
@@ -40,6 +41,7 @@
 		<file>${logFilePath}${file.separator}${logFileName}</file>
 		<append>false</append>  <!-- Start new logfile on each application start -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<encoding>UTF-8</encoding>
 			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
@@ -60,6 +62,7 @@
 			<maxFileSize>10MB</maxFileSize>
 		</triggeringPolicy>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<encoding>UTF-8</encoding>
 			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
