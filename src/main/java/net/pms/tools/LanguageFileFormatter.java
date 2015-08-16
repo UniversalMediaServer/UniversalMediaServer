@@ -60,6 +60,7 @@ public class LanguageFileFormatter {
 		boolean indent = false;
 		boolean unindent = false;
 		boolean deleteSelected = false;
+		boolean overWrite = false;
 
 		for (String arg : args) {
 
@@ -77,6 +78,8 @@ public class LanguageFileFormatter {
 					unindent = true;
 				} else if (arg.equals("-DEL")) {
 					deleteSelected = true;
+				} else if (arg.equals("-OW")) {
+					overWrite = true;
 				} else {
 					System.err.println("Invalid argument " + arg);
 					System.exit(1);
@@ -139,8 +142,12 @@ public class LanguageFileFormatter {
 				unindent(lines);
 			}
 
+			if (outputFile == null && overWrite) {
+				outputFile = inputFile;
+			}
+
 			if (outputFile != null) {
-				writeFile(outputFile,lines);
+				writeFile(outputFile, lines, overWrite);
 			} else {
 				for (LineStruct line : lines) {
 					System.out.println(line.line);
@@ -222,12 +229,12 @@ public class LanguageFileFormatter {
 		return lineList;
 	}
 
-	private static void writeFile(File file, ArrayList<LineStruct> lines) {
+	private static void writeFile(File file, ArrayList<LineStruct> lines, boolean overWrite) {
 		if (lines == null) {
 			return;
 		}
 
-		if (file.exists()) {
+		if (!overWrite && file.exists()) {
 			LOGGER.error("Output file \"{}\" already exists - aborting write",file.getAbsolutePath());
 			return;
 		}
@@ -322,15 +329,16 @@ public class LanguageFileFormatter {
 		}
 
 		for (int i = 0; i < lines.size(); i++) {
-			for (int j = i + 1; j < lines.size(); j++) {
-				if (lines.get(i).group.equals(lines.get(j).group) && lines.get(i).name.equals(lines.get(j).name)) {
-					LOGGER.warn("Warning: Key \"{}\" is duplicated.", lines.get(i).group + "." + lines.get(i).name);
+			if (lines.get(i).group != null && !lines.get(i).group.isEmpty()) {
+				for (int j = i + 1; j < lines.size(); j++) {
+					if (lines.get(j).group != null && !lines.get(j).group.isEmpty() && lines.get(i).group.equals(lines.get(j).group) && lines.get(i).name.equals(lines.get(j).name)) {
+						LOGGER.warn("Warning: Key \"{}\" is duplicated.", lines.get(i).group + "." + lines.get(i).name);
+					}
 				}
 			}
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private static void deleteSelected(ArrayList<LineStruct> lines) {
 		final String[] DELETEKEYS = {
 			"AviSynthFFmpeg.0",
@@ -417,6 +425,7 @@ public class LanguageFileFormatter {
 		for (int i = lines.size() - 1; i > -1; i--) {
 			for (String key : DELETEKEYS) {
 				if (key.equalsIgnoreCase(lines.get(i).group + "." + lines.get(i).name)) {
+					LOGGER.info("Deleting obsolete line: {}", lines.get(i).line);
 					lines.remove(i);
 					break;
 				}
