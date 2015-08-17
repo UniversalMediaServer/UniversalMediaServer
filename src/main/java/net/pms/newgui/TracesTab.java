@@ -26,7 +26,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Rectangle;
@@ -177,18 +176,6 @@ public class TracesTab {
 
 	public void append(String msg) {
 		getList().append(msg);
-		final JScrollBar vbar = jListPane.getVerticalScrollBar();
-
-		// If scrollbar was already at the bottom we schedule a new
-		// scroll event to scroll to the bottom again
-		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
-			EventQueue.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					vbar.setValue(vbar.getMaximum());
-				}
-			});
-		}
 	}
 
 	private int findLevelsIdx(Level level) {
@@ -418,6 +405,7 @@ public class TracesTab {
 
 		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
+		new SmartScroller(jListPane);
 		builder.add(jListPane, cc.xyw(1, 2, cols));
 
 		// Create the logging options panel

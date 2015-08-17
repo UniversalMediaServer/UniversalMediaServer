@@ -61,7 +61,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "4";
+	private final String latestVersion = "5";
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -221,6 +221,8 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", EMBEDDEDFONTEXISTS      BIT              NOT NULL");
 				sb.append(", TITLECONTAINER          VARCHAR2(").append(SIZE_TITLE).append(")");
 				sb.append(", TITLEVIDEOTRACK         VARCHAR2(").append(SIZE_TITLE).append(")");
+				sb.append(", VIDEOTRACKCOUNT         INT");
+				sb.append(", IMAGECOUNT              INT");
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -360,6 +362,8 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setEmbeddedFontExists(rs.getBoolean("EMBEDDEDFONTEXISTS"));
 				media.setFileTitleFromMetadata(rs.getString("TITLECONTAINER"));
 				media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
+				media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
+				media.setImageCount(rs.getInt("IMAGECOUNT"));
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
@@ -427,7 +431,12 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement ps = null;
 		try {
 			conn = getConnection();
-			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, EMBEDDEDFONTEXISTS, TITLECONTAINER, TITLEVIDEOTRACK) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			ps = conn.prepareStatement(
+				"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
+				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
+				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
+				"MATRIXCOEFFICIENTS, EMBEDDEDFONTEXISTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT) VALUES "+
+				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -475,6 +484,8 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setBoolean(27, media.isEmbeddedFontExists());
 				ps.setString(28, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
 				ps.setString(29, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
+				ps.setInt(30, media.getVideoTrackCount());
+				ps.setInt(31, media.getImageCount());
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -502,6 +513,8 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setBoolean(27, false);
 				ps.setString(28, null);
 				ps.setString(29, null);
+				ps.setInt(30, 0);
+				ps.setInt(31, 0);
 			}
 			ps.executeUpdate();
 			int id;

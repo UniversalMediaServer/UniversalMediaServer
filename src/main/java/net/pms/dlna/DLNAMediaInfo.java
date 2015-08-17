@@ -289,6 +289,57 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private boolean gen_thumb;
 
+	private int videoTrackCount = 0;
+	private int imageCount = 0;
+
+	public int getVideoTrackCount() {
+		return videoTrackCount;
+	}
+
+	public void setVideoTrackCount(int value) {
+		videoTrackCount = value;
+	}
+
+	public int getAudioTrackCount() {
+		return audioTracks.size();
+	}
+
+	public int getImageCount() {
+		return imageCount;
+	}
+
+	public void setImageCount(int value) {
+		imageCount = value;
+	}
+
+	public int getSubTrackCount() {
+		return subtitleTracks.size();
+	}
+
+	public boolean isVideo() {
+		return videoTrackCount > 0;
+	}
+
+	public boolean isAudio() {
+		return videoTrackCount == 0 && audioTracks.size() == 1;
+	}
+
+	public boolean hasAudio() {
+		return audioTracks.size() > 0;
+	}
+
+	/**
+	 * @return the number of subtitle tracks embedded in the media file.
+	 */
+
+	public boolean hasSubtitles() {
+		return subtitleTracks.size() > 0;
+	}
+
+	public boolean isImage() {
+		return videoTrackCount == 0 && audioTracks.size() == 0 && imageCount > 0;
+	}
+
 	/**
 	 * Used to determine whether tsMuxeR can mux the file to the renderer
 	 * instead of transcoding.
@@ -481,7 +532,7 @@ public class DLNAMediaInfo implements Cloneable {
 		} else {
 			args[2] = "" + configuration.getThumbnailSeekPos();
 		}
-		
+
 		args[3] = "-i";
 
 		if (file != null) {
@@ -703,7 +754,7 @@ public class DLNAMediaInfo implements Cloneable {
 								thumb = t.getArtworkList().get(0).getBinaryData();
 							} else {
 								if (configuration.getAudioThumbnailMethod() > 0) {
-									thumb = 
+									thumb =
 										CoverUtil.get().getThumbnailFromArtistAlbum(
 											configuration.getAudioThumbnailMethod() == 1 ?
 												CoverUtil.AUDIO_AMAZON :
@@ -798,6 +849,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					container = codecV;
+					imageCount++;
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 				}
@@ -806,7 +858,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Create the thumbnail image using the Thumbnailator library
 					try {
-						ByteArrayOutputStream out = new ByteArrayOutputStream();	
+						ByteArrayOutputStream out = new ByteArrayOutputStream();
 						Thumbnails.of(file)
 								.size(320, 180)
 								.outputFormat("JPEG")
@@ -1089,6 +1141,7 @@ public class DLNAMediaInfo implements Cloneable {
 							String token = st.nextToken().trim();
 							if (token.startsWith("Stream")) {
 								codecV = token.substring(token.indexOf("Video: ") + 7);
+								videoTrackCount++;
 							} else if ((token.contains("tbc") || token.contains("tb(c)"))) {
 								// A/V sync issues with newest FFmpeg, due to the new tbr/tbn/tbc outputs
 								// Priority to tb(c)
@@ -1448,6 +1501,22 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(bitrate);
 		result.append(", size: ");
 		result.append(size);
+		if (videoTrackCount > 0) {
+			result.append(", video tracks: ");
+			result.append(videoTrackCount);
+		}
+		if (getAudioTrackCount() > 0) {
+			result.append(", audio tracks: ");
+			result.append(getAudioTrackCount());
+		}
+		if (imageCount > 0) {
+			result.append(", images: ");
+			result.append(imageCount);
+		}
+		if (getSubTrackCount() > 0) {
+			result.append(", subtitle tracks: ");
+			result.append(getSubTrackCount());
+		}
 		result.append(", video codec: ");
 		result.append(codecV);
 		result.append(", duration: ");
@@ -1567,7 +1636,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * plugins rely on it we can simplify things by removing that parameter.
 	 *
 	 * @param ratios
-	 * @return 
+	 * @return
 	 */
 	public String getAspectRatioMencoderMpegopts(boolean ratios) {
 		String a = null;
@@ -2555,9 +2624,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 		return null;
 	}
-	
+
 	private boolean isAnaglyph;
-	
+
 	public boolean stereoscopyIsAnaglyph() {
 		get3DLayout();
 		return isAnaglyph;

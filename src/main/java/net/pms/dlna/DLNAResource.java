@@ -632,24 +632,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (player == null || (hasExternalSubtitles() && defaultRenderer.isSubtitlesStreamingSupported())) {
 							player = child.resolvePlayer(defaultRenderer);
 						}
-
-						boolean parserV2 = child.media != null && defaultRenderer != null && defaultRenderer.isMediaParserV2();
-						if (parserV2) {
-							// See which MIME type the renderer prefers in case it supports the media
-							String mimeType = defaultRenderer.getFormatConfiguration().match(child.media);
-							if (mimeType != null) {
-								/**
-								 * Use the renderer's preferred MIME type for this file.
-								 */
-								if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
-									child.media.setMimeType(mimeType);
-								}
-
-								LOGGER.trace("File \"{}\" will be sent with MIME type \"{}\"", child.getName(), child.media.getMimeType());
-							}
-						}
-
 						child.setPlayer(player);
+						child.setPreferredMimeType(defaultRenderer);
+
 						if (resumeRes != null) {
 							resumeRes.player = player;
 						}
@@ -904,6 +889,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return player;
 	}
 
+
+	/**
+	 * Set the mimetype for this resource according to the given renderer's
+	 * supported preferences, if any.
+	 *
+	 * @param renderer The renderer
+	 * @return The previous mimetype for this resource, or null
+	 */
+	public String setPreferredMimeType(RendererConfiguration renderer) {
+		String prev = media != null ? media.getMimeType() : null;
+		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
+		if (parserV2) {
+			// See which MIME type the renderer prefers in case it supports the media
+			String preferred = renderer.getFormatConfiguration().match(media);
+			if (preferred != null) {
+				/**
+				 * Use the renderer's preferred MIME type for this file.
+				 */
+				if (!FormatConfiguration.MIMETYPE_AUTO.equals(preferred)) {
+					media.setMimeType(preferred);
+				}
+				LOGGER.trace("File \"{}\" will be sent with MIME type \"{}\"", getName(), preferred);
+			}
+		}
+		return prev;
+	}
 
 	/**
 	 * Return the transcode folder for this resource.
@@ -1211,7 +1222,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (forced) {
 				// This seems to follow the same code path as the else below in the case of MapFile, because
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded -> doRefreshChildren, which is what happens below
-				// (refreshChildren is not overridden in MapFile) 
+				// (refreshChildren is not overridden in MapFile)
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -2377,7 +2388,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());
 						}
-						
+
 					}
 
 					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
@@ -2458,13 +2469,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				endTag(sb);
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
-				if (player != null) {
-					if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
-						transcodedExtension = "_transcoded_to.mpg";
-					} else if (mediaRenderer.isTranscodeToMPEGTS()) {
-						transcodedExtension = "_transcoded_to.ts";
-					} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-						transcodedExtension = "_transcoded_to.wmv";
+				if (player != null && media != null) {
+					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
+					if (media.isVideo()) {
+						if (mediaRenderer.isTranscodeToMPEGTS()) {
+							transcodedExtension = "_transcoded_to.ts";
+						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
+							transcodedExtension = "_transcoded_to.wmv";
+						} else {
+							transcodedExtension = "_transcoded_to.mpg";
+						}
+					} else if (media.isAudio()) {
+						if (mediaRenderer.isTranscodeToMP3()) {
+							transcodedExtension = "_transcoded_to.mp3";
+						} else if (mediaRenderer.isTranscodeToWAV()) {
+							transcodedExtension = "_transcoded_to.wav";
+						} else {
+							transcodedExtension = "_transcoded_to.pcm";
+						}
 					}
 				}
 
@@ -4075,10 +4097,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		RendererConfiguration r;
 		Player p;
 		DLNAMediaSubtitle s;
+		String m;
 		Rendering(DLNAResource d) {
 			r = d.getDefaultRenderer();
 			p = d.getPlayer();
 			s = d.getMediaSubtitle();
+			if (d.getMedia() != null) {
+				m = d.getMedia().getMimeType();
+			}
 		}
 	}
 
@@ -4088,6 +4114,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", r, p, rendering.r, rendering.p);
 		setDefaultRenderer(r);
 		setPlayer(p);
+		setPreferredMimeType(r);
 		return rendering;
 	}
 
@@ -4096,6 +4123,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setDefaultRenderer(rendering.r);
 		setPlayer(rendering.p);
 		media_subtitle = rendering.s;
+		if (media != null) {
+			media.setMimeType(rendering.m);
+		}
 	}
 
 	public DLNAResource isCoded() {
