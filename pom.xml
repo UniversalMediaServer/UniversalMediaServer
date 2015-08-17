@@ -836,6 +836,7 @@
 							<version>1.0-alpha-2</version>
 							<configuration>
 								<locales>
+									<locale>ar</locale>
 									<locale>de</locale>
 									<locale>bg</locale>
 									<locale>br</locale>
@@ -844,11 +845,13 @@
 									<locale>da</locale>
 									<locale>de</locale>
 									<locale>el</locale>
+									<locale>en_uk</locale>
 									<locale>es</locale>
 									<locale>fi</locale>
 									<locale>fr</locale>
 									<locale>is</locale>
 									<locale>it</locale>
+									<locale>iw</locale>
 									<locale>ja</locale>
 									<locale>ko</locale>
 									<locale>nl</locale>
@@ -859,6 +862,7 @@
 									<locale>ru</locale>
 									<locale>sl</locale>
 									<locale>sv</locale>
+									<locale>tr</locale>
 									<locale>zhs</locale>
 									<locale>zht</locale>
 								</locales>
