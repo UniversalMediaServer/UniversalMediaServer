@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Handles finding a temporary directory.
- * 
+ *
  * @author Tim Cox (mail@tcox.org)
  */
 class TempFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFolder.class);
-	private static final String DEFAULT_TEMP_FOLDER_NAME = "universalmediaserver";
+	private static final String DEFAULT_TEMP_FOLDER_NAME = "UniversalMediaServer";
 	private final String userSpecifiedFolder;
 	private File tempFolder;
 

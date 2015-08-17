@@ -88,6 +88,18 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private AbstractButton reload;
 	private JLabel status;
 	private static boolean lookAndFeelInitialized = false;
+	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
+
+	public ViewLevel getViewLevel() {
+		return viewLevel;
+	}
+
+	public void setViewLevel(ViewLevel viewLevel) {
+		if (viewLevel != ViewLevel.UNKNOWN){
+			this.viewLevel = viewLevel;
+			tt.implementViewLevel();
+		}
+	}
 
 	public TracesTab getTt() {
 		return tt;
@@ -199,6 +211,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		Options.setDefaultIconSize(new Dimension(18, 18));
 		Options.setUseNarrowButtons(true);
 
+		// Set view level, can be omitted if ViewLevel is implemented in configuration
+		// by setting the view level as variable initialization
+		if (configuration.isHideAdvancedOptions()) {
+			viewLevel = ViewLevel.NORMAL;
+		} else {
+			viewLevel = ViewLevel.ADVANCED;
+		}
+
 		// Global options
 		Options.setTabIconsEnabled(true);
 		UIManager.put(Options.POPUP_DROP_SHADOW_ENABLED_KEY, null);
@@ -215,7 +235,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		// http://propedit.sourceforge.jp/propertieseditor.jnlp
 		Font sf = null;
 
-		// Set an unicode font for testing exotics languages (japanese)
+		// Set an unicode font for testing exotic languages (Japanese)
 		final String language = configuration.getLanguage();
 
 		if (language != null && (language.equals("ja") || language.startsWith("zh"))) {
@@ -408,7 +428,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tt = new TracesTab(configuration, this);
 		gt = new GeneralTab(configuration, this);
 		pt = new PluginTab(configuration, this);
-		nt = new NavigationShareTab(configuration, this);		
+		nt = new NavigationShareTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 

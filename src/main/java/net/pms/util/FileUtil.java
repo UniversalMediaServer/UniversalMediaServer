@@ -22,6 +22,7 @@ import static org.apache.commons.lang3.StringUtils.*;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
@@ -1203,5 +1204,48 @@ public class FileUtil {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 		}
 		return reader;
+	}
+
+	/**
+	 * Checks for valid file name syntax. Path is not allowed.
+	 *
+	 * @param fileName the file name to be verified
+	 * @return whether or not the file name is valid
+	 */
+	public static boolean isValidFileName(String fileName) {
+		if (Platform.isWindows()) {
+			if (fileName.matches("^[^\"*:<>?/\\\\]+$")) {
+				return true;
+			}
+		} else if (Platform.isMac()) {
+			if (fileName.matches("^[^:/]+$")) {
+				return true;
+			}
+		} else {
+			// Assuming POSIX
+			if (fileName.matches("^[A-Za-z0-9._][A-Za-z0-9._-]*$")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Appends a path separator of the same type last in the string if
+	 * it's not already there.
+	 * @param path the path to be modified
+	 * @return the corrected path
+	 */
+	public static String appendPathSeparator(String path) {
+		if (path.contains("\\")) {
+			if (!path.endsWith("\\")) {
+				path += "\\";
+			}
+		} else {
+			if (!path.endsWith("/")) {
+				path += "/";
+			}
+		}
+		return path;
 	}
 }
