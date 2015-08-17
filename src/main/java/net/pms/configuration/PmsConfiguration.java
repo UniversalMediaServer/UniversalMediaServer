@@ -1483,7 +1483,17 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value The comma-separated list of selected renderers.
 	 */
 	public void setSelectedRenderers(String value) {
+		if (value.isEmpty()) {
+			value = "None";
+		}
 		configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+	}
+
+	/**
+	 * @param value a string list of renderers.
+	 */
+	public void setSelectedRenderers(List<String> value) {
+		setStringList(KEY_SELECTED_RENDERERS, value);
 	}
 
 	/**

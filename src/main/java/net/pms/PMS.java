@@ -143,18 +143,6 @@ public class PMS {
 	private static PMS instance = null;
 
 	/**
-	 * @deprecated This field is not used and will be removed in the future.
-	 */
-	@Deprecated
-	public final static SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
-
-	/**
-	 * @deprecated This field is not used and will be removed in the future.
-	 */
-	@Deprecated
-	public final static SimpleDateFormat sdfHour = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-
-	/**
 	 * Array of {@link net.pms.configuration.RendererConfiguration} that have been found by PMS.
 	 */
 	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<>();
@@ -376,7 +364,9 @@ public class PMS {
 		 * usually done by the installer
 		 */
 		File dDir = new File(configuration.getDataDir());
-		dDir.mkdirs();
+		if (!dDir.exists() && !dDir.mkdirs()) {
+			LOGGER.error("Failed to create profile folder \"{}\"", configuration.getDataDir());
+		}
 
 		dbgPack = new DbgPacker();
 		tfm = new TempFileMgr();
@@ -650,7 +640,7 @@ public class PMS {
 		}
 
 		// Disable jaudiotagger logging
-		LogManager.getLogManager().readConfiguration(new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes()));
+		LogManager.getLogManager().readConfiguration(new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes(StandardCharsets.US_ASCII)));
 
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
@@ -1383,12 +1373,16 @@ public class PMS {
 		}
 	}
 
+	/*
+	 * This method is only called for Windows OS'es, so specialized Windows charset handling is allowed
+	 */
 	private static boolean verifyPidName(String pid) throws IOException {
 		ProcessBuilder pb = new ProcessBuilder("tasklist", "/FI", "\"PID eq " + pid + "\"", "/V", "/NH", "/FO", "CSV");
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
 		String line;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), "cp" + WinUtils.getOEMCP()))) {
 			try {
 				p.waitFor();
 			} catch (InterruptedException e) {
@@ -1423,7 +1417,7 @@ public class PMS {
 	private static void killProc() throws IOException {
 		ProcessBuilder pb = null;
 		String pid;
-		try (BufferedReader in = new BufferedReader(new FileReader(pidFile()))) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(pidFile()), StandardCharsets.US_ASCII))) {
 			pid = in.readLine();
 		}
 
@@ -1461,7 +1455,7 @@ public class PMS {
 			long pid = getPID();
 			LOGGER.debug("PID: " + pid);
 			String data = String.valueOf(pid) + "\r\n";
-			out.write(data.getBytes());
+			out.write(data.getBytes(StandardCharsets.US_ASCII));
 			out.flush();
 		}
 	}
@@ -1493,14 +1487,14 @@ public class PMS {
 	 * Check if UMS is running in headless (console) mode, since some Linux
 	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
 	 */
-	public static boolean isHeadless() {
+	public static synchronized boolean isHeadless() {
 		if (headless == null) {
 			try {
 				JDialog d = new JDialog();
 				d.dispose();
-				headless = new Boolean(false);
+				headless = Boolean.valueOf(false);
 			} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-				headless = new Boolean(true);
+				headless = Boolean.valueOf(true);
 			}
 		}
 		return headless.booleanValue();

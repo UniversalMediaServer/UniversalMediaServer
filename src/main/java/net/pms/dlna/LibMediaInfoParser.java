@@ -95,9 +95,9 @@ public class LibMediaInfoParser {
 				}
 
 				// set Video
-				int videos = MI.Count_Get(video);
-				if (videos > 0) {
-					for (int i = 0; i < videos; i++) {
+				media.setVideoTrackCount(MI.Count_Get(video));
+				if (media.getVideoTrackCount() > 0) {
+					for (int i = 0; i < media.getVideoTrackCount(); i++) {
 						// check for DXSA and DXSB subtitles (subs in video format)
 						if (MI.Get(video, i, "Title").startsWith("Subtitle")) {
 							currentSubTrack = new DLNAMediaSubtitle();
@@ -215,7 +215,8 @@ public class LibMediaInfoParser {
 				}
 
 				// set Image
-				if (MI.Count_Get(image) > 0) {
+				media.setImageCount(MI.Count_Get(image));
+				if (media.getImageCount() > 0) {
 					getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format").toLowerCase(), file);
 					media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 					media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
