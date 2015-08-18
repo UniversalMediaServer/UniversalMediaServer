@@ -1,4 +1,4 @@
-<configuration debug="true">
+<configuration>
 	<!--
 		See http://logback.qos.ch/manual/ for more information on how to
 		configure the Logback logging engine.
@@ -6,51 +6,55 @@
 	-->
 
 	<!--
-		Let PMS decide the path for the logfile: either the current directory
+		Let UMS decide the path for the logfile: either the current directory
 		or (when that is read only) the system temp directory.
 	-->
-	<define name="debugLogPath" class="net.pms.logging.DebugLogPropertyDefiner">
-		<key>debugLogPath</key>
+	<define name="logFilePath" class="net.pms.logging.DebugLogPropertyDefiner">
+		<key>logFilePath</key>
 	</define>
 
 	<!-- Get the user-preferred root logging level. -->
 	<define name="rootLevel" class="net.pms.logging.DebugLogPropertyDefiner">
 		<key>rootLevel</key>
 	</define>
+	
+	<!-- Get the logfile name -->
+	<define name="logFileName" class="net.pms.logging.DebugLogPropertyDefiner">
+		<key>logFileName</key>
+	</define>
 
 	<!-- Appender for the console -->
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-		<!-- Only log INFO and higher -->
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>INFO</level>
-		</filter>
-		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
-		</encoder>
-	</appender>
-
-	<!--
-		Appender for the debug.log that will keep the file growing in size
-		until PMS is restarted.
-	-->
-	<appender name="debug.log" class="ch.qos.logback.core.FileAppender">
 		<!-- No threshold filtering, log everything the root logger allows -->
-		<file>${debugLogPath}${file.separator}debug.log</file>
-		<append>false</append>  <!-- Start new debug.log on each application start -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<encoding>UTF-8</encoding>
 			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
 
 	<!--
-		Appender for the debug.log that will roll the debug.log file after 10 MBytes
+		Appender for the default logfile that will keep the file growing in size
+		until UMS is restarted.
+	-->
+	<appender name="default.log" class="ch.qos.logback.core.FileAppender">
+		<!-- No threshold filtering, log everything the root logger allows -->
+		<file>${logFilePath}${file.separator}${logFileName}</file>
+		<append>false</append>  <!-- Start new logfile on each application start -->
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<encoding>UTF-8</encoding>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!--
+		Appender for the default logfile that will roll the logfile after 10 MBytes
 		and will keep a maximum of 5 old and compressed logs.
 	-->
-	<appender name="debug.log.10MB" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<appender name="default.log.10MB" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<!-- No threshold filtering, log everything the root logger allows -->
-		<file>${debugLogPath}${file.separator}debug.log</file>
+		<file>${logFilePath}${file.separator}${logFileName}</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-			<fileNamePattern>${debugLogPath}debug.log.%i.zip</fileNamePattern>
+			<fileNamePattern>${logFilePath}${logFileName}.%i.zip</fileNamePattern>
 			<minIndex>1</minIndex>
 			<maxIndex>5</maxIndex>
 		</rollingPolicy>
@@ -58,7 +62,8 @@
 			<maxFileSize>10MB</maxFileSize>
 		</triggeringPolicy>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+			<encoding>UTF-8</encoding>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -80,10 +85,10 @@
 		<appender-ref ref="console" />
 
 		<!--
-			If unlimited growth of debug.log is not desired use the
-			appender-ref "debug.log.10MB" instead of "debug.log".
+			If unlimited growth of the logfile is not desired use the
+			appender-ref "default.log.10MB" instead of "default.log".
 		-->
-		<appender-ref ref="debug.log" />
-		<!-- <appender-ref ref="debug.log.10MB" /> -->
+		<appender-ref ref="default.log" />
+		<!-- <appender-ref ref="default.log.10MB" /> -->
 	</root>
 </configuration>

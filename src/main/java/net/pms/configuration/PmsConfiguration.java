@@ -18,6 +18,7 @@
  */
 package net.pms.configuration;
 
+import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
@@ -60,6 +61,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
 	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
 	protected static final int DEFAULT_SERVER_PORT = 5001;
+	// 90000 lines is approximately 10 MiB depending on locale and message length
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
@@ -142,6 +147,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
 	public    static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	protected static final String KEY_GUI_LOG_SEARCH_CASE_SENSITIVE = "gui_log_search_case_sensitive";
+	protected static final String KEY_GUI_LOG_SEARCH_MULTILINE = "gui_log_search_multiline";
+	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
@@ -162,6 +170,15 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
+	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
+	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
+	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
+	protected static final String KEY_LOGGING_FILTER_LOGS_TAB = "logging_filter_logs_tab";
+	protected static final String KEY_LOGGING_LOGS_TAB_LINEBUFFER = "logging_logs_tab_linebuffer";
+	protected static final String KEY_LOGGING_SYSLOG_FACILITY = "logging_syslog_facility";
+	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
+	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
+	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -2703,7 +2720,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getWebConfPath() {
 		// Initialise this here rather than in the constructor
 		// or statically so that custom settings are logged
-		// to the debug.log/Logs tab.
+		// to the logfile/Logs tab.
 		if (WEB_CONF_PATH == null) {
 			WEB_CONF_PATH = FileUtil.getFileLocation(
 				getString(KEY_WEB_CONF_PATH, null),
@@ -2828,6 +2845,54 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setGPUAcceleration(boolean value) {
 		configuration.setProperty(KEY_GPU_ACCELERATION, value);
+	}
+
+	/**
+	 * Get the state of the GUI log tab "Case sensitive" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchCaseSensitive() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "Case sensitive" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchCaseSensitive(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, value);
+	}
+
+	/**
+	 * Get the state of the GUI log tab "Multiline" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchMultiLine() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_MULTILINE, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "Multiline" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchMultiLine(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_MULTILINE, value);
+	}
+
+	/**
+	 * Get the state of the GUI log tab "RegEx" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchRegEx() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_USE_REGEX, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "RegEx" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchRegEx(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
 	}
 
 	/**
@@ -2981,6 +3046,97 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setLiveSubtitlesTimeout(int t) {
 		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
+	}
+
+	public String getLogFileName() {
+		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
+		if (FileUtil.isValidFileName(s)) {
+			return s;
+		} else {
+			return "debug.log";
+		}
+	}
+
+	public boolean getLoggingBuffered() {
+		return getBoolean(KEY_LOGGING_BUFFERED, false);
+	}
+
+	public void setLoggingBuffered(boolean value) {
+		configuration.setProperty(KEY_LOGGING_BUFFERED, value);
+	}
+
+	public Level getLoggingFilterConsole() {
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"),Level.INFO);
+	}
+
+	public void setLoggingFilterConsole(Level value) {
+		configuration.setProperty(KEY_LOGGING_FILTER_CONSOLE, value.levelStr);
+	}
+
+	public Level getLoggingFilterLogsTab() {
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"),Level.INFO);
+	}
+
+	public void setLoggingFilterLogsTab(Level value) {
+		configuration.setProperty(KEY_LOGGING_FILTER_LOGS_TAB, value.levelStr);
+	}
+
+	public int getLoggingLogsTabLinebuffer() {
+		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+	}
+
+	public void setLoggingLogsTabLinebuffer(int value) {
+		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value);
+	}
+
+	public String getLoggingSyslogFacility() {
+		return getString(KEY_LOGGING_SYSLOG_FACILITY, "USER");
+	}
+
+	public void setLoggingSyslogFacility(String value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_FACILITY, value);
+	}
+
+	public void setLoggingSyslogFacilityDefault() {
+		setLoggingSyslogFacility("USER");
+	}
+
+	public String getLoggingSyslogHost() {
+		return getString(KEY_LOGGING_SYSLOG_HOST, "");
+	}
+
+	public void setLoggingSyslogHost(String value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_HOST, value);
+	}
+
+	public int getLoggingSyslogPort() {
+		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
+		if (i < 1 || i > 65535) {
+			return 514;
+		} else {
+			return i;
+		}
+	}
+
+	public void setLoggingSyslogPort(int value) {
+		if (value < 1 || value > 65535) {
+			setLoggingSyslogPortDefault();
+		} else {
+			configuration.setProperty(KEY_LOGGING_SYSLOG_PORT, value);
+		}
+	}
+
+	public void setLoggingSyslogPortDefault() {
+		setLoggingSyslogPort(514);
+	}
+
+	public boolean getLoggingUseSyslog() {
+		return getBoolean(KEY_LOGGING_USE_SYSLOG, false);
+	}
+
+	public void setLoggingUseSyslog(boolean value) {
+		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
 	}
 
 	public boolean isVlcUseHardwareAccel() {

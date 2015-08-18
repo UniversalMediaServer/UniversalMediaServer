@@ -29,7 +29,7 @@ import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 
 /**
- * Logback PropertyDefiner to set the path for the <code>debug.log</code> file.
+ * Logback PropertyDefiner to set the root level, path and name for the <code>default logfile</code>.
  * @author thomas@innot.de
  */
 public class DebugLogPropertyDefiner extends PropertyDefinerBase {
@@ -48,11 +48,14 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 		boolean saveLogOverride = configurationReader.getLogOverrides();
 		configurationReader.setLogOverrides(false);
 		switch (key) {
-			case "debugLogPath":
-				result = getDebugLogPath();
+			case "logFilePath":
+				result = getLogFilePath();
 				break;
 			case "rootLevel":
 				result = getRootLevel();
+				break;
+			case "logFileName":
+				result = getLogFileName();
 				break;
 		}
 		configurationReader.setLogOverrides(saveLogOverride);
@@ -75,7 +78,7 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 	 *     4. Path to system temp folder.
 	 * </p>
 	 */
-	public String getDebugLogPath() {
+	public String getLogFilePath() {
 		if (Platform.isLinux()) {
 			final String username = System.getProperty("user.name");
 			final File logDirectory = new File("/var/log/universalmediaserver/" + username + "/");
@@ -105,5 +108,9 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 
 	public String getRootLevel() {
 		return configuration.getRootLogLevel();
+	}
+
+	public String getLogFileName() {
+		return configuration.getLogFileName();
 	}
 }
