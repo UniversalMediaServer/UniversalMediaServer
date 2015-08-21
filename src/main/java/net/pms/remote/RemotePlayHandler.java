@@ -16,6 +16,7 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Player;
+import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.util.SubtitleUtils;
@@ -82,30 +83,13 @@ public class RemotePlayHandler implements HttpHandler {
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
 		DLNAResource r = root.getDLNAResource(id, renderer);
 		if (r == null) {
-			LOGGER.debug("Bad id in web if " + id);
+			LOGGER.debug("Bad web play id: " + id);
 			throw new IOException("Bad Id");
 		}
 		if (!r.isCodeValid(r)) {
 			LOGGER.debug("coded object with invalid code");
 			throw new IOException("Bad code");
 		}
-		String auto = "autoplay";
-		String query = t.getRequestURI().getQuery();
-		boolean isImage = r.getFormat().isImage();
-		boolean isVideo = r.getFormat().isVideo();
-		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
-		boolean forcehtml5 = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "html5"));
-		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
-		String id1 = URLEncoder.encode(id, "UTF-8");
-		String rawId = id;
-
-		// hack here to ensure we got a root folder to use for recently played etc.
-		root.getDefaultRenderer().setRootFolder(root);
-		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
-		String mediaType = "";
-		@SuppressWarnings("unused")
-		String coverImage = "";
 		if (r instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
@@ -116,16 +100,27 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 			return returnPage();
 		}
-		if (isImage) {
-			id1 = rawId;
-			flowplayer = false;
-		}
-		if (r.getFormat().isAudio()) {
-			mediaType = "audio";
-			flowplayer = false;
-		}
+
+		Format format =  r.getFormat();
+		boolean isImage = format.isImage();
+		boolean isVideo = format.isVideo();
+		boolean isAudio = format.isAudio();
+		String query = t.getRequestURI().getQuery();
+		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
+		boolean forcehtml5 = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "html5"));
+		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
+
+		// hack here to ensure we got a root folder to use for recently played etc.
+		root.getDefaultRenderer().setRootFolder(root);
+		String id1 = URLEncoder.encode(id, "UTF-8");
+		String name = StringEscapeUtils.escapeHtml(r.resumeName());
+		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
+		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
+		String auto = "autoplay";
+		@SuppressWarnings("unused")
+		String coverImage = "";
+
 		if (isVideo) {
-			mediaType = "video";
 			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
 				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
 					mime = r.getMedia().getMimeType();
@@ -141,14 +136,13 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("isVideo", isVideo);
 		vars.put("name", name);
 		vars.put("id1", id1);
-		vars.put("autoContinue", configuration.getWebAutoCont(r.getFormat()));
+		vars.put("autoContinue", configuration.getWebAutoCont(format));
 		if (configuration.isDynamicPls()) {
 			if (r.getParent() instanceof Playlist) {
 				vars.put("plsOp", "del");
 				vars.put("plsSign", "-");
 				vars.put("plsAttr", RemoteUtil.getMsgString("Web.4", t));
-			}
-			else {
+			} else {
 				vars.put("plsOp", "add");
 				vars.put("plsSign", "+");
 				vars.put("plsAttr", RemoteUtil.getMsgString("Web.5", t));
@@ -159,7 +153,7 @@ public class RemotePlayHandler implements HttpHandler {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well
 			int delay = configuration.getWebImgSlideDelay() * 1000;
-			if (delay > 0 && configuration.getWebAutoCont(r.getFormat())) {
+			if (delay > 0 && configuration.getWebAutoCont(format)) {
 				vars.put("delay", delay);
 			}
 		} else {
