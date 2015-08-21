@@ -70,7 +70,6 @@ public class RemotePlayHandler implements HttpHandler {
 	private String mkPage(String id, HttpExchange t) throws IOException {
 		HashMap<String, Object> vars = new HashMap<>();
 		vars.put("serverName", configuration.getServerName());
-		boolean flowplayer = true;
 
 		LOGGER.debug("make play page " + id);
 		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
@@ -92,8 +91,11 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 		String auto = "autoplay";
 		String query = t.getRequestURI().getQuery();
+		boolean isImage = r.getFormat().isImage();
+		boolean isVideo = r.getFormat().isVideo();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
-		flowplayer = forceFlash;
+		boolean forcehtml5 = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "html5"));
+		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String rawId = id;
 
@@ -114,7 +116,7 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 			return returnPage();
 		}
-		if (r.getFormat().isImage()) {
+		if (isImage) {
 			id1 = rawId;
 			flowplayer = false;
 		}
@@ -122,23 +124,20 @@ public class RemotePlayHandler implements HttpHandler {
 			mediaType = "audio";
 			flowplayer = false;
 		}
-		if (r.getFormat().isVideo()) {
+		if (isVideo) {
 			mediaType = "video";
 			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
 				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
 					mime = r.getMedia().getMimeType();
 				}
 			}
-			if (!configuration.getWebFlash() && !forceFlash) {
+			if (!flowplayer) {
 				if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia()) || r.isResume()) {
 					WebRender render = (WebRender) r.getDefaultRenderer();
 					mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
-					flowplayer = false;
 				}
 			}
 		}
-		boolean isImage = r.getFormat().isImage();
-		boolean isVideo = r.getFormat().isVideo();
 		vars.put("isVideo", isVideo);
 		vars.put("name", name);
 		vars.put("id1", id1);
