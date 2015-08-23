@@ -163,9 +163,11 @@ public class MediaMonitor extends VirtualFolder {
 			sb.append(now.toString());
 			sb.append("\n");
 			for (String str : oldEntries) {
-				sb.append("entry=");
-				sb.append(str);
-				sb.append("\n");
+				if (sb.indexOf(str) == -1) {
+					sb.append("entry=");
+					sb.append(str);
+					sb.append("\n");
+				}
 			}
 			out.write(sb.toString());
 			out.flush();
