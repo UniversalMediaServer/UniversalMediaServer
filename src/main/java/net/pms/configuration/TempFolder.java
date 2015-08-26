@@ -6,6 +6,7 @@ import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 
 /**
  * Handles finding a temporary directory.
@@ -47,11 +48,13 @@ class TempFolder {
 	}
 
 	private File getUserSpecifiedTempFolder(String userSpecifiedFolder) throws IOException {
-		if (userSpecifiedFolder.length() == 0) {
+		if (userSpecifiedFolder == null || userSpecifiedFolder.length() == 0) {
 			throw new IOException("Temporary directory path must not be null or empty if specified");
 		}
 
 		File folderFile = new File(userSpecifiedFolder);
+		folderFile.setReadable(true, false);
+		folderFile.setWritable(true, false);
 		FileUtils.forceMkdir(folderFile);
 		assertFolderIsValid(folderFile);
 		return folderFile;
@@ -59,7 +62,15 @@ class TempFolder {
 
 	private static File getSystemTempFolder() throws IOException {
 		File tmp = new File(System.getProperty("java.io.tmpdir"));
-		File myTMP = new File(tmp, DEFAULT_TEMP_FOLDER_NAME);
+		File myTMP;
+		if (Platform.isWindows()) {
+			myTMP = new File(tmp, DEFAULT_TEMP_FOLDER_NAME);
+		} else {
+			myTMP = new File(tmp, DEFAULT_TEMP_FOLDER_NAME + "_" + System.getProperty("user.name"));
+		}
+
+		myTMP.setReadable(true, false);
+		myTMP.setWritable(true, false);
 		FileUtils.forceMkdir(myTMP);
 		assertFolderIsValid(myTMP);
 		return myTMP;

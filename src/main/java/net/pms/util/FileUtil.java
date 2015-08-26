@@ -751,7 +751,7 @@ public class FileUtil {
 							if (!exists) {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
-								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
+								if (code.length() == 0 || !Iso639.codeIsValid(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
 									if (code.length() > 0) {
@@ -759,7 +759,7 @@ public class FileUtil {
 										if (sub.getSubtitlesTrackTitleFromMetadata().contains("-")) {
 											String flavorLang = sub.getSubtitlesTrackTitleFromMetadata().substring(0, sub.getSubtitlesTrackTitleFromMetadata().indexOf('-'));
 											String flavorTitle = sub.getSubtitlesTrackTitleFromMetadata().substring(sub.getSubtitlesTrackTitleFromMetadata().indexOf('-') + 1);
-											if (Iso639.getCodeList().contains(flavorLang)) {
+											if (Iso639.codeIsValid(flavorLang)) {
 												sub.setLang(flavorLang);
 												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
 											}

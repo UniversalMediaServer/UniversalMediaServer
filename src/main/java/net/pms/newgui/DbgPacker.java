@@ -24,7 +24,6 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
-import net.pms.logging.DebugLogPropertyDefiner;
 import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FileUtil;
@@ -54,7 +53,7 @@ public class DbgPacker implements ActionListener {
 			zippedLogFile = new File(defaultLogFile).getParent().toString();
 		} else {
 			// Fall back to getting the default folder
-			zippedLogFile = new DebugLogPropertyDefiner().getLogFilePath();
+			zippedLogFile = PMS.getConfiguration().getDefaultLogFilePath();
 		}
 		if (!zippedLogFile.isEmpty()) {
 			zippedLogFile = FileUtil.appendPathSeparator(zippedLogFile) + "ums_dbg.zip";

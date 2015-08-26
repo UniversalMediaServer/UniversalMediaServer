@@ -50,7 +50,6 @@ import net.pms.newgui.components.CustomJButton;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -158,8 +157,7 @@ public class MEncoderVideo extends Player {
 	@Override
 	public JComponent config() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
@@ -204,7 +202,7 @@ public class MEncoderVideo extends Player {
 			textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 			JScrollPane scrollPane = new JScrollPane(textArea);
 			scrollPane.setPreferredSize(new Dimension(900, 100));
-			
+
 			final JTextArea textAreaDefault = new JTextArea();
 			textAreaDefault.setText(DEFAULT_CODEC_CONF_SCRIPT);
 			textAreaDefault.setBackground(Color.WHITE);
@@ -213,7 +211,7 @@ public class MEncoderVideo extends Player {
 			textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
 			JScrollPane scrollPaneDefault = new JScrollPane(textAreaDefault);
 			scrollPaneDefault.setPreferredSize(new Dimension(900, 450));
-			
+
 			JPanel customPanel = new JPanel(new BorderLayout());
 			intelligentsync = new JCheckBox(Messages.getString("MEncoderVideo.3"), configuration.isMencoderIntelligentSync());
 			intelligentsync.setContentAreaFilled(false);
@@ -221,15 +219,15 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderIntelligentSync(e1.getStateChange() == ItemEvent.SELECTED);
 				textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
 			});
-			
+
 			JLabel label = new JLabel(Messages.getString("MEncoderVideo.33"));
 			customPanel.add(label, BorderLayout.NORTH);
 			customPanel.add(scrollPane, BorderLayout.SOUTH);
-			
+
 			codecPanel.add(intelligentsync, BorderLayout.NORTH);
 			codecPanel.add(scrollPaneDefault, BorderLayout.CENTER);
 			codecPanel.add(customPanel, BorderLayout.SOUTH);
-			
+
 			while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 				codecPanel, Messages.getString("MEncoderVideo.34"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null) == JOptionPane.OK_OPTION) {
 				String newCodecparam = textArea.getText();
@@ -246,7 +244,7 @@ public class MEncoderVideo extends Player {
 				fakemedia.setFrameRate("23.976");
 				fakemedia.getAudioTracksList().add(audio);
 				String result[] = getSpecificCodecOptions(newCodecparam, fakemedia, new OutputParams(configuration), "dummy.mpg", "dummy.srt", false, true);
-				
+
 				if (result.length > 0 && result[0].startsWith("@@")) {
 					String errorMessage = result[0].substring(2);
 					JOptionPane.showMessageDialog(
@@ -1003,9 +1001,9 @@ public class MEncoderVideo extends Player {
 				!dvd ||
 				configuration.isMencoderRemuxMPEG2()
 			) &&
-			params.aid != null && 
-			params.aid.isNonPCMEncodedAudio() && 
-			!avisynth() && 
+			params.aid != null &&
+			params.aid.isNonPCMEncodedAudio() &&
+			!avisynth() &&
 			params.mediaRenderer.isMuxLPCMToMpeg();
 
 		if (
@@ -1631,7 +1629,7 @@ public class MEncoderVideo extends Player {
 					} else {
 						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
 					}
-					
+
 					if (params.sid.isExternalFileUtf()) {
 						// Append -utf8 option for UTF-8 external subtitles
 						cmdList.add("-utf8");
@@ -1727,7 +1725,7 @@ public class MEncoderVideo extends Player {
 
 			/*
 			 * Implement overscan compensation settings
-			 * 
+			 *
 			 * This feature takes into account aspect ratio,
 			 * making it less blunt than the Video Scaler option
 			 */

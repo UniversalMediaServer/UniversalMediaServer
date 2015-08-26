@@ -21,7 +21,6 @@ package net.pms.io;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.NetworkInterface;
@@ -41,7 +40,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class BasicSystemUtils implements SystemUtils {
-	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class); 
+	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
 
 	protected String vlcp;
 	protected String vlcv;
@@ -111,7 +110,7 @@ public class BasicSystemUtils implements SystemUtils {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see net.pms.io.SystemUtils#isAvis()
 	 */
 	@Override

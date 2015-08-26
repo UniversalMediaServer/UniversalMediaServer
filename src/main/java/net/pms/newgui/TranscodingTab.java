@@ -64,8 +64,7 @@ public class TranscodingTab {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		orientation = ComponentOrientation.getOrientation(locale);
+		orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 	}
 
 	private JCheckBox disableSubs;

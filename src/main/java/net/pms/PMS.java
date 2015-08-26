@@ -31,6 +31,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
@@ -49,7 +51,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
-import net.pms.logging.DebugLogPropertyDefiner;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
@@ -62,6 +63,7 @@ import net.pms.update.AutoUpdater;
 import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -1107,10 +1109,14 @@ public class PMS {
 			setConfiguration(new PmsConfiguration());
 			assert getConfiguration() != null;
 
-			// Rename previous log file to .prev
-			// Log file location is unknown at this point, it's finally decided during loadFile() below
-			// but the file is also truncated at the same time, so we'll have to try a qualified guess
-			// for the file location.
+			/* Rename previous log file to .prev
+			 * Log file location is unknown at this point, it's finally decided during loadFile() below
+			 * but the file is also truncated at the same time, so we'll have to try a qualified guess
+			 * for the file location.
+			 */
+
+			// Set root level from configuration here so that logging is available during renameOldLogFile();
+			LoggingConfig.setRootLevel(Level.toLevel(getConfiguration().getRootLogLevel()));
 			renameOldLogFile();
 
 			// Load the (optional) LogBack config file.
@@ -1285,7 +1291,7 @@ public class PMS {
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
-		LOGGER.info("Language: " + getConfiguration().getLanguage());
+		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("");
 
 		if (Platform.isMac()) {
@@ -1322,10 +1328,7 @@ public class PMS {
 	 * Try to rename old logfile to <filename>.prev
 	 */
 	private static void renameOldLogFile() {
-		DebugLogPropertyDefiner propertyDefiner = new DebugLogPropertyDefiner();
-		String fullLogFileName = propertyDefiner.getLogFilePath();
-		fullLogFileName = FileUtil.appendPathSeparator(fullLogFileName);
-		fullLogFileName += propertyDefiner.getLogFileName();
+		String fullLogFileName = configuration.getDefaultLogFilePath();
 		String newLogFileName = fullLogFileName + ".prev";
 
 		try {
@@ -1491,6 +1494,80 @@ public class PMS {
 			}
 		}
 		return headless.booleanValue();
+	}
+
+	private static Locale locale = null;
+	private static ReadWriteLock localeLock = new ReentrantReadWriteLock();
+
+	public static Locale getLocale() {
+		localeLock.readLock().lock();
+		try {
+			return locale;
+		} finally {
+			localeLock.readLock().unlock();
+		}
+	}
+
+	public static void setLocale(Locale aLocale) {
+		localeLock.writeLock().lock();
+		try {
+			locale = (Locale) aLocale.clone();
+		} finally {
+			localeLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Sets UMS locale with the same parameters as the Locale class constructor.
+	 * <code>null</code> values are treated as empty strings.
+	 *
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
+     * up to 8 characters in length.  See the <code>Locale</code> class description about
+     * valid language values.
+     * @param country An ISO 3166 alpha-2 country code or a UN M.49 numeric-3 area code.
+     * See the <code>Locale</code> class description about valid country values.
+     * @param variant Any arbitrary value used to indicate a variation of a <code>Locale</code>.
+     * See the <code>Locale</code> class description for the details.
+	 */
+	public static void setLocale(String language, String country, String variant) {
+		if (country == null) {
+			country = "";
+		}
+		if (variant == null) {
+			variant = "";
+		}
+		localeLock.writeLock().lock();
+		try {
+			locale = new Locale(language, country, variant);
+		} finally {
+			localeLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Sets UMS locale with the same parameters as the Locale class constructor.
+	 * <code>null</code> values are treated as empty strings.
+	 *
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
+     * up to 8 characters in length.  See the <code>Locale</code> class description about
+     * valid language values.
+     * @param country An ISO 3166 alpha-2 country code or a UN M.49 numeric-3 area code.
+     * See the <code>Locale</code> class description about valid country values.
+	 */
+	public static void setLocale(String language, String country) {
+		setLocale(language, country, "");
+	}
+
+	/**
+	 * Sets UMS locale with the same parameters as the Locale class constructor.
+	 * <code>null</code> values are treated as empty strings.
+	 *
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
+     * up to 8 characters in length.  See the <code>Locale</code> class description about
+     * valid language values.
+	 */
+	public static void setLocale(String language) {
+		setLocale(language, "", "");
 	}
 
 	private RemoteWeb web;

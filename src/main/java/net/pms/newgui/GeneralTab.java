@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -37,6 +38,7 @@ import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
+import net.pms.util.Languages;
 import net.pms.util.WindowsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,7 +58,7 @@ public class GeneralTab {
 	private JCheckBox preventSleep;
 	private JTextField host;
 	private JTextField port;
-	private JComboBox langs;
+	private JComboBox jLanguage;
 	private JTextField serverName;
 	private JComboBox networkinterfacesCBX;
 	private JTextField ip_filter;
@@ -81,8 +83,7 @@ public class GeneralTab {
 		// count the lines easier to add new ones
 		int ypos = 1;
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
@@ -103,43 +104,23 @@ public class GeneralTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		ypos = 7; // we hardcode here (promise last time)
 		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(new Object[] {
-				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "en_uk", "fi", "fr",
-				"de", "el", "iw", "is", "it", "ja", "ko", "no", "pl", "pt", "br",
-				"ro", "ru", "sl", "es", "sv", "tr"}, new Object[] {
-				"Arabic", "Bulgarian", "Catalan", "Chinese (Simplified)",
-				"Chinese (Traditional)", "Czech", "Danish", "Dutch", "English (US)", "English (UK)",
-				"Finnish", "French", "German", "Greek", "Hebrew", "Icelandic", "Italian",
-				"Japanese", "Korean", "Norwegian", "Polish", "Portuguese",
-				"Portuguese (Brazilian)", "Romanian", "Russian", "Slovenian",
-				"Spanish", "Swedish", "Turkish"});
-		langs = new JComboBox(kcbm);
-		langs.setEditable(false);
+		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(Languages.getLanguageTags(), Languages.getLanguageNames());
+		jLanguage = new JComboBox(kcbm);
+		jLanguage.setEditable(false);
 
-		String defaultLang;
-		if (configuration.getLanguage() != null && configuration.getLanguage().length() > 0) {
-			defaultLang = configuration.getLanguage();
-		} else {
-			defaultLang = Locale.getDefault().getLanguage();
+		kcbm.setSelectedKey(Languages.toLanguageCode(PMS.getLocale()));
+
+		if (jLanguage.getSelectedIndex() == -1) {
+			jLanguage.setSelectedIndex(0);
 		}
 
-		if (defaultLang == null) {
-			defaultLang = "en";
-		}
-
-		kcbm.setSelectedKey(defaultLang);
-
-		if (langs.getSelectedIndex() == -1) {
-			langs.setSelectedIndex(0);
-		}
-
-		langs.addItemListener((ItemEvent e) -> {
+		jLanguage.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				configuration.setLanguage((String) kcbm.getSelectedKey());
 			}
 		});
 
-		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+		builder.add(jLanguage, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
@@ -271,12 +252,12 @@ public class GeneralTab {
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
 				scrollPane.setPreferredSize(new Dimension(900, 450));
-				
+
 				try {
 					try (FileInputStream fis = new FileInputStream(conf); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
 						String line;
 						StringBuilder sb = new StringBuilder();
-						
+
 						while ((line = in.readLine()) != null) {
 							sb.append(line);
 							sb.append("\n");
@@ -286,16 +267,16 @@ public class GeneralTab {
 				} catch (IOException e1) {
 					return;
 				}
-				
+
 				tPanel.add(scrollPane, BorderLayout.NORTH);
 				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
-				
+
 				if (JOptionPane.showOptionDialog(looksFrame,
 					tPanel, Messages.getString("NetworkTab.51"),
 					JOptionPane.OK_CANCEL_OPTION,
 					JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
 					String text = textArea.getText();
-					
+
 					try {
 						try (FileOutputStream fos = new FileOutputStream(conf)) {
 							fos.write(text.getBytes());

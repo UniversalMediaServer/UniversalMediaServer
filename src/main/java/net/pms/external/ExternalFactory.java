@@ -20,7 +20,6 @@ package net.pms.external;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -105,7 +104,7 @@ public class ExternalFactory {
 	}
 
 	/**
-	 * Stores the class of an external listener in a list for later retrieval. 
+	 * Stores the class of an external listener in a list for later retrieval.
 	 * The same class will only be stored once.
 	 *
 	 * @param clazz The class to store.
@@ -313,7 +312,7 @@ public class ExternalFactory {
 		}
 
 		try {
-			try (FileInputStream fis = new FileInputStream(purge); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) { 
+			try (FileInputStream fis = new FileInputStream(purge); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
 				String line;
 
 				while ((line = in.readLine()) != null) {
@@ -495,7 +494,7 @@ public class ExternalFactory {
 	}
 
 	private static boolean quoted(String s) {
-		return s.startsWith("\"") && s.endsWith("\""); 
+		return s.startsWith("\"") && s.endsWith("\"");
 	}
 
 	private static String quote(String s) {

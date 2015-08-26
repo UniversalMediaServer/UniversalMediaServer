@@ -61,6 +61,13 @@ public class LoggingTest {
 		}
 	}
 
+	class TestFileAppender<E> extends FileAppender<E> {
+
+		@Override
+		protected void append(E eventObject) {
+		}
+	}
+
 	@Before
 	public void setUp() {
 		// Silence all log messages from the UMS code that is being tested
@@ -163,11 +170,11 @@ public class LoggingTest {
 
 	@Test
 	public void testLoggingConfig() throws ConfigurationException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+
 		// Set up a test (default) configuration
 		PMS.get();
 		PmsConfiguration configuration = new PmsConfiguration(false);
 		PMS.setConfiguration(configuration);
-
 
 		// Load logback configuration
 		LoggingConfig.loadFile();
@@ -188,9 +195,56 @@ public class LoggingTest {
 		assertTrue("LoggingConfigIsFile", file.isFile());
 		assertFalse("LoggingConfigIsFile", file.isDirectory());
 
+		// Test getLogFilePaths() and LoggingConfigFileLoader.getLogFilePaths()
+		HashMap<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
+		@SuppressWarnings("deprecation")
+		HashMap<String, String> compLogFilePaths = LoggingConfigFileLoader.getLogFilePaths();
+		Iterator<Appender<ILoggingEvent>> iterator = rootLogger.iteratorForAppenders();
+		while (iterator.hasNext()) {
+			Appender<ILoggingEvent> appender = iterator.next();
+			if (appender instanceof FileAppender) {
+				FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
+				assertTrue("LogFilePathsContainsKey", logFilePaths.containsKey(fa.getName()));
+				assertEquals("LogFilePathsHasPath", logFilePaths.get(fa.getName()), fa.getFile());
+				if (fa.getName().equals("default.log")) {
+					assertTrue("CompatibleLogFilePathsContainsKey", compLogFilePaths.containsKey("debug.log"));
+					assertEquals("CompatibleLogFilePathsHasPath", compLogFilePaths.get("debug.log"), fa.getFile());
+				} else {
+					assertTrue("CompatibleLogFilePathsContainsKey", compLogFilePaths.containsKey(fa.getName()));
+					assertEquals("CompatibleLogFilePathsHasPath", compLogFilePaths.get(fa.getName()), fa.getFile());
+				}
+			}
+		}
+
+		// Reset LogBack configuration and create a fake one to not rely on the existing configuration file
+		context.reset();
+
+		TestFileAppender<ILoggingEvent> testDefaultAppender = new TestFileAppender<ILoggingEvent>();
+		testDefaultAppender.setName("default.log");
+		testDefaultAppender.setContext(context);
+		PatternLayoutEncoder layoutEncoder = new PatternLayoutEncoder();
+		layoutEncoder.setPattern("%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n");
+		layoutEncoder.setContext(context);
+		testDefaultAppender.setEncoder(layoutEncoder);
+		rootLogger.addAppender(testDefaultAppender);
+
+		TestFileAppender<ILoggingEvent> testGenericAppender = new TestFileAppender<ILoggingEvent>();
+		testGenericAppender.setName("SomeOtherFileAppender");
+		testGenericAppender.setContext(context);
+		layoutEncoder = new PatternLayoutEncoder();
+		layoutEncoder.setPattern("%-5level %d %msg%n");
+		layoutEncoder.setContext(context);
+		testGenericAppender.setEncoder(layoutEncoder);
+		rootLogger.addAppender(testGenericAppender);
+
+		TestAppender<ILoggingEvent> testNonFileAppender = new TestAppender<ILoggingEvent>();
+		testNonFileAppender.setName("SomeNonFileAppender");
+		testNonFileAppender.setContext(context);
+		rootLogger.addAppender(testNonFileAppender);
+
 		// Test setBuffered()
 		LoggingConfig.setBuffered(true);
-		Iterator<Appender<ILoggingEvent>> iterator = rootLogger.iteratorForAppenders();
+		iterator = rootLogger.iteratorForAppenders();
 		while (iterator.hasNext()) {
 			Appender<ILoggingEvent> appender = iterator.next();
 			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
@@ -322,19 +376,6 @@ public class LoggingTest {
 			}
 		}
 
-		// Test getLogFilePaths()
-		HashMap<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
-		iterator = rootLogger.iteratorForAppenders();
-		while (iterator.hasNext()) {
-			Appender<ILoggingEvent> appender = iterator.next();
-			if (appender instanceof FileAppender) {
-				FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
-				assertTrue("LogFilePathsContainsKey", logFilePaths.containsKey(fa.getName()));
-				assertEquals("LogFilePathsHasPath", logFilePaths.get(fa.getName()), fa.getFile());
-			}
-		}
-
 		context.reset();
 	}
-
 }

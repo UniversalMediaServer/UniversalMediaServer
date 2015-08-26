@@ -102,6 +102,23 @@ public class LoggingConfig {
 		return null;
 	}
 
+	private static boolean setContextAndRoot() {
+		ILoggerFactory ilf = LoggerFactory.getILoggerFactory();
+		if (!(ilf instanceof LoggerContext)) {
+			// Not using LogBack.
+			// Can't configure the logger, so just exit
+			LOGGER.debug("Not using LogBack, aborting LogBack configuration");
+			return false;
+		}
+		loggerContext = (LoggerContext) ilf;
+		rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+		if (rootLogger == null) {
+			// Shouldn't be possible
+			LOGGER.error("Couldn't find root logger, aborting LogBack configuration");
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Loads the (optional) Logback configuration file.
@@ -122,18 +139,7 @@ public class LoggingConfig {
 		boolean headless = !(System.getProperty("console") == null);
 		File file = null;
 
-		ILoggerFactory ilf = LoggerFactory.getILoggerFactory();
-		if (!(ilf instanceof LoggerContext)) {
-			// Not using LogBack.
-			// Can't configure the logger, so just exit
-			LOGGER.debug("Not using LogBack, aborting LogBack configuration");
-			return;
-		}
-		loggerContext = (LoggerContext) ilf;
-		rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
-		if (rootLogger == null) {
-			// Shouldn't be possible
-			LOGGER.error("Couldn't find root logger, aborting LogBack configuration");
+		if (!setContextAndRoot()) {
 			return;
 		}
 
@@ -513,8 +519,8 @@ public class LoggingConfig {
 	* @param level the new root logger level.
 	*/
 	public static synchronized void setRootLevel(Level level) {
-		if (loggerContext == null) {
-			LOGGER.error("Unknown loggerContext, aborting forced trace. Make sure that loadFile() has been called first");
+		if (loggerContext == null && !setContextAndRoot()) {
+			LOGGER.error("Unknown loggerContext, aborting setRootLevel");
 			return;
 		}
 		rootLogger.setLevel(level);
@@ -526,8 +532,8 @@ public class LoggingConfig {
 	* Must be called after {@link #loadFile()}.
 	*/
 	public static synchronized Level getRootLevel() {
-		if (loggerContext == null) {
-			LOGGER.error("Unknown loggerContext, aborting getRootLevel. Make sure that loadFile() has been called first");
+		if (loggerContext == null && !setContextAndRoot()) {
+			LOGGER.error("Unknown loggerContext, aborting getRootLevel.");
 			return Level.OFF;
 		}
 		return rootLogger.getLevel();

@@ -23,11 +23,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.Locale;
-import java.text.spi.NumberFormatProvider;
 import javax.swing.FocusManager;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
@@ -40,8 +37,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
-import sun.util.locale.provider.LocaleProviderAdapter;
-import sun.util.locale.provider.LocaleResources;
+import net.pms.PMS;
 
 /**
  * A subclass of JSpinner that implements support for {@link SpinnerIntModel}
@@ -164,21 +160,6 @@ public class CustomJSpinner extends javax.swing.JSpinner {
      */
     public static class IntegerEditor extends DefaultEditor
     {
-        // This is here until DecimalFormat gets a constructor that
-        // takes a Locale: 4923525
-        private static String getDefaultPattern(Locale locale) {
-            // Get the pattern for the default locale.
-            LocaleProviderAdapter adapter;
-            adapter = LocaleProviderAdapter.getAdapter(NumberFormatProvider.class,
-                                                       locale);
-            LocaleResources lr = adapter.getLocaleResources(locale);
-            if (lr == null) {
-                lr = LocaleProviderAdapter.forJRE().getLocaleResources(locale);
-            }
-            String[] all = lr.getNumberPatterns();
-            return all[0];
-        }
-
         /**
          * Construct a <code>JSpinner</code> editor that supports displaying
          * and editing the value of a <code>SpinnerIntModel</code>
@@ -196,7 +177,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
          * @see SpinnerIntModel
          */
         public IntegerEditor(JSpinner spinner) {
-            this(spinner, getDefaultPattern(spinner.getLocale()));
+            this(spinner, NumberFormat.getIntegerInstance(PMS.getLocale()));
         }
 
         /**
@@ -208,20 +189,42 @@ public class CustomJSpinner extends javax.swing.JSpinner {
          * on the new <code>JFormattedTextField</code>.
          *
          * @param spinner the spinner whose model <code>this</code> editor will monitor
-         * @param decimalFormatPattern the initial pattern for the
-         *     <code>DecimalFormat</code> object that's used to display
+         * @param format the <code>NumberFormat</code> object that's used to display
          *     and parse the value of the text field.
          * @exception IllegalArgumentException if the spinners model is not
-         *     an instance of <code>SpinnerIntModel</code> or if
-         *     <code>decimalFormatPattern</code> is not a legal
-         *     argument to <code>DecimalFormat</code>
+         *     an instance of <code>SpinnerIntModel</code>
          *
          * @see #getTextField
          * @see SpinnerIntModel
          * @see java.text.DecimalFormat
          */
-        public IntegerEditor(JSpinner spinner, String decimalFormatPattern) {
-            this(spinner, new DecimalFormat(decimalFormatPattern));
+        private IntegerEditor(JSpinner spinner, NumberFormat format) {
+            super(spinner);
+            if (!(spinner.getModel() instanceof SpinnerIntModel)) {
+                throw new IllegalArgumentException(
+                          "model not a SpinnerIntModel");
+            }
+
+            format.setGroupingUsed(false);
+            format.setMaximumFractionDigits(0);
+            SpinnerIntModel model = (SpinnerIntModel)spinner.getModel();
+            NumberFormatter formatter = new IntegerEditorFormatter(model, format);
+            DefaultFormatterFactory factory = new DefaultFormatterFactory(formatter);
+            JFormattedTextField ftf = getTextField();
+            ftf.setEditable(true);
+            ftf.setFormatterFactory(factory);
+            ftf.setHorizontalAlignment(JTextField.RIGHT);
+
+            try {
+                String minString = formatter.valueToString(model.getMinimum());
+                String maxString = formatter.valueToString(model.getMaximum());
+                // Trying to approximate the width difference between "m" and "0" by multiplying with 0.7
+                ftf.setColumns((int) Math.round(0.7 * Math.max(maxString.length(),
+                                        minString.length())));
+            }
+            catch (ParseException e) {
+            	// Nothing to do, the component width will simply be the default
+            }
         }
 
         /**
@@ -245,67 +248,6 @@ public class CustomJSpinner extends javax.swing.JSpinner {
             public Comparable getMaximum() {
                 return model.getMaximum();
             }
-        }
-
-        /**
-         * Construct a <code>JSpinner</code> editor that supports displaying
-         * and editing the value of a <code>SpinnerIntModel</code>
-         * with a <code>JFormattedTextField</code>.  <code>This</code>
-         * <code>IntegerEditor</code> becomes both a <code>ChangeListener</code>
-         * on the spinner and a <code>PropertyChangeListener</code>
-         * on the new <code>JFormattedTextField</code>.
-         *
-         * @param spinner the spinner whose model <code>this</code> editor will monitor
-         * @param decimalFormatPattern the initial pattern for the
-         *     <code>DecimalFormat</code> object that's used to display
-         *     and parse the value of the text field.
-         * @exception IllegalArgumentException if the spinners model is not
-         *     an instance of <code>SpinnerIntModel</code>
-         *
-         * @see #getTextField
-         * @see SpinnerIntModel
-         * @see java.text.DecimalFormat
-         */
-        private IntegerEditor(JSpinner spinner, DecimalFormat format) {
-            super(spinner);
-            if (!(spinner.getModel() instanceof SpinnerIntModel)) {
-                throw new IllegalArgumentException(
-                          "model not a SpinnerIntModel");
-            }
-
-            format.setGroupingUsed(false);
-            format.setMaximumFractionDigits(0);
-            SpinnerIntModel model = (SpinnerIntModel)spinner.getModel();
-            NumberFormatter formatter = new IntegerEditorFormatter(model,
-                                                                  format);
-            DefaultFormatterFactory factory = new DefaultFormatterFactory(
-                                                  formatter);
-            JFormattedTextField ftf = getTextField();
-            ftf.setEditable(true);
-            ftf.setFormatterFactory(factory);
-            ftf.setHorizontalAlignment(JTextField.RIGHT);
-
-            try {
-                String minString = formatter.valueToString(model.getMinimum());
-                String maxString = formatter.valueToString(model.getMaximum());
-                // Trying to approximate the width difference between "m" and "0" by multiplying with 0.7
-                ftf.setColumns((int) Math.round(0.7 * Math.max(maxString.length(),
-                                        minString.length())));
-            }
-            catch (ParseException e) {}
-        }
-
-        /**
-         * Returns the <code>java.text.DecimalFormat</code> object the
-         * <code>JFormattedTextField</code> uses to parse and format
-         * numbers.
-         *
-         * @return the value of <code>getTextField().getFormatter().getFormat()</code>.
-         * @see #getTextField
-         * @see java.text.DecimalFormat
-         */
-        public DecimalFormat getFormat() {
-            return (DecimalFormat)((NumberFormatter)(getTextField().getFormatter())).getFormat();
         }
 
         /**

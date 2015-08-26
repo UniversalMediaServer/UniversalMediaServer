@@ -26,7 +26,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 import javax.imageio.ImageIO;
@@ -223,10 +222,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		Font sf = null;
 
 		// Set an unicode font for testing exotic languages (Japanese)
-		final String language = configuration.getLanguage();
+		final String language = configuration.getLanguageTag();
 
-		if (language != null && (language.equals("ja") || language.startsWith("zh"))) {
-			sf = new Font("Serif", Font.PLAIN, 12);
+		if (language != null && (language.equals("ja") || language.startsWith("zh") || language.equals("ko"))) {
+			sf = new Font("SansSerif", Font.PLAIN, 12);
 		}
 
 		if (sf != null) {
@@ -263,6 +262,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			UIManager.put("ToolBar.font", sf);
 			UIManager.put("ToolTip.font", sf);
 			UIManager.put("Tree.font", sf);
+			UIManager.put("Spinner.font", sf);
 		}
 
 		setTitle("Test");
@@ -386,8 +386,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.add(new JPanel());
 
 		// Apply the orientation to the toolbar and all components in it
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		toolBar.applyComponentOrientation(orientation);
 
 		panel.add(toolBar, BorderLayout.NORTH);
@@ -444,8 +443,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		 * Note: Do not use applyComponentOrientation() here because it
 		 * messes with the layout of several tabs.
 		 */
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		tabbedPane.setComponentOrientation(orientation);
 
 		return tabbedPane;
