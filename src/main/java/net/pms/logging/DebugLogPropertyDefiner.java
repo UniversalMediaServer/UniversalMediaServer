@@ -19,14 +19,9 @@
 package net.pms.logging;
 
 import ch.qos.logback.core.PropertyDefinerBase;
-import com.sun.jna.Platform;
-import java.io.File;
-import java.io.IOException;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurationReader;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.util.FileUtil;
-import org.apache.commons.io.FileUtils;
 
 /**
  * Logback PropertyDefiner to set the root level, path and name for the <code>default logfile</code>.
@@ -49,68 +44,16 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 		configurationReader.setLogOverrides(false);
 		switch (key) {
 			case "logFilePath":
-				result = getLogFilePath();
+				result = configuration.getDefaultLogFileFolder();
 				break;
 			case "rootLevel":
-				result = getRootLevel();
+				result = configuration.getRootLogLevel();
 				break;
 			case "logFileName":
-				result = getLogFileName();
+				result = configuration.getDefaultLogFileName();
 				break;
 		}
 		configurationReader.setLogOverrides(saveLogOverride);
 		return result;
-	}
-
-	/**
-	 * @return first writable folder in the following order:
-	 * <p>
-	 *     1. (On Linux only) path to {@code /var/log/universalmediaserver/%USERNAME%/}.
-	 * </p>
-	 * <p>
-	 *     2. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
-	 *     {@code ~/Library/Application Support/UMS/} on Mac).
-	 * </p>
-	 * <p>
-	 *     3. Path to user-defined temp folder specified by {@code temp_directory} param in UMS.conf.
-	 * </p>
-	 * <p>
-	 *     4. Path to system temp folder.
-	 * </p>
-	 */
-	public String getLogFilePath() {
-		if (Platform.isLinux()) {
-			final String username = System.getProperty("user.name");
-			final File logDirectory = new File("/var/log/universalmediaserver/" + username + "/");
-			try {
-				FileUtils.forceMkdir(logDirectory);
-				if (FileUtil.isDirectoryWritable(logDirectory)) {
-					return logDirectory.getAbsolutePath();
-				}
-			} catch (IOException ex) {
-				// Could not create directory, possible permissions problems.
-			}
-		}
-
-		// Check if profile directory is writable.
-		final File logDirectory = new File(configuration.getProfileDirectory());
-		if (FileUtil.isDirectoryWritable(logDirectory)) {
-			return logDirectory.getAbsolutePath();
-		}
-
-		// Try user-defined temp folder or fallback to system temp folder, which should be writable.
-		try {
-			return configuration.getTempFolder().getAbsolutePath();
-		} catch (IOException ex) {
-			return System.getProperty("java.io.tmpdir");
-		}
-	}
-
-	public String getRootLevel() {
-		return configuration.getRootLogLevel();
-	}
-
-	public String getLogFileName() {
-		return configuration.getLogFileName();
 	}
 }

@@ -37,6 +37,7 @@ import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
+import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
@@ -332,6 +333,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final char LIST_SEPARATOR = ',';
 	public final String ALL_RENDERERS = "All renderers";
 
+	// Path to default logfile directory
+	protected String defaultLogFileDir = null;
+
 	public TempFolder tempFolder;
 	public ProgramPaths programPaths;
 	public IpFilter filter;
@@ -548,7 +552,9 @@ public class PmsConfiguration extends RendererConfiguration {
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = createProgramPathsChain(configuration);
 		filter = new IpFilter();
-		Locale.setDefault(new Locale(getLanguage()));
+		PMS.setLocale(getLanguageLocale());
+		//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
+		Locale.setDefault(getLanguageLocale());
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
 		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
@@ -598,6 +604,97 @@ public class PmsConfiguration extends RendererConfiguration {
 				new PlatformSpecificDefaultPathsFactory().get()
 			)
 		);
+	}
+
+	/**
+	 * @return first writable folder in the following order:
+	 * <p>
+	 *     1. (On Linux only) path to {@code /var/log/UniversalMediaServer/%USERNAME%/}.
+	 * </p>
+	 * <p>
+	 *     2. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
+	 *     {@code ~/Library/Application Support/UMS/} on Mac).
+	 * </p>
+	 * <p>
+	 *     3. Path to user-defined temporary folder specified by {@code temp_directory} parameter in UMS.conf.
+	 * </p>
+	 * <p>
+	 *     4. Path to system temporary folder.
+	 * </p>
+	 * <p>
+	 *     5. Path to current working directory.
+	 * </p>
+	 */
+	public synchronized String getDefaultLogFileFolder() {
+
+		if (defaultLogFileDir == null) {
+			if (Platform.isLinux()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UniversalMediaServer/{}/\"", System.getProperty("user.name"));
+				}
+				final File logDirectory = new File("/var/log/UniversalMediaServer/" + System.getProperty("user.name") + "/");
+				if (!logDirectory.exists()) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
+					}
+					try {
+						FileUtils.forceMkdir(logDirectory);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("getDefaultLogFileFolder: \"{}\" created", logDirectory.getAbsolutePath());
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
+					}
+				}
+				if (logDirectory.exists() && FileUtil.isDirectoryWritable(logDirectory)) {
+					defaultLogFileDir = logDirectory.getAbsolutePath();
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
+					}
+				} else if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to profile folder for logging", logDirectory.getAbsolutePath());
+				}
+			}
+
+			if (defaultLogFileDir == null) {
+				// Log to profile directory if it is writable.
+				final File profileDirectory = new File(PROFILE_DIRECTORY);
+				if (FileUtil.isDirectoryWritable(profileDirectory)) {
+					defaultLogFileDir = profileDirectory.getAbsolutePath();
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
+					}
+				} else {
+					// Try user-defined temporary folder or fall back to system temporary folder.
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to temporary folder for logging", profileDirectory.getAbsolutePath());
+					}
+					try {
+						defaultLogFileDir = getTempFolder().getAbsolutePath();
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
+						}
+					} catch (IOException e) {
+						LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
+						defaultLogFileDir = "";
+					}
+				}
+			}
+		}
+		return defaultLogFileDir;
+	}
+
+	public String getDefaultLogFileName() {
+		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
+		if (FileUtil.isValidFileName(s)) {
+			return s;
+		} else {
+			return "debug.log";
+		}
+	}
+
+	public String getDefaultLogFilePath() {
+		return FileUtil.appendPathSeparator(getDefaultLogFileFolder()) + getDefaultLogFileName();
 	}
 
 	public File getTempFolder() throws IOException {
@@ -733,18 +830,81 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Get the code of the preferred language for the PMS user interface. Default
-	 * is based on the locale.
-	 * @return The ISO 639 language code.
+	 * Get the {@link java.util.Locale} of the preferred language for the UMS
+	 * user interface. The default is based on the default (OS) locale.
+	 * @return The {@link java.util.Locale}.
 	 */
-	public String getLanguage() {
-		String def = Locale.getDefault().getLanguage();
-
-		if (def == null) {
-			def = "en";
+	public Locale getLanguageLocale() {
+		String languageCode = configuration.getString(KEY_LANGUAGE);
+		Locale locale = null;
+		if (languageCode != null && !languageCode.isEmpty()) {
+			locale = Languages.toLocale(Locale.forLanguageTag(languageCode));
+			if (locale == null) {
+				LOGGER.error("Invalid or unsupported language tag \"{}\", defaulting to OS language.", languageCode);
+			}
+		} else {
+			LOGGER.info("Language not specified, defaulting to OS language.");
 		}
 
-		return getString(KEY_LANGUAGE, def);
+		if (locale == null) {
+			locale = Languages.toLocale(Locale.getDefault());
+			if (locale == null) {
+				LOGGER.error("Unsupported language tag \"{}\", defaulting to US English.", Locale.getDefault().toLanguageTag());
+			}
+		}
+
+		if (locale == null) {
+			locale = Locale.forLanguageTag("en-US"); // Default
+		}
+		return locale;
+	}
+
+	/**
+	 * Get the {@link java.util.Locale} compatible tag of the preferred
+	 * language for the UMS user interface. The default is based on the default (OS) locale.
+	 * @return The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
+	 */
+	public String getLanguageTag() {
+		return getLanguageLocale().toLanguageTag();
+	}
+
+	/**
+	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
+	 * @since 5.2.3
+	 */
+	public String getLanguage() {
+		return getLanguageTag();
+	}
+
+	/**
+	 * Set the preferred language for the UMS user interface.
+	 * @param value The {@link java.net.Locale}.
+	 */
+	public void setLanguage(Locale locale) {
+		if (locale != null) {
+			if (Languages.isValid(locale)) {
+				configuration.setProperty(KEY_LANGUAGE, Languages.toLanguageCode(locale));
+				PMS.setLocale(Languages.toLocale(locale));
+				//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
+				Locale.setDefault(Languages.toLocale(locale));
+			} else {
+				LOGGER.error("setLanguage() aborted because of unsupported language tag \"{}\"", locale.toLanguageTag());
+			}
+		} else {
+			LOGGER.error("setLanguage() aborted because the locale is null");
+		}
+	}
+
+	/**
+	 * Set the preferred language for the UMS user interface.
+	 * @param value The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
+	 */
+	public void setLanguage(String value) {
+		if (value != null && !value.isEmpty()) {
+			setLanguage(Locale.forLanguageTag(value));
+		} else {
+			LOGGER.error("setLanguage() aborted because language tag is empty");
+		}
 	}
 
 	/**
@@ -940,15 +1100,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set the preferred language for the PMS user interface.
-	 * @param value The ISO 639 language code.
-	 */
-	public void setLanguage(String value) {
-		configuration.setProperty(KEY_LANGUAGE, value);
-		Locale.setDefault(new Locale(getLanguage()));
-	}
-
-	/**
 	 * Returns the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
 	 * from. Default is 2 seconds.
@@ -1067,7 +1218,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_FORCED_SUBTITLE_LANGUAGE,
-				getLanguage()
+				PMS.getLocale().getLanguage()
 		);
 	}
 
@@ -3046,15 +3197,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setLiveSubtitlesTimeout(int t) {
 		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
-	}
-
-	public String getLogFileName() {
-		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
-		if (FileUtil.isValidFileName(s)) {
-			return s;
-		} else {
-			return "debug.log";
-		}
 	}
 
 	public boolean getLoggingBuffered() {

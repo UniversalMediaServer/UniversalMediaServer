@@ -158,8 +158,7 @@ public class MEncoderVideo extends Player {
 	@Override
 	public JComponent config() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
@@ -1043,9 +1042,9 @@ public class MEncoderVideo extends Player {
 				!dvd ||
 				configuration.isMencoderRemuxMPEG2()
 			) &&
-			params.aid != null && 
-			params.aid.isNonPCMEncodedAudio() && 
-			!avisynth() && 
+			params.aid != null &&
+			params.aid.isNonPCMEncodedAudio() &&
+			!avisynth() &&
 			params.mediaRenderer.isMuxLPCMToMpeg();
 
 		if (
@@ -1671,7 +1670,7 @@ public class MEncoderVideo extends Player {
 					} else {
 						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
 					}
-					
+
 					if (params.sid.isExternalFileUtf()) {
 						// Append -utf8 option for UTF-8 external subtitles
 						cmdList.add("-utf8");
@@ -1767,7 +1766,7 @@ public class MEncoderVideo extends Player {
 
 			/*
 			 * Implement overscan compensation settings
-			 * 
+			 *
 			 * This feature takes into account aspect ratio,
 			 * making it less blunt than the Video Scaler option
 			 */

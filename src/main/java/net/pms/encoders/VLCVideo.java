@@ -212,7 +212,7 @@ public class VLCVideo extends Player {
 		/**
 		 * Bitrate in kbit/s
 		 *
-		 * TODO: Make this engine smarter with bitrates, see 
+		 * TODO: Make this engine smarter with bitrates, see
 		 * FFMpegVideo.getVideoBitrateOptions() for our best
 		 * implementation of this.
 		 */
@@ -425,7 +425,7 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add("--sout-x264-crf");
 			videoBitrateOptions.add(x264CRF);
 		}
-		
+
 		return videoBitrateOptions;
 	}
 
@@ -614,8 +614,7 @@ public class VLCVideo extends Player {
 	@Override
 	public JComponent config() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
 		PanelBuilder builder = new PanelBuilder(layout);

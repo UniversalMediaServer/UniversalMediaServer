@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
@@ -141,7 +140,6 @@ public class StatusTab {
 	}
 
 	private ImagePanel imagePanel;
-	private PmsConfiguration configuration;
 	private JPanel renderers;
 	private JLabel jl;
 	private JProgressBar jpb;
@@ -157,7 +155,6 @@ public class StatusTab {
 	private static int bufferSize;
 
 	StatusTab(PmsConfiguration configuration) {
-		this.configuration = configuration;
 		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
@@ -185,14 +182,13 @@ public class StatusTab {
 
 	public JComponent build() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 
 		String colSpec = FormLayoutUtil.getColSpec("pref, 30dlu, fill:pref:grow, 30dlu, pref", orientation);
-		//                                             1     2          3           4     5        
+		//                                             1     2          3           4     5
 
 		FormLayout layout = new FormLayout(colSpec,
-			//                          1     2          3            4     5        
+			//                          1     2          3            4     5
 			//                   //////////////////////////////////////////////////
 			  "p,"               // Detected Media Renderers --------------------//  1
 			+ "9dlu,"            //                                              //
@@ -259,7 +255,7 @@ public class StatusTab {
 
 		// Bitrate
 		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
-		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));	
+		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));
 
 		bitrateLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
 		bitrateLabel.setForeground(fgColor);

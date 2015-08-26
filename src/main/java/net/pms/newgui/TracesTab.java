@@ -39,7 +39,6 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -97,7 +96,7 @@ public class TracesTab {
 		"LOCAL1", "LOCAL2", "LOCAL3", "LOCAL4", "LOCAL5", "LOCAL6", "LOCAL7"
 	};
 
-	class PopupTriggerMouseListener extends MouseAdapter {
+	static class PopupTriggerMouseListener extends MouseAdapter {
 		private JPopupMenu popup;
 		private JComponent component;
 
@@ -244,8 +243,7 @@ public class TracesTab {
 	@SuppressWarnings("serial")
 	public JComponent build() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec("pref, pref:grow, pref, 3dlu, pref, pref, pref", orientation);
 
 		int cols = colSpec.split(",").length;
