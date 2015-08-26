@@ -26,24 +26,23 @@ import java.util.ResourceBundle;
 
 /**
  * Class Messages provides a mechanism to localize the text messages found in
- * PMS. It is based on {@link ResourceBundle}.
+ * UMS. It is based on {@link ResourceBundle}.
  */
 public class Messages {
 	private static final String BUNDLE_NAME = "resources.i18n.messages";
 
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
+	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, PMS.getLocale());
 
 	private Messages() {
 	}
 
 	/**
 	 * Returns the locale-specific string associated with the key.
-	 * 
+	 *
 	 * @param key
-	 *            Keys in PMS follow the format "group.x". group states where
-	 *            this key is likely to be used. For example, NetworkTab refers
-	 *            to the network configuration tab in the PMS GUI. x is just a
-	 *            number.
+	 *            Keys in UMS follow the format "group.x". group states where
+	 *            this key is likely to be used. For example, StatusTab refers
+	 *            to the status tab in the UMS GUI. "x" can be anything.
 	 * @return Descriptive string if key is found or a copy of the key string if
 	 *         it is not.
 	 */
