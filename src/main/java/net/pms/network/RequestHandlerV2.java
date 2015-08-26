@@ -313,7 +313,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		throws Exception {
 		Channel ch = e.getChannel();
 		Throwable cause = e.getCause();
-		LOGGER.trace("Caught exception", cause);
 		if (cause instanceof TooLongFrameException) {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
@@ -333,7 +332,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		if (ch.isConnected()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 		}
-		e.getChannel().close();
+		ch.close();
 	}
 
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
