@@ -965,20 +965,36 @@ public class DLNAMediaInfo implements Cloneable {
 									/**
 									 * TODO: Cache the calculated values
 									 * TODO: Include and use a custom font
-									 * TODO: Reset the thumbnail if the cached version is unwatched
-									 * TODO: Lower the font size if the text doesn't fit within the thumbnail
 									 */
 									String text = Messages.getString("DLNAResource.4");
-									int fontSize = renderer.getThumbnailWidth() / 6;
+									int thumbnailWidth = renderer.getThumbnailWidth();
+									int fontSize = thumbnailWidth / 6;
 									Graphics2D g = image.createGraphics();
 									g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-									g.fillRect(0, 0, renderer.getThumbnailWidth(), renderer.getThumbnailHeight());
+									g.fillRect(0, 0, thumbnailWidth, renderer.getThumbnailHeight());
 									g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 									g.setFont(new Font("Arial", Font.PLAIN, fontSize));
 									FontMetrics fm = g.getFontMetrics();
 									Rectangle2D textsize = fm.getStringBounds(text, g);
-									int horizontalPosition = (int) (renderer.getThumbnailWidth() - textsize.getWidth()) / 2;
-									int verticalPosition   = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
+									int textWidth = (int) textsize.getWidth();
+									int horizontalPosition = (thumbnailWidth - textWidth) / 2;
+									
+									// Use a smaller font size if there isn't enough room
+									if (textWidth > thumbnailWidth) {
+										for (int divider = 7; divider < 99; divider++) {
+											fontSize = thumbnailWidth / divider;
+											g.setFont(new Font("Arial", Font.PLAIN, fontSize));
+											fm = g.getFontMetrics();
+											textsize = fm.getStringBounds(text, g);
+											textWidth = (int) textsize.getWidth();
+											if (textWidth <= (thumbnailWidth * 0.9)) {
+												horizontalPosition = (thumbnailWidth - textWidth) / 2;
+												break;
+											}
+										}
+									}
+
+									int verticalPosition = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
 									g.drawString(text, horizontalPosition, verticalPosition);
 								}
 								ByteArrayOutputStream out = new ByteArrayOutputStream();
