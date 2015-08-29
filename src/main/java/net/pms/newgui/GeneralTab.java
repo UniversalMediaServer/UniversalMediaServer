@@ -18,7 +18,6 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -34,8 +33,10 @@ import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.Messages;
 import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomPanelBuilder;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.Languages;
@@ -88,7 +89,7 @@ public class GeneralTab {
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		builder.opaque(true);
 
@@ -107,7 +108,7 @@ public class GeneralTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		ypos = 7; // we hardcode here (promise last time)
-		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		builder._addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(Languages.getLanguageTags(), Languages.getLanguageNames());
 		jLanguage = new JComboBox(kcbm);
 		jLanguage.setEditable(false);
@@ -138,7 +139,7 @@ public class GeneralTab {
 					configuration.setServerName(serverName.getText());
 				}
 			});
-			builder.addLabel(Messages.getString("NetworkTab.71"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder._addLabel(Messages.getString("NetworkTab.71"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(serverName, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
 			appendProfileName = new JCheckBox(Messages.getString("NetworkTab.72"), configuration.isAppendProfileName());
@@ -409,19 +410,19 @@ public class GeneralTab {
 				}
 			});
 
-			builder.addLabel(Messages.getString("NetworkTab.20"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder._addLabel(Messages.getString("NetworkTab.20"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(networkinterfacesCBX, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.23"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder._addLabel(Messages.getString("NetworkTab.23"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(host, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.24"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder._addLabel(Messages.getString("NetworkTab.24"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(port, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder._addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder._addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(adaptBitrate), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
@@ -453,8 +454,8 @@ public class GeneralTab {
 			ypos += 2;
 
 			final SelectRenderers selectRenderers = new SelectRenderers();
-
-			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			
+			builder._addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			final CustomJButton setRenderers = new CustomJButton(Messages.getString("GeneralTab.5"));
 			setRenderers.addActionListener(new ActionListener() {
 				@Override
@@ -466,7 +467,7 @@ public class GeneralTab {
 			builder.add(setRenderers, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
 			ypos += 2;
 
-			builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder._addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 

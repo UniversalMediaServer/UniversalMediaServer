@@ -19,7 +19,6 @@
 package net.pms.newgui;
 
 import ch.qos.logback.classic.Level;
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
@@ -36,6 +35,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -261,7 +263,7 @@ public class TracesTab {
 			colSpec,
 			"p, fill:10:grow, p, p"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
@@ -608,7 +610,7 @@ public class TracesTab {
 
 		final ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-		JLabel rootLevelLabel = new JLabel(Messages.getString("TracesTab.11") + ": ");
+		CustomJLabel rootLevelLabel = new CustomJLabel(Messages.getString("TracesTab.11") + ": ");
 		rootLevelLabel.setDisplayedMnemonic(KeyEvent.VK_L);
 		rootLevelLabel.setToolTipText(Messages.getString("TracesTab.42"));
 

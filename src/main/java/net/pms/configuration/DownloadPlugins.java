@@ -26,9 +26,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -36,10 +36,10 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.swing.JLabel;
+import net.pms.external.ExternalFactory;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.external.ExternalFactory;
+import net.pms.newgui.components.CustomJLabel;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +61,7 @@ public class DownloadPlugins {
 	private String author;
 	private String version;
 	private ArrayList<URL> jars;
-	private JLabel updateLabel;
+	private CustomJLabel updateLabel;
 	private String[] props;
 	private boolean test;
 	private boolean old;
@@ -527,7 +527,7 @@ public class DownloadPlugins {
 		return downloadList("");
 	}
 
-	public boolean install(JLabel update) throws Exception {
+	public boolean install(CustomJLabel update) throws Exception {
 		LOGGER.debug("Installing plugin " + name);
 		updateLabel = update;
 

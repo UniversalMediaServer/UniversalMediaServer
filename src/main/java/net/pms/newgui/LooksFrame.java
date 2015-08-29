@@ -44,6 +44,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.io.WindowsNamedPipe;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJLabel;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
@@ -89,7 +90,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private HelpTab ht;
 	private PluginTab pt;
 	private AbstractButton reload;
-	private JLabel status;
+	private CustomJLabel status;
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
 
@@ -413,7 +414,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		panel.add(toolBar, BorderLayout.NORTH);
 		panel.add(buildMain(), BorderLayout.CENTER);
-		status = new JLabel("");
+		status = new CustomJLabel("");
 		status.setBorder(BorderFactory.createEmptyBorder());
 		status.setComponentOrientation(orientation);
 

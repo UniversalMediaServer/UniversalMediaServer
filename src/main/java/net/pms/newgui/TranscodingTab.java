@@ -18,7 +18,6 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -34,13 +33,15 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
+import net.pms.Messages;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJLabel;
 import net.pms.newgui.components.CustomJTextField;
+import net.pms.newgui.components.CustomPanelBuilder;
+import net.pms.PMS;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
@@ -146,7 +147,7 @@ public class TranscodingTab {
 	public JComponent build() {
 		String colSpec = FormLayoutUtil.getColSpec(MAIN_COL_SPEC, orientation);
 		FormLayout mainlayout = new FormLayout(colSpec, MAIN_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(mainlayout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(mainlayout);
 		builder.border(Borders.DLU4);
 
 		builder.opaque(true);
@@ -181,7 +182,7 @@ public class TranscodingTab {
 	public JComponent buildLeft() {
 		String colSpec = FormLayoutUtil.getColSpec(LEFT_COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, LEFT_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
@@ -302,8 +303,8 @@ public class TranscodingTab {
 
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(2, 1, 4), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.19"), FormLayoutUtil.flip(cc.xyw(2, 5, 4), colSpec, orientation));
-		builder.addLabel(Messages.getString("TrTab2.20"), FormLayoutUtil.flip(cc.xyw(2, 7, 4), colSpec, orientation));
+		builder._addLabel(Messages.getString("TrTab2.19"), FormLayoutUtil.flip(cc.xyw(2, 5, 4), colSpec, orientation));
+		builder._addLabel(Messages.getString("TrTab2.20"), FormLayoutUtil.flip(cc.xyw(2, 7, 4), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
@@ -372,7 +373,7 @@ public class TranscodingTab {
 	public JComponent buildEmpty() {
 		String colSpec = FormLayoutUtil.getColSpec(EMPTY_COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, EMPTY_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
@@ -391,7 +392,7 @@ public class TranscodingTab {
 	public JComponent buildCommon() {
 		String colSpec = FormLayoutUtil.getColSpec(COMMON_COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, COMMON_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
@@ -411,7 +412,7 @@ public class TranscodingTab {
 		});
 
 		if (!configuration.isHideAdvancedOptions()) {
-			builder.addLabel(Messages.getString("TrTab2.23"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+			builder._addLabel(Messages.getString("TrTab2.23"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
 			maxbuffer.setToolTipText(Messages.getString("TrTab2.73"));
 			maxbuffer.addKeyListener(new KeyAdapter() {
@@ -428,7 +429,7 @@ public class TranscodingTab {
 			builder.add(maxbuffer, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
 			String nCpusLabel = String.format(Messages.getString("TrTab2.24"), Runtime.getRuntime().availableProcessors());
-			builder.addLabel(nCpusLabel, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+			builder._addLabel(nCpusLabel, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 			String[] guiCores = new String[MAX_CORES];
 			for (int i = 0; i < MAX_CORES; i++) {
@@ -501,7 +502,7 @@ public class TranscodingTab {
 	private JComponent buildVideoSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
 		FormLayout layout = new FormLayout(colSpec, "$lgap, 2*(pref, 3dlu), 10dlu, 10dlu, 4*(pref, 3dlu), pref");
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
 
@@ -530,7 +531,7 @@ public class TranscodingTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.add(new JLabel(Messages.getString("TrTab2.32")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		builder.add(new CustomJLabel(Messages.getString("TrTab2.32")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		Object data[] = new Object[] {
 			configuration.getMPEG2MainSettings(),                                                   /* Current setting */
 			String.format("Automatic (Wired)  /* %s */",          Messages.getString("TrTab2.71")), /* Recommended for wired networks */
@@ -567,7 +568,7 @@ public class TranscodingTab {
 		vq.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(vq), FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
 
-		builder.add(new JLabel(Messages.getString("TrTab2.79")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.add(new CustomJLabel(Messages.getString("TrTab2.79")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		Object x264QualityOptions[] = new Object[] {
 			configuration.getx264ConstantRateFactor(),                                        /* Current setting */
 			String.format("Automatic (Wired)  /* %s */", Messages.getString("TrTab2.71")),    /* Recommended for wired networks */
@@ -599,7 +600,7 @@ public class TranscodingTab {
 		x264Quality.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(x264Quality), FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
 
-		builder.add(new JLabel(Messages.getString("TrTab2.8")), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.add(new CustomJLabel(Messages.getString("TrTab2.8")), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		notranscode = new JTextField(configuration.getDisableTranscodeForExtensions());
 		notranscode.addKeyListener(new KeyAdapter() {
 			@Override
@@ -609,7 +610,7 @@ public class TranscodingTab {
 		});
 		builder.add(notranscode, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.9"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
+		builder._addLabel(Messages.getString("TrTab2.9"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 		forcetranscode = new JTextField(configuration.getForceTranscodeForExtensions());
 		forcetranscode.addKeyListener(new KeyAdapter() {
 			@Override
@@ -628,11 +629,11 @@ public class TranscodingTab {
 	private JComponent buildAudioSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
 		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 5*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
 
-		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
+		builder._addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
 		channels = new JComboBox(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
 		channels.setEditable(false);
@@ -696,7 +697,7 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(encodedAudioPassthrough), cc.xyw(1, 10, 3));
 
-		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder._addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		abitrate = new JTextField("" + configuration.getAudioBitrate());
 		abitrate.addKeyListener(new KeyAdapter() {
 			@Override
@@ -711,7 +712,7 @@ public class TranscodingTab {
 		});
 		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
 		langs.setToolTipText(Messages.getString("TrTab2.75"));
 		langs.addKeyListener(new KeyAdapter() {
@@ -731,11 +732,11 @@ public class TranscodingTab {
 	private JComponent buildSubtitlesSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow,3dlu, p:grow, 3dlu, right:p:grow,3dlu, pref:grow", orientation);
 		FormLayout layout = new FormLayout(colSpec, "$lgap, 11*(pref, 3dlu), pref");
-		final PanelBuilder builder = new PanelBuilder(layout);
+		final CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
 
-		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		defaultsubs = new CustomJTextField(configuration.getSubtitlesLanguages());
 		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
@@ -746,7 +747,7 @@ public class TranscodingTab {
 		});
 		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 2, 5), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xy(9, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xy(9, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedsub = new JTextField(configuration.getForcedSubtitleLanguage());
 		forcedsub.addKeyListener(new KeyAdapter() {
 			@Override
@@ -756,7 +757,7 @@ public class TranscodingTab {
 		});
 		builder.add(forcedsub, FormLayoutUtil.flip(cc.xy(11, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.95"), FormLayoutUtil.flip(cc.xy(13, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.95"), FormLayoutUtil.flip(cc.xy(13, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedtags = new JTextField(configuration.getForcedSubtitleTags());
 		forcedtags.addKeyListener(new KeyAdapter() {
 			@Override
@@ -766,7 +767,7 @@ public class TranscodingTab {
 		});
 		builder.add(forcedtags, FormLayoutUtil.flip(cc.xy(15, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
 		defaultaudiosubs.setToolTipText(Messages.getString("TrTab2.77"));
 		defaultaudiosubs.addKeyListener(new KeyAdapter() {
@@ -777,7 +778,7 @@ public class TranscodingTab {
 		});
 		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 4, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xyw(1, 6, 2), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xyw(1, 6, 2), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubtitlesFolder());
 		alternateSubFolder.addKeyListener(new KeyAdapter() {
 			@Override
@@ -807,7 +808,7 @@ public class TranscodingTab {
 		});
 		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xy(15, 6), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 		Object data[] = new Object[]{
 			configuration.getSubtitlesCodepage(),
 			Messages.getString("MEncoderVideo.96"),
@@ -880,7 +881,7 @@ public class TranscodingTab {
 
 		builder.add(GuiUtil.getPreferredSizeComponent(fribidi), FormLayoutUtil.flip(cc.xyw(11, 8, 4), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getFont());
 		defaultfont.addKeyListener(new KeyAdapter() {
 			@Override
@@ -906,8 +907,8 @@ public class TranscodingTab {
 
 		builder.add(fontselect, FormLayoutUtil.flip(cc.xy(15, 10), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 12, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 12, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		ass_scale = new JTextField(configuration.getAssScale());
 		ass_scale.addKeyListener(new KeyAdapter() {
 			@Override
@@ -916,7 +917,7 @@ public class TranscodingTab {
 			}
 		});
 
-		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 12), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 12), colSpec, orientation));
 
 		ass_outline = new JTextField(configuration.getAssOutline());
 		ass_outline.addKeyListener(new KeyAdapter() {
@@ -926,7 +927,7 @@ public class TranscodingTab {
 			}
 		});
 
-		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 12), colSpec, orientation));
+		builder._addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 12), colSpec, orientation));
 
 		ass_shadow = new JTextField(configuration.getAssShadow());
 		ass_shadow.addKeyListener(new KeyAdapter() {
@@ -935,8 +936,8 @@ public class TranscodingTab {
 				configuration.setAssShadow(ass_shadow.getText());
 			}
 		});
-
-		builder.addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 12), colSpec, orientation));
+		
+		builder._addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 12), colSpec, orientation));
 
 		ass_margin = new JTextField(configuration.getAssMargin());
 		ass_margin.addKeyListener(new KeyAdapter() {
@@ -1010,7 +1011,7 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle), FormLayoutUtil.flip(cc.xyw(1, 18, 11), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(1, 20), colSpec, orientation));
+		builder._addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(1, 20), colSpec, orientation));
 		depth3D = new JTextField(configuration.getDepth3D());
 		depth3D.setToolTipText(Messages.getString("TrTab2.91"));
 		depth3D.addKeyListener(new KeyAdapter() {

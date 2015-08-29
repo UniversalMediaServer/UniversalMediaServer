@@ -1,6 +1,5 @@
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -17,13 +16,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,7 +34,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -47,13 +47,15 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.Messages;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJLabel;
+import net.pms.newgui.components.CustomPanelBuilder;
+import net.pms.PMS;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import org.apache.commons.configuration.ConfigurationException;
@@ -85,7 +87,7 @@ public class PluginTab {
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		builder.opaque(true);
 
@@ -194,8 +196,8 @@ public class PluginTab {
 				JProgressBar progressBar = new JProgressBar();
 				progressBar.setIndeterminate(true);
 				panel.add(progressBar);
-				final JLabel label = new JLabel("");
-				final JLabel inst = new JLabel("");
+				final CustomJLabel label = new CustomJLabel("");
+				final CustomJLabel inst = new CustomJLabel("");
 				panel.add(inst);
 				panel.add(label);
 				frame.add(panel);
@@ -627,12 +629,12 @@ public class PluginTab {
 		panel.setLayout(layout);
 		final JFrame frame = new JFrame(Messages.getString("PluginTab.10"));
 		frame.setSize(270, 130);
-		final JLabel owner = new JLabel(Messages.getString("PluginTab.4"));
-		final JLabel tag = new JLabel(Messages.getString("PluginTab.5"));
-		final JLabel usr = new JLabel(Messages.getString("PluginTab.6"));
-		final JLabel pwd = new JLabel(Messages.getString("PluginTab.7"));
+		final CustomJLabel owner = new CustomJLabel(Messages.getString("PluginTab.4"));
+		final CustomJLabel tag = new CustomJLabel(Messages.getString("PluginTab.5"));
+		final CustomJLabel usr = new CustomJLabel(Messages.getString("PluginTab.6"));
+		final CustomJLabel pwd = new CustomJLabel(Messages.getString("PluginTab.7"));
 		final JCheckBox hidden = new JCheckBox(Messages.getString("PluginTab.14"), false);
-		JLabel empty = new JLabel(" ");
+		CustomJLabel empty = new CustomJLabel(" ");
 		String o = "";
 		String t = "";
 		String u = "";
@@ -734,7 +736,7 @@ public class PluginTab {
 			int col
 		) {
 			Component c = super.getTableCellRendererComponent(tab, obj, isSelected, hasFocus, row, col);
-			JLabel l = (JLabel)c;
+			CustomJLabel l = (CustomJLabel)c;
 
 			if (StringUtils.isNotEmpty(l.getText())) {
 				l.setText("**************");

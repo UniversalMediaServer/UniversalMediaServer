@@ -1,6 +1,5 @@
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
@@ -19,6 +18,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.Messages;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomPanelBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ public class RendererPanel extends JPanel {
 
 	public JPanel buildPanel() {
 		FormLayout layout = new FormLayout("left:pref, 400:grow");
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(new EmptyBorder(10, 10, 10, 10));
 		int y = 0;
 
@@ -53,7 +53,7 @@ public class RendererPanel extends JPanel {
 			buildEditBar(false);
 		}
 		builder.appendRow(rspec);
-		builder.addLabel(" ", cc.xy(1, ++y));
+		builder._addLabel(" ", cc.xy(1, ++y));
 
 		y = addMap(renderer.getDetails(), builder, y);
 		if (renderer.isUpnp()) {
@@ -63,7 +63,7 @@ public class RendererPanel extends JPanel {
 
 		if (renderer.isControllable()) {
 			builder.appendRow(rspec);
-			builder.addLabel(" ", cc.xy(1, ++y));
+			builder._addLabel(" ", cc.xy(1, ++y));
 			builder.appendRow(rspec);
 			builder.addSeparator(Messages.getString("RendererPanel.1"), cc.xyw(1, ++y, 2));
 			builder.appendRow(rspec);
@@ -235,9 +235,9 @@ public class RendererPanel extends JPanel {
 		return null;
 	}
 
-	public int addItem(String key, String value, PanelBuilder builder, int y) {
+	public int addItem(String key, String value, CustomPanelBuilder builder, int y) {
 		builder.appendRow(rspec);
-		builder.addLabel(key.length() > 0 ? key + ":  " : "", cc.xy(1, ++y));
+		builder._addLabel(key.length() > 0 ? key + ":  " : "", cc.xy(1, ++y));
 		JTextField val = new JTextField(value);
 		val.setEditable(false);
 		val.setBackground(Color.white);
@@ -245,14 +245,14 @@ public class RendererPanel extends JPanel {
 		return y;
 	}
 
-	public int addMap(Map<String, String> map, PanelBuilder builder, int y) {
+	public int addMap(Map<String, String> map, CustomPanelBuilder builder, int y) {
 		for (Map.Entry<String, String> entry : map.entrySet()) {
 			y = addItem(entry.getKey(), entry.getValue(), builder, y);
 		}
 		return y;
 	}
 
-	public int addStrings(String title, String[] strings, PanelBuilder builder, int y) {
+	public int addStrings(String title, String[] strings, CustomPanelBuilder builder, int y) {
 		for (String string : strings) {
 			y = addItem(title, string, builder, y);
 			title = "";
@@ -260,7 +260,7 @@ public class RendererPanel extends JPanel {
 		return y;
 	}
 
-	public int addList(String title, List<String> list, PanelBuilder builder, int y) {
+	public int addList(String title, List<String> list, CustomPanelBuilder builder, int y) {
 		for (String item : list) {
 			y = addItem(title, item, builder, y);
 			title = "";

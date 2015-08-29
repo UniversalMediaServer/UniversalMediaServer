@@ -18,7 +18,6 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
 import java.awt.Color;
@@ -33,17 +32,19 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.Messages;
+import net.pms.newgui.components.CustomJLabel;
+import net.pms.newgui.components.CustomPanelBuilder;
+import net.pms.PMS;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
@@ -59,11 +60,11 @@ public class StatusTab {
 
 	public static class RendererItem implements ActionListener {
 		public ImagePanel icon;
-		public JLabel label;
+		public CustomJLabel label;
 		public GuiUtil.MarqueeLabel playingLabel;
 //		public GuiUtil.ScrollLabel playingLabel;
 		public GuiUtil.FixedPanel playing;
-		public JLabel time;
+		public CustomJLabel time;
 		public JFrame frame;
 		public GuiUtil.SmoothProgressBar rendererProgressBar;
 		public RendererPanel panel;
@@ -73,14 +74,14 @@ public class StatusTab {
 		public RendererItem(RendererConfiguration r) {
 			icon = addRendererIcon(r.getRendererIcon());
 			icon.enableRollover();
-			label = new JLabel(r.getRendererName());
+			label = new CustomJLabel(r.getRendererName());
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
 //			playingLabel = new GuiUtil.ScrollLabel(" ");
 			playingLabel.setForeground(Color.gray);
 			int h = (int) playingLabel.getSize().getHeight();
 			playing = new GuiUtil.FixedPanel(0, h);
 			playing.add(playingLabel);
-			time = new JLabel(" ");
+			time = new CustomJLabel(" ");
 			time.setForeground(Color.gray);
 			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100, new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
 			rendererProgressBar.setStringPainted(true);
@@ -128,7 +129,7 @@ public class StatusTab {
 
 		public JPanel getPanel() {
 			if (_panel == null) {
-				PanelBuilder b = new PanelBuilder(new FormLayout(
+				CustomPanelBuilder b = new CustomPanelBuilder(new FormLayout(
 					"center:pref",
 					"max(140px;pref), 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
 				));
@@ -147,14 +148,14 @@ public class StatusTab {
 
 	private ImagePanel imagePanel;
 	private JPanel renderers;
-	private JLabel jl;
+	private CustomJLabel jl;
 	private JProgressBar memoryProgressBar;
 	private GuiUtil.SegmentedProgressBarUI memBarUI;
-	private JLabel bitrateLabel;
-	private JLabel currentBitrate;
-	private JLabel currentBitrateLabel;
-	private JLabel peakBitrate;
-	private JLabel peakBitrateLabel;
+	private CustomJLabel bitrateLabel;
+	private CustomJLabel currentBitrate;
+	private CustomJLabel currentBitrateLabel;
+	private CustomJLabel peakBitrate;
+	private CustomJLabel peakBitrateLabel;
 	private long rc = 0;
 	private long peak;
 	private static DecimalFormat formatter = new DecimalFormat("#,###");
@@ -177,7 +178,7 @@ public class StatusTab {
 		}
 	}
 
-	public JLabel getJl() {
+	public CustomJLabel getJl() {
 		return jl;
 	}
 
@@ -207,7 +208,7 @@ public class StatusTab {
 			                     //////////////////////////////////////////////////
 		);
 
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.border(Borders.DIALOG);
 		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
@@ -233,7 +234,7 @@ public class StatusTab {
 		cmp = builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
 
 		// Connected
-		jl = new JLabel(Messages.getString("StatusTab.3"));
+		jl = new CustomJLabel(Messages.getString("StatusTab.3"));
 		builder.add(jl, FormLayoutUtil.flip(cc.xy(1, 7,  "center, top"), colSpec, orientation));
 		jl.setFont(bold);
 		jl.setForeground(fgColor);
@@ -259,25 +260,25 @@ public class StatusTab {
 
 		// Bitrate
 		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
-		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));
+		CustomPanelBuilder bitrateBuilder = new CustomPanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));	
 
-		bitrateLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
+		bitrateLabel = new CustomJLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
 
-		currentBitrateLabel = new JLabel(Messages.getString("StatusTab.14"));
+		currentBitrateLabel = new CustomJLabel(Messages.getString("StatusTab.14"));
 		currentBitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
 
-		currentBitrate = new JLabel("0");
+		currentBitrate = new CustomJLabel("0");
 		currentBitrate.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrate, FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
 
-		peakBitrateLabel = new JLabel(Messages.getString("StatusTab.15"));
+		peakBitrateLabel = new CustomJLabel(Messages.getString("StatusTab.15"));
 		peakBitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
 
-		peakBitrate = new JLabel("0");
+		peakBitrate = new CustomJLabel("0");
 		peakBitrate.setForeground(fgColor);
 		bitrateBuilder.add(peakBitrate, FormLayoutUtil.flip(cc.xy(3, 5), bitColSpec, orientation));
 
