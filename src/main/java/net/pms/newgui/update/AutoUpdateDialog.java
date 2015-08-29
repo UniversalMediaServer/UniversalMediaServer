@@ -10,13 +10,14 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.newgui.components.CustomJLabel;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 
 public class AutoUpdateDialog extends JDialog implements Observer {
 	private static final long serialVersionUID = 3809427933990495309L;
 	private final AutoUpdater autoUpdater;
-	private JLabel stateLabel = new JLabel();
+	private CustomJLabel stateLabel = new CustomJLabel();
 	private JButton okButton = new DownloadButton();
 	private JButton cancelButton = new CancelButton();
 	private JProgressBar downloadProgressBar = new JProgressBar();

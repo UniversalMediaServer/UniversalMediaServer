@@ -19,28 +19,29 @@
 package net.pms.newgui;
 
 import ch.qos.logback.classic.Level;
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
 import java.awt.ComponentOrientation;
-import java.awt.EventQueue;
-import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import javax.swing.*;
-import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.Messages;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJLabel;
+import net.pms.newgui.components.CustomPanelBuilder;
+import net.pms.PMS;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.UMSUtils;
@@ -110,7 +111,7 @@ public class TracesTab {
 			colSpec,
 			"fill:10:grow, p"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
+		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
@@ -203,7 +204,7 @@ public class TracesTab {
 				LOGGER.info("Changed debug level to " + level);
 			}
 		});
-		JLabel label = new JLabel(Messages.getString("TracesTab.11") + ": ");
+		CustomJLabel label = new CustomJLabel(Messages.getString("TracesTab.11") + ": ");
 		builder.add(label, cc.xy(3, 2));
 		builder.add(level, cc.xy(4, 2));
 		if (PMS.getTraceMode() == 2) {
