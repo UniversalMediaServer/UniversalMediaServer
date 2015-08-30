@@ -33,6 +33,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -736,13 +737,13 @@ public class PluginTab {
 			int col
 		) {
 			Component c = super.getTableCellRendererComponent(tab, obj, isSelected, hasFocus, row, col);
-			CustomJLabel l = (CustomJLabel)c;
+			JLabel l = (JLabel)c;
 
 			if (StringUtils.isNotEmpty(l.getText())) {
 				l.setText("**************");
 			}
 
-			return l;
+			return c;
 		}
 	}
 }
