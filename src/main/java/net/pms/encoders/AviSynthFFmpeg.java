@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -45,6 +44,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -232,10 +232,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return file;
 	}
 
-	private JCheckBox multithreading;
-	private JCheckBox interframe;
-	private static JCheckBox interframegpu;
-	private JCheckBox convertfps;
+	private CustomJCheckBox multithreading;
+	private CustomJCheckBox interframe;
+	private static CustomJCheckBox interframegpu;
+	private CustomJCheckBox convertfps;
 
 	@Override
 	protected JComponent config(String languageLabel) {
@@ -252,7 +252,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.isFfmpegAviSynthMultithreading());
+		multithreading = new CustomJCheckBox(Messages.getString("MEncoderVideo.35"), configuration.isFfmpegAviSynthMultithreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener(new ItemListener() {
 			@Override
@@ -262,7 +262,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getFfmpegAvisynthInterFrame());
+		interframe = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getFfmpegAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
 		interframe.addActionListener(new ActionListener() {
 			@Override
@@ -280,7 +280,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getFfmpegAvisynthInterFrameGPU());
+		interframegpu = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getFfmpegAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
@@ -290,7 +290,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getFfmpegAvisynthConvertFps());
+		convertfps = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getFfmpegAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener(new ItemListener() {
 			@Override

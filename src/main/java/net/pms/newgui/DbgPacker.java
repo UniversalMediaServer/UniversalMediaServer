@@ -25,6 +25,7 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJCheckBox;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public class DbgPacker implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
 
-	private LinkedHashMap<File, JCheckBox> items;
+	private LinkedHashMap<File, CustomJCheckBox> items;
 	private String debug_log, dbg_zip;
 
 	public DbgPacker() {
@@ -50,12 +51,12 @@ public class DbgPacker implements ActionListener {
 		c.ipadx = 5;
 		c.gridx = 0;
 		c.gridy = 0;
-		for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
+		for (Map.Entry<File, CustomJCheckBox> item : items.entrySet()) {
 			File file = item.getKey();
 			boolean exists = file.exists();
-			JCheckBox box = item.getValue();
+			CustomJCheckBox box = item.getValue();
 			if (box == null) {
-				box = new JCheckBox(file.getName(), exists);
+				box = new CustomJCheckBox(file.getName(), exists);
 				item.setValue(box);
 			}
 			if (!exists) {
@@ -213,7 +214,7 @@ public class DbgPacker implements ActionListener {
 		}
 		try {
 			try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dbg_zip))) {
-				for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
+				for (Map.Entry<File, CustomJCheckBox> item : items.entrySet()) {
 					if (item.getValue().isSelected()) {
 						File file = item.getKey();
 						LOGGER.debug("packing " + file.getAbsolutePath());

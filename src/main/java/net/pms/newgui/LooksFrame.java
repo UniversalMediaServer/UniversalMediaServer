@@ -44,6 +44,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.io.WindowsNamedPipe;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.components.CustomJLabel;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
@@ -162,7 +163,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		// Work around caching in MetalRadioButtonUI
 		JRadioButton radio = new JRadioButton();
 		radio.getUI().uninstallUI(radio);
-		JCheckBox checkBox = new JCheckBox();
+		CustomJCheckBox checkBox = new CustomJCheckBox();
 		checkBox.getUI().uninstallUI(checkBox);
 
 		if (selectedLaf != null) {

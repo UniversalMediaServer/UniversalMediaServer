@@ -34,6 +34,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.Messages;
 import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.components.CustomPanelBuilder;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
@@ -48,12 +49,12 @@ public class GeneralTab {
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
-	public JCheckBox smcheckBox;
-	private JCheckBox autoStart;
-	private JCheckBox autoUpdateCheckBox;
-	private JCheckBox hideAdvancedOptions;
-	private JCheckBox newHTTPEngine;
-	private JCheckBox preventSleep;
+	public CustomJCheckBox smcheckBox;
+	private CustomJCheckBox autoStart;
+	private CustomJCheckBox autoUpdateCheckBox;
+	private CustomJCheckBox hideAdvancedOptions;
+	private CustomJCheckBox newHTTPEngine;
+	private CustomJCheckBox preventSleep;
 	private JTextField host;
 	private JTextField port;
 	private JComboBox langs;
@@ -61,15 +62,15 @@ public class GeneralTab {
 	private JComboBox networkinterfacesCBX;
 	private JTextField ip_filter;
 	public JTextField maxbitrate;
-	private JCheckBox adaptBitrate;
+	private CustomJCheckBox adaptBitrate;
 	private JComboBox renderers;
 	private final PmsConfiguration configuration;
-	private JCheckBox fdCheckBox;
-	private JCheckBox extNetBox;
-	private JCheckBox appendProfileName;
-	private JCheckBox runWizardOnProgramStartup;
+	private CustomJCheckBox fdCheckBox;
+	private CustomJCheckBox extNetBox;
+	private CustomJCheckBox appendProfileName;
+	private CustomJCheckBox runWizardOnProgramStartup;
 	private LooksFrame looksFrame;
-	private JCheckBox singleInstance;
+	private CustomJCheckBox singleInstance;
 	private CustomJButton installService;
 
 	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
@@ -92,7 +93,7 @@ public class GeneralTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		smcheckBox = new JCheckBox(Messages.getString("NetworkTab.3"), configuration.isMinimized());
+		smcheckBox = new CustomJCheckBox(Messages.getString("NetworkTab.3"), configuration.isMinimized());
 		smcheckBox.setContentAreaFilled(false);
 		smcheckBox.addItemListener(new ItemListener() {
 			@Override
@@ -159,7 +160,7 @@ public class GeneralTab {
 			builder._addLabel(Messages.getString("NetworkTab.71"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(serverName, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
-			appendProfileName = new JCheckBox(Messages.getString("NetworkTab.72"), configuration.isAppendProfileName());
+			appendProfileName = new CustomJCheckBox(Messages.getString("NetworkTab.72"), configuration.isAppendProfileName());
 			appendProfileName.setToolTipText(Messages.getString("NetworkTab.73"));
 			appendProfileName.setContentAreaFilled(false);
 			appendProfileName.addItemListener(new ItemListener() {
@@ -175,7 +176,7 @@ public class GeneralTab {
 		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 		if (Platform.isWindows()) {
-			autoStart = new JCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
+			autoStart = new CustomJCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
 			autoStart.setContentAreaFilled(false);
 			autoStart.addItemListener(new ItemListener() {
 				@Override
@@ -204,7 +205,7 @@ public class GeneralTab {
 		});
 		builder.add(checkForUpdates, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
-		autoUpdateCheckBox = new JCheckBox(Messages.getString("NetworkTab.9"), configuration.isAutoUpdate());
+		autoUpdateCheckBox = new CustomJCheckBox(Messages.getString("NetworkTab.9"), configuration.isAutoUpdate());
 		autoUpdateCheckBox.setContentAreaFilled(false);
 		autoUpdateCheckBox.addItemListener(new ItemListener() {
 			@Override
@@ -219,7 +220,7 @@ public class GeneralTab {
 			autoUpdateCheckBox.setEnabled(false);
 		}
 
-		hideAdvancedOptions = new JCheckBox(Messages.getString("NetworkTab.61"), configuration.isHideAdvancedOptions());
+		hideAdvancedOptions = new CustomJCheckBox(Messages.getString("NetworkTab.61"), configuration.isHideAdvancedOptions());
 		hideAdvancedOptions.setContentAreaFilled(false);
 		hideAdvancedOptions.addActionListener(new ActionListener() {
 			@Override
@@ -230,7 +231,7 @@ public class GeneralTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(hideAdvancedOptions), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
-		runWizardOnProgramStartup = new JCheckBox(Messages.getString("GeneralTab.9"), configuration.isRunWizard());
+		runWizardOnProgramStartup = new CustomJCheckBox(Messages.getString("GeneralTab.9"), configuration.isRunWizard());
 		runWizardOnProgramStartup.setContentAreaFilled(false);
 		runWizardOnProgramStartup.addActionListener(new ActionListener() {
 			@Override
@@ -242,7 +243,7 @@ public class GeneralTab {
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
-			singleInstance = new JCheckBox(Messages.getString("GeneralTab.10"), configuration.isRunSingleInstance());
+			singleInstance = new CustomJCheckBox(Messages.getString("GeneralTab.10"), configuration.isRunSingleInstance());
 			singleInstance.setContentAreaFilled(false);
 			singleInstance.setToolTipText(Messages.getString("GeneralTab.11"));
 			singleInstance.addActionListener(new ActionListener() {
@@ -401,7 +402,7 @@ public class GeneralTab {
 				maxbitrate.setEnabled(true);
 			}
 
-			adaptBitrate = new JCheckBox(Messages.getString("GeneralTab.12"), configuration.isAutomaticMaximumBitrate());
+			adaptBitrate = new CustomJCheckBox(Messages.getString("GeneralTab.12"), configuration.isAutomaticMaximumBitrate());
 			adaptBitrate.setContentAreaFilled(false);
 			adaptBitrate.addActionListener(new ActionListener() {
 				@Override
@@ -433,7 +434,7 @@ public class GeneralTab {
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			newHTTPEngine = new JCheckBox(Messages.getString("NetworkTab.32"), configuration.isHTTPEngineV2());
+			newHTTPEngine = new CustomJCheckBox(Messages.getString("NetworkTab.32"), configuration.isHTTPEngineV2());
 			newHTTPEngine.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
@@ -443,7 +444,7 @@ public class GeneralTab {
 			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 			if (Platform.isWindows()) {
-				preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
+				preventSleep = new CustomJCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
 				preventSleep.addItemListener(new ItemListener() {
 					@Override
 					public void itemStateChanged(ItemEvent e) {
@@ -472,7 +473,7 @@ public class GeneralTab {
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
-			fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"), configuration.isRendererForceDefault());
+			fdCheckBox = new CustomJCheckBox(Messages.getString("NetworkTab.38"), configuration.isRendererForceDefault());
 			fdCheckBox.setContentAreaFilled(false);
 			fdCheckBox.addItemListener(new ItemListener() {
 				@Override
@@ -485,7 +486,7 @@ public class GeneralTab {
 			ypos += 2;
 
 			// External network box
-			extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"), configuration.getExternalNetwork());
+			extNetBox = new CustomJCheckBox(Messages.getString("NetworkTab.56"), configuration.getExternalNetwork());
 			extNetBox.setToolTipText(Messages.getString("NetworkTab.67"));
 			extNetBox.setContentAreaFilled(false);
 			extNetBox.addItemListener(new ItemListener() {
