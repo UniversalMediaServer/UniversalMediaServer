@@ -741,7 +741,7 @@ public class TsMuxeRVideo extends Player {
 				configuration.setTsmuxerForceFps(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(tsmuxerforcefps), FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		builder.add(tsmuxerforcefps, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
 		muxallaudiotracks = new CustomJCheckBox(Messages.getString("TsMuxeRVideo.19"), configuration.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
@@ -751,7 +751,7 @@ public class TsMuxeRVideo extends Player {
 				configuration.setMuxAllAudioTracks(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(muxallaudiotracks), FormLayoutUtil.flip(cc.xy(2, 5), colSpec, orientation));
+		builder.add(muxallaudiotracks, FormLayoutUtil.flip(cc.xy(2, 5), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 

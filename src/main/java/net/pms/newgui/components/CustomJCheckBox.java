@@ -1,5 +1,7 @@
 package net.pms.newgui.components;
 
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
 import javax.swing.JCheckBox;
 import javax.swing.JToolTip;
 
@@ -16,6 +18,7 @@ public class CustomJCheckBox extends JCheckBox  {
 
 	public CustomJCheckBox(String text, boolean selected) {
 	    super(text, selected);
+	    setRolloverEnabled(false);
 	}
 
 	public JToolTip createToolTip() {
@@ -24,8 +27,34 @@ public class CustomJCheckBox extends JCheckBox  {
 	    return tip;
 	}
 
+	String prevText = null;
+	int hitWidth = -1;
+
 	@Override
 	public void setText(String text) {
+		if (text == null || !text.equals(prevText)) {
+			// Mark as changed
+			hitWidth = -1;
+		}
+		prevText = text;
 		super.setText(CustomJLabel.htmlify(text));
+	}
+
+	@Override
+	public void paint(Graphics g) {
+		if (hitWidth == -1) {
+			// Text has changed, recalculate the hit zone
+			// FIXME: this is just a "close enough" fudge
+			hitWidth = g.getFontMetrics().stringWidth(getText()) - 75;
+		}
+		super.paint(g);
+	}
+
+	@Override
+	protected void processMouseEvent(MouseEvent e) {
+		// Block events beyond the hit zone
+		if (e.getX() < hitWidth) {
+			super.processMouseEvent(e);
+		}
 	}
 }
