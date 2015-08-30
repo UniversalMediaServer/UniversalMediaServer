@@ -28,6 +28,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -262,7 +263,7 @@ public class PluginTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				addEditDialog(credTable, -1);
-			}				
+			}
 		});
 
 		// Edit button
@@ -388,7 +389,7 @@ public class PluginTab {
 	private void refresh(JTable table, String[] cols) {
 		plugins = DownloadPlugins.downloadList();
 		prepareTable(table, cols);
-		
+
 		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
 		tableModel.setRowCount(0);
 
@@ -534,7 +535,7 @@ public class PluginTab {
 			if (StringUtils.isEmpty(key)) {
 				continue;
 			}
-			Object val = cred.getProperty(key); 
+			Object val = cred.getProperty(key);
 			String[] ownerTag = key.split("\\.", 2);
 			ArrayList<String> usrPwd = null;
 
@@ -556,7 +557,7 @@ public class PluginTab {
 					table.setValueAt(ownerTag[1], i , 1);
 				}
 				String[] tmp = val1.split(",", 2);
-				if (tmp.length > 0) { 	
+				if (tmp.length > 0) {
 					table.setValueAt(tmp[0], i , 2);
 				}
 				if (tmp.length > 1) {
@@ -605,7 +606,7 @@ public class PluginTab {
 				String key = oText.getText();
 				String pwd = new String(pText.getPassword());
 				if (
-					StringUtils.isEmpty(key) || 
+					StringUtils.isEmpty(key) ||
 					StringUtils.isEmpty(uText.getText()) ||
 					StringUtils.isEmpty(pwd)
 				) {
@@ -681,13 +682,13 @@ public class PluginTab {
 			int col
 		) {
 			Component c = super.getTableCellRendererComponent(tab, obj, isSelected, hasFocus, row, col);
-			CustomJLabel l = (CustomJLabel)c;
+			JLabel l = (JLabel)c;
 
 			if (StringUtils.isNotEmpty(l.getText())) {
 				l.setText("**************");
 			}
 
-			return l;
+			return c;
 		}
 	}
 }
