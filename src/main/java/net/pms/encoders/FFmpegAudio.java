@@ -85,7 +85,7 @@ public class FFmpegAudio extends FFMpegVideo {
 				configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(noresample), cc.xy(2, 3));
+		builder.add(noresample, cc.xy(2, 3));
 
 		return builder.getPanel();
 	}
