@@ -38,6 +38,7 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.Messages;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.components.CustomJLabel;
 import net.pms.newgui.components.CustomJTextField;
 import net.pms.newgui.components.CustomPanelBuilder;
@@ -69,7 +70,7 @@ public class TranscodingTab {
 		orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 	}
 
-	private JCheckBox disableSubs;
+	private CustomJCheckBox disableSubs;
 	private JTextField forcetranscode;
 	private JTextField notranscode;
 	private JTextField maxbuffer;
@@ -79,36 +80,36 @@ public class TranscodingTab {
 	private CardLayout cl;
 	private JTextField abitrate;
 	private JTree tree;
-	private JCheckBox forcePCM;
-	private JCheckBox encodedAudioPassthrough;
-	public static JCheckBox forceDTSinPCM;
+	private CustomJCheckBox forcePCM;
+	private CustomJCheckBox encodedAudioPassthrough;
+	public static CustomJCheckBox forceDTSinPCM;
 	private JComboBox channels;
 	private JComboBox vq;
 	private JComboBox x264Quality;
-	private JCheckBox ac3remux;
-	private JCheckBox mpeg2remux;
-	private JCheckBox chapter_support;
+	private CustomJCheckBox ac3remux;
+	private CustomJCheckBox mpeg2remux;
+	private CustomJCheckBox chapter_support;
 	private JTextField chapter_interval;
-	private JCheckBox videoHWacceleration;
+	private CustomJCheckBox videoHWacceleration;
 	private JTextField langs;
 	private JTextField defaultsubs;
 	private JTextField forcedsub;
 	private JTextField forcedtags;
 	private JTextField alternateSubFolder;
 	private JButton folderSelectButton;
-	private JCheckBox autoloadExternalSubtitles;
+	private CustomJCheckBox autoloadExternalSubtitles;
 	private JTextField defaultaudiosubs;
 	private JComboBox subtitleCodePage;
 	private JTextField defaultfont;
 	private JButton fontselect;
-	private JCheckBox fribidi;
+	private CustomJCheckBox fribidi;
 	private JTextField ass_scale;
 	private JTextField ass_outline;
 	private JTextField ass_shadow;
 	private JTextField ass_margin;
 	private JButton subColor;
-	private JCheckBox forceExternalSubtitles;
-	private JCheckBox useEmbeddedSubtitlesStyle;
+	private CustomJCheckBox forceExternalSubtitles;
+	private CustomJCheckBox useEmbeddedSubtitlesStyle;
 	private JTextField depth3D;
 
 	/*
@@ -402,7 +403,7 @@ public class TranscodingTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		disableSubs = new JCheckBox(Messages.getString("TrTab2.51"), configuration.isDisableSubtitles());
+		disableSubs = new CustomJCheckBox(Messages.getString("TrTab2.51"), configuration.isDisableSubtitles());
 		disableSubs.setContentAreaFilled(false);
  		disableSubs.addItemListener(new ItemListener() {
 			@Override
@@ -452,7 +453,7 @@ public class TranscodingTab {
 			});
 			builder.add(nbcores, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
 
-			chapter_support = new JCheckBox(Messages.getString("TrTab2.52"), configuration.isChapterSupport());
+			chapter_support = new CustomJCheckBox(Messages.getString("TrTab2.52"), configuration.isChapterSupport());
 			chapter_support.setContentAreaFilled(false);
 			chapter_support.addItemListener(new ItemListener() {
 				@Override
@@ -506,7 +507,7 @@ public class TranscodingTab {
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
 
-		videoHWacceleration = new JCheckBox(Messages.getString("TrTab2.70"), configuration.isGPUAcceleration());
+		videoHWacceleration = new CustomJCheckBox(Messages.getString("TrTab2.70"), configuration.isGPUAcceleration());
 		videoHWacceleration.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -516,7 +517,7 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(videoHWacceleration), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		videoHWacceleration.setEnabled(false);
 
-		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39"), configuration.isMencoderRemuxMPEG2());
+		mpeg2remux = new CustomJCheckBox(Messages.getString("MEncoderVideo.39"), configuration.isMencoderRemuxMPEG2());
 		mpeg2remux.setToolTipText(Messages.getString("TrTab2.82") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		mpeg2remux.setContentAreaFilled(false);
 		mpeg2remux.addItemListener(new ItemListener() {
@@ -650,7 +651,7 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(channels), FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
-		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isAudioUsePCM());
+		forcePCM = new CustomJCheckBox(Messages.getString("TrTab2.27"), configuration.isAudioUsePCM());
 		forcePCM.setToolTipText(Messages.getString("TrTab2.83"));
 		forcePCM.setContentAreaFilled(false);
 		forcePCM.addItemListener(new ItemListener() {
@@ -661,7 +662,7 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(forcePCM), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
-		ac3remux = new JCheckBox(Messages.getString("TrTab2.26"), configuration.isAudioRemuxAC3());
+		ac3remux = new CustomJCheckBox(Messages.getString("TrTab2.26"), configuration.isAudioRemuxAC3());
 		ac3remux.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
 		ac3remux.addItemListener(new ItemListener() {
@@ -672,7 +673,7 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(ac3remux), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
-		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
+		forceDTSinPCM = new CustomJCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
 		forceDTSinPCM.setContentAreaFilled(false);
@@ -684,7 +685,7 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(forceDTSinPCM), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
-		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
+		encodedAudioPassthrough = new CustomJCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
 		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		encodedAudioPassthrough.setContentAreaFilled(false);
 		encodedAudioPassthrough.addItemListener(new ItemListener() {
@@ -873,7 +874,7 @@ public class TranscodingTab {
 		subtitleCodePage.setEditable(true);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
 
-		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
+		fribidi = new CustomJCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
 		fribidi.addItemListener(new ItemListener() {
 			@Override
@@ -954,7 +955,7 @@ public class TranscodingTab {
 		});
 		builder.add(ass_margin, FormLayoutUtil.flip(cc.xy(17, 12), colSpec, orientation));
 		
-		autoloadExternalSubtitles = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
+		autoloadExternalSubtitles = new CustomJCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
 		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
@@ -987,7 +988,7 @@ public class TranscodingTab {
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(13, 14, 3), colSpec, orientation));
 
-		forceExternalSubtitles = new JCheckBox(Messages.getString("TrTab2.87"), configuration.isForceExternalSubtitles());
+		forceExternalSubtitles = new CustomJCheckBox(Messages.getString("TrTab2.87"), configuration.isForceExternalSubtitles());
 		forceExternalSubtitles.setToolTipText(Messages.getString("TrTab2.88"));
 		forceExternalSubtitles.setContentAreaFilled(false);
 		forceExternalSubtitles.addItemListener(new ItemListener() {
@@ -1002,7 +1003,7 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(forceExternalSubtitles), FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
 
-		useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle());
+		useEmbeddedSubtitlesStyle = new CustomJCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("TrTab2.89"));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
 		useEmbeddedSubtitlesStyle.addItemListener(new ItemListener() {

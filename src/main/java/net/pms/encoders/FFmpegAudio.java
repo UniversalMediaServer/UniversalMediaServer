@@ -39,6 +39,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	// should be private
 	@Deprecated
-	JCheckBox noresample;
+	CustomJCheckBox noresample;
 
 	@Deprecated
 	public FFmpegAudio(PmsConfiguration configuration) {
@@ -76,7 +77,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		noresample = new JCheckBox(Messages.getString("TrTab2.22"), configuration.isAudioResample());
+		noresample = new CustomJCheckBox(Messages.getString("TrTab2.22"), configuration.isAudioResample());
 		noresample.setContentAreaFilled(false);
 		noresample.addItemListener(new ItemListener() {
 			@Override

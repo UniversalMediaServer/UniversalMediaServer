@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Locale;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import net.pms.Messages;
@@ -41,6 +40,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.io.*;
+import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
@@ -712,8 +712,8 @@ public class TsMuxeRVideo extends Player {
 	public int type() {
 		return Format.VIDEO;
 	}
-	private JCheckBox tsmuxerforcefps;
-	private JCheckBox muxallaudiotracks;
+	private CustomJCheckBox tsmuxerforcefps;
+	private CustomJCheckBox muxallaudiotracks;
 
 	@Override
 	public JComponent config() {
@@ -733,7 +733,7 @@ public class TsMuxeRVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		tsmuxerforcefps = new JCheckBox(Messages.getString("TsMuxeRVideo.2"), configuration.isTsmuxerForceFps());
+		tsmuxerforcefps = new CustomJCheckBox(Messages.getString("TsMuxeRVideo.2"), configuration.isTsmuxerForceFps());
 		tsmuxerforcefps.setContentAreaFilled(false);
 		tsmuxerforcefps.addItemListener(new ItemListener() {
 			@Override
@@ -743,7 +743,7 @@ public class TsMuxeRVideo extends Player {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(tsmuxerforcefps), FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		muxallaudiotracks = new JCheckBox(Messages.getString("TsMuxeRVideo.19"), configuration.isMuxAllAudioTracks());
+		muxallaudiotracks = new CustomJCheckBox(Messages.getString("TsMuxeRVideo.19"), configuration.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
 		muxallaudiotracks.addItemListener(new ItemListener() {
 			@Override

@@ -42,6 +42,7 @@ import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.GuiUtil;
+import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.util.*;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -65,10 +66,10 @@ public class VLCVideo extends Player {
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
 	public static final String ID = "vlctranscoder";
 	protected JTextField scale;
-	protected JCheckBox experimentalCodecs;
-	protected JCheckBox audioSyncEnabled;
+	protected CustomJCheckBox experimentalCodecs;
+	protected CustomJCheckBox audioSyncEnabled;
 	protected JTextField sampleRate;
-	protected JCheckBox sampleRateOverride;
+	protected CustomJCheckBox sampleRateOverride;
 	SystemUtils registry = PMS.get().getRegistry();
 
 	protected boolean videoRemux;
@@ -627,7 +628,7 @@ public class VLCVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
+		experimentalCodecs = new CustomJCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
 		experimentalCodecs.addItemListener(new ItemListener() {
 			@Override
@@ -637,7 +638,7 @@ public class VLCVideo extends Player {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(experimentalCodecs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		audioSyncEnabled = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
+		audioSyncEnabled = new CustomJCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
 		audioSyncEnabled.addItemListener(new ItemListener() {
 			@Override

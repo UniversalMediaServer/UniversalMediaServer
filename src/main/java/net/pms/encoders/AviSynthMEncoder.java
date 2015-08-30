@@ -41,6 +41,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -63,10 +64,10 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	public static final String ID = "avsmencoder";
 
 	private JTextArea textArea;
-	private JCheckBox convertfps;
-	private JCheckBox interframe;
-	private static JCheckBox interframegpu;
-	private JCheckBox multithreading;
+	private CustomJCheckBox convertfps;
+	private CustomJCheckBox interframe;
+	private static CustomJCheckBox interframegpu;
+	private CustomJCheckBox multithreading;
 
 	@Override
 	public JComponent config() {
@@ -84,7 +85,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.getAvisynthMultiThreading());
+		multithreading = new CustomJCheckBox(Messages.getString("MEncoderVideo.35"), configuration.getAvisynthMultiThreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener(new ItemListener() {
 			@Override
@@ -94,7 +95,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getAvisynthInterFrame());
+		interframe = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
 		interframe.addActionListener(new ActionListener() {
 			@Override
@@ -112,7 +113,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getAvisynthInterFrameGPU());
+		interframegpu = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
@@ -122,7 +123,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getAvisynthConvertFps());
+		convertfps = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener(new ItemListener() {
 			@Override

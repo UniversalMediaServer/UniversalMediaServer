@@ -45,4 +45,9 @@ public class CustomJCheckBox extends JCheckBox  {
 	    tip.setComponent(this);
 	    return tip;
 	}
+
+	@Override
+	public void setText(String text) {
+		super.setText(CustomJLabel.htmlify(text));
+	}
 }
