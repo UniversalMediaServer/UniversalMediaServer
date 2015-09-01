@@ -399,7 +399,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tt = new TracesTab(configuration, this);
 		gt = new GeneralTab(configuration, this);
 		pt = new PluginTab(configuration, this);
-		nt = new NavigationShareTab(configuration, this);		
+		nt = new NavigationShareTab(configuration);
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 

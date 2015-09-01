@@ -86,17 +86,17 @@ public class NavigationShareTab {
 	private JCheckBox newmediafolder;
 	private JCheckBox recentlyplayedfolder;
 	private JCheckBox resume;
+	
+	private JComponent navigationShareComponent;
 
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;
 	}
 
 	private final PmsConfiguration configuration;
-	private LooksFrame looksFrame;
 
-	NavigationShareTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	public NavigationShareTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
-		this.looksFrame = looksFrame;
 	}
 
 	private void updateModel() {
@@ -230,6 +230,9 @@ public class NavigationShareTab {
 		);
 
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		
+		navigationShareComponent = scrollPane;
+		
 		return scrollPane;
 	}
 
@@ -415,7 +418,7 @@ public class NavigationShareTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int option = JOptionPane.showConfirmDialog(
-					looksFrame,
+					navigationShareComponent,
 					Messages.getString("NetworkTab.13") + Messages.getString("NetworkTab.19"),
 					Messages.getString("Dialog.Question"),
 					JOptionPane.YES_NO_OPTION);
@@ -749,7 +752,7 @@ public class NavigationShareTab {
 					if (database != null) {
 						if (!database.isScanLibraryRunning()) {
 							int option = JOptionPane.showConfirmDialog(
-								looksFrame,
+								navigationShareComponent,
 								Messages.getString("FoldTab.3") + Messages.getString("FoldTab.4"),
 								Messages.getString("Dialog.Question"),
 								JOptionPane.YES_NO_OPTION);
@@ -761,13 +764,13 @@ public class NavigationShareTab {
 							}
 						} else {
 							int option = JOptionPane.showConfirmDialog(
-								looksFrame,
+								navigationShareComponent,
 								Messages.getString("FoldTab.10"),
 								Messages.getString("Dialog.Question"),
 								JOptionPane.YES_NO_OPTION);
 							if (option == JOptionPane.YES_OPTION) {
 								database.stopScanLibrary();
-								looksFrame.setStatusLine(null);
+								PMS.get().getFrame().setStatusLine(null);
 								setScanLibraryEnabled(false);
 								but5.setToolTipText(Messages.getString("FoldTab.41"));
 							}

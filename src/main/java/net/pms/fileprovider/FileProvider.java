@@ -1,6 +1,6 @@
-package net.pms.external;
+package net.pms.fileprovider;
 
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 
 import net.pms.dlna.DLNAResource;
 
@@ -17,7 +17,7 @@ public interface FileProvider {
 	 *
 	 * @return the configuration panel
 	 */
-	public JPanel getConfigurationPanel();
+	public JComponent getConfigurationPanel();
 
 	/**
 	 * Gets the root folder.</br></br> All children of the root folder (files
