@@ -2,6 +2,7 @@ package net.pms.newgui.components;
 
 import javax.swing.JLabel;
 import javax.swing.JToolTip;
+import static net.pms.newgui.GuiUtil.htmlify;
 
 public class CustomJLabel extends JLabel {
 	private static final long serialVersionUID = -6726814430751911120L;
@@ -24,10 +25,5 @@ public class CustomJLabel extends JLabel {
 	@Override
 	public void setText(String text) {
 		super.setText(htmlify(text));
-	}
-	
-	public static String htmlify(String text) {
-		String t = text.trim().toLowerCase();
-		return (t.startsWith("<html>") ? "" : "<html>") + text + (t.endsWith("</html>") ? "" : "</html>");
 	}
 }

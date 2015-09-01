@@ -4,6 +4,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.*;
 import java.awt.Component;
 import javax.swing.*;
+import static net.pms.newgui.GuiUtil.htmlify;
 
 public class CustomPanelBuilder extends PanelBuilder {
 //	private static final long serialVersionUID = -6726814430751911120L;
@@ -17,19 +18,19 @@ public class CustomPanelBuilder extends PanelBuilder {
 	}
 
 	public JLabel _addLabel(String textWithMnemonic) {
-		return super.addLabel(CustomJLabel.htmlify(textWithMnemonic));
+		return super.addLabel(htmlify(textWithMnemonic));
 	}
 
 	public JLabel _addLabel(String textWithMnemonic, CellConstraints constraints) {
-		return super.addLabel(CustomJLabel.htmlify(textWithMnemonic), constraints);
+		return super.addLabel(htmlify(textWithMnemonic), constraints);
 	}
 
 	public JLabel _addLabel(String textWithMnemonic, String encodedConstraints) {
-		return super.addLabel(CustomJLabel.htmlify(textWithMnemonic), encodedConstraints);
+		return super.addLabel(htmlify(textWithMnemonic), encodedConstraints);
 	}
 
 	public JLabel _addLabel(String textWithMnemonic, CellConstraints labelConstraints,
 			Component component, CellConstraints componentConstraints) {
-		return super.addLabel(CustomJLabel.htmlify(textWithMnemonic), labelConstraints, component, componentConstraints);
+		return super.addLabel(htmlify(textWithMnemonic), labelConstraints, component, componentConstraints);
 	}
 }

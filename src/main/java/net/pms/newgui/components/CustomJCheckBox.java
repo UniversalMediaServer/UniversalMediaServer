@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import javax.swing.JCheckBox;
 import javax.swing.JToolTip;
+import static net.pms.newgui.GuiUtil.htmlify;
 
 public class CustomJCheckBox extends JCheckBox  {
 	private static final long serialVersionUID = -8027836064057652678L;
@@ -58,7 +59,7 @@ public class CustomJCheckBox extends JCheckBox  {
 			hitWidth = -1;
 		}
 		prevText = text;
-		super.setText(CustomJLabel.htmlify(text));
+		super.setText(htmlify(text));
 	}
 
 	@Override

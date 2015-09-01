@@ -577,4 +577,13 @@ public final class GuiUtil {
 			dim.height += rowHeight;
 		}
 	}
+
+	public static String htmlify(String text) {
+		// There is no syntax/encoding validation, we assume the string
+		// is either proper html or just ordinary plain text.
+		if (text != null && !text.trim().toLowerCase().startsWith("<html>")) {
+			return "<html>" + text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "</html>";
+		}
+		return text;
+	}
 }
