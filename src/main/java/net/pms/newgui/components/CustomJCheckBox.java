@@ -32,7 +32,6 @@ public class CustomJCheckBox extends JCheckBox  {
 
 	public CustomJCheckBox(String text, boolean selected) {
 	    super(text, selected);
-	    setRolloverEnabled(false);
 	}
 
 	public CustomJCheckBox(String text, Icon icon) {
@@ -74,8 +73,8 @@ public class CustomJCheckBox extends JCheckBox  {
 
 	@Override
 	protected void processMouseEvent(MouseEvent e) {
-		// Block events beyond the hit zone
-		if (e.getX() < hitWidth) {
+		// Block click events beyond the hit zone
+		if (e.getClickCount() == 0 || e.getX() < hitWidth) {
 			super.processMouseEvent(e);
 		}
 	}
