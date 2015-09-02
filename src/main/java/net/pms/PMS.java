@@ -1000,7 +1000,7 @@ public class PMS {
 	 * Returns the PMS instance.
 	 * @return {@link net.pms.PMS}
 	 */
-	public static PMS get() {
+	public static synchronized PMS get() {
 		// XXX when PMS is run as an application, the instance is initialized via the createInstance call in main().
 		// However, plugin tests may need access to a PMS instance without going
 		// to the trouble of launching the PMS application, so we provide a fallback
@@ -1115,6 +1115,9 @@ public class PMS {
 				// Remember whether logging level was TRACE/ALL at startup
 				traceMode = l.getLevel().toInt() <= ch.qos.logback.classic.Level.TRACE_INT ? 1 : 0;
 			}
+
+			// Initiate the OS clock check
+			checkOSClock();
 
 			LOGGER.debug(new Date().toString());
 
@@ -1598,5 +1601,25 @@ public class PMS {
 
 	public static int getTraceMode() {
 		return traceMode;
+	}
+
+	/**
+	 * Starts a thread that compares the OS clock to a NTP server and reports
+	 * to the user if the discrepancy is to big via the log and a message dialog
+	 * if GUI is available. This can take some time under some
+	 * circumstances, and is thus handles by a thread in parallel. The check
+	 * respects {@link PmsConfiguration.getExternalNetwork()}.
+	 * @throws IllegalStateException If configuration is not initialized.
+	 */
+	private static void checkOSClock() throws IllegalStateException {
+		if (configuration == null) {
+			throw new IllegalStateException("checkOSClock cannot be called until configuration is initialized!");
+		}
+		if (configuration.getExternalNetwork()) {
+			LOGGER.trace("Starting CheckOSClock thread");
+			new Thread(new CheckOSClock(), "CheckOSClock").start();
+		} else if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Skipping computer clock check because external network access is disabled");
+		}
 	}
 }

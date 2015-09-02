@@ -19,7 +19,8 @@
 package net.pms;
 
 import org.apache.commons.lang3.StringUtils;
-
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -38,7 +39,7 @@ public class Messages {
 
 	/**
 	 * Returns the locale-specific string associated with the key.
-	 * 
+	 *
 	 * @param key
 	 *            Keys in PMS follow the format "group.x". group states where
 	 *            this key is likely to be used. For example, NetworkTab refers
@@ -55,11 +56,29 @@ public class Messages {
 		if (StringUtils.isEmpty(lang)) {
 			return getString(key);
 		}
-		Locale l = new Locale(lang);
-		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, l);
-		if (rb == null) {
-			rb = RESOURCE_BUNDLE;
+		if (lang.equalsIgnoreCase("en") || lang.equalsIgnoreCase("en-US") || lang.equalsIgnoreCase("en_US")) {
+			return getDefaultString(key);
+		} else {
+			Locale l = new Locale(lang);
+			ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, l);
+			if (rb == null) {
+				rb = RESOURCE_BUNDLE;
+			}
+			return getString(key, rb);
 		}
+	}
+
+	/**
+	 * Always get the string from the default properties file regardless of default locale
+	 */
+	public static String getDefaultString(String key) {
+		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, Locale.ROOT, new ResourceBundle.Control() {
+	        @Override
+	        public List<Locale> getCandidateLocales(String name,
+	                                                Locale locale) {
+	            return Collections.singletonList(Locale.ROOT);
+	        }
+		});
 		return getString(key, rb);
 	}
 

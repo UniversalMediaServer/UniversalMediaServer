@@ -617,26 +617,32 @@ public class UPNPControl {
 
 		@Override
 		public void established(GENASubscription sub) {
-			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() + 
-				" on " + getFriendlyName(uuid));
+			if (LOGGER.isDebugEnabled() && sub.getService() != null && sub.getService().getServiceId() != null && sub.getService().getServiceId().getId() != null) {
+				LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() +
+					" on " + getFriendlyName(uuid));
+			}
 		}
 
 		@Override
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex, String defaultMsg) {
-			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
-				" on " + getFriendlyName(uuid) + ": " + defaultMsg.split(": ", 2)[1]);
+			if (LOGGER.isDebugEnabled() && sub.getService() != null && sub.getService().getServiceId() != null && sub.getService().getServiceId().getId() != null) {
+				LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
+					" on " + getFriendlyName(uuid) + ": " + defaultMsg.split(": ", 2)[1]);
+			}
 		}
 
 		@Override
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex) {
-			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
-				" on " + getFriendlyName(uuid) + ": " + createDefaultFailureMessage(response, ex).split(": ", 2)[1]);
+			if (LOGGER.isDebugEnabled() && sub.getService() != null && sub.getService().getServiceId() != null && sub.getService().getServiceId().getId() != null) {
+				LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
+					" on " + getFriendlyName(uuid) + ": " + createDefaultFailureMessage(response, ex).split(": ", 2)[1]);
+			}
 		}
 
 		@Override
 		public void ended(GENASubscription sub, CancelReason reason, UpnpResponse response) {
 			// Reason should be null, or it didn't end regularly
-			if (reason != null) {
+			if (reason != null && LOGGER.isDebugEnabled() && sub.getService() != null && sub.getService().getServiceId() != null && sub.getService().getServiceId().getId() != null) {
 				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId() +
 					" on " + uuid + ": " + reason);
 			}
@@ -645,7 +651,9 @@ public class UPNPControl {
 
 		@Override
 		public void eventsMissed(GENASubscription sub, int numberOfMissedEvents) {
-			LOGGER.debug("Missed events: " + numberOfMissedEvents + " for subscription " + sub.getService().getServiceId().getId() + " on " + getFriendlyName(uuid));
+			if (LOGGER.isDebugEnabled() && sub.getService() != null && sub.getService().getServiceId() != null && sub.getService().getServiceId().getId() != null) {
+				LOGGER.debug("Missed events: " + numberOfMissedEvents + " for subscription " + sub.getService().getServiceId().getId() + " on " + getFriendlyName(uuid));
+			}
 		}
 	}
 
