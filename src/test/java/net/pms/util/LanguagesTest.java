@@ -66,13 +66,29 @@ public class LanguagesTest {
 	}
 
 	@Test
+	public void testIsCompatible() {
+		assertTrue("enIsValid", Languages.isCompatible("en"));
+		assertTrue("en-USIsValid", Languages.isCompatible("en-US"));
+		assertTrue("no-NOIsValid", Languages.isCompatible("no-NO"));
+		assertTrue("sv-FIIsValid", Languages.isCompatible("sv-FI"));
+		assertTrue("en-GBIsValid", Languages.isCompatible("en-GB"));
+		assertTrue("cmn-HantIsValid", Languages.isCompatible("cmn-Hant"));
+		assertTrue("cmn-SGIsValid", Languages.isCompatible("cmn-SG"));
+		assertTrue("csIsValid", Languages.isCompatible("cs"));
+		assertFalse("czIsInvalid", Languages.isCompatible("cz"));
+		assertFalse("fooIsInvalid", Languages.isCompatible("foo"));
+		assertFalse("EmptyIsInvalid", Languages.isCompatible(""));
+		assertFalse("NullIsInvalid", Languages.isCompatible(null));
+	}
+
+	@Test
 	public void testToLanguageCode() {
 		// Test the string version
-		assertNull("EnIsNull", Languages.toLanguageCode("En"));
+		assertEquals("EnIsen-US", Languages.toLanguageCode("En"), "en-US");
 		assertEquals("EN-USIsen-US", Languages.toLanguageCode("EN-US"), "en-US");
 		assertEquals("En-gBIsen-GB", Languages.toLanguageCode("En-gB"), "en-GB");
 		assertEquals("zh-hansIszh-Hans", Languages.toLanguageCode("zh-hans"), "zh-Hans");
-		assertNull("cmn-HantIsNull", Languages.toLanguageCode("cmn-HantIs"));
+		assertEquals("cmn-HantIszh-Hant", Languages.toLanguageCode("cmn-HantIs"), "zh-Hant");
 		assertNull("EmptyIsNull", Languages.toLanguageCode(""));
 		String code = null;
 		assertNull("NullIsNull", Languages.toLanguageCode(code));

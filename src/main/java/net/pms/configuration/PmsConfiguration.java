@@ -609,7 +609,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @return first writable folder in the following order:
 	 * <p>
-	 *     1. (On Linux only) path to {@code /var/log/UniversalMediaServer/%USERNAME%/}.
+	 *     1. (On Linux only) path to {@code /var/log/ums/%USERNAME%/}.
 	 * </p>
 	 * <p>
 	 *     2. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
@@ -630,9 +630,9 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (defaultLogFileDir == null) {
 			if (Platform.isLinux()) {
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UniversalMediaServer/{}/\"", System.getProperty("user.name"));
+					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UMS/{}/\"", System.getProperty("user.name"));
 				}
-				final File logDirectory = new File("/var/log/UniversalMediaServer/" + System.getProperty("user.name") + "/");
+				final File logDirectory = new File("/var/log/UMS/" + System.getProperty("user.name") + "/");
 				if (!logDirectory.exists()) {
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
