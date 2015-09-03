@@ -15,7 +15,7 @@ import com.sun.jna.Platform;
  */
 class TempFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFolder.class);
-	private static final String DEFAULT_TEMP_FOLDER_NAME = "UniversalMediaServer";
+	private static final String DEFAULT_TEMP_FOLDER_NAME = "UMS";
 	private final String userSpecifiedFolder;
 	private File tempFolder;
 
@@ -66,7 +66,7 @@ class TempFolder {
 		if (Platform.isWindows()) {
 			myTMP = new File(tmp, DEFAULT_TEMP_FOLDER_NAME);
 		} else {
-			myTMP = new File(tmp, DEFAULT_TEMP_FOLDER_NAME + "_" + System.getProperty("user.name"));
+			myTMP = new File(tmp, DEFAULT_TEMP_FOLDER_NAME + "-" + System.getProperty("user.name"));
 		}
 
 		myTMP.setReadable(true, false);

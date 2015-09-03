@@ -12,7 +12,6 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.*;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
@@ -22,6 +21,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.FileWatcher;
+import net.pms.util.Languages;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -300,39 +300,38 @@ public class RemoteUtil {
 
 	public static LinkedHashSet<String> getLangs(HttpExchange t) {
 		String hdr = t.getRequestHeaders().getFirst("Accept-language");
-		LinkedHashSet<String> ret = new LinkedHashSet<String>();
+		LinkedHashSet<String> result = new LinkedHashSet<String>();
 		if (StringUtils.isEmpty(hdr)) {
-			return ret;
+			return result;
 		}
 
 		String[] tmp = hdr.split(",");
-		for (String l : tmp) {
-			String[] l1 = l.split(";");
-			String str = l1[0];
-			//we need to remove the part after -
-			int pos = str.indexOf("-");
-			if (pos != -1) {
-				 str = str.substring(0, pos);
-			}
-			ret.add(str);
+		for (String language : tmp) {
+			String[] l1 = language.split(";");
+			result.add(l1[0]);
 		}
-		return ret;
+		return result;
 	}
 
-	public static String getFirstLang(HttpExchange t) {
-		LinkedHashSet<String> tmp = getLangs(t);
-		if (tmp.isEmpty()) {
-			return "";
+	public static String getFirstSupportedLanguage(HttpExchange t) {
+		LinkedHashSet<String> languages = getLangs(t);
+		for (String language : languages) {
+			String code = Languages.toLanguageCode(language);
+			if (code != null) {
+				return code;
+			}
 		}
-		return tmp.iterator().next();
+		return "";
 	}
 
 	public static String getMsgString(String key, HttpExchange t) {
-		String lang = "";
 		if(PMS.getConfiguration().useWebLang()) {
-			lang = getFirstLang(t);
+			String lang = getFirstSupportedLanguage(t);
+			if (!lang.isEmpty()) {
+				return Messages.getString(key, Locale.forLanguageTag(lang));
+			}
 		}
-		return Messages.getString(key, lang);
+		return Messages.getString(key);
 	}
 
 	/**

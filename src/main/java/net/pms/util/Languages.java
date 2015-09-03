@@ -37,6 +37,10 @@ import org.apache.commons.lang.WordUtils;
 
 public final class Languages {
 
+	/*
+	 * If the below list is changed, methods localeToLanguageCode() and
+	 * languageCodeToLanguageCode() must be updated correspondingly.
+	 */
 	private final static String[] UMS_BCP47_CODES = {
 		"ar",      // Arabic
 		"bg",      // Bulgarian
@@ -112,7 +116,8 @@ public final class Languages {
 	}
 
 	private static String localeToLanguageCode(Locale locale) {
-		/* This might seem redundant, but a language can also contain a
+		/*
+		 * This might seem redundant, but a language can also contain a
 		 * country/region and a variant. Stating that e.g language
 		 * "ar" should return "ar" means that "messages_ar.properties"
 		 * will be used for any country/region and variant of Arabic.
@@ -138,6 +143,8 @@ public final class Languages {
 				} else {
 					return "pt";
 				}
+			} else if (languageCode.equals("nb") || languageCode.equals("nn")) {
+				return "no";
 			} else if (languageCode.equals("zh") || languageCode.equals("cmn")) {
 				if (locale.getVariant().equalsIgnoreCase("Hans")) {
 					return "zh-Hans";
@@ -151,6 +158,43 @@ public final class Languages {
 			}
 		} else {
 			return null;
+		}
+	}
+
+	private static String languageCodeToLanguageCode(String languageCode) {
+		/*
+		 * Performs the same conversion as localeToLanguageCode() but from a
+		 * language tag instead of a Locale.
+		 */
+		if (languageCode == null) {
+			return null;
+		} else if (languageCode.isEmpty()) {
+			return "";
+		}
+		languageCode = languageCode.toLowerCase(Locale.US);
+		if (languageCode.equals("en-gb")) {
+			return "en-GB";
+		} else if (languageCode.equals("pt-br")) {
+			return "pt-BR";
+		} else if (
+			languageCode.equals("cmn-cn") || languageCode.equals("cmn-sg") ||
+			languageCode.equals("cmn-hans") || languageCode.equals("zh-cn") ||
+			languageCode.equals("zh-sg") || languageCode.equals("zh-hans")
+		) {
+			return "zh-Hans";
+		} else {
+			if (languageCode.indexOf("-") > 0) {
+				languageCode = languageCode.substring(0, languageCode.indexOf("-"));
+			}
+			if (languageCode.equalsIgnoreCase("nb") || languageCode.equalsIgnoreCase("nn")) {
+				return "no";
+			} else if (languageCode.equalsIgnoreCase("cmn") || languageCode.equalsIgnoreCase("zh")) {
+				return "zh-Hant";
+			} else if (languageCode.equalsIgnoreCase("en")) {
+				return "en-US";
+			} else {
+				return languageCode;
+			}
 		}
 	}
 
@@ -180,6 +224,16 @@ public final class Languages {
 		return isValid(localeToLanguageCode(locale));
 	}
 
+	/**
+	 * Verifies if a given <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
+	 * language tag is or can be converted into a language tag supported by UMS.
+	 * @param languageCode The language tag in IEFT BCP 47 format.
+	 * @return The result.
+	 */
+	public static boolean isCompatible(String languageCode) {
+		return isValid(languageCodeToLanguageCode(languageCode));
+	}
+
 	/** Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
 	 *  language tag if the language tag is supported by UMS, or returns null.
 	 * @param languageCode The IEFT BCP 47 compatible language tag.
@@ -187,6 +241,7 @@ public final class Languages {
 	 */
 	public static String toLanguageCode(String languageCode) {
 		if (languageCode != null && !languageCode.isEmpty()) {
+			languageCode = languageCodeToLanguageCode(languageCode);
 			for (String code : UMS_BCP47_CODES) {
 				if (code.equalsIgnoreCase(languageCode)) {
 					return code;
@@ -210,7 +265,7 @@ public final class Languages {
 
 	/**
 	 * Returns a UMS supported {@link java.util.Locale} from the given
-	 * <code>Local</code> if it exists (<code>en</code> is translated to
+	 * <code>Local</code> if it can be found (<code>en</code> is translated to
 	 * <code>en-US</code>, <code>zh</code> to <code>zh-Hant</code> etc.).
 	 * Returns <code>null</code> if a valid <code>Locale</code> cannot be found.
 	 * @param locale Source {@link java.util.Locale}.
@@ -221,6 +276,25 @@ public final class Languages {
 			String code = localeToLanguageCode(locale);
 			if (code != null && isValid(code)) {
 				return localeFromTag(code);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns a UMS supported {@link java.util.Locale} from the given
+	 * <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
+	 * if it can be found (<code>en</code> is translated to <code>en-US</code>,
+	 * <code>zh</code> to <code>zh-Hant</code> etc.). Returns <code>null</code>
+	 * if a valid <code>Locale</code> cannot be found.
+	 * @param locale Source {@link java.util.Locale}.
+	 * @return Resulting {@link java.util.Locale}.
+	 */
+	public static Locale toLocale(String languageCode) {
+		if (languageCode != null) {
+			String code = languageCodeToLanguageCode(languageCode);
+			if (isValid(code)) {
+				return Locale.forLanguageTag(code);
 			}
 		}
 		return null;
