@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.LogManager;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
@@ -137,6 +138,21 @@ public class PMS {
 	 */
 	private static PMS instance = null;
 
+	private static CountDownLatch guiReadyLatch;
+
+	/**
+	 * @return The {@link java.util.concurrent.CountDownLatch} used by the
+	 * <code>CheckOSClock</code> thread. Any thread that needs to wait for
+	 * the GUI to be ready before proceeding can simply wait for this.
+	 */
+	public static CountDownLatch getGUIReadyLatch() {
+		return guiReadyLatch;
+	}
+
+	static {
+		guiReadyLatch = new CountDownLatch(1);
+	}
+
 	/**
 	 * Array of {@link net.pms.configuration.RendererConfiguration} that have been found by PMS.
 	 */
@@ -193,6 +209,14 @@ public class PMS {
 		return proxyServer;
 	}
 
+	/**
+	 * All access to this object MUST be enclosed in
+	 * <pre><code>
+	 * synchronized(currentProcesses) {
+	 *      ..code..
+	 * }
+	 * </code></pre>
+	 */
 	public ArrayList<Process> currentProcesses = new ArrayList<>();
 
 	private PMS() {
@@ -201,7 +225,7 @@ public class PMS {
 	/**
 	 * {@link net.pms.newgui.IFrame} object that represents the PMS GUI.
 	 */
-	private IFrame frame;
+	private volatile IFrame frame;
 
 	/**
 	 * Interface to Windows-specific functions, like Windows Registry. registry is set by {@link #init()}.
@@ -387,6 +411,9 @@ public class PMS {
 
 		// call this as early as possible
 		displayBanner();
+
+		// Initiate the OS clock check
+		checkOSClock();
 
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
@@ -735,12 +762,14 @@ public class PMS {
 					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");
 
-					for (Process p : currentProcesses) {
-						try {
-							p.exitValue();
-						} catch (IllegalThreadStateException ise) {
-							LOGGER.trace("Forcing shutdown of process: " + p);
-							ProcessUtil.destroy(p);
+					synchronized(currentProcesses) {
+						for (Process p : currentProcesses) {
+							try {
+								p.exitValue();
+							} catch (IllegalThreadStateException ise) {
+								LOGGER.trace("Forcing shutdown of process: " + p);
+								ProcessUtil.destroy(p);
+							}
 						}
 					}
 
@@ -1115,9 +1144,6 @@ public class PMS {
 				// Remember whether logging level was TRACE/ALL at startup
 				traceMode = l.getLevel().toInt() <= ch.qos.logback.classic.Level.TRACE_INT ? 1 : 0;
 			}
-
-			// Initiate the OS clock check
-			checkOSClock();
 
 			LOGGER.debug(new Date().toString());
 

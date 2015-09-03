@@ -37,26 +37,28 @@ public final class CheckOSClock implements Runnable
 	private void handleTimeDiscrepancy(long offsetMS) {
 		// The discrepancy threshold in milliseconds for warning the user
 		if (Math.abs(offsetMS) > 500) {
-			String message = constructTimeOffsetString(offsetMS, true) + " " + Messages.getString("CheckOSClock.3");
+			final String message = constructTimeOffsetString(offsetMS, true) + " " + Messages.getString("CheckOSClock.3");
 			LOGGER.warn(message);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug(constructTimeOffsetString(offsetMS, false));
 			}
 			if (!PMS.isHeadless()) {
-				if (PMS.get().getFrame() != null) {
-					JOptionPane.showMessageDialog(
-						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-						message,
-						Messages.getString("Dialog.Warning"),
-						JOptionPane.WARNING_MESSAGE
-					);
-				} else {
-					JOptionPane.showMessageDialog(
-							null,
-							message,
-							Messages.getString("Dialog.Warning"),
-							JOptionPane.WARNING_MESSAGE
-						);
+				try {
+					PMS.getGUIReadyLatch().await();
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							JOptionPane.showMessageDialog(
+								SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+								message,
+								Messages.getString("Dialog.Warning"),
+								JOptionPane.WARNING_MESSAGE
+							);
+						}
+					});
+				} catch (InterruptedException e) {
+					LOGGER.debug("CheckOSClock was thread interrupted before user warning could be issued");
+					Thread.currentThread().interrupt();
 				}
 			}
 		} else if (LOGGER.isDebugEnabled()) {
