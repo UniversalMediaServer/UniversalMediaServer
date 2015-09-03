@@ -71,4 +71,11 @@ public interface FileProvider {
 	 * another one is being activated,
 	 */
 	public void deactivate();
+
+	/**
+	 * Determines whether the plugin is activated
+	 *
+	 * @return true, if it is activated
+	 */
+	public boolean isActivated();
 }

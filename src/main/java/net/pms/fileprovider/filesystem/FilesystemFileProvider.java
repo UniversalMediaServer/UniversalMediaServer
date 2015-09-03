@@ -91,4 +91,9 @@ public class FilesystemFileProvider implements FileProvider {
 			LOGGER.info(String.format("FileProvider %s has been deactivated", getName()));
 		}
 	}
+
+	@Override
+	public boolean isActivated() {
+		return isActivated;
+	}
 }

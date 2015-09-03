@@ -32,6 +32,7 @@ import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
+import net.pms.fileprovider.filesystem.FilesystemFileProvider;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
@@ -296,6 +297,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
+	protected static final String KEY_ACTIVE_FILE_PROVIDER_CLASS_NAME = "ActiveFileProviderClassName";
 
 	// Deprecated settings
 	@Deprecated
@@ -3459,5 +3461,13 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setRootLogLevel(ch.qos.logback.classic.Level level) {
 		configuration.setProperty(KEY_ROOT_LOG_LEVEL, level.toString());
+	}
+
+	public String getActiveFileProviderClassName() {
+		return getString(KEY_ACTIVE_FILE_PROVIDER_CLASS_NAME, FilesystemFileProvider.class.getName());
+	}
+
+	public void setActiveFileProviderClassName(String className) {
+		configuration.setProperty(KEY_ACTIVE_FILE_PROVIDER_CLASS_NAME, className);
 	}
 }

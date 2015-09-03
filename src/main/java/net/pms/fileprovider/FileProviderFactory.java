@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.fileprovider.filesystem.FilesystemFileProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,7 @@ public class FileProviderFactory {
 
 	/** The registered file providers. */
 	private static List<FileProvider> fileProviders = new ArrayList<>();
+	private static FileProvider activeFileProvider;
 	
 	/**
 	 * Private constructor to avoid instantiation.
@@ -49,13 +51,43 @@ public class FileProviderFactory {
 		return fileProviders;
 	}
 	
+	public static FileProvider getActiveFileProvider() {
+		if(activeFileProvider == null) {
+			String fileProviderClassName = PMS.getConfiguration().getActiveFileProviderClassName();
+			FileProvider fileProvider = getFileProviderbyClassName(fileProviderClassName);
+			
+			if(fileProvider == null) {
+				// Fall back to the default class provider if the configured one isn't being found; it must exist!
+				fileProvider = getFileProviderbyClassName(FilesystemFileProvider.class.getName());
+			}
+			
+			if(!fileProvider.isActivated()) {
+				fileProvider.activate();
+			}
+			
+			activeFileProvider = fileProvider;
+		}
+		
+		return activeFileProvider;
+	}
+	
+	public static void setActiveFileProvider(FileProvider fileProvider) {
+		if(activeFileProvider != null) {
+			// Deactivate the currently active file provider
+			activeFileProvider.deactivate();
+		}
+		
+		activeFileProvider = fileProvider;
+		PMS.getConfiguration().setActiveFileProviderClassName(fileProvider.getClass().getName());
+	}
+	
 	/**
 	 * Registers a file provider.
 	 *
 	 * @param fileProvider the file provider to register
 	 */
 	public static void registerFileProvider(FileProvider fileProvider) {
-		if(fileProviders.contains(fileProvider)) {
+		if(!fileProviders.contains(fileProvider)) {
 			fileProviders.add(fileProvider);
 			LOGGER.info(String.format("File provider '%s' has been registered", fileProvider.getName()));
 		} else {
@@ -162,5 +194,16 @@ public class FileProviderFactory {
 				LOGGER.error("Error loading file provider plugin", e);
 			}
 		}
+	}
+	
+	private static FileProvider getFileProviderbyClassName(String className) {
+		FileProvider resultfileProvider = null;
+		for(FileProvider fileProvider : getFileProviders()) {
+			if(fileProvider.getClass().getName().equals(className)) {
+				resultfileProvider = fileProvider;
+				break;
+			}
+		}
+		return resultfileProvider;
 	}
 }

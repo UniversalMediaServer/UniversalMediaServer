@@ -43,6 +43,9 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.fileprovider.FileProvider;
+import net.pms.fileprovider.FileProviderFactory;
+import net.pms.fileprovider.filesystem.FilesystemFileProvider;
 import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -493,6 +496,10 @@ public class PMS {
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
+		
+		// Register the default file provider and resolve file provider plugins
+		FileProviderFactory.registerFileProvider(new FilesystemFileProvider());
+		FileProviderFactory.lookup();
 
 		fileWatcher = new FileWatcher();
 
@@ -730,6 +737,11 @@ public class PMS {
 				try {
 					for (ExternalListener l : ExternalFactory.getExternalListeners()) {
 						l.shutdown();
+					}
+
+					FileProvider activeFileProvider = FileProviderFactory.getActiveFileProvider();
+					if(activeFileProvider != null) {
+						activeFileProvider.deactivate();
 					}
 
 					UPNPHelper.shutDownListener();
