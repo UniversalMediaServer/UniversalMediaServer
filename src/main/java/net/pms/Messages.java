@@ -18,8 +18,6 @@
  */
 package net.pms;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -50,12 +48,11 @@ public class Messages {
 		return getString(key, RESOURCE_BUNDLE);
 	}
 
-	public static String getString(String key, String lang) {
-		if (StringUtils.isEmpty(lang)) {
+	public static String getString(String key, Locale locale) {
+		if (locale == null) {
 			return getString(key);
 		}
-		Locale l = new Locale(lang);
-		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, l);
+		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
 		if (rb == null) {
 			rb = RESOURCE_BUNDLE;
 		}
