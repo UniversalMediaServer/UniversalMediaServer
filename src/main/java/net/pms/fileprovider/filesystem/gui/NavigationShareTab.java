@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.newgui;
+package net.pms.fileprovider.filesystem.gui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
@@ -38,8 +38,11 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.newgui.GuiUtil;
+import net.pms.newgui.RestrictedFileSystemView;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.ImagesUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
@@ -654,7 +657,7 @@ public class NavigationShareTab {
 		TableColumn column = FList.getColumnModel().getColumn(0);
 		column.setMinWidth(650);
 
-		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-adddirectory.png"));
+		CustomJButton but = new CustomJButton(ImagesUtil.readImageIcon("button-adddirectory.png"));
 		but.setToolTipText(Messages.getString("FoldTab.9"));
 		but.addActionListener(new ActionListener() {
 			@Override
@@ -678,7 +681,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-remove.png"));
+		CustomJButton but2 = new CustomJButton(ImagesUtil.readImageIcon("button-remove.png"));
 		but2.setToolTipText(Messages.getString("FoldTab.36"));
 		but2.addActionListener(new ActionListener() {
 			@Override
@@ -694,7 +697,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
+		CustomJButton but3 = new CustomJButton(ImagesUtil.readImageIcon("button-arrow-down.png"));
 		but3.setToolTipText(Messages.getString("FoldTab.12"));
 		but3.addActionListener(new ActionListener() {
 			@Override
@@ -717,7 +720,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		CustomJButton but4 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
+		CustomJButton but4 = new CustomJButton(ImagesUtil.readImageIcon("button-arrow-up.png"));
 		but4.setToolTipText(Messages.getString("FoldTab.12"));
 		but4.addActionListener(new ActionListener() {
 			@Override
@@ -741,7 +744,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		but5 = new CustomJButton(LooksFrame.readImageIcon("button-scan.png"));
+		but5 = new CustomJButton(ImagesUtil.readImageIcon("button-scan.png"));
 		but5.setToolTipText(Messages.getString("FoldTab.2"));
 		but5.addActionListener(new ActionListener() {
 			@Override
@@ -758,8 +761,8 @@ public class NavigationShareTab {
 								JOptionPane.YES_NO_OPTION);
 							if (option == JOptionPane.YES_OPTION) {
 								database.scanLibrary();
-								but5.setIcon(LooksFrame.readImageIcon("button-scan-busy.gif"));
-								but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan-cancel.png"));
+								but5.setIcon(ImagesUtil.readImageIcon("button-scan-busy.gif"));
+								but5.setRolloverIcon(ImagesUtil.readImageIcon("button-scan-cancel.png"));
 								but5.setToolTipText(Messages.getString("FoldTab.40"));
 							}
 						} else {
@@ -810,8 +813,8 @@ public class NavigationShareTab {
 
 	public void setScanLibraryEnabled(boolean enabled) {
 		but5.setEnabled(enabled);
-		but5.setIcon(LooksFrame.readImageIcon("button-scan.png"));
-		but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan.png"));
+		but5.setIcon(ImagesUtil.readImageIcon("button-scan.png"));
+		but5.setRolloverIcon(ImagesUtil.readImageIcon("button-scan.png"));
 		but5.setToolTipText(Messages.getString("FoldTab.2"));
 	}
 

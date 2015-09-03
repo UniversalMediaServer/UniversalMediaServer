@@ -14,6 +14,7 @@ import net.pms.dlna.*;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.FFmpegAudio;
 import net.pms.encoders.FFmpegWebVideo;
+import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

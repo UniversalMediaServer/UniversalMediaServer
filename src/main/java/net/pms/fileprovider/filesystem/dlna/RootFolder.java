@@ -16,9 +16,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.fileprovider.filesystem.dlna;
 
 import com.sun.jna.Platform;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -33,6 +34,24 @@ import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.AudiosFeed;
+import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DVDISOFile;
+import net.pms.dlna.DVDISOTitle;
+import net.pms.dlna.FileSearch;
+import net.pms.dlna.FolderLimit;
+import net.pms.dlna.ImagesFeed;
+import net.pms.dlna.MapFile;
+import net.pms.dlna.MediaMonitor;
+import net.pms.dlna.Playlist;
+import net.pms.dlna.PlaylistFolder;
+import net.pms.dlna.RealFile;
+import net.pms.dlna.ResumeObj;
+import net.pms.dlna.SearchFolder;
+import net.pms.dlna.VideosFeed;
+import net.pms.dlna.WebAudioStream;
+import net.pms.dlna.WebVideoStream;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.external.AdditionalFolderAtRoot;

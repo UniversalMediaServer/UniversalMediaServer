@@ -18,19 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package net.pms.fileprovider;
+package net.pms.fileprovider.filesystem;
 
 import javax.swing.JComponent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RootFolder;
-import net.pms.newgui.LooksFrame;
-import net.pms.newgui.NavigationShareTab;
+import net.pms.fileprovider.FileProvider;
+import net.pms.fileprovider.filesystem.dlna.RootFolder;
+import net.pms.fileprovider.filesystem.gui.NavigationShareTab;
 
 /**
  * The FilesystemFileProvider is the default UMS file provider.<br>

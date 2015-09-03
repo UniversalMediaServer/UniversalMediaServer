@@ -25,7 +25,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
@@ -42,10 +41,12 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.fileprovider.filesystem.gui.NavigationShareTab;
 import net.pms.io.WindowsNamedPipe;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
+import net.pms.util.ImagesUtil;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,7 +247,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 
 		setTitle("Test");
-		setIconImage(readImageIcon("icon-32.png").getImage());
+		setIconImage(ImagesUtil.readImageIcon("icon-32.png").getImage());
 
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -334,11 +335,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setVisible(true);
 		}
 		PMS.get().getRegistry().addSystemTray(this);
-	}
-
-	protected static ImageIcon readImageIcon(String filename) {
-		URL url = LooksFrame.class.getResource("/resources/images/" + filename);
-		return new ImageIcon(url);
 	}
 
 	public JComponent buildContent() {
@@ -441,14 +437,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	protected AbstractButton createToolBarButton(String text, String iconName) {
-		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+		CustomJButton button = new CustomJButton(text, ImagesUtil.readImageIcon(iconName));
 		button.setFocusable(false);
 		button.setBorderPainted(false);
 		return button;
 	}
 
 	protected AbstractButton createToolBarButton(String text, String iconName, String toolTipText) {
-		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+		CustomJButton button = new CustomJButton(text, ImagesUtil.readImageIcon(iconName));
 		button.setToolTipText(toolTipText);
 		button.setFocusable(false);
 		button.setBorderPainted(false);
@@ -506,10 +502,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	@Override
 	public void setReloadable(boolean bool) {
 		if (bool) {
-			reload.setIcon(readImageIcon("button-restart-required.png"));
+			reload.setIcon(ImagesUtil.readImageIcon("button-restart-required.png"));
 			reload.setToolTipText(Messages.getString("LooksFrame.13"));
 		} else {
-			reload.setIcon(readImageIcon("button-restart.png"));
+			reload.setIcon(ImagesUtil.readImageIcon("button-restart.png"));
 			reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		}
 	}

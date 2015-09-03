@@ -1,9 +1,12 @@
 package net.pms.util;
 
 import java.io.*;
+import java.net.URL;
+import javax.swing.ImageIcon;
 import mediautil.gen.Log;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
+import net.pms.newgui.LooksFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,5 +82,10 @@ public class ImagesUtil {
 		// Cleanup
 		input.close();
 		llj.freeMemory();
+	}
+
+	public static ImageIcon readImageIcon(String filename) {
+		URL url = LooksFrame.class.getResource("/resources/images/" + filename);
+		return new ImageIcon(url);
 	}
 }

@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,6 +17,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
+import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;

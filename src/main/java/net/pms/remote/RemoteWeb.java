@@ -18,7 +18,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RootFolder;
+import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;

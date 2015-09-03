@@ -42,6 +42,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.CustomJTextField;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.ImagesUtil;
 import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,7 +189,7 @@ public class TranscodingTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
+		CustomJButton but = new CustomJButton(ImagesUtil.readImageIcon("button-arrow-down.png"));
 		but.setToolTipText(Messages.getString("TrTab2.6"));
 		but.addActionListener(new ActionListener() {
 			@Override
@@ -216,7 +217,7 @@ public class TranscodingTab {
 		});
 		builder.add(but, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
+		CustomJButton but2 = new CustomJButton(ImagesUtil.readImageIcon("button-arrow-up.png"));
 		but2.setToolTipText(Messages.getString("TrTab2.6"));
 		but2.addActionListener(new ActionListener() {
 			@Override
@@ -244,7 +245,7 @@ public class TranscodingTab {
 		});
 		builder.add(but2, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-toggleengine.png"));
+		CustomJButton but3 = new CustomJButton(ImagesUtil.readImageIcon("button-toggleengine.png"));
 		but3.setToolTipText(Messages.getString("TrTab2.0"));
 		but3.addActionListener(new ActionListener() {
 			@Override

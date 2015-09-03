@@ -27,6 +27,7 @@ import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
+import net.pms.util.ImagesUtil;
 
 public class TreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 8830634234336247114L;
@@ -58,18 +59,18 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 
 		if (leaf && value instanceof TreeNodeSettings) {
 			if (((TreeNodeSettings) value).getPlayer() == null) {
-				setIcon(LooksFrame.readImageIcon("icon-treemenu-category.png"));
+				setIcon(ImagesUtil.readImageIcon("icon-treemenu-category.png"));
 			} else {
 				if (((TreeNodeSettings) value).isEnable()) {
 					Player p = ((TreeNodeSettings) value).getPlayer();
 
 					if (PlayerFactory.getPlayers().contains(p)) {
-						setIcon(LooksFrame.readImageIcon("icon-treemenu-engineenabled.png"));
+						setIcon(ImagesUtil.readImageIcon("icon-treemenu-engineenabled.png"));
 					} else {
-						setIcon(LooksFrame.readImageIcon("icon-treemenu-enginewarning.png"));
+						setIcon(ImagesUtil.readImageIcon("icon-treemenu-enginewarning.png"));
 					}
 				} else {
-					setIcon(LooksFrame.readImageIcon("icon-treemenu-enginedisabled.png"));
+					setIcon(ImagesUtil.readImageIcon("icon-treemenu-enginedisabled.png"));
 				}
 			}
 
@@ -79,7 +80,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 				setFont(getFont().deriveFont(Font.PLAIN));
 			}
 		} else {
-			setIcon(LooksFrame.readImageIcon("icon-treemenu-category.png"));
+			setIcon(ImagesUtil.readImageIcon("icon-treemenu-category.png"));
 		}
 
 		setBorder(border);

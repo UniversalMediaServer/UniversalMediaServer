@@ -41,6 +41,7 @@ import net.pms.external.AdditionalResourceFolderListener;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
+import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.OutputParams;
@@ -458,7 +459,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Recursive function that searches through all of the children until it finds
 	 * a {@link DLNAResource} that matches the name.<p>
 	 * Only used by
-	 * {@link net.pms.dlna.RootFolder#addWebFolder(File webConf)
+	 * {@link net.pms.fileprovider.filesystem.dlna.RootFolder#addWebFolder(File webConf)
 	 * addWebFolder(File webConf)} while parsing the web.conf file.
 	 *
 	 * @param name String to be compared the name to.
@@ -1699,7 +1700,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
-	protected DLNAResource clone() {
+	public DLNAResource clone() {
 		DLNAResource o = null;
 		try {
 			o = (DLNAResource) super.clone();
@@ -3415,7 +3416,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * 			false otherwise.
 	 * @since 1.50
 	 */
-	protected void setDiscovered(boolean discovered) {
+	public void setDiscovered(boolean discovered) {
 		this.discovered = discovered;
 	}
 

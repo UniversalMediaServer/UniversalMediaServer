@@ -43,6 +43,7 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
@@ -121,7 +122,7 @@ public class PMS {
 	 * @param renderer {@link net.pms.configuration.RendererConfiguration}
 	 * is the renderer for which to get the RootFolder structure. If <code>null</code>,
 	 * then the default renderer is used.
-	 * @return {@link net.pms.dlna.RootFolder} The root folder structure for a given renderer
+	 * @return {@link net.pms.fileprovider.filesystem.dlna.RootFolder} The root folder structure for a given renderer
 	 */
 	public RootFolder getRootFolder(RendererConfiguration renderer) {
 		// something to do here for multiple directories views for each renderer
