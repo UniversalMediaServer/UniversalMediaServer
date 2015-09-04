@@ -79,7 +79,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		null
 	};
 
-	private NavigationShareTab nt;
+	private FileProviderTab ft;
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
@@ -94,8 +94,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tt;
 	}
 
-	public NavigationShareTab getNt() {
-		return nt;
+	public FileProviderTab getFt() {
+		return ft;
 	}
 
 	public TranscodingTab getTr() {
@@ -395,7 +395,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tt = new TracesTab(configuration, this);
 		gt = new GeneralTab(configuration, this);
 		pt = new PluginTab(configuration, this);
-		nt = new NavigationShareTab(configuration);
+		ft = new FileProviderTab();
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 
@@ -403,7 +403,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.22"), ft);
 		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
@@ -569,7 +569,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
-		getNt().setScanLibraryEnabled(flag);
+		//getNt().setScanLibraryEnabled(flag);
 	}
 
 	public String getLog() {

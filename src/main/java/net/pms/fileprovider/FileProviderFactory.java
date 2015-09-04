@@ -28,12 +28,10 @@ public class FileProviderFactory {
 	private static final String JAR_FILE_EXTENSION = ".jar";
 
 	/**
-	 * The class loader will be lazy initialized the first time it's 
-	 * being used
+	 * The class loader will be lazy initialized the first time it's being used
 	 */
 	private static ClassLoader classLoader;
 
-	/** The registered file providers. */
 	private static List<FileProvider> fileProviders = new ArrayList<>();
 	private static FileProvider activeFileProvider;
 	
@@ -71,13 +69,25 @@ public class FileProviderFactory {
 		return activeFileProvider;
 	}
 	
+	/**
+	 * Sets the active file provider.
+	 *
+	 * @param fileProvider the active file provider
+	 */
 	public static void setActiveFileProvider(FileProvider fileProvider) {
 		if(activeFileProvider != null) {
 			// Deactivate the currently active file provider
 			activeFileProvider.deactivate();
 		}
 		
+		if(!fileProvider.isActivated()) {
+			// Activate the newly active file provider if it hasn't been previously done
+			fileProvider.activate();
+		}
+		
 		activeFileProvider = fileProvider;
+		
+		// Persist the change
 		PMS.getConfiguration().setActiveFileProviderClassName(fileProvider.getClass().getName());
 	}
 	
