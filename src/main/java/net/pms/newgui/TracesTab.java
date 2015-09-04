@@ -96,6 +96,15 @@ public class TracesTab {
 		"LOCAL1", "LOCAL2", "LOCAL3", "LOCAL4", "LOCAL5", "LOCAL6", "LOCAL7"
 	};
 
+	private int findSyslogFacilityIdx(String facility) {
+		for (int i = 0; i < syslogFacilities.length; i++) {
+			if (facility.equalsIgnoreCase(syslogFacilities[i])) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	static class PopupTriggerMouseListener extends MouseAdapter {
 		private JPopupMenu popup;
 		private JComponent component;
@@ -137,7 +146,7 @@ public class TracesTab {
 	/**
 	 * Set/update the visibility of all components affected by view level
 	 */
-	public void implementViewLevel() {
+	public void applyViewLevel() {
 		viewLevel = looksFrame.getViewLevel();
 
 		jCSSpace.setVisible(viewLevel.isGreaterOrEqual(ViewLevel.ADVANCED));
@@ -376,18 +385,23 @@ public class TracesTab {
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
 		jList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-		final JPopupMenu popup = new JPopupMenu();
-		JMenuItem defaultItem = new JMenuItem(Messages.getString("TracesTab.3"));
 
-		defaultItem.addActionListener(new ActionListener() {
+		final JPopupMenu popup = new JPopupMenu();
+		Action copy = jList.getActionMap().get("copy-to-clipboard");
+		JMenuItem copyItem = new JMenuItem(copy);
+		copyItem.setText(Messages.getString("General.1"));
+		popup.add(copyItem);
+		popup.addSeparator();
+		JMenuItem clearItem = new JMenuItem(Messages.getString("TracesTab.3"));
+		clearItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				jList.setText("");
 			}
 		});
-
-		popup.add(defaultItem);
+		popup.add(clearItem);
 		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
+
 		jList.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -438,7 +452,8 @@ public class TracesTab {
 		jOptionsPanel.add(jBuffered);
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
-		jUseSyslog = new CustomJCheckBox(Messages.getString("TracesTab.27"),configuration.getLoggingUseSyslog());
+		boolean useSyslog = configuration.getLoggingUseSyslog();
+		jUseSyslog = new CustomJCheckBox(Messages.getString("TracesTab.27"), useSyslog);
 		jUseSyslog.setMnemonic(KeyEvent.VK_Y);
 		jUseSyslog.setToolTipText(Messages.getString("TracesTab.44"));
 		jUseSyslog.setHorizontalTextPosition(SwingConstants.LEADING);
@@ -454,8 +469,12 @@ public class TracesTab {
 					return;
 				}
 				jSearchOutput.setText("");
-				configuration.setLoggingUseSyslog(jUseSyslog.isSelected());
+				boolean useSyslog = jUseSyslog.isSelected();
+				configuration.setLoggingUseSyslog(useSyslog);
 				LoggingConfig.setSyslog();
+				jSyslogHost.setEnabled(!useSyslog);
+				jSyslogPort.setEnabled(!useSyslog);
+				jSyslogFacility.setEnabled(!useSyslog);
 			}
 		});
 		jOptionsPanel.add(jUseSyslog);
@@ -469,6 +488,7 @@ public class TracesTab {
 		jSyslogHost = new CustomJTextField(configuration.getLoggingSyslogHost(),10);
 		jSyslogHostLabel.setLabelFor(jSyslogHost);
 		jSyslogHost.setToolTipText(Messages.getString("TracesTab.45"));
+		jSyslogHost.setEnabled(!useSyslog);
 		jSyslogHost.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {}
@@ -510,7 +530,14 @@ public class TracesTab {
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		jSyslogPort = new CustomJSpinner(new SpinnerIntModel(configuration.getLoggingSyslogPort(),1,65535), true);
 		jSyslogPort.setToolTipText(Messages.getString("TracesTab.46"));
+		jSyslogPort.setEnabled(!useSyslog);
 		jSyslogPortLabel.setLabelFor(jSyslogPort);
+		jSyslogPort.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				configuration.setLoggingSyslogPort((Integer) jSyslogPort.getValue());
+			}
+		});
 		jOptionsPanel.add(jSyslogPort);
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
@@ -521,7 +548,15 @@ public class TracesTab {
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		jSyslogFacility = new CustomJComboBox(syslogFacilities);
 		jSyslogFacility.setToolTipText(Messages.getString("TracesTab.47"));
+		jSyslogFacility.setEnabled(!useSyslog);
+		jSyslogFacility.setSelectedIndex(findSyslogFacilityIdx(configuration.getLoggingSyslogFacility()));
 		jSyslogFacilityLabel.setLabelFor(jSyslogFacility);
+		jSyslogFacility.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				configuration.setLoggingSyslogFacility(syslogFacilities[jSyslogFacility.getSelectedIndex()]);
+			}
+		});
 		jOptionsPanel.add(jSyslogFacility);
 
 		jOptionsPanel.setFocusTraversalPolicyProvider(true);
@@ -653,7 +688,14 @@ public class TracesTab {
 				jSearchBox.requestFocusInWindow();
 			}
 		});
-		implementViewLevel();
+		builtPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), "F3");
+		builtPanel.getActionMap().put("F3", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				searchTraces();
+			}
+		});
+		applyViewLevel();
 		return builtPanel;
 	}
 }

@@ -294,7 +294,7 @@ public final class Languages {
 		if (languageCode != null) {
 			String code = languageCodeToLanguageCode(languageCode);
 			if (isValid(code)) {
-				return Locale.forLanguageTag(code);
+				return Languages.localeFromTag(code);
 			}
 		}
 		return null;

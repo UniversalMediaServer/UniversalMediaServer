@@ -42,7 +42,7 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 		ConfigurationReader configurationReader = configuration.getConfigurationReader();
 		boolean saveLogOverride = configurationReader.getLogOverrides();
 		configurationReader.setLogOverrides(false);
-		if (key.equals("logFilePath")) {
+		if (key.equals("logFilePath") || key.equals("debugLogPath")) {
 			result = configuration.getDefaultLogFileFolder();
 		} else if (key.equals("rootLevel")) {
 			result = configuration.getRootLogLevel();

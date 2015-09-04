@@ -120,7 +120,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 	    return tip;
 	}
 
-	protected static class MouseWheelRoll  implements MouseWheelListener {
+	protected static class MouseWheelRoll implements MouseWheelListener {
 
 		private int minimum, maximum, stepSize;
 		private CustomJSpinner spinner;
@@ -134,6 +134,9 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
+			if (!spinner.isEnabled()) {
+				return;
+			}
 	        if (e.getScrollType() != MouseWheelEvent.WHEEL_UNIT_SCROLL) {
 	            return;
 	        }

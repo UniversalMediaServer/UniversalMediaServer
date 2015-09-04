@@ -328,7 +328,7 @@ public class RemoteUtil {
 		if(PMS.getConfiguration().useWebLang()) {
 			String lang = getFirstSupportedLanguage(t);
 			if (!lang.isEmpty()) {
-				return Messages.getString(key, Locale.forLanguageTag(lang));
+				return Messages.getString(key, Languages.localeFromTag(lang));
 			}
 		}
 		return Messages.getString(key);
