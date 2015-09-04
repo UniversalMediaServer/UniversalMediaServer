@@ -16,6 +16,9 @@ import net.pms.fileprovider.filesystem.FilesystemFileProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Factory managing file providers.
+ */
 public class FileProviderFactory {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileProviderFactory.class);
 	
@@ -35,10 +38,12 @@ public class FileProviderFactory {
 	/**
 	 * The class loader will be lazy initialized the first time it's being used
 	 */
-	private static ClassLoader classLoader;
+	private ClassLoader classLoader;
 
-	private static List<FileProvider> fileProviders = new ArrayList<>();
-	private static FileProvider activeFileProvider;
+	private final List<FileProvider> fileProviders = new ArrayList<>();
+	private FileProvider activeFileProvider;
+	
+	private final List<FileProviderChangeListener> fileProviderChangedListeners = new ArrayList<>();
 	
 	/**
 	 * Private constructor to avoid instantiation.<br>
@@ -57,6 +62,28 @@ public class FileProviderFactory {
 			instance = new FileProviderFactory();
 		}
 		return instance;
+	}
+	
+	/**
+	 * Registers the listener for file provider changed events.
+	 *
+	 * @param listener the listener
+	 */
+	public void addFileProviderChangedEventListener(FileProviderChangeListener listener) {
+		if(!fileProviderChangedListeners.contains(listener)) {
+			fileProviderChangedListeners.add(listener);
+		}
+	}
+	
+	/**
+	 * Removes the file provider changed event listener.
+	 *
+	 * @param listener the listener
+	 */
+	public void removeFileProviderChangedEventListener(FileProviderChangeListener listener) {
+		if(fileProviderChangedListeners.contains(listener)) {
+			fileProviderChangedListeners.remove(listener);
+		}
 	}
 	
 	/**
@@ -83,12 +110,7 @@ public class FileProviderFactory {
 				fileProvider = getFileProviderByClassName(FilesystemFileProvider.class.getName());
 			}
 			
-			if(!fileProvider.isActivated()) {
-				// Make sure the file provider is active
-				fileProvider.activate();
-			}
-			
-			activeFileProvider = fileProvider;
+			setActiveFileProvider(fileProvider);
 		}
 		
 		return activeFileProvider;
@@ -100,6 +122,7 @@ public class FileProviderFactory {
 	 * @param fileProvider the active file provider
 	 */
 	public void setActiveFileProvider(FileProvider fileProvider) {
+		FileProvider previousFileProvider = activeFileProvider;
 		if(activeFileProvider != null) {
 			LOGGER.debug(String.format("Start deactivating FileProvider '%s'", activeFileProvider.getName()));
 			
@@ -122,6 +145,9 @@ public class FileProviderFactory {
 		
 		// Persist the change
 		PMS.getConfiguration().setActiveFileProviderClassName(fileProvider.getClass().getName());
+		
+		// Notify file provider changed
+		notifyActiveFileProviderChange(previousFileProvider, activeFileProvider);
 
 		LOGGER.info(String.format("FileProvider '%s' is now active", activeFileProvider.getName()));
 	}
@@ -248,5 +274,11 @@ public class FileProviderFactory {
 			}
 		}
 		return resultfileProvider;
+	}
+	
+	private void notifyActiveFileProviderChange(FileProvider previousFileProvider, FileProvider newFileProvider) {
+		for(FileProviderChangeListener listener : fileProviderChangedListeners) {
+			listener.activeFileProviderChanged(previousFileProvider, newFileProvider);
+		}
 	}
 }
