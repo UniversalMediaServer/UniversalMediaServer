@@ -68,12 +68,12 @@ public interface FileProvider {
 	/**
 	 * Deactivates the file provider.</br></br> This method is being called when
 	 * UMS shuts down or when the file provider is currently the active one and
-	 * another one is being activated,
+	 * another one is being activated.
 	 */
 	public void deactivate();
 
 	/**
-	 * Determines whether the plugin is activated
+	 * Determines whether the plugin is activated.
 	 *
 	 * @return true, if it is activated
 	 */

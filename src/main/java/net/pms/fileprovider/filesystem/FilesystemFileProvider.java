@@ -61,8 +61,6 @@ public class FilesystemFileProvider implements FileProvider {
 	@Override
 	public void activate() {
 		if (!isActivated) {
-			LOGGER.debug(String.format("Start activating FileProvider %s", getName()));
-
 			// Initialize the root folder
 			rootFolder = new RootFolder();
 
@@ -71,24 +69,20 @@ public class FilesystemFileProvider implements FileProvider {
 			configurationPanel = navigationShareTab.build();
 
 			isActivated = true;
-
-			LOGGER.info(String.format("FileProvider %s has been activated", getName()));
 		} else {
-			LOGGER.info(String.format("FileProvider %s has already been activated", getName()));
+			LOGGER.info(String.format("FileProvider '%s' has already been activated", getName()));
 		}
 	}
 
 	@Override
 	public void deactivate() {
-		if (!isActivated) {
-			LOGGER.debug(String.format("Start deactivating FileProvider %s", getName()));
-
+		if (isActivated) {
 			rootFolder = null;
 			configurationPanel = null;
 
 			isActivated = false;
-
-			LOGGER.info(String.format("FileProvider %s has been deactivated", getName()));
+		} else {
+			LOGGER.info(String.format("FileProvider '%s' has already been deactivated", getName()));
 		}
 	}
 

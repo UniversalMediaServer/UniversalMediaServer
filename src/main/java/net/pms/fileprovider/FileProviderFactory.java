@@ -49,17 +49,23 @@ public class FileProviderFactory {
 		return fileProviders;
 	}
 	
+	/**
+	 * Gets the active file provider.
+	 *
+	 * @return the active file provider
+	 */
 	public static FileProvider getActiveFileProvider() {
 		if(activeFileProvider == null) {
 			String fileProviderClassName = PMS.getConfiguration().getActiveFileProviderClassName();
-			FileProvider fileProvider = getFileProviderbyClassName(fileProviderClassName);
+			FileProvider fileProvider = getFileProviderByClassName(fileProviderClassName);
 			
 			if(fileProvider == null) {
 				// Fall back to the default class provider if the configured one isn't being found; it must exist!
-				fileProvider = getFileProviderbyClassName(FilesystemFileProvider.class.getName());
+				fileProvider = getFileProviderByClassName(FilesystemFileProvider.class.getName());
 			}
 			
 			if(!fileProvider.isActivated()) {
+				// Make sure the file provider is active
 				fileProvider.activate();
 			}
 			
@@ -76,19 +82,29 @@ public class FileProviderFactory {
 	 */
 	public static void setActiveFileProvider(FileProvider fileProvider) {
 		if(activeFileProvider != null) {
+			LOGGER.debug(String.format("Start deactivating FileProvider '%s'", activeFileProvider.getName()));
+			
 			// Deactivate the currently active file provider
 			activeFileProvider.deactivate();
+
+			LOGGER.info(String.format("Deactivated FileProvider '%s'", activeFileProvider.getName()));
 		}
 		
 		if(!fileProvider.isActivated()) {
+			LOGGER.debug(String.format("Start activating FileProvider '%s'", fileProvider.getName()));
+			
 			// Activate the newly active file provider if it hasn't been previously done
 			fileProvider.activate();
+			
+			LOGGER.info(String.format("Activated FileProvider '%s'", fileProvider.getName()));
 		}
 		
 		activeFileProvider = fileProvider;
 		
 		// Persist the change
 		PMS.getConfiguration().setActiveFileProviderClassName(fileProvider.getClass().getName());
+
+		LOGGER.info(String.format("FileProvider '%s' is now active", activeFileProvider.getName()));
 	}
 	
 	/**
@@ -198,15 +214,13 @@ public class FileProviderFactory {
 				if (instance instanceof FileProvider) {
 					registerFileProvider((FileProvider) instance);
 				}
-			} catch (Exception e) {
-				LOGGER.error("Error loading file provider plugin", e);
-			} catch (NoClassDefFoundError e) {
+			} catch (Exception | NoClassDefFoundError e) {
 				LOGGER.error("Error loading file provider plugin", e);
 			}
 		}
 	}
 	
-	private static FileProvider getFileProviderbyClassName(String className) {
+	private static FileProvider getFileProviderByClassName(String className) {
 		FileProvider resultfileProvider = null;
 		for(FileProvider fileProvider : getFileProviders()) {
 			if(fileProvider.getClass().getName().equals(className)) {
