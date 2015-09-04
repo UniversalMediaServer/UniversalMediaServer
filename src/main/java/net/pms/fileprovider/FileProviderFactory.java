@@ -18,6 +18,11 @@ import org.slf4j.LoggerFactory;
 
 public class FileProviderFactory {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileProviderFactory.class);
+	
+	/** 
+	 * The instance used for the singleton.
+	 */
+	private static FileProviderFactory instance;
 
 	/**
 	 * The name of the file containing the package and class name
@@ -36,16 +41,30 @@ public class FileProviderFactory {
 	private static FileProvider activeFileProvider;
 	
 	/**
-	 * Private constructor to avoid instantiation.
+	 * Private constructor to avoid instantiation.<br>
+	 * Use {@link FileProviderFactory#getInstance() getInstance()} to get the singleton instance.
 	 */
 	private FileProviderFactory() { }
+	
+	/**
+	 * Gets the singleton instance.
+	 *
+	 * @return the instance
+	 */
+	public static FileProviderFactory getInstance() {
+		if(instance == null) {
+			// Lazy-initialize the instance
+			instance = new FileProviderFactory();
+		}
+		return instance;
+	}
 	
 	/**
 	 * Gets the file providers.
 	 *
 	 * @return the file providers
 	 */
-	public static List<FileProvider> getFileProviders() {
+	public List<FileProvider> getFileProviders() {
 		return fileProviders;
 	}
 	
@@ -54,7 +73,7 @@ public class FileProviderFactory {
 	 *
 	 * @return the active file provider
 	 */
-	public static FileProvider getActiveFileProvider() {
+	public FileProvider getActiveFileProvider() {
 		if(activeFileProvider == null) {
 			String fileProviderClassName = PMS.getConfiguration().getActiveFileProviderClassName();
 			FileProvider fileProvider = getFileProviderByClassName(fileProviderClassName);
@@ -80,7 +99,7 @@ public class FileProviderFactory {
 	 *
 	 * @param fileProvider the active file provider
 	 */
-	public static void setActiveFileProvider(FileProvider fileProvider) {
+	public void setActiveFileProvider(FileProvider fileProvider) {
 		if(activeFileProvider != null) {
 			LOGGER.debug(String.format("Start deactivating FileProvider '%s'", activeFileProvider.getName()));
 			
@@ -112,7 +131,7 @@ public class FileProviderFactory {
 	 *
 	 * @param fileProvider the file provider to register
 	 */
-	public static void registerFileProvider(FileProvider fileProvider) {
+	public void registerFileProvider(FileProvider fileProvider) {
 		if(!fileProviders.contains(fileProvider)) {
 			fileProviders.add(fileProvider);
 			LOGGER.info(String.format("File provider '%s' has been registered", fileProvider.getName()));
@@ -128,7 +147,7 @@ public class FileProviderFactory {
 	 * class. This main plugin class is then loaded and an instance is being created
 	 * and registered for later use.
 	 */
-	public static void lookup() {
+	public void lookup() {
 		File pluginDirectory = new File(PMS.getConfiguration().getPluginDirectory());
 
 		if (!pluginDirectory.exists()) {
@@ -220,7 +239,7 @@ public class FileProviderFactory {
 		}
 	}
 	
-	private static FileProvider getFileProviderByClassName(String className) {
+	private FileProvider getFileProviderByClassName(String className) {
 		FileProvider resultfileProvider = null;
 		for(FileProvider fileProvider : getFileProviders()) {
 			if(fileProvider.getClass().getName().equals(className)) {

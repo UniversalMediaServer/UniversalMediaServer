@@ -24,6 +24,8 @@ import com.jgoodies.forms.layout.FormLayout;
  */
 public class FileProviderTab extends JPanel {
 	private static final long serialVersionUID = -4011891950242053249L;	
+	
+	private final FileProviderFactory fileProviderFactory = FileProviderFactory.getInstance();
 	private final JComboBox<CustomComboBoxItem<FileProvider>> cbFileProviders = new JComboBox<CustomComboBoxItem<FileProvider>>();
 	
 	/**
@@ -41,8 +43,8 @@ public class FileProviderTab extends JPanel {
 
 		CellConstraints cc = new CellConstraints();
 
-		List<FileProvider> fileProviders = FileProviderFactory.getFileProviders();
-		FileProvider activeFileProvider = FileProviderFactory.getActiveFileProvider();
+		List<FileProvider> fileProviders = fileProviderFactory.getFileProviders();
+		FileProvider activeFileProvider = fileProviderFactory.getActiveFileProvider();
 
 		if (fileProviders.size() > 1) {
 			layout = new FormLayout("3dlu, p, 3dlu, p, 3dlu, p, 0:g", // columns
@@ -69,7 +71,7 @@ public class FileProviderTab extends JPanel {
 				public void actionPerformed(ActionEvent e) {
 					// Set the new file provider
 					CustomComboBoxItem<FileProvider> selectedItem = (CustomComboBoxItem<FileProvider>)cbFileProviders.getSelectedItem();
-					FileProviderFactory.setActiveFileProvider(selectedItem.getUserObject());
+					fileProviderFactory.setActiveFileProvider(selectedItem.getUserObject());
 					
 					// Rebuild the content of the panel to reflect the changes
 					build();

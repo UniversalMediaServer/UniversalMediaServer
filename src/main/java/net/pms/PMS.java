@@ -87,6 +87,8 @@ public class PMS {
 
 	private GlobalIdRepo globalRepo;
 
+	private final FileProviderFactory fileProviderFactory = FileProviderFactory.getInstance();
+	
 	public static final String AVS_SEPARATOR = "\1";
 
 	// (innot): The logger used for all logging.
@@ -498,8 +500,8 @@ public class PMS {
 		VERSION = getVersion();
 		
 		// Register the default file provider and resolve file provider plugins
-		FileProviderFactory.registerFileProvider(new FilesystemFileProvider());
-		FileProviderFactory.lookup();
+		fileProviderFactory.registerFileProvider(new FilesystemFileProvider());
+		fileProviderFactory.lookup();
 
 		fileWatcher = new FileWatcher();
 
@@ -739,7 +741,7 @@ public class PMS {
 						l.shutdown();
 					}
 
-					FileProvider activeFileProvider = FileProviderFactory.getActiveFileProvider();
+					FileProvider activeFileProvider = fileProviderFactory.getActiveFileProvider();
 					if(activeFileProvider != null) {
 						activeFileProvider.deactivate();
 					}
