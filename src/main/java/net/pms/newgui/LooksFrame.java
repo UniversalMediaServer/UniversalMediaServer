@@ -96,7 +96,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void setViewLevel(ViewLevel viewLevel) {
 		if (viewLevel != ViewLevel.UNKNOWN){
 			this.viewLevel = viewLevel;
-			tt.implementViewLevel();
+			tt.applyViewLevel();
 		}
 	}
 
