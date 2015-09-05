@@ -31,16 +31,14 @@ import org.slf4j.LoggerFactory;
  */
 public class OutputTextLogger extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextLogger.class);
-	@SuppressWarnings("unused")
-	private ProcessWrapperImpl pw;
 
 	public OutputTextLogger(InputStream inputStream) {
-		this(inputStream, null);
+		super(inputStream);
 	}
 
+	@Deprecated
 	public OutputTextLogger(InputStream inputStream, ProcessWrapperImpl pwi) {
-		super(inputStream);
-		pw = pwi;
+		this(inputStream);
 	}
 
 	@Override

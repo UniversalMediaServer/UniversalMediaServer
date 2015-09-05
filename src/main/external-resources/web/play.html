@@ -13,10 +13,10 @@
 	<body id="ContentPage">
 		<script>
 {{#prevId}}
-			function prev() {window.location.replace('/play/{{prevId}}');}
+			function prev() {window.location.replace('/play/{{prevId}}?html5=1');}
 {{/prevId}}
 {{#nextId}}
-			function next() {window.location.replace('/play/{{nextId}}');}
+			function next() {window.location.replace('/play/{{nextId}}?html5=1');}
 {{/nextId}}
 {{#isVideo}}
 			function flash() {window.location.replace('/play/{{id1}}?flash=1');}

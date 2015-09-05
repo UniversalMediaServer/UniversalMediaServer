@@ -1381,7 +1381,7 @@ public class FFMpegVideo extends Player {
 		if (configuration.isResumeEnabled() && dlna.getMedia() != null) {
 			long duration = force ? 0 : (long) dlna.getMedia().getDurationInSeconds();
 			if (duration == 0 || duration == DLNAMediaInfo.TRANS_SIZE) {
-				OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
+				OutputTextLogger ffParser = new OutputTextLogger(null) {
 					@Override
 					public boolean filter(String line) {
 						if (reDuration.reset(line).find()) {

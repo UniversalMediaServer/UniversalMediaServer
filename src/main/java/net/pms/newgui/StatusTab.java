@@ -21,7 +21,13 @@ package net.pms.newgui;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.ComponentOrientation;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -31,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
@@ -164,8 +171,11 @@ public class StatusTab {
 
 	public void updateCurrentBitrate() {
 		long total = 0;
-		for (RendererConfiguration r : PMS.get().getRenders()) {
-			total += r.getBuffer();
+		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+		synchronized(foundRenderers) {
+			for (RendererConfiguration r : foundRenderers) {
+				total += r.getBuffer();
+			}
 		}
 		if (total == 0) {
 			currentBitrate.setText("0");
@@ -455,13 +465,22 @@ public class StatusTab {
 	}
 
 	public void updateMemoryUsage() {
-		long max = Runtime.getRuntime().maxMemory() / 1048576;
-		long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
+		final long max = Runtime.getRuntime().maxMemory() / 1048576;
+		final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
 		long buf = 0;
-		for (RendererConfiguration r : PMS.get().getRenders()) {
-			buf += (r.getBuffer());
+		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+		synchronized (foundRenderers) {
+			for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
+				buf += (r.getBuffer());
+			}
 		}
-		memBarUI.setValues(0, (int) max, (int) (used - buf), (int) buf);
+		final long buffer = buf;
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
+			}
+		});
 	}
 
 	private void startMemoryUpdater() {

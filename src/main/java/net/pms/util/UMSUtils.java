@@ -383,7 +383,7 @@ public class UMSUtils {
 				sb.append("\n");
 				for (DLNAResource r : playlist) {
 					String data = r.write();
-					if (!org.apache.commons.lang.StringUtils.isEmpty(data)) {
+					if (!org.apache.commons.lang.StringUtils.isEmpty(data) && sb.indexOf(data) == -1) {
 						ExternalListener external = r.getMasterParent();
 						String id;
 						if (external != null) {
