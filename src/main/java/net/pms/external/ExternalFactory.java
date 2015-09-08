@@ -177,7 +177,7 @@ public class ExternalFactory {
 	public static void loadJAR(URL[] jarURL, boolean download, URL newURL) {
 		// Create a classloader to take care of loading the plugin classes from
 		// their URL.
-		URLClassLoader classLoader = new URLClassLoader(jarURL);
+		URLClassLoader classLoader = new URLClassLoader(jarURL, PMS.class.getClassLoader());
 		Enumeration<URL> resources;
 
 		try {
