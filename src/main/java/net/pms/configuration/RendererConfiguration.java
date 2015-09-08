@@ -1,7 +1,6 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
-
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,7 +47,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static RendererConfiguration defaultConf;
 	protected static final Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
-	protected RootFolder rootFolder;
+	protected DLNAResource rootFolder;
 	protected File file;
 	protected Configuration configuration;
 	protected PmsConfiguration pmsConfiguration = _pmsConfiguration;
@@ -462,7 +461,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
-	public RootFolder getRootFolder() {
+	public DLNAResource getRootFolder() {
 		if (rootFolder == null) {
 			ArrayList<String> tags = new ArrayList<>();
 			tags.add(getRendererName());
@@ -472,6 +471,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				}
 			}
 
+			// TODO PWA: handle this differently. There should not be any references to RootFolder in UMS base code
 			rootFolder = new RootFolder(tags);
 			if (pmsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
@@ -483,11 +483,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public void addFolderLimit(DLNAResource res) {
 		if (rootFolder != null) {
-			rootFolder.setFolderLim(res);
+			// TODO PWA: handle this differently. There should not be any references to RootFolder in UMS base code
+			if(rootFolder instanceof RootFolder){
+				((RootFolder)rootFolder).setFolderLim(res);
+			}
 		}
 	}
 
-	public void setRootFolder(RootFolder r) {
+	public void setRootFolder(DLNAResource r) {
 		rootFolder = r;
 	}
 
@@ -2327,7 +2330,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public ArrayList<String> tags() {
 		if (rootFolder != null) {
-			return rootFolder.getTags();
+			// TODO PWA: handle this differently. There should not be any references to RootFolder in UMS base code
+			if(rootFolder instanceof RootFolder){
+				((RootFolder)rootFolder).getTags();
+			}
 		}
 		return null;
 	}

@@ -16,7 +16,6 @@ import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +33,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		String user = RemoteUtil.userName(t);
-		RootFolder root = parent.getRoot(user, true, t);
+		DLNAResource root = parent.getRoot(user, true, t);
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);

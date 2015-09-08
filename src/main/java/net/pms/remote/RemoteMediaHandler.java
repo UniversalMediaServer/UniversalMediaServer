@@ -14,7 +14,6 @@ import net.pms.dlna.*;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.FFmpegAudio;
 import net.pms.encoders.FFmpegWebVideo;
-import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+		DLNAResource root = parent.getRoot(RemoteUtil.userName(t), t);
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}

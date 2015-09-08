@@ -46,7 +46,7 @@ import net.pms.external.ExternalListener;
 import net.pms.fileprovider.FileProvider;
 import net.pms.fileprovider.FileProviderFactory;
 import net.pms.fileprovider.filesystem.FilesystemFileProvider;
-import net.pms.fileprovider.filesystem.dlna.RootFolder;
+import net.pms.fileprovider.filesystem.dlna.DLNAMediaDatabase;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
@@ -129,7 +129,7 @@ public class PMS {
 	 * then the default renderer is used.
 	 * @return {@link net.pms.fileprovider.filesystem.dlna.RootFolder} The root folder structure for a given renderer
 	 */
-	public RootFolder getRootFolder(RendererConfiguration renderer) {
+	public DLNAResource getRootFolder(RendererConfiguration renderer) {
 		// something to do here for multiple directories views for each renderer
 		if (renderer == null) {
 			renderer = RendererConfiguration.getDefaultConf();
@@ -230,7 +230,7 @@ public class PMS {
 
 	/**
 	 * Main resource database that supports search capabilities. Also known as media cache.
-	 * @see net.pms.dlna.DLNAMediaDatabase
+	 * @see net.pms.fileprovider.filesystem.dlna.DLNAMediaDatabase
 	 */
 	private DLNAMediaDatabase database;
 

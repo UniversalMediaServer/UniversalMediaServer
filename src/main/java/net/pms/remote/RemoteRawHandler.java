@@ -11,7 +11,6 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
-import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ public class RemoteRawHandler implements HttpHandler {
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+		DLNAResource root = parent.getRoot(RemoteUtil.userName(t), t);
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}

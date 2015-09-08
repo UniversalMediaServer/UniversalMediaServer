@@ -37,7 +37,7 @@ import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.fileprovider.filesystem.dlna.DLNAMediaDatabase;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.RestrictedFileSystemView;
 import net.pms.newgui.components.CustomJButton;

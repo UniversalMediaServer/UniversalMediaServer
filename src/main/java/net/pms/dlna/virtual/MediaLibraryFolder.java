@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import net.pms.PMS;
 import net.pms.dlna.*;
+import net.pms.fileprovider.filesystem.dlna.DLNAMediaDatabase;
 import net.pms.util.UMSUtils;
 
 public class MediaLibraryFolder extends VirtualFolder {

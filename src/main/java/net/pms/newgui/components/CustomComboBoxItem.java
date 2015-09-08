@@ -1,6 +1,6 @@
 package net.pms.newgui.components;
 
-public class CustomComboBoxItem<T> {
+public class CustomComboBoxItem<T> implements Comparable<CustomComboBoxItem<T>> {
 	private String displayName;
 	private T userObject;
 	
@@ -27,5 +27,19 @@ public class CustomComboBoxItem<T> {
 	
 	public String toString() {
 		return getDisplayName();
+	}
+
+	@Override
+	public int compareTo(CustomComboBoxItem<T> o) {
+		if(getDisplayName() == null && (o == null || o.getDisplayName() == null)) {
+			return 0;
+		}
+		if(getDisplayName() == null) {
+			return 1;
+		}
+		if(o == null || o.getDisplayName() == null) {
+			return -1;
+		}
+		return getDisplayName().compareTo(o.getDisplayName());
 	}
 }

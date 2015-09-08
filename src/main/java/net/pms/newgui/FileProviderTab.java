@@ -26,14 +26,20 @@ public class FileProviderTab extends JPanel {
 	private static final long serialVersionUID = -4011891950242053249L;	
 	
 	private final FileProviderFactory fileProviderFactory = FileProviderFactory.getInstance();
-	private final JComboBox<CustomComboBoxItem<FileProvider>> cbFileProviders = new JComboBox<CustomComboBoxItem<FileProvider>>();
+	private JComboBox<CustomComboBoxItem<FileProvider>> cbFileProviders;
 	
 	/**
 	 * The Constructor.
 	 */
 	public FileProviderTab() {
 		setLayout(new GridLayout());
+		initialize();
 		build();
+	}
+
+	private void initialize() {
+		SortedComboBoxModel<CustomComboBoxItem<FileProvider>> model = new SortedComboBoxModel<>();
+		cbFileProviders = new JComboBox<CustomComboBoxItem<FileProvider>>(model);
 	}
 
 	private void build() {

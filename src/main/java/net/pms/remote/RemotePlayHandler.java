@@ -15,7 +15,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Player;
-import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
@@ -73,7 +72,7 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("serverName", configuration.getServerName());
 
 		LOGGER.debug("make play page " + id);
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+		DLNAResource root = parent.getRoot(RemoteUtil.userName(t), t);
 		if (root == null) {
 			LOGGER.debug("root not found");
 			throw new IOException("Unknown root");
@@ -223,7 +222,7 @@ public class RemotePlayHandler implements HttpHandler {
 			LOGGER.trace("got player status: " + json);
 			RemoteUtil.respond(t, "", 200, "text/html");
 
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+			DLNAResource root = parent.getRoot(RemoteUtil.userName(t), t);
 			if (root == null) {
 				LOGGER.debug("root not found");
 				throw new IOException("Unknown root");
@@ -240,7 +239,7 @@ public class RemotePlayHandler implements HttpHandler {
 			String id = tmp[tmp.length - 1];
 			DLNAResource r = PMS.getGlobalRepo().get(id);
  			if (r != null) {
-				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+ 				DLNAResource root = parent.getRoot(RemoteUtil.userName(t), t);
 				if (root == null) {
 					LOGGER.debug("root not found");
 					throw new IOException("Unknown root");

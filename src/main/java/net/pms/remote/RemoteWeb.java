@@ -34,7 +34,7 @@ public class RemoteWeb {
 	private SSLContext sslContext;
 	private HashMap<String, String> users;
 	private HashMap<String, String> tags;
-	private Map<String, RootFolder> roots;
+	private Map<String, DLNAResource> roots;
 	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final int defaultPort = configuration.getWebPort();
@@ -51,7 +51,7 @@ public class RemoteWeb {
 
 		users = new HashMap<>();
 		tags = new HashMap<>();
-		roots = Collections.synchronizedMap(new HashMap<String, RootFolder>());
+		roots = Collections.synchronizedMap(new HashMap<String, DLNAResource>());
 		// Add "classpaths" for resolving web resources
 		resources = new RemoteUtil.ResourceManager(
 			"file:" + configuration.getProfileDirectory() + "/web/",
@@ -154,21 +154,21 @@ public class RemoteWeb {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	public RootFolder getRoot(String user, HttpExchange t) {
+	public DLNAResource getRoot(String user, HttpExchange t) {
 		return getRoot(user, false, t);
 	}
 
-	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
+	public DLNAResource getRoot(String user, boolean create, HttpExchange t) {
 		String groupTag = getTag(user);
 		String cookie = RemoteUtil.getCookie("UMS", t);
-		RootFolder root = roots.get(cookie);
+		DLNAResource root = roots.get(cookie);
 		if (root == null) {
 			// Double-check for cookie errors
 			WebRender valid = RemoteUtil.matchRenderer(user, t);
 			if (valid != null) {
 				// A browser of the same type and user is already connected at
 				// this ip but for some reason we didn't get a cookie match.
-				RootFolder validRoot = valid.getRootFolder();
+				DLNAResource validRoot = valid.getRootFolder();
 				// Do a reverse lookup to see if it's been registered
 				for (String c : roots.keySet()) {
 					if (roots.get(c) == validRoot) {
@@ -194,6 +194,7 @@ public class RemoteWeb {
 
 			tag.add(t.getRemoteAddress().getHostString());
 			tag.add("web");
+			// TODO PWA: handle this differently. There should not be any references to RootFolder in UMS base code
 			root = new RootFolder(tag);
 			try {
 				WebRender render = new WebRender(user);
@@ -301,7 +302,7 @@ public class RemoteWeb {
 				RemoteUtil.sendLogo(t);
 				return;
 			}
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+			DLNAResource root = parent.getRoot(RemoteUtil.userName(t), t);
 			if (root == null) {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
@@ -514,7 +515,7 @@ public class RemoteWeb {
 			}
 			@SuppressWarnings("unused")
 			String p = t.getRequestURI().getPath();
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+			DLNAResource root = parent.getRoot(RemoteUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			String json = renderer.getPushData();
 			RemoteUtil.respond(t, json, 200, "text");

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.fileprovider.filesystem.dlna;
 
 import com.sun.jna.Platform;
 import java.awt.Component;
@@ -29,6 +29,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FileUtils;
@@ -776,12 +780,18 @@ public class DLNAMediaDatabase implements Runnable {
 
 	public void stopScanLibrary() {
 		if (isScanLibraryRunning()) {
-			PMS.get().getRootFolder(null).stopScan();
+			DLNAResource root = PMS.get().getRootFolder(null);
+			if(root instanceof RootFolder){
+				((RootFolder)root).stopScan();
+			}
 		}
 	}
 
 	@Override
 	public void run() {
-		PMS.get().getRootFolder(null).scan();
+		DLNAResource root = PMS.get().getRootFolder(null);
+		if(root instanceof RootFolder){
+			((RootFolder)root).scan();
+		}
 	}
 }

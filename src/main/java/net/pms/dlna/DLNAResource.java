@@ -3792,7 +3792,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private void internalStop() {
 		DLNAResource res = resumeStop();
-		final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
+		final DLNAResource root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
 		if (root != null) {
 			if (res == null) {
 				res = this.clone();
@@ -3800,7 +3800,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				res = res.clone();
 			}
 
-			root.stopPlaying(res);
+			// TODO PWA: handle this differently. There should not be any references to RootFolder in UMS base code
+			if(root instanceof RootFolder){
+				((RootFolder)root).stopPlaying(res);
+			}
 		}
 	}
 

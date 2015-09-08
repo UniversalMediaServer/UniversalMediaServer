@@ -22,6 +22,7 @@ import com.sun.jna.Platform;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.PMS;
+import net.pms.fileprovider.filesystem.dlna.DLNAMediaDatabase;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
