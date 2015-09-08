@@ -498,6 +498,10 @@ public class PMS {
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
+
+		infoDb = new InfoDb();
+		codes = new CodeDb();
+		masterCode = null;
 		
 		// Register the default file provider and resolve file provider plugins
 		fileProviderFactory.registerFileProvider(new FilesystemFileProvider());
@@ -556,10 +560,6 @@ public class PMS {
 		if (configuration.useWebInterface()) {
 			web = new RemoteWeb(configuration.getWebPort());
 		}
-
-		infoDb = new InfoDb();
-		codes = new CodeDb();
-		masterCode = null;
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
