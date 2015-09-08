@@ -16,6 +16,9 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
+import net.pms.fileprovider.FileProvider;
+import net.pms.fileprovider.FileProviderChangeListener;
+import net.pms.fileprovider.FileProviderFactory;
 import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
@@ -207,6 +210,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
+	
+	private final FileProviderFactory fileProviderFactory = FileProviderFactory.getInstance();
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -472,9 +477,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 
 			// TODO PWA: handle this differently. There should not be any references to RootFolder in UMS base code
-			rootFolder = new RootFolder(tags);
-			if (pmsConfiguration.getUseCache()) {
-				rootFolder.discoverChildren();
+			rootFolder = fileProviderFactory.getActiveFileProvider().getRootFolder();
+			if(rootFolder instanceof RootFolder) {
+				((RootFolder)rootFolder).setTags(tags);
+
+				if (pmsConfiguration.getUseCache()) {
+					rootFolder.discoverChildren();
+				}
 			}
 		}
 
@@ -927,6 +936,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public RendererConfiguration(File f, String uuid) throws ConfigurationException {
 		super(uuid);
+		
+		fileProviderFactory.addFileProviderChangedEventListener(new FileProviderChangeListener() {
+			
+			@Override
+			public void activeFileProviderChanged(FileProvider previousFileProvider, FileProvider newFileProvider) {
+				// Reset the root folder when the active file provider changes
+				rootFolder = null;				
+			}
+		});
 
 		configuration = createPropertiesConfiguration();
 

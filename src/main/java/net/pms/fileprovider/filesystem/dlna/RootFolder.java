@@ -79,17 +79,12 @@ public class RootFolder extends DLNAResource {
 	private FolderLimit lim;
 	private MediaMonitor mon;
 	private Playlist last;
-	private ArrayList<String> tags;
+	private final ArrayList<String> tags = new ArrayList<>();
 	private ArrayList<DLNAResource> webFolders;
 
-	public RootFolder(ArrayList<String> tags) {
-		setIndexId(0);
-		this.tags = tags;
-		webFolders = new ArrayList<>();
-	}
-
 	public RootFolder() {
-		this(null);
+		setIndexId(0);
+		webFolders = new ArrayList<>();
 	}
 
 	@Override
@@ -1434,8 +1429,13 @@ public class RootFolder extends DLNAResource {
 		return true;
 	}
 
-	public ArrayList<String> getTags() {
+	public final ArrayList<String> getTags() {
 		return tags;
+	}
+
+	public void setTags(ArrayList<String> tags) {
+		this.tags.clear();
+		this.tags.addAll(tags);
 	}
 
 	// Automatic reloading

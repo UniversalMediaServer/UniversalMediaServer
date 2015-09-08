@@ -18,6 +18,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
+import net.pms.fileprovider.FileProviderFactory;
 import net.pms.fileprovider.filesystem.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
 import org.apache.commons.configuration.ConfigurationException;
@@ -36,6 +37,8 @@ public class RemoteWeb {
 	private HashMap<String, String> tags;
 	private Map<String, DLNAResource> roots;
 	private RemoteUtil.ResourceManager resources;
+	private final FileProviderFactory fileProviderFactory = FileProviderFactory.getInstance();
+	
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final int defaultPort = configuration.getWebPort();
 	
@@ -194,8 +197,12 @@ public class RemoteWeb {
 
 			tag.add(t.getRemoteAddress().getHostString());
 			tag.add("web");
+			
 			// TODO PWA: handle this differently. There should not be any references to RootFolder in UMS base code
-			root = new RootFolder(tag);
+			root = fileProviderFactory.getActiveFileProvider().getRootFolder();
+			if(root instanceof RootFolder) {
+				((RootFolder)root).setTags(tag);
+			}
 			try {
 				WebRender render = new WebRender(user);
 				root.setDefaultRenderer(render);
