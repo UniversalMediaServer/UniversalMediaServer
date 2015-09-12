@@ -1295,7 +1295,7 @@ public class PMS {
 	 * Restart handling
 	 */
 	private static void killOld() {
-		if (configuration.isAdmin()) {
+		if (!Platform.isWindows() || configuration.isAdmin()) {
 			try {
 				killProc();
 			} catch (IOException e) {
