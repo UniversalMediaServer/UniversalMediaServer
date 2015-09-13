@@ -23,6 +23,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import static net.pms.util.Constants.*;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
@@ -34,12 +37,14 @@ public class FileUtilTest {
 
 	/**
 	 * Set up testing conditions before running the tests.
+	 * @throws ConfigurationException
 	 */
 	@Before
-	public final void setUp() {
+	public final void setUp() throws ConfigurationException {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
+		PMS.setConfiguration(new PmsConfiguration(false));
 	}
 
 	@Test

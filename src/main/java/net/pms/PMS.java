@@ -138,10 +138,26 @@ public class PMS {
 	private static PMS instance = null;
 
 	/**
-	 * Array of {@link net.pms.configuration.RendererConfiguration} that have been found by PMS.
+	 * Array of {@link net.pms.configuration.RendererConfiguration} that have
+	 * been found by UMS.<br><br>
+	 *
+	 * Important! If iteration is done on this list it's not thread safe unless
+	 * the iteration loop is enclosed by a <code>synchronized</code> block on
+	 * the <code>List itself</code>.
 	 */
-	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<>();
+	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<RendererConfiguration>());
 
+	/**
+	 * The returned <code>List</code> itself is thread safe, but the objects
+	 * it's holding is not. Any looping/iterating of this <code>List</code>
+	 * MUST be enclosed in:
+	 * S<pre><code>
+	 * synchronized(getFoundRenderers()) {
+	 *      ..code..
+	 * }
+	 * </code></pre>
+	 * @return {@link #foundRenderers}
+	 */
 	public List<RendererConfiguration> getFoundRenderers() {
 		return foundRenderers;
 	}
@@ -1295,7 +1311,7 @@ public class PMS {
 	 * Restart handling
 	 */
 	private static void killOld() {
-		if (configuration.isAdmin()) {
+		if (!Platform.isWindows() || configuration.isAdmin()) {
 			try {
 				killProc();
 			} catch (IOException e) {
@@ -1495,10 +1511,6 @@ public class PMS {
 
 	public static boolean isReady() {
 		return get().ready;
-	}
-
-	public List<RendererConfiguration> getRenders() {
-		return foundRenderers;
 	}
 
 	public static GlobalIdRepo getGlobalRepo() {

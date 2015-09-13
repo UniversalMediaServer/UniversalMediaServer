@@ -21,11 +21,15 @@ package net.pms.configuration;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -2830,38 +2834,87 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_GPU_ACCELERATION, value);
 	}
 
+	private Boolean admin = null;
+	private Object isAdminLock = new Object();
 	/**
 	 * Finds out whether the program has admin rights.
 	 * It only checks on Windows and returns true if on a non-Windows OS.
 	 *
 	 * Note: Detection of Windows 8 depends on the user having a version of
 	 * JRE newer than 1.6.0_31 installed.
-	 *
-	 * TODO: We should make it check for rights on other operating systems.
 	 */
 	public boolean isAdmin() {
-		if (
-			"Windows 8".equals(System.getProperty("os.name")) ||
-			"Windows 7".equals(System.getProperty("os.name")) ||
-			"Windows Vista".equals(System.getProperty("os.name"))
-		) {
-			try {
-				String command = "reg query \"HKU\\S-1-5-19\"";
-				Process p = Runtime.getRuntime().exec(command);
-				p.waitFor();
-				int exitValue = p.exitValue();
+		synchronized(isAdminLock) {
+			if (admin != null) {
+				return admin.booleanValue();
+			}
+			if (Platform.isWindows()) {
+				Float ver = null;
+				try {
+					ver = Float.valueOf(System.getProperty("os.version"));
+				} catch (NullPointerException | NumberFormatException e) {
+					LOGGER.error(
+						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
+						System.getProperty("os.version"), e.getMessage()
+					);
+					admin = Boolean.valueOf(false);
+					return false;
+				}
+				if (ver >= 5.1) {
+					try {
+						String command = "reg query \"HKU\\S-1-5-19\"";
+						Process p = Runtime.getRuntime().exec(command);
+						p.waitFor();
+						int exitValue = p.exitValue();
 
-				if (0 == exitValue) {
+						if (0 == exitValue) {
+							admin = Boolean.valueOf(true);
+							return true;
+						}
+						admin = Boolean.valueOf(false);
+						return false;
+					} catch (IOException | InterruptedException e) {
+						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
+					}
+				} else {
+					admin = Boolean.valueOf(true);
 					return true;
 				}
-
-				return false;
-			} catch (IOException | InterruptedException e) {
-				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
+			} else if (Platform.isLinux() || Platform.isMac()) {
+				try {
+					final String command = "id -Gn";
+					LOGGER.trace("isAdmin: Executing \"{}\"", command);
+					Process p = Runtime.getRuntime().exec(command);
+					InputStream is = p.getInputStream();
+					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
+					BufferedReader br = new BufferedReader(isr);
+					p.waitFor();
+					int exitValue = p.exitValue();
+					String exitLine = br.readLine();
+					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
+						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
+						admin = Boolean.valueOf(false);
+						return false;
+					}
+					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
+					if
+						((Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
+						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
+					{
+						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
+						admin = Boolean.valueOf(true);
+						return true;
+					}
+					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
+					admin = Boolean.valueOf(false);
+					return false;
+				} catch (IOException | InterruptedException e) {
+					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
+				}
 			}
+			admin = Boolean.valueOf(false);
+			return false;
 		}
-
-		return true;
 	}
 
 	/* Start without external netowrk (increase startup speed) */
