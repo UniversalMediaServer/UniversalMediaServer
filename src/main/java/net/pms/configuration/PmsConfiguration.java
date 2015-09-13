@@ -153,6 +153,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 	protected static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	protected static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
+	protected static final String KEY_SHOW_WATCHED_VIDEOS = "show_watched_videos";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
@@ -1687,6 +1688,26 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setHideVideoSettings(boolean value) {
 		configuration.setProperty(KEY_HIDE_VIDEO_SETTINGS, value);
+	}
+
+	/**
+	 * Returns whether to show videos that have been marked as watched, in
+	 * all folders except "New Media", which will never show them.
+	 *
+	 * @return whether to show watched videos
+	 */
+	public boolean isShowWatchedVideos() {
+		return getBoolean(KEY_SHOW_WATCHED_VIDEOS, true);
+	}
+
+	/**
+	 * Sets whether to show videos that have been marked as watched, in all
+	 * folders except "New Media", which will never show them.
+	 *
+	 * @param value whether to show watched videos
+	 */
+	public void setShowWatchedVideos(boolean value) {
+		configuration.setProperty(KEY_SHOW_WATCHED_VIDEOS, value);
 	}
 
 	/**

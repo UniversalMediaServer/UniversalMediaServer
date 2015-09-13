@@ -556,6 +556,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					return;
 				}
 
+				// Do not add watched videos, if the user has specified that
+				if (!configuration.isShowWatchedVideos() && MediaMonitor.isWatched(child.getName())) {
+					LOGGER.trace("Ignoring file \"{}\" because it is marked as watched \"{}\"", child.getName());
+					children.remove(child);
+					return;
+				}
+
 				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
 
 				if (allChildrenAreFolders && !child.isFolder()) {

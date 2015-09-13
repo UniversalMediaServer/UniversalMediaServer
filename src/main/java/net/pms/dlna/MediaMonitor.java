@@ -11,11 +11,14 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
 	private static Set<String> watchedEntries;
 	private File[] dirs;
 	private PmsConfiguration config;
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
@@ -142,6 +145,7 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public static boolean isWatched(String str) {
+		LOGGER.info("1: " + watchedEntries);
 		return watchedEntries != null && watchedEntries.contains(str);
 	}
 
