@@ -149,7 +149,7 @@ public class ProcessUtil {
 							p.exitValue();
 						} catch (IllegalThreadStateException itse) { // still running: nuke it
 							// kill -14 (ALRM) works (for MEncoder) and is less dangerous than kill -9
-							// so try that first 
+							// so try that first
 							if (!kill(pid, 14)) {
 								try {
 									// This is a last resort, so let's not be too eager
@@ -176,7 +176,7 @@ public class ProcessUtil {
 	}
 
 	// Run cmd and return combined stdout/stderr
-	public static String run(String... cmd) {
+	public static String run(int[] expectedExitCodes, String... cmd) {
 		try {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 			pb.redirectErrorStream(true);
@@ -190,7 +190,16 @@ public class ProcessUtil {
 				}
 			}
 			p.waitFor();
-			if (p.exitValue() != 0) {
+			boolean expected = false;
+			if (expectedExitCodes != null) {
+				for (int expectedCode : expectedExitCodes) {
+					if (expectedCode == p.exitValue()) {
+						expected = true;
+						break;
+					}
+				}
+			}
+			if (!expected) {
 				LOGGER.debug("Warning: command {} returned {}", Arrays.toString(cmd), p.exitValue());
 			}
 			return output.toString();
@@ -198,6 +207,11 @@ public class ProcessUtil {
 			LOGGER.error("Error running command " + Arrays.toString(cmd), e);
 		}
 		return "";
+	}
+
+	public static String run(String... cmd) {
+		int[] zeroExpected = { 0 };
+		return run(zeroExpected, cmd);
 	}
 
 	// Whitewash any arguments not suitable to display in dbg messages
@@ -235,7 +249,7 @@ public class ProcessUtil {
 			// We're doing a straight reboot
 			cmd = reboot;
 		} else {
-			// We're running a script that will eventually restart UMS 
+			// We're running a script that will eventually restart UMS
 			if (env == null) {
 				env = new HashMap<>();
 			}
