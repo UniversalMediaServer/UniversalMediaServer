@@ -938,17 +938,19 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
-	 * from. Default is 2 seconds.
+	 * from. Default is 4 seconds.
+	 *
 	 * @return The seek position in seconds.
 	 */
 	public int getThumbnailSeekPos() {
-		return getInt(KEY_THUMBNAIL_SEEK_POS, 2);
+		return getInt(KEY_THUMBNAIL_SEEK_POS, 4);
 	}
 
 	/**
 	 * Sets the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
 	 * from.
+	 *
 	 * @param value The seek position in seconds.
 	 */
 	public void setThumbnailSeekPos(int value) {
