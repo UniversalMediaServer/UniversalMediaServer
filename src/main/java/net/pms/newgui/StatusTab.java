@@ -21,7 +21,13 @@ package net.pms.newgui;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.ComponentOrientation;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -31,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -59,7 +66,7 @@ public class StatusTab {
 		public GuiUtil.FixedPanel playing;
 		public JLabel time;
 		public JFrame frame;
-		public GuiUtil.SmoothProgressBar jpb;
+		public GuiUtil.SmoothProgressBar rendererProgressBar;
 		public RendererPanel panel;
 		public String name = " ";
 		private JPanel _panel = null;
@@ -76,12 +83,12 @@ public class StatusTab {
 			playing.add(playingLabel);
 			time = new JLabel(" ");
 			time.setForeground(Color.gray);
-			jpb = new GuiUtil.SmoothProgressBar(0, 100);
-			jpb.setUI(new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
-			jpb.setStringPainted(true);
-			jpb.setBorderPainted(false);
-			jpb.setString(r.getAddress().getHostAddress());
-			jpb.setForeground(bufColor);
+			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100);
+			rendererProgressBar.setUI(new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
+			rendererProgressBar.setStringPainted(true);
+			rendererProgressBar.setBorderPainted(false);
+			rendererProgressBar.setString(r.getAddress().getHostAddress());
+			rendererProgressBar.setForeground(bufColor);
 		}
 
 		@Override
@@ -89,7 +96,7 @@ public class StatusTab {
 			BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
 			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
-			jpb.setValue((int) (100 * state.buffer / bufferSize));
+			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
 			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
 			if (!name.equals(n)) {
 				name = n;
@@ -131,7 +138,7 @@ public class StatusTab {
 				CellConstraints cc = new CellConstraints();
 				b.add(icon, cc.xy(1, 1));
 				b.add(label, cc.xy(1, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
-				b.add(jpb, cc.xy(1, 5));
+				b.add(rendererProgressBar, cc.xy(1, 5));
 				b.add(playing, cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
 				b.add(time, cc.xy(1, 9));
 				_panel = b.getPanel();
@@ -144,7 +151,7 @@ public class StatusTab {
 	private PmsConfiguration configuration;
 	private JPanel renderers;
 	private JLabel jl;
-	private JProgressBar jpb;
+	private JProgressBar memoryProgressBar;
 	private GuiUtil.SegmentedProgressBarUI memBarUI;
 	private JLabel bitrateLabel;
 	private JLabel currentBitrate;
@@ -161,14 +168,13 @@ public class StatusTab {
 		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
-	public JProgressBar getJpb() {
-		return jpb;
-	}
-
 	public void updateCurrentBitrate() {
 		long total = 0;
-		for (RendererConfiguration r : PMS.get().getRenders()) {
-			total += r.getBuffer();
+		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+		synchronized(foundRenderers) {
+			for (RendererConfiguration r : foundRenderers) {
+				total += r.getBuffer();
+			}
 		}
 		if (total == 0) {
 			currentBitrate.setText("0");
@@ -189,10 +195,10 @@ public class StatusTab {
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
 
 		String colSpec = FormLayoutUtil.getColSpec("pref, 30dlu, fill:pref:grow, 30dlu, pref", orientation);
-		//                                             1     2          3           4     5        
+		//                                             1     2          3           4     5
 
 		FormLayout layout = new FormLayout(colSpec,
-			//                          1     2          3            4     5        
+			//                          1     2          3            4     5
 			//                   //////////////////////////////////////////////////
 			  "p,"               // Detected Media Renderers --------------------//  1
 			+ "9dlu,"            //                                              //
@@ -241,25 +247,25 @@ public class StatusTab {
 		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 
 		// Memory
-		jpb = new JProgressBar(0, 100);
-		jpb.setStringPainted(true);
-		jpb.setForeground(new Color(75, 140, 181));
-		jpb.setString(Messages.getString("StatusTab.5"));
+		memoryProgressBar = new JProgressBar(0, 100);
+		memoryProgressBar.setStringPainted(true);
+		memoryProgressBar.setForeground(new Color(75, 140, 181));
+		memoryProgressBar.setString(Messages.getString("StatusTab.5"));
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
 		memBarUI.setActiveLabel("{}", Color.white, 0);
 		memBarUI.setActiveLabel("{}", Color.red, 90);
 		memBarUI.addSegment("", memColor);
 		memBarUI.addSegment("", bufColor);
 		memBarUI.setTickMarks(getTickMarks(), "{}");
-		jpb.setUI(memBarUI);
+		memoryProgressBar.setUI(memBarUI);
 
 		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 		mem.setForeground(fgColor);
-		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(3, 9, 1), colSpec, orientation));
+		builder.add(memoryProgressBar, FormLayoutUtil.flip(cc.xyw(3, 9, 1), colSpec, orientation));
 
 		// Bitrate
 		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
-		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));	
+		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));
 
 		bitrateLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
@@ -459,13 +465,22 @@ public class StatusTab {
 	}
 
 	public void updateMemoryUsage() {
-		long max = Runtime.getRuntime().maxMemory() / 1048576;
-		long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
+		final long max = Runtime.getRuntime().maxMemory() / 1048576;
+		final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
 		long buf = 0;
-		for (RendererConfiguration r : PMS.get().getRenders()) {
-			buf += (r.getBuffer());
+		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+		synchronized (foundRenderers) {
+			for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
+				buf += (r.getBuffer());
+			}
 		}
-		memBarUI.setValues(0, (int) max, (int) (used - buf), (int) buf);
+		final long buffer = buf;
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
+			}
+		});
 	}
 
 	private void startMemoryUpdater() {
