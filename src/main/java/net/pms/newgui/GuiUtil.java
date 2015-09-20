@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
+import javax.swing.plaf.ProgressBarUI;
 import org.apache.commons.lang3.StringUtils;
 
 public final class GuiUtil {
@@ -383,6 +384,26 @@ public final class GuiUtil {
 		@Override
 		protected synchronized Color getSelectionBackground() {
 			return bg;
+		}
+	}
+
+	// A JProgressBar with a persistent custom ProgressBarUI.
+	// This is to prevent replacement of the initial custom ui with
+	// the laf's default ProgressBarUI as a result of future
+	// invocations of JProgressBar.UpdateUI()
+	public static class CustomUIProgressBar extends JProgressBar {
+		private ProgressBarUI ui;
+
+		public CustomUIProgressBar(int min, int max, ProgressBarUI ui) {
+			super(min, max);
+			this.ui = ui;
+			setUI(ui);
+		}
+
+		@Override
+		public void setUI(javax.swing.plaf.ProgressBarUI ui) {
+			// Always prefer our own ui if we have one
+			super.setUI(this.ui != null ? this.ui : ui);
 		}
 	}
 

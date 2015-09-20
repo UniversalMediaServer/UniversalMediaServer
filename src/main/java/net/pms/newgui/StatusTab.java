@@ -243,17 +243,16 @@ public class StatusTab {
 		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 
 		// Memory
-		memoryProgressBar = new JProgressBar(0, 100);
-		memoryProgressBar.setStringPainted(true);
-		memoryProgressBar.setForeground(new Color(75, 140, 181));
-		memoryProgressBar.setString(Messages.getString("StatusTab.5"));
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
 		memBarUI.setActiveLabel("{}", Color.white, 0);
 		memBarUI.setActiveLabel("{}", Color.red, 90);
 		memBarUI.addSegment("", memColor);
 		memBarUI.addSegment("", bufColor);
 		memBarUI.setTickMarks(getTickMarks(), "{}");
-		memoryProgressBar.setUI(memBarUI);
+		memoryProgressBar = new GuiUtil.CustomUIProgressBar(0, 100, memBarUI);
+		memoryProgressBar.setStringPainted(true);
+		memoryProgressBar.setForeground(new Color(75, 140, 181));
+		memoryProgressBar.setString(Messages.getString("StatusTab.5"));
 
 		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 		mem.setForeground(fgColor);
