@@ -962,12 +962,8 @@ public class DLNAMediaInfo implements Cloneable {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null) {
 								if (MediaMonitor.isWatched(file.getAbsolutePath())) {
-									/**
-									 * TODO: Cache the calculated values
-									 * TODO: Include and use a custom font
-									 * TODO: Reset the thumbnail if the cached version is unwatched
-									 * TODO: Lower the font size if the text doesn't fit within the thumbnail
-									 */
+									// TODO: Cache the calculated values
+									// TODO: Include and use a custom font
 									String text = Messages.getString("DLNAResource.4");
 									int fontSize = renderer.getThumbnailWidth() / 6;
 									Graphics2D g = image.createGraphics();
