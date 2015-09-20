@@ -357,17 +357,17 @@
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-http</artifactId>
-			<version>1.1.0</version>
+			<version>1.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-util</artifactId>
-			<version>1.1.0</version>
+			<version>1.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-xml</artifactId>
-			<version>1.1.0</version>
+			<version>1.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.samskivert</groupId>
