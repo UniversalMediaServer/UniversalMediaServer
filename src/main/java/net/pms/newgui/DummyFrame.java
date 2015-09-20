@@ -20,7 +20,6 @@ package net.pms.newgui;
 
 import java.util.ArrayList;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class DummyFrame implements IFrame {
@@ -33,7 +32,7 @@ public class DummyFrame implements IFrame {
 
 	@Override
 	public void append(String msg) {
-		log.add(UMSUtils.logFormat(msg));
+		log.add(msg);
 	}
 
 	@Override

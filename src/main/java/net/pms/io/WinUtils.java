@@ -64,6 +64,9 @@ public class WinUtils extends BasicSystemUtils {
 		int ES_DISPLAY_REQUIRED = 0x00000002;
 		int ES_SYSTEM_REQUIRED = 0x00000001;
 		int ES_CONTINUOUS = 0x80000000;
+
+		int GetACP();
+		int GetOEMCP();
 	}
 
 	private static final int KEY_READ = 0x20019;
@@ -216,6 +219,22 @@ public class WinUtils extends BasicSystemUtils {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	/**
+	 * For description see <a HREF="https://msdn.microsoft.com/en-us/library/windows/desktop/dd318070%28v=vs.85%29.aspx">MSDN GetACP</a>
+	 * @return the value from Windows API GetACP()
+	 */
+	public static int getACP() {
+		return Kernel32.INSTANCE.GetACP();
+	}
+
+	/**
+	 * For description see <a HREF="https://msdn.microsoft.com/en-us/library/windows/desktop/dd318114%28v=vs.85%29.aspx">MSDN GetOEMCP</a>
+	 * @return the value from Windows API GetOEMCP()
+	 */
+	public static int getOEMCP() {
+		return Kernel32.INSTANCE.GetOEMCP();
 	}
 
 	private String charString2String(CharBuffer buf) {

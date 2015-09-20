@@ -35,7 +35,6 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
-import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
@@ -880,8 +879,8 @@ public class Request extends HTTPResource {
 	 * Returns the string value that is enclosed by the left and right tag in a content string.
 	 * Only the first match of each tag is used to determine positions. If either of the tags
 	 * cannot be found, null is returned.
-	 * @param content The entire {@link String} that needs to be searched for the left and right tag. 
-	 * @param leftTag The {@link String} determining the match for the left tag. 
+	 * @param content The entire {@link String} that needs to be searched for the left and right tag.
+	 * @param leftTag The {@link String} determining the match for the left tag.
 	 * @param rightTag The {@link String} determining the match for the right tag.
 	 * @return The {@link String} that was enclosed by the left and right tag.
 	 */

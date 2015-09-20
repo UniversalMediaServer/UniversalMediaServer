@@ -30,8 +30,10 @@ import net.pms.dlna.DLNAMediaLang;
 /**
  * This class provides a list of languages mapped to ISO 639 language codes
  * and some methods to verify which language matches which ISO code.
+ *
+ * Made immutable in UMS version 5.2.3
  */
-public class Iso639 {
+public final class Iso639 {
 	/**
 	 * ISO code alias for the language set in the preferences
 	 */
@@ -89,6 +91,22 @@ public class Iso639 {
 	}
 
 	/**
+	 * Returns whether the code is a valid/known code or not.
+	 *
+	 * @param code the ISO language code.
+	 */
+	public static boolean codeIsValid(String code) {
+		if (code != null && !code.isEmpty()) {
+			for (String s : codes) {
+				if (s.equalsIgnoreCase(code)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Returns the ISO 639_2 code for an ISO code. Will return null if no
 	 * match can be found.
 	 *
@@ -100,7 +118,6 @@ public class Iso639 {
 			return null;
 		}
 
-		String lang = null;
 		Iterator<Entry<String, String[]>> iterator = links.entrySet().iterator();
 
 		while (iterator.hasNext()) {
@@ -112,19 +129,46 @@ public class Iso639 {
 			}
 		}
 
-		return lang;
+		return null;
+	}
+
+	/**
+	 *
+	 * Returns the shortest possible ISO 639 code for an ISO code (as per
+	 * {@link java.util.Locale} specification). Will return null if no
+	 * match can be found.
+	 *
+	 * @param code the ISO code.
+	 * @return The ISO 639-1 or 639-2 code.
+	 */
+	public static String getISOCode(String code) {
+		if (code == null) {
+			return null;
+		}
+		Iterator<Entry<String, String[]>> iterator = links.entrySet().iterator();
+
+		while (iterator.hasNext()) {
+			Entry<String, String[]> entry = iterator.next();
+			for (String c : entry.getValue()) {
+				if (code.equalsIgnoreCase(c)) {
+					return entry.getValue()[0];
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/**
 	 * Returns the ISO code, except when the alias "loc" is used. In that case
-	 * the ISO code of the preferred language in the PMS settings is returned.
+	 * the ISO code of the preferred language in the UMS settings is returned.
 	 *
 	 * @param isoCode An ISO code, or <code>"loc"</code>.
 	 * @return The code.
 	 */
 	private static String normalize(String isoCode) {
 		if (LOCAL_ALIAS.equals(isoCode)) {
-			return PMS.getConfiguration().getLanguage();
+			return PMS.getConfiguration().getLanguageTag();
 		} else {
 			return isoCode;
 		}
@@ -133,7 +177,7 @@ public class Iso639 {
 	/**
 	 * Verifies that a full language name is matching an ISO code. Returns true
 	 * if a match can be made, false otherwise.
-	 * 
+	 *
 	 * @param language
 	 *            The full language name.
 	 * @param code
@@ -149,9 +193,11 @@ public class Iso639 {
 		String isoCode = normalize(code);
 		String codes[] = links.get(language);
 
-		for (String c : codes) {
-			if (c.equalsIgnoreCase(isoCode)) {
-				return true;
+		if (codes != null) {
+			for (String c : codes) {
+				if (c.equalsIgnoreCase(isoCode)) {
+					return true;
+				}
 			}
 		}
 
@@ -193,24 +239,6 @@ public class Iso639 {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Returns the list of known full language names.
-	 * 
-	 * @return The list of languages.
-	 */
-	public static ArrayList<String> getLanguageList() {
-		return languages;
-	}
-
-	/**
-	 * Returns the list of known ISO language codes.
-	 * 
-	 * @return The list of codes.
-	 */
-	public static ArrayList<String> getCodeList() {
-		return codes;
 	}
 
 	/**
