@@ -142,7 +142,7 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public static boolean isWatched(String str) {
-		return watchedEntries != null && watchedEntries.contains(str);
+		return watchedEntries.contains(str);
 	}
 
 	/**
