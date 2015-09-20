@@ -980,7 +980,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Adds the supplied DLNA resource in the internal list of child nodes,
+	 * Adds the supplied DNLA resource in the internal list of child nodes,
 	 * and sets the parent to the current node. Avoids the side-effects
 	 * associated with the {@link #addChild(DLNAResource)} method.
 	 *
@@ -3052,7 +3052,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
-		if (media != null && (!media.isThumbready() || MediaMonitor.isWatched(inputFile.getFile().getAbsolutePath())) && configuration.isThumbnailGenerationEnabled()) {
+		if (media != null && !media.isThumbready() && configuration.isThumbnailGenerationEnabled()) {
 			Double seekPosition = (double) configuration.getThumbnailSeekPos();
 			if (isResume()) {
 				Double resumePosition = (double) (resume.getTimeOffset() / 1000);
