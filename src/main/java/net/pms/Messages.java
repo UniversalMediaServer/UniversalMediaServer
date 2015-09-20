@@ -18,32 +18,29 @@
  */
 package net.pms;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
  * Class Messages provides a mechanism to localize the text messages found in
- * PMS. It is based on {@link ResourceBundle}.
+ * UMS. It is based on {@link ResourceBundle}.
  */
 public class Messages {
 	private static final String BUNDLE_NAME = "resources.i18n.messages";
 
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
+	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, PMS.getLocale());
 
 	private Messages() {
 	}
 
 	/**
 	 * Returns the locale-specific string associated with the key.
-	 * 
+	 *
 	 * @param key
-	 *            Keys in PMS follow the format "group.x". group states where
-	 *            this key is likely to be used. For example, NetworkTab refers
-	 *            to the network configuration tab in the PMS GUI. x is just a
-	 *            number.
+	 *            Keys in UMS follow the format "group.x". group states where
+	 *            this key is likely to be used. For example, StatusTab refers
+	 *            to the status tab in the UMS GUI. "x" can be anything.
 	 * @return Descriptive string if key is found or a copy of the key string if
 	 *         it is not.
 	 */
@@ -51,12 +48,11 @@ public class Messages {
 		return getString(key, RESOURCE_BUNDLE);
 	}
 
-	public static String getString(String key, String lang) {
-		if (StringUtils.isEmpty(lang)) {
+	public static String getString(String key, Locale locale) {
+		if (locale == null) {
 			return getString(key);
 		}
-		Locale l = new Locale(lang);
-		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, l);
+		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
 		if (rb == null) {
 			rb = RESOURCE_BUNDLE;
 		}

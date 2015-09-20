@@ -38,7 +38,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
@@ -148,7 +147,6 @@ public class StatusTab {
 	}
 
 	private ImagePanel imagePanel;
-	private PmsConfiguration configuration;
 	private JPanel renderers;
 	private JLabel jl;
 	private JProgressBar memoryProgressBar;
@@ -164,7 +162,6 @@ public class StatusTab {
 	private static int bufferSize;
 
 	StatusTab(PmsConfiguration configuration) {
-		this.configuration = configuration;
 		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
@@ -191,8 +188,7 @@ public class StatusTab {
 
 	public JComponent build() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 
 		String colSpec = FormLayoutUtil.getColSpec("pref, 30dlu, fill:pref:grow, 30dlu, pref", orientation);
 		//                                             1     2          3           4     5
