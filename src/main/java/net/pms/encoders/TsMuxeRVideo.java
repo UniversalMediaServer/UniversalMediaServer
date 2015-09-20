@@ -25,15 +25,14 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Locale;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -60,7 +59,7 @@ public class TsMuxeRVideo extends Player {
 	}
 
 	public TsMuxeRVideo() {
-	}	
+	}
 
 	@Override
 	public boolean excludeFormat(Format format) {
@@ -717,8 +716,7 @@ public class TsMuxeRVideo extends Player {
 	@Override
 	public JComponent config() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
 
@@ -787,7 +785,7 @@ public class TsMuxeRVideo extends Player {
 		try {
 			String audioTrackName = resource.getMediaAudio().toString();
 			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
-	
+
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
 				// PMS only supports playback of the default audio track for tsMuxeR
 				return false;

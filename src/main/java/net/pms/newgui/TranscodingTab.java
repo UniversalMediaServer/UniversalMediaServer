@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -65,8 +64,7 @@ public class TranscodingTab {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		orientation = ComponentOrientation.getOrientation(locale);
+		orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 	}
 
 	private JCheckBox disableSubs;
@@ -163,7 +161,7 @@ public class TranscodingTab {
 		}
 
 		JPanel panel = builder.getPanel();
-		
+
 		// Apply the orientation to the panel and all components in it
 		panel.applyComponentOrientation(orientation);
 
@@ -876,7 +874,7 @@ public class TranscodingTab {
 				configuration.setAssShadow(ass_shadow.getText());
 			}
 		});
-		
+
 		builder.addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 12), colSpec, orientation));
 
 		ass_margin = new JTextField(configuration.getAssMargin());
@@ -891,7 +889,7 @@ public class TranscodingTab {
 		builder.add(ass_outline, FormLayoutUtil.flip(cc.xy(7, 12), colSpec, orientation));
 		builder.add(ass_shadow, FormLayoutUtil.flip(cc.xy(11, 12), colSpec, orientation));
 		builder.add(ass_margin, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
-		
+
 		autoloadExternalSubtitles = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);

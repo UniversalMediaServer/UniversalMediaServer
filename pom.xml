@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>5.2.2</version>
+	<version>5.2.3-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,7 +69,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>5.2.2</project.version.short>
+		<project.version.short>5.2.3</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -510,7 +510,7 @@
 											maven-antrun-plugin
 										</artifactId>
 										<versionRange>
-											[1.7,)
+											[1.8,)
 										</versionRange>
 										<goals>
 											<goal>run</goal>
@@ -836,6 +836,7 @@
 							<version>1.0-alpha-2</version>
 							<configuration>
 								<locales>
+									<locale>ar</locale>
 									<locale>de</locale>
 									<locale>bg</locale>
 									<locale>br</locale>
@@ -844,11 +845,13 @@
 									<locale>da</locale>
 									<locale>de</locale>
 									<locale>el</locale>
+									<locale>en_uk</locale>
 									<locale>es</locale>
 									<locale>fi</locale>
 									<locale>fr</locale>
 									<locale>is</locale>
 									<locale>it</locale>
+									<locale>iw</locale>
 									<locale>ja</locale>
 									<locale>ko</locale>
 									<locale>nl</locale>
@@ -859,6 +862,7 @@
 									<locale>ru</locale>
 									<locale>sl</locale>
 									<locale>sv</locale>
+									<locale>tr</locale>
 									<locale>zhs</locale>
 									<locale>zht</locale>
 								</locales>
@@ -923,6 +927,27 @@
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>2.5.4</version>
+							<configuration>
+								<descriptors>
+									<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+								</descriptors>
+								<archive>
+									<manifest>
+										<mainClass>net.pms.PMS</mainClass>
+										<!--
+											this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+											without it, the following exception is thrown when PMS starts:
+
+											Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+												Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+													java.lang.IllegalArgumentException: vendorName == null!
+
+											See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+										-->
+										<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+									</manifest>
+								</archive>
+							</configuration>
 						<executions>
 							<execution>
 								<id>make-jar-with-dependencies-win</id>
@@ -930,27 +955,6 @@
 								<goals>
 									<goal>single</goal>
 								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-											<!--
-												this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
-												without it, the following exception is thrown when PMS starts:
-
-												Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
-													Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
-														java.lang.IllegalArgumentException: vendorName == null!
-
-												See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
-											-->
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-										</manifest>
-									</archive>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>
@@ -1185,7 +1189,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -1631,7 +1635,7 @@
                                         <plugin>
                                                 <groupId>org.apache.maven.plugins</groupId>
                                                 <artifactId>maven-antrun-plugin</artifactId>
-                                                <version>1.7</version>
+                                                <version>1.8</version>
                                                 <executions>
                                                         <execution>
                                                                 <id>process-resources-osx-java-8</id>
@@ -1824,7 +1828,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
 								<id>copy-jar-with-dependencies-linux</id>

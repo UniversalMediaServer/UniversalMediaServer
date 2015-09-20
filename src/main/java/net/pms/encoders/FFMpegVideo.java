@@ -24,7 +24,6 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.*;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -214,7 +213,7 @@ public class FFMpegVideo extends Player {
 					subsFilter.append("subtitles=").append(subsFilename);
 
 					// Set the resolution for subtitles to use
-					int subtitlesWidth = scaleWidth; 
+					int subtitlesWidth = scaleWidth;
 					int subtitlesHeight = scaleHeight;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
 						if (subtitlesWidth > 0 && subtitlesHeight > 0) {
@@ -336,7 +335,7 @@ public class FFMpegVideo extends Player {
 				params.aid.isDTS() &&
 				!avisynth() &&
 				renderer.isDTSPlayable();
-			
+
 			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.timeseek > 0;
 
 			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
@@ -762,7 +761,7 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 1;
 		} else if (renderer.isTranscodeFastStart()){
 			params.manageFastStart();
-		} else {	
+		} else {
 			params.waitbeforestart = 2500;
 		}
 
@@ -1017,7 +1016,7 @@ public class FFMpegVideo extends Player {
 
 		// Set up the process
 		PipeProcess pipe = null;
-		
+
 		if (!dtsRemux) {
 //			cmdList.add("pipe:");
 
@@ -1403,7 +1402,7 @@ public class FFMpegVideo extends Player {
 					} else {
 						resolved = true;
 						break;
-					}	
+					}
 				}
 			}
 			if (resolved) {
