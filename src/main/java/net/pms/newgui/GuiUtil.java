@@ -43,11 +43,15 @@ public final class GuiUtil {
 	}
 
 	// A progress bar with smooth transitions
-	public static class SmoothProgressBar extends JProgressBar {
+	public static class SmoothProgressBar extends CustomUIProgressBar {
 		private static final long serialVersionUID = 4418306779403459913L;
 
 		public SmoothProgressBar(int min, int max) {
-			super(min, max);
+			super(min, max, null);
+		}
+
+		public SmoothProgressBar(int min, int max, ProgressBarUI ui) {
+			super(min, max, ui);
 		}
 
 		@Override

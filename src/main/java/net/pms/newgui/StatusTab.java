@@ -82,8 +82,7 @@ public class StatusTab {
 			playing.add(playingLabel);
 			time = new JLabel(" ");
 			time.setForeground(Color.gray);
-			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100);
-			rendererProgressBar.setUI(new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
+			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100, new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
 			rendererProgressBar.setStringPainted(true);
 			rendererProgressBar.setBorderPainted(false);
 			rendererProgressBar.setString(r.getAddress().getHostAddress());
