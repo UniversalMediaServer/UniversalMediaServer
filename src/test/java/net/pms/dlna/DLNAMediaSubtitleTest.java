@@ -145,14 +145,6 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub3.isExternalFileUtf16()).isFalse();
 		assertThat(sub3.isExternalFileUtf()).isFalse();
 
-		File file_ibm866 = FileUtils.toFile(CLASS.getResource("../util/russian-ibm866.srt"));
-		DLNAMediaSubtitle sub4 = new DLNAMediaSubtitle();
-		sub4.setExternalFile(file_ibm866);
-		assertThat(sub4.getExternalFileCharacterSet()).isEqualTo(CHARSET_IBM866);
-		assertThat(sub4.isExternalFileUtf8()).isFalse();
-		assertThat(sub4.isExternalFileUtf16()).isFalse();
-		assertThat(sub4.isExternalFileUtf()).isFalse();
-
 		File file_koi8_r = FileUtils.toFile(CLASS.getResource("../util/russian-koi8-r.srt"));
 		DLNAMediaSubtitle sub5 = new DLNAMediaSubtitle();
 		sub5.setExternalFile(file_koi8_r);

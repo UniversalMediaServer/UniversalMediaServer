@@ -15,15 +15,12 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.util.Constants.*;
-import net.pms.util.charsetdetector.CharsetDetector;
-import net.pms.util.charsetdetector.CharsetMatch;
 import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
-
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
 
