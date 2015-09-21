@@ -266,7 +266,7 @@ public abstract class Format implements Cloneable {
 	 * Chooses which parsing method to parse the file with.
 	 */
 	public void parse(DLNAMediaInfo media, InputFile file, int type, RendererConfiguration renderer) {
-		if (renderer != null && renderer.isMediaParserV2()) {
+		if (renderer != null && renderer.isUseMediaInfo()) {
 			renderer.getFormatConfiguration().parse(media, file, this, type, renderer);
 		} else {
 			media.parse(file, this, type, false, false, renderer);

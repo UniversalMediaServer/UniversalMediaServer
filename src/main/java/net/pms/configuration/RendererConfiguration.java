@@ -1070,7 +1070,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			configuration.addProperty(SUPPORTED, "f:.+");
 		}
 
-		if (isMediaParserV2()) {
+		if (isUseMediaInfo()) {
 			formatConfiguration = new FormatConfiguration(configuration.getList(SUPPORTED));
 		}
 	}
@@ -1258,7 +1258,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		String matchedMimeType = null;
 
-		if (isMediaParserV2()) {
+		if (isUseMediaInfo()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToMPEGTSH264AC3()) {
@@ -1682,7 +1682,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isMuxH264MpegTS() {
 		boolean muxCompatible = getBoolean(MUX_H264_WITH_MPEGTS, true);
-		if (isMediaParserV2()) {
+		if (isUseMediaInfo()) {
 			muxCompatible = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
 		}
 
@@ -1698,7 +1698,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isMuxDTSToMpeg() {
-		if (isMediaParserV2()) {
+		if (isUseMediaInfo()) {
 			return getFormatConfiguration().isDTSSupported();
 		}
 
@@ -1718,7 +1718,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isMuxLPCMToMpeg() {
-		if (isMediaParserV2()) {
+		if (isUseMediaInfo()) {
 			return getFormatConfiguration().isLPCMSupported();
 		}
 
@@ -1730,7 +1730,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isMpeg2Supported() {
-		if (isMediaParserV2()) {
+		if (isUseMediaInfo()) {
 			return getFormatConfiguration().isMpeg2Supported();
 		}
 
@@ -2027,11 +2027,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getRendererName();
 	}
 
+	@Deprecated
 	public boolean isMediaParserV2() {
+		return isUseMediaInfo();
+	}
+
+	/**
+	 * @return whether to use MediaInfo
+	 */
+	public boolean isUseMediaInfo() {
 		return getBoolean(MEDIAPARSERV2, false) && LibMediaInfoParser.isValid();
 	}
 
+	@Deprecated
 	public boolean isMediaParserV2ThumbnailGeneration() {
+		return isMediaInfoThumbnailGeneration();
+	}
+
+	public boolean isMediaInfoThumbnailGeneration() {
 		return getBoolean(MEDIAPARSERV2_THUMB, false) && LibMediaInfoParser.isValid();
 	}
 
@@ -2101,7 +2114,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format) {
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
-		if (isMediaParserV2() && mediainfo != null && getFormatConfiguration().match(mediainfo) != null) {
+		if (isUseMediaInfo() && mediainfo != null && getFormatConfiguration().match(mediainfo) != null) {
 			return true;
 		}
 
