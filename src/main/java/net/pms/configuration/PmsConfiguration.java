@@ -2508,7 +2508,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isMencoderMuxWhenCompatible() {
-		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, true);
+		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, false);
 	}
 
 	public void setMEncoderNormalizeVolume(boolean value) {
@@ -2524,7 +2524,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isFFmpegMuxWithTsMuxerWhenCompatible() {
-		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, true);
+		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
 	}
 
 	/**
