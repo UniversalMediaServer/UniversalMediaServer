@@ -228,11 +228,19 @@ public class UMSUtils {
 		return new ByteArrayInputStream(out.toByteArray());
 	}
 
-	private static String fixTimeStr(String str) {
+	/**
+	 * @param str the initial duration string
+	 *
+	 * @return a duration string in the format 00:00:00
+	 */
+	public static String normalizeDurationString(String str) {
+		String format = "00:00:00";
+		int originalLength = str.length();
+
 		if (str.equals("NOT_IMPLEMENTED")) {
 			return " ";
 		}
-		if(str.charAt(0) == ':')   {
+		if (str.charAt(0) == ':') {
 			// remove stray ':' at the start
 			str = str.substring(1);
 		}
@@ -241,13 +249,23 @@ public class UMSUtils {
 			// remove millisecond portion
 			str = str.substring(0, pos);
 		}
+
+		if (originalLength == 8) {
+			return str;
+		} else if (originalLength > 8) {
+			return str.substring(str.length() - 8);
+		} else if (originalLength < 8) {
+			String padding = format.substring(0, 8 - originalLength);
+			return padding + str;
+		}
+
 		return str;
 	}
 
 	public static String playedDurationStr(String current, String duration) {
-		String pos = fixTimeStr(StringUtil.shortTime(current, 4));
-		String dur = fixTimeStr(StringUtil.shortTime(duration, 4));
-		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
+		String pos = normalizeDurationString(current);
+		String dur = normalizeDurationString(duration);
+		return pos + (pos.equals("00:00:00") ? "" : dur.equals("00:00:00") ? "" : (" / " + dur));
 	}
 
 	private static String iso639(String s) {
