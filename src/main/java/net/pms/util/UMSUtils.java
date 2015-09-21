@@ -40,6 +40,7 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -235,28 +236,32 @@ public class UMSUtils {
 	 */
 	public static String normalizeDurationString(String str) {
 		String format = "00:00:00";
-		int originalLength = str.length();
+		if (isBlank(str)) {
+			return format;
+		} else {
+			int originalLength = str.length();
 
-		if (str.equals("NOT_IMPLEMENTED")) {
-			return " ";
-		}
-		if (str.charAt(0) == ':') {
-			// remove stray ':' at the start
-			str = str.substring(1);
-		}
-		int pos = str.indexOf(".");
-		if (pos != -1) {
-			// remove millisecond portion
-			str = str.substring(0, pos);
-		}
+			if (str.equals("NOT_IMPLEMENTED")) {
+				return " ";
+			}
+			if (str.charAt(0) == ':') {
+				// remove stray ':' at the start
+				str = str.substring(1);
+			}
+			int pos = str.indexOf(".");
+			if (pos != -1) {
+				// remove millisecond portion
+				str = str.substring(0, pos);
+			}
 
-		if (originalLength == 8) {
-			return str;
-		} else if (originalLength > 8) {
-			return str.substring(str.length() - 8);
-		} else if (originalLength < 8) {
-			String padding = format.substring(0, 8 - originalLength);
-			return padding + str;
+			if (originalLength == 8) {
+				return str;
+			} else if (originalLength > 8) {
+				return str.substring(str.length() - 8);
+			} else if (originalLength < 8) {
+				String padding = format.substring(0, 8 - originalLength);
+				return padding + str;
+			}
 		}
 
 		return str;
