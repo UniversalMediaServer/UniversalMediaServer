@@ -183,11 +183,11 @@ public class StringUtil {
 	 * @return the Shortened String.
 	 */
 	public static String shortTime(String t, int n) {
-		if (t.equals("NOT_IMPLEMENTED")) {
-			return " ";
-		}
 		n = n < 8 ? n : 8;
 		if (!isBlank(t)) {
+			if (t.equals("NOT_IMPLEMENTED")) {
+				return " ";
+			}
 			int i = t.indexOf(".");
 			// Throw out the decimal portion, if any
 			if (i > -1) {
