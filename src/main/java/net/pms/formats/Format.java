@@ -44,23 +44,44 @@ public abstract class Format implements Cloneable {
 	private String matchedExtension;
 
 	public enum Identifier {
+		AC3,
+		ADPCM,
+		ADTS,
+		AIFF,
+		APE,
+		ATRAC,
+		AU,
 		AUDIO_AS_VIDEO,
 		BMP,
+		DSD,
+		DTS,
 		DVRMS,
+		EAC3,
 		FLAC,
 		GIF,
 		ISO,
 		JPG,
 		M4A,
+		MKA,
 		MKV,
+		MLP,
 		MP3,
+		MPA,
+		MPC,
 		MPG,
 		OGG,
 		PNG,
+		RA,
 		RAW,
+		SHN,
+		THD,
+		THREEGA,
 		TIF,
+		TTA,
 		WAV,
 		WEB,
+		WMA,
+		WV,
 		CUSTOM,
 		PLAYLIST
 	}
@@ -289,6 +310,8 @@ public abstract class Format implements Cloneable {
 	 */
 	public boolean skip(String extensions, String moreExtensions) {
 		if ("*".equals(extensions)) {
+			return true;
+		} else if ("*".equals(moreExtensions)) {
 			return true;
 		}
 

@@ -38,30 +38,51 @@ public final class FormatFactory {
 	 * Initial list of known formats.
 	 */
 	private static final Format[] FORMATS = new Format[] {
+		new AC3(),
+		new ADPCM(),
+		new ADTS(),
+		new AIFF(),
+		new ATRAC(),
+		new AU(),
 		new BMP(),
+		new DSDAudio(),
+		new DTS(),
 		new DVRMS(),
+		new EAC3(),
 		new FLAC(),
 		new GIF(),
 		new ISO(),
 		new JPG(),
 		new M4A(),
+		new MKA(),
 		new MKV(),
+		new MLP(),
+		new MonkeysAudio(),
 		new MP3(),
+		new MPC(),
 		new MPG(),
+		new MPGAudio(),
 		new OGG(),
-		new PNG(),
-		new RAW(),
-		new TIF(),
-		new WAV(),
-		new WEB(),
 		new PLAYLIST(),
+		new PNG(),
+		new RA(),
+		new RAW(),
+		new SHN(),
+		new THREEGA(),
+		new TIF(),
+		new TrueHD(),
+		new TTA(),
+		new WAV(),
+		new WavPack(),
+		new WEB(),
+		new WMA(),
 	};
 
 	/**
 	 * The list of registered formats.
 	 */
 	private static List<Format> formats = new ArrayList<>(Arrays.asList(FORMATS));
-	
+
 	/**
 	 * This class is not meant to be instantiated.
 	 */
@@ -81,7 +102,7 @@ public final class FormatFactory {
 	 * of that format. Matching is done by the file extension (e.g. ".gif") or
 	 * protocol (e.g. "http://") of the filename. Will return <code>null</code>
 	 * if no match can be made.
-	 * 
+	 *
 	 * @param filename The filename to match.
 	 * @return The format.
 	 * @see Format#match(String)

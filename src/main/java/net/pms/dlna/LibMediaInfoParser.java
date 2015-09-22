@@ -261,16 +261,18 @@ public class LibMediaInfoParser {
 				 * Format profile                           : Base Media / Version 2
 				 * Codec ID                                 : mp42
 				 *
-				 * As a workaround, set container type to AAC for MP4 files that have a single AAC audio track and no video.
+				 * As a workaround, set container type to M4A for MP4 files that have a single AAC audio track and no video.
 				 */
 				if (
 					FormatConfiguration.MP4.equals(media.getContainer()) &&
 					isBlank(media.getCodecV()) &&
 					media.getAudioTracksList() != null &&
 					media.getAudioTracksList().size() == 1 &&
-					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
+					(FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
+					|| FormatConfiguration.AAC_HE.equals(media.getAudioTracksList().get(0).getCodecA())
+					|| FormatConfiguration.ALAC.equals(media.getAudioTracksList().get(0).getCodecA()))
 				) {
-					media.setContainer(FormatConfiguration.AAC);
+					media.setContainer(FormatConfiguration.M4A);
 				}
 
 				/**
@@ -382,7 +384,9 @@ public class LibMediaInfoParser {
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		String format = null;
 
-		if (value.startsWith("3g2")) {
+		if (isBlank(value)) {
+			return;
+		} else if (value.startsWith("3g2")) {
 			format = FormatConfiguration.THREEGPP2;
 		} else if (value.startsWith("3gp")) {
 			format = FormatConfiguration.THREEGPP;
@@ -450,6 +454,8 @@ public class LibMediaInfoParser {
 			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
 				format = FormatConfiguration.MPEG1;
 			}
+		} else if (value.equals("au") || value.equals("uLaw/AU Audio File")) {
+			format = FormatConfiguration.AU;
 		} else if (value.equals("layer 3")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.MPA)) {
 				format = FormatConfiguration.MP3;
@@ -458,7 +464,12 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.MP3);
 				}
 			}
-		} else if (value.equals("ma")) {
+		} else if (value.equals("layer 2") && audio.getCodecA() != null && media.getContainer() != null &&
+				   audio.getCodecA().equals(FormatConfiguration.MPA) && media.getContainer().equals(FormatConfiguration.MPA)) {
+			// only for audio files:
+			format = FormatConfiguration.MP2;
+			media.setContainer(FormatConfiguration.MP2);
+		} else if (value.equals ("ma") || value.equals("ma / core")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;
 			}
@@ -502,15 +513,29 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.DTS;
 		} else if (value.equals("mpeg audio")) {
 			format = FormatConfiguration.MPA;
-		} else if (value.equals("161") || value.startsWith("wma")) {
+		} else if (value.startsWith("wma")) {
 			format = FormatConfiguration.WMA;
 			if (media.getCodecV() == null) {
-				media.setContainer(FormatConfiguration.WMA);
+				media.setContainer(format);
+			}
+		} else if (
+			streamType == StreamType.Audio && media.getCodecV() == null && audio != null && audio.getCodecA() != null &&
+			audio.getCodecA() == FormatConfiguration.WMA &&
+			(value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A"))
+		) {
+			if (value.equals("161")) {
+				format = FormatConfiguration.WMA;
+			} else if (value.equals("162")) {
+				format = FormatConfiguration.WMAPRO;
+			} else if (value.equals("163")) {
+				format = FormatConfiguration.WMALOSSLESS;
+			} else if (value.equalsIgnoreCase("A")) {
+				format = FormatConfiguration.WMAVOICE;
 			}
 		} else if (value.equals("flac")) {
 			format = FormatConfiguration.FLAC;
 		} else if (value.equals("monkey's audio")) {
-			format = FormatConfiguration.APE;
+			format = FormatConfiguration.MONKEYS_AUDIO;
 		} else if (value.contains("musepack")) {
 			format = FormatConfiguration.MPC;
 		} else if (value.contains("wavpack")) {
