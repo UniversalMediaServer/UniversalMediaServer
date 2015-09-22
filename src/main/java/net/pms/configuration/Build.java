@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 public class Build {
 	/**
 	 * Repository where to locate the file. Note: using "raw.github.com"
-	 * to access the raw file.
+	 * to access the raw file. 
 	 */
 	private static final String REPO = "https://raw.github.com/UniversalMediaServer/UniversalMediaServer";
 
@@ -66,7 +66,7 @@ public class Build {
 	 *
 	 * Note: custom Windows builds that change this value should change the corresponding "$ALLUSERSPROFILE\PMS"
 	 * value in nsis/setup.nsi
-	 *
+	 * 
 	 * @return The profile directory name
 	 */
 
@@ -96,6 +96,6 @@ public class Build {
 	 * @return The profile directory name
 	 */
 	public static String getProfileDirectoryName() {
-		return PROFILE_DIRECTORY_NAME;
+		return PROFILE_DIRECTORY_NAME; 
 	}
 }

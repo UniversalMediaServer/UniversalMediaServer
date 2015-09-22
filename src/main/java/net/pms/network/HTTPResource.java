@@ -187,11 +187,11 @@ public class HTTPResource {
 	 */
 	protected static byte[] downloadAndSendBinary(String u, boolean saveOnDisk, File f) throws IOException {
 		URL url = new URL(u);
-
+		
 		// The URL may contain user authentication information
 		Authenticator.setDefault(new HTTPResourceAuthenticator());
 		HTTPResourceAuthenticator.addURL(url);
-
+		
 		LOGGER.debug("Retrieving " + url.toString());
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		URLConnection conn = url.openConnection();

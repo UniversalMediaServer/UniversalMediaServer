@@ -28,7 +28,7 @@ import java.util.Properties;
 
 /**
  * Convenience wrapper around the Java Properties class.
- *
+ * 
  * @author Tim Cox (mail@tcox.org)
  */
 public class PmsProperties {

@@ -19,17 +19,13 @@
 package net.pms.dlna;
 
 import com.sun.jna.Platform;
-
 import java.io.*;
 import java.util.ArrayList;
-
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.formats.M4A;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +49,7 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
+	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse
 	public boolean isValid() {
 		File file = this.getFile();
 		resolveFormat();

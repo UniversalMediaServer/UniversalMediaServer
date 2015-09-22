@@ -617,7 +617,7 @@ public class UPNPControl {
 
 		@Override
 		public void established(GENASubscription sub) {
-			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() +
+			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() + 
 				" on " + getFriendlyName(uuid));
 		}
 
@@ -664,7 +664,7 @@ public class UPNPControl {
 					a.setInput(args[i], args[i + 1]);
 				}
 				if (log) {
-					LOGGER.debug("uPnP Control: Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
+					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
 				}
 				new ActionCallback(a, upnpService.getControlPoint()) {
 					@Override
@@ -674,14 +674,14 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						LOGGER.debug("uPnP Control: Action failed: {}", defaultMsg);
+						LOGGER.debug("Action failed: {}", defaultMsg);
 						rendererMap.mark(uuid, ACTIVE, false);
 					}
 				}.run();
 
 				if (log) {
 					for (ActionArgumentValue arg : a.getOutput()) {
-						LOGGER.debug("uPnP Control: Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());
+						LOGGER.debug("Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());
 					}
 				}
 				return a;

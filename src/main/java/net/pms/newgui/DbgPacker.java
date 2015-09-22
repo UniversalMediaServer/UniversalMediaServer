@@ -13,11 +13,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;

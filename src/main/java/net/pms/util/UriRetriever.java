@@ -28,7 +28,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * Downloads URLs
- *
+ * 
  * @author Tim Cox (mail@tcox.org)
  */
 public class UriRetriever {
