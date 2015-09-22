@@ -510,7 +510,6 @@
 										<artifactId>
 											maven-antrun-plugin
 										</artifactId>
-										<!-- Note: Do not update to 1.8 -->
 										<versionRange>
 											[1.7,)
 										</versionRange>
@@ -967,8 +966,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<!-- Note: Do not update to 1.8 -->
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
 								<id>process-resources-windows</id>
@@ -1192,7 +1190,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<!-- Note: Do not update to 1.8 -->
 						<version>1.7</version>
 						<executions>
 							<execution>
@@ -1270,7 +1267,6 @@
                                         <plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<!-- Note: Do not update to 1.8 -->
 						<version>1.7</version>
 						<executions>
 							<execution>
@@ -1462,7 +1458,6 @@
                                         <plugin>
                                                 <groupId>org.apache.maven.plugins</groupId>
                                                 <artifactId>maven-antrun-plugin</artifactId>
-						<!-- Note: Do not update to 1.8 -->
                                                 <version>1.7</version>
                                                 <executions>                  
                                                         <execution>
@@ -1641,7 +1636,6 @@
                                         <plugin>
                                                 <groupId>org.apache.maven.plugins</groupId>
                                                 <artifactId>maven-antrun-plugin</artifactId>
-						<!-- Note: Do not update to 1.8 -->
                                                 <version>1.7</version>
                                                 <executions>
                                                         <execution>
@@ -1835,8 +1829,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<!-- Note: Do not update to 1.8 -->
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
 								<id>copy-jar-with-dependencies-linux</id>
