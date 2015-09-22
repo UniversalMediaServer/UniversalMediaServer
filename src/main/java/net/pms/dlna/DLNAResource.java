@@ -752,7 +752,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public Player resolvePlayer(RendererConfiguration renderer) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
-		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
+		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		Player player = null;
 
 		if (media == null) {
@@ -899,7 +899,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public String setPreferredMimeType(RendererConfiguration renderer) {
 		String prev = media != null ? media.getMimeType() : null;
-		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
+		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		if (parserV2) {
 			// See which MIME type the renderer prefers in case it supports the media
 			String preferred = renderer.getFormatConfiguration().match(media);
@@ -1201,13 +1201,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			discoverChildren(searchStr);
 			boolean ready;
 
-			if (renderer.isMediaParserV2() && renderer.isDLNATreeHack()) {
+			if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 				ready = analyzeChildren(count);
 			} else {
 				ready = analyzeChildren(-1);
 			}
 
-			if (!renderer.isMediaParserV2() || ready) {
+			if (!renderer.isUseMediaInfo() || ready) {
 				setDiscovered(true);
 			}
 

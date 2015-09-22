@@ -223,7 +223,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public boolean isMediaParserV2ThumbnailGeneration() {
+	public boolean isMediaInfoThumbnailGeneration() {
 		return false;
 	}
 

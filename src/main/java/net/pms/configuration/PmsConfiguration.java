@@ -18,14 +18,19 @@
  */
 package net.pms.configuration;
 
+import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -36,6 +41,7 @@ import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
+import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
@@ -60,6 +66,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
 	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
 	protected static final int DEFAULT_SERVER_PORT = 5001;
+	// 90000 lines is approximately 10 MiB depending on locale and message length
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
@@ -142,6 +152,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
 	public    static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	protected static final String KEY_GUI_LOG_SEARCH_CASE_SENSITIVE = "gui_log_search_case_sensitive";
+	protected static final String KEY_GUI_LOG_SEARCH_MULTILINE = "gui_log_search_multiline";
+	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
@@ -162,6 +175,15 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
+	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
+	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
+	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
+	protected static final String KEY_LOGGING_FILTER_LOGS_TAB = "logging_filter_logs_tab";
+	protected static final String KEY_LOGGING_LOGS_TAB_LINEBUFFER = "logging_logs_tab_linebuffer";
+	protected static final String KEY_LOGGING_SYSLOG_FACILITY = "logging_syslog_facility";
+	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
+	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
+	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -314,6 +336,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	protected static final char LIST_SEPARATOR = ',';
 	public final String ALL_RENDERERS = "All renderers";
+
+	// Path to default logfile directory
+	protected String defaultLogFileDir = null;
 
 	public TempFolder tempFolder;
 	public ProgramPaths programPaths;
@@ -531,7 +556,9 @@ public class PmsConfiguration extends RendererConfiguration {
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = createProgramPathsChain(configuration);
 		filter = new IpFilter();
-		Locale.setDefault(new Locale(getLanguage()));
+		PMS.setLocale(getLanguageLocale());
+		//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
+		Locale.setDefault(getLanguageLocale());
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
 		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
@@ -581,6 +608,97 @@ public class PmsConfiguration extends RendererConfiguration {
 				new PlatformSpecificDefaultPathsFactory().get()
 			)
 		);
+	}
+
+	/**
+	 * @return first writable folder in the following order:
+	 * <p>
+	 *     1. (On Linux only) path to {@code /var/log/ums/%USERNAME%/}.
+	 * </p>
+	 * <p>
+	 *     2. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
+	 *     {@code ~/Library/Application Support/UMS/} on Mac).
+	 * </p>
+	 * <p>
+	 *     3. Path to user-defined temporary folder specified by {@code temp_directory} parameter in UMS.conf.
+	 * </p>
+	 * <p>
+	 *     4. Path to system temporary folder.
+	 * </p>
+	 * <p>
+	 *     5. Path to current working directory.
+	 * </p>
+	 */
+	public synchronized String getDefaultLogFileFolder() {
+
+		if (defaultLogFileDir == null) {
+			if (Platform.isLinux()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UMS/{}/\"", System.getProperty("user.name"));
+				}
+				final File logDirectory = new File("/var/log/UMS/" + System.getProperty("user.name") + "/");
+				if (!logDirectory.exists()) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
+					}
+					try {
+						FileUtils.forceMkdir(logDirectory);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("getDefaultLogFileFolder: \"{}\" created", logDirectory.getAbsolutePath());
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
+					}
+				}
+				if (logDirectory.exists() && FileUtil.isDirectoryWritable(logDirectory)) {
+					defaultLogFileDir = logDirectory.getAbsolutePath();
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
+					}
+				} else if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to profile folder for logging", logDirectory.getAbsolutePath());
+				}
+			}
+
+			if (defaultLogFileDir == null) {
+				// Log to profile directory if it is writable.
+				final File profileDirectory = new File(PROFILE_DIRECTORY);
+				if (FileUtil.isDirectoryWritable(profileDirectory)) {
+					defaultLogFileDir = profileDirectory.getAbsolutePath();
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
+					}
+				} else {
+					// Try user-defined temporary folder or fall back to system temporary folder.
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to temporary folder for logging", profileDirectory.getAbsolutePath());
+					}
+					try {
+						defaultLogFileDir = getTempFolder().getAbsolutePath();
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
+						}
+					} catch (IOException e) {
+						LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
+						defaultLogFileDir = "";
+					}
+				}
+			}
+		}
+		return defaultLogFileDir;
+	}
+
+	public String getDefaultLogFileName() {
+		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
+		if (FileUtil.isValidFileName(s)) {
+			return s;
+		} else {
+			return "debug.log";
+		}
+	}
+
+	public String getDefaultLogFilePath() {
+		return FileUtil.appendPathSeparator(getDefaultLogFileFolder()) + getDefaultLogFileName();
 	}
 
 	public File getTempFolder() throws IOException {
@@ -716,18 +834,81 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Get the code of the preferred language for the PMS user interface. Default
-	 * is based on the locale.
-	 * @return The ISO 639 language code.
+	 * Get the {@link java.util.Locale} of the preferred language for the UMS
+	 * user interface. The default is based on the default (OS) locale.
+	 * @return The {@link java.util.Locale}.
 	 */
-	public String getLanguage() {
-		String def = Locale.getDefault().getLanguage();
-
-		if (def == null) {
-			def = "en";
+	public Locale getLanguageLocale() {
+		String languageCode = configuration.getString(KEY_LANGUAGE);
+		Locale locale = null;
+		if (languageCode != null && !languageCode.isEmpty()) {
+			locale = Languages.toLocale(Locale.forLanguageTag(languageCode));
+			if (locale == null) {
+				LOGGER.error("Invalid or unsupported language tag \"{}\", defaulting to OS language.", languageCode);
+			}
+		} else {
+			LOGGER.info("Language not specified, defaulting to OS language.");
 		}
 
-		return getString(KEY_LANGUAGE, def);
+		if (locale == null) {
+			locale = Languages.toLocale(Locale.getDefault());
+			if (locale == null) {
+				LOGGER.error("Unsupported language tag \"{}\", defaulting to US English.", Locale.getDefault().toLanguageTag());
+			}
+		}
+
+		if (locale == null) {
+			locale = Locale.forLanguageTag("en-US"); // Default
+		}
+		return locale;
+	}
+
+	/**
+	 * Get the {@link java.util.Locale} compatible tag of the preferred
+	 * language for the UMS user interface. The default is based on the default (OS) locale.
+	 * @return The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
+	 */
+	public String getLanguageTag() {
+		return getLanguageLocale().toLanguageTag();
+	}
+
+	/**
+	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
+	 * @since 5.2.3
+	 */
+	public String getLanguage() {
+		return getLanguageTag();
+	}
+
+	/**
+	 * Set the preferred language for the UMS user interface.
+	 * @param value The {@link java.net.Locale}.
+	 */
+	public void setLanguage(Locale locale) {
+		if (locale != null) {
+			if (Languages.isValid(locale)) {
+				configuration.setProperty(KEY_LANGUAGE, Languages.toLanguageCode(locale));
+				PMS.setLocale(Languages.toLocale(locale));
+				//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
+				Locale.setDefault(Languages.toLocale(locale));
+			} else {
+				LOGGER.error("setLanguage() aborted because of unsupported language tag \"{}\"", locale.toLanguageTag());
+			}
+		} else {
+			LOGGER.error("setLanguage() aborted because the locale is null");
+		}
+	}
+
+	/**
+	 * Set the preferred language for the UMS user interface.
+	 * @param value The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
+	 */
+	public void setLanguage(String value) {
+		if (value != null && !value.isEmpty()) {
+			setLanguage(Locale.forLanguageTag(value));
+		} else {
+			LOGGER.error("setLanguage() aborted because language tag is empty");
+		}
 	}
 
 	/**
@@ -923,28 +1104,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set the preferred language for the PMS user interface.
-	 * @param value The ISO 639 language code.
-	 */
-	public void setLanguage(String value) {
-		configuration.setProperty(KEY_LANGUAGE, value);
-		Locale.setDefault(new Locale(getLanguage()));
-	}
-
-	/**
 	 * Returns the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
-	 * from. Default is 2 seconds.
+	 * from. Default is 4 seconds.
+	 *
 	 * @return The seek position in seconds.
 	 */
 	public int getThumbnailSeekPos() {
-		return getInt(KEY_THUMBNAIL_SEEK_POS, 2);
+		return getInt(KEY_THUMBNAIL_SEEK_POS, 4);
 	}
 
 	/**
 	 * Sets the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
 	 * from.
+	 *
 	 * @param value The seek position in seconds.
 	 */
 	public void setThumbnailSeekPos(int value) {
@@ -1050,7 +1224,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_FORCED_SUBTITLE_LANGUAGE,
-				getLanguage()
+				PMS.getLocale().getLanguage()
 		);
 	}
 
@@ -2334,7 +2508,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isMencoderMuxWhenCompatible() {
-		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, true);
+		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, false);
 	}
 
 	public void setMEncoderNormalizeVolume(boolean value) {
@@ -2350,7 +2524,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isFFmpegMuxWithTsMuxerWhenCompatible() {
-		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, true);
+		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
 	}
 
 	/**
@@ -2703,7 +2877,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getWebConfPath() {
 		// Initialise this here rather than in the constructor
 		// or statically so that custom settings are logged
-		// to the debug.log/Logs tab.
+		// to the logfile/Logs tab.
 		if (WEB_CONF_PATH == null) {
 			WEB_CONF_PATH = FileUtil.getFileLocation(
 				getString(KEY_WEB_CONF_PATH, null),
@@ -2830,38 +3004,135 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_GPU_ACCELERATION, value);
 	}
 
+	private Boolean admin = null;
+	private Object isAdminLock = new Object();
+	/**
+	 * Get the state of the GUI log tab "Case sensitive" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchCaseSensitive() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "Case sensitive" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchCaseSensitive(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, value);
+	}
+
+	/**
+	 * Get the state of the GUI log tab "Multiline" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchMultiLine() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_MULTILINE, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "Multiline" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchMultiLine(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_MULTILINE, value);
+	}
+
+	/**
+	 * Get the state of the GUI log tab "RegEx" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchRegEx() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_USE_REGEX, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "RegEx" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchRegEx(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
+	}
+
 	/**
 	 * Finds out whether the program has admin rights.
 	 * It only checks on Windows and returns true if on a non-Windows OS.
 	 *
 	 * Note: Detection of Windows 8 depends on the user having a version of
 	 * JRE newer than 1.6.0_31 installed.
-	 *
-	 * TODO: We should make it check for rights on other operating systems.
 	 */
 	public boolean isAdmin() {
-		if (
-			"Windows 8".equals(System.getProperty("os.name")) ||
-			"Windows 7".equals(System.getProperty("os.name")) ||
-			"Windows Vista".equals(System.getProperty("os.name"))
-		) {
-			try {
-				String command = "reg query \"HKU\\S-1-5-19\"";
-				Process p = Runtime.getRuntime().exec(command);
-				p.waitFor();
-				int exitValue = p.exitValue();
+		synchronized(isAdminLock) {
+			if (admin != null) {
+				return admin.booleanValue();
+			}
+			if (Platform.isWindows()) {
+				Float ver = null;
+				try {
+					ver = Float.valueOf(System.getProperty("os.version"));
+				} catch (NullPointerException | NumberFormatException e) {
+					LOGGER.error(
+						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
+						System.getProperty("os.version"), e.getMessage()
+					);
+					admin = Boolean.valueOf(false);
+					return false;
+				}
+				if (ver >= 5.1) {
+					try {
+						String command = "reg query \"HKU\\S-1-5-19\"";
+						Process p = Runtime.getRuntime().exec(command);
+						p.waitFor();
+						int exitValue = p.exitValue();
 
-				if (0 == exitValue) {
+						if (0 == exitValue) {
+							admin = Boolean.valueOf(true);
+							return true;
+						}
+						admin = Boolean.valueOf(false);
+						return false;
+					} catch (IOException | InterruptedException e) {
+						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
+					}
+				} else {
+					admin = Boolean.valueOf(true);
 					return true;
 				}
-
-				return false;
-			} catch (IOException | InterruptedException e) {
-				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
+			} else if (Platform.isLinux() || Platform.isMac()) {
+				try {
+					final String command = "id -Gn";
+					LOGGER.trace("isAdmin: Executing \"{}\"", command);
+					Process p = Runtime.getRuntime().exec(command);
+					InputStream is = p.getInputStream();
+					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
+					BufferedReader br = new BufferedReader(isr);
+					p.waitFor();
+					int exitValue = p.exitValue();
+					String exitLine = br.readLine();
+					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
+						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
+						admin = Boolean.valueOf(false);
+						return false;
+					}
+					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
+					if
+						((Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
+						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
+					{
+						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
+						admin = Boolean.valueOf(true);
+						return true;
+					}
+					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
+					admin = Boolean.valueOf(false);
+					return false;
+				} catch (IOException | InterruptedException e) {
+					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
+				}
 			}
+			admin = Boolean.valueOf(false);
+			return false;
 		}
-
-		return true;
 	}
 
 	/* Start without external netowrk (increase startup speed) */
@@ -2981,6 +3252,88 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setLiveSubtitlesTimeout(int t) {
 		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
+	}
+
+	public boolean getLoggingBuffered() {
+		return getBoolean(KEY_LOGGING_BUFFERED, false);
+	}
+
+	public void setLoggingBuffered(boolean value) {
+		configuration.setProperty(KEY_LOGGING_BUFFERED, value);
+	}
+
+	public Level getLoggingFilterConsole() {
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"),Level.INFO);
+	}
+
+	public void setLoggingFilterConsole(Level value) {
+		configuration.setProperty(KEY_LOGGING_FILTER_CONSOLE, value.levelStr);
+	}
+
+	public Level getLoggingFilterLogsTab() {
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"),Level.INFO);
+	}
+
+	public void setLoggingFilterLogsTab(Level value) {
+		configuration.setProperty(KEY_LOGGING_FILTER_LOGS_TAB, value.levelStr);
+	}
+
+	public int getLoggingLogsTabLinebuffer() {
+		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+	}
+
+	public void setLoggingLogsTabLinebuffer(int value) {
+		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value);
+	}
+
+	public String getLoggingSyslogFacility() {
+		return getString(KEY_LOGGING_SYSLOG_FACILITY, "USER");
+	}
+
+	public void setLoggingSyslogFacility(String value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_FACILITY, value);
+	}
+
+	public void setLoggingSyslogFacilityDefault() {
+		setLoggingSyslogFacility("USER");
+	}
+
+	public String getLoggingSyslogHost() {
+		return getString(KEY_LOGGING_SYSLOG_HOST, "");
+	}
+
+	public void setLoggingSyslogHost(String value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_HOST, value);
+	}
+
+	public int getLoggingSyslogPort() {
+		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
+		if (i < 1 || i > 65535) {
+			return 514;
+		} else {
+			return i;
+		}
+	}
+
+	public void setLoggingSyslogPort(int value) {
+		if (value < 1 || value > 65535) {
+			setLoggingSyslogPortDefault();
+		} else {
+			configuration.setProperty(KEY_LOGGING_SYSLOG_PORT, value);
+		}
+	}
+
+	public void setLoggingSyslogPortDefault() {
+		setLoggingSyslogPort(514);
+	}
+
+	public boolean getLoggingUseSyslog() {
+		return getBoolean(KEY_LOGGING_USE_SYSLOG, false);
+	}
+
+	public void setLoggingUseSyslog(boolean value) {
+		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
 	}
 
 	public boolean isVlcUseHardwareAccel() {

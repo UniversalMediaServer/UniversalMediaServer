@@ -56,7 +56,7 @@ public class SelectRenderers extends JPanel {
 
 	public void build() {
 		JPanel checkPanel = new JPanel();
-		checkPanel.applyComponentOrientation(ComponentOrientation.getOrientation(new Locale(configuration.getLanguage())));
+		checkPanel.applyComponentOrientation(ComponentOrientation.getOrientation(PMS.getLocale()));
 		add(checkPanel, BorderLayout.LINE_START);
 		allRenderers = new SearchableMutableTreeNode(Messages.getString("GeneralTab.13"));
 

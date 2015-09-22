@@ -174,7 +174,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Removes leading zeros up to the nth char of an hh:mm:ss time string.
+	 * Removes leading zeros up to the nth char of an hh:mm:ss time string,
+	 * normalizing it first if necessary.
 	 *
 	 * @param t time string.
 	 * @param n position to stop checking
@@ -182,12 +183,22 @@ public class StringUtil {
 	 * @return the Shortened String.
 	 */
 	public static String shortTime(String t, int n) {
+		if (t.equals("NOT_IMPLEMENTED")) {
+			return " ";
+		}
 		n = n < 8 ? n : 8;
 		if (!isBlank(t)) {
 			int i = t.indexOf(".");
 			// Throw out the decimal portion, if any
 			if (i > -1) {
 				t = t.substring(0, i);
+			}
+			int l = t.length();
+			// Normalize if necessary
+			if (l < 8) {
+				t = "00:00:00".substring(0, 8 - l) + t;
+			} else if (l > 8) {
+				t = t.substring(l - 8);
 			}
 			for (i = 0; i < n; i++) {
 				if (t.charAt(i) != "00:00:00".charAt(i)) {
