@@ -228,25 +228,9 @@ public class UMSUtils {
 		return new ByteArrayInputStream(out.toByteArray());
 	}
 
-	private static String fixTimeStr(String str) {
-		if (str.equals("NOT_IMPLEMENTED")) {
-			return " ";
-		}
-		if(str.charAt(0) == ':')   {
-			// remove stray ':' at the start
-			str = str.substring(1);
-		}
-		int pos = str.indexOf(".");
-		if (pos != -1) {
-			// remove millisecond portion
-			str = str.substring(0, pos);
-		}
-		return str;
-	}
-
 	public static String playedDurationStr(String current, String duration) {
-		String pos = fixTimeStr(StringUtil.shortTime(current, 4));
-		String dur = fixTimeStr(StringUtil.shortTime(duration, 4));
+		String pos = StringUtil.shortTime(current, 4);
+		String dur = StringUtil.shortTime(duration, 4);
 		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
 	}
 

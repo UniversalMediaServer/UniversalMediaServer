@@ -29,6 +29,6 @@ public class UMSUtilsTest {
 	public void testPlayedDurationStr() throws Exception {
 		assertThat(UMSUtils.playedDurationStr("01:23:45:67.89", "01:23:45:67")).isEqualTo("23:45:67 / 23:45:67");
 		assertThat(UMSUtils.playedDurationStr("01:23", "01:23:45")).isEqualTo("1:23 / 1:23:45");
-		assertThat(UMSUtils.playedDurationStr("0:12", "59")).isEqualTo("0:12 / 0:59");
+		assertThat(UMSUtils.playedDurationStr(":12", "59")).isEqualTo("0:12 / 0:59");
 	}
 }

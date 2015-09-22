@@ -183,6 +183,9 @@ public class StringUtil {
 	 * @return the Shortened String.
 	 */
 	public static String shortTime(String t, int n) {
+		if (t.equals("NOT_IMPLEMENTED")) {
+			return " ";
+		}
 		n = n < 8 ? n : 8;
 		if (!isBlank(t)) {
 			int i = t.indexOf(".");
