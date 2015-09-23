@@ -2559,6 +2559,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		public void start() {
 			final DLNAResource res = renderer.getPlayingRes();
 			state.name = res.getDisplayName();
+			duration = 0;
 			if (res.getMedia() != null) {
 				duration = (long)res.getMedia().getDurationInSeconds() * 1000;
 				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
