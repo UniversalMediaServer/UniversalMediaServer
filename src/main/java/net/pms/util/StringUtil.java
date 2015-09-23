@@ -185,8 +185,8 @@ public class StringUtil {
 	public static String shortTime(String t, int n) {
 		n = n < 8 ? n : 8;
 		if (!isBlank(t)) {
-			if (t.equals("NOT_IMPLEMENTED")) {
-				return " ";
+			if (t.startsWith("NOT_IMPLEMENTED")) {
+				return t.length() > 15 ? t.substring(15) : " ";
 			}
 			int i = t.indexOf(".");
 			// Throw out the decimal portion, if any

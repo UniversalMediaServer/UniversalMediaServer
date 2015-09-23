@@ -2548,6 +2548,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static class PlaybackTimer extends BasicPlayer.Minimal {
 
+		private long duration = 0;
+
 		public PlaybackTimer(DeviceConfiguration renderer) {
 			super(renderer);
 			LOGGER.debug("Created playback timer for " + renderer.getRendererName());
@@ -2558,7 +2560,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			final DLNAResource res = renderer.getPlayingRes();
 			state.name = res.getDisplayName();
 			if (res.getMedia() != null) {
-				state.duration = StringUtil.shortTime(res.getMedia().getDurationString(), 4);
+				duration = (long)res.getMedia().getDurationInSeconds() * 1000;
+				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
 			}
 			Runnable r = new Runnable() {
 				@Override
@@ -2566,7 +2569,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					state.playback = PLAYING;
 					while(res == renderer.getPlayingRes()) {
 						long elapsed = System.currentTimeMillis() - res.getStartTime();
-						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
+						state.position = (duration == 0 || elapsed < duration + 500) ?
+							// Position is valid as far as we can tell
+							DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss") :
+							// Position is invalid, blink instead
+							("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
 						alert();
 						try {
 							Thread.sleep(1000);
