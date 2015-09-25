@@ -89,7 +89,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private PluginTab pt;
 	private AbstractButton reload;
 	private JLabel status;
-	private static boolean lookAndFeelInitialized = false;
+	private static Boolean lookAndFeelInitialized = Boolean.valueOf(false);
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
 
 	public ViewLevel getViewLevel() {
@@ -127,9 +127,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return reload;
 	}
 
-	static void initializeLookAndFeel() {
-		if (lookAndFeelInitialized) {
-			return;
+	public static void initializeLookAndFeel() {
+
+		synchronized (lookAndFeelInitialized) {
+			if (lookAndFeelInitialized.booleanValue()) {
+				return;
+			}
 		}
 
 		LookAndFeel selectedLaf = null;
@@ -178,15 +181,17 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		JCheckBox checkBox = new JCheckBox();
 		checkBox.getUI().uninstallUI(checkBox);
 
-		if (selectedLaf != null) {
-			try {
-				UIManager.setLookAndFeel(selectedLaf);
-			} catch (UnsupportedLookAndFeelException e) {
-				LOGGER.warn("Can't change look and feel", e);
+		synchronized (lookAndFeelInitialized) {
+			if (selectedLaf != null) {
+				try {
+					UIManager.setLookAndFeel(selectedLaf);
+				} catch (UnsupportedLookAndFeelException e) {
+					LOGGER.warn("Can't change look and feel", e);
+				}
 			}
-		}
 
-		lookAndFeelInitialized = true;
+			lookAndFeelInitialized = Boolean.valueOf(true);
+		}
 	}
 
 	/**
