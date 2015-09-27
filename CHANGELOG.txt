@@ -1,4 +1,4 @@
-5.2.3 - 2015-09-??
+5.2.3 - 2015-09-28
 
 	General:
 		Improved logging and logging options
