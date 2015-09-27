@@ -393,8 +393,11 @@ public class TracesTab {
 		popup.add(copyItem);
 		popup.addSeparator();
 		JMenuItem clearItem = new JMenuItem(Messages.getString("TracesTab.3"));
-		clearItem.addActionListener((ActionEvent e) -> {
-			jList.setText("");
+		clearItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				jList.setText("");
+			}
 		});
 		popup.add(clearItem);
 		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));

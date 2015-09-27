@@ -59,7 +59,7 @@ public class RealFile extends MapFile {
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
 
-		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isMediaParserV2()) {
+		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
 			run();
 
@@ -79,8 +79,8 @@ public class RealFile extends MapFile {
 				}
 			}
 
-			// XXX isMediaParserV2ThumbnailGeneration is only true for the "default renderer"
-			if (getParent().getDefaultRenderer().isMediaParserV2ThumbnailGeneration()) {
+			// XXX isMediaInfoThumbnailGeneration is only true for the "default renderer"
+			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
 				checkThumbnail();
 			}
 		}

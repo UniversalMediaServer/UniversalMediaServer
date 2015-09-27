@@ -456,6 +456,7 @@ public class GeneralTab {
 	private void refreshInstallServiceButtonState() {
 		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
 			installService.setEnabled(false);
+			installService.setText(Messages.getString("NetworkTab.4"));
 		} else {
 			installService.setEnabled(true);
 

@@ -20,7 +20,8 @@ public class WindowsUtil {
 	 */
 	public static boolean isUmsServiceInstalled() {
 		String[] commands = new String[]{ "sc", "query", "\"Universal Media Server\"" };
-		String response = ProcessUtil.run(commands);
+		int[] expectedExitCodes = { 0, 1060 };
+		String response = ProcessUtil.run(expectedExitCodes, commands);
 		return response.contains("TYPE");
 	}
 

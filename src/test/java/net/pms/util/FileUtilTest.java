@@ -96,12 +96,6 @@ public class FileUtilTest {
 	}
 
 	@Test
-	public void testGetFileCharset_IBM866() throws Exception {
-		File file = FileUtils.toFile(CLASS.getResource("russian-ibm866.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_IBM866);
-	}
-
-	@Test
 	public void testGetFileCharset_KOI8_R() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-koi8-r.srt"));
 		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_KOI8_R);

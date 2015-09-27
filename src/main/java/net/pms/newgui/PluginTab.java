@@ -11,6 +11,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -241,8 +242,11 @@ public class PluginTab {
 		// Add button
 		CustomJButton add = new CustomJButton(Messages.getString("PluginTab.9"));
 		builder.add(add, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
-		add.addActionListener((ActionEvent e) -> {
-			addEditDialog(credTable, -1);				
+		add.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addEditDialog(credTable, -1);
+			}
 		});
 
 		// Edit button
@@ -564,25 +568,33 @@ public class PluginTab {
 		final char defEchoChar = pText.getEchoChar();
 
 		JButton ok = new JButton(Messages.getString("Dialog.OK"));
-		ok.addActionListener((ActionEvent e) -> {
-			frame.setVisible(false);
-			String key = oText.getText();
-			String pwd1 = new String(pText.getPassword());
-			if (StringUtils.isEmpty(key) || 
-				StringUtils.isEmpty(uText.getText()) || StringUtils.isEmpty(pwd1)) {
-				return;
+		ok.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.setVisible(false);
+				String key = oText.getText();
+				String pwd = new String(pText.getPassword());
+				if (
+					StringUtils.isEmpty(key) ||
+					StringUtils.isEmpty(uText.getText()) ||
+					StringUtils.isEmpty(pwd)
+				) {
+					// ignore this
+					return;
+				}
+
+				if (StringUtils.isNotEmpty(tText.getText())) {
+					key = key + "." + tText.getText();
+				}
+				String val = uText.getText() + "," + pwd;
+				cred.addProperty(key, val);
+				try {
+					cred.save();
+				} catch (ConfigurationException e1) {
+					LOGGER.warn("Error saving cred file "+e1);
+				}
+				refreshCred(table);
 			}
-			if (StringUtils.isNotEmpty(tText.getText())) {
-				key = key + "." + tText.getText();
-			}
-			String val = uText.getText() + "," + pwd1;
-			cred.addProperty(key, val);
-			try {
-				cred.save();
-			} catch (ConfigurationException e1) {
-				LOGGER.warn("Error saving cred file "+e1);
-			}
-			refreshCred(table);
 		});
 
 		JButton cancel = new JButton(Messages.getString("NetworkTab.45"));

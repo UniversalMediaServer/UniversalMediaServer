@@ -245,7 +245,7 @@ public class RootFolder extends DLNAResource {
 						child.refreshChildren();
 					} else {
 						if (child instanceof DVDISOFile || child instanceof DVDISOTitle) { // ugly hack
-							child.resolve();
+							child.syncResolve();
 						}
 						child.discoverChildren();
 						child.analyzeChildren(-1);
