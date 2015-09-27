@@ -397,7 +397,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 		final ArrayList<String> lines = new ArrayList<String>();
 		final String input = filename.length() > 200 ? filename.substring(0, 199) : filename;
-		OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
+		OutputTextLogger ffParser = new OutputTextLogger(null) {
 			@Override
 			public boolean filter(String line) {
 				if (endOfHeader.reset(line).find()) {

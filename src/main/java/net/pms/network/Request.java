@@ -310,7 +310,7 @@ public class Request extends HTTPResource {
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						inputStream = dlna.getGenericThumbnailInputStream(null);
 					} else {
-						if (mediaRenderer.isMediaParserV2()) {
+						if (mediaRenderer.isUseMediaInfo()) {
 							dlna.checkThumbnail();
 						}
 						inputStream = dlna.getThumbnailInputStream();
@@ -681,7 +681,7 @@ public class Request extends HTTPResource {
 					parentFolder = files.get(0).getParent();
 				}
 
-				if (browseDirectChildren && mediaRenderer.isMediaParserV2() && mediaRenderer.isDLNATreeHack()) {
+				if (browseDirectChildren && mediaRenderer.isUseMediaInfo() && mediaRenderer.isDLNATreeHack()) {
 					// with the new parser, files are parsed and analyzed *before*
 					// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 					// so we do not know exactly the total number of items in the DLNA folder to send

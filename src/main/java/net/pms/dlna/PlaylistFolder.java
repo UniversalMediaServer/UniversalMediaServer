@@ -211,7 +211,7 @@ public class PlaylistFolder extends DLNAResource {
 		}
 
 		for (DLNAResource r : getChildren()) {
-			r.resolve();
+			r.syncResolve();
 		}
 	}
 
