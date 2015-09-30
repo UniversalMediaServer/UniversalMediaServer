@@ -184,6 +184,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
 	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
 	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
+	protected static final String KEY_MAIN_WINDOW_HEIGHT = "main_window_height";
+	protected static final String KEY_MAIN_WINDOW_WIDTH = "main_window_width";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -3812,5 +3814,21 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setRootLogLevel(ch.qos.logback.classic.Level level) {
 		configuration.setProperty(KEY_ROOT_LOG_LEVEL, level.toString());
+	}
+
+	public void setMainWindowWidth(int value) {
+		configuration.setProperty(KEY_MAIN_WINDOW_WIDTH, value);
+	}
+
+	public int getMainWindowWidth() {
+		return getInt(KEY_MAIN_WINDOW_WIDTH, 1000);
+	}
+
+	public void setMainWindowHeight(int value) {
+		configuration.setProperty(KEY_MAIN_WINDOW_HEIGHT, value);
+	}
+
+	public int getMainWindowHeight() {
+		return getInt(KEY_MAIN_WINDOW_HEIGHT, 750);
 	}
 }

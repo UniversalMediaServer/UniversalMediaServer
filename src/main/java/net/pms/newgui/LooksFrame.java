@@ -56,7 +56,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private final PmsConfiguration configuration;
 	public static final String START_SERVICE = "start.service";
 	private static final long serialVersionUID = 8723727186288427690L;
-	protected static final Dimension PREFERRED_SIZE = new Dimension(1000, 750);
+	private Dimension storedWindowSize = new Dimension();
 	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
 	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
 
@@ -328,10 +328,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setMinimumSize(MINIMUM_SIZE);
 		}
 
-		if (screenSize.width < PREFERRED_SIZE.width || screenSize.height < PREFERRED_SIZE.height) {
+		storedWindowSize.width = configuration.getMainWindowWidth();
+		storedWindowSize.height = configuration.getMainWindowHeight();
+		if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
 			setSize(screenSize);
 		} else {
-			setSize(PREFERRED_SIZE);
+			setSize(storedWindowSize);
 		}
 
 		// Customize the colors used in tooltips
@@ -475,7 +477,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
-
+		configuration.setMainWindowHeight(this.getHeight());
+		configuration.setMainWindowWidth(this.getWidth());
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
