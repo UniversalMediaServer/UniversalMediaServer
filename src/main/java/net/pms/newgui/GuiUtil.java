@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.plaf.ProgressBarUI;
+import net.pms.PMS;
+import net.pms.Messages;
 import org.apache.commons.lang3.StringUtils;
 
 public final class GuiUtil {
@@ -579,10 +581,27 @@ public final class GuiUtil {
 	}
 
 	public static String htmlify(String text) {
+		return htmlify(text, PMS.isLeftToRightLocale());
+	}
+
+	public static String htmlify(String text, boolean ltr) {
 		// There is no syntax/encoding validation, we assume the string
 		// is either proper html or just ordinary plain text.
-		if (text != null && !text.trim().toLowerCase().startsWith("<html>")) {
-			return "<html>" + text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "</html>";
+		if (text != null) {
+			String s = text.trim().toLowerCase();
+			if (!s.startsWith("<html>")) {
+				return "<html>"
+					+ (!ltr ? "<div align=right>" : "")
+					+ text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+					+ (!ltr ? "</div>" : "")
+					+ "</html>";
+			}
+			// Ensure html alignment is specified if rtl
+			if (!ltr && !s.contains("<div align=right>")) {
+				return "<html><div align=right>"
+					+ text.trim().substring(6, text.length() - 7)
+					+ "</div></html>";
+			}
 		}
 		return text;
 	}

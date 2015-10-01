@@ -18,6 +18,7 @@
  */
 package net.pms;
 
+import java.awt.ComponentOrientation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +26,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.pms.newgui.GuiUtil;
 
 /**
  * Class Messages provides a mechanism to localize the text messages found in
@@ -37,6 +39,7 @@ public class Messages {
 	private static ReadWriteLock resourceBundleLock = new ReentrantReadWriteLock();
 	private static ResourceBundle resourceBundle;
 	private static final ResourceBundle ROOT_RESOURCE_BUNDLE;
+	protected static boolean isResourceBundleLTR;
 
 	static {
 		/*
@@ -55,6 +58,7 @@ public class Messages {
 	            return Collections.singletonList(Locale.ROOT);
 	        }
 		});
+		isResourceBundleLTR = ComponentOrientation.getOrientation(resourceBundle.getLocale()).isLeftToRight();
 
 	}
 
@@ -85,6 +89,7 @@ public class Messages {
 				resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, locale);
 			}
 		} finally {
+			isResourceBundleLTR = ComponentOrientation.getOrientation(resourceBundle.getLocale()).isLeftToRight();
 			resourceBundleLock.writeLock().unlock();
 		}
 	}
