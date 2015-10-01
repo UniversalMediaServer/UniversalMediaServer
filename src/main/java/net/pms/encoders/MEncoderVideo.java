@@ -83,6 +83,8 @@ public class MEncoderVideo extends Player {
 	private CustomJCheckBox intelligentsync;
 	private JTextField ocw;
 	private JTextField och;
+	private JPanel assvarsPanel, overscanPanel;
+	private JLabel oc, plaintext, dvdvob, scaleXLabel, scaleYLabel;
 
 	private static final String[] INVALID_CUSTOM_OPTIONS = {
 		"-of",
@@ -304,8 +306,7 @@ public class MEncoderVideo extends Player {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setMencoderScaler(e.getStateChange() == ItemEvent.SELECTED);
-				scaleX.setEnabled(configuration.isMencoderScaler());
-				scaleY.setEnabled(configuration.isMencoderScaler());
+				enableVideoScaling();
 			}
 		});
 		scale.append(scaler);
@@ -321,7 +322,7 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		scale.append(Messages.getString("MEncoderVideo.28") + " (%)");
+		scaleXLabel = scale.append(Messages.getString("MEncoderVideo.28") + " (%)");
 		scale.append(scaleX);
 
 		scaleY = new JTextField("" + configuration.getMencoderScaleY());
@@ -335,9 +336,10 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		scale.append(Messages.getString("MEncoderVideo.30"));
+		scaleYLabel = scale.append(Messages.getString("MEncoderVideo.30"));
 		scale.append(scaleY);
 
+		enableVideoScaling();
 		builder.add(scale._getPanel(), cc.xy(3, 5));
 
 		if (configuration.isMencoderScaler()) {
@@ -378,7 +380,7 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(mencoder_custom_options, cc.xy(3, 15));
 
-		builder._addLabel(Messages.getString("MEncoderVideo.93"), cc.xy(1, 17));
+		oc = builder._addLabel(Messages.getString("MEncoderVideo.93"), cc.xy(1, 17));
 
 		OrientedSpanBuilder overscan = new OrientedSpanBuilder("p, 3dlu, p:grow, 6dlu, p, 3dlu, p:grow");
 
@@ -402,13 +404,13 @@ public class MEncoderVideo extends Player {
 		overscan.append(Messages.getString("MEncoderVideo.30") + " (%)");
 		overscan.append(och);
 
-		builder.add(overscan._getPanel(), cc.xy(3, 17, CellConstraints.FILL, CellConstraints.CENTER));
+		overscanPanel = (JPanel)builder.add(overscan._getPanel(), cc.xy(3, 17, CellConstraints.FILL, CellConstraints.CENTER));
 
 		cmp = builder._addSeparator(Messages.getString("MEncoderVideo.8"), cc.xyw(1, 19, 3));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder._addLabel(Messages.getString("MEncoderVideo.16"), cc.xy(1, 27));
+		plaintext = builder._addLabel(Messages.getString("MEncoderVideo.16"), cc.xy(1, 27));
 
 		OrientedSpanBuilder assvars = new OrientedSpanBuilder("3*(p, 2dlu, p:grow, 4dlu), p, 2dlu, p:grow");
 
@@ -452,7 +454,7 @@ public class MEncoderVideo extends Player {
 		assvars.append(Messages.getString("MEncoderVideo.19"));
 		assvars.append(mencoder_noass_subpos);
 
-		builder.add(assvars._getPanel(), cc.xy(3, 27, CellConstraints.FILL, CellConstraints.CENTER));
+		assvarsPanel = (JPanel)builder.add(assvars._getPanel(), cc.xy(3, 27, CellConstraints.FILL, CellConstraints.CENTER));
 
 		ass = new CustomJCheckBox(Messages.getString("MEncoderVideo.20"), configuration.isMencoderAss());
 		ass.setContentAreaFilled(false);
@@ -477,7 +479,7 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(fc, cc.xy(3, 23));
 
-		builder._addLabel(Messages.getString("MEncoderVideo.92"), cc.xy(1, 29));
+		dvdvob = builder._addLabel(Messages.getString("MEncoderVideo.92"), cc.xy(1, 29));
 		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
 		subq.addKeyListener(new KeyAdapter() {
 			@Override
@@ -487,32 +489,41 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(subq, cc.xy(3, 29));
 
+		enableSubtitles();
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {
-				if (event.getPropertyName() == null) {
-					return;
-				}
-				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
-					boolean enabled = !configuration.isDisableSubtitles();
-					ass.setEnabled(enabled);
-					fc.setEnabled(enabled);
-					mencoder_noass_scale.setEnabled(enabled);
-					mencoder_noass_outline.setEnabled(enabled);
-					mencoder_noass_blur.setEnabled(enabled);
-					mencoder_noass_subpos.setEnabled(enabled);
-					ocw.setEnabled(enabled);
-					och.setEnabled(enabled);
-					subq.setEnabled(enabled);
-
-					if (enabled) {
-						ass.getItemListeners()[0].itemStateChanged(null);
-					}
+				if (!event.isBeforeUpdate() && event.getPropertyName() != null && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
+					enableSubtitles();
 				}
 			}
 		});
 
 		return builder._getPanel();
+	}
+	
+	private void enableSubtitles() {
+		boolean enabled = !configuration.isDisableSubtitles();
+		ass.setEnabled(enabled);
+		fc.setEnabled(enabled);
+		GuiUtil.enableContainer(assvarsPanel, enabled);
+		GuiUtil.enableContainer(overscanPanel, enabled);
+		plaintext.setEnabled(enabled);
+		dvdvob.setEnabled(enabled);
+		oc.setEnabled(enabled);
+		subq.setEnabled(enabled);
+
+		if (enabled) {
+			ass.getItemListeners()[0].itemStateChanged(null);
+		}
+	}
+
+	public void enableVideoScaling() {
+		boolean enabled = configuration.isMencoderScaler();
+		scaleX.setEnabled(enabled);
+		scaleXLabel.setEnabled(enabled);
+		scaleY.setEnabled(enabled);
+		scaleYLabel.setEnabled(enabled);
 	}
 
 	@Override
