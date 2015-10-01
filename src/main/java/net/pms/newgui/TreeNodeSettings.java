@@ -20,7 +20,6 @@ package net.pms.newgui;
 
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -32,7 +31,7 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.Messages;
 import net.pms.newgui.components.CustomJLabel;
-import net.pms.newgui.components.CustomPanelBuilder;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,15 +99,14 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 			ImagePanel ip = new ImagePanel(bi);
 
-			FormLayout layout = new FormLayout(
+			OrientedPanelBuilder builder = new OrientedPanelBuilder(
 				"0:grow, pref, 0:grow",
 				"pref, 3dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p"
 			);
 
-			CustomPanelBuilder builder = new CustomPanelBuilder(layout);
 			builder.border(Borders.DIALOG);
 			builder.opaque(false);
-			CellConstraints cc = new CellConstraints();
+			CellConstraints cc = builder.getCellConstraints();
 
 			CustomJLabel jl = new CustomJLabel(Messages.getString("TreeNodeSettings.4"));
 			builder.add(jl, cc.xy(2, 1, "center, fill"));
@@ -116,7 +114,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 			builder.add(ip, cc.xy(2, 3, "center, fill"));
 
-			warningPanel = builder.getPanel();
+			warningPanel = builder._getPanel();
 		}
 
 		return warningPanel;

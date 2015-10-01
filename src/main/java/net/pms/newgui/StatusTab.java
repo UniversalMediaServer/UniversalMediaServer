@@ -18,11 +18,11 @@
  */
 package net.pms.newgui;
 
+import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -43,10 +43,9 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.Messages;
 import net.pms.newgui.components.CustomJLabel;
-import net.pms.newgui.components.CustomPanelBuilder;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.PMS;
 import net.pms.util.BasicPlayer;
-import net.pms.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -129,7 +128,7 @@ public class StatusTab {
 
 		public JPanel getPanel() {
 			if (_panel == null) {
-				CustomPanelBuilder b = new CustomPanelBuilder(new FormLayout(
+				PanelBuilder b = new PanelBuilder(new FormLayout(
 					"center:pref",
 					"max(140px;pref), 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
 				));
@@ -187,13 +186,10 @@ public class StatusTab {
 	}
 
 	public JComponent build() {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-
-		String colSpec = FormLayoutUtil.getColSpec("pref, 30dlu, fill:pref:grow, 30dlu, pref", orientation);
+		String colSpec = "pref, 30dlu, fill:pref:grow, 30dlu, pref";
 		//                                             1     2          3           4     5
 
-		FormLayout layout = new FormLayout(colSpec,
+		String rowSpec =
 			//                          1     2          3            4     5
 			//                   //////////////////////////////////////////////////
 			  "p,"               // Detected Media Renderers --------------------//  1
@@ -206,15 +202,15 @@ public class StatusTab {
 			+ "3dlu,"            //           |                       |          //
 			+ "p,"               //  <icon>   |  <statusbar>          |          //  9
 			                     //////////////////////////////////////////////////
-		);
+		;
 
-		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(colSpec, rowSpec);
 		builder.border(Borders.DIALOG);
 		builder.opaque(true);
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		// Renderers
-		JComponent cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
+		JComponent cmp = builder._addSeparator(Messages.getString("StatusTab.9"), cc.xyw(1, 1, 5));
 		cmp = (JComponent) cmp.getComponent(0);
 		Font bold = cmp.getFont().deriveFont(Font.BOLD);
 		Color fgColor = new Color(68, 68, 68);
@@ -231,16 +227,16 @@ public class StatusTab {
 
 		builder.add(rsp, cc.xyw(1, 3, 5));
 
-		cmp = builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
+		cmp = builder._addSeparator(null, cc.xyw(1, 5, 5));
 
 		// Connected
 		jl = new CustomJLabel(Messages.getString("StatusTab.3"));
-		builder.add(jl, FormLayoutUtil.flip(cc.xy(1, 7,  "center, top"), colSpec, orientation));
+		builder.add(jl, cc.xy(1, 7,  "center, top"));
 		jl.setFont(bold);
 		jl.setForeground(fgColor);
 
 		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
-		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+		builder.add(imagePanel, cc.xy(1, 9));
 
 		// Memory
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
@@ -254,40 +250,37 @@ public class StatusTab {
 		memoryProgressBar.setForeground(new Color(75, 140, 181));
 		memoryProgressBar.setString(Messages.getString("StatusTab.5"));
 
-		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", cc.xy(3, 7));
 		mem.setForeground(fgColor);
-		builder.add(memoryProgressBar, FormLayoutUtil.flip(cc.xyw(3, 9, 1), colSpec, orientation));
+		builder.add(memoryProgressBar, cc.xyw(3, 9, 1));
 
 		// Bitrate
 		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
-		CustomPanelBuilder bitrateBuilder = new CustomPanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));	
+		OrientedPanelBuilder bitrateBuilder = new OrientedPanelBuilder(bitColSpec, "p, 1dlu, p, 1dlu, p");	
 
 		bitrateLabel = new CustomJLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
-		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
+		bitrateBuilder.add(bitrateLabel, cc.xy(1, 1));
 
 		currentBitrateLabel = new CustomJLabel(Messages.getString("StatusTab.14"));
 		currentBitrateLabel.setForeground(fgColor);
-		bitrateBuilder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
+		bitrateBuilder.add(currentBitrateLabel, cc.xy(1, 3));
 
 		currentBitrate = new CustomJLabel("0");
 		currentBitrate.setForeground(fgColor);
-		bitrateBuilder.add(currentBitrate, FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
+		bitrateBuilder.add(currentBitrate, cc.xy(3, 3));
 
 		peakBitrateLabel = new CustomJLabel(Messages.getString("StatusTab.15"));
 		peakBitrateLabel.setForeground(fgColor);
-		bitrateBuilder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
+		bitrateBuilder.add(peakBitrateLabel, cc.xy(1, 5));
 
 		peakBitrate = new CustomJLabel("0");
 		peakBitrate.setForeground(fgColor);
-		bitrateBuilder.add(peakBitrate, FormLayoutUtil.flip(cc.xy(3, 5), bitColSpec, orientation));
+		bitrateBuilder.add(peakBitrate, cc.xy(3, 5));
 
-		builder.add(bitrateBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(5, 7, 1, 3, "left, top"), colSpec, orientation));
+		builder.add(bitrateBuilder._getPanel(), cc.xywh(5, 7, 1, 3, "left, top"));
 
-		JPanel panel = builder.getPanel();
-
-		// Apply the orientation to the panel and all components in it
-		panel.applyComponentOrientation(orientation);
+		JPanel panel = builder._getPanel();
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,

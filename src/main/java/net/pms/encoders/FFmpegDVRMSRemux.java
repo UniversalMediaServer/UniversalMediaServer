@@ -40,7 +40,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.Messages;
-import net.pms.newgui.components.CustomPanelBuilder;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -177,17 +177,17 @@ public class FFmpegDVRMSRemux extends Player {
 
 	@Override
 	public JComponent config() {
-		FormLayout layout = new FormLayout(
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
 			"left:pref, 3dlu, p, 3dlu, 0:grow",
 			"p, 3dlu, p, 3dlu, 0:grow"
 		);
-		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
+
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(1, 1, 5));
+		JComponent cmp = builder._addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(1, 1, 5));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -201,7 +201,7 @@ public class FFmpegDVRMSRemux extends Player {
 		});
 		builder.add(altffpath, cc.xyw(3, 3, 3));
 
-		return builder.getPanel();
+		return builder._getPanel();
 	}
 
 	@Override

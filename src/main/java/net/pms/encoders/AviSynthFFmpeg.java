@@ -18,10 +18,8 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -45,6 +43,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -239,14 +238,14 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 	@Override
 	protected JComponent config(String languageLabel) {
-		FormLayout layout = new FormLayout(
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu");
-		PanelBuilder builder = new PanelBuilder(layout);
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu"
+		);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		JComponent cmp = builder.addSeparator(Messages.getString(languageLabel), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
@@ -312,7 +311,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 		});
 
-		return builder.getPanel();
+		return builder._getPanel();
 	}
 
 	/**

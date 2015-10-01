@@ -18,12 +18,9 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -43,6 +40,7 @@ import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.util.*;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -614,17 +612,13 @@ public class VLCVideo extends Player {
 
 	@Override
 	public JComponent config() {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
-		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(COL_SPEC, ROW_SPEC);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(1, 1, 5));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -636,7 +630,7 @@ public class VLCVideo extends Player {
 				configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(experimentalCodecs, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+		builder.add(experimentalCodecs, cc.xy(1, 3));
 
 		audioSyncEnabled = new CustomJCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
@@ -646,14 +640,9 @@ public class VLCVideo extends Player {
 				configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		builder.add(audioSyncEnabled, cc.xy(1, 5));
 
-		JPanel panel = builder.getPanel();
-
-		// Apply the orientation to the panel and all components in it
-		panel.applyComponentOrientation(orientation);
-
-		return panel;
+		return builder._getPanel();
 	}
 
 	@Override

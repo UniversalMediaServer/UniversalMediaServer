@@ -18,10 +18,8 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -42,6 +40,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -71,15 +70,14 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 	@Override
 	public JComponent config() {
-		FormLayout layout = new FormLayout(
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
 			"left:pref, 0:grow",
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 12dlu, p, 3dlu, 0:grow"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
@@ -193,7 +191,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			}
 		});
 
-		return builder.getPanel();
+		return builder._getPanel();
 	}
 
 	@Override

@@ -18,10 +18,8 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -48,6 +46,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
@@ -1255,15 +1254,14 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected JComponent config(String languageLabel) {
-		FormLayout layout = new FormLayout(
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
 			"left:pref, 0:grow",
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		JComponent cmp = builder.addSeparator(Messages.getString(languageLabel), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
@@ -1311,7 +1309,7 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(deferToMEncoderForSubtitles, cc.xy(2, 9));
 
-		return builder.getPanel();
+		return builder._getPanel();
 	}
 
 	/**

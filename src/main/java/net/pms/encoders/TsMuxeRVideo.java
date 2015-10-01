@@ -18,11 +18,8 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -41,6 +38,7 @@ import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
@@ -717,19 +715,13 @@ public class TsMuxeRVideo extends Player {
 
 	@Override
 	public JComponent config() {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
-		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-
-		PanelBuilder builder = new PanelBuilder(layout);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(COL_SPEC, ROW_SPEC);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
-
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -741,7 +733,7 @@ public class TsMuxeRVideo extends Player {
 				configuration.setTsmuxerForceFps(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(tsmuxerforcefps, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		builder.add(tsmuxerforcefps, cc.xy(2, 3));
 
 		muxallaudiotracks = new CustomJCheckBox(Messages.getString("TsMuxeRVideo.19"), configuration.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
@@ -751,14 +743,9 @@ public class TsMuxeRVideo extends Player {
 				configuration.setMuxAllAudioTracks(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(muxallaudiotracks, FormLayoutUtil.flip(cc.xy(2, 5), colSpec, orientation));
+		builder.add(muxallaudiotracks, cc.xy(2, 5));
 
-		JPanel panel = builder.getPanel();
-
-		// Apply the orientation to the panel and all components in it
-		panel.applyComponentOrientation(orientation);
-
-		return panel;
+		return builder._getPanel();
 	}
 
 	@Override

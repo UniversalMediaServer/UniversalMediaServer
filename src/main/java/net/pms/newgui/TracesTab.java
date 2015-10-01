@@ -20,10 +20,8 @@ package net.pms.newgui;
 
 import ch.qos.logback.classic.Level;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -54,7 +52,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.*;
-import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,20 +250,14 @@ public class TracesTab {
 
 	@SuppressWarnings("serial")
 	public JComponent build() {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec("pref, pref:grow, pref, 3dlu, pref, pref, pref", orientation);
+		String colSpec = "pref, pref:grow, pref, 3dlu, pref, pref, pref";
 
 		int cols = colSpec.split(",").length;
 
-		FormLayout layout = new FormLayout(
-			colSpec,
-			"p, fill:10:grow, p, p"
-		);
-		CustomPanelBuilder builder = new CustomPanelBuilder(layout);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(colSpec, "p, fill:10:grow, p, p");
 		builder.opaque(true);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		// Create the search box
 		JPanel jSearchPanel = new JPanel();
@@ -383,7 +374,13 @@ public class TracesTab {
 		builder.add(jSearchPanel, cc.xyw(1, 1, cols));
 
 		// Create traces text box
-		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer());
+		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer()) {
+			@Override
+			public void applyComponentOrientation(java.awt.ComponentOrientation orientation) {
+				// Logging is always ltr
+				super.setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
+			}
+		};
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
 		jList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, jList.getFont().getSize()));
@@ -679,7 +676,7 @@ public class TracesTab {
 		builder.add(pLogPackButtons, cc.xy(1, 4));
 		builder.add(jSearchOutput, cc.xy(2, 4));
 
-		JPanel builtPanel = builder.getPanel();
+		JPanel builtPanel = builder._getPanel();
 		// Add a Ctrl + F shortcut to search field
 		builtPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), "Ctrl_F");
 		builtPanel.getActionMap().put("Ctrl_F", new AbstractAction() {
