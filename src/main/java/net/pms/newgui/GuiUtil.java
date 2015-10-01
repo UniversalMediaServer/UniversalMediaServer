@@ -586,4 +586,13 @@ public final class GuiUtil {
 		}
 		return text;
 	}
+	
+	public static void enableContainer(Container c, boolean enable) {
+		for (Component component : c.getComponents()) {
+			component.setEnabled(enable);
+			if (component instanceof Container) {
+				enableContainer((Container)component, enable);
+			}
+		}
+	}
 }
