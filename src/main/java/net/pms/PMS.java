@@ -1108,6 +1108,9 @@ public class PMS {
 			}
 		}
 
+		// Temporary set system locale until configuration is loaded
+		PMS.setLocale(Locale.getDefault());
+
 		try {
 			Toolkit.getDefaultToolkit();
 
