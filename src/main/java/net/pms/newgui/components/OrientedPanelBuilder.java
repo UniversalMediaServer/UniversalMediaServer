@@ -76,9 +76,7 @@ public class OrientedPanelBuilder extends PanelBuilder {
 		return panel;
 	}
 
-	public DefaultTableCellRenderer getOrientedCellRenderer() {
-		DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
-		cellRenderer.setHorizontalAlignment(orientation.isLeftToRight() ? JLabel.LEFT : JLabel.RIGHT);
-		return cellRenderer;
+	public void orientLabelRenderer(JLabel r) {
+		r.setHorizontalAlignment(orientation.isLeftToRight() ? JLabel.LEFT : JLabel.RIGHT);
 	}
 }

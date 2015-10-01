@@ -411,6 +411,7 @@ public class TranscodingTab {
 			}
 			nbcores = new JComboBox(guiCores);
 			nbcores.setEditable(false);
+			builder.orientLabelRenderer((JLabel)nbcores.getRenderer());
 			int nbConfCores = configuration.getNumberOfCpuCores();
 			if (nbConfCores > 0 && nbConfCores <= MAX_CORES) {
 				nbcores.setSelectedItem(Integer.toString(nbConfCores));
@@ -538,6 +539,7 @@ public class TranscodingTab {
 			}
 		});
 		vq.setEditable(true);
+		builder.orientLabelRenderer((JLabel)vq.getRenderer());
 		builder.add(vq, cc.xy(3, 10));
 
 		builder.add(new CustomJLabel(Messages.getString("TrTab2.79")), cc.xy(1, 12));
@@ -570,6 +572,7 @@ public class TranscodingTab {
 			}
 		});
 		x264Quality.setEditable(true);
+		builder.orientLabelRenderer((JLabel)x264Quality.getRenderer());
 		builder.add(x264Quality, cc.xy(3, 12));
 
 		builder.add(new CustomJLabel(Messages.getString("TrTab2.8")), cc.xy(1, 14));
@@ -606,8 +609,9 @@ public class TranscodingTab {
 
 		builder._addLabel(Messages.getString("TrTab2.50"), cc.xy(1, 2));
 
-		channels = new JComboBox(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
+		channels = new JComboBox(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :/
 		channels.setEditable(false);
+		builder.orientLabelRenderer((JLabel)channels.getRenderer());
 		if (configuration.getAudioChannelCount() == 2) {
 			channels.setSelectedIndex(0);
 		} else {
@@ -847,6 +851,7 @@ public class TranscodingTab {
 			}
 		});
 		subtitleCodePage.setEditable(true);
+		builder.orientLabelRenderer((JLabel)subtitleCodePage.getRenderer());
 		codepage.append(subtitleCodePage);
 
 		fribidi = new CustomJCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());

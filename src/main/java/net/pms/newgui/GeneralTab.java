@@ -107,7 +107,7 @@ public class GeneralTab {
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(Languages.getLanguageTags(), Languages.getLanguageNames());
 		jLanguage = new JComboBox(kcbm);
 		jLanguage.setEditable(false);
-
+		builder.orientLabelRenderer((JLabel)jLanguage.getRenderer());
 		kcbm.setSelectedKey(Languages.toLanguageCode(PMS.getLocale()));
 
 		if (jLanguage.getSelectedIndex() == -1) {
@@ -270,6 +270,7 @@ public class GeneralTab {
 			nameValues.toArray(new Object[nameValues.size()]));
 		renderers = new JComboBox(renderersKcbm);
 		renderers.setEditable(false);
+		builder.orientLabelRenderer((JLabel)renderers.getRenderer());
 		String defaultRenderer = configuration.getRendererDefault();
 		renderersKcbm.setSelectedKey(defaultRenderer);
 
@@ -363,6 +364,7 @@ public class GeneralTab {
 
 			final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
 			networkinterfacesCBX = new JComboBox(networkInterfaces);
+			builder.orientLabelRenderer((JLabel)networkinterfacesCBX.getRenderer());
 			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
 			networkinterfacesCBX.addItemListener(new ItemListener() {
 				@Override

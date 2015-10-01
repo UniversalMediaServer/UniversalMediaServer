@@ -143,7 +143,7 @@ public class NavigationShareTab {
 		CellConstraints cc = builder.getCellConstraints();
 
 		// Init all gui components
-		initSimpleComponents(cc);
+		initSimpleComponents(cc, builder);
 		OrientedPanelBuilder builderSharedFolder = initSharedFoldersGuiComponents(cc);
 
 		// Build gui with initialized components
@@ -222,7 +222,7 @@ public class NavigationShareTab {
 		return scrollPane;
 	}
 
-	private void initSimpleComponents(CellConstraints cc) {
+	private void initSimpleComponents(CellConstraints cc, OrientedPanelBuilder builder) {
 		// Thumbnail seeking position
 		seekpos = new JTextField("" + configuration.getThumbnailSeekPos());
 		seekpos.addKeyListener(new KeyAdapter() {
@@ -298,6 +298,7 @@ public class NavigationShareTab {
 		final KeyedComboBoxModel thumbKCBM = new KeyedComboBoxModel(new Object[]{"0", "1", "2"}, new Object[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
 		audiothumbnail = new JComboBox(thumbKCBM);
 		audiothumbnail.setEditable(false);
+		builder.orientLabelRenderer((JLabel)audiothumbnail.getRenderer());
 
 		thumbKCBM.setSelectedKey("" + configuration.getAudioThumbnailMethod());
 
@@ -514,6 +515,7 @@ public class NavigationShareTab {
 		);
 		sortmethod = new JComboBox(kcbm);
 		sortmethod.setEditable(false);
+		builder.orientLabelRenderer((JLabel)sortmethod.getRenderer());
 		kcbm.setSelectedKey("" + configuration.getSortMethod(null));
 
 		sortmethod.addItemListener(new ItemListener() {
@@ -629,6 +631,9 @@ public class NavigationShareTab {
 
 		folderTableModel = new SharedFoldersTableModel();
 		FList = new JTable(folderTableModel);
+
+		builderFolder.orientLabelRenderer((JLabel)FList.getDefaultRenderer(FList.getColumnClass(0)));
+
 		TableColumn column = FList.getColumnModel().getColumn(0);
 		column.setMinWidth(650);
 

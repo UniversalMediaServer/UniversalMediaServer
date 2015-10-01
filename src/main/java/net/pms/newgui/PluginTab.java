@@ -120,6 +120,8 @@ public class PluginTab {
 			}
 		};
 
+		builder.orientLabelRenderer((JLabel)table.getDefaultRenderer(table.getColumnClass(0)));
+
 		refresh(table, cols);
 
 		/* An attempt to set the correct row height adjusted for font scaling.
@@ -267,6 +269,8 @@ public class PluginTab {
 		credTable.setFillsViewportHeight(true);
 
 		credTable.setIntercellSpacing(new Dimension(8, 2));
+
+		builder.orientLabelRenderer((JLabel)credTable.getDefaultRenderer(credTable.getColumnClass(0)));
 
 		// Define column widths
 		TableColumn ownerColumn = credTable.getColumnModel().getColumn(0);
