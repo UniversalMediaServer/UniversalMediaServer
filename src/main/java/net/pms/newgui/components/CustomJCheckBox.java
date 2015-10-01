@@ -6,7 +6,7 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import javax.swing.JCheckBox;
 import javax.swing.JToolTip;
-import static net.pms.newgui.GuiUtil.htmlify;
+import net.pms.newgui.GuiUtil;
 
 public class CustomJCheckBox extends JCheckBox  {
 	private static final long serialVersionUID = -8027836064057652678L;
@@ -59,23 +59,24 @@ public class CustomJCheckBox extends JCheckBox  {
 			hitWidth = -1;
 		}
 		prevText = text;
-		super.setText(htmlify(text));
+		super.setText(GuiUtil.htmlify(text));
 	}
 
 	@Override
 	public void paint(Graphics g) {
 		if (hitWidth == -1) {
 			// Text has changed, recalculate the hit zone
-			// FIXME: this is just a "close enough" fudge
-			hitWidth = g.getFontMetrics().stringWidth(getText()) - 75;
+			// Note: stripping html here to get accurate stringWidth()
+			hitWidth = g.getFontMetrics().stringWidth(GuiUtil.deHtmlify(getText()))
+				+ getIconTextGap() + (getIcon() != null ? getIcon().getIconWidth() : 16);
 		}
 		super.paint(g);
 	}
 
 	@Override
 	protected void processMouseEvent(MouseEvent e) {
-		// Block click events beyond the hit zone
-		if (e.getClickCount() == 0 || e.getX() < hitWidth) {
+		// Block click events beyond the hit zone, adjusting for orientation
+		if (e.getClickCount() == 0 || (getComponentOrientation().isLeftToRight() ? e.getX() : getWidth() - e.getX()) < hitWidth) {
 			super.processMouseEvent(e);
 		}
 	}

@@ -606,6 +606,10 @@ public final class GuiUtil {
 		return text;
 	}
 	
+	public static String deHtmlify(String text) {
+		return text.replaceAll("\\<.*?>", "").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
+	}
+
 	public static void enableContainer(Container c, boolean enable) {
 		for (Component component : c.getComponents()) {
 			component.setEnabled(enable);
