@@ -348,10 +348,15 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setResizable(true);
 		Dimension paneSize = getSize();
-		setLocation(
+		if (configuration.getMainWindowPosX() == -1) { // first run of UMS so set the position to the middle of the screen
+			setLocation(
 			((screenSize.width > paneSize.width) ? ((screenSize.width - paneSize.width) / 2) : 0),
 			((screenSize.height > paneSize.height) ? ((screenSize.height - paneSize.height) / 2) : 0)
-		);
+			);
+		} else {
+			setLocation(configuration.getMainWindowPosX(), configuration.getMainWindowPosY());
+		}
+		
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
@@ -477,8 +482,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
-		configuration.setMainWindowHeight(this.getHeight());
-		configuration.setMainWindowWidth(this.getWidth());
+		configuration.setMainWindowHeight(getHeight());
+		configuration.setMainWindowWidth(getWidth());
+		configuration.setMainWindowPosX(getX());
+		configuration.setMainWindowPosY(getY());
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
