@@ -1055,42 +1055,19 @@ public class TranscodingTab {
 				}
 			}
 		});
+
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 20), colSpec, orientation));
-
 		final JPanel panel = builder.getPanel();
-
-		boolean enable = !configuration.isDisableSubtitles();
-		enableAllComponents(panel, enable);
-
+		GuiUtil.enableContainer(panel, !configuration.isDisableSubtitles());
 		disableSubs.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// If "Disable Subtitles" is not selected, subtitles are enabled
-				boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
-				enableAllComponents(panel, enabled);
+				GuiUtil.enableContainer(panel, e.getStateChange() != ItemEvent.SELECTED);
 			}
 		});
 
 		panel.applyComponentOrientation(orientation);
-
 		return panel;
-	}
-
-    /**
-     * Enable or disable all components at the JPanel
-     *
-     * @param      panel   the panel where components will be enabled/disabled.
-     * @param      enable  true to enable, false to disable components. 
-     */
-	private void enableAllComponents(JPanel panel, boolean enable) {
-		for (Component component : panel.getComponents()) {
-			if (component instanceof JPanel) {
-				for (Component comp : ((Container) component).getComponents()) {
-					comp.setEnabled(enable);
-				}	
-			} else {
-				component.setEnabled(enable);
-			}
-		}
 	}
 }
