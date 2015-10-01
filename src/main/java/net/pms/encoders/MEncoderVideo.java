@@ -45,6 +45,7 @@ import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.components.CustomJLabel;
 import net.pms.newgui.components.OrientedPanelBuilder;
+import net.pms.newgui.components.OrientedSpanBuilder;
 import net.pms.newgui.GuiUtil;
 import net.pms.PMS;
 import net.pms.util.*;
@@ -59,8 +60,6 @@ import static org.apache.commons.lang.BooleanUtils.isTrue;
 
 public class MEncoderVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderVideo.class);
-	private static final String COL_SPEC = "left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 	private static final String REMOVE_OPTION = "---REMOVE-ME---"; // use an out-of-band option that can't be confused with a real option
 
 	private JTextField mencoder_noass_scale;
@@ -158,13 +157,16 @@ public class MEncoderVideo extends Player {
 
 	@Override
 	public JComponent config() {
-		OrientedPanelBuilder builder = new OrientedPanelBuilder(COL_SPEC, ROW_SPEC);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
+			"left:min(200dlu;pref), 3dlu, pref:grow",
+			"8*(p, 3dlu), p, 9dlu, 5*(p, 3dlu), p"
+		);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = builder.getCellConstraints();
 
-		JComponent cmp = builder._addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(1, 1, 15));
+		JComponent cmp = builder._addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(1, 1, 3));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -188,7 +190,7 @@ public class MEncoderVideo extends Player {
 				configuration.setSkipLoopFilterEnabled((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(skipLoopFilter, cc.xyw(3, 3, 12));
+		builder.add(skipLoopFilter, cc.xy(3, 3));
 
 		noskip = new CustomJCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isMencoderNoOutOfSync());
 		noskip.setContentAreaFilled(false);
@@ -282,8 +284,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderForceFps(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-
-		builder.add(forcefps, cc.xyw(1, 7, 2));
+		builder.add(forcefps, cc.xy(1, 7));
 
 		yadif = new CustomJCheckBox(Messages.getString("MEncoderVideo.26"), configuration.isMencoderYadif());
 		yadif.setContentAreaFilled(false);
@@ -293,7 +294,9 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderYadif(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(yadif, cc.xyw(3, 7, 7));
+		builder.add(yadif, cc.xy(3, 7));
+
+		OrientedSpanBuilder scale = new OrientedSpanBuilder("p, 6dlu, p, 2dlu, p:grow, 6dlu, p, 2dlu, p:grow");
 
 		scaler = new CustomJCheckBox(Messages.getString("MEncoderVideo.27"));
 		scaler.setContentAreaFilled(false);
@@ -305,9 +308,8 @@ public class MEncoderVideo extends Player {
 				scaleY.setEnabled(configuration.isMencoderScaler());
 			}
 		});
-		builder.add(scaler, cc.xyw(3, 5, 7));
+		scale.append(scaler);
 
-		builder._addLabel(Messages.getString("MEncoderVideo.28"), cc.xy(9, 5/*, CellConstraints.RIGHT, CellConstraints.CENTER*/));
 		scaleX = new JTextField("" + configuration.getMencoderScaleX());
 		scaleX.addKeyListener(new KeyAdapter() {
 			@Override
@@ -319,9 +321,9 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(scaleX, cc.xy(11, 5));
+		scale.append(Messages.getString("MEncoderVideo.28") + " (%)");
+		scale.append(scaleX);
 
-		builder._addLabel(Messages.getString("MEncoderVideo.30"), cc.xy(13, 5/*, CellConstraints.RIGHT, CellConstraints.CENTER*/));
 		scaleY = new JTextField("" + configuration.getMencoderScaleY());
 		scaleY.addKeyListener(new KeyAdapter() {
 			@Override
@@ -333,7 +335,10 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(scaleY, cc.xy(15, 5));
+		scale.append(Messages.getString("MEncoderVideo.30"));
+		scale.append(scaleY);
+
+		builder.add(scale._getPanel(), cc.xy(3, 5));
 
 		if (configuration.isMencoderScaler()) {
 			scaler.setSelected(true);
@@ -350,7 +355,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(videoremux, cc.xyw(1, 9, 13));
+		builder.add(videoremux, cc.xyw(1, 9, 3));
 
 		normalizeaudio = new CustomJCheckBox(Messages.getString("MEncoderVideo.134"), configuration.isMEncoderNormalizeVolume());
 		normalizeaudio.setContentAreaFilled(false);
@@ -361,7 +366,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		// Uncomment this if volume normalizing in MEncoder is ever fixed.
-		// builder.add(normalizeaudio, cc.xyw(1, 13, 13));
+		// builder.add(normalizeaudio, cc.xyw(1, 13, 3));
 
 		builder._addLabel(Messages.getString("MEncoderVideo.6"), cc.xy(1, 15));
 		mencoder_custom_options = new JTextField(configuration.getMencoderCustomOptions());
@@ -371,11 +376,12 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderCustomOptions(mencoder_custom_options.getText());
 			}
 		});
-		builder.add(mencoder_custom_options, cc.xyw(3, 15, 13));
+		builder.add(mencoder_custom_options, cc.xy(3, 15));
 
 		builder._addLabel(Messages.getString("MEncoderVideo.93"), cc.xy(1, 17));
 
-		builder._addLabel(Messages.getString("MEncoderVideo.28") + " (%)", cc.xy(3, 17/*, CellConstraints.RIGHT, CellConstraints.CENTER*/));
+		OrientedSpanBuilder overscan = new OrientedSpanBuilder("p, 3dlu, p:grow, 6dlu, p, 3dlu, p:grow");
+
 		ocw = new JTextField(configuration.getMencoderOverscanCompensationWidth());
 		ocw.addKeyListener(new KeyAdapter() {
 			@Override
@@ -383,9 +389,9 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
 			}
 		});
-		builder.add(ocw, cc.xy(5, 17));
+		overscan.append(Messages.getString("MEncoderVideo.28") + " (%)");
+		overscan.append(ocw);
 
-		builder._addLabel(Messages.getString("MEncoderVideo.30") + " (%)", cc.xy(7, 17));
 		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
 		och.addKeyListener(new KeyAdapter() {
 			@Override
@@ -393,14 +399,18 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderOverscanCompensationHeight(och.getText());
 			}
 		});
-		builder.add(och, cc.xy(9, 17));
+		overscan.append(Messages.getString("MEncoderVideo.30") + " (%)");
+		overscan.append(och);
 
-		cmp = builder._addSeparator(Messages.getString("MEncoderVideo.8"), cc.xyw(1, 19, 15));
+		builder.add(overscan._getPanel(), cc.xy(3, 17, CellConstraints.FILL, CellConstraints.CENTER));
+
+		cmp = builder._addSeparator(Messages.getString("MEncoderVideo.8"), cc.xyw(1, 19, 3));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder._addLabel(Messages.getString("MEncoderVideo.16"), cc.xy(1, 27));
-		builder._addLabel(Messages.getString("MEncoderVideo.133"), cc.xy(3, 27/*, CellConstraints.RIGHT, CellConstraints.CENTER*/));
+
+		OrientedSpanBuilder assvars = new OrientedSpanBuilder("3*(p, 2dlu, p:grow, 4dlu), p, 2dlu, p:grow");
 
 		mencoder_noass_scale = new JTextField(configuration.getMencoderNoAssScale());
 		mencoder_noass_scale.addKeyListener(new KeyAdapter() {
@@ -409,9 +419,8 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderNoAssScale(mencoder_noass_scale.getText());
 			}
 		});
-		builder.add(mencoder_noass_scale, cc.xy(5, 27));
-
-		builder._addLabel(Messages.getString("MEncoderVideo.17"), cc.xy(7, 27));
+		assvars.append(Messages.getString("MEncoderVideo.133"));
+		assvars.append(mencoder_noass_scale);
 
 		mencoder_noass_outline = new JTextField(configuration.getMencoderNoAssOutline());
 		mencoder_noass_outline.addKeyListener(new KeyAdapter() {
@@ -420,9 +429,8 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderNoAssOutline(mencoder_noass_outline.getText());
 			}
 		});
-		builder.add(mencoder_noass_outline, cc.xy(9, 27));
-
-		builder._addLabel(Messages.getString("MEncoderVideo.18"), cc.xy(11, 27));
+		assvars.append(Messages.getString("MEncoderVideo.17"));
+		assvars.append(mencoder_noass_outline);
 
 		mencoder_noass_blur = new JTextField(configuration.getMencoderNoAssBlur());
 		mencoder_noass_blur.addKeyListener(new KeyAdapter() {
@@ -431,9 +439,8 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderNoAssBlur(mencoder_noass_blur.getText());
 			}
 		});
-		builder.add(mencoder_noass_blur, cc.xy(13, 27));
-
-		builder._addLabel(Messages.getString("MEncoderVideo.19"), cc.xy(15, 27));
+		assvars.append(Messages.getString("MEncoderVideo.18"));
+		assvars.append(mencoder_noass_blur);
 
 		mencoder_noass_subpos = new JTextField(configuration.getMencoderNoAssSubPos());
 		mencoder_noass_subpos.addKeyListener(new KeyAdapter() {
@@ -442,7 +449,10 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderNoAssSubPos(mencoder_noass_subpos.getText());
 			}
 		});
-		builder.add(mencoder_noass_subpos, cc.xy(17, 27));
+		assvars.append(Messages.getString("MEncoderVideo.19"));
+		assvars.append(mencoder_noass_subpos);
+
+		builder.add(assvars._getPanel(), cc.xy(3, 27, CellConstraints.FILL, CellConstraints.CENTER));
 
 		ass = new CustomJCheckBox(Messages.getString("MEncoderVideo.20"), configuration.isMencoderAss());
 		ass.setContentAreaFilled(false);
@@ -465,7 +475,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(fc, cc.xyw(3, 23, 5));
+		builder.add(fc, cc.xy(3, 23));
 
 		builder._addLabel(Messages.getString("MEncoderVideo.92"), cc.xy(1, 29));
 		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
@@ -475,7 +485,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderVobsubSubtitleQuality(subq.getText());
 			}
 		});
-		builder.add(subq, cc.xyw(3, 29, 1));
+		builder.add(subq, cc.xy(3, 29));
 
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override

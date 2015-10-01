@@ -41,6 +41,7 @@ import net.pms.newgui.components.CustomJCheckBox;
 import net.pms.newgui.components.CustomJLabel;
 import net.pms.newgui.components.CustomJTextField;
 import net.pms.newgui.components.OrientedPanelBuilder;
+import net.pms.newgui.components.OrientedSpanBuilder;
 import net.pms.PMS;
 import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
@@ -48,13 +49,13 @@ import org.slf4j.LoggerFactory;
 
 public class TranscodingTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodingTab.class);
-	private static final String COMMON_COL_SPEC = "left:pref, 3dlu, pref:grow";
+	private static final String COMMON_COL_SPEC = "left:min(150dlu;pref), 3dlu, p:grow";
 	private static final String COMMON_ROW_SPEC = "4*(pref, 3dlu), pref, 9dlu, pref, 9dlu:grow, pref";
 	private static final String EMPTY_COL_SPEC = "left:pref, 3dlu, pref:grow";
 	private static final String EMPTY_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p , 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 20dlu, p, 3dlu, p, 3dlu, p";
 	private static final String LEFT_COL_SPEC = "left:pref, pref, pref, pref, 0:grow";
 	private static final String LEFT_ROW_SPEC = "fill:10:grow, 3dlu, p, 3dlu, p, 3dlu, p";
-	private static final String MAIN_COL_SPEC = "left:pref, pref, 7dlu, pref, pref, fill:10:grow";
+	private static final String MAIN_COL_SPEC = "left:min(150dlu;pref), pref, 7dlu, pref, pref, fill:10:grow";
 	private static final String MAIN_ROW_SPEC = "fill:10:grow";
 
 	private final PmsConfiguration configuration;
@@ -471,7 +472,7 @@ public class TranscodingTab {
 
 	private JComponent buildVideoSetupPanel() {
 		OrientedPanelBuilder builder = new OrientedPanelBuilder(
-			"left:pref, 3dlu, pref:grow",
+			"left:min(150dlu;pref), 3dlu, p:grow",
 			"$lgap, 2*(pref, 3dlu), 10dlu, 10dlu, 4*(pref, 3dlu), pref"
 		);
 		builder.border(Borders.DLU4);
@@ -596,7 +597,8 @@ public class TranscodingTab {
 
 	private JComponent buildAudioSetupPanel() {
 		OrientedPanelBuilder builder = new OrientedPanelBuilder(
-			"left:pref, 3dlu, pref:grow",
+//			"left:pref, 3dlu, pref:grow",
+			"left:min(150dlu;pref), 3dlu, p:grow",
 			"$lgap, pref, 3dlu, 5*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow"
 		);
 		builder.border(Borders.DLU4);
@@ -697,14 +699,15 @@ public class TranscodingTab {
 
 	private JComponent buildSubtitlesSetupPanel() {
 		OrientedPanelBuilder builder = new OrientedPanelBuilder(
-			"left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, pref:grow",
-			//1          2     3       4     5             6     7       8     9             10    11      12    13            14    15      16    17            18    19                      
+			"left:min(150dlu;pref), 3dlu, p:grow",
 			"$lgap, 11*(pref, 3dlu), pref"
 		);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = builder.getCellConstraints();
 
 		builder._addLabel(Messages.getString("MEncoderVideo.9"), cc.xy(1, 2));
+
+		OrientedSpanBuilder subs = new OrientedSpanBuilder("p:grow, 6dlu, p, 2dlu, p:grow, 6dlu, p, 2dlu, p:grow");
 
 		defaultsubs = new CustomJTextField(configuration.getSubtitlesLanguages());
 		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
@@ -714,9 +717,8 @@ public class TranscodingTab {
 				configuration.setSubtitlesLanguages(defaultsubs.getText());
 			}
 		});
-		builder.add(defaultsubs, cc.xyw(3, 2, 5));
+		subs.append(defaultsubs);
 
-		builder._addLabel(Messages.getString("MEncoderVideo.94"), cc.xy(9, 2/*, CellConstraints.RIGHT, CellConstraints.CENTER*/));
 		forcedsub = new JTextField(configuration.getForcedSubtitleLanguage());
 		forcedsub.addKeyListener(new KeyAdapter() {
 			@Override
@@ -724,9 +726,9 @@ public class TranscodingTab {
 				configuration.setForcedSubtitleLanguage(forcedsub.getText());
 			}
 		});
-		builder.add(forcedsub, cc.xy(11, 2));
+		subs.append(Messages.getString("MEncoderVideo.94"));
+		subs.append(forcedsub);
 
-		builder._addLabel(Messages.getString("MEncoderVideo.95"), cc.xy(13, 2/*, CellConstraints.RIGHT, CellConstraints.CENTER*/));
 		forcedtags = new JTextField(configuration.getForcedSubtitleTags());
 		forcedtags.addKeyListener(new KeyAdapter() {
 			@Override
@@ -734,7 +736,10 @@ public class TranscodingTab {
 				configuration.setForcedSubtitleTags(forcedtags.getText());
 			}
 		});
-		builder.add(forcedtags, cc.xy(15, 2));
+		subs.append(Messages.getString("MEncoderVideo.95"));
+		subs.append(forcedtags);
+
+		builder.add(subs._getPanel(), cc.xy(3, 2));
 
 		builder._addLabel(Messages.getString("MEncoderVideo.10"), cc.xy(1, 4));
 		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
@@ -745,7 +750,9 @@ public class TranscodingTab {
 				configuration.setAudioSubLanguages(defaultaudiosubs.getText());
 			}
 		});
-		builder.add(defaultaudiosubs, cc.xyw(3, 4, 13));
+		builder.add(defaultaudiosubs, cc.xy(3, 4));
+
+		OrientedSpanBuilder subsfolder = new OrientedSpanBuilder("p:grow, 1dlu, p");
 
 		builder._addLabel(Messages.getString("MEncoderVideo.37"), cc.xyw(1, 6, 2));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubtitlesFolder());
@@ -755,7 +762,7 @@ public class TranscodingTab {
 				configuration.setAlternateSubtitlesFolder(alternateSubFolder.getText());
 			}
 		});
-		builder.add(alternateSubFolder, cc.xyw(3, 6, 12));
+		subsfolder.append(alternateSubFolder);
 
 		folderSelectButton = new JButton("...");
 		folderSelectButton.addActionListener(new ActionListener() {
@@ -775,7 +782,11 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(folderSelectButton, cc.xy(15, 6));
+		subsfolder.append(folderSelectButton);
+
+		builder.add(subsfolder._getPanel(), cc.xy(3, 6));
+
+		OrientedSpanBuilder codepage = new OrientedSpanBuilder("p:grow, 6dlu, p");
 
 		builder._addLabel(Messages.getString("MEncoderVideo.11"), cc.xy(1, 8));
 		Object data[] = new Object[]{
@@ -835,9 +846,8 @@ public class TranscodingTab {
 				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
 			}
 		});
-
 		subtitleCodePage.setEditable(true);
-		builder.add(subtitleCodePage, cc.xyw(3, 8, 7));
+		codepage.append(subtitleCodePage);
 
 		fribidi = new CustomJCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
@@ -847,8 +857,11 @@ public class TranscodingTab {
 				configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
+		codepage.append(fribidi);
 
-		builder.add(fribidi, cc.xyw(11, 8, 4));
+		builder.add(codepage._getPanel(), cc.xy(3, 8));
+
+		OrientedSpanBuilder font = new OrientedSpanBuilder("p:grow, 1dlu, p");
 
 		builder._addLabel(Messages.getString("MEncoderVideo.24"), cc.xy(1, 10));
 		defaultfont = new JTextField(configuration.getFont());
@@ -858,7 +871,7 @@ public class TranscodingTab {
 				configuration.setFont(defaultfont.getText());
 			}
 		});
-		builder.add(defaultfont, cc.xyw(3, 10, 12));
+		font.append(defaultfont);
 
 		fontselect = new CustomJButton("...");
 		fontselect.addActionListener(new ActionListener() {
@@ -873,11 +886,14 @@ public class TranscodingTab {
 				}
 			}
 		});
+		font.append(fontselect);
 
-		builder.add(fontselect, cc.xy(15, 10));
+		builder.add(font._getPanel(), cc.xy(3, 10));
 
 		builder._addLabel(Messages.getString("MEncoderVideo.12"), cc.xy(1, 12));
-		builder._addLabel(Messages.getString("MEncoderVideo.133"), cc.xy(3, 12/*, CellConstraints.RIGHT, CellConstraints.CENTER*/));
+
+		OrientedSpanBuilder assvars = new OrientedSpanBuilder("3*(p, 3dlu, p:grow, 6dlu), p, 3dlu, p:grow");
+
 		ass_scale = new JTextField(configuration.getAssScale());
 		ass_scale.addKeyListener(new KeyAdapter() {
 			@Override
@@ -885,9 +901,8 @@ public class TranscodingTab {
 				configuration.setAssScale(ass_scale.getText());
 			}
 		});
-		builder.add(ass_scale, cc.xy(5, 12));
-
-		builder._addLabel(Messages.getString("MEncoderVideo.13"), cc.xy(7, 12));
+		assvars.append(Messages.getString("MEncoderVideo.133"));
+		assvars.append(ass_scale);
 
 		ass_outline = new JTextField(configuration.getAssOutline());
 		ass_outline.addKeyListener(new KeyAdapter() {
@@ -896,9 +911,8 @@ public class TranscodingTab {
 				configuration.setAssOutline(ass_outline.getText());
 			}
 		});
-		builder.add(ass_outline, cc.xy(9, 12));
-
-		builder._addLabel(Messages.getString("MEncoderVideo.14"), cc.xy(11, 12));
+		assvars.append(Messages.getString("MEncoderVideo.13"));
+		assvars.append(ass_outline);
 
 		ass_shadow = new JTextField(configuration.getAssShadow());
 		ass_shadow.addKeyListener(new KeyAdapter() {
@@ -907,9 +921,8 @@ public class TranscodingTab {
 				configuration.setAssShadow(ass_shadow.getText());
 			}
 		});
-		builder.add(ass_shadow, cc.xy(13, 12));
-		
-		builder._addLabel(Messages.getString("MEncoderVideo.15"), cc.xy(15, 12));
+		assvars.append(Messages.getString("MEncoderVideo.14"));
+		assvars.append(ass_shadow);
 
 		ass_margin = new JTextField(configuration.getAssMargin());
 		ass_margin.addKeyListener(new KeyAdapter() {
@@ -918,8 +931,11 @@ public class TranscodingTab {
 				configuration.setAssMargin(ass_margin.getText());
 			}
 		});
-		builder.add(ass_margin, cc.xy(17, 12));
-		
+		assvars.append(Messages.getString("MEncoderVideo.15"));
+		assvars.append(ass_margin);
+
+		builder.add(assvars._getPanel(), cc.xy(3, 12/*, CellConstraints.FILL, CellConstraints.CENTER*/));
+
 		autoloadExternalSubtitles = new CustomJCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
@@ -930,7 +946,7 @@ public class TranscodingTab {
 				configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(autoloadExternalSubtitles, cc.xyw(1, 14, 11));
+		builder.add(autoloadExternalSubtitles, cc.xy(1, 14));
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
@@ -951,7 +967,7 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(subColor, cc.xyw(13, 14, 3));
+		builder.add(subColor, cc.xy(3, 14));
 
 		forceExternalSubtitles = new CustomJCheckBox(Messages.getString("TrTab2.87"), configuration.isForceExternalSubtitles());
 		forceExternalSubtitles.setToolTipText(Messages.getString("TrTab2.88"));
@@ -966,7 +982,7 @@ public class TranscodingTab {
 				autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 			}
 		});
-		builder.add(forceExternalSubtitles, cc.xyw(1, 16, 11));
+		builder.add(forceExternalSubtitles, cc.xy(1, 16));
 
 		useEmbeddedSubtitlesStyle = new CustomJCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("TrTab2.89"));
@@ -977,7 +993,7 @@ public class TranscodingTab {
 				configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(useEmbeddedSubtitlesStyle, cc.xyw(1, 18, 11));
+		builder.add(useEmbeddedSubtitlesStyle, cc.xy(1, 18));
 
 		builder._addLabel(Messages.getString("TrTab2.90"), cc.xy(1, 20));
 		depth3D = new JTextField(configuration.getDepth3D());
