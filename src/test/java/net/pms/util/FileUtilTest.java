@@ -18,6 +18,7 @@
  */
 package net.pms.util;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,8 +29,10 @@ import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileUtilTest {
@@ -43,7 +46,8 @@ public class FileUtilTest {
 	public final void setUp() throws ConfigurationException {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);;
+		PMS.get();
 		PMS.setConfiguration(new PmsConfiguration(false));
 	}
 
@@ -89,12 +93,6 @@ public class FileUtilTest {
 	public void testGetFileCharset_WINDOWS_1251() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
 		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_WINDOWS_1251);
-	}
-
-	@Test
-	public void testGetFileCharset_IBM866() throws Exception {
-		File file = FileUtils.toFile(CLASS.getResource("russian-ibm866.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_IBM866);
 	}
 
 	@Test
@@ -339,5 +337,22 @@ public class FileUtilTest {
 		assertThat(dir).isNotNull();
 		assertThat(dir.isDirectory()).isTrue();
 		assertThat(FileUtil.isDirectoryWritable(dir)).isTrue();
+	}
+
+	@Test
+	public void testIsValidFileName() {
+		assertFalse("ColonIsInvalid", FileUtil.isValidFileName("debug:log"));
+		assertFalse("SlashIsInvalid", FileUtil.isValidFileName("foo/bar"));
+		assertTrue("debug.logIsValid", FileUtil.isValidFileName("debug.log"));
+	}
+
+	@Test
+	public void testAppendPathSeparator() {
+		assertEquals("AppendEmptyString", FileUtil.appendPathSeparator(""), "/");
+		assertEquals("AppendSlash", FileUtil.appendPathSeparator("/"), "/");
+		assertEquals("AppendMissingBackslash", FileUtil.appendPathSeparator("foo\\bar"), "foo\\bar\\");
+		assertEquals("DontAppendBackslash", FileUtil.appendPathSeparator("foo\\bar\\"), "foo\\bar\\");
+		assertEquals("AppendMissingSlash", FileUtil.appendPathSeparator("foo/bar"), "foo/bar/");
+		assertEquals("DontAppendSlash", FileUtil.appendPathSeparator("foo/bar/"), "foo/bar/");
 	}
 }

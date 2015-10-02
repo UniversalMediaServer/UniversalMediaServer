@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -223,7 +223,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public boolean isMediaParserV2ThumbnailGeneration() {
+	public boolean isMediaInfoThumbnailGeneration() {
 		return false;
 	}
 

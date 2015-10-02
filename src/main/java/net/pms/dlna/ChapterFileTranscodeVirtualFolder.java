@@ -35,7 +35,7 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 	 * Constructor for a {@link ChapterFileTranscodeVirtualFolder}. The constructor
 	 * does not create the children for this instance, it only sets the name, the
 	 * icon for a thumbnail and the interval at which chapter markers must be placed
-	 * when the children are created by {@link #resolve()}. 
+	 * when the children are created by {@link #syncResolve()}.
 	 * @param name The name of this instance.
 	 * @param thumbnailIcon The thumbnail for this instance.
 	 * @param interval The interval (in minutes) at which a chapter marker will be
@@ -53,7 +53,7 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 	protected void resolveOnce() {
 		if (getChildren().size() == 1) { // OK
 			DLNAResource child = getChildren().get(0);
-			child.resolve();
+			child.syncResolve();
 			int nbMinutes = (int) (child.getMedia().getDurationInSeconds() / 60);
 			int nbIntervals = nbMinutes / interval;
 

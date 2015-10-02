@@ -26,7 +26,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 import javax.imageio.ImageIO;
@@ -57,7 +56,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private final PmsConfiguration configuration;
 	public static final String START_SERVICE = "start.service";
 	private static final long serialVersionUID = 8723727186288427690L;
-	protected static final Dimension PREFERRED_SIZE = new Dimension(1000, 750);
+	private Dimension storedWindowSize = new Dimension();
 	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
 	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
 
@@ -88,6 +87,18 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private AbstractButton reload;
 	private JLabel status;
 	private static boolean lookAndFeelInitialized = false;
+	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
+
+	public ViewLevel getViewLevel() {
+		return viewLevel;
+	}
+
+	public void setViewLevel(ViewLevel viewLevel) {
+		if (viewLevel != ViewLevel.UNKNOWN){
+			this.viewLevel = viewLevel;
+			tt.applyViewLevel();
+		}
+	}
 
 	public TracesTab getTt() {
 		return tt;
@@ -186,6 +197,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		Options.setDefaultIconSize(new Dimension(18, 18));
 		Options.setUseNarrowButtons(true);
 
+		// Set view level, can be omitted if ViewLevel is implemented in configuration
+		// by setting the view level as variable initialization
+		if (configuration.isHideAdvancedOptions()) {
+			viewLevel = ViewLevel.NORMAL;
+		} else {
+			viewLevel = ViewLevel.ADVANCED;
+		}
+
 		// Global options
 		Options.setTabIconsEnabled(true);
 		UIManager.put(Options.POPUP_DROP_SHADOW_ENABLED_KEY, null);
@@ -202,11 +221,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		// http://propedit.sourceforge.jp/propertieseditor.jnlp
 		Font sf = null;
 
-		// Set an unicode font for testing exotics languages (japanese)
-		final String language = configuration.getLanguage();
+		// Set an unicode font for testing exotic languages (Japanese)
+		final String language = configuration.getLanguageTag();
 
-		if (language != null && (language.equals("ja") || language.startsWith("zh"))) {
-			sf = new Font("Serif", Font.PLAIN, 12);
+		if (language != null && (language.equals("ja") || language.startsWith("zh") || language.equals("ko"))) {
+			sf = new Font("SansSerif", Font.PLAIN, 12);
 		}
 
 		if (sf != null) {
@@ -243,6 +262,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			UIManager.put("ToolBar.font", sf);
 			UIManager.put("ToolTip.font", sf);
 			UIManager.put("Tree.font", sf);
+			UIManager.put("Spinner.font", sf);
 		}
 
 		setTitle("Test");
@@ -308,10 +328,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setMinimumSize(MINIMUM_SIZE);
 		}
 
-		if (screenSize.width < PREFERRED_SIZE.width || screenSize.height < PREFERRED_SIZE.height) {
+		storedWindowSize.width = configuration.getMainWindowWidth();
+		storedWindowSize.height = configuration.getMainWindowHeight();
+		if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
 			setSize(screenSize);
 		} else {
-			setSize(PREFERRED_SIZE);
+			setSize(storedWindowSize);
 		}
 
 		// Customize the colors used in tooltips
@@ -326,10 +348,15 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setResizable(true);
 		Dimension paneSize = getSize();
-		setLocation(
+		if (configuration.getMainWindowPosX() == -1) { // first run of UMS so set the position to the middle of the screen
+			setLocation(
 			((screenSize.width > paneSize.width) ? ((screenSize.width - paneSize.width) / 2) : 0),
 			((screenSize.height > paneSize.height) ? ((screenSize.height - paneSize.height) / 2) : 0)
-		);
+			);
+		} else {
+			setLocation(configuration.getMainWindowPosX(), configuration.getMainWindowPosY());
+		}
+		
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
@@ -372,8 +399,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.add(new JPanel());
 
 		// Apply the orientation to the toolbar and all components in it
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		toolBar.applyComponentOrientation(orientation);
 
 		panel.add(toolBar, BorderLayout.NORTH);
@@ -399,7 +425,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tt = new TracesTab(configuration, this);
 		gt = new GeneralTab(configuration, this);
 		pt = new PluginTab(configuration, this);
-		nt = new NavigationShareTab(configuration, this);		
+		nt = new NavigationShareTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 
@@ -433,8 +459,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		 * Note: Do not use applyComponentOrientation() here because it
 		 * messes with the layout of several tabs.
 		 */
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		tabbedPane.setComponentOrientation(orientation);
 
 		return tabbedPane;
@@ -457,7 +482,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
-
+		configuration.setMainWindowHeight(getHeight());
+		configuration.setMainWindowWidth(getWidth());
+		configuration.setMainWindowPosX(getX());
+		configuration.setMainWindowPosY(getY());
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {

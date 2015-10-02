@@ -759,7 +759,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public Player resolvePlayer(RendererConfiguration renderer) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
-		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
+		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		Player player = null;
 
 		if (media == null) {
@@ -906,7 +906,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public String setPreferredMimeType(RendererConfiguration renderer) {
 		String prev = media != null ? media.getMimeType() : null;
-		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
+		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		if (parserV2) {
 			// See which MIME type the renderer prefers in case it supports the media
 			String preferred = renderer.getFormatConfiguration().match(media);
@@ -1208,13 +1208,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			discoverChildren(searchStr);
 			boolean ready;
 
-			if (renderer.isMediaParserV2() && renderer.isDLNATreeHack()) {
+			if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 				ready = analyzeChildren(count);
 			} else {
 				ready = analyzeChildren(-1);
 			}
 
-			if (!renderer.isMediaParserV2() || ready) {
+			if (!renderer.isUseMediaInfo() || ready) {
 				setDiscovered(true);
 			}
 
@@ -1250,9 +1250,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Override
 	public void run() {
 		if (first == null) {
-			resolve();
+			syncResolve();
 			if (second != null) {
-				second.resolve();
+				second.syncResolve();
 			}
 		}
 	}
@@ -1424,7 +1424,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Hook to lazily initialise immutable resources e.g. ISOs, zip files &amp;c.
 	 *
 	 * @since 1.90.0
-	 * @see #resolve()
+	 * @see #syncResolve()
 	 */
 	protected void resolveOnce() { }
 
@@ -1446,7 +1446,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * removed from it (if supported). There are other mechanisms for that e.g.
 	 * {@link #doRefreshChildren()} (see {@link Feed} for an example).
 	 */
-	public synchronized void resolve() {
+	public synchronized final void syncResolve() {
+		resolve();
+	}
+
+	/**
+	 * @deprecated Use {@link #syncResolve()} instead
+	 */
+	public void resolve() {
 		if (!resolved) {
 			resolveOnce();
 			// if resolve() isn't overridden, this file/folder is immutable
@@ -3999,7 +4006,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				setDefaultRenderer(r);
 				// Now add the item and resolve its rendering details
 				add(d);
-				d.resolve();
+				d.syncResolve();
 				// Restore our previous renderer
 				setDefaultRenderer(prev);
 			}

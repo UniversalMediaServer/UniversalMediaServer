@@ -224,8 +224,9 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean ffmpegparsed;
 
 	/**
-	 * isMediaParserV2 related, used to manage thumbnail management separated
+	 * isUseMediaInfo-related, used to manage thumbnail management separated
 	 * from the main parsing process.
+	 *
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated

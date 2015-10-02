@@ -38,7 +38,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
@@ -83,8 +82,7 @@ public class StatusTab {
 			playing.add(playingLabel);
 			time = new JLabel(" ");
 			time.setForeground(Color.gray);
-			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100);
-			rendererProgressBar.setUI(new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
+			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100, new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
 			rendererProgressBar.setStringPainted(true);
 			rendererProgressBar.setBorderPainted(false);
 			rendererProgressBar.setString(r.getAddress().getHostAddress());
@@ -148,7 +146,6 @@ public class StatusTab {
 	}
 
 	private ImagePanel imagePanel;
-	private PmsConfiguration configuration;
 	private JPanel renderers;
 	private JLabel jl;
 	private JProgressBar memoryProgressBar;
@@ -164,7 +161,6 @@ public class StatusTab {
 	private static int bufferSize;
 
 	StatusTab(PmsConfiguration configuration) {
-		this.configuration = configuration;
 		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
@@ -191,8 +187,7 @@ public class StatusTab {
 
 	public JComponent build() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(configuration.getLanguage());
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
+		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 
 		String colSpec = FormLayoutUtil.getColSpec("pref, 30dlu, fill:pref:grow, 30dlu, pref", orientation);
 		//                                             1     2          3           4     5
@@ -247,17 +242,16 @@ public class StatusTab {
 		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 
 		// Memory
-		memoryProgressBar = new JProgressBar(0, 100);
-		memoryProgressBar.setStringPainted(true);
-		memoryProgressBar.setForeground(new Color(75, 140, 181));
-		memoryProgressBar.setString(Messages.getString("StatusTab.5"));
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
 		memBarUI.setActiveLabel("{}", Color.white, 0);
 		memBarUI.setActiveLabel("{}", Color.red, 90);
 		memBarUI.addSegment("", memColor);
 		memBarUI.addSegment("", bufColor);
 		memBarUI.setTickMarks(getTickMarks(), "{}");
-		memoryProgressBar.setUI(memBarUI);
+		memoryProgressBar = new GuiUtil.CustomUIProgressBar(0, 100, memBarUI);
+		memoryProgressBar.setStringPainted(true);
+		memoryProgressBar.setForeground(new Color(75, 140, 181));
+		memoryProgressBar.setString(Messages.getString("StatusTab.5"));
 
 		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 		mem.setForeground(fgColor);
