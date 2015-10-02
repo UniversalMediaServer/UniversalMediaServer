@@ -184,10 +184,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
 	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
 	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
-	protected static final String KEY_MAIN_WINDOW_HEIGHT = "main_window_height";
-	protected static final String KEY_MAIN_WINDOW_POSX = "main_window_pos_x";
-	protected static final String KEY_MAIN_WINDOW_POSY = "main_window_pos_y";
-	protected static final String KEY_MAIN_WINDOW_WIDTH = "main_window_width";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -248,6 +244,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_RESUME_REWIND = "resume_rewind";
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
+	protected static final String KEY_SCREEN_SIZE = "screen_size"; 
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
 	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
@@ -321,6 +318,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_THREADS = "web_threads";
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
+	protected static final String KEY_WINDOW_GEOMETRY = "window_geometry";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// Deprecated settings
@@ -3818,35 +3816,19 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_ROOT_LOG_LEVEL, level.toString());
 	}
 
-	public void setMainWindowWidth(int value) {
-		configuration.setProperty(KEY_MAIN_WINDOW_WIDTH, value);
+	public void setWindowGeometry(String value) {
+		configuration.setProperty(KEY_WINDOW_GEOMETRY, value);
 	}
 
-	public int getMainWindowWidth() {
-		return getInt(KEY_MAIN_WINDOW_WIDTH, 1000);
+	public String getWindowGeometry() {
+		return getString(KEY_WINDOW_GEOMETRY, "x=-1,y=-1,width=1000,height=750");
 	}
 
-	public void setMainWindowHeight(int value) {
-		configuration.setProperty(KEY_MAIN_WINDOW_HEIGHT, value);
+	public void setScreenSize(String value) {
+		configuration.setProperty(KEY_SCREEN_SIZE, value);
 	}
 
-	public int getMainWindowHeight() {
-		return getInt(KEY_MAIN_WINDOW_HEIGHT, 750);
-	}
-
-	public void setMainWindowPosX(int value) {
-		configuration.setProperty(KEY_MAIN_WINDOW_POSX, value);
-	}
-
-	public int getMainWindowPosX() {
-		return getInt(KEY_MAIN_WINDOW_POSX, -1);
-	}
-
-	public void setMainWindowPosY(int value) {
-		configuration.setProperty(KEY_MAIN_WINDOW_POSY, value);
-	}
-
-	public int getMainWindowPosY() {
-		return getInt(KEY_MAIN_WINDOW_POSY, -1);
-	}
+	public String getScreenSize() {
+		return getString(KEY_SCREEN_SIZE, "-1x-1");
+	}	
 }
