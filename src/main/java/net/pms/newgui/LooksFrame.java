@@ -361,7 +361,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setResizable(true);
 		Dimension paneSize = getSize();
-		if (posX == -1 && posY == -1 || screenChanged) { // first run of UMS so set the position to the middle of the screen
+		if (posX == -1 && posY == -1 || screenChanged) { // first run of UMS or screen/desktop was changed so set the position to the middle of the screen
 			setLocation(
 			((screenSize.width > paneSize.width) ? ((screenSize.width - paneSize.width) / 2) : 0),
 			((screenSize.height > paneSize.height) ? ((screenSize.height - paneSize.height) / 2) : 0)
