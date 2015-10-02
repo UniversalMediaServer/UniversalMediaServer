@@ -3829,6 +3829,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getScreenSize() {
-		return getString(KEY_SCREEN_SIZE, "0x0");
+		return getString(KEY_SCREEN_SIZE, "-1x-1");
 	}	
 }
