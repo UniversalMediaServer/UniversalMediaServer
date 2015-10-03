@@ -57,8 +57,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public static final String START_SERVICE = "start.service";
 	private static final long serialVersionUID = 8723727186288427690L;
 	private Dimension storedWindowSize = new Dimension();
+	private Dimension storedScreenSize = new Dimension();
+	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
 	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
 	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
+	private Dimension screenSize = getToolkit().getScreenSize();
 
 	/**
 	 * List of context sensitive help pages URLs. These URLs should be
@@ -320,7 +323,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		this.setTitle(title);
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		Dimension screenSize = getToolkit().getScreenSize();
+//		Dimension screenSize = getToolkit().getScreenSize();
 
 		if (screenSize.width < MINIMUM_SIZE.width || screenSize.height < MINIMUM_SIZE.height) {
 			setMinimumSize(screenSize);
@@ -328,9 +331,19 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setMinimumSize(MINIMUM_SIZE);
 		}
 
-		storedWindowSize.width = configuration.getMainWindowWidth();
-		storedWindowSize.height = configuration.getMainWindowHeight();
-		if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
+		String ss = configuration.getScreenSize();
+		storedScreenSize.height = Integer.valueOf(ss.substring(ss.indexOf("x") + 1));
+		storedScreenSize.width = Integer.valueOf(ss.substring(0, ss.indexOf("x")));
+		String[] windowGeometryValues = configuration.getWindowGeometry().split(",");
+		int posX = Integer.valueOf(windowGeometryValues[0].substring(windowGeometryValues[0].indexOf("=") + 1));
+		int posY = Integer.valueOf(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf("=") + 1));
+		storedWindowSize.width = Integer.valueOf(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf("=") + 1));
+		storedWindowSize.height = Integer.valueOf(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf("=") + 1));
+		boolean screenChanged = false;
+		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
+			setSize(STANDARD_SIZE);
+			screenChanged = true;
+		} else if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
 			setSize(screenSize);
 		} else {
 			setSize(storedWindowSize);
@@ -348,13 +361,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setResizable(true);
 		Dimension paneSize = getSize();
-		if (configuration.getMainWindowPosX() == -1) { // first run of UMS so set the position to the middle of the screen
+		if (posX == -1 && posY == -1 || screenChanged) { // first run of UMS or screen/desktop was changed so set the position to the middle of the screen
 			setLocation(
 			((screenSize.width > paneSize.width) ? ((screenSize.width - paneSize.width) / 2) : 0),
 			((screenSize.height > paneSize.height) ? ((screenSize.height - paneSize.height) / 2) : 0)
 			);
 		} else {
-			setLocation(configuration.getMainWindowPosX(), configuration.getMainWindowPosY());
+			setLocation(posX, posY);
 		}
 		
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
@@ -482,10 +495,9 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
-		configuration.setMainWindowHeight(getHeight());
-		configuration.setMainWindowWidth(getWidth());
-		configuration.setMainWindowPosX(getX());
-		configuration.setMainWindowPosY(getY());
+		String windowGeometry = getBounds().toString();
+		configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf("[") + 1, windowGeometry.indexOf("]")));
+		configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
