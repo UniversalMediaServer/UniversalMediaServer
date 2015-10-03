@@ -1,7 +1,11 @@
 5.2.4 - 2015-10-??
 
 	General:
-		
+		The main window saves its size and position
+		Fixed DTS-HD being detected as regular DTS
+		Fixed the use of UMS profiles
+	External Components:
+		Updated MediaInfo for Windows to 0.7.78, which improved file parsing speed
 
 5.2.3 - 2015-09-28
 
