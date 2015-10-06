@@ -35,11 +35,12 @@ import org.apache.commons.lang.WordUtils;
 
 public final class Languages {
 
-	/*
-	 * If the below list is changed, methods localeToLanguageCode() and
-	 * languageCodeToLanguageCode() must be updated correspondingly.
+	/**
+	 * If the below list is changed, methods {@link #localeToLanguageCode()} and
+	 * {@link #languageCodeToLanguageCode()} must be updated correspondingly.
 	 */
 	private final static String[] UMS_BCP47_CODES = {
+		"af",      // Afrikaans
 		"ar",      // Arabic
 		"bg",      // Bulgarian
 		"ca",      // Catalan, Valencian
@@ -53,8 +54,9 @@ public final class Languages {
 		"fi",      // Finnish
 		"fr",      // French
 		"de",      // German
-		"el",      // Modern Greek
+		"el",      // Greek, Modern
 		"iw",      // Hebrew (Java prefers the deprecated "iw" to "he")
+		"hu",      // Hungarian
 		"is",      // Icelandic
 		"it",      // Italian
 		"ja",      // Japanese
@@ -66,9 +68,12 @@ public final class Languages {
 		"ro",      // Romanian, Moldavian, Moldovan
 		"ru",      // Russian
 		"sl",      // Slovenian
+		"sr",      // Serbian (Cyrillic)
 		"es",      // Spanish, Castilian
 		"sv",      // Swedish
 		"tr",      // Turkish
+		"uk",      // Ukrainian
+		"vi",      // Vietnamese
 	};
 
 	private final static String[] UMS_LANGUAGES = new String[UMS_BCP47_CODES.length];

@@ -837,19 +837,19 @@
 							<version>1.0-alpha-2</version>
 							<configuration>
 								<locales>
+									<locale>af</locale>
 									<locale>ar</locale>
-									<locale>de</locale>
 									<locale>bg</locale>
-									<locale>br</locale>
 									<locale>ca</locale>
-									<locale>cz</locale>
+									<locale>cs</locale>
 									<locale>da</locale>
 									<locale>de</locale>
 									<locale>el</locale>
-									<locale>en_uk</locale>
+									<locale>en_GB</locale>
 									<locale>es</locale>
 									<locale>fi</locale>
 									<locale>fr</locale>
+									<locale>hu</locale>
 									<locale>is</locale>
 									<locale>it</locale>
 									<locale>iw</locale>
@@ -859,13 +859,17 @@
 									<locale>no</locale>
 									<locale>pl</locale>
 									<locale>pt</locale>
+									<locale>pt_BR</locale>
 									<locale>ro</locale>
 									<locale>ru</locale>
 									<locale>sl</locale>
+									<locale>sr</locale>
 									<locale>sv</locale>
 									<locale>tr</locale>
-									<locale>zhs</locale>
-									<locale>zht</locale>
+									<locale>uk</locale>
+									<locale>vi</locale>
+									<locale>zh_Hans</locale>
+									<locale>zh_Hant</locale>
 								</locales>
 							</configuration>
 						</plugin>

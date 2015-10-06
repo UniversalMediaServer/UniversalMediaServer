@@ -244,7 +244,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_RESUME_REWIND = "resume_rewind";
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
-	protected static final String KEY_SCREEN_SIZE = "screen_size"; 
+	protected static final String KEY_SCREEN_SIZE = "screen_size";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
 	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
@@ -897,7 +897,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				LOGGER.error("setLanguage() aborted because of unsupported language tag \"{}\"", locale.toLanguageTag());
 			}
 		} else {
-			LOGGER.error("setLanguage() aborted because the locale is null");
+			configuration.setProperty(KEY_LANGUAGE, "");
 		}
 	}
 
@@ -3830,5 +3830,5 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getScreenSize() {
 		return getString(KEY_SCREEN_SIZE, "-1x-1");
-	}	
+	}
 }
