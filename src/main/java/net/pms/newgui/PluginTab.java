@@ -152,10 +152,12 @@ public class PluginTab {
 					return;
 				}
 
-				if (!configuration.isAdmin()) {
+				// See if we have write permission in 'plugins'. We don't necessarily
+				// need admin rights here, this could be a standalone/local install
+				if (!FileUtil.getPathPermissions(configuration.getPluginDirectory()).contains("w")) {
 					JOptionPane.showMessageDialog(
 						looksFrame,
-						Messages.getString("PluginTab.15"),
+						Messages.getString("PluginTab.15") + "\n" + Messages.getString("AutoUpdate.12"),
 						Messages.getString("Dialog.PermissionsError"),
 						JOptionPane.ERROR_MESSAGE
 					);

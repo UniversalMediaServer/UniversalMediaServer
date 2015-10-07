@@ -12,6 +12,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
+import net.pms.util.FileUtil;
 
 public class AutoUpdateDialog extends JDialog implements Observer {
 	private static final long serialVersionUID = 3809427933990495309L;
@@ -170,8 +171,10 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			case UPDATE_AVAILABLE:
 				String permissionsReminder = "";
 
-				if (!configuration.isAdmin()) {
-					permissionsReminder = Messages.getString("AutoUpdate.6");
+				// See if we have write permission in the program folder. We don't necessarily
+				// need admin rights here, this could be a standalone/local install
+				if (!FileUtil.getPathPermissions(System.getProperty("user.dir")).contains("w")) {
+					permissionsReminder = Messages.getString("AutoUpdate.6") + "\n" + Messages.getString("AutoUpdate.12");
 					cancelButton.setText(Messages.getString("Dialog.Close"));
 					okButton.setEnabled(false);
 					okButton.setVisible(false);
