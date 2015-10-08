@@ -244,7 +244,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_RESUME_REWIND = "resume_rewind";
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
-	protected static final String KEY_SCREEN_SIZE = "screen_size"; 
+	protected static final String KEY_SCREEN_SIZE = "screen_size";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
 	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
@@ -1776,7 +1776,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					LOGGER.info("An error occurred while trying to make UMS start automatically with Windows");
 				}
 			} catch (IOException e) {
-				if (!isAdmin()) {
+				if (!FileUtil.isAdmin()) {
 					try {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
@@ -3006,8 +3006,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_GPU_ACCELERATION, value);
 	}
 
-	private Boolean admin = null;
-	private Object isAdminLock = new Object();
 	/**
 	 * Get the state of the GUI log tab "Case sensitive" check box
 	 * @return true if enabled, false if disabled
@@ -3054,87 +3052,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setGUILogSearchRegEx(boolean value) {
 		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
-	}
-
-	/**
-	 * Finds out whether the program has admin rights.
-	 * It only checks on Windows and returns true if on a non-Windows OS.
-	 *
-	 * Note: Detection of Windows 8 depends on the user having a version of
-	 * JRE newer than 1.6.0_31 installed.
-	 */
-	public boolean isAdmin() {
-		synchronized(isAdminLock) {
-			if (admin != null) {
-				return admin.booleanValue();
-			}
-			if (Platform.isWindows()) {
-				Float ver = null;
-				try {
-					ver = Float.valueOf(System.getProperty("os.version"));
-				} catch (NullPointerException | NumberFormatException e) {
-					LOGGER.error(
-						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
-						System.getProperty("os.version"), e.getMessage()
-					);
-					admin = Boolean.valueOf(false);
-					return false;
-				}
-				if (ver >= 5.1) {
-					try {
-						String command = "reg query \"HKU\\S-1-5-19\"";
-						Process p = Runtime.getRuntime().exec(command);
-						p.waitFor();
-						int exitValue = p.exitValue();
-
-						if (0 == exitValue) {
-							admin = Boolean.valueOf(true);
-							return true;
-						}
-						admin = Boolean.valueOf(false);
-						return false;
-					} catch (IOException | InterruptedException e) {
-						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
-					}
-				} else {
-					admin = Boolean.valueOf(true);
-					return true;
-				}
-			} else if (Platform.isLinux() || Platform.isMac()) {
-				try {
-					final String command = "id -Gn";
-					LOGGER.trace("isAdmin: Executing \"{}\"", command);
-					Process p = Runtime.getRuntime().exec(command);
-					InputStream is = p.getInputStream();
-					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
-					BufferedReader br = new BufferedReader(isr);
-					p.waitFor();
-					int exitValue = p.exitValue();
-					String exitLine = br.readLine();
-					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
-						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
-						admin = Boolean.valueOf(false);
-						return false;
-					}
-					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
-					if
-						((Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
-						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
-					{
-						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
-						admin = Boolean.valueOf(true);
-						return true;
-					}
-					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
-					admin = Boolean.valueOf(false);
-					return false;
-				} catch (IOException | InterruptedException e) {
-					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
-				}
-			}
-			admin = Boolean.valueOf(false);
-			return false;
-		}
 	}
 
 	/* Start without external netowrk (increase startup speed) */
@@ -3830,5 +3747,5 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getScreenSize() {
 		return getString(KEY_SCREEN_SIZE, "-1x-1");
-	}	
+	}
 }

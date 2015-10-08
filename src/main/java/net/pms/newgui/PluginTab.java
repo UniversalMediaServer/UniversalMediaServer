@@ -4,6 +4,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -18,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -153,15 +155,24 @@ public class PluginTab {
 				}
 
 				// See if we have write permission in 'plugins'. We don't necessarily
-				// need admin rights here, this could be a standalone/local install
-				if (!FileUtil.getPathPermissions(configuration.getPluginDirectory()).contains("w")) {
+				// need admin rights here.
+				try {
+					if (!FileUtil.getFilePermissions(configuration.getPluginDirectory()).canWrite()) {
+						JOptionPane.showMessageDialog(
+							looksFrame,
+							Messages.getString("PluginTab.16") + (Platform.isWindows() ? "\n" + Messages.getString("AutoUpdate.13") : ""),
+							Messages.getString("Dialog.PermissionsError"),
+							JOptionPane.ERROR_MESSAGE
+						);
+						return;
+					}
+				} catch (FileNotFoundException e1) {
 					JOptionPane.showMessageDialog(
-						looksFrame,
-						Messages.getString("PluginTab.15") + "\n" + Messages.getString("AutoUpdate.12"),
-						Messages.getString("Dialog.PermissionsError"),
-						JOptionPane.ERROR_MESSAGE
-					);
-
+							looksFrame,
+							String.format(Messages.getString("PluginTab.17"), configuration.getPluginDirectory()),
+							Messages.getString("Dialog.Error"),
+							JOptionPane.ERROR_MESSAGE
+						);
 					return;
 				}
 

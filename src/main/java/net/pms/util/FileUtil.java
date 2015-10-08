@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +56,95 @@ public class FileUtil {
 
 		public String getFilePath() {
 			return filePath;
+		}
+	}
+
+	/**
+	 * A simple object to hold file permissions for a <code>File</code> object.
+	 *
+	 * @threadsafe
+	 */
+	public static class FilePermissions {
+		protected File file;
+		protected Boolean read;
+		protected Boolean write;
+		protected Boolean execute;
+		protected boolean folder;
+
+		public FilePermissions(File file, Boolean read, Boolean write, Boolean execute) {
+			if (file == null) {
+				throw new IllegalArgumentException("File parameter cannot be null");
+			}
+			this.file = file;
+			this.read = read;
+			this.write = write;
+			this.execute = execute;
+			folder = file.isDirectory();
+		}
+
+		public FilePermissions(File file, boolean read, boolean write, boolean execute) {
+			this(file, Boolean.valueOf(read), Boolean.valueOf(write), Boolean.valueOf(execute));
+		}
+
+		public FilePermissions(File file, boolean read, boolean write) {
+			this(file, Boolean.valueOf(read), Boolean.valueOf(write), null);
+		}
+
+		public FilePermissions(File file, boolean read) {
+			this(file, Boolean.valueOf(read), null, null);
+		}
+
+		public FilePermissions(File file) {
+			this(file, null, null, null);
+		}
+
+		public synchronized boolean isFolder() {
+			return folder;
+		}
+
+		public synchronized Boolean canRead() {
+			return read;
+		}
+
+		public synchronized void setReadPermission(boolean value) {
+			read = Boolean.valueOf(value);
+		}
+
+		public synchronized Boolean canWrite() {
+			return write;
+		}
+
+		public synchronized void setWritePermission(boolean value) {
+			write = Boolean.valueOf(value);
+		}
+
+		public synchronized Boolean canExecute() {
+			return execute;
+		}
+
+		public synchronized void setExecutePermission(boolean value) {
+			execute = Boolean.valueOf(value);
+		}
+
+		public synchronized String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(folder ? "d" : "-");
+			if (read == null) {
+				sb.append("?");
+			} else {
+				sb.append(read.booleanValue() ? "r" : "-");
+			}
+			if (write == null) {
+				sb.append("?");
+			} else {
+				sb.append(write.booleanValue() ? "w" : "-");
+			}
+			if (execute == null) {
+				sb.append("?");
+			} else {
+				sb.append(execute.booleanValue() ? "x" : "-");
+			}
+			return sb.toString();
 		}
 	}
 
@@ -944,38 +1034,70 @@ public class FileUtil {
 	}
 
 	/**
-	 * Return a file or directory's permissions in the Unix ls style
-	 * e.g.: "-rwx" (file,read-write-execute),  "dr--" (directory,read only) &c.
+	 * Return a file or folder's permissions.
+	 * @param file The file or folder to check permissions for
+	 * @param checkRead Whether or not read permission should be verified
+	 * @param checkWrite Whether or not write permission should be verified
+	 * @param checkExecute Whether or not execute permission should be verified
+	 * @return A <code>FilePermissions</code> object holding the permissions
+	 * @throws FileNotFoundException
 	 */
-	public static String getPathPermissions(String path) {
-		String permissions;
-		File file = new File(path);
-
-		if (file.exists()) {
-			if (file.isFile()) {
-				permissions = String.format("-%s%s%s",
-					isFileReadable(file) ? "r" : "-",
-					isFileWritable(file) ? "w" : "-",
-					isFileExecutable(file) ?  "x" : "-"
-				);
-			} else {
-				permissions = String.format("d%s%s%s",
-					isDirectoryReadable(file) ? "r" : "-",
-					isDirectoryWritable(file) ? "w" : "-",
-					isFileExecutable(file) ?  "x" : "-"
-				);
-			}
-		} else {
-			permissions = "file not found";
+	public static FilePermissions getFilePermissions(File file, boolean checkRead, boolean checkWrite, boolean checkExecute) throws FileNotFoundException {
+		if (!file.exists()) {
+			throw new FileNotFoundException(file.getAbsolutePath());
 		}
+
+		FilePermissions permissions = new FilePermissions(
+			file,
+			checkRead ? Boolean.valueOf(isFileReadable(file)) : null,
+			checkWrite ? Boolean.valueOf(isFileWritable(file)) : null,
+			checkExecute ? Boolean.valueOf(isFileExecutable(file)) : null
+		);
 
 		return permissions;
 	}
 
+	/**
+	 * Return a file or folder's permissions.
+	 * @param file The file or folder to check permissions for
+	 * @return A <code>FilePermissions</code> object holding the permissions
+	 * @throws FileNotFoundException
+	 */
+	public static FilePermissions getFilePermissions(File file) throws FileNotFoundException {
+		return getFilePermissions(file, true, true, true);
+	}
+
+	/**
+	 * Return a file or folder's permissions.
+	 * @param path The file or folder name to check permissions for
+	 * @param checkRead Whether or not read permission should be verified
+	 * @param checkWrite Whether or not write permission should be verified
+	 * @param checkExecute Whether or not execute permission should be verified
+	 * @return A <code>FilePermissions</code> object holding the permissions
+	 * @throws FileNotFoundException
+	 */
+	public static FilePermissions getFilePermissions(String path, boolean checkRead, boolean checkWrite, boolean checkExecute) throws FileNotFoundException {
+		return getFilePermissions(new File(path), checkRead, checkWrite, checkExecute);
+	}
+
+	/**
+	 * Return a file or folder's permissions.
+	 * @param path The file or folder name to check permissions for
+	 * @return A <code>FilePermissions</code> object holding the permissions
+	 * @throws FileNotFoundException
+	 */
+	public static FilePermissions getFilePermissions(String path) throws FileNotFoundException {
+		return getFilePermissions(new File(path));
+	}
+
 	public static boolean isFileExecutable(File file) {
 		try {
-			// FIXME: Not 100% reliable, see http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6379654
-			return file.canExecute();
+			if (Platform.isLinux()) {
+				 // canExecute() doesn't reflect that root can execute anything despite not having file permissions
+				 // under Linux, see http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6379654
+				return file.canExecute() || isAdmin();
+			}
+			else return file.canExecute();
 		} catch (SecurityException se) {
 			LOGGER.error("Security manager {}: {}", file.getAbsolutePath(), se);
 			return false;
@@ -1286,5 +1408,88 @@ public class FileUtil {
 			}
 		}
 		return path;
+	}
+
+	private static Boolean admin = null;
+	private static Object isAdminLock = new Object();
+
+	/**
+	 * Determines whether or not the program has admin/root permissions.
+	 *
+	 * Note: Detection of Windows 8 depends on the user having a version of
+	 * JRE newer than 1.6.0_31 installed.
+	 */
+	public static boolean isAdmin() {
+		synchronized(isAdminLock) {
+			if (admin != null) {
+				return admin.booleanValue();
+			}
+			if (Platform.isWindows()) {
+				Float ver = null;
+				try {
+					ver = Float.valueOf(System.getProperty("os.version"));
+				} catch (NullPointerException | NumberFormatException e) {
+					LOGGER.error(
+						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
+						System.getProperty("os.version"), e.getMessage()
+					);
+					admin = Boolean.valueOf(false);
+					return false;
+				}
+				if (ver >= 5.1) {
+					try {
+						String command = "reg query \"HKU\\S-1-5-19\"";
+						Process p = Runtime.getRuntime().exec(command);
+						p.waitFor();
+						int exitValue = p.exitValue();
+
+						if (0 == exitValue) {
+							admin = Boolean.valueOf(true);
+							return true;
+						}
+						admin = Boolean.valueOf(false);
+						return false;
+					} catch (IOException | InterruptedException e) {
+						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
+					}
+				} else {
+					admin = Boolean.valueOf(true);
+					return true;
+				}
+			} else if (Platform.isLinux() || Platform.isMac()) {
+				try {
+					final String command = "id -Gn";
+					LOGGER.trace("isAdmin: Executing \"{}\"", command);
+					Process p = Runtime.getRuntime().exec(command);
+					InputStream is = p.getInputStream();
+					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
+					BufferedReader br = new BufferedReader(isr);
+					p.waitFor();
+					int exitValue = p.exitValue();
+					String exitLine = br.readLine();
+					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
+						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
+						admin = Boolean.valueOf(false);
+						return false;
+					}
+					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
+					if
+						((Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
+						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
+					{
+						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
+						admin = Boolean.valueOf(true);
+						return true;
+					}
+					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
+					admin = Boolean.valueOf(false);
+					return false;
+				} catch (IOException | InterruptedException e) {
+					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
+				}
+			}
+			admin = Boolean.valueOf(false);
+			return false;
+		}
 	}
 }

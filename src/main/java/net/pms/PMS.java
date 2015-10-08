@@ -27,6 +27,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
+import java.security.AccessControlException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -337,15 +338,30 @@ public class PMS {
 
 		LOGGER.info("");
 		LOGGER.info("Profile directory: " + profileDirectoryPath);
-		LOGGER.info("Profile directory permissions: " + FileUtil.getPathPermissions(profileDirectoryPath));
+		File file = new File(profileDirectoryPath);
+		if (file.exists()) {
+			LOGGER.info("Profile directory permissions: " + FileUtil.getFilePermissions(file));
+		} else {
+			LOGGER.warn(file.getAbsolutePath() + "doesn't exist!");
+		}
 		LOGGER.info("Profile path: " + profilePath);
-		LOGGER.info("Profile permissions: " + FileUtil.getPathPermissions(profilePath));
+		file = new File(profilePath);
+		if (file.exists()) {
+			LOGGER.info("Profile permissions: " + FileUtil.getFilePermissions(file));
+		} else {
+			LOGGER.warn(file.getAbsolutePath() + "doesn't exist!");
+		}
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
 		if (configuration.useWebInterface()) {
 			String webConfPath = configuration.getWebConfPath();
-			LOGGER.info("Web conf path: " + webConfPath);
-			LOGGER.info("Web conf permissions: " + FileUtil.getPathPermissions(webConfPath));
+			LOGGER.info("Web configuration path: " + webConfPath);
+			file = new File(webConfPath);
+			if (file.exists()) {
+				LOGGER.info("Web configuration permissions: " + FileUtil.getFilePermissions(file));
+			} else {
+				LOGGER.warn(file.getAbsolutePath() + "doesn't exist!");
+			}
 			LOGGER.info("");
 		}
 
@@ -1354,21 +1370,36 @@ public class PMS {
 		// only that we lack the required permission for these specific items.
 		try {
 			killProc();
-		} catch (IOException e) {
-			LOGGER.debug("Error killing old process " + e);
+		} catch (AccessControlException e) {
+			LOGGER.error(
+				"Failed to check for running process: " + e.getMessage() +
+				(Platform.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
+			);
+		} catch (FileNotFoundException e) {
+			LOGGER.debug("PID file not found, cannot check for running process");
+		} catch ( IOException e) {
+			LOGGER.error("Error killing old process: " + e);
 		}
 
 		try {
 			dumpPid();
+		} catch (AccessControlException | FileNotFoundException e) {
+			LOGGER.error(
+				"Failed to write PID file: "+ e.getMessage() +
+				(Platform.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
+			);
 		} catch (IOException e) {
-			LOGGER.debug("Error dumping PID " + e);
+			LOGGER.error("Error dumping PID " + e);
 		}
 	}
 
 	/*
 	 * This method is only called for Windows OS'es, so specialized Windows charset handling is allowed
 	 */
-	private static boolean verifyPidName(String pid) throws IOException {
+	private static boolean verifyPidName(String pid) throws IOException, IllegalAccessException {
+		if (!Platform.isWindows()) {
+			throw new IllegalAccessException("verifyPidName can only be called from Windows!");
+		}
 		ProcessBuilder pb = new ProcessBuilder("tasklist", "/FI", "\"PID eq " + pid + "\"", "/V", "/NH", "/FO", "CSV");
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
@@ -1406,10 +1437,15 @@ public class PMS {
 		return configuration.getDataFile("pms.pid");
 	}
 
-	private static void killProc() throws IOException {
+	private static void killProc() throws AccessControlException, IOException{
 		ProcessBuilder pb = null;
 		String pid;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(pidFile()), StandardCharsets.US_ASCII))) {
+		String pidFile = pidFile();
+		if (!FileUtil.getFilePermissions(pidFile, true, false, false).canRead()) {
+			throw new AccessControlException("Cannot read " + pidFile);
+		}
+
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(pidFile), StandardCharsets.US_ASCII))) {
 			pid = in.readLine();
 		}
 
@@ -1418,10 +1454,14 @@ public class PMS {
 		}
 
 		if (Platform.isWindows()) {
-			if (verifyPidName(pid)) {
-				pb = new ProcessBuilder("taskkill", "/F", "/PID", pid, "/T");
+			try {
+				if (verifyPidName(pid)) {
+					pb = new ProcessBuilder("taskkill", "/F", "/PID", pid, "/T");
+				}
+			} catch (IllegalAccessException e) {
+				// Impossible
 			}
-		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
+ 		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
 			pb = new ProcessBuilder("kill", "-9", pid);
 		}
 
@@ -1432,8 +1472,8 @@ public class PMS {
 		try {
 			Process p = pb.start();
 			p.waitFor();
-		} catch (IOException | InterruptedException e) {
-			LOGGER.trace("Error killing process by PID " + e);
+		} catch (InterruptedException e) {
+			LOGGER.trace("Got interrupted while trying to kill process by PID " + e);
 		}
 	}
 
@@ -1442,10 +1482,20 @@ public class PMS {
 		return Long.parseLong(processName.split("@")[0]);
 	}
 
-	private static void dumpPid() throws IOException {
+	private static void dumpPid() throws IOException, AccessControlException {
+		File file = new File(pidFile());
+		if (file.exists()) {
+			if (!FileUtil.getFilePermissions(file, false, true, false).canWrite()) {
+				throw new AccessControlException("Cannot write " + file);
+			}
+		} else {
+			if (!FileUtil.getFilePermissions(file.getParentFile(), false, true, false).canWrite()) {
+				throw new AccessControlException("Cannot write to folder " + file.getParent());
+			}
+		}
 		try (FileOutputStream out = new FileOutputStream(pidFile())) {
 			long pid = getPID();
-			LOGGER.debug("PID: " + pid);
+			LOGGER.debug("Write PID: " + pid);
 			String data = String.valueOf(pid) + "\r\n";
 			out.write(data.getBytes(StandardCharsets.US_ASCII));
 			out.flush();
