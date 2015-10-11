@@ -274,34 +274,6 @@ public class PMS {
 		return null;
 	}
 
-	/**
-	 * Helper method for displayBanner: return a file or directory's
-	 * permissions in the Unix ls style e.g.: "rw" (read-write),
-	 * "r-" (read-only) &c.
-	 */
-	private String getPathPermissions(String path) {
-		String permissions;
-		File file = new File(path);
-
-		if (file.exists()) {
-			if (file.isFile()) {
-				permissions = String.format("%s%s",
-					FileUtil.isFileReadable(file) ? "r" : "-",
-					FileUtil.isFileWritable(file) ? "w" : "-"
-				);
-			} else {
-				permissions = String.format("%s%s",
-					FileUtil.isDirectoryReadable(file) ? "r" : "-",
-					FileUtil.isDirectoryWritable(file) ? "w" : "-"
-				);
-			}
-		} else {
-			permissions = "file not found";
-		}
-
-		return permissions;
-	}
-
 	private void displayBanner() throws IOException {
 		LOGGER.debug("");
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
@@ -365,15 +337,15 @@ public class PMS {
 
 		LOGGER.info("");
 		LOGGER.info("Profile directory: " + profileDirectoryPath);
-		LOGGER.info("Profile directory permissions: " + getPathPermissions(profileDirectoryPath));
+		LOGGER.info("Profile directory permissions: " + FileUtil.getPathPermissions(profileDirectoryPath));
 		LOGGER.info("Profile path: " + profilePath);
-		LOGGER.info("Profile permissions: " + getPathPermissions(profilePath));
+		LOGGER.info("Profile permissions: " + FileUtil.getPathPermissions(profilePath));
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
 		if (configuration.useWebInterface()) {
 			String webConfPath = configuration.getWebConfPath();
 			LOGGER.info("Web conf path: " + webConfPath);
-			LOGGER.info("Web conf permissions: " + getPathPermissions(webConfPath));
+			LOGGER.info("Web conf permissions: " + FileUtil.getPathPermissions(webConfPath));
 			LOGGER.info("");
 		}
 
@@ -1378,20 +1350,18 @@ public class PMS {
 	 * Restart handling
 	 */
 	private static void killOld() {
-		if (!Platform.isWindows() || configuration.isAdmin()) {
-			try {
-				killProc();
-			} catch (IOException e) {
-				LOGGER.debug("Error killing old process " + e);
-			}
+		// Note: failure here doesn't necessarily mean we need admin rights,
+		// only that we lack the required permission for these specific items.
+		try {
+			killProc();
+		} catch (IOException e) {
+			LOGGER.debug("Error killing old process " + e);
+		}
 
-			try {
-				dumpPid();
-			} catch (IOException e) {
-				LOGGER.debug("Error dumping PID " + e);
-			}
-		} else {
-			LOGGER.info("UMS must be run as administrator in order to access the PID file");
+		try {
+			dumpPid();
+		} catch (IOException e) {
+			LOGGER.debug("Error dumping PID " + e);
 		}
 	}
 
