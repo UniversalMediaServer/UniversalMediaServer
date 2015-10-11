@@ -76,6 +76,7 @@ public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
 	private static final String NATIVELOOK = "nativelook";
 	private static final String CONSOLE = "console";
+	private static final String HEADLESS = "headless";
 	private static final String NOCONSOLE = "noconsole";
 	private static final String PROFILES = "profiles";
 	private static final String PROFILE = "^(?i)profile(?::|=)([^\"*<>?]+)$";
@@ -1061,6 +1062,7 @@ public class PMS {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
 				switch (arg) {
+					case HEADLESS:
 					case CONSOLE:
 						System.setProperty(CONSOLE, Boolean.toString(true));
 						break;
