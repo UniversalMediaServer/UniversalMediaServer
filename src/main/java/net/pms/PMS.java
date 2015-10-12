@@ -1042,6 +1042,9 @@ public class PMS {
 		assert instance == null; // this should only be called once
 		instance = new PMS();
 
+		// Temporary set system locale until configuration is loaded for tests
+		PMS.setLocale(Locale.getDefault());
+
 		try {
 			if (instance.init()) {
 				LOGGER.info("The server is now available for renderers to find");

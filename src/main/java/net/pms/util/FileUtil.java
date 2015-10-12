@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -884,58 +885,88 @@ public class FileUtil {
 		return found;
 	}
 
-	private static String externalSubsLang;
-
 	/**
-	 * Get the language of the external subtitles file detected by {@link #getFileCharset(File file)} method
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
+	 *
+	 * @param file the file for which to detect charset/encoding
+	 * @return The match object form the detection process or <code>null</code> if no match was found
+	 * @throws IOException
 	 */
-	public static String getExtSubsLang() {
-		return externalSubsLang;
+	public static CharsetMatch getFileCharsetMatch(File file) throws IOException {
+		CharsetMatch result = null;
+		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+			CharsetDetector detector = new CharsetDetector();
+			detector.enableInputFilter(true);
+			detector.setText(in);
+			// Results are sorted on descending confidence, so we're only after the first one.
+			result = detector.detectAll()[0];
+		}
+
+		if (result != null) {
+			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), result.getName());
+		} else {
+			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
+		}
+
+		return result;
 	}
 
 	/**
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file File to detect charset/encoding
-	 * @return file's charset or null if not detected
+	 * @param file the file for which to detect charset/encoding
+	 * @return The detected <code>Charset</code> or <code>null</code> if not detected
 	 * @throws IOException
 	 */
-	public static String getFileCharset(File file) throws IOException {
-		String encoding = null;
-		externalSubsLang = null;
-		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
-			CharsetDetector detector = new CharsetDetector();
-			detector.enableInputFilter(true);
-			detector.setText(in);
-			CharsetMatch [] matches = detector.detectAll();
-			CharsetMatch mm = null;
-			for (CharsetMatch m : matches) {
-				if (mm == null || mm.getConfidence() < m.getConfidence()) {
-					mm = m;
+	public static Charset getFileCharset(File file) throws IOException {
+		CharsetMatch match = getFileCharsetMatch(file);
+		if (match != null) {
+			try {
+				if (Charset.isSupported(match.getName())) {
+					LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
+					return Charset.forName(match.getName());
+				} else {
+					LOGGER.debug(
+						"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
+						match.getName(),
+						file.getAbsolutePath()
+					);
+					return null;
 				}
-			}
-
-			if (mm != null) {
-				encoding = mm.getName().toUpperCase();
-				externalSubsLang = mm.getLanguage();
+			} catch (IllegalCharsetNameException e) {
+				LOGGER.debug("Illegal charset deteceted \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 			}
 		}
+		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		return null;
+	}
 
-		if (encoding != null) {
-			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
+	/**
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
+	 *
+	 * @param file the file for which to detect charset/encoding
+	 * @return The name of the detected charset or <code>null</code> if not detected
+	 * @throws IOException
+	 */
+	public static String getFileCharsetName(File file) throws IOException {
+		CharsetMatch match = getFileCharsetMatch(file);
+		if (match != null) {
+			LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
+			return match.getName().toUpperCase(PMS.getLocale());
 		} else {
-			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
+			LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+			return null;
 		}
-
-		return encoding;
 	}
 
 	/**
 	 * Tests if file is UTF-8 encoded with or without BOM.
 	 *
 	 * @param file File to test
-	 * @return true if file is UTF-8 encoded with or without BOM, false otherwise.
+	 * @return True if file is UTF-8 encoded with or without BOM, false otherwise.
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF8(File file) throws IOException {
@@ -943,20 +974,30 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-8 encoded with or without BOM.
+	 * Tests if charset is UTF-8.
 	 *
-	 * @param charset Charset to test
-	 * @return true if charset is UTF-8 encoded with or without BOM, false otherwise.
+	 * @param charset <code>Charset</code> to test
+	 * @return True if charset is UTF-8, false otherwise.
 	 */
-	public static boolean isCharsetUTF8(String charset) {
-		return equalsIgnoreCase(charset, CHARSET_UTF_8);
+	public static boolean isCharsetUTF8(Charset charset) {
+		return charset != null && charset.equals(StandardCharsets.UTF_8);
 	}
 
 	/**
-	 * Tests if file is UTF-16 encoded LE or BE.
+	 * Tests if charset is UTF-8.
+	 *
+	 * @param charset charset name to test
+	 * @return True if charset is UTF-8, false otherwise.
+	 */
+	public static boolean isCharsetUTF8(String charsetName) {
+		return equalsIgnoreCase(charsetName, CHARSET_UTF_8);
+	}
+
+	/**
+	 * Tests if file is UTF-16 encoded.
 	 *
 	 * @param file File to test
-	 * @return true if file is UTF-16 encoded LE or BE, false otherwise.
+	 * @return True if file is UTF-16 encoded, false otherwise.
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF16(File file) throws IOException {
@@ -964,23 +1005,33 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-16 encoded LE or BE.
+	 * Tests if charset is UTF-16.
 	 *
-	 * @param charset Charset to test
-	 * @return true if charset is UTF-16 encoded LE or BE, false otherwise.
+	 * @param charset <code>Charset</code> to test
+	 * @return True if charset is UTF-16, false otherwise.
 	 */
-	public static boolean isCharsetUTF16(String charset) {
-		return (equalsIgnoreCase(charset, CHARSET_UTF_16LE) || equalsIgnoreCase(charset, CHARSET_UTF_16BE));
+	public static boolean isCharsetUTF16(Charset charset) {
+		return charset != null && (charset.equals(StandardCharsets.UTF_16) || charset.equals(StandardCharsets.UTF_16BE) || charset.equals(StandardCharsets.UTF_16LE));
 	}
 
 	/**
-	 * Tests if charset is UTF-32 encoded LE or BE.
+	 * Tests if charset is UTF-16.
 	 *
-	 * @param charset Charset to test
-	 * @return true if charset is UTF-32 encoded LE or BE, false otherwise.
+	 * @param charset charset name to test
+	 * @return True if charset is UTF-16, false otherwise.
 	 */
-	public static boolean isCharsetUTF32(String charset) {
-		return (equalsIgnoreCase(charset, CHARSET_UTF_32LE) || equalsIgnoreCase(charset, CHARSET_UTF_32BE));
+	public static boolean isCharsetUTF16(String charsetName) {
+		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
+	}
+
+	/**
+	 * Tests if charset is UTF-32.
+	 *
+	 * @param charsetName charset name to test
+	 * @return True if charset is UTF-32, false otherwise.
+	 */
+	public static boolean isCharsetUTF32(String charsetName) {
+		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
@@ -991,7 +1042,7 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
-		String charset;
+		Charset charset;
 		if (inputFile == null || !inputFile.canRead()) {
 			throw new FileNotFoundException("Can't read inputFile.");
 		}
@@ -1006,19 +1057,24 @@ public class FileUtil {
 		if (isCharsetUTF16(charset)) {
 			if (!outputFile.exists()) {
 				BufferedReader reader = null;
-
-				try {
-					if (equalsIgnoreCase(charset, CHARSET_UTF_16LE)) {
-						reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-16"));
-					} else {
-						reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-16BE"));
-					}
-				} catch (UnsupportedEncodingException ex) {
-					LOGGER.warn("Unsupported exception.", ex);
-					throw ex;
+				/*
+				 * This is a strange hack, and I'm not sure if it's needed. I
+				 * did it this way to conform to the tests, which dictates that
+				 * UTF-16LE should produce UTF-8 without BOM while UTF-16BE
+				 * should produce UTF-8 with BOM.
+				 *
+				 * For some reason creating a FileInputStream with UTF_16 produces
+				 * an UTF-8 outputfile without BOM, while using UTF_16LE or
+				 * UTF_16BE produces an UTF-8 outputfile with BOM.
+				 * @author Nadahar
+				 */
+				if (charset.equals(StandardCharsets.UTF_16LE)) {
+					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), StandardCharsets.UTF_16));
+				} else {
+					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset));
 				}
 
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8));
 				int c;
 
 				while ((c = reader.read()) != -1) {
@@ -1357,12 +1413,12 @@ public class FileUtil {
 
 	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
 		BufferedReader reader;
-		String fileCharset = getFileCharset(file);
-		final boolean iscodepageAutoDetectedAndSupportedByJVM = isNotBlank(fileCharset) && Charset.isSupported(fileCharset);
-		if (iscodepageAutoDetectedAndSupportedByJVM) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName(fileCharset)));
+		Charset fileCharset = getFileCharset(file);
+		if (fileCharset != null) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), fileCharset));
 		} else {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+			LOGGER.warn("Could not detect character encoding for file \"{}\". It will probably be interpreted wrong", file.getAbsolutePath());
 		}
 		return reader;
 	}

@@ -22,12 +22,14 @@ package net.pms.dlna;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import net.pms.PMS;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
 import net.pms.util.FileUtil;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ibm.icu.text.CharsetMatch;
 
 /**
  * This class keeps track of the subtitle information for media.
@@ -178,9 +180,12 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 			externalFileCharacterSet = null;
 		} else {
 			try {
-				externalFileCharacterSet = FileUtil.getFileCharset(externalFile);
-				if (FileUtil.getExtSubsLang() != null) {
-					lang = FileUtil.getExtSubsLang();
+				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
+				if (match != null) {
+					externalFileCharacterSet = match.getName().toUpperCase(PMS.getLocale());
+					lang = match.getLanguage();
+				} else {
+					externalFileCharacterSet = null;
 				}
 			} catch (IOException ex) {
 				externalFileCharacterSet = null;
