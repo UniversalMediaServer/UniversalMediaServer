@@ -369,7 +369,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		} else {
 			setLocation(posX, posY);
 		}
-		
+
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
@@ -496,12 +496,17 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
 		String windowGeometry = getBounds().toString();
-		configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf("[") + 1, windowGeometry.indexOf("]")));
-		configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
+		try {
+			configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf("[") + 1, windowGeometry.indexOf("]")));
+			configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
+		} catch (Exception e) {
+			LOGGER.warn("Failed to save window geometry and size: {}", e.getMessage());
+			LOGGER.debug("", e);
+		}
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
-			LOGGER.error(null, e);
+			LOGGER.error("Interrupted during shutdown: {}", e);
 		}
 
 		System.exit(0);
