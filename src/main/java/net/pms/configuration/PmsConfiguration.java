@@ -22,12 +22,15 @@ import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -427,6 +430,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	protected static final String ENV_PROFILE_PATH = "UMS_PROFILE";
 	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
+	protected static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 
 	// Path to directory containing UMS config files
 	protected static final String PROFILE_DIRECTORY;
@@ -3086,44 +3090,43 @@ public class PmsConfiguration extends RendererConfiguration {
 	public static final String KEY_CRED_PATH = "cred.path";
 
 	public void initCred() throws IOException {
-		String cp = getCredPath();
-		if (StringUtils.isEmpty(cp)) {
-			// need to make sure we got a cred path here
-			cp = new File(getProfileDirectory() + File.separator + "UMS.cred").getAbsolutePath();
-			configuration.setProperty(KEY_CRED_PATH, cp);
+		File credFile = getCredFile();
+
+		if (!credFile.exists()) {
+			// Create an empty file and save the path if needed
+			try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(credFile), StandardCharsets.UTF_8))) {
+				writer.write("# Add credentials to the file");
+				writer.newLine();
+				writer.write("# on the format tag=user,password");
+				writer.newLine();
+				writer.write("# For example:");
+				writer.newLine();
+				writer.write("# channels.xxx=name,secret");
+				writer.newLine();
+			}
+			// Save the path if we got here
+			configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 			try {
 				((PropertiesConfiguration)configuration).save();
 			} catch (ConfigurationException e) {
-			}
-		}
-
-		// Now we know cred path is set
-		File f = new File(cp);
-		if (!f.exists()) {
-			// Cred path is set but file isn't there
-			// Create empty file with some comments
-			try (FileOutputStream fos = new FileOutputStream(f)) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("# Add credentials to the file");
-				sb.append("\n");
-				sb.append("# on the format tag=user,pwd");
-				sb.append("\n");
-				sb.append("# For example:");
-				sb.append("\n");
-				sb.append("# channels.xxx=name,secret");
-				sb.append("\n");
-				fos.write(sb.toString().getBytes());
-				fos.flush();
+				LOGGER.warn("An error occurred while saving configuration: {}", e.getMessage());
 			}
 		}
 	}
 
+	/**
+	 * @deprecated Use {@link #getCredFile()} instead.
+	 */
 	public String getCredPath() {
-		return getString(KEY_CRED_PATH, "");
+		return getCredFile().getAbsolutePath();
 	}
 
 	public File getCredFile() {
-		return new File(getCredPath());
+		String path = getString(KEY_CRED_PATH, "");
+		if (path != null && !path.trim().isEmpty()) {
+			return new File(path);
+		}
+		return new File(getProfileDirectory(), DEFAULT_CREDENTIALS_FILENAME);
 	}
 
 	public int getATZLimit() {
