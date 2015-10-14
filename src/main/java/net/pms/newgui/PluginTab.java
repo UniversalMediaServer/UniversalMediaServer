@@ -314,7 +314,8 @@ public class PluginTab {
 					try {
 						cred.save();
 					} catch (ConfigurationException e1) {
-						LOGGER.warn("Couldn't save cred file " + e1);
+						LOGGER.warn("Couldn't save credentials file {}", e1.getMessage());
+						LOGGER.trace("", e1);
 					}
 
 					refreshCred(credTable);
@@ -514,15 +515,17 @@ public class PluginTab {
 
 	public void init() {
 		File cFile = configuration.getCredFile();
-		if (cFile.isFile() && FileUtil.isFileReadable(cFile)) {
+
+		if (cFile != null) {
 			try {
 				cred.load(cFile);
 				cred.setFile(cFile);
 			} catch (ConfigurationException e) {
-				LOGGER.warn("Could not load cred file "+cFile);
+				LOGGER.warn("Can't load credentials file {}: {}", cFile, e.getMessage());
+				LOGGER.trace("", e);
 			}
 		} else {
-			LOGGER.warn("Cred file unreadable "+cFile);
+			LOGGER.debug("Something went seriously wrong - getCredFile() returned null!");
 		}
 
 		refreshCred(credTable);
@@ -537,7 +540,7 @@ public class PluginTab {
 		TableColumn tcol = credTable.getColumnModel().getColumn(3);
 		tcol.setCellRenderer(new PasswordCellRenderer());
 
-		Iterator itr = cred.getKeys();
+		Iterator<String> itr = cred.getKeys();
 
 		int i = 0;
 		while (itr.hasNext()) {

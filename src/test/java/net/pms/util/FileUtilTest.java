@@ -27,11 +27,14 @@ import java.nio.charset.Charset;
 import static net.pms.util.Constants.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.util.FileUtil.FilePermissions;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Fail;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -274,76 +277,66 @@ public class FileUtilTest {
 	}
 
 	@Test
-	public void testIsFileReadable() {
-		assertThat(FileUtil.isFileReadable(null)).isFalse();
-		assertThat(FileUtil.isFileReadable(new File(""))).isFalse();
-		assertThat(FileUtil.isFileReadable(new File(System.getProperty("user.dir")))).isFalse();
-		assertThat(FileUtil.isFileReadable(new File("no such file"))).isFalse();
-
-		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileReadable(file)).isTrue();
-
-		assertThat(file.getParentFile()).isNotNull();
-		assertThat(FileUtil.isFileReadable(new File(file.getParentFile(), "no such file"))).isFalse();
-	}
-
-	@Test
-	public void testIsFileWritable() throws IOException {
-		assertThat(FileUtil.isFileWritable(null)).isFalse();
-		assertThat(FileUtil.isFileWritable(new File(""))).isFalse();
-		assertThat(FileUtil.isFileWritable(new File(System.getProperty("user.dir")))).isFalse();
-		String filename = String.format("pms_temp_writable_file_%d_1.tmp", System.currentTimeMillis());
-		assertThat(FileUtil.isFileWritable(new File(filename))).isTrue();
-
-		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileReadable(file)).isTrue();
-
-		assertThat(file.getParentFile()).isNotNull();
-
-		filename = String.format("pms_temp_writable_file_%d_2.tmp", System.currentTimeMillis());
-		File tempFile = null;
-
+	public void testGetFilePermissions() throws FileNotFoundException {
+		File file = null;
+		String path = null;
 		try {
-			tempFile = new File(file.getParentFile(), filename);
-			tempFile.createNewFile();
-			assertThat(file.isFile()).isTrue();
-			assertThat(FileUtil.isFileReadable(tempFile)).isTrue();
-			assertThat(FileUtil.isFileWritable(tempFile)).isTrue();
-		} finally {
-			if (tempFile != null) {
-				tempFile.delete();
-			}
+			FileUtil.getFilePermissions(file);
+			Fail.fail("Expected IllegalArgumentException");
+		} catch (IllegalArgumentException e) {
+			// As expected
 		}
-	}
+		try {
+			FileUtil.getFilePermissions(path);
+			Fail.fail("Expected IllegalArgumentException");
+		} catch (IllegalArgumentException e) {
+			// As expected
+		}
+		assertNull("NullIsNull", FileUtil.getFilePermissionsNoThrow(file));
+		assertNull("NullIsNull", FileUtil.getFilePermissionsNoThrow(path));
+		assertTrue("CurrentFolderIsFolder", FileUtil.getFilePermissions(new File("")).isFolder());
+		assertTrue("CurrentFolderIsReadable", FileUtil.getFilePermissions(new File("")).isReadable());
+		assertTrue("CurrentFolderIsBrowsable", FileUtil.getFilePermissions(new File("")).isBrowsable());
+		assertTrue("user.dirFolderIsFolder", FileUtil.getFilePermissions(new File(System.getProperty("user.dir"))).isFolder());
+		try {
+			FileUtil.getFilePermissions("No such file");
+			Fail.fail("Expected FileNotFoundException");
+		} catch (FileNotFoundException e) {
+			// As expected
+		}
+		assertNull("NoSuchFileIsNull", FileUtil.getFilePermissionsNoThrow("No such file"));
 
-	@Test
-	public void testIsDirectoryReadable() {
-		assertThat(FileUtil.isDirectoryReadable(null)).isFalse();
-		assertThat(FileUtil.isDirectoryReadable(new File("no such directory"))).isFalse();
-		assertThat(FileUtil.isDirectoryReadable(FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt")))).isFalse();
+		file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
+		assertTrue("FileIsReadable", FileUtil.getFilePermissions(file).isReadable());
+		assertTrue("FileIsWritable", FileUtil.getFilePermissions(file).isWritable());
+		assertFalse("FileIsNotFolder", FileUtil.getFilePermissions(file).isFolder());
+		assertFalse("FileIsNotBrowsable", FileUtil.getFilePermissions(file).isBrowsable());
+		assertTrue("ParentIsFolder", FileUtil.getFilePermissions(file.getParentFile()).isFolder());
+		assertTrue("ParentIsBrowsable", FileUtil.getFilePermissions(file.getParentFile()).isBrowsable());
+		try {
+			FileUtil.getFilePermissions(new File(file.getParentFile(),"No such file"));
+			Fail.fail("Expected FileNotFoundException");
+		} catch (FileNotFoundException e) {
+			// As expected
+		}
+		assertNull("NoSuchFileIsNull", FileUtil.getFilePermissionsNoThrow(new File(file.getParentFile(),"No such file")));
 
-		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileReadable(file)).isTrue();
-
-		File dir = file.getParentFile();
-		assertThat(dir).isNotNull();
-		assertThat(dir.isDirectory()).isTrue();
-		assertThat(FileUtil.isDirectoryReadable(dir)).isTrue();
-	}
-
-	@Test
-	public void testIsDirectoryWritable() {
-		assertThat(FileUtil.isDirectoryWritable(null)).isFalse();
-		assertThat(FileUtil.isDirectoryWritable(new File("no such directory"))).isFalse();
-		assertThat(FileUtil.isDirectoryWritable(FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt")))).isFalse();
-
-		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileReadable(file)).isTrue();
-
-		File dir = file.getParentFile();
-		assertThat(dir).isNotNull();
-		assertThat(dir.isDirectory()).isTrue();
-		assertThat(FileUtil.isDirectoryWritable(dir)).isTrue();
+		path = String.format("pms_temp_writable_file_%d_1.tmp", System.currentTimeMillis());
+		file = new File(System.getProperty("java.io.tmpdir"), path);
+		try {
+			if (file.createNewFile()) {
+				try {
+					assertTrue("TempFileIsReadable", FileUtil.getFilePermissions(file).isReadable());
+					assertTrue("TempFileIsWritable", FileUtil.getFilePermissions(file).isWritable());
+					assertFalse("TempFileIsNotFolder", FileUtil.getFilePermissions(file).isFolder());
+					assertFalse("TempFileIsNotBrowsable", FileUtil.getFilePermissions(file).isBrowsable());
+				} finally {
+					file.delete();
+				}
+			}
+		} catch (IOException e) {
+			// Move on
+		}
 	}
 
 	@Test

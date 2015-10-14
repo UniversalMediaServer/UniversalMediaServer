@@ -303,7 +303,7 @@ public class PMS {
 		 */
 		File javaTmpdir = new File(System.getProperty("java.io.tmpdir"));
 
-		if (!FileUtil.isDirectoryWritable(javaTmpdir)) {
+		if (!FileUtil.getFilePermissions(javaTmpdir).isWritable()) {
 			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
 			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
 			throw new IOException("Cannot write to Java temp directory");
@@ -339,13 +339,15 @@ public class PMS {
 		LOGGER.info("");
 		LOGGER.info("Profile directory: {}", profileDirectoryPath);
 		try {
-			LOGGER.info("Profile directory permissions: {}", FileUtil.getFilePermissions(profileDirectoryPath));
+			// Don't use the {} syntax here as the check needs to be performed on every log level
+			LOGGER.info("Profile directory permissions: " + FileUtil.getFilePermissions(profileDirectoryPath));
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Profile directory not found: {}", e.getMessage());
 		}
 		LOGGER.info("Profile configuration file: {}", profilePath);
 		try {
-			LOGGER.info("Profile configuration file permissions: {}", FileUtil.getFilePermissions(profilePath));
+			// Don't use the {} syntax here as the check needs to be performed on every log level
+			LOGGER.info("Profile configuration file permissions: " + FileUtil.getFilePermissions(profilePath));
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Profile configuration file not found: {}", e.getMessage());
 		}
@@ -355,7 +357,8 @@ public class PMS {
 			String webConfPath = configuration.getWebConfPath();
 			LOGGER.info("Web configuration file: {}", webConfPath);
 			try {
-				LOGGER.info("Web configuration file permissions: {}", FileUtil.getFilePermissions(webConfPath));
+				// Don't use the {} syntax here as the check needs to be performed on every log level
+				LOGGER.info("Web configuration file permissions: " + FileUtil.getFilePermissions(webConfPath));
 			} catch (FileNotFoundException e) {
 				LOGGER.warn("Web configuration file not found: {}", e.getMessage());
 			}
@@ -1168,7 +1171,7 @@ public class PMS {
 			try {
 				getConfiguration().initCred();
 			} catch (IOException e) {
-				LOGGER.debug("Error initializing plugin credentials: " + e);
+				LOGGER.debug("Error initializing plugin credentials: {}", e);
 			}
 
 			if (getConfiguration().isRunSingleInstance()) {
@@ -1372,7 +1375,7 @@ public class PMS {
 			killProc();
 		} catch (AccessControlException e) {
 			LOGGER.error(
-				"Failed to check for running process: " + e.getMessage() +
+				"Failed to check for already running instance: " + e.getMessage() +
 				(Platform.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
 			);
 		} catch (FileNotFoundException e) {
@@ -1383,7 +1386,7 @@ public class PMS {
 
 		try {
 			dumpPid();
-		} catch (AccessControlException | FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			LOGGER.error(
 				"Failed to write PID file: "+ e.getMessage() +
 				(Platform.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
@@ -1482,17 +1485,7 @@ public class PMS {
 		return Long.parseLong(processName.split("@")[0]);
 	}
 
-	private static void dumpPid() throws IOException, AccessControlException {
-		File file = new File(pidFile());
-		if (file.exists()) {
-			if (!FileUtil.getFilePermissions(file).isWritable()) {
-				throw new AccessControlException("Cannot write " + file);
-			}
-		} else {
-			if (!FileUtil.getFilePermissions(file.getParentFile()).isWritable()) {
-				throw new AccessControlException("Cannot write to folder " + file.getParent());
-			}
-		}
+	private static void dumpPid() throws IOException {
 		try (FileOutputStream out = new FileOutputStream(pidFile())) {
 			long pid = getPID();
 			LOGGER.debug("Write PID: " + pid);

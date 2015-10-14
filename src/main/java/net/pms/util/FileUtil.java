@@ -72,12 +72,12 @@ public class FileUtil {
 	 * @threadsafe
 	 */
 	public static class FilePermissions {
-		protected final File file;
-		protected final Path path;
-		protected Boolean read = null;
-		protected Boolean write = null;
-		protected Boolean execute = null;
-		protected final boolean folder;
+		private final File file;
+		private final Path path;
+		private Boolean read = null;
+		private Boolean write = null;
+		private Boolean execute = null;
+		private final boolean folder;
 
 		public FilePermissions(File file) throws FileNotFoundException {
 			if (file == null) {
@@ -1174,7 +1174,7 @@ public class FileUtil {
 	public static FilePermissions getFilePermissionsNoThrow(File file) {
 		try {
 			return new FilePermissions(file);
-		} catch (FileNotFoundException e) {
+		} catch (FileNotFoundException | IllegalArgumentException e) {
 			return null;
 		}
 	}
@@ -1201,7 +1201,11 @@ public class FileUtil {
 	 * @see {@link #getFilePermissions(File)}
 	 */
 	public static FilePermissions getFilePermissions(String path) throws FileNotFoundException {
-		return new FilePermissions(new File(path));
+		if (path != null) {
+			return new FilePermissions(new File(path));
+		} else {
+			return new FilePermissions(null);
+		}
 	}
 
 	/**
@@ -1210,173 +1214,15 @@ public class FileUtil {
 	 * folder isn't found.
 	 */
 	public static FilePermissions getFilePermissionsNoThrow(String path) {
-		try {
-			return new FilePermissions(new File(path));
-		} catch (FileNotFoundException e) {
+		if (path != null) {
+			try {
+				return new FilePermissions(new File(path));
+			} catch (FileNotFoundException | IllegalArgumentException e) {
+				return null;
+			}
+		} else {
 			return null;
 		}
-	}
-
-	/**
-	 * Determine whether a file is readable by trying to read it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File#canRead()} on Windows, and in some cases, on Unix.
-	 * <p>
-	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
-	 * Note: this method changes the file access time.
-	 *
-	 * @since 1.71.0
-	 * @param file the File whose permissions are to be determined
-	 * @return <code>true</code> if the file is not null, exists, is a file and can be read, <code>false</code> otherwise
-	 */
-	// based on the workaround posted here:
-	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4993360
-	// XXX why isn't this in Apache Commons?
-	public static boolean isFileReadable(File file) {
-		boolean isReadable = false;
-
-		if ((file != null) && file.isFile()) {
-			try {
-				new FileInputStream(file).close();
-				isReadable = true;
-			} catch (IOException ioe) { }
-		}
-
-		return isReadable;
-	}
-
-	/**
-	 * Determine whether a file is writable by trying to write it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File#canWrite()} on Windows and, in some cases, on Unix.
-	 * <p>
-	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
-	 * Note: this method changes the file access time and may change the file modification time.
-	 *
-	 * @since 1.71.0
-	 * @param file the File whose permissions are to be determined
-	 * @return <code>true</code> if the file is not null and either a) exists, is a file and can be written to or b) doesn't
-	 * exist and can be created; otherwise returns <code>false</code>
-	 */
-	// Loosely based on the workaround posted here:
-	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4993360
-	// XXX why isn't this in Apache Commons?
-	public static boolean isFileWritable(File file) {
-		boolean isWritable = false;
-
-		if (file != null) {
-			boolean fileAlreadyExists = file.isFile(); // i.e. exists and is a File
-
-			if (fileAlreadyExists || !file.exists()) {
-				try {
-					// true: open for append: make sure the open
-					// doesn't clobber the file
-					new FileOutputStream(file, true).close();
-					isWritable = true;
-
-					if (!fileAlreadyExists) { // a new file has been "touch"ed; try to remove it
-						try {
-							if (!file.delete()) {
-								LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
-							}
-						} catch (SecurityException se) {
-							LOGGER.error("Error deleting temporary test file: " + file.getAbsolutePath(), se);
-						}
-					}
-				} catch (IOException | SecurityException ioe) {
-				}
-			}
-		}
-
-		return isWritable;
-	}
-
-	/**
-	 * Determines whether the supplied directory is readable by trying to
-	 * read its contents.
-	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File#canRead()} on Windows and possibly on Unix.
-	 *
-	 * Note: since this method accesses the filesystem, it should not be
-	 * used in contexts in which performance is critical.
-	 * Note: this method changes the file access time.
-	 *
-	 * @since 1.71.0
-	 * @param dir the File whose permissions are to be determined
-	 * @return <code>true</code> if the File is not null, exists, is a
-	 *         directory and can be read, <code>false</code> otherwise
-	 */
-	// XXX dir.canRead() has issues on Windows, so verify it directly:
-	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6203387
-	public static boolean isDirectoryReadable(File dir) {
-		boolean isReadable = false;
-
-		if (dir != null) {
-			// new File("").isDirectory() is false, even though getAbsolutePath() returns the right path.
-			// this resolves it
-			dir = dir.getAbsoluteFile();
-
-			if (dir.isDirectory()) {
-				try {
-					File[] files = dir.listFiles(); // null if an I/O error occurs
-					isReadable = files != null;
-				} catch (SecurityException se) { }
-			}
-		}
-
-		return isReadable;
-	}
-
-	/**
-	 * Determines whether the supplied directory is writable by trying to
-	 * write a file to it.
-	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File#canWrite()} on Windows and possibly on Unix.
-	 *
-	 * Note: since this method accesses the filesystem, it should not be
-	 * used in contexts in which performance is critical.
-	 * Note: this method changes the file access time and may change the
-	 * file modification time.
-	 *
-	 * @since 1.71.0
-	 * @param dir the File whose permissions are to be determined
-	 * @return <code>true</code> if the File is not null, exists, is a
-	 *         directory and can be written to, <code>false</code> otherwise
-	 */
-	// XXX dir.canWrite() has issues on Windows, so verify it directly:
-	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6203387
-	public static boolean isDirectoryWritable(File dir) {
-		boolean isWritable = false;
-
-		if (dir != null) {
-			// new File("").isDirectory() is false, even though getAbsolutePath() returns the right path.
-			// this resolves it
-			dir = dir.getAbsoluteFile();
-
-			if (dir.isDirectory()) {
-				File file = new File(
-					dir,
-					String.format(
-						"pms_directory_write_test_%d_%d.tmp",
-						System.currentTimeMillis(),
-						Thread.currentThread().getId()
-					)
-				);
-
-				try {
-					if (file.createNewFile()) {
-						if (isFileWritable(file)) {
-							isWritable = true;
-						}
-
-						if (!file.delete()) {
-							LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
-						}
-					}
-				} catch (IOException | SecurityException ioe) {
-				}
-			}
-		}
-
-		return isWritable;
 	}
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {

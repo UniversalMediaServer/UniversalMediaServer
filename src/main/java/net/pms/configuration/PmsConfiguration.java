@@ -22,15 +22,12 @@ import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -41,6 +38,7 @@ import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
+import net.pms.util.FileUtil.FilePermissions;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
@@ -532,23 +530,22 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
 
-			if (pmsConfFile.isFile()) {
-				if (FileUtil.isFileReadable(pmsConfFile)) {
-					((PropertiesConfiguration)configuration).load(pmsConfFile);
-				} else {
-					LOGGER.warn("Can't load {}", PROFILE_PATH);
-				}
-			} else if (SKEL_PROFILE_PATH != null) {
-				File pmsSkelConfFile = new File(SKEL_PROFILE_PATH);
+			try {
+				((PropertiesConfiguration)configuration).load(pmsConfFile);
+			} catch (ConfigurationException e) {
+				if (Platform.isLinux() && SKEL_PROFILE_PATH != null) {
+					LOGGER.debug("Failed to load {} ({}) - attempting to load skel profile", PROFILE_PATH, e.getMessage());
+					File skelConfigFile = new File(SKEL_PROFILE_PATH);
 
-				if (pmsSkelConfFile.isFile()) {
-					if (FileUtil.isFileReadable(pmsSkelConfFile)) {
-						// Load defaults from skel file, save them later to PROFILE_PATH
-						((PropertiesConfiguration)configuration).load(pmsSkelConfFile);
-						LOGGER.info("Default configuration loaded from " + SKEL_PROFILE_PATH);
-					} else {
-						LOGGER.warn("Can't load {}", SKEL_PROFILE_PATH);
+					try {
+						// Load defaults from skel profile, save them later to PROFILE_PATH
+						((PropertiesConfiguration)configuration).load(skelConfigFile);
+						LOGGER.info("Default configuration loaded from {}", SKEL_PROFILE_PATH);
+					} catch (ConfigurationException ce) {
+						LOGGER.warn("Can't load neither {}: {} nor {}: {}", PROFILE_PATH, e.getMessage(), SKEL_PROFILE_PATH, ce.getMessage());
 					}
+				} else {
+					LOGGER.warn("Can't load {}: {}", PROFILE_PATH, e.getMessage());
 				}
 			}
 		}
@@ -612,6 +609,30 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
+	private String verifyLogFolder(File folder, String fallbackTo) {
+		try {
+			FilePermissions permissions = FileUtil.getFilePermissions(folder);
+			if (LOGGER.isTraceEnabled()) {
+				if (!permissions.isFolder()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not a folder, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				} else if (!permissions.isBrowsable()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not browsable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				} else if (!permissions.isWritable()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				}
+			}
+			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable()) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Default logfile folder set to: {}", folder.getAbsolutePath());
+				}
+				return folder.getAbsolutePath();
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.trace("getDefaultLogFileFolder: \"{}\" not found, falling back to {} for logging: {}", folder.getAbsolutePath(), fallbackTo, e.getMessage());
+		}
+		return null;
+	}
+
 	/**
 	 * @return first writable folder in the following order:
 	 * <p>
@@ -652,41 +673,26 @@ public class PmsConfiguration extends RendererConfiguration {
 						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
 					}
 				}
-				if (logDirectory.exists() && FileUtil.isDirectoryWritable(logDirectory)) {
-					defaultLogFileDir = logDirectory.getAbsolutePath();
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
-					}
-				} else if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to profile folder for logging", logDirectory.getAbsolutePath());
-				}
+				defaultLogFileDir = verifyLogFolder(logDirectory, "profile folder");
 			}
 
 			if (defaultLogFileDir == null) {
 				// Log to profile directory if it is writable.
 				final File profileDirectory = new File(PROFILE_DIRECTORY);
-				if (FileUtil.isDirectoryWritable(profileDirectory)) {
-					defaultLogFileDir = profileDirectory.getAbsolutePath();
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
-					}
-				} else {
-					// Try user-defined temporary folder or fall back to system temporary folder.
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to temporary folder for logging", profileDirectory.getAbsolutePath());
-					}
-					try {
-						defaultLogFileDir = getTempFolder().getAbsolutePath();
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
-						}
-					} catch (IOException e) {
-						LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
-						defaultLogFileDir = "";
-					}
+				defaultLogFileDir = verifyLogFolder(profileDirectory, "temporary folder");
+			}
+
+			if (defaultLogFileDir == null) {
+				// Try user-defined temporary folder or fall back to system temporary folder.
+				try {
+					defaultLogFileDir = verifyLogFolder(getTempFolder(), "working folder");
+				} catch (IOException e) {
+					LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
+					defaultLogFileDir = "";
 				}
 			}
 		}
+
 		return defaultLogFileDir;
 	}
 
