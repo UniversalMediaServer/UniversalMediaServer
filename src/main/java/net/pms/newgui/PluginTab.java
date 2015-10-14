@@ -157,7 +157,7 @@ public class PluginTab {
 				// See if we have write permission in 'plugins'. We don't necessarily
 				// need admin rights here.
 				try {
-					if (!FileUtil.getFilePermissions(configuration.getPluginDirectory()).canWrite()) {
+					if (!FileUtil.getFilePermissions(configuration.getPluginDirectory()).isWritable()) {
 						JOptionPane.showMessageDialog(
 							looksFrame,
 							Messages.getString("PluginTab.16") + (Platform.isWindows() ? "\n" + Messages.getString("AutoUpdate.13") : ""),
@@ -632,7 +632,8 @@ public class PluginTab {
 				try {
 					cred.save();
 				} catch (ConfigurationException e1) {
-					LOGGER.warn("Error saving cred file "+e1);
+					LOGGER.warn("Error saving credentials file {}", e1);
+					LOGGER.trace("", e1);
 				}
 				refreshCred(table);
 			}

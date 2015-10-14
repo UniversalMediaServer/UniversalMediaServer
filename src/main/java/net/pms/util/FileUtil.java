@@ -6,6 +6,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,72 +64,122 @@ public class FileUtil {
 
 	/**
 	 * A simple object to hold file permissions for a <code>File</code> object.
+	 * If there are insufficient permission to read the <code>File</code>
+	 * object's permissions, all permissions will return false (even though
+	 * some of them might be true) and no <code>Exception</code> will be thrown.
+	 * This is due to limitations in the underlying methods.
 	 *
 	 * @threadsafe
 	 */
 	public static class FilePermissions {
-		protected File file;
-		protected Boolean read;
-		protected Boolean write;
-		protected Boolean execute;
-		protected boolean folder;
+		protected final File file;
+		protected final Path path;
+		protected Boolean read = null;
+		protected Boolean write = null;
+		protected Boolean execute = null;
+		protected final boolean folder;
 
-		public FilePermissions(File file, Boolean read, Boolean write, Boolean execute) {
+		public FilePermissions(File file) throws FileNotFoundException {
 			if (file == null) {
 				throw new IllegalArgumentException("File parameter cannot be null");
 			}
-			this.file = file;
-			this.read = read;
-			this.write = write;
-			this.execute = execute;
-			folder = file.isDirectory();
+			/* Go via .getAbsoluteFile() to work around a bug where new File("")
+			 * (current folder) will report false to isDirectory().
+			 */
+			this.file = file.getAbsoluteFile();
+			if (!this.file.exists()) {
+				throw new FileNotFoundException("File \"" + this.file.getAbsolutePath() + "\" not found");
+			}
+			path = this.file.toPath();
+			folder = this.file.isDirectory();
 		}
 
-		public FilePermissions(File file, boolean read, boolean write, boolean execute) {
-			this(file, Boolean.valueOf(read), Boolean.valueOf(write), Boolean.valueOf(execute));
+		/**
+		 * Must always be called in a synchronized context
+		 */
+		protected void checkPermissions(boolean checkRead, boolean checkWrite, boolean checkExecute) {
+
+			if (read == null && checkRead) {
+				read = Boolean.valueOf(Files.isReadable(path));
+			}
+			if (write == null && checkWrite) {
+				write = Boolean.valueOf(Files.isWritable(path));
+			}
+			if (execute == null && checkExecute) {
+				execute = Boolean.valueOf(Files.isExecutable(path) || (Platform.isLinux() && isAdmin()));
+			}
 		}
 
-		public FilePermissions(File file, boolean read, boolean write) {
-			this(file, Boolean.valueOf(read), Boolean.valueOf(write), null);
-		}
-
-		public FilePermissions(File file, boolean read) {
-			this(file, Boolean.valueOf(read), null, null);
-		}
-
-		public FilePermissions(File file) {
-			this(file, null, null, null);
-		}
-
-		public synchronized boolean isFolder() {
+		/**
+		 * @return Whether the <code>File</code> object this <code>FilePermission</code>
+		 * object represents is a folder.
+		 */
+		public boolean isFolder() {
 			return folder;
 		}
 
-		public synchronized Boolean canRead() {
-			return read;
+		/**
+		 * @return Whether the file or folder is readable in the current context.
+		 */
+		public synchronized boolean isReadable() {
+			checkPermissions(true, false, false);
+			return read.booleanValue();
 		}
 
-		public synchronized void setReadPermission(boolean value) {
-			read = Boolean.valueOf(value);
+		/**
+		 * @return Whether the file or folder is writable in the current context.
+		 */
+		public synchronized boolean isWritable() {
+			checkPermissions(false, true, false);
+			return write.booleanValue();
 		}
 
-		public synchronized Boolean canWrite() {
-			return write;
+		/**
+		 * @return Whether the file is executable in the current context, or if
+		 * folder listing is permitted in the current context if it's a folder.
+		 */
+		public synchronized boolean isExecutable() {
+			checkPermissions(false, false, true);
+			return execute.booleanValue();
 		}
 
-		public synchronized void setWritePermission(boolean value) {
-			write = Boolean.valueOf(value);
+		/**
+		 * @return Whether the listing of the folder's content is permitted.
+		 * For this to be <code>true</code> {@link #isFolder()}, {@link #isReadable()}
+		 * and {@link #isExecutable()} must be true.
+		 */
+		public synchronized boolean isBrowsable() {
+			checkPermissions(true, false, true);
+			return folder && read.booleanValue() && execute.booleanValue();
 		}
 
-		public synchronized Boolean canExecute() {
-			return execute;
+		/**
+		 * @return The <code>File</code> object this <code>FilePermission</code>
+		 * object represents.
+		 */
+		public File getFile() {
+			return file;
 		}
 
-		public synchronized void setExecutePermission(boolean value) {
-			execute = Boolean.valueOf(value);
+		/**
+		 * @return The <code>Path</code> object this <code>FilePermission</code>
+		 * object represents.
+		 */
+		public Path getPath() {
+			return path;
+		}
+
+		/**
+		 * Re-reads file or folder permissions in case they have changed.
+		 */
+		public synchronized void refresh() {
+			read = null;
+			write = null;
+			execute = null;
 		}
 
 		public synchronized String toString() {
+			checkPermissions(true, true, true);
 			StringBuilder sb = new StringBuilder();
 			sb.append(folder ? "d" : "-");
 			if (read == null) {
@@ -1090,73 +1142,78 @@ public class FileUtil {
 	}
 
 	/**
-	 * Return a file or folder's permissions.
-	 * @param file The file or folder to check permissions for
-	 * @param checkRead Whether or not read permission should be verified
-	 * @param checkWrite Whether or not write permission should be verified
-	 * @param checkExecute Whether or not execute permission should be verified
-	 * @return A <code>FilePermissions</code> object holding the permissions
-	 * @throws FileNotFoundException
-	 */
-	public static FilePermissions getFilePermissions(File file, boolean checkRead, boolean checkWrite, boolean checkExecute) throws FileNotFoundException {
-		if (!file.exists()) {
-			throw new FileNotFoundException(file.getAbsolutePath());
-		}
-
-		FilePermissions permissions = new FilePermissions(
-			file,
-			checkRead ? Boolean.valueOf(isFileReadable(file)) : null,
-			checkWrite ? Boolean.valueOf(isFileWritable(file)) : null,
-			checkExecute ? Boolean.valueOf(isFileExecutable(file)) : null
-		);
-
-		return permissions;
-	}
-
-	/**
-	 * Return a file or folder's permissions.
+	 * Return a file or folder's permissions.<br><br>
+	 *
+	 * This should <b>NOT</b> be used for checking e.g. read permissions before
+	 * trying to open a file, because you can't assume that the same is true
+	 * when you actually open the file. Other threads or processes could have
+	 * locked the file (or changed it's permissions) in the meanwhile. Instead,
+	 * use e.g <code>FileNotFoundException</code> like this:
+	 * <pre><code>
+	 * } catch (FileNotFoundException e) {
+	 * 	LOGGER.debug("Can't read xxx {}", e.getMessage());
+	 * }
+	 * </code></pre>
+	 * <code>e.getMessage()</code> will contain both the full path to the file
+	 * the reason it couldn't be read (e.g. no permission).
+	 *
 	 * @param file The file or folder to check permissions for
 	 * @return A <code>FilePermissions</code> object holding the permissions
 	 * @throws FileNotFoundException
+	 * @see {@link #getFilePermissions(String)}
 	 */
 	public static FilePermissions getFilePermissions(File file) throws FileNotFoundException {
-		return getFilePermissions(file, true, true, true);
+		return new FilePermissions(file);
 	}
 
 	/**
-	 * Return a file or folder's permissions.
-	 * @param path The file or folder name to check permissions for
-	 * @param checkRead Whether or not read permission should be verified
-	 * @param checkWrite Whether or not write permission should be verified
-	 * @param checkExecute Whether or not execute permission should be verified
-	 * @return A <code>FilePermissions</code> object holding the permissions
-	 * @throws FileNotFoundException
+	 * Like {@link #getFilePermissions(File)} but returns <code>null</code>
+	 * instead of throwing <code>FileNotFoundException</code> if the file or
+	 * folder isn't found.
 	 */
-	public static FilePermissions getFilePermissions(String path, boolean checkRead, boolean checkWrite, boolean checkExecute) throws FileNotFoundException {
-		return getFilePermissions(new File(path), checkRead, checkWrite, checkExecute);
+	public static FilePermissions getFilePermissionsNoThrow(File file) {
+		try {
+			return new FilePermissions(file);
+		} catch (FileNotFoundException e) {
+			return null;
+		}
 	}
 
 	/**
-	 * Return a file or folder's permissions.
+	 * Return a file or folder's permissions.<br><br>
+	 *
+	 * This should <b>NOT</b> be used for checking e.g. read permissions before
+	 * trying to open a file, because you can't assume that the same is true
+	 * when you actually open the file. Other threads or processes could have
+	 * locked the file (or changed it's permissions) in the meanwhile. Instead,
+	 * use e.g <code>FileNotFoundException</code> like this:
+	 * <pre><code>
+	 * } catch (FileNotFoundException e) {
+	 * 	LOGGER.debug("Can't read xxx {}", e.getMessage());
+	 * }
+	 * </code></pre>
+	 * <code>e.getMessage()</code> will contain both the full path to the file
+	 * the reason it couldn't be read (e.g. no permission).
+	 *
 	 * @param path The file or folder name to check permissions for
 	 * @return A <code>FilePermissions</code> object holding the permissions
 	 * @throws FileNotFoundException
+	 * @see {@link #getFilePermissions(File)}
 	 */
 	public static FilePermissions getFilePermissions(String path) throws FileNotFoundException {
-		return getFilePermissions(new File(path));
+		return new FilePermissions(new File(path));
 	}
 
-	public static boolean isFileExecutable(File file) {
+	/**
+	 * Like {@link #getFilePermissions(String)} but returns <code>null</code>
+	 * instead of throwing <code>FileNotFoundException</code> if the file or
+	 * folder isn't found.
+	 */
+	public static FilePermissions getFilePermissionsNoThrow(String path) {
 		try {
-			if (Platform.isLinux()) {
-				 // canExecute() doesn't reflect that root can execute anything despite not having file permissions
-				 // under Linux, see http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6379654
-				return file.canExecute() || isAdmin();
-			}
-			else return file.canExecute();
-		} catch (SecurityException se) {
-			LOGGER.error("Security manager {}: {}", file.getAbsolutePath(), se);
-			return false;
+			return new FilePermissions(new File(path));
+		} catch (FileNotFoundException e) {
+			return null;
 		}
 	}
 

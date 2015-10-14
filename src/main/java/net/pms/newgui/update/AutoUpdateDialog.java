@@ -174,7 +174,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 				// need admin rights here.
 				File file = new File(System.getProperty("user.dir"));
 				try {
-					if (!FileUtil.getFilePermissions(file).canWrite()) {
+					if (!FileUtil.getFilePermissions(file).isWritable()) {
 						permissionsReminder = Messages.getString("AutoUpdate.12");
 						if (Platform.isWindows()) {
 							permissionsReminder += "\n" + Messages.getString("AutoUpdate.13");

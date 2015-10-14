@@ -337,30 +337,27 @@ public class PMS {
 		String profileDirectoryPath = configuration.getProfileDirectory();
 
 		LOGGER.info("");
-		LOGGER.info("Profile directory: " + profileDirectoryPath);
-		File file = new File(profileDirectoryPath);
-		if (file.exists()) {
-			LOGGER.info("Profile directory permissions: " + FileUtil.getFilePermissions(file));
-		} else {
-			LOGGER.warn(file.getAbsolutePath() + "doesn't exist!");
+		LOGGER.info("Profile directory: {}", profileDirectoryPath);
+		try {
+			LOGGER.info("Profile directory permissions: {}", FileUtil.getFilePermissions(profileDirectoryPath));
+		} catch (FileNotFoundException e) {
+			LOGGER.warn("Profile directory not found: {}", e.getMessage());
 		}
-		LOGGER.info("Profile path: " + profilePath);
-		file = new File(profilePath);
-		if (file.exists()) {
-			LOGGER.info("Profile permissions: " + FileUtil.getFilePermissions(file));
-		} else {
-			LOGGER.warn(file.getAbsolutePath() + "doesn't exist!");
+		LOGGER.info("Profile configuration file: {}", profilePath);
+		try {
+			LOGGER.info("Profile configuration file permissions: {}", FileUtil.getFilePermissions(profilePath));
+		} catch (FileNotFoundException e) {
+			LOGGER.warn("Profile configuration file not found: {}", e.getMessage());
 		}
-		LOGGER.info("Profile name: " + configuration.getProfileName());
+		LOGGER.info("Profile name: {}", configuration.getProfileName());
 		LOGGER.info("");
 		if (configuration.useWebInterface()) {
 			String webConfPath = configuration.getWebConfPath();
-			LOGGER.info("Web configuration path: " + webConfPath);
-			file = new File(webConfPath);
-			if (file.exists()) {
-				LOGGER.info("Web configuration permissions: " + FileUtil.getFilePermissions(file));
-			} else {
-				LOGGER.warn(file.getAbsolutePath() + "doesn't exist!");
+			LOGGER.info("Web configuration file: {}", webConfPath);
+			try {
+				LOGGER.info("Web configuration file permissions: {}", FileUtil.getFilePermissions(webConfPath));
+			} catch (FileNotFoundException e) {
+				LOGGER.warn("Web configuration file not found: {}", e.getMessage());
 			}
 			LOGGER.info("");
 		}
@@ -1444,7 +1441,7 @@ public class PMS {
 		ProcessBuilder pb = null;
 		String pid;
 		String pidFile = pidFile();
-		if (!FileUtil.getFilePermissions(pidFile, true, false, false).canRead()) {
+		if (!FileUtil.getFilePermissions(pidFile).isReadable()) {
 			throw new AccessControlException("Cannot read " + pidFile);
 		}
 
@@ -1488,11 +1485,11 @@ public class PMS {
 	private static void dumpPid() throws IOException, AccessControlException {
 		File file = new File(pidFile());
 		if (file.exists()) {
-			if (!FileUtil.getFilePermissions(file, false, true, false).canWrite()) {
+			if (!FileUtil.getFilePermissions(file).isWritable()) {
 				throw new AccessControlException("Cannot write " + file);
 			}
 		} else {
-			if (!FileUtil.getFilePermissions(file.getParentFile(), false, true, false).canWrite()) {
+			if (!FileUtil.getFilePermissions(file.getParentFile()).isWritable()) {
 				throw new AccessControlException("Cannot write to folder " + file.getParent());
 			}
 		}
