@@ -555,7 +555,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = createProgramPathsChain(configuration);
 		filter = new IpFilter();
-		PMS.setLocale(getLanguageLocale());
+		PMS.setLocale(getLanguageLocale(true));
 		//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
 		Locale.setDefault(getLanguageLocale());
 
@@ -844,23 +844,24 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Get the {@link java.util.Locale} of the preferred language for the UMS
 	 * user interface. The default is based on the default (OS) locale.
+	 * @param log determines if any issues should be logged.
 	 * @return The {@link java.util.Locale}.
 	 */
-	public Locale getLanguageLocale() {
+	public Locale getLanguageLocale(boolean log) {
 		String languageCode = configuration.getString(KEY_LANGUAGE);
 		Locale locale = null;
 		if (languageCode != null && !languageCode.isEmpty()) {
 			locale = Languages.toLocale(Locale.forLanguageTag(languageCode));
-			if (locale == null) {
+			if (log && locale == null) {
 				LOGGER.error("Invalid or unsupported language tag \"{}\", defaulting to OS language.", languageCode);
 			}
-		} else {
+		} else if (log) {
 			LOGGER.info("Language not specified, defaulting to OS language.");
 		}
 
 		if (locale == null) {
 			locale = Languages.toLocale(Locale.getDefault());
-			if (locale == null) {
+			if (log && locale == null) {
 				LOGGER.error("Unsupported language tag \"{}\", defaulting to US English.", Locale.getDefault().toLanguageTag());
 			}
 		}
@@ -869,6 +870,16 @@ public class PmsConfiguration extends RendererConfiguration {
 			locale = Locale.forLanguageTag("en-US"); // Default
 		}
 		return locale;
+	}
+
+	/**
+	 * Get the {@link java.util.Locale} of the preferred language for the UMS
+	 * user interface. The default is based on the default (OS) locale. Doesn't
+	 * log potential issues.
+	 * @return The {@link java.util.Locale}.
+	 */
+	public Locale getLanguageLocale() {
+		return getLanguageLocale(false);
 	}
 
 	/**
