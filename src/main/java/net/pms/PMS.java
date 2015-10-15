@@ -1488,7 +1488,7 @@ public class PMS {
 	private static void dumpPid() throws IOException {
 		try (FileOutputStream out = new FileOutputStream(pidFile())) {
 			long pid = getPID();
-			LOGGER.debug("Write PID: " + pid);
+			LOGGER.debug("Writing PID: " + pid);
 			String data = String.valueOf(pid) + "\r\n";
 			out.write(data.getBytes(StandardCharsets.US_ASCII));
 			out.flush();

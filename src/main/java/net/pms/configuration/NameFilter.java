@@ -31,7 +31,7 @@ public class NameFilter {
 				configuration.setPath(denyFile.getAbsolutePath());
 			}
 		} catch (FileNotFoundException e) {
-			LOGGER.trace("Could not read NameFilter {}", e.getMessage());
+			LOGGER.trace("Could not read name filter: {}", e.getMessage());
 			throw new ConfigurationException("Could not read NameFilter " + e.getMessage(), e);
 		}
 	}

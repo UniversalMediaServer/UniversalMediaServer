@@ -6,8 +6,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,145 +57,6 @@ public class FileUtil {
 
 		public String getFilePath() {
 			return filePath;
-		}
-	}
-
-	/**
-	 * A simple object to hold file permissions for a <code>File</code> object.
-	 * If there are insufficient permission to read the <code>File</code>
-	 * object's permissions, all permissions will return false (even though
-	 * some of them might be true) and no <code>Exception</code> will be thrown.
-	 * This is due to limitations in the underlying methods.
-	 *
-	 * @threadsafe
-	 */
-	public static class FilePermissions {
-		private final File file;
-		private final Path path;
-		private Boolean read = null;
-		private Boolean write = null;
-		private Boolean execute = null;
-		private final boolean folder;
-
-		public FilePermissions(File file) throws FileNotFoundException {
-			if (file == null) {
-				throw new IllegalArgumentException("File parameter cannot be null");
-			}
-			/* Go via .getAbsoluteFile() to work around a bug where new File("")
-			 * (current folder) will report false to isDirectory().
-			 */
-			this.file = file.getAbsoluteFile();
-			if (!this.file.exists()) {
-				throw new FileNotFoundException("File \"" + this.file.getAbsolutePath() + "\" not found");
-			}
-			path = this.file.toPath();
-			folder = this.file.isDirectory();
-		}
-
-		/**
-		 * Must always be called in a synchronized context
-		 */
-		protected void checkPermissions(boolean checkRead, boolean checkWrite, boolean checkExecute) {
-
-			if (read == null && checkRead) {
-				read = Boolean.valueOf(Files.isReadable(path));
-			}
-			if (write == null && checkWrite) {
-				write = Boolean.valueOf(Files.isWritable(path));
-			}
-			if (execute == null && checkExecute) {
-				execute = Boolean.valueOf(Files.isExecutable(path) || (Platform.isLinux() && isAdmin()));
-			}
-		}
-
-		/**
-		 * @return Whether the <code>File</code> object this <code>FilePermission</code>
-		 * object represents is a folder.
-		 */
-		public boolean isFolder() {
-			return folder;
-		}
-
-		/**
-		 * @return Whether the file or folder is readable in the current context.
-		 */
-		public synchronized boolean isReadable() {
-			checkPermissions(true, false, false);
-			return read.booleanValue();
-		}
-
-		/**
-		 * @return Whether the file or folder is writable in the current context.
-		 */
-		public synchronized boolean isWritable() {
-			checkPermissions(false, true, false);
-			return write.booleanValue();
-		}
-
-		/**
-		 * @return Whether the file is executable in the current context, or if
-		 * folder listing is permitted in the current context if it's a folder.
-		 */
-		public synchronized boolean isExecutable() {
-			checkPermissions(false, false, true);
-			return execute.booleanValue();
-		}
-
-		/**
-		 * @return Whether the listing of the folder's content is permitted.
-		 * For this to be <code>true</code> {@link #isFolder()}, {@link #isReadable()}
-		 * and {@link #isExecutable()} must be true.
-		 */
-		public synchronized boolean isBrowsable() {
-			checkPermissions(true, false, true);
-			return folder && read.booleanValue() && execute.booleanValue();
-		}
-
-		/**
-		 * @return The <code>File</code> object this <code>FilePermission</code>
-		 * object represents.
-		 */
-		public File getFile() {
-			return file;
-		}
-
-		/**
-		 * @return The <code>Path</code> object this <code>FilePermission</code>
-		 * object represents.
-		 */
-		public Path getPath() {
-			return path;
-		}
-
-		/**
-		 * Re-reads file or folder permissions in case they have changed.
-		 */
-		public synchronized void refresh() {
-			read = null;
-			write = null;
-			execute = null;
-		}
-
-		public synchronized String toString() {
-			checkPermissions(true, true, true);
-			StringBuilder sb = new StringBuilder();
-			sb.append(folder ? "d" : "-");
-			if (read == null) {
-				sb.append("?");
-			} else {
-				sb.append(read.booleanValue() ? "r" : "-");
-			}
-			if (write == null) {
-				sb.append("?");
-			} else {
-				sb.append(write.booleanValue() ? "w" : "-");
-			}
-			if (execute == null) {
-				sb.append("?");
-			} else {
-				sb.append(execute.booleanValue() ? "x" : "-");
-			}
-			return sb.toString();
 		}
 	}
 
@@ -1204,7 +1063,8 @@ public class FileUtil {
 		if (path != null) {
 			return new FilePermissions(new File(path));
 		} else {
-			return new FilePermissions(null);
+			File file = null;
+			return new FilePermissions(file);
 		}
 	}
 
@@ -1357,12 +1217,10 @@ public class FileUtil {
 	 * @return the corrected path
 	 */
 	public static String appendPathSeparator(String path) {
-		if (path.contains("\\")) {
-			if (!path.endsWith("\\")) {
+		if (!path.endsWith("\\") && !path.endsWith("/")) {
+			if (path.contains("\\")) {
 				path += "\\";
-			}
-		} else {
-			if (!path.endsWith("/")) {
+			} else {
 				path += "/";
 			}
 		}

@@ -41,7 +41,7 @@ import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
-import net.pms.util.FileUtil.FilePermissions;
+import net.pms.util.FilePermissions;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;

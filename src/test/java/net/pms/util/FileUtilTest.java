@@ -24,17 +24,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Random;
 import static net.pms.util.Constants.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.util.FileUtil.FilePermissions;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Fail;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -321,7 +320,7 @@ public class FileUtilTest {
 		}
 		assertNull("NoSuchFileIsNull", FileUtil.getFilePermissionsNoThrow(new File(file.getParentFile(),"No such file")));
 
-		path = String.format("pms_temp_writable_file_%d_1.tmp", System.currentTimeMillis());
+		path = String.format("UMS_temp_writable_file_%d.tmp", new Random().nextInt(10000));
 		file = new File(System.getProperty("java.io.tmpdir"), path);
 		try {
 			if (file.createNewFile()) {
