@@ -116,21 +116,23 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
-	private boolean monitorClass(DLNAResource res) {
-		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
-	}
-
 	public void stopped(DLNAResource res) {
 		if (!(res instanceof RealFile)) {
 			return;
 		}
 		RealFile rf = (RealFile) res;
-		DLNAResource tmp = res.getParent();
-		while (tmp != null) {
-			if (monitorClass(tmp)) {
-				if (isWatched(rf.getFile().getAbsolutePath())) { // no duplicates!
+
+		long played = (System.currentTimeMillis() - rf.getStartTime()) / 1000;
+
+		// Only mark videos as watched if it has been more than 30 seconds since it was started
+		if (played > 30) {
+			DLNAResource tmp = res.getParent();
+			if (tmp != null) {
+				// Prevent duplicates from being added
+				if (isWatched(rf.getFile().getAbsolutePath())) {
 					return;
 				}
+
 				watchedEntries.add(rf.getFile().getAbsolutePath());
 				setDiscovered(false);
 				getChildren().clear();
@@ -138,9 +140,7 @@ public class MediaMonitor extends VirtualFolder {
 					dumpFile();
 				} catch (IOException e) {
 				}
-				return;
 			}
-			tmp = tmp.getParent();
 		}
 	}
 

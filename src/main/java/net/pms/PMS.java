@@ -823,22 +823,23 @@ public class PMS {
 	 *
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
+	@Deprecated
 	public File[] getSharedFoldersArray(boolean monitored) {
 		return getSharedFoldersArray(monitored, null, getConfiguration());
 	}
 
+	@Deprecated
 	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
 		return getSharedFoldersArray(monitored, null, configuration);
 	}
 
+	@Deprecated
 	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
-		String folders;
+		return getSharedFoldersArray(tags, configuration);
+	}
 
-		if (monitored) {
-			folders = configuration.getFoldersMonitored();
-		} else {
-			folders = configuration.getFolders(tags);
-		}
+	public File[] getSharedFoldersArray(ArrayList<String> tags, PmsConfiguration configuration) {
+		String folders = configuration.getFolders(tags);
 
 		if (folders == null || folders.length() == 0) {
 			return null;
