@@ -122,10 +122,13 @@ public class MediaMonitor extends VirtualFolder {
 		}
 		RealFile rf = (RealFile) res;
 
-		long played = (System.currentTimeMillis() - rf.getStartTime()) / 1000;
+		long played = System.currentTimeMillis() - rf.getStartTime();
 
-		// Only mark videos as watched if it has been more than 30 seconds since it was started
-		if (played > 30) {
+		/**
+		 * Only mark videos as watched if it has been more than 30 seconds (default)
+		 * since it was started.
+		 */
+		if (played > configuration.getMinimumWatchedPlayTime()) {
 			DLNAResource tmp = res.getParent();
 			if (tmp != null) {
 				// Prevent duplicates from being added

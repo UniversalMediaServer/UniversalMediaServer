@@ -3891,7 +3891,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public int minPlayTime() {
-		return configuration.getMinPlayTime();
+		return configuration.getMinimumWatchedPlayTime();
 	}
 
 	private String resumeStr(String s) {
