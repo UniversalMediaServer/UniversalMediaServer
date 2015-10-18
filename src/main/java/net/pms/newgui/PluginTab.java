@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -64,8 +65,9 @@ public class PluginTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PluginTab.class);
 	private final PmsConfiguration configuration;
 	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, fill:p, 3dlu, p, 15dlu, p, 8dlu, p, 8dlu, p, 3dlu, fill:p:grow, 3dlu, p, 3dlu, p";
 	private JPanel pPlugins;
+	private JPanel installedPluginsSeparator;
 	private ArrayList<DownloadPlugins> plugins;
 	private LooksFrame looksFrame;
 
@@ -136,7 +138,7 @@ public class PluginTab {
 		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
 		descriptionColumn.setMinWidth(300);
 
-		JScrollPane pane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane pane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 139));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
@@ -236,20 +238,24 @@ public class PluginTab {
 		});
 
 		// Installed Plugins section
-		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		JComponent component;
+		installedPluginsSeparator = (JPanel) builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
+		installedPluginsSeparator.setVisible(false);
+		component = (JComponent) installedPluginsSeparator.getComponent(0);
+		component.setFont(component.getFont().deriveFont(Font.BOLD));
 
 		pPlugins = new JPanel(new GridLayout());
+		pPlugins.setVisible(false);
 		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
 
 		// Credentials section
-		cmp = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		component = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
+		component = (JComponent) component.getComponent(0);
+		component.setFont(component.getFont().deriveFont(Font.BOLD));
 
 		credTable.setRowHeight(22);
 		credTable.setIntercellSpacing(new Dimension(8, 0));
+		credTable.setFillsViewportHeight(true);
 
 		// Define column widths
 		TableColumn ownerColumn = credTable.getColumnModel().getColumn(0);
@@ -261,7 +267,7 @@ public class PluginTab {
 		TableColumn pwdColumn = credTable.getColumnModel().getColumn(3);
 		pwdColumn.setPreferredWidth(45);
 
-		pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 95));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
@@ -338,14 +344,21 @@ public class PluginTab {
 				try {
 					configuration.initCred();
 				} catch (IOException e2) {
-					LOGGER.debug("error creating cred file");
+					LOGGER.error("Could not create credentials file: {}", e2.getMessage());
+					LOGGER.trace("", e2);
 					return;
 				}
 
+				try {
+					cred.save();
+				} catch (ConfigurationException e3) {
+					LOGGER.error("Could not save credentials file: {}", e3.getMessage());
+					LOGGER.trace("", e3);
+				}
 				File f = configuration.getCredFile();
 
 				try {
-					try (FileInputStream fis = new FileInputStream(f); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
+					try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
 						String line;
 						StringBuilder sb = new StringBuilder();
 						while ((line = in.readLine()) != null) {
@@ -355,6 +368,8 @@ public class PluginTab {
 						textArea.setText(sb.toString());
 					}
 				} catch (IOException e1) {
+					LOGGER.error("Could not read credentials file: {}", e1.getMessage());
+					LOGGER.trace("", e1);
 					return;
 				}
 
@@ -376,12 +391,19 @@ public class PluginTab {
 					String text = textArea.getText();
 					try {
 						try (FileOutputStream fos = new FileOutputStream(f)) {
-							fos.write(text.getBytes());
+							fos.write(text.getBytes(StandardCharsets.UTF_8));
 							fos.flush();
 						}
 						PMS.getConfiguration().reload();
+						try {
+							cred.refresh();
+						} catch (ConfigurationException e2) {
+							LOGGER.error("An error occurred while updating credentials: {}", e2);
+							LOGGER.trace("", e2);
+						}
+						refreshCred(credTable);
 					} catch (Exception e1) {
-						JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + e1.toString());
+						JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + ": " + e1.getMessage());
 					}
 				}
 			}
@@ -421,11 +443,14 @@ public class PluginTab {
 			"fill:10:grow",
 			"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p");
 		pPlugins.setLayout(layout);
-		for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
+		List<ExternalListener> externalListeners = ExternalFactory.getExternalListeners();
+		for (final ExternalListener listener : externalListeners) {
 			if (!appendPlugin(listener)) {
 				break;
 			}
 		}
+		pPlugins.setVisible(externalListeners.size() > 0);
+		installedPluginsSeparator.setVisible(externalListeners.size() > 0);
 	}
 
 	public boolean appendPlugin(final ExternalListener listener) {
