@@ -492,6 +492,11 @@ public class PMS {
 			}
 		}
 
+		Splash splash = new Splash(LooksFrame.readImageIcon("splash.png"), false);
+		if (System.getProperty(CONSOLE) == null) {
+			splash.setVisible(true);
+		}
+
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
@@ -515,6 +520,8 @@ public class PMS {
 			LOGGER.info("Switching to console mode");
 			frame = new DummyFrame();
 		}
+
+		splash.dispose();
 
 		/*
 		 * we're here:
