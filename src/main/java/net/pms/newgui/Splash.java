@@ -43,11 +43,10 @@ public class Splash extends JFrame {
 	 * When the GUI started call the {@link Splash.dispose} to release all resources used by this
      * {@code Splash} and return all memory they consume to the OS.
 	 * 
-	 * @param image The Image displayed
 	 * @param showProgressBar Set true when the progress bar should be displayed
 	 */
-	public Splash(ImageIcon image, boolean showProgressBar) {
-		img = image;
+	public Splash(boolean showProgressBar) {
+		img = new ImageIcon(getClass().getResource("/resources/images/splash.png"));
 		imglabel = new JLabel(img);
 		imglabel.setBounds(0, 0, img.getIconWidth(), img.getIconHeight());
 		setSize(imglabel.getWidth(), imglabel.getHeight() + 20);
@@ -72,7 +71,7 @@ public class Splash extends JFrame {
 					while (i <= 100) {
 						pbar.setValue(i);
 						try {
-							sleep(100);
+							sleep(100); // set the duration to 10 seconds
 						} catch (InterruptedException ex) {
 							LOGGER.error("Error:", ex);
 						}
@@ -82,6 +81,9 @@ public class Splash extends JFrame {
 			};
 			t.start();
 		}
-		
+
+		if (System.getProperty("console") == null) {
+			setVisible(true);
+		}
 	}
 }

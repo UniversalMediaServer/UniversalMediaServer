@@ -26,6 +26,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -492,10 +493,7 @@ public class PMS {
 			}
 		}
 
-		Splash splash = new Splash(LooksFrame.readImageIcon("splash.png"), false);
-		if (System.getProperty(CONSOLE) == null) {
-			splash.setVisible(true);
-		}
+		Splash splash = new Splash(false);
 
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
