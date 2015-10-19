@@ -21,20 +21,14 @@
 package net.pms.newgui;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JProgressBar;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Splash extends JFrame {
 	private static final long serialVersionUID = 2357524127613134620L;
-	private static final Logger LOGGER = LoggerFactory.getLogger(Splash.class);
 	private JLabel imglabel;
 	private ImageIcon img;
-	private static JProgressBar pbar;
 	Thread t = null;
 
 	/**
@@ -45,7 +39,7 @@ public class Splash extends JFrame {
 	 * 
 	 * @param showProgressBar Set true when the progress bar should be displayed
 	 */
-	public Splash(boolean showProgressBar) {
+	public Splash() {
 		img = new ImageIcon(getClass().getResource("/resources/images/splash.png"));
 		imglabel = new JLabel(img);
 		imglabel.setBounds(0, 0, img.getIconWidth(), img.getIconHeight());
@@ -56,32 +50,6 @@ public class Splash extends JFrame {
 		setLocationRelativeTo(null);
 		setLayout(null);
 		add(imglabel);
-		if (showProgressBar) {
-			pbar = new JProgressBar();
-			pbar.setMinimum(0);
-			pbar.setMaximum(100);
-			pbar.setStringPainted(true);
-			pbar.setForeground(Color.LIGHT_GRAY);
-			add(pbar);
-			pbar.setPreferredSize(new Dimension(imglabel.getWidth(), 20));
-			pbar.setBounds(0, imglabel.getHeight(), imglabel.getWidth(), 20);
-			Thread t = new Thread() {
-				public void run() {
-					int i = 0;
-					while (i <= 100) {
-						pbar.setValue(i);
-						try {
-							sleep(100); // set the duration to 10 seconds
-						} catch (InterruptedException ex) {
-							LOGGER.error("Error:", ex);
-						}
-						i++;
-					}
-				}
-			};
-			t.start();
-		}
-
 		if (System.getProperty("console") == null) {
 			setVisible(true);
 		}

@@ -492,7 +492,7 @@ public class PMS {
 			}
 		}
 
-		Splash splash = new Splash(false);
+		Splash splash = new Splash();
 
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
