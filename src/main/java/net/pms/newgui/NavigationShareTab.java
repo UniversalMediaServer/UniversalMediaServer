@@ -778,8 +778,8 @@ public class NavigationShareTab {
 
 		File[] folders = PMS.get().getSharedFoldersArray(false);
 		if (folders != null && folders.length > 0) {
+			File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
 			for (File folder : folders) {
-				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
 				boolean isMonitored = false;
 				if (foldersMonitored != null && foldersMonitored.length > 0) {
 					for (File folderMonitored : foldersMonitored) {
