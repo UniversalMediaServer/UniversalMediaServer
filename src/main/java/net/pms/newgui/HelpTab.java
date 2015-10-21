@@ -112,20 +112,25 @@ public class HelpTab {
 	 */
 	public void updateContents() {
 		if (editorPane != null) {
-			String documentationDir = PropertiesUtil.getProjectProperties().get("project.documentation.dir");
+			File documentationDir = new File(PropertiesUtil.getProjectProperties().get("project.documentation.dir"));
 			String helpPage = PMS.getHelpPage();
-			File file = new File(documentationDir + "/" + helpPage);
-			if (file.exists()) {
+			if (!documentationDir.exists()) {
+				// Try to load help files from the source tree if not found to make it work while running from an IDE
+				File sourceDocumentationDir = new File("src/main/external-resources/documentation");
+				if (sourceDocumentationDir.exists()) {
+					documentationDir = sourceDocumentationDir;
+				}
+			}
+			File helpFile = new File(documentationDir, helpPage);
+			if (helpFile.exists()) {
 				try {
 					// Display the HTML help file in the editor
-					editorPane.setPage(file.toURI().toURL());
-				} catch (MalformedURLException e) {
-					LOGGER.debug("Caught exception", e);
+					editorPane.setPage(helpFile.toURI().toURL());
 				} catch (IOException e) {
-					LOGGER.debug("Caught exception", e);
+					LOGGER.debug("Exception while trying to display help file: ", e);
 				}
 			} else {
-				LOGGER.info("Couldn't find help file \"{}/{}\". Help will not be available.", documentationDir, helpPage);
+				LOGGER.info("Couldn't find help file \"{}\". Help will not be available.", helpFile.getAbsolutePath());
 			}
 		}
 	}

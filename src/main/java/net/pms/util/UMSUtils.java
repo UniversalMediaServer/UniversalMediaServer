@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,8 +27,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.Collator;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -159,14 +157,6 @@ public class UMSUtils {
 		}
 	}
 
-	public static String logFormat(String msg) {
-		DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss");
-		Date date = new Date();
-
-		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
-		return dateFormat.format(date) + " " + messageDisplay[1];
-	}
-
 	private static int getHW(String[] s, int pos) {
 		if (pos > s.length - 1) {
 			return 0;
@@ -238,25 +228,9 @@ public class UMSUtils {
 		return new ByteArrayInputStream(out.toByteArray());
 	}
 
-	private static String fixTimeStr(String str) {
-		if (str.equals("NOT_IMPLEMENTED")) {
-			return " ";
-		}
-		if(str.charAt(0) == ':')   {
-			// remove stray ':' at the start
-			str = str.substring(1);
-		}
-		int pos = str.indexOf(".");
-		if (pos != -1) {
-			// remove millisecond portion
-			str = str.substring(0, pos);
-		}
-		return str;
-	}
-
 	public static String playedDurationStr(String current, String duration) {
-		String pos = fixTimeStr(StringUtil.shortTime(current, 4));
-		String dur = fixTimeStr(StringUtil.shortTime(duration, 4));
+		String pos = StringUtil.shortTime(current, 4);
+		String dur = StringUtil.shortTime(duration, 4);
 		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
 	}
 

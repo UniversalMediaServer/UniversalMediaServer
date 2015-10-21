@@ -458,7 +458,7 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.MP3);
 				}
 			}
-		} else if (value.equals("ma")) {
+		} else if (value.equals("ma") || value.equals("ma / core") || value.equals("134")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;
 			}

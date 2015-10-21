@@ -21,11 +21,17 @@ public final class CheckOSClock implements Runnable
 	private static String constructTimeOffsetString(long offsetMS, boolean localize) {
 		String offset;
 		if (Math.abs(offsetMS) > 7140000) { // 1 hour 59 minutes
-			offset = String.format(Messages.getString("CheckOSClock.4", localize ? "" : "en"), Math.abs(Math.round(offsetMS/3600000)));
+			offset = String.format(
+				localize ? Messages.getString("CheckOSClock.4") : Messages.getRootString("CheckOSClock.4"), Math.abs(Math.round(offsetMS/3600000))
+			);
 		} else if (Math.abs(offsetMS) > 179000) { // 2 minutes 59 seconds
-			offset = String.format(Messages.getString("CheckOSClock.5", localize ? "" : "en"), Math.abs(Math.round(offsetMS/60000)));
+			offset = String.format(
+				localize ? Messages.getString("CheckOSClock.5") : Messages.getRootString("CheckOSClock.5"), Math.abs(Math.round(offsetMS/60000))
+			);
 		} else {
-			offset = String.format(Messages.getString("CheckOSClock.6", localize ? "" : "en"), Math.abs(Math.round(offsetMS/1000)));
+			offset = String.format(
+				localize ? Messages.getString("CheckOSClock.6") : Messages.getRootString("CheckOSClock.6"), Math.abs(Math.round(offsetMS/1000))
+			);
 		}
 		if (offsetMS > 0) {
 			return String.format(localize ? Messages.getString("CheckOSClock.1") : "Computer clock is running %s to slow.", offset);

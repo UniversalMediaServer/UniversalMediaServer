@@ -181,7 +181,7 @@
 		UMS not showing on your DLNA client can be caused by a variety of
 		factors, but the potential causes can be broken up into two groups -
 		&quot;Before UDP Broadcast&quot; and &quot;After UDP Broadcast&quot;<br />The
-		line in the debug.log/trace that separates these two groups (this
+		line in the logfile/trace that separates these two groups (this
 		signifies the UDP broadcast) is
 	</p>
 
@@ -201,7 +201,7 @@
 	</p>
 
 	<h3>Before UDP Broadcast</h3>
-	<p>These can usually be spotted through errors in the debug.log /
+	<p>These can usually be spotted through errors in the logfile /
 		trace before the line above.</p>
 	<dl>
 		<dt>UMS cannot bind to the port/IP on the NIC.</dt>
@@ -242,7 +242,7 @@
 			<ul>
 				<li>You forced the wrong NIC in the UMS settings, so force the
 					right NIC or clear the setting. Note: There is no error in the
-					debug.log/trace</li>
+					logfile/trace</li>
 			</ul>
 		</dd>
 		<dt>The host file on your Linux box needs to be corrected.</dt>
@@ -250,7 +250,7 @@
 			<ul>
 				<li><a
 					href="http://ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=16041#p16041">http://ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=16041#p16041</a>.
-					Note: There is no error in the debug.log/trace</li>
+					Note: There is no error in the logfile/trace</li>
 			</ul>
 		</dd>
 		<dt>You do not have proper access or permissions for the UMS
@@ -261,8 +261,8 @@
 					permissions on the UMS install folder.
 					<ul>
 						<li>Check the base file system permissions.</li>
-						<li>On Windows Vista or Windows 7, reinstall with &quot;Run
-							as Administrator&quot; on the installer.</li>
+						<li>On Windows Vista, Windows 7, Windows 8 and Windows 10 reinstall 
+							with &quot;Run as Administrator&quot; on the installer.</li>
 						<li>Check if any filesystem protection programs are blocking
 							access (some antivirus or malware programs have this feature).</li>
 					</ul>
@@ -287,7 +287,7 @@
 		to look externally.</p>
 
 	<dl>
-		<dt>You have a Windows 7 box and it's using the
+		<dt>You have Windows 7, Windows 8 or Windows 10 and it's using the
 			&quot;Public&quot; settings instead of &quot;Private&quot;</dt>
 		<dd>
 			PUBLIC settings is used in non trusted network and PRIVATE is used in

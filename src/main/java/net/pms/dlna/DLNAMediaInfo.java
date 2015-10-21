@@ -20,15 +20,12 @@ package net.pms.dlna;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -224,8 +221,9 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean ffmpegparsed;
 
 	/**
-	 * isMediaParserV2 related, used to manage thumbnail management separated
+	 * isUseMediaInfo-related, used to manage thumbnail management separated
 	 * from the main parsing process.
+	 *
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
@@ -961,41 +959,16 @@ public class DLNAMediaInfo implements Cloneable {
 						if (sz > 0 && !net.pms.PMS.isHeadless()) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null) {
-								if (MediaMonitor.isWatched(file.getAbsolutePath())) {
-									/**
-									 * TODO: Cache the calculated values
-									 * TODO: Include and use a custom font
-									 */
-									String text = Messages.getString("DLNAResource.4");
-									int thumbnailWidth = renderer.getThumbnailWidth();
-									int fontSize = thumbnailWidth / 6;
-									Graphics2D g = image.createGraphics();
-									g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-									g.fillRect(0, 0, thumbnailWidth, renderer.getThumbnailHeight());
-									g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
-									g.setFont(new Font("Arial", Font.PLAIN, fontSize));
-									FontMetrics fm = g.getFontMetrics();
-									Rectangle2D textsize = fm.getStringBounds(text, g);
-									int textWidth = (int) textsize.getWidth();
-									int horizontalPosition = (thumbnailWidth - textWidth) / 2;
-									
-									// Use a smaller font size if there isn't enough room
-									if (textWidth > thumbnailWidth) {
-										for (int divider = 7; divider < 99; divider++) {
-											fontSize = thumbnailWidth / divider;
-											g.setFont(new Font("Arial", Font.PLAIN, fontSize));
-											fm = g.getFontMetrics();
-											textsize = fm.getStringBounds(text, g);
-											textWidth = (int) textsize.getWidth();
-											if (textWidth <= (thumbnailWidth * 0.9)) {
-												horizontalPosition = (thumbnailWidth - textWidth) / 2;
-												break;
-											}
-										}
+								Graphics g = image.getGraphics();
+								g.setColor(Color.WHITE);
+								g.setFont(new Font("Arial", Font.PLAIN, 14));
+								int low = 0;
+								if (width > 0) {
+									if (width == 1920 || width == 1440) {
+										g.drawString("1080p", 0, low += 18);
+									} else if (width == 1280) {
+										g.drawString("720p", 0, low += 18);
 									}
-
-									int verticalPosition = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
-									g.drawString(text, horizontalPosition, verticalPosition);
 								}
 								ByteArrayOutputStream out = new ByteArrayOutputStream();
 								ImageIO.write(image, "jpeg", out);

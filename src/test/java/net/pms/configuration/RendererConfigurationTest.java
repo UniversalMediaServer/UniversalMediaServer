@@ -72,8 +72,9 @@ public class RendererConfigurationTest {
 		testHeaders(null, "X-Unknown-Header: Unknown Content");
 
 		// AirPlayer:
-		testHeaders("Apple AirPlayer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
-		testHeaders("Apple AirPlayer", "User-Agent: Lavf52.54.0");
+		testHeaders("AirPlayer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
+		testHeaders("AirPlayer", "User-Agent: Lavf52.54.0");
+		testHeaders("AirPlayer", "User-Agent: VLC%20for%20iOS/22 CFNetwork/711.5.6 Darwin/14.0.0");
 
 		// BraviaEX:
 		testHeaders("Sony Bravia EX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";");

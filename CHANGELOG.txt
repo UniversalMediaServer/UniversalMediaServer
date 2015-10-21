@@ -1,7 +1,41 @@
-5.2.3 - 2015-08-??
+5.2.4 - 2015-10-??
 
 	General:
-		
+		The main window saves its size and position
+		Fixed DTS-HD being detected as regular DTS
+		Fixed the use of UMS profiles
+	External Components:
+		Updated MediaInfo for Windows to 0.7.78, which improved file parsing speed
+
+5.2.3 - 2015-09-28
+
+	General:
+		Improved logging and logging options
+		Improved language translations
+		Improved Windows 10 support
+		Improved playback stability
+		Changed default thumbnail seeking position from 2 seconds to 4 seconds
+		Minor status tab updates
+		Fixed the web interface Flash player
+		Fixed many bugs
+	Renderers:
+		Improved detection of AirPlayer
+		Improved folder population time on Panasonic TVs
+		Improved support for Samsung TVs
+		Improved support for Vizio TVs
+	Languages:
+		Improved accuracy of automatic subtitles language detection
+		Updated many languages based on contributions from Crowdin
+	External Components:
+		Updated AssertJ to 2.2.0
+		Updated h2database to 1.4.189
+		Updated FFmpeg for Windows
+		Updated Javassist to 3.20.0-GA
+		Updated jmustache to 1.10
+		Updated JNA to 4.2.0
+		Updated maven-antrun-plugin to 1.7
+		Updated Plexus-utils to 3.0.22
+		Updated Seamless to 1.1.1
 
 5.2.2 - 2015-08-13
 	General:

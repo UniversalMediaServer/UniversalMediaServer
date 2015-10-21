@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -174,7 +174,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Removes leading zeros up to the nth char of an hh:mm:ss time string.
+	 * Removes leading zeros up to the nth char of an hh:mm:ss time string,
+	 * normalizing it first if necessary.
 	 *
 	 * @param t time string.
 	 * @param n position to stop checking
@@ -184,10 +185,20 @@ public class StringUtil {
 	public static String shortTime(String t, int n) {
 		n = n < 8 ? n : 8;
 		if (!isBlank(t)) {
+			if (t.startsWith("NOT_IMPLEMENTED")) {
+				return t.length() > 15 ? t.substring(15) : " ";
+			}
 			int i = t.indexOf(".");
 			// Throw out the decimal portion, if any
 			if (i > -1) {
 				t = t.substring(0, i);
+			}
+			int l = t.length();
+			// Normalize if necessary
+			if (l < 8) {
+				t = "00:00:00".substring(0, 8 - l) + t;
+			} else if (l > 8) {
+				t = t.substring(l - 8);
 			}
 			for (i = 0; i < n; i++) {
 				if (t.charAt(i) != "00:00:00".charAt(i)) {

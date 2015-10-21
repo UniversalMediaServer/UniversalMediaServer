@@ -15,13 +15,14 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.util.Constants.*;
-import net.pms.util.charsetdetector.CharsetDetector;
-import net.pms.util.charsetdetector.CharsetMatch;
 import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
@@ -754,7 +755,7 @@ public class FileUtil {
 							if (!exists) {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
-								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
+								if (code.length() == 0 || !Iso639.codeIsValid(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
 									if (code.length() > 0) {
@@ -762,7 +763,7 @@ public class FileUtil {
 										if (sub.getSubtitlesTrackTitleFromMetadata().contains("-")) {
 											String flavorLang = sub.getSubtitlesTrackTitleFromMetadata().substring(0, sub.getSubtitlesTrackTitleFromMetadata().indexOf('-'));
 											String flavorTitle = sub.getSubtitlesTrackTitleFromMetadata().substring(sub.getSubtitlesTrackTitleFromMetadata().indexOf('-') + 1);
-											if (Iso639.getCodeList().contains(flavorLang)) {
+											if (Iso639.codeIsValid(flavorLang)) {
 												sub.setLang(flavorLang);
 												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
 											}
@@ -939,6 +940,45 @@ public class FileUtil {
 			}
 		} else {
 			throw new IllegalArgumentException("File is not UTF-16");
+		}
+	}
+
+	/**
+	 * Return a file or directory's permissions in the Unix ls style
+	 * e.g.: "-rwx" (file,read-write-execute),  "dr--" (directory,read only) &c.
+	 */
+	public static String getPathPermissions(String path) {
+		String permissions;
+		File file = new File(path);
+
+		if (file.exists()) {
+			if (file.isFile()) {
+				permissions = String.format("-%s%s%s",
+					isFileReadable(file) ? "r" : "-",
+					isFileWritable(file) ? "w" : "-",
+					isFileExecutable(file) ?  "x" : "-"
+				);
+			} else {
+				permissions = String.format("d%s%s%s",
+					isDirectoryReadable(file) ? "r" : "-",
+					isDirectoryWritable(file) ? "w" : "-",
+					isFileExecutable(file) ?  "x" : "-"
+				);
+			}
+		} else {
+			permissions = "file not found";
+		}
+
+		return permissions;
+	}
+
+	public static boolean isFileExecutable(File file) {
+		try {
+			// FIXME: Not 100% reliable, see http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6379654
+			return file.canExecute();
+		} catch (SecurityException se) {
+			LOGGER.error("Security manager {}: {}", file.getAbsolutePath(), se);
+			return false;
 		}
 	}
 
@@ -1203,5 +1243,48 @@ public class FileUtil {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 		}
 		return reader;
+	}
+
+	/**
+	 * Checks for valid file name syntax. Path is not allowed.
+	 *
+	 * @param fileName the file name to be verified
+	 * @return whether or not the file name is valid
+	 */
+	public static boolean isValidFileName(String fileName) {
+		if (Platform.isWindows()) {
+			if (fileName.matches("^[^\"*:<>?/\\\\]+$")) {
+				return true;
+			}
+		} else if (Platform.isMac()) {
+			if (fileName.matches("^[^:/]+$")) {
+				return true;
+			}
+		} else {
+			// Assuming POSIX
+			if (fileName.matches("^[A-Za-z0-9._][A-Za-z0-9._-]*$")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Appends a path separator of the same type last in the string if
+	 * it's not already there.
+	 * @param path the path to be modified
+	 * @return the corrected path
+	 */
+	public static String appendPathSeparator(String path) {
+		if (path.contains("\\")) {
+			if (!path.endsWith("\\")) {
+				path += "\\";
+			}
+		} else {
+			if (!path.endsWith("/")) {
+				path += "/";
+			}
+		}
+		return path;
 	}
 }
