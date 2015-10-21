@@ -79,7 +79,11 @@ public class Messages {
 		}
 		resourceBundleLock.writeLock().lock();
 		try {
-			resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+			if (isRootEnglish(locale)) {
+				resourceBundle = ROOT_RESOURCE_BUNDLE;
+			} else {
+				resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+			}
 		} finally {
 			resourceBundleLock.writeLock().unlock();
 		}
@@ -109,7 +113,7 @@ public class Messages {
 			return getString(key);
 		}
 		// Selecting base bundle (en-US) for all English variants but British
-		if (locale.getLanguage().toLowerCase(Locale.ENGLISH).equals("en") && !locale.getCountry().equals("GB")) {
+		if (isRootEnglish(locale)) {
 			return getRootString(key);
 		}
 		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
@@ -142,5 +146,16 @@ public class Messages {
 		} catch (MissingResourceException e) {
 			return '!' + key + '!';
 		}
+	}
+
+	/**
+	 * Checks if the given <code>Locale</code> should use the root language
+	 * file (messages.properties) which is en-US. Currently that is all variants
+	 * of English but British English.
+	 * @param locale the <code>Locale</code> to check
+	 * @return The result
+	 */
+	private static boolean isRootEnglish(Locale locale) {
+		return locale.getLanguage().toLowerCase(Locale.ENGLISH).equals("en") && !locale.getCountry().equals("GB");
 	}
 }
