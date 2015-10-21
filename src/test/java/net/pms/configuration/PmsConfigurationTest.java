@@ -59,7 +59,6 @@ public class PmsConfigurationTest {
 		File file = new File(configuration.getDefaultLogFileFolder());
 		assertTrue("DefaultLogFileFolder", file.isDirectory());
 		file = new File(configuration.getDefaultLogFilePath());
-		assertTrue("DefaultLogFilePath", file.isFile());
 		assertTrue("DefaultLogFilePath", configuration.getDefaultLogFilePath().endsWith("debug.log"));
 		assertFalse("LoggingBufferedDefault", configuration.getLoggingBuffered());
 		assertEquals("LoggingFilterConsoleDefault", configuration.getLoggingFilterConsole(), Level.INFO);

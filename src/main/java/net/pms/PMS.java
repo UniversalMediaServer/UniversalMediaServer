@@ -1494,23 +1494,35 @@ public class PMS {
 		PlayerFactory.registerPlayer(player);
 	}
 
+	private static ReadWriteLock headlessLock = new ReentrantReadWriteLock();
 	private static Boolean headless = null;
 
 	/**
 	 * Check if UMS is running in headless (console) mode, since some Linux
 	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
 	 */
-	public static synchronized boolean isHeadless() {
-		if (headless == null) {
-			try {
-				JDialog d = new JDialog();
-				d.dispose();
-				headless = Boolean.valueOf(false);
-			} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-				headless = Boolean.valueOf(true);
+	public static boolean isHeadless() {
+		headlessLock.readLock().lock();
+		try {
+			if (headless != null) {
+				return headless.booleanValue();
 			}
+		} finally {
+			headlessLock.readLock().unlock();
 		}
-		return headless.booleanValue();
+
+		headlessLock.writeLock().lock();
+		try {
+			JDialog d = new JDialog();
+			d.dispose();
+			headless = Boolean.FALSE;
+			return headless.booleanValue();
+		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
+			headless = Boolean.TRUE;
+			return headless.booleanValue();
+		} finally {
+			headlessLock.writeLock().unlock();
+		}
 	}
 
 	private static Locale locale = null;
@@ -1529,6 +1541,7 @@ public class PMS {
 		localeLock.writeLock().lock();
 		try {
 			locale = (Locale) aLocale.clone();
+			Messages.setLocaleBundle(locale);
 		} finally {
 			localeLock.writeLock().unlock();
 		}
