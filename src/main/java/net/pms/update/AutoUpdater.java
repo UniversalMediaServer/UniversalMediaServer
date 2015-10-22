@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Checks for and downloads new versions of PMS.
- * 
+ *
  * @author Tim Cox (mail@tcox.org)
  */
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
@@ -161,7 +161,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		}
 	}
 
-	private synchronized void setState(State value) {
+	private void setState(State value) {
 		synchronized (stateLock) {
 			state = value;
 
