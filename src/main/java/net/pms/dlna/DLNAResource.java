@@ -382,6 +382,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * Checks if is live subtitle folder available.
+	 *
+	 * @return true, if the live subtitle folder should be shown
+	 */
+	public boolean isLiveSubtitleFolderAvailable() {
+		return true;
+	}
+
+	/**
 	 * Any {@link DLNAResource} needs to represent the container or item with a String.
 	 *
 	 * @return String to be showed in the UPNP client.
@@ -3763,7 +3772,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			configuration.isDisableSubtitles() ||
 			!configuration.isAutoloadExternalSubtitles() ||
-			configuration.isHideLiveSubtitlesFolder()
+			configuration.isHideLiveSubtitlesFolder() ||
+			!isLiveSubtitleFolderAvailable()
 		) {
 			return null;
 		}
