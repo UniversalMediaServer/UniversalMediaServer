@@ -29,22 +29,18 @@ public class Splash extends JFrame {
 	private static final long serialVersionUID = 2357524127613134620L;
 	private JLabel imglabel;
 	private ImageIcon img;
-	Thread t = null;
 
 	/**
 	 * Show the splash screen before the application GUI starts.
 	 * <p>
-	 * When the GUI started call the {@link Splash.dispose} to release all resources used by this
-     * {@code Splash} and return all memory they consume to the OS.
-	 * 
-	 * @param showProgressBar Set true when the progress bar should be displayed
+	 * When the GUI started call the {@code .dispose()} to release all resources used by this
+     * {@code Splash} class and return all memory they consume to the OS.
 	 */
 	public Splash() {
 		img = new ImageIcon(getClass().getResource("/resources/images/splash.png"));
 		imglabel = new JLabel(img);
 		imglabel.setBounds(0, 0, img.getIconWidth(), img.getIconHeight());
-		setSize(imglabel.getWidth(), imglabel.getHeight() + 20);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setSize(imglabel.getWidth(), imglabel.getHeight());
 		setUndecorated(true);
 		setBackground(new Color(1.0f,1.0f,1.0f,0.0f));
 		setLocationRelativeTo(null);
