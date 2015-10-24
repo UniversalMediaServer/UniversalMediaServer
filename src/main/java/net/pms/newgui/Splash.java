@@ -25,6 +25,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import net.pms.configuration.PmsConfiguration;
+
 public class Splash extends JFrame {
 	private static final long serialVersionUID = 2357524127613134620L;
 	private JLabel imglabel;
@@ -35,8 +37,13 @@ public class Splash extends JFrame {
 	 * <p>
 	 * When the GUI started call the {@code .dispose()} to release all resources used by this
      * {@code Splash} class and return all memory they consume to the OS.
+	 * @return 
 	 */
-	public Splash() {
+	public Splash(PmsConfiguration configuration) {
+		if (!configuration.showSplashScreen()) {
+			return;
+		}
+			
 		img = new ImageIcon(getClass().getResource("/resources/images/splash.png"));
 		imglabel = new JLabel(img);
 		imglabel.setBounds(0, 0, img.getIconWidth(), img.getIconHeight());
@@ -46,7 +53,7 @@ public class Splash extends JFrame {
 		setLocationRelativeTo(null);
 		setLayout(null);
 		add(imglabel);
-		if (System.getProperty("console") == null) {
+		if (System.getProperty("console") == null && configuration.showSplashScreen()) {
 			setVisible(true);
 		}
 	}

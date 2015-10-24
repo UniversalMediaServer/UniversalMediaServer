@@ -492,7 +492,7 @@ public class PMS {
 			}
 		}
 
-		Splash splash = new Splash();
+		Splash splash = new Splash(configuration);
 
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
@@ -518,7 +518,9 @@ public class PMS {
 			frame = new DummyFrame();
 		}
 
-		splash.dispose();
+		if (splash != null) {
+			splash.dispose();
+		}
 
 		/*
 		 * we're here:

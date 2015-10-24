@@ -32,6 +32,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import javax.swing.Icon;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
@@ -258,6 +260,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
+	protected static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
 	protected static final String KEY_SINGLE = "single_instance";
 	protected static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	protected static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
@@ -3830,5 +3833,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getScreenSize() {
 		return getString(KEY_SCREEN_SIZE, "-1x-1");
-	}	
+	}
+
+	public boolean showSplashScreen() {
+		return getBoolean(KEY_SHOW_SPLASH_SCREEN, true);
+	}
+
+	public void setShowSplashScreen(boolean value) {
+		configuration.setProperty(KEY_SHOW_SPLASH_SCREEN, value);
+	}
+
 }
