@@ -3835,7 +3835,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_SCREEN_SIZE, "-1x-1");
 	}
 
-	public boolean showSplashScreen() {
+	public boolean isShowSplashScreen() {
 		return getBoolean(KEY_SHOW_SPLASH_SCREEN, true);
 	}
 

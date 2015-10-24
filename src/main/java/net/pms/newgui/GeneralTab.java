@@ -168,7 +168,7 @@ public class GeneralTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
 		}
 
-		showSplashScreen = new JCheckBox(Messages.getString("NetworkTab.74"), configuration.showSplashScreen());
+		showSplashScreen = new JCheckBox(Messages.getString("NetworkTab.74"), configuration.isShowSplashScreen());
 		showSplashScreen.setContentAreaFilled(false);
 		showSplashScreen.addItemListener(new ItemListener() {
 			@Override

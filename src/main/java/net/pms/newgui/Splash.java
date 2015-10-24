@@ -39,7 +39,7 @@ public class Splash extends JFrame {
 	 * @return 
 	 */
 	public Splash(PmsConfiguration configuration) {
-		if (!configuration.showSplashScreen()) {
+		if (!configuration.isShowSplashScreen()) {
 			return;
 		}
 			
