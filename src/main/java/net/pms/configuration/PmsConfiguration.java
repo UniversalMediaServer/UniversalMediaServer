@@ -32,8 +32,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import javax.swing.Icon;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;

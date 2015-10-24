@@ -21,15 +21,24 @@
 package net.pms.newgui;
 
 import java.awt.Color;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import org.apache.commons.configuration.ConfigurationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 
-public class Splash extends JFrame {
+public class Splash extends JFrame implements MouseListener {
 	private static final long serialVersionUID = 2357524127613134620L;
+	private static final Logger LOGGER = LoggerFactory.getLogger(Splash.class);
 	private JLabel imglabel;
 	private ImageIcon img;
+	private PmsConfiguration configuration;
 
 	/**
 	 * Show the splash screen before the application GUI starts.
@@ -38,7 +47,8 @@ public class Splash extends JFrame {
      * {@code Splash} class and return all memory they consume to the OS.
 	 * @return 
 	 */
-	public Splash(PmsConfiguration configuration) {
+	public Splash(PmsConfiguration config) {
+		this.configuration = config;
 		if (!configuration.isShowSplashScreen()) {
 			return;
 		}
@@ -52,8 +62,39 @@ public class Splash extends JFrame {
 		setLocationRelativeTo(null);
 		setLayout(null);
 		add(imglabel);
+		imglabel.addMouseListener(this);
 		if (System.getProperty("console") == null) {
 			setVisible(true);
 		}
 	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		int isShowSplashScreen = JOptionPane.showConfirmDialog(
+			null,
+			Messages.getString("Splash.1"),
+			Messages.getString("Splash.2"),
+			JOptionPane.YES_NO_OPTION
+		);
+		if (isShowSplashScreen == 0) {
+			configuration.setShowSplashScreen(false);
+			try {
+				configuration.save();
+			} catch (ConfigurationException e1) {
+				LOGGER.error("Error when saving the Splash Screen setting", e1);
+			}
+		}
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {}
+
+	@Override
+	public void mouseExited(MouseEvent e) {}
 }
