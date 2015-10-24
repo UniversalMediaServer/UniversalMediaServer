@@ -24,7 +24,6 @@ import java.awt.Color;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-
 import net.pms.configuration.PmsConfiguration;
 
 public class Splash extends JFrame {
@@ -53,7 +52,7 @@ public class Splash extends JFrame {
 		setLocationRelativeTo(null);
 		setLayout(null);
 		add(imglabel);
-		if (System.getProperty("console") == null && configuration.showSplashScreen()) {
+		if (System.getProperty("console") == null) {
 			setVisible(true);
 		}
 	}
