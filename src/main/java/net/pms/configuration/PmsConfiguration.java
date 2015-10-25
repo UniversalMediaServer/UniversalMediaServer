@@ -166,7 +166,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 	protected static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	protected static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
-	protected static final String KEY_SHOW_WATCHED_VIDEOS = "show_watched_videos";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
@@ -294,6 +293,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
 	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
+	protected static final String KEY_WATCHED_VIDEO_ACTION = "watched_video_action";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
@@ -1867,23 +1867,28 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns whether to show videos that have been marked as watched, in
-	 * all folders except "New Media", which will never show them.
+	 * Returns what to do with a video after it has been watched.
+	 * The following options are available:
+	 * 
+	 *   0           = Do nothing
+	 *   1           = Write "Watched" on the thumbnail
+	 *   2           = Hide the video in UMS
+	 *   3;directory = Move the video to a different folder
+	 *   4           = Delete the video
 	 *
-	 * @return whether to show watched videos
+	 * @return what to do with a video after it has been watched
 	 */
-	public boolean isShowWatchedVideos() {
-		return getBoolean(KEY_SHOW_WATCHED_VIDEOS, true);
+	public String getWatchedVideoAction() {
+		return getString(KEY_WATCHED_VIDEO_ACTION, "1");
 	}
 
 	/**
-	 * Sets whether to show videos that have been marked as watched, in all
-	 * folders except "New Media", which will never show them.
+	 * Sets what to do with a video after it has been watched.
 	 *
-	 * @param value whether to show watched videos
+	 * @param value what to do with a video after it has been watched
 	 */
-	public void setShowWatchedVideos(boolean value) {
-		configuration.setProperty(KEY_SHOW_WATCHED_VIDEOS, value);
+	public void setWatchedVideoAction(boolean value) {
+		configuration.setProperty(KEY_WATCHED_VIDEO_ACTION, value);
 	}
 
 	/**

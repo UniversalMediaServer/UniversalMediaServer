@@ -121,14 +121,24 @@ public class MediaMonitor extends VirtualFolder {
 			return;
 		}
 		RealFile rf = (RealFile) res;
+		
+		double videoDuration = 0;
+		if (res.getMedia() != null) {
+			videoDuration = res.getMedia().getDuration();
+		}
 
+		/**
+		 * Time since the file started playing.
+		 * This is not a great way to get this value because if the
+		 * video is fast-forwarded, rewound or played at a faster rate
+		 * than 1 second per second, it will no longer be accurate.
+		 */
 		long played = System.currentTimeMillis() - rf.getStartTime();
 
 		/**
-		 * Only mark videos as watched if it has been more than 30 seconds (default)
-		 * since it was started.
+		 * Only mark the video as watched if more than 92% (default) of 
 		 */
-		if (played > configuration.getMinimumWatchedPlayTime()) {
+		if (videoDuration > configuration.getMinimumWatchedPlayTime() && played >= (videoDuration * configuration.getResumeBackFactor())) {
 			DLNAResource tmp = res.getParent();
 			if (tmp != null) {
 				// Prevent duplicates from being added
@@ -148,6 +158,8 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public static boolean isWatched(String str) {
+		LOGGER.info("watchedEntries: " + watchedEntries);
+		LOGGER.info("str: " + str);
 		return watchedEntries != null && watchedEntries.contains(str);
 	}
 

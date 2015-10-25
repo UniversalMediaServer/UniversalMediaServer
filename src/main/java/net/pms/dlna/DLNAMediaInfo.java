@@ -962,7 +962,7 @@ public class DLNAMediaInfo implements Cloneable {
 						if (sz > 0 && !net.pms.PMS.isHeadless()) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null) {
-								if (MediaMonitor.isWatched(file.getAbsolutePath())) {
+								if ("1".equals(configuration.getWatchedVideoAction()) && file != null && MediaMonitor.isWatched(file.getAbsolutePath())) {
 									/**
 									 * TODO: Cache the calculated values
 									 * TODO: Include and use a custom font

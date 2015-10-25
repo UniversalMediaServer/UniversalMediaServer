@@ -85,7 +85,6 @@ public class NavigationShareTab {
 	private JCheckBox newmediafolder;
 	private JCheckBox recentlyplayedfolder;
 	private JCheckBox resume;
-	private JCheckBox showWatchedVideos;
 
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;
@@ -209,7 +208,6 @@ public class NavigationShareTab {
 
 			builder.add(GuiUtil.getPreferredSizeComponent(resume),                  FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(recentlyplayedfolder),    FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(showWatchedVideos),       FormLayoutUtil.flip(cc.xy(9, 27), colSpec, orientation));
 
 			builder.add(builderSharedFolder.getPanel(),                             FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
 		} else {
@@ -628,16 +626,6 @@ public class NavigationShareTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setHideRecentlyPlayedFolder((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-
-		showWatchedVideos = new JCheckBox(Messages.getString("NetworkTab.74"), configuration.isShowWatchedVideos());
-		showWatchedVideos.setToolTipText(Messages.getString("NetworkTab.75"));
-		showWatchedVideos.setContentAreaFilled(false);
-		showWatchedVideos.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setShowWatchedVideos((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 	}

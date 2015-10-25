@@ -160,7 +160,7 @@ public class ResumeObj {
 			return;
 		}
 		if (thisPlay < minDur) {
-			// to short to resume (at all)
+			// too short to resume (at all)
 			return;
 		}
 
