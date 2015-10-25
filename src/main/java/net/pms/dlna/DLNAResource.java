@@ -549,7 +549,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				if (child.format != null){
+				if (child.format != null) {
 					// Do not add unsupported media formats to the list
 					if (defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
 						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
@@ -962,7 +962,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * (Re)sets the given DNLA resource as follows:
+	 * (Re)sets the given DLNA resource as follows:
 	 *    - if it's already one of our children, renew it
 	 *    - or if we have another child with the same name, replace it
 	 *    - otherwise add it as a new child.
@@ -3839,6 +3839,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
+	/**
+	 * TODO: Merge this with the watched actions functionality to prevent
+	 * duplicate work
+	 *
+	 * @return 
+	 */
 	private DLNAResource resumeStop() {
 		if (!configuration.isResumeEnabled() || !isResumeable()) {
 			return null;
