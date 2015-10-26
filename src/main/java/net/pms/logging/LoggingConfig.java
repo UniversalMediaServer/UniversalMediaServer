@@ -58,7 +58,9 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingConfig {
 	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfig.class);
+	private static Object filepathLock = new Object();
 	private static String filepath = null;
+	private static Object logFilePathsLock = new Object();
 	private static HashMap<String, String> logFilePaths = new HashMap<String, String>(); // key: appender name, value: log file path
 	private static LoggerContext loggerContext = null;
 	private static Logger rootLogger;
@@ -77,11 +79,13 @@ public class LoggingConfig {
 	 *
 	 * @return pathname or <code>null</code>
 	 */
-	public static synchronized String getConfigFilePath() {
-		if (filepath != null) {
-			return filepath;
-		} else {
-			return "internal defaults";
+	public static String getConfigFilePath() {
+		synchronized (filepathLock) {
+			if (filepath != null) {
+				return filepath;
+			} else {
+				return "internal defaults";
+			}
 		}
 	}
 
@@ -176,8 +180,10 @@ public class LoggingConfig {
 				CacheLogger.initContext();
 			}
 			// Save the file path after loading the file
-			filepath = file.getAbsolutePath();
-			LOGGER.debug("LogBack started with configuration file: {}", filepath);
+			synchronized (filepathLock) {
+				filepath = file.getAbsolutePath();
+				LOGGER.debug("LogBack started with configuration file: {}", filepath);
+			}
 		} catch (JoranException je) {
 			try {
 				System.err.println("LogBack configuration failed: " + je.getLocalizedMessage());
@@ -233,14 +239,16 @@ public class LoggingConfig {
 		// Iterate
 
 		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();
-		while (it.hasNext()) {
-			Appender<ILoggingEvent> appender = it.next();
+		synchronized (logFilePathsLock) {
+			while (it.hasNext()) {
+				Appender<ILoggingEvent> appender = it.next();
 
-			if (appender instanceof FileAppender) {
-				FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
-				logFilePaths.put(fa.getName(), fa.getFile());
-			} else if (appender instanceof SyslogAppender) {
-				syslogDisabled = true;
+				if (appender instanceof FileAppender) {
+					FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
+					logFilePaths.put(fa.getName(), fa.getFile());
+				} else if (appender instanceof SyslogAppender) {
+					syslogDisabled = true;
+				}
 			}
 		}
 
@@ -619,7 +627,9 @@ public class LoggingConfig {
 		LOGGER.info("Verbose file logging pattern enforced");
 	}
 
-	public static synchronized HashMap<String, String> getLogFilePaths() {
-		return logFilePaths;
+	public static HashMap<String, String> getLogFilePaths() {
+		synchronized (logFilePathsLock) {
+			return logFilePaths;
+		}
 	}
 }

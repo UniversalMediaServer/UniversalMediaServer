@@ -940,6 +940,45 @@ public class FileUtil {
 	}
 
 	/**
+	 * Return a file or directory's permissions in the Unix ls style
+	 * e.g.: "-rwx" (file,read-write-execute),  "dr--" (directory,read only) &c.
+	 */
+	public static String getPathPermissions(String path) {
+		String permissions;
+		File file = new File(path);
+
+		if (file.exists()) {
+			if (file.isFile()) {
+				permissions = String.format("-%s%s%s",
+					isFileReadable(file) ? "r" : "-",
+					isFileWritable(file) ? "w" : "-",
+					isFileExecutable(file) ?  "x" : "-"
+				);
+			} else {
+				permissions = String.format("d%s%s%s",
+					isDirectoryReadable(file) ? "r" : "-",
+					isDirectoryWritable(file) ? "w" : "-",
+					isFileExecutable(file) ?  "x" : "-"
+				);
+			}
+		} else {
+			permissions = "file not found";
+		}
+
+		return permissions;
+	}
+
+	public static boolean isFileExecutable(File file) {
+		try {
+			// FIXME: Not 100% reliable, see http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6379654
+			return file.canExecute();
+		} catch (SecurityException se) {
+			LOGGER.error("Security manager {}: {}", file.getAbsolutePath(), se);
+			return false;
+		}
+	}
+
+	/**
 	 * Determine whether a file is readable by trying to read it. This works around JDK bugs which
 	 * return the wrong results for {@link java.io.File#canRead()} on Windows, and in some cases, on Unix.
 	 * <p>

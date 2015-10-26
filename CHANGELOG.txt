@@ -1,3 +1,27 @@
+5.2.4 - 2015-10-26
+
+	General:
+		The main window saves its size and position
+		Fixed DTS-HD being detected as regular DTS
+		Fixed the use of UMS profiles
+		Made automatic updater more stable
+		Improved detection of write permissions
+		Improved plugin installation support
+		Made profile a possible command line argument
+		Improved speed when reading shared folders
+		Fixed several bugs
+	Renderers:
+		Disabled folder thumbnails on Apple iOS apps
+		Improved support for VLC for iOS
+		Panasonic TVs use higher-quality thumbnails
+	External Components:
+		Updated h2database to 1.4.190
+		Updated Maven Assembly plugin to 2.6
+		Updated Maven Eclipse plugin to 2.10
+		Updated Maven Surefire plugin to 2.19
+		Updated MediaInfo for Windows to 0.7.78, which improved file parsing speed
+		Updated Netty to 3.10.5
+
 5.2.3 - 2015-09-28
 
 	General:

@@ -11,7 +11,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -148,14 +147,16 @@ public class PluginTab {
 				);
 				return;
 			}
-			if (!configuration.isAdmin()) {
+			// See if we have write permission in 'plugins'. We don't necessarily
+			// need admin rights here, this could be a standalone/local install
+			if (!FileUtil.getPathPermissions(configuration.getPluginDirectory()).contains("w")) {
 				JOptionPane.showMessageDialog(
 					looksFrame,
-					Messages.getString("PluginTab.15"),
+					Messages.getString("PluginTab.15") + "\n" + Messages.getString("AutoUpdate.12"),
 					Messages.getString("Dialog.PermissionsError"),
 					JOptionPane.ERROR_MESSAGE
 				);
-
+				
 				return;
 			}
 			final int[] rows = table.getSelectedRows();
@@ -172,6 +173,7 @@ public class PluginTab {
 			panel.add(inst);
 			panel.add(label);
 			frame.add(panel);
+			// Center the installation progress window
 			frame.setLocationRelativeTo(null);
 			Runnable r = () -> {
 				for (int i = 0; i < rows.length; i++) {
@@ -242,11 +244,8 @@ public class PluginTab {
 		// Add button
 		CustomJButton add = new CustomJButton(Messages.getString("PluginTab.9"));
 		builder.add(add, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
-		add.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				addEditDialog(credTable, -1);
-			}
+		add.addActionListener((ActionEvent e) -> {
+			addEditDialog(credTable, -1);
 		});
 
 		// Edit button
@@ -268,7 +267,7 @@ public class PluginTab {
 					"",
 					JOptionPane.YES_NO_OPTION
 				);
-
+				
 				if (n == JOptionPane.YES_OPTION) {
 					for (int i=0; i < rows.length; i++) {
 						String key = (String) credTable.getValueAt(rows[i], 0);
@@ -278,13 +277,13 @@ public class PluginTab {
 						cred.clearProperty(key);
 					}
 				}
-
+				
 				try {
 					cred.save();
 				} catch (ConfigurationException e1) {
 					LOGGER.warn("Couldn't save cred file " + e1);
 				}
-
+				
 				refreshCred(credTable);
 			}
 		});
@@ -294,10 +293,10 @@ public class PluginTab {
 		credEdit.addActionListener((ActionEvent e) -> {
 			JPanel tPanel = new JPanel(new BorderLayout());
 
-				final JTextArea textArea = new JTextArea();
-				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
-				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new Dimension(900, 450));
+			final JTextArea textArea = new JTextArea();
+			textArea.setFont(new Font("Courier", Font.PLAIN, 12));
+			JScrollPane scrollPane = new JScrollPane(textArea);
+			scrollPane.setPreferredSize(new Dimension(900, 450));
 
 			try {
 				configuration.initCred();
@@ -308,14 +307,16 @@ public class PluginTab {
 
 			File f = configuration.getCredFile();
 
-			try (FileInputStream fis = new FileInputStream(f); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
-				String line;
-				StringBuilder sb = new StringBuilder();
-				while ((line = in.readLine()) != null) {
-					sb.append(line);
-					sb.append("\n");
+			try {
+				try (FileInputStream fis = new FileInputStream(f); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
+					String line;
+					StringBuilder sb = new StringBuilder();
+					while ((line = in.readLine()) != null) {
+						sb.append(line);
+						sb.append("\n");
+					}
+					textArea.setText(sb.toString());
 				}
-				textArea.setText(sb.toString());
 			} catch (IOException e1) {
 				return;
 			}
@@ -568,33 +569,26 @@ public class PluginTab {
 		final char defEchoChar = pText.getEchoChar();
 
 		JButton ok = new JButton(Messages.getString("Dialog.OK"));
-		ok.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				frame.setVisible(false);
-				String key = oText.getText();
-				String pwd = new String(pText.getPassword());
-				if (
-					StringUtils.isEmpty(key) ||
-					StringUtils.isEmpty(uText.getText()) ||
-					StringUtils.isEmpty(pwd)
-				) {
-					// ignore this
-					return;
-				}
-
-				if (StringUtils.isNotEmpty(tText.getText())) {
-					key = key + "." + tText.getText();
-				}
-				String val = uText.getText() + "," + pwd;
-				cred.addProperty(key, val);
-				try {
-					cred.save();
-				} catch (ConfigurationException e1) {
-					LOGGER.warn("Error saving cred file "+e1);
-				}
-				refreshCred(table);
+		ok.addActionListener((ActionEvent e) -> {
+			frame.setVisible(false);
+			String key = oText.getText();
+			String pwd1 = new String(pText.getPassword());
+			if (StringUtils.isEmpty(key) ||
+				StringUtils.isEmpty(uText.getText()) || StringUtils.isEmpty(pwd1)) {
+				// ignore this
+				return;
 			}
+			if (StringUtils.isNotEmpty(tText.getText())) {
+				key = key + "." + tText.getText();
+			}
+			String val = uText.getText() + "," + pwd1;
+			cred.addProperty(key, val);
+			try {
+				cred.save();
+			} catch (ConfigurationException e1) {
+				LOGGER.warn("Error saving cred file "+e1);
+			}
+			refreshCred(table);
 		});
 
 		JButton cancel = new JButton(Messages.getString("NetworkTab.45"));

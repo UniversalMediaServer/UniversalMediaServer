@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Checks for and downloads new versions of PMS.
- * 
+ *
  * @author Tim Cox (mail@tcox.org)
  */
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
@@ -125,7 +125,8 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			if (!exe.exists()) {
 				exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
 			}
-			Runtime.getRuntime().exec(exe.getAbsolutePath());
+			// Use exec(String[]) to avoid space-quoting issues
+			Runtime.getRuntime().exec(new String[] {exe.getAbsolutePath()});
 		} catch (IOException e) {
 			wrapException("Unable to run update. You may need to manually download it.", e);
 		}
@@ -151,7 +152,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		}
 	}
 
-	private synchronized void setState(State value) {
+	private void setState(State value) {
 		synchronized (stateLock) {
 			state = value;
 
