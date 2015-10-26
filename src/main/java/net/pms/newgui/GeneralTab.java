@@ -473,22 +473,19 @@ public class GeneralTab {
 				}
 
 				// Attach the button clicked action listener
-				installService.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						WindowsUtil.uninstallWin32Service();
-						LOGGER.info(Messages.getString("GeneralTab.3"));
-
-						// Refresh the button state after it has been clicked
-						refreshInstallServiceButtonState();
-
-						JOptionPane.showMessageDialog(
-							looksFrame,
-							Messages.getString("GeneralTab.3"),
-							Messages.getString("Dialog.Information"),
-							JOptionPane.INFORMATION_MESSAGE
-						);
-					}
+				installService.addActionListener((ActionEvent e) -> {
+					WindowsUtil.uninstallWin32Service();
+					LOGGER.info(Messages.getString("GeneralTab.3"));
+					
+					// Refresh the button state after it has been clicked
+					refreshInstallServiceButtonState();
+					
+					JOptionPane.showMessageDialog(
+						looksFrame,
+						Messages.getString("GeneralTab.3"),
+						Messages.getString("Dialog.Information"),
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				});
 			} else {
 				// Update button text and tooltip
@@ -501,30 +498,27 @@ public class GeneralTab {
 				}
 
 				// Attach the button clicked action listener
-				installService.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						if (WindowsUtil.installWin32Service()) {
-							LOGGER.info(Messages.getString("PMS.41"));
-
-							// Refresh the button state after it has been clicked
-							refreshInstallServiceButtonState();
-
-							JOptionPane.showMessageDialog(
-								looksFrame,
-								Messages.getString("NetworkTab.11") +
+				installService.addActionListener((ActionEvent e) -> {
+					if (WindowsUtil.installWin32Service()) {
+						LOGGER.info(Messages.getString("PMS.41"));
+						
+						// Refresh the button state after it has been clicked
+						refreshInstallServiceButtonState();
+						
+						JOptionPane.showMessageDialog(
+							looksFrame,
+							Messages.getString("NetworkTab.11") +
 								Messages.getString("NetworkTab.12"),
-								Messages.getString("Dialog.Information"),
-								JOptionPane.INFORMATION_MESSAGE
-							);
-						} else {
-							JOptionPane.showMessageDialog(
-								looksFrame,
-								Messages.getString("NetworkTab.14"),
-								Messages.getString("Dialog.Error"),
-								JOptionPane.ERROR_MESSAGE
-							);
-						}
+							Messages.getString("Dialog.Information"),
+							JOptionPane.INFORMATION_MESSAGE
+						);
+					} else {
+						JOptionPane.showMessageDialog(
+							looksFrame,
+							Messages.getString("NetworkTab.14"),
+							Messages.getString("Dialog.Error"),
+							JOptionPane.ERROR_MESSAGE
+						);
 					}
 				});
 			}

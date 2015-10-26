@@ -36,22 +36,20 @@ public class HyperLinkToolTip extends JToolTip {
 		editorPane.setForeground(fg);
 		editorPane.setBackground(bg);
 
-		editorPane.addHyperlinkListener(new HyperlinkListener() {
-			public void hyperlinkUpdate(HyperlinkEvent e) {
-				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					if(Desktop.isDesktopSupported())
-					{
-						try {
-							Desktop.getDesktop().browse(new URI(e.getDescription()));
-							closeToolTip();
-						} catch (IOException e1) {
-							LOGGER.error("Failed to open hyperlink", e1);
-						} catch (URISyntaxException e1) {
-							LOGGER.error("Failed to open hyperlink", e1);
-						}
-					} else {
-						LOGGER.warn("Desktop is not supported, the clicked link can't be opened");						
+		editorPane.addHyperlinkListener((HyperlinkEvent e) -> {
+			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+				if(Desktop.isDesktopSupported())
+				{
+					try {
+						Desktop.getDesktop().browse(new URI(e.getDescription()));
+						closeToolTip();
+					} catch (IOException e1) {
+						LOGGER.error("Failed to open hyperlink", e1);
+					} catch (URISyntaxException e1) {
+						LOGGER.error("Failed to open hyperlink", e1);						
 					}
+				} else {
+					LOGGER.warn("Desktop is not supported, the clicked link can't be opened");
 				}
 			}
 		});

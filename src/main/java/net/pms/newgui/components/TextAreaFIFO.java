@@ -47,11 +47,9 @@ public class TextAreaFIFO extends JTextArea implements DocumentListener {
     }
 
     public void insertUpdate(DocumentEvent e) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                removeLines();
-            }
-        });
+        SwingUtilities.invokeLater(() -> {
+		removeLines();
+	});
     }
 
     public void removeUpdate(DocumentEvent e) {

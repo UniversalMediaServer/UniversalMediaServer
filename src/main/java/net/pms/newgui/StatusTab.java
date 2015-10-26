@@ -463,11 +463,8 @@ public class StatusTab {
 			}
 		}
 		final long buffer = buf;
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
-			}
+		SwingUtilities.invokeLater(() -> {
+			memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
 		});
 	}
 

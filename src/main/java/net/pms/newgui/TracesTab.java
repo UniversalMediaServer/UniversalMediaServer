@@ -278,12 +278,9 @@ public class TracesTab {
 		jTracesFilter.setSelectedIndex(findLevelsIdx(configuration.getLoggingFilterLogsTab()));
 		jFilterLabel.setLabelFor(jTracesFilter);
 		jTracesFilter.setToolTipText(Messages.getString("TracesTab.33"));
-		jTracesFilter.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setLoggingFilterLogsTab(logLevels[jTracesFilter.getSelectedIndex()]);
-				LoggingConfig.setTracesFilter();
-			}
+		jTracesFilter.addActionListener((ActionEvent e) -> {
+			configuration.setLoggingFilterLogsTab(logLevels[jTracesFilter.getSelectedIndex()]);
+			LoggingConfig.setTracesFilter();
 		});
 		jSearchPanel.add(jFilterLabel);
 		jSearchPanel.add(Box.createRigidArea(new Dimension(5,0)));
@@ -335,47 +332,29 @@ public class TracesTab {
 		jSearchPanel.add(jBufferSpace3 = Box.createRigidArea(new Dimension(5,0)));
 		jSearchPanel.add(jLineBuffer);
 
-		jLineBuffer.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				jList.setMaxLines((Integer) jLineBuffer.getValue());
-				configuration.setLoggingLogsTabLinebuffer(jList.getMaxLines());
-			}
+		jLineBuffer.addChangeListener((ChangeEvent e) -> {
+			jList.setMaxLines((Integer) jLineBuffer.getValue());
+			configuration.setLoggingLogsTabLinebuffer(jList.getMaxLines());
 		});
 
-		jSearchBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				searchTraces();
-			}
+		jSearchBox.addActionListener((ActionEvent e) -> {
+			searchTraces();
 		});
 
-		jSearchButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				searchTraces();
-			}
+		jSearchButton.addActionListener((ActionEvent e) -> {
+			searchTraces();
 		});
 
-		jCSSearch.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setGUILogSearchCaseSensitive(jCSSearch.isSelected());
-			}
+		jCSSearch.addActionListener((ActionEvent e) -> {
+			configuration.setGUILogSearchCaseSensitive(jCSSearch.isSelected());
 		});
 
-		jRESearch.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setGUILogSearchRegEx(jRESearch.isSelected());
-			}
+		jRESearch.addActionListener((ActionEvent e) -> {
+			configuration.setGUILogSearchRegEx(jRESearch.isSelected());
 		});
 
-		jMLSearch.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setGUILogSearchMultiLine(jMLSearch.isSelected());
-			}
+		jMLSearch.addActionListener((ActionEvent e) -> {
+			configuration.setGUILogSearchMultiLine(jMLSearch.isSelected());
 		});
 
 		builder.add(jSearchPanel, cc.xyw(1, 1, cols));
@@ -393,11 +372,8 @@ public class TracesTab {
 		popup.add(copyItem);
 		popup.addSeparator();
 		JMenuItem clearItem = new JMenuItem(Messages.getString("TracesTab.3"));
-		clearItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				jList.setText("");
-			}
+		clearItem.addActionListener((ActionEvent e) -> {
+			jList.setText("");
 		});
 		popup.add(clearItem);
 		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
@@ -438,16 +414,13 @@ public class TracesTab {
 		jBuffered.setMnemonic(KeyEvent.VK_U);
 		jBuffered.setToolTipText(Messages.getString("TracesTab.43"));
 		jBuffered.setHorizontalTextPosition(SwingConstants.LEADING);
-		jBuffered.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (PMS.getTraceMode() == 2 && jBuffered.isSelected()) {
-					jBuffered.setSelected(false);
-					return;
-				}
-				configuration.setLoggingBuffered(jBuffered.isSelected());
-				LoggingConfig.setBuffered(jBuffered.isSelected());
+		jBuffered.addActionListener((ActionEvent e) -> {
+			if (PMS.getTraceMode() == 2 && jBuffered.isSelected()) {
+				jBuffered.setSelected(false);
+				return;
 			}
+			configuration.setLoggingBuffered(jBuffered.isSelected());
+			LoggingConfig.setBuffered(jBuffered.isSelected());
 		});
 		jOptionsPanel.add(jBuffered);
 
@@ -457,25 +430,22 @@ public class TracesTab {
 		jUseSyslog.setMnemonic(KeyEvent.VK_Y);
 		jUseSyslog.setToolTipText(Messages.getString("TracesTab.44"));
 		jUseSyslog.setHorizontalTextPosition(SwingConstants.LEADING);
-		jUseSyslog.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (PMS.getTraceMode() == 2 && jUseSyslog.isSelected()) {
-					jUseSyslog.setSelected(false);
-					return;
-				} else if (jSyslogHost.getText().trim().isEmpty()) {
-					jSearchOutput.setText(Messages.getString("TracesTab.31"));
-					jUseSyslog.setSelected(false);
-					return;
-				}
-				jSearchOutput.setText("");
-				boolean useSyslog = jUseSyslog.isSelected();
-				configuration.setLoggingUseSyslog(useSyslog);
-				LoggingConfig.setSyslog();
-				jSyslogHost.setEnabled(!useSyslog);
-				jSyslogPort.setEnabled(!useSyslog);
-				jSyslogFacility.setEnabled(!useSyslog);
+		jUseSyslog.addActionListener((ActionEvent e) -> {
+			if (PMS.getTraceMode() == 2 && jUseSyslog.isSelected()) {
+				jUseSyslog.setSelected(false);
+				return;
+			} else if (jSyslogHost.getText().trim().isEmpty()) {
+				jSearchOutput.setText(Messages.getString("TracesTab.31"));
+				jUseSyslog.setSelected(false);
+				return;
 			}
+			jSearchOutput.setText("");
+			boolean useSyslog1 = jUseSyslog.isSelected();
+			configuration.setLoggingUseSyslog(useSyslog1);
+			LoggingConfig.setSyslog();
+			jSyslogHost.setEnabled(!useSyslog1);
+			jSyslogPort.setEnabled(!useSyslog1);
+			jSyslogFacility.setEnabled(!useSyslog1);
 		});
 		jOptionsPanel.add(jUseSyslog);
 
@@ -532,11 +502,8 @@ public class TracesTab {
 		jSyslogPort.setToolTipText(Messages.getString("TracesTab.46"));
 		jSyslogPort.setEnabled(!useSyslog);
 		jSyslogPortLabel.setLabelFor(jSyslogPort);
-		jSyslogPort.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				configuration.setLoggingSyslogPort((Integer) jSyslogPort.getValue());
-			}
+		jSyslogPort.addChangeListener((ChangeEvent e) -> {
+			configuration.setLoggingSyslogPort((Integer) jSyslogPort.getValue());
 		});
 		jOptionsPanel.add(jSyslogPort);
 
@@ -551,11 +518,8 @@ public class TracesTab {
 		jSyslogFacility.setEnabled(!useSyslog);
 		jSyslogFacility.setSelectedIndex(findSyslogFacilityIdx(configuration.getLoggingSyslogFacility()));
 		jSyslogFacilityLabel.setLabelFor(jSyslogFacility);
-		jSyslogFacility.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setLoggingSyslogFacility(syslogFacilities[jSyslogFacility.getSelectedIndex()]);
-			}
+		jSyslogFacility.addActionListener((ActionEvent e) -> {
+			configuration.setLoggingSyslogFacility(syslogFacilities[jSyslogFacility.getSelectedIndex()]);
 		});
 		jOptionsPanel.add(jSyslogFacility);
 
@@ -567,13 +531,10 @@ public class TracesTab {
 		jShowOptions.setToolTipText(Messages.getString("TracesTab.41"));
 		jShowOptions.setMnemonic(KeyEvent.VK_G);
 		jShowOptions.setEnabled(PMS.getTraceMode() != 2);
-		jShowOptions.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				jOptionsPanel.setVisible(jShowOptions.isSelected());
-				if (jShowOptions.isSelected()) {
-					jBuffered.requestFocusInWindow();
-				}
+		jShowOptions.addActionListener((ActionEvent e) -> {
+			jOptionsPanel.setVisible(jShowOptions.isSelected());
+			if (jShowOptions.isSelected()) {
+				jBuffered.requestFocusInWindow();
 			}
 		});
 		builder.add(jShowOptions, cc.xy(3, 4));
@@ -591,15 +552,12 @@ public class TracesTab {
 				b.setMnemonic(KeyEvent.VK_O);
 			}
 			b.setToolTipText(logFiles.get(loggerName));
-			b.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					File logFile = new File(((CustomJButton) e.getSource()).getToolTipText());
-					try {
-						java.awt.Desktop.getDesktop().open(logFile);
-					} catch (IOException | UnsupportedOperationException ioe) {
-						LOGGER.error("Failed to open file \"{}\" in default editor: {}", logFile, ioe);
-					}
+			b.addActionListener((ActionEvent e) -> {
+				File logFile = new File(((CustomJButton) e.getSource()).getToolTipText());
+				try {
+					java.awt.Desktop.getDesktop().open(logFile);
+				} catch (IOException | UnsupportedOperationException ioe) {
+					LOGGER.error("Failed to open file \"{}\" in default editor: {}", logFile, ioe);
 				}
 			});
 			pLogFileButtons.add(b);
@@ -645,14 +603,11 @@ public class TracesTab {
 			CustomJButton rebootTrace = new CustomJButton(Messages.getString("TracesTab.12"));
 			rebootTrace.setToolTipText(Messages.getString("TracesTab.39"));
 			rebootTrace.setMnemonic(KeyEvent.VK_T);
-			rebootTrace.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					int opt = JOptionPane.showConfirmDialog(null, Messages.getString("TracesTab.13"),
-						Messages.getString("TracesTab.14"), JOptionPane.YES_NO_OPTION);
-					if (opt == JOptionPane.YES_OPTION) {
-						ProcessUtil.reboot("trace");
-					}
+			rebootTrace.addActionListener((ActionEvent e) -> {
+				int opt = JOptionPane.showConfirmDialog(null, Messages.getString("TracesTab.13"),
+					Messages.getString("TracesTab.14"), JOptionPane.YES_NO_OPTION);
+				if (opt == JOptionPane.YES_OPTION) {
+					ProcessUtil.reboot("trace");
 				}
 			});
 			pLogPackButtons.add(rebootTrace);
@@ -661,14 +616,11 @@ public class TracesTab {
 		CustomJButton packDbg = new CustomJButton(Messages.getString("TracesTab.4"));
 		packDbg.setMnemonic(KeyEvent.VK_P);
 		packDbg.setToolTipText(Messages.getString("TracesTab.40"));
-		packDbg.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JComponent comp = PMS.get().dbgPack().config();
-				String[] cancelStr = {Messages.getString("Dialog.Close")};
-				JOptionPane.showOptionDialog(looksFrame,
-					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
-			}
+		packDbg.addActionListener((ActionEvent e) -> {
+			JComponent comp = PMS.get().dbgPack().config();
+			String[] cancelStr = {Messages.getString("Dialog.Close")};
+			JOptionPane.showOptionDialog(looksFrame,
+				comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 		});
 		pLogPackButtons.add(packDbg);
 		builder.add(pLogPackButtons, cc.xy(1, 4));
