@@ -274,7 +274,7 @@ public class TracesTab {
 		JLabel jFilterLabel = new JLabel(Messages.getString("TracesTab.24") + ":");
 		jFilterLabel.setDisplayedMnemonic(KeyEvent.VK_F);
 		jFilterLabel.setToolTipText(Messages.getString("TracesTab.33"));
-		jTracesFilter = new CustomJComboBox<String>(levelStrings);
+		jTracesFilter = new CustomJComboBox<>(levelStrings);
 		jTracesFilter.setSelectedIndex(findLevelsIdx(configuration.getLoggingFilterLogsTab()));
 		jFilterLabel.setLabelFor(jTracesFilter);
 		jTracesFilter.setToolTipText(Messages.getString("TracesTab.33"));
@@ -513,7 +513,7 @@ public class TracesTab {
 		jSyslogFacilityLabel.setToolTipText(Messages.getString("TracesTab.47"));
 		jOptionsPanel.add(jSyslogFacilityLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
-		jSyslogFacility = new CustomJComboBox<String>(syslogFacilities);
+		jSyslogFacility = new CustomJComboBox<>(syslogFacilities);
 		jSyslogFacility.setToolTipText(Messages.getString("TracesTab.47"));
 		jSyslogFacility.setEnabled(!useSyslog);
 		jSyslogFacility.setSelectedIndex(findSyslogFacilityIdx(configuration.getLoggingSyslogFacility()));
@@ -570,7 +570,7 @@ public class TracesTab {
 		rootLevelLabel.setDisplayedMnemonic(KeyEvent.VK_L);
 		rootLevelLabel.setToolTipText(Messages.getString("TracesTab.42"));
 
-		CustomJComboBox<String> rootLevel = new CustomJComboBox<String>(levelStrings);
+		CustomJComboBox<String> rootLevel = new CustomJComboBox<>(levelStrings);
 		rootLevelLabel.setLabelFor(rootLevel);
 		rootLevel.setSelectedIndex(findLevelsIdx(rootLogger.getLevel()));
 		rootLevel.setToolTipText(Messages.getString("TracesTab.42"));

@@ -308,7 +308,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public List<String> getStringList(String key, String def) {
 		List<String> result = configurationReader.getStringList(key, def);
 		if (result.size() == 1 && result.get(0).equalsIgnoreCase("None")) {
-			return new ArrayList<String>();
+			return new ArrayList<>();
 		} else {
 			return result;
 		}
