@@ -18,6 +18,14 @@
  */
 package net.pms.network;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.TooLongFrameException;
+import io.netty.handler.codec.http.*;
+import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -33,16 +41,10 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.*;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.frame.TooLongFrameException;
-import org.jboss.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
+public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpRequest> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlerV2.class);
 
 	private static final Pattern TIMERANGE_PATTERN = Pattern.compile(
@@ -50,12 +52,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		Pattern.CASE_INSENSITIVE
 	);
 
-	private volatile HttpRequest nettyRequest;
-	private final ChannelGroup group;
-
-	public RequestHandlerV2(ChannelGroup group) {
-		this.group = group;
-	}
+	private volatile FullHttpRequest nettyRequest;
+	private final AttributeKey<StartStopListenerDelegate> startStop = AttributeKey.valueOf("startStop");
 
 	// Used to filter out known headers when the renderer is not recognized
 	private final static String[] KNOWN_HEADERS = {
@@ -75,16 +73,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	};
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
-		throws Exception {
-		RequestV2 request = null;
-		RendererConfiguration renderer = null;
+	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest e) throws Exception {
+		RequestV2 request;
+		RendererConfiguration renderer;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
-		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) e.getMessage();
+		FullHttpRequest nettyRequest = this.nettyRequest = e;
 
-		InetSocketAddress remoteAddress = (InetSocketAddress) e.getChannel().getRemoteAddress();
+		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
 		// Is the request from our own Cling service, i.e. self-originating?
@@ -94,7 +91,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
-			e.getChannel().close();
 			LOGGER.trace(isSelf ?
 				("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort()) :
 				("Access denied for address " + ia + " based on IP filter"));
@@ -103,10 +99,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		LOGGER.trace("Opened request handler on socket " + remoteAddress);
 		PMS.get().getRegistry().disableGoToSleep();
-		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
-		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().getText() + " : " + request.getMethod() + " : " + request.getArgument());
+		request = new RequestV2(nettyRequest.getMethod().name(), nettyRequest.getUri().substring(1));
+		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().text() + " : " + request.getMethod() + " : " + request.getArgument());
 
-		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
+		if (nettyRequest.getProtocolVersion().minorVersion() == 0) {
 			request.setHttp10(true);
 		}
 
@@ -246,7 +242,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
 			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
-			ChannelBuffer content = nettyRequest.getContent();
+			ByteBuf content = nettyRequest.content();
 			content.readBytes(data);
 			request.setTextContent(new String(data, "UTF-8"));
 		}
@@ -268,7 +264,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest e, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
@@ -294,10 +290,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
-		ctx.setAttachment(startStopListenerDelegate);
+		ctx.attr(startStop).set(startStopListenerDelegate);
 
 		try {
-			request.answer(response, e, close, startStopListenerDelegate);
+			request.answer(ctx, response, e, close, startStopListenerDelegate);
 		} catch (IOException e1) {
 			LOGGER.trace("HTTP request V2 IO error: " + e1.getMessage());
 			// note: we don't call stop() here in a finally block as
@@ -309,10 +305,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
-		throws Exception {
-		Channel ch = e.getChannel();
-		Throwable cause = e.getCause();
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		if (cause instanceof TooLongFrameException) {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
@@ -320,7 +313,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		if (cause != null) {
 			if (cause.getClass().equals(IOException.class)) {
 				LOGGER.debug("Connection error: " + cause);
-				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();
+				StartStopListenerDelegate startStopListenerDelegate = ctx.attr(startStop).get();
 				if (startStopListenerDelegate != null) {
 					LOGGER.debug("Premature end, stopping...");
 					startStopListenerDelegate.stop();
@@ -329,40 +322,21 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				LOGGER.debug("Caught exception: " + cause);
 			}
 		}
-		if (ch.isConnected()) {
+		if (ctx.channel().isActive()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 		}
-		ch.close();
+
+		ctx.close();
 	}
 
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-		HttpResponse response = new DefaultHttpResponse(
-			HttpVersion.HTTP_1_1, status);
+		FullHttpResponse response = new DefaultFullHttpResponse(
+			HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(
+				"Failure: " + status.toString() + "\r\n", Charset.forName("UTF-8")));
 		response.headers().set(
 			HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-		response.setContent(ChannelBuffers.copiedBuffer(
-			"Failure: " + status.toString() + "\r\n", Charset.forName("UTF-8")));
 
 		// Close the connection as soon as the error message is sent.
-		ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+		ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 	}
-
-	@Override
-	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
-		throws Exception {
-		// as seen in http://www.jboss.org/netty/community.html#nabble-td2423020
-		super.channelOpen(ctx, e);
-		if (group != null) {
-			group.add(ctx.getChannel());
-		}
-	}
-
-	/* Uncomment to see channel events in the trace logs
-	@Override
-	public void handleUpstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
-	// Log all channel events.
-	LOGGER.trace("Channel upstream event: " + e);
-	super.handleUpstream(ctx, e);
-	}
-	 */
 }
