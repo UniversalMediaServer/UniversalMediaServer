@@ -33,7 +33,7 @@ import ch.qos.logback.core.status.ErrorStatus;
  */
 public class CacheAppender<E> extends AppenderBase<E> {
 
-	private LinkedList<E> eventList = new LinkedList<E>();
+	private LinkedList<E> eventList = new LinkedList<>();
 
 	@Override
 	protected void append(E eventObject) {

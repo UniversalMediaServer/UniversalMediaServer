@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class Iterators<E> {
 
-	private List<E> iterators = new ArrayList<E>();
+	private List<E> iterators = new ArrayList<>();
 
 	/**
 	 * Add all the elements of an iterator

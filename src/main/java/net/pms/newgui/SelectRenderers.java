@@ -118,7 +118,7 @@ public class SelectRenderers extends JPanel {
 			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode) {
 				SearchableMutableTreeNode rootNode = (SearchableMutableTreeNode) root.getLastPathComponent();
 				SearchableMutableTreeNode node = null;
-				List<TreePath> selectedRenderersPath = new ArrayList<TreePath>(selectedRenderers.size());
+				List<TreePath> selectedRenderersPath = new ArrayList<>(selectedRenderers.size());
 				for (String selectedRenderer : selectedRenderers) {
 					try {
 						node = rootNode.findInBranch(selectedRenderer, true);
@@ -154,7 +154,7 @@ public class SelectRenderers extends JPanel {
 			) {
 				configuration.setSelectedRenderers(allRenderersTreeName);
 			} else {
-				List<String> selectedRenderers = new ArrayList<String>();
+				List<String> selectedRenderers = new ArrayList<>();
 				for (TreePath path : selected) {
 					String rendererName = "";
 					if (path.getPathComponent(0).equals(allRenderers)) {

@@ -1504,7 +1504,7 @@ public class PMS {
 		headlessLock.readLock().lock();
 		try {
 			if (headless != null) {
-				return headless.booleanValue();
+				return headless;
 			}
 		} finally {
 			headlessLock.readLock().unlock();
@@ -1515,10 +1515,10 @@ public class PMS {
 			JDialog d = new JDialog();
 			d.dispose();
 			headless = Boolean.FALSE;
-			return headless.booleanValue();
+			return headless;
 		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
 			headless = Boolean.TRUE;
-			return headless.booleanValue();
+			return headless;
 		} finally {
 			headlessLock.writeLock().unlock();
 		}

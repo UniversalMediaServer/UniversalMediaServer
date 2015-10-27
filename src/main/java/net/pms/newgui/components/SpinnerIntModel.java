@@ -126,17 +126,17 @@ public class SpinnerIntModel extends AbstractSpinnerModel implements Serializabl
 
 	@Override
 	public Object getNextValue() {
-        return Integer.valueOf(incrValue(+1));
+        return incrValue(+1);
 	}
 
 	@Override
 	public Object getPreviousValue() {
-        return Integer.valueOf(incrValue(-1));
+        return incrValue(-1);
 	}
 
 	@Override
 	public Object getValue() {
-		return Integer.valueOf(value);
+		return value;
 	}
 
 	public int getIntValue() {
