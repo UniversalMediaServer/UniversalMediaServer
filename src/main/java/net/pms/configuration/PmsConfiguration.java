@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Frame;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -318,6 +319,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_THREADS = "web_threads";
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
+	protected static final String KEY_WINDOW_EXTENDED_STATE = "window_extended_state";
 	protected static final String KEY_WINDOW_GEOMETRY = "window_geometry";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
@@ -3830,5 +3832,13 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getScreenSize() {
 		return getString(KEY_SCREEN_SIZE, "-1x-1");
-	}	
+	}
+
+	public void setWindowExtendedState(int value) {
+		configuration.setProperty(KEY_WINDOW_EXTENDED_STATE, value);
+	}
+
+	public int getWindowExtendedState() {
+		return getInt(KEY_WINDOW_EXTENDED_STATE, Frame.NORMAL);
+	}
 }

@@ -343,6 +343,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
 			setSize(STANDARD_SIZE);
 			screenChanged = true;
+		} else if (configuration.getWindowExtendedState() != NORMAL) {
+			setExtendedState(configuration.getWindowExtendedState());
 		} else if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
 			setSize(screenSize);
 		} else {
@@ -496,7 +498,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
 		String windowGeometry = getBounds().toString();
-		configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf("[") + 1, windowGeometry.indexOf("]")));
+		if (getExtendedState() != NORMAL) {
+			configuration.setWindowExtendedState(getExtendedState());
+		} else {
+			configuration.setWindowExtendedState(NORMAL);
+			configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf("[") + 1, windowGeometry.indexOf("]")));
+		}
+
 		configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
 		try {
 			Thread.sleep(100);
