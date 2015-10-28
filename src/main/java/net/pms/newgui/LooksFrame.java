@@ -321,10 +321,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			title = title + "  [" + Messages.getString("TracesTab.10").toUpperCase() + "]";
 		}
 
-		this.setTitle(title);
-		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-//		Dimension screenSize = getToolkit().getScreenSize();
-
+		setTitle(title);
+		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		if (screenSize.width < MINIMUM_SIZE.width || screenSize.height < MINIMUM_SIZE.height) {
 			setMinimumSize(screenSize);
 		} else {
@@ -344,6 +342,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setSize(STANDARD_SIZE);
 			screenChanged = true;
 		} else if (configuration.getWindowExtendedState() != NORMAL) {
+			setSize(STANDARD_SIZE);
 			setExtendedState(configuration.getWindowExtendedState());
 		} else if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
 			setSize(screenSize);
