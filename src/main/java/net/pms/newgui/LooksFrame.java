@@ -20,6 +20,7 @@ package net.pms.newgui;
 
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
+import com.jgoodies.looks.windows.WindowsLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -134,11 +135,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		LookAndFeel selectedLaf = null;
 		if (Platform.isWindows()) {
-			try {
-				selectedLaf = (LookAndFeel) Class.forName("com.jgoodies.looks.windows.WindowsLookAndFeel").newInstance();
-			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-				selectedLaf = new PlasticLookAndFeel();
-			}
+			selectedLaf = new WindowsLookAndFeel();
 		} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
 			selectedLaf = new PlasticLookAndFeel();
 		} else {
