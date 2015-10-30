@@ -51,12 +51,12 @@ public class SpinnerIntModelTest {
 		intModel.setIntValue(50);
 		assertEquals("NextValue", intModel.getNextValue(), 100);
 		assertEquals("PrevValue", intModel.getPreviousValue(), 50);
-		assertEquals("CurrValue", intModel.getValue(), Integer.valueOf(50));
+		assertEquals("CurrValue", intModel.getValue(), 50);
 		intModel.setValue(intModel.getNextValue());
 		intModel.setValue(intModel.getNextValue());
 		intModel.setValue(intModel.getNextValue());
 		assertEquals("NextValue", intModel.getNextValue(), 250);
 		assertEquals("PrevValue", intModel.getPreviousValue(), 200);
-		assertEquals("CurrValue", intModel.getValue(), Integer.valueOf(250));
+		assertEquals("CurrValue", intModel.getValue(), 250);
 	}
 }
