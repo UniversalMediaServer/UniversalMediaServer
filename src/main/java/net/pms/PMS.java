@@ -833,13 +833,13 @@ public class PMS {
 		return getSharedFoldersArray(monitored, null, configuration);
 	}
 
-	@Deprecated
 	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
-		return getSharedFoldersArray(tags, configuration);
-	}
-
-	public File[] getSharedFoldersArray(ArrayList<String> tags, PmsConfiguration configuration) {
-		String folders = configuration.getFolders(tags);
+		String folders;
+		if (monitored) {
+			folders = configuration.getFoldersMonitored();
+		} else {
+			folders = configuration.getFolders(tags);
+		}
 
 		if (folders == null || folders.length() == 0) {
 			return null;

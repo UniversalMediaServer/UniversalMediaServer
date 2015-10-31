@@ -601,7 +601,7 @@ public class NavigationShareTab {
 		});
 
 		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"), configuration.isHideNewMediaFolder());
-		newmediafolder.setToolTipText(Messages.getString("FoldTab.60"));
+		newmediafolder.setToolTipText(Messages.getString("FoldTab.66"));
 		newmediafolder.setContentAreaFilled(false);
 		newmediafolder.addItemListener(new ItemListener() {
 			@Override
@@ -813,7 +813,7 @@ public class NavigationShareTab {
 		private static final long serialVersionUID = -4247839506937958655L;
 
 		public SharedFoldersTableModel() {
-			super(new String[]{Messages.getString("FoldTab.56"), Messages.getString("FoldTab.57")}, 0);
+			super(new String[]{Messages.getString("FoldTab.56"), Messages.getString("FoldTab.65")}, 0);
 		}
 
 		@Override
