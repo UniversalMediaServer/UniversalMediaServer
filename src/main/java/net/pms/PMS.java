@@ -823,7 +823,6 @@ public class PMS {
 	 *
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
-	@Deprecated
 	public File[] getSharedFoldersArray(boolean monitored) {
 		return getSharedFoldersArray(monitored, null, getConfiguration());
 	}

@@ -662,7 +662,7 @@ public class NavigationShareTab {
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showOpenDialog((Component) e.getSource());
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					((SharedFoldersTableModel) FList.getModel()).addRow(new Object[]{chooser.getSelectedFile().getAbsolutePath(), false});
+					((SharedFoldersTableModel) FList.getModel()).addRow(new Object[]{chooser.getSelectedFile().getAbsolutePath(), true});
 					if (FList.getModel().getValueAt(0, 0).equals(ALL_DRIVES)) {
 						((SharedFoldersTableModel) FList.getModel()).removeRow(0);
 					}
