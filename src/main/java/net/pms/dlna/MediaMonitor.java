@@ -135,6 +135,8 @@ public class MediaMonitor extends VirtualFolder {
 		 */
 		long played = System.currentTimeMillis() - rf.getStartTime();
 
+		String watchedVideoAction = configuration.getWatchedVideoAction();
+
 		/**
 		 * Only mark the video as watched if more than 92% (default) of 
 		 */
@@ -146,12 +148,34 @@ public class MediaMonitor extends VirtualFolder {
 					return;
 				}
 
-				watchedEntries.add(rf.getFile().getAbsolutePath());
-				setDiscovered(false);
-				getChildren().clear();
-				try {
-					dumpFile();
-				} catch (IOException e) {
+				if ("1".equals(watchedVideoAction) || "2".equals(watchedVideoAction)) {
+					// Only monitor videos if we need to hide them or change the thumbnail
+					watchedEntries.add(rf.getFile().getAbsolutePath());
+					setDiscovered(false);
+					getChildren().clear();
+					try {
+						dumpFile();
+					} catch (IOException e) {
+					}
+				} else if (watchedVideoAction.startsWith("3;") && watchedVideoAction.length() > 3) {
+					// Move the video to a different folder
+					String newDirectory = watchedVideoAction.split(";")[1];
+					if (!newDirectory.endsWith("\\")) {
+						newDirectory += "\\\\";
+					}
+
+					File watchedFile = new File(rf.getFile().getAbsolutePath());
+					try {
+						if (watchedFile.renameTo(new File(newDirectory + watchedFile.getName()))) {
+							LOGGER.debug("Moved {} because it has been watched", watchedFile.getName());
+						} else {
+							LOGGER.info("Failed to move {}", watchedFile.getName());
+						}
+					} catch (Exception e) {
+						LOGGER.info("Failed to move {} because {}", watchedFile.getName(), e.getMessage());
+					}
+				} else if ("4".equals(configuration.getWatchedVideoAction())) {
+					// Delete the video
 				}
 			}
 		}
