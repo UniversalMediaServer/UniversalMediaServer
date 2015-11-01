@@ -3439,6 +3439,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getInt(KEY_MIN_PLAY_TIME, 30000);
 	}
 
+	public int getMinimumWatchedPlayTimeSeconds() {
+		return getMinimumWatchedPlayTime() / 1000;
+	}
+
 	public int getMinPlayTimeWeb() {
 		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinimumWatchedPlayTime());
 	}

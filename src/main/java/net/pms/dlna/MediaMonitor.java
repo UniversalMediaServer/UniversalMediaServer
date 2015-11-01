@@ -28,6 +28,14 @@ public class MediaMonitor extends VirtualFolder {
 		parseMonitorFile();
 	}
 
+	public MediaMonitor(File[] dirs, String name) {
+		super(name, "images/thumbnail-folder-256.png");
+		this.dirs = dirs;
+		watchedEntries = new HashSet<>();
+		config = PMS.getConfiguration();
+		parseMonitorFile();
+	}
+
 	private File monitorFile() {
 		return new File(config.getDataFile("UMS.mon"));
 	}
@@ -65,7 +73,7 @@ public class MediaMonitor extends VirtualFolder {
 
 	public void scanDir(File[] files, final DLNAResource res) {
 		final DLNAResource mm = this;
-		res.addChild(new VirtualVideoAction(Messages.getString("PMS.139"), true) {
+		res.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
 			@Override
 			public boolean enable() {
 				for (DLNAResource r : res.getChildren()) {
@@ -116,12 +124,18 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
+	public boolean isMonitorClass(DLNAResource res) {
+		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
+	}
+
 	public void stopped(DLNAResource res) {
 		if (!(res instanceof RealFile)) {
 			return;
 		}
+
 		RealFile rf = (RealFile) res;
-		
+
+		// The total video duration in seconds
 		double videoDuration = 0;
 		if (res.getMedia() != null) {
 			videoDuration = res.getMedia().getDuration();
@@ -133,16 +147,17 @@ public class MediaMonitor extends VirtualFolder {
 		 * video is fast-forwarded, rewound or played at a faster rate
 		 * than 1 second per second, it will no longer be accurate.
 		 */
-		long played = System.currentTimeMillis() - rf.getStartTime();
+		long played = (System.currentTimeMillis() - rf.getStartTime()) / 1000;
 
 		String watchedVideoAction = configuration.getWatchedVideoAction();
 
 		/**
-		 * Only mark the video as watched if more than 92% (default) of 
+		 * Only mark the video as watched if more than 92% (default) of
+		 * the duration has elapsed since it started playing.
 		 */
-		if (videoDuration > configuration.getMinimumWatchedPlayTime() && played >= (videoDuration * configuration.getResumeBackFactor())) {
+		if (videoDuration > configuration.getMinimumWatchedPlayTimeSeconds() && played >= (videoDuration * configuration.getResumeBackFactor())) {
 			DLNAResource tmp = res.getParent();
-			if (tmp != null) {
+			if (tmp != null && isMonitorClass(tmp)) {
 				// Prevent duplicates from being added
 				if (isWatched(rf.getFile().getAbsolutePath())) {
 					return;
