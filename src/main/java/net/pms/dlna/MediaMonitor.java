@@ -163,16 +163,17 @@ public class MediaMonitor extends VirtualFolder {
 					return;
 				}
 
-				if ("1".equals(watchedVideoAction) || "2".equals(watchedVideoAction)) {
-					// Only monitor videos if we need to hide them or change the thumbnail
-					watchedEntries.add(rf.getFile().getAbsolutePath());
-					setDiscovered(false);
-					getChildren().clear();
-					try {
-						dumpFile();
-					} catch (IOException e) {
-					}
-				} else if (watchedVideoAction.startsWith("3;") && watchedVideoAction.length() > 3) {
+				watchedEntries.add(rf.getFile().getAbsolutePath());
+				setDiscovered(false);
+				getChildren().clear();
+
+				try {
+					dumpFile();
+				} catch (IOException e) {
+					LOGGER.debug("An error occurred when dumping monitor file: " + e);
+				}
+
+				if (watchedVideoAction.startsWith("3;") && watchedVideoAction.length() > 3) {
 					// Move the video to a different folder
 					String newDirectory = watchedVideoAction.split(";")[1];
 					if (!newDirectory.endsWith("\\")) {
