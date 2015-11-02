@@ -27,10 +27,12 @@ import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.event.*;
 import java.io.File;
 import java.util.Vector;
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import net.pms.Messages;
@@ -648,6 +650,14 @@ public class NavigationShareTab {
 		TableColumn column = FList.getColumnModel().getColumn(0);
 		column.setMinWidth(650);
 
+		/* An attempt to set the correct row height adjusted for font scaling.
+		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
+		 * to allow 2 pixels above and below the text. */
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) FList.getCellRenderer(0,0);
+		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
+		FList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+		FList.setIntercellSpacing(new Dimension(8, 2));
+
 		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-adddirectory.png"));
 		but.setToolTipText(Messages.getString("FoldTab.9"));
 		but.addActionListener(new ActionListener() {
@@ -796,7 +806,7 @@ public class NavigationShareTab {
 
 		JScrollPane pane = new JScrollPane(FList);
 		Dimension d = FList.getPreferredSize();
-		pane.setPreferredSize(new Dimension(d.width, FList.getRowHeight() * 8));
+		pane.setPreferredSize(new Dimension(d.width, FList.getRowHeight() * 2));
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
 		return builderFolder;

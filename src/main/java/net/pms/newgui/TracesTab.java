@@ -384,7 +384,7 @@ public class TracesTab {
 		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer());
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
-		jList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		jList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, jList.getFont().getSize()));
 
 		final JPopupMenu popup = new JPopupMenu();
 		Action copy = jList.getActionMap().get("copy-to-clipboard");
