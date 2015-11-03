@@ -216,7 +216,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
 	protected static final String KEY_MENCODER_YADIF = "mencoder_yadif";
 	protected static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
-	protected static final String KEY_MIN_PLAY_TIME = "min_playtime";
+	protected static final String KEY_MIN_PLAY_TIME = "minimum_watched_play_time";
 	protected static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
 	protected static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	protected static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
@@ -3404,16 +3404,25 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RESUME, value);
 	}
 
+	@Deprecated
 	public int getMinPlayTime() {
-		return getInt(KEY_MIN_PLAY_TIME, 10000);
+		return getMinimumWatchedPlayTime();
+	}
+
+	public int getMinimumWatchedPlayTime() {
+		return getInt(KEY_MIN_PLAY_TIME, 30000);
+	}
+
+	public int getMinimumWatchedPlayTimeSeconds() {
+		return getMinimumWatchedPlayTime() / 1000;
 	}
 
 	public int getMinPlayTimeWeb() {
-		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinPlayTime());
+		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinimumWatchedPlayTime());
 	}
 
 	public int getMinPlayTimeFile() {
-		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinPlayTime());
+		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinimumWatchedPlayTime());
 	}
 
 	public int getResumeRewind() {

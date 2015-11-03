@@ -558,8 +558,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				// Do not add unsupported media format to the list
-				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)){
+				// Do not add unsupported media formats to the list
+				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
 					LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
 					children.remove(child);
 					return;
@@ -963,7 +963,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * (Re)sets the given DNLA resource as follows:
+	 * (Re)sets the given DLNA resource as follows:
 	 *    - if it's already one of our children, renew it
 	 *    - or if we have another child with the same name, replace it
 	 *    - otherwise add it as a new child.
@@ -989,7 +989,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Adds the supplied DNLA resource in the internal list of child nodes,
+	 * Adds the supplied DLNA resource in the internal list of child nodes,
 	 * and sets the parent to the current node. Avoids the side-effects
 	 * associated with the {@link #addChild(DLNAResource)} method.
 	 *
@@ -3894,7 +3894,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public int minPlayTime() {
-		return configuration.getMinPlayTime();
+		return configuration.getMinimumWatchedPlayTime();
 	}
 
 	private String resumeStr(String s) {
