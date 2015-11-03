@@ -1412,11 +1412,14 @@ public class RootFolder extends DLNAResource {
 	public void stopPlaying(DLNAResource res) {
 		// If the file was played via a monitored folder
 		if (
-			res.getParent() instanceof MediaMonitor ||
+			mon != null &&
 			(
-				res.getParent() instanceof FileTranscodeVirtualFolder &&
-				res.getParent().getParent().getParent() != null &&
-				res.getParent().getParent().getParent() instanceof MediaMonitor
+				res.getParent() instanceof MediaMonitor ||
+				(
+					res.getParent() instanceof FileTranscodeVirtualFolder &&
+					res.getParent().getParent().getParent() != null &&
+					res.getParent().getParent().getParent() instanceof MediaMonitor
+				)
 			)
 		) {
 			mon.stopped(res);
