@@ -124,7 +124,7 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
-	public boolean isMonitorClass(DLNAResource res) {
+	private boolean isMonitorClass(DLNAResource res) {
 		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
 	}
 
