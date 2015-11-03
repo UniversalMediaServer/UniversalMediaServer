@@ -3068,7 +3068,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
-		if (media != null && (!media.isThumbready() || MediaMonitor.isWatched(inputFile.getFile().getAbsolutePath())) && configuration.isThumbnailGenerationEnabled()) {
+		if (
+			media != null &&
+			(
+				!media.isThumbready() ||
+				(
+					"1".equals(configuration.getWatchedVideoAction()) &&
+					MediaMonitor.isWatched(inputFile.getFile().getAbsolutePath())
+				)
+			) &&
+			configuration.isThumbnailGenerationEnabled()
+		) {
 			Double seekPosition = (double) configuration.getThumbnailSeekPos();
 			if (isResume()) {
 				Double resumePosition = (double) (resume.getTimeOffset() / 1000);
@@ -3841,12 +3851,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	/**
-	 * TODO: Merge this with the watched actions functionality to prevent
-	 * duplicate work
-	 *
-	 * @return 
-	 */
 	private DLNAResource resumeStop() {
 		if (!configuration.isResumeEnabled() || !isResumeable()) {
 			return null;
