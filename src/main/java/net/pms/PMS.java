@@ -827,7 +827,6 @@ public class PMS {
 		return getSharedFoldersArray(monitored, null, getConfiguration());
 	}
 
-	@Deprecated
 	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
 		return getSharedFoldersArray(monitored, null, configuration);
 	}
