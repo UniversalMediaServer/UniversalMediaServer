@@ -125,7 +125,10 @@ public class RootFolder extends DLNAResource {
 				dirs[i] = new File(tmp[i]);
 			}
 			mon = new MediaMonitor(dirs);
-			addChild(mon);
+
+			if (!configuration.isHideNewMediaFolder()) {
+				addChild(mon);
+			}
 		}
 
 		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
