@@ -612,15 +612,6 @@ public class NavigationShareTab {
 			}
 		});
 
-		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"), configuration.isHideRecentlyPlayedFolder());
-		recentlyplayedfolder.setContentAreaFilled(false);
-		recentlyplayedfolder.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setHideRecentlyPlayedFolder((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-
 		resume = new JCheckBox(Messages.getString("NetworkTab.68"), configuration.isResumeEnabled());
 		resume.setToolTipText(Messages.getString("NetworkTab.69"));
 		resume.setContentAreaFilled(false);
@@ -628,6 +619,15 @@ public class NavigationShareTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setResume((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"), configuration.isHideRecentlyPlayedFolder());
+		recentlyplayedfolder.setContentAreaFilled(false);
+		recentlyplayedfolder.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setHideRecentlyPlayedFolder((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 	}

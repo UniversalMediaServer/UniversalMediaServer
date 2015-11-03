@@ -151,12 +151,10 @@ public class ResumeObj {
 		long thisPlay = now - startTime;
 		long duration = thisPlay + offsetTime;
 
-		if (expDuration > minDur) {
-			if (duration >= (expDuration * configuration.getResumeBackFactor())) {
-				// We've seen the whole video (likely)
-				file.delete();
-				return;
-			}
+		if (expDuration > minDur && duration >= (expDuration * configuration.getResumeBackFactor())) {
+			// We've seen the whole video (likely)
+			file.delete();
+			return;
 		}
 		if (thisPlay < configuration.getResumeRewind()) {
 			return;
