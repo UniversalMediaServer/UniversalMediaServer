@@ -11,13 +11,16 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang.StringUtils;
+import org.fest.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sun.jna.platform.FileUtils;
 
 public class MediaMonitor extends VirtualFolder {
 	private static Set<String> watchedEntries;
 	private File[] dirs;
 	private PmsConfiguration config;
+	private static final FileUtils FILE_UTILS = FileUtils.getInstance();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
 	public MediaMonitor(File[] dirs) {
@@ -173,6 +176,8 @@ public class MediaMonitor extends VirtualFolder {
 					LOGGER.debug("An error occurred when dumping monitor file: " + e);
 				}
 
+				File watchedFile = new File(rf.getFile().getAbsolutePath());
+
 				if (watchedVideoAction.startsWith("3;") && watchedVideoAction.length() > 3) {
 					// Move the video to a different folder
 					String newDirectory = watchedVideoAction.split(";")[1];
@@ -180,7 +185,6 @@ public class MediaMonitor extends VirtualFolder {
 						newDirectory += "\\\\";
 					}
 
-					File watchedFile = new File(rf.getFile().getAbsolutePath());
 					try {
 						if (watchedFile.renameTo(new File(newDirectory + watchedFile.getName()))) {
 							LOGGER.debug("Moved {} because it has been watched", watchedFile.getName());
@@ -191,7 +195,15 @@ public class MediaMonitor extends VirtualFolder {
 						LOGGER.info("Failed to move {} because {}", watchedFile.getName(), e.getMessage());
 					}
 				} else if ("4".equals(configuration.getWatchedVideoAction())) {
-					// Delete the video
+					if (!FILE_UTILS.hasTrash()) {
+						LOGGER.warn("Moving files to the recycle bin isn't support by Java for your operating system");
+					} else {
+						try {
+							FILE_UTILS.moveToTrash(Arrays.array(watchedFile));
+						} catch (IOException e) {
+							LOGGER.error(String.format("Failed to delete file %s after it has been played", watchedFile.getAbsoluteFile()), e);
+						}
+					}
 				}
 			}
 		}
