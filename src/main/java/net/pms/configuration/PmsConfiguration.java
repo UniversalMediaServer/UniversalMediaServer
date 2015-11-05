@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Frame;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -215,7 +216,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
 	protected static final String KEY_MENCODER_YADIF = "mencoder_yadif";
 	protected static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
-	protected static final String KEY_MIN_PLAY_TIME = "min_playtime";
+	protected static final String KEY_MIN_PLAY_TIME = "minimum_watched_play_time";
 	protected static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
 	protected static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	protected static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
@@ -319,6 +320,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_THREADS = "web_threads";
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
+	protected static final String KEY_WINDOW_EXTENDED_STATE = "window_extended_state";
 	protected static final String KEY_WINDOW_GEOMETRY = "window_geometry";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
@@ -3067,7 +3069,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean isAdmin() {
 		synchronized(isAdminLock) {
 			if (admin != null) {
-				return admin.booleanValue();
+				return admin;
 			}
 			if (Platform.isWindows()) {
 				Float ver = null;
@@ -3078,7 +3080,7 @@ public class PmsConfiguration extends RendererConfiguration {
 						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
 						System.getProperty("os.version"), e.getMessage()
 					);
-					admin = Boolean.valueOf(false);
+					admin = false;
 					return false;
 				}
 				if (ver >= 5.1) {
@@ -3089,16 +3091,16 @@ public class PmsConfiguration extends RendererConfiguration {
 						int exitValue = p.exitValue();
 
 						if (0 == exitValue) {
-							admin = Boolean.valueOf(true);
+							admin = true;
 							return true;
 						}
-						admin = Boolean.valueOf(false);
+						admin = false;
 						return false;
 					} catch (IOException | InterruptedException e) {
 						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
 					}
 				} else {
-					admin = Boolean.valueOf(true);
+					admin = true;
 					return true;
 				}
 			} else if (Platform.isLinux() || Platform.isMac()) {
@@ -3114,7 +3116,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					String exitLine = br.readLine();
 					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
 						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
-						admin = Boolean.valueOf(false);
+						admin = false;
 						return false;
 					}
 					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
@@ -3123,17 +3125,17 @@ public class PmsConfiguration extends RendererConfiguration {
 						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
 					{
 						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
-						admin = Boolean.valueOf(true);
+						admin = true;
 						return true;
 					}
 					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
-					admin = Boolean.valueOf(false);
+					admin = false;
 					return false;
 				} catch (IOException | InterruptedException e) {
 					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
 				}
 			}
-			admin = Boolean.valueOf(false);
+			admin = false;
 			return false;
 		}
 	}
@@ -3403,16 +3405,25 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RESUME, value);
 	}
 
+	@Deprecated
 	public int getMinPlayTime() {
-		return getInt(KEY_MIN_PLAY_TIME, 10000);
+		return getMinimumWatchedPlayTime();
+	}
+
+	public int getMinimumWatchedPlayTime() {
+		return getInt(KEY_MIN_PLAY_TIME, 30000);
+	}
+
+	public int getMinimumWatchedPlayTimeSeconds() {
+		return getMinimumWatchedPlayTime() / 1000;
 	}
 
 	public int getMinPlayTimeWeb() {
-		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinPlayTime());
+		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinimumWatchedPlayTime());
 	}
 
 	public int getMinPlayTimeFile() {
-		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinPlayTime());
+		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinimumWatchedPlayTime());
 	}
 
 	public int getResumeRewind() {
@@ -3841,4 +3852,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SHOW_SPLASH_SCREEN, value);
 	}
 
+	public void setWindowExtendedState(int value) {
+		configuration.setProperty(KEY_WINDOW_EXTENDED_STATE, value);
+	}
+
+	public int getWindowExtendedState() {
+		return getInt(KEY_WINDOW_EXTENDED_STATE, Frame.NORMAL);
+	}
 }

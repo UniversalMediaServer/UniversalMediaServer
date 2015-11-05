@@ -61,7 +61,7 @@ public class LoggingConfig {
 	private static Object filepathLock = new Object();
 	private static String filepath = null;
 	private static Object logFilePathsLock = new Object();
-	private static HashMap<String, String> logFilePaths = new HashMap<String, String>(); // key: appender name, value: log file path
+	private static HashMap<String, String> logFilePaths = new HashMap<>(); // key: appender name, value: log file path
 	private static LoggerContext loggerContext = null;
 	private static Logger rootLogger;
 	private static SyslogAppender syslog;
@@ -69,7 +69,7 @@ public class LoggingConfig {
 	private static enum ActionType {START, STOP, NONE};
 	private static Level consoleLevel = null;
 	private static Level tracesLevel = null;
-	private static LinkedList<Appender<ILoggingEvent>> syslogDetachedAppenders = new LinkedList<Appender<ILoggingEvent>>();
+	private static LinkedList<Appender<ILoggingEvent>> syslogDetachedAppenders = new LinkedList<>();
 
 	/**
 	 * Gets the full path of a successfully loaded Logback configuration file.
@@ -190,7 +190,7 @@ public class LoggingConfig {
 				System.err.println("Trying to create \"emergency\" configuration");
 				// Try to create "emergency" appenders for some logging if configuration fails
 				if (PMS.isHeadless()) {
-					ConsoleAppender<ILoggingEvent> ca = new ConsoleAppender<ILoggingEvent>();
+					ConsoleAppender<ILoggingEvent> ca = new ConsoleAppender<>();
 					PatternLayoutEncoder pe = new PatternLayoutEncoder();
 					pe.setPattern("%-5level %d{HH:mm:ss.SSS} [%thread] %logger %msg%n");
 					pe.setContext(loggerContext);
@@ -201,7 +201,7 @@ public class LoggingConfig {
 					ca.start();
 					loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(ca);
 				} else {
-					FrameAppender<ILoggingEvent> fa = new FrameAppender<ILoggingEvent>();
+					FrameAppender<ILoggingEvent> fa = new FrameAppender<>();
 					PatternLayoutEncoder pe = new PatternLayoutEncoder();
 					pe.setPattern("%-5level %d{HH:mm:ss.SSS} [%thread] %logger %msg%n");
 					pe.setContext(loggerContext);
@@ -225,7 +225,7 @@ public class LoggingConfig {
 		}
 
 		// Build the iterator
-		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<>();
 		// Add CacheLogger appenders if CacheLogger is active
 		if (CacheLogger.isActive()) {
 			iterators.addIterator(CacheLogger.iteratorForAppenders());
@@ -490,7 +490,7 @@ public class LoggingConfig {
 		}
 
 		// Build iterator
-		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<>();
 		// Add CacheLogger or rootLogger appenders depending on whether CacheLogger is active.
 		if (CacheLogger.isActive()) {
 			iterators.addIterator(CacheLogger.iteratorForAppenders());
@@ -555,7 +555,7 @@ public class LoggingConfig {
 		}
 
 		// Build iterator
-		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<>();
 		// Add CacheLogger or rootLogger appenders depending on whether CacheLogger is active.
 		if (CacheLogger.isActive()) {
 			iterators.addIterator(CacheLogger.iteratorForAppenders());

@@ -41,7 +41,7 @@ public class LoggingConfigFileLoader {
 	 * @return
 	 */
 	public static HashMap<String, String> getLogFilePaths() {
-		HashMap<String, String> logFilePaths = new HashMap<String, String>();
+		HashMap<String, String> logFilePaths = new HashMap<>();
 		// Copy logFilePaths from LoggingConfig and change "default.log" to "debug.log" for backwards compatibility.
 		logFilePaths.putAll(LoggingConfig.getLogFilePaths());
 		if (logFilePaths.containsKey("default.log")) {
