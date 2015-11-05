@@ -132,7 +132,7 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public void stopped(DLNAResource res) {
-		if (!(res instanceof RealFile)) {
+		if (!(res instanceof RealFile) || res.getMedia() == null || !res.getMedia().isVideo()) {
 			return;
 		}
 
