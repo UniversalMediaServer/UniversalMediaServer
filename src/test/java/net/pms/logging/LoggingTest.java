@@ -109,7 +109,7 @@ public class LoggingTest {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 		Logger rootLogger = context.getLogger(Logger.ROOT_LOGGER_NAME);
-		TestAppender<ILoggingEvent> testAppender = new TestAppender<ILoggingEvent>();
+		TestAppender<ILoggingEvent> testAppender = new TestAppender<>();
 		rootLogger.addAppender(testAppender);
 		testAppender.setContext(context);
 		testAppender.start();
@@ -130,7 +130,7 @@ public class LoggingTest {
 		assertTrue("AppenderIterator", findAppender(CacheLogger.iteratorForAppenders(), testAppender));
 		CacheLogger.removeAppender(testAppender);
 		assertFalse("AppenderRemoval", findAppender(CacheLogger.iteratorForAppenders(), testAppender));
-		TestAppender<ILoggingEvent> testAppender2 = new TestAppender<ILoggingEvent>();
+		TestAppender<ILoggingEvent> testAppender2 = new TestAppender<>();
 		CacheLogger.addAppender(testAppender2);
 		assertTrue("AppenderAdding", findAppender(CacheLogger.iteratorForAppenders(), testAppender2));
 		CacheLogger.stopAndFlush();
@@ -219,7 +219,7 @@ public class LoggingTest {
 		// Reset LogBack configuration and create a fake one to not rely on the existing configuration file
 		context.reset();
 
-		TestFileAppender<ILoggingEvent> testDefaultAppender = new TestFileAppender<ILoggingEvent>();
+		TestFileAppender<ILoggingEvent> testDefaultAppender = new TestFileAppender<>();
 		testDefaultAppender.setName("default.log");
 		testDefaultAppender.setContext(context);
 		PatternLayoutEncoder layoutEncoder = new PatternLayoutEncoder();
@@ -228,7 +228,7 @@ public class LoggingTest {
 		testDefaultAppender.setEncoder(layoutEncoder);
 		rootLogger.addAppender(testDefaultAppender);
 
-		TestFileAppender<ILoggingEvent> testGenericAppender = new TestFileAppender<ILoggingEvent>();
+		TestFileAppender<ILoggingEvent> testGenericAppender = new TestFileAppender<>();
 		testGenericAppender.setName("SomeOtherFileAppender");
 		testGenericAppender.setContext(context);
 		layoutEncoder = new PatternLayoutEncoder();
@@ -237,7 +237,7 @@ public class LoggingTest {
 		testGenericAppender.setEncoder(layoutEncoder);
 		rootLogger.addAppender(testGenericAppender);
 
-		TestAppender<ILoggingEvent> testNonFileAppender = new TestAppender<ILoggingEvent>();
+		TestAppender<ILoggingEvent> testNonFileAppender = new TestAppender<>();
 		testNonFileAppender.setName("SomeNonFileAppender");
 		testNonFileAppender.setContext(context);
 		rootLogger.addAppender(testNonFileAppender);
@@ -282,7 +282,7 @@ public class LoggingTest {
 
 		// Test setConsoleFilter()
 		configuration.setLoggingFilterConsole(Level.WARN);
-		ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<ILoggingEvent>();
+		ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
 		consoleAppender.setContext(context);
 		PatternLayoutEncoder patternEncoder = new PatternLayoutEncoder();
 		patternEncoder.setPattern("%msg%n");
@@ -312,7 +312,7 @@ public class LoggingTest {
 
 		// Test setTracesFilter()
 		configuration.setLoggingFilterLogsTab(Level.WARN);
-		FrameAppender<ILoggingEvent> frameAppender = new FrameAppender<ILoggingEvent>();
+		FrameAppender<ILoggingEvent> frameAppender = new FrameAppender<>();
 		frameAppender.setContext(context);
 		patternEncoder = new PatternLayoutEncoder();
 		patternEncoder.setPattern("%msg%n");

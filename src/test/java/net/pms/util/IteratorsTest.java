@@ -42,14 +42,14 @@ public class IteratorsTest {
 
 	@Test
 	public void testIterators() {
-		List<Integer> list1 = new ArrayList<Integer>();
+		List<Integer> list1 = new ArrayList<>();
 		list1.add(0);
 		list1.add(1);
-		List<Integer> list2 = new ArrayList<Integer>();
+		List<Integer> list2 = new ArrayList<>();
 		list2.add(0);
 		list2.add(1);
 		list2.add(2);
-		Iterators<Integer> iterators = new Iterators<Integer>();
+		Iterators<Integer> iterators = new Iterators<>();
 		iterators.addList(list1);
 		assertEquals("IteratorSize", iterators.size(), 2);
 		Iterator<Integer> iterator = iterators.combinedIterator();

@@ -35,6 +35,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
@@ -75,8 +77,10 @@ public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
 	private static final String NATIVELOOK = "nativelook";
 	private static final String CONSOLE = "console";
+	private static final String HEADLESS = "headless";
 	private static final String NOCONSOLE = "noconsole";
 	private static final String PROFILES = "profiles";
+	private static final String PROFILE = "^(?i)profile(?::|=)([^\"*<>?]+)$";
 	private static final String TRACE = "trace";
 
 	/**
@@ -1070,11 +1074,14 @@ public class PMS {
 
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
+		File profilePath = null;
 		CacheLogger.startCaching();
 
 		if (args.length > 0) {
+			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
 				switch (arg) {
+					case HEADLESS:
 					case CONSOLE:
 						System.setProperty(CONSOLE, Boolean.toString(true));
 						break;
@@ -1094,6 +1101,10 @@ public class PMS {
 						traceMode = 2;
 						break;
 					default:
+						Matcher matcher = pattern.matcher(arg);
+						if (matcher.find()) {
+							profilePath = new File(matcher.group(1));
+						}
 						break;
 				}
 			}
@@ -1118,7 +1129,16 @@ public class PMS {
 			}
 		}
 
-		if (!isHeadless() && displayProfileChooser) {
+		if (profilePath != null) {
+			if (!FileUtil.isValidFileName(profilePath.getName())) {
+				LOGGER.warn("Invalid file name in profile argument - using default profile");
+			} else if (!profilePath.exists()) {
+				LOGGER.warn("Specified profile ({}) doesn't exist - using default profile", profilePath.getAbsolutePath());
+			} else {
+				LOGGER.debug("Using specified profile: {}", profilePath.getAbsolutePath());
+				System.setProperty("ums.profile.path", profilePath.getAbsolutePath());
+			}
+		} else if (!isHeadless() && displayProfileChooser) {
 			ProfileChooser.display();
 		}
 
@@ -1516,23 +1536,35 @@ public class PMS {
 		PlayerFactory.registerPlayer(player);
 	}
 
+	private static ReadWriteLock headlessLock = new ReentrantReadWriteLock();
 	private static Boolean headless = null;
 
 	/**
 	 * Check if UMS is running in headless (console) mode, since some Linux
 	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
 	 */
-	public static synchronized boolean isHeadless() {
-		if (headless == null) {
-			try {
-				JDialog d = new JDialog();
-				d.dispose();
-				headless = Boolean.valueOf(false);
-			} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-				headless = Boolean.valueOf(true);
+	public static boolean isHeadless() {
+		headlessLock.readLock().lock();
+		try {
+			if (headless != null) {
+				return headless;
 			}
+		} finally {
+			headlessLock.readLock().unlock();
 		}
-		return headless.booleanValue();
+
+		headlessLock.writeLock().lock();
+		try {
+			JDialog d = new JDialog();
+			d.dispose();
+			headless = Boolean.FALSE;
+			return headless;
+		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
+			headless = Boolean.TRUE;
+			return headless;
+		} finally {
+			headlessLock.writeLock().unlock();
+		}
 	}
 
 	private static Locale locale = null;
@@ -1551,6 +1583,7 @@ public class PMS {
 		localeLock.writeLock().lock();
 		try {
 			locale = (Locale) aLocale.clone();
+			Messages.setLocaleBundle(locale);
 		} finally {
 			localeLock.writeLock().unlock();
 		}

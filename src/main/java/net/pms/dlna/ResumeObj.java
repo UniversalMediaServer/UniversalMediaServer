@@ -81,12 +81,12 @@ public class ResumeObj {
 		offsetTime = 0;
 		resDuration = 0;
 		file = f;
-		minDur = configuration.getMinPlayTime();
+		minDur = configuration.getMinimumWatchedPlayTime();
 	}
 
 	public void setMinDuration(long dur) {
 		if (dur == 0) {
-			dur = configuration.getMinPlayTime();
+			dur = configuration.getMinimumWatchedPlayTime();
 		}
 		minDur = dur;
 	}
@@ -151,18 +151,16 @@ public class ResumeObj {
 		long thisPlay = now - startTime;
 		long duration = thisPlay + offsetTime;
 
-		if (expDuration > minDur) {
-			if (duration >= (expDuration * configuration.getResumeBackFactor())) {
-				// We've seen the whole video (likely)
-				file.delete();
-				return;
-			}
+		if (expDuration > minDur && duration >= (expDuration * configuration.getResumeBackFactor())) {
+			// We've seen the whole video (likely)
+			file.delete();
+			return;
 		}
 		if (thisPlay < configuration.getResumeRewind()) {
 			return;
 		}
 		if (thisPlay < minDur) {
-			// to short to resume (at all)
+			// too short to resume (at all)
 			return;
 		}
 

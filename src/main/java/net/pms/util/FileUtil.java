@@ -1232,14 +1232,11 @@ public class FileUtil {
 
 	/**
 	 * Determines whether or not the program has admin/root permissions.
-	 *
-	 * Note: Detection of Windows 8 depends on the user having a version of
-	 * JRE newer than 1.6.0_31 installed.
 	 */
 	public static boolean isAdmin() {
 		synchronized(isAdminLock) {
 			if (admin != null) {
-				return admin.booleanValue();
+				return admin;
 			}
 			if (Platform.isWindows()) {
 				Float ver = null;
@@ -1250,7 +1247,7 @@ public class FileUtil {
 						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
 						System.getProperty("os.version"), e.getMessage()
 					);
-					admin = Boolean.valueOf(false);
+					admin = false;
 					return false;
 				}
 				if (ver >= 5.1) {
@@ -1261,16 +1258,16 @@ public class FileUtil {
 						int exitValue = p.exitValue();
 
 						if (0 == exitValue) {
-							admin = Boolean.valueOf(true);
+							admin = true;
 							return true;
 						}
-						admin = Boolean.valueOf(false);
+						admin = false;
 						return false;
 					} catch (IOException | InterruptedException e) {
 						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
 					}
 				} else {
-					admin = Boolean.valueOf(true);
+					admin = true;
 					return true;
 				}
 			} else if (Platform.isLinux() || Platform.isMac()) {
@@ -1286,7 +1283,7 @@ public class FileUtil {
 					String exitLine = br.readLine();
 					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
 						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
-						admin = Boolean.valueOf(false);
+						admin = false;
 						return false;
 					}
 					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
@@ -1295,17 +1292,17 @@ public class FileUtil {
 						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
 					{
 						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
-						admin = Boolean.valueOf(true);
+						admin = true;
 						return true;
 					}
 					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
-					admin = Boolean.valueOf(false);
+					admin = false;
 					return false;
 				} catch (IOException | InterruptedException e) {
 					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
 				}
 			}
-			admin = Boolean.valueOf(false);
+			admin = false;
 			return false;
 		}
 	}

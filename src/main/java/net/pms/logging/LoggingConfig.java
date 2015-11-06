@@ -58,8 +58,10 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingConfig {
 	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfig.class);
+	private static Object filepathLock = new Object();
 	private static String filepath = null;
-	private static HashMap<String, String> logFilePaths = new HashMap<String, String>(); // key: appender name, value: log file path
+	private static Object logFilePathsLock = new Object();
+	private static HashMap<String, String> logFilePaths = new HashMap<>(); // key: appender name, value: log file path
 	private static LoggerContext loggerContext = null;
 	private static Logger rootLogger;
 	private static SyslogAppender syslog;
@@ -67,7 +69,7 @@ public class LoggingConfig {
 	private static enum ActionType {START, STOP, NONE};
 	private static Level consoleLevel = null;
 	private static Level tracesLevel = null;
-	private static LinkedList<Appender<ILoggingEvent>> syslogDetachedAppenders = new LinkedList<Appender<ILoggingEvent>>();
+	private static LinkedList<Appender<ILoggingEvent>> syslogDetachedAppenders = new LinkedList<>();
 
 	/**
 	 * Gets the full path of a successfully loaded Logback configuration file.
@@ -77,11 +79,13 @@ public class LoggingConfig {
 	 *
 	 * @return pathname or <code>null</code>
 	 */
-	public static synchronized String getConfigFilePath() {
-		if (filepath != null) {
-			return filepath;
-		} else {
-			return "internal defaults";
+	public static String getConfigFilePath() {
+		synchronized (filepathLock) {
+			if (filepath != null) {
+				return filepath;
+			} else {
+				return "internal defaults";
+			}
 		}
 	}
 
@@ -176,15 +180,17 @@ public class LoggingConfig {
 				CacheLogger.initContext();
 			}
 			// Save the file path after loading the file
-			filepath = file.getAbsolutePath();
-			LOGGER.debug("LogBack started with configuration file: {}", filepath);
+			synchronized (filepathLock) {
+				filepath = file.getAbsolutePath();
+				LOGGER.debug("LogBack started with configuration file: {}", filepath);
+			}
 		} catch (JoranException je) {
 			try {
 				System.err.println("LogBack configuration failed: " + je.getLocalizedMessage());
 				System.err.println("Trying to create \"emergency\" configuration");
 				// Try to create "emergency" appenders for some logging if configuration fails
 				if (PMS.isHeadless()) {
-					ConsoleAppender<ILoggingEvent> ca = new ConsoleAppender<ILoggingEvent>();
+					ConsoleAppender<ILoggingEvent> ca = new ConsoleAppender<>();
 					PatternLayoutEncoder pe = new PatternLayoutEncoder();
 					pe.setPattern("%-5level %d{HH:mm:ss.SSS} [%thread] %logger %msg%n");
 					pe.setContext(loggerContext);
@@ -195,7 +201,7 @@ public class LoggingConfig {
 					ca.start();
 					loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(ca);
 				} else {
-					FrameAppender<ILoggingEvent> fa = new FrameAppender<ILoggingEvent>();
+					FrameAppender<ILoggingEvent> fa = new FrameAppender<>();
 					PatternLayoutEncoder pe = new PatternLayoutEncoder();
 					pe.setPattern("%-5level %d{HH:mm:ss.SSS} [%thread] %logger %msg%n");
 					pe.setContext(loggerContext);
@@ -219,7 +225,7 @@ public class LoggingConfig {
 		}
 
 		// Build the iterator
-		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<>();
 		// Add CacheLogger appenders if CacheLogger is active
 		if (CacheLogger.isActive()) {
 			iterators.addIterator(CacheLogger.iteratorForAppenders());
@@ -233,14 +239,16 @@ public class LoggingConfig {
 		// Iterate
 
 		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();
-		while (it.hasNext()) {
-			Appender<ILoggingEvent> appender = it.next();
+		synchronized (logFilePathsLock) {
+			while (it.hasNext()) {
+				Appender<ILoggingEvent> appender = it.next();
 
-			if (appender instanceof FileAppender) {
-				FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
-				logFilePaths.put(fa.getName(), fa.getFile());
-			} else if (appender instanceof SyslogAppender) {
-				syslogDisabled = true;
+				if (appender instanceof FileAppender) {
+					FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
+					logFilePaths.put(fa.getName(), fa.getFile());
+				} else if (appender instanceof SyslogAppender) {
+					syslogDisabled = true;
+				}
 			}
 		}
 
@@ -482,7 +490,7 @@ public class LoggingConfig {
 		}
 
 		// Build iterator
-		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<>();
 		// Add CacheLogger or rootLogger appenders depending on whether CacheLogger is active.
 		if (CacheLogger.isActive()) {
 			iterators.addIterator(CacheLogger.iteratorForAppenders());
@@ -547,7 +555,7 @@ public class LoggingConfig {
 		}
 
 		// Build iterator
-		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<Appender<ILoggingEvent>>();
+		Iterators<Appender<ILoggingEvent>> iterators = new Iterators<>();
 		// Add CacheLogger or rootLogger appenders depending on whether CacheLogger is active.
 		if (CacheLogger.isActive()) {
 			iterators.addIterator(CacheLogger.iteratorForAppenders());
@@ -619,7 +627,9 @@ public class LoggingConfig {
 		LOGGER.info("Verbose file logging pattern enforced");
 	}
 
-	public static synchronized HashMap<String, String> getLogFilePaths() {
-		return logFilePaths;
+	public static HashMap<String, String> getLogFilePaths() {
+		synchronized (logFilePathsLock) {
+			return logFilePaths;
+		}
 	}
 }

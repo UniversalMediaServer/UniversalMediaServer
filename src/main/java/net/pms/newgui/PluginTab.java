@@ -10,6 +10,7 @@ import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -123,8 +124,14 @@ public class PluginTab {
 
 		refresh(table, cols);
 
-		table.setRowHeight(22);
-		table.setIntercellSpacing(new Dimension(8, 0));
+		/* An attempt to set the correct row height adjusted for font scaling.
+		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
+		 * to allow 2 pixels above and below the text. */
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) table.getCellRenderer(0,0);
+		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
+		table.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+
+		table.setIntercellSpacing(new Dimension(8, 2));
 
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
@@ -253,9 +260,15 @@ public class PluginTab {
 		component = (JComponent) component.getComponent(0);
 		component.setFont(component.getFont().deriveFont(Font.BOLD));
 
-		credTable.setRowHeight(22);
-		credTable.setIntercellSpacing(new Dimension(8, 0));
+		/* An attempt to set the correct row height adjusted for font scaling.
+		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
+		 * to allow 2 pixels above and below the text. */
+		cellRenderer = (DefaultTableCellRenderer) credTable.getCellRenderer(0,0);
+		metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
+		credTable.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		credTable.setFillsViewportHeight(true);
+
+		credTable.setIntercellSpacing(new Dimension(8, 2));
 
 		// Define column widths
 		TableColumn ownerColumn = credTable.getColumnModel().getColumn(0);
