@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -794,58 +796,88 @@ public class FileUtil {
 		return found;
 	}
 
-	private static String externalSubsLang;
-
 	/**
-	 * Get the language of the external subtitles file detected by {@link #getFileCharset(File file)} method
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
+	 *
+	 * @param file the file for which to detect charset/encoding
+	 * @return The match object form the detection process or <code>null</code> if no match was found
+	 * @throws IOException
 	 */
-	public static String getExtSubsLang() {
-		return externalSubsLang;
+	public static CharsetMatch getFileCharsetMatch(File file) throws IOException {
+		CharsetMatch result = null;
+		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+			CharsetDetector detector = new CharsetDetector();
+			detector.enableInputFilter(true);
+			detector.setText(in);
+			// Results are sorted on descending confidence, so we're only after the first one.
+			result = detector.detectAll()[0];
+		}
+
+		if (result != null) {
+			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), result.getName());
+		} else {
+			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
+		}
+
+		return result;
 	}
 
 	/**
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file File to detect charset/encoding
-	 * @return file's charset or null if not detected
+	 * @param file the file for which to detect charset/encoding
+	 * @return The detected <code>Charset</code> or <code>null</code> if not detected
 	 * @throws IOException
 	 */
-	public static String getFileCharset(File file) throws IOException {
-		String encoding = null;
-		externalSubsLang = null;
-		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
-			CharsetDetector detector = new CharsetDetector();
-			detector.enableInputFilter(true);
-			detector.setText(in);
-			CharsetMatch [] matches = detector.detectAll();
-			CharsetMatch mm = null;
-			for (CharsetMatch m : matches) {
-				if (mm == null || mm.getConfidence() < m.getConfidence()) {
-					mm = m;
+	public static Charset getFileCharset(File file) throws IOException {
+		CharsetMatch match = getFileCharsetMatch(file);
+		if (match != null) {
+			try {
+				if (Charset.isSupported(match.getName())) {
+					LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
+					return Charset.forName(match.getName());
+				} else {
+					LOGGER.debug(
+						"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
+						match.getName(),
+						file.getAbsolutePath()
+					);
+					return null;
 				}
-			}
-
-			if (mm != null) {
-				encoding = mm.getName().toUpperCase();
-				externalSubsLang = mm.getLanguage();
+			} catch (IllegalCharsetNameException e) {
+				LOGGER.debug("Illegal charset deteceted \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 			}
 		}
+		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		return null;
+	}
 
-		if (encoding != null) {
-			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
+	/**
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
+	 *
+	 * @param file the file for which to detect charset/encoding
+	 * @return The name of the detected charset or <code>null</code> if not detected
+	 * @throws IOException
+	 */
+	public static String getFileCharsetName(File file) throws IOException {
+		CharsetMatch match = getFileCharsetMatch(file);
+		if (match != null) {
+			LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
+			return match.getName().toUpperCase(PMS.getLocale());
 		} else {
-			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
+			LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+			return null;
 		}
-
-		return encoding;
 	}
 
 	/**
 	 * Tests if file is UTF-8 encoded with or without BOM.
 	 *
 	 * @param file File to test
-	 * @return true if file is UTF-8 encoded with or without BOM, false otherwise.
+	 * @return True if file is UTF-8 encoded with or without BOM, false otherwise.
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF8(File file) throws IOException {
@@ -853,20 +885,30 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-8 encoded with or without BOM.
+	 * Tests if charset is UTF-8.
 	 *
-	 * @param charset Charset to test
-	 * @return true if charset is UTF-8 encoded with or without BOM, false otherwise.
+	 * @param charset <code>Charset</code> to test
+	 * @return True if charset is UTF-8, false otherwise.
 	 */
-	public static boolean isCharsetUTF8(String charset) {
-		return equalsIgnoreCase(charset, CHARSET_UTF_8);
+	public static boolean isCharsetUTF8(Charset charset) {
+		return charset != null && charset.equals(StandardCharsets.UTF_8);
 	}
 
 	/**
-	 * Tests if file is UTF-16 encoded LE or BE.
+	 * Tests if charset is UTF-8.
+	 *
+	 * @param charset charset name to test
+	 * @return True if charset is UTF-8, false otherwise.
+	 */
+	public static boolean isCharsetUTF8(String charsetName) {
+		return equalsIgnoreCase(charsetName, CHARSET_UTF_8);
+	}
+
+	/**
+	 * Tests if file is UTF-16 encoded.
 	 *
 	 * @param file File to test
-	 * @return true if file is UTF-16 encoded LE or BE, false otherwise.
+	 * @return True if file is UTF-16 encoded, false otherwise.
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF16(File file) throws IOException {
@@ -874,23 +916,33 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-16 encoded LE or BE.
+	 * Tests if charset is UTF-16.
 	 *
-	 * @param charset Charset to test
-	 * @return true if charset is UTF-16 encoded LE or BE, false otherwise.
+	 * @param charset <code>Charset</code> to test
+	 * @return True if charset is UTF-16, false otherwise.
 	 */
-	public static boolean isCharsetUTF16(String charset) {
-		return (equalsIgnoreCase(charset, CHARSET_UTF_16LE) || equalsIgnoreCase(charset, CHARSET_UTF_16BE));
+	public static boolean isCharsetUTF16(Charset charset) {
+		return charset != null && (charset.equals(StandardCharsets.UTF_16) || charset.equals(StandardCharsets.UTF_16BE) || charset.equals(StandardCharsets.UTF_16LE));
 	}
 
 	/**
-	 * Tests if charset is UTF-32 encoded LE or BE.
+	 * Tests if charset is UTF-16.
 	 *
-	 * @param charset Charset to test
-	 * @return true if charset is UTF-32 encoded LE or BE, false otherwise.
+	 * @param charset charset name to test
+	 * @return True if charset is UTF-16, false otherwise.
 	 */
-	public static boolean isCharsetUTF32(String charset) {
-		return (equalsIgnoreCase(charset, CHARSET_UTF_32LE) || equalsIgnoreCase(charset, CHARSET_UTF_32BE));
+	public static boolean isCharsetUTF16(String charsetName) {
+		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
+	}
+
+	/**
+	 * Tests if charset is UTF-32.
+	 *
+	 * @param charsetName charset name to test
+	 * @return True if charset is UTF-32, false otherwise.
+	 */
+	public static boolean isCharsetUTF32(String charsetName) {
+		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
@@ -901,7 +953,7 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
-		String charset;
+		Charset charset;
 		if (inputFile == null || !inputFile.canRead()) {
 			throw new FileNotFoundException("Can't read inputFile.");
 		}
@@ -916,19 +968,24 @@ public class FileUtil {
 		if (isCharsetUTF16(charset)) {
 			if (!outputFile.exists()) {
 				BufferedReader reader = null;
-
-				try {
-					if (equalsIgnoreCase(charset, CHARSET_UTF_16LE)) {
-						reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-16"));
-					} else {
-						reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-16BE"));
-					}
-				} catch (UnsupportedEncodingException ex) {
-					LOGGER.warn("Unsupported exception.", ex);
-					throw ex;
+				/*
+				 * This is a strange hack, and I'm not sure if it's needed. I
+				 * did it this way to conform to the tests, which dictates that
+				 * UTF-16LE should produce UTF-8 without BOM while UTF-16BE
+				 * should produce UTF-8 with BOM.
+				 *
+				 * For some reason creating a FileInputStream with UTF_16 produces
+				 * an UTF-8 outputfile without BOM, while using UTF_16LE or
+				 * UTF_16BE produces an UTF-8 outputfile with BOM.
+				 * @author Nadahar
+				 */
+				if (charset.equals(StandardCharsets.UTF_16LE)) {
+					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), StandardCharsets.UTF_16));
+				} else {
+					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset));
 				}
 
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8));
 				int c;
 
 				while ((c = reader.read()) != -1) {
@@ -944,204 +1001,88 @@ public class FileUtil {
 	}
 
 	/**
-	 * Return a file or directory's permissions in the Unix ls style
-	 * e.g.: "-rwx" (file,read-write-execute),  "dr--" (directory,read only) &c.
+	 * Return a file or folder's permissions.<br><br>
+	 *
+	 * This should <b>NOT</b> be used for checking e.g. read permissions before
+	 * trying to open a file, because you can't assume that the same is true
+	 * when you actually open the file. Other threads or processes could have
+	 * locked the file (or changed it's permissions) in the meanwhile. Instead,
+	 * use e.g <code>FileNotFoundException</code> like this:
+	 * <pre><code>
+	 * } catch (FileNotFoundException e) {
+	 * 	LOGGER.debug("Can't read xxx {}", e.getMessage());
+	 * }
+	 * </code></pre>
+	 * <code>e.getMessage()</code> will contain both the full path to the file
+	 * the reason it couldn't be read (e.g. no permission).
+	 *
+	 * @param file The file or folder to check permissions for
+	 * @return A <code>FilePermissions</code> object holding the permissions
+	 * @throws FileNotFoundException
+	 * @see {@link #getFilePermissions(String)}
 	 */
-	public static String getPathPermissions(String path) {
-		String permissions;
-		File file = new File(path);
+	public static FilePermissions getFilePermissions(File file) throws FileNotFoundException {
+		return new FilePermissions(file);
+	}
 
-		if (file.exists()) {
-			if (file.isFile()) {
-				permissions = String.format("-%s%s%s",
-					isFileReadable(file) ? "r" : "-",
-					isFileWritable(file) ? "w" : "-",
-					isFileExecutable(file) ?  "x" : "-"
-				);
-			} else {
-				permissions = String.format("d%s%s%s",
-					isDirectoryReadable(file) ? "r" : "-",
-					isDirectoryWritable(file) ? "w" : "-",
-					isFileExecutable(file) ?  "x" : "-"
-				);
+	/**
+	 * Like {@link #getFilePermissions(File)} but returns <code>null</code>
+	 * instead of throwing <code>FileNotFoundException</code> if the file or
+	 * folder isn't found.
+	 */
+	public static FilePermissions getFilePermissionsNoThrow(File file) {
+		try {
+			return new FilePermissions(file);
+		} catch (FileNotFoundException | IllegalArgumentException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Return a file or folder's permissions.<br><br>
+	 *
+	 * This should <b>NOT</b> be used for checking e.g. read permissions before
+	 * trying to open a file, because you can't assume that the same is true
+	 * when you actually open the file. Other threads or processes could have
+	 * locked the file (or changed it's permissions) in the meanwhile. Instead,
+	 * use e.g <code>FileNotFoundException</code> like this:
+	 * <pre><code>
+	 * } catch (FileNotFoundException e) {
+	 * 	LOGGER.debug("Can't read xxx {}", e.getMessage());
+	 * }
+	 * </code></pre>
+	 * <code>e.getMessage()</code> will contain both the full path to the file
+	 * the reason it couldn't be read (e.g. no permission).
+	 *
+	 * @param path The file or folder name to check permissions for
+	 * @return A <code>FilePermissions</code> object holding the permissions
+	 * @throws FileNotFoundException
+	 * @see {@link #getFilePermissions(File)}
+	 */
+	public static FilePermissions getFilePermissions(String path) throws FileNotFoundException {
+		if (path != null) {
+			return new FilePermissions(new File(path));
+		} else {
+			File file = null;
+			return new FilePermissions(file);
+		}
+	}
+
+	/**
+	 * Like {@link #getFilePermissions(String)} but returns <code>null</code>
+	 * instead of throwing <code>FileNotFoundException</code> if the file or
+	 * folder isn't found.
+	 */
+	public static FilePermissions getFilePermissionsNoThrow(String path) {
+		if (path != null) {
+			try {
+				return new FilePermissions(new File(path));
+			} catch (FileNotFoundException | IllegalArgumentException e) {
+				return null;
 			}
 		} else {
-			permissions = "file not found";
+			return null;
 		}
-
-		return permissions;
-	}
-
-	public static boolean isFileExecutable(File file) {
-		try {
-			// FIXME: Not 100% reliable, see http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6379654
-			return file.canExecute();
-		} catch (SecurityException se) {
-			LOGGER.error("Security manager {}: {}", file.getAbsolutePath(), se);
-			return false;
-		}
-	}
-
-	/**
-	 * Determine whether a file is readable by trying to read it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File#canRead()} on Windows, and in some cases, on Unix.
-	 * <p>
-	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
-	 * Note: this method changes the file access time.
-	 *
-	 * @since 1.71.0
-	 * @param file the File whose permissions are to be determined
-	 * @return <code>true</code> if the file is not null, exists, is a file and can be read, <code>false</code> otherwise
-	 */
-	// based on the workaround posted here:
-	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4993360
-	// XXX why isn't this in Apache Commons?
-	public static boolean isFileReadable(File file) {
-		boolean isReadable = false;
-
-		if ((file != null) && file.isFile()) {
-			try {
-				new FileInputStream(file).close();
-				isReadable = true;
-			} catch (IOException ioe) { }
-		}
-
-		return isReadable;
-	}
-
-	/**
-	 * Determine whether a file is writable by trying to write it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File#canWrite()} on Windows and, in some cases, on Unix.
-	 * <p>
-	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
-	 * Note: this method changes the file access time and may change the file modification time.
-	 *
-	 * @since 1.71.0
-	 * @param file the File whose permissions are to be determined
-	 * @return <code>true</code> if the file is not null and either a) exists, is a file and can be written to or b) doesn't
-	 * exist and can be created; otherwise returns <code>false</code>
-	 */
-	// Loosely based on the workaround posted here:
-	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4993360
-	// XXX why isn't this in Apache Commons?
-	public static boolean isFileWritable(File file) {
-		boolean isWritable = false;
-
-		if (file != null) {
-			boolean fileAlreadyExists = file.isFile(); // i.e. exists and is a File
-
-			if (fileAlreadyExists || !file.exists()) {
-				try {
-					// true: open for append: make sure the open
-					// doesn't clobber the file
-					new FileOutputStream(file, true).close();
-					isWritable = true;
-
-					if (!fileAlreadyExists) { // a new file has been "touch"ed; try to remove it
-						try {
-							if (!file.delete()) {
-								LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
-							}
-						} catch (SecurityException se) {
-							LOGGER.error("Error deleting temporary test file: " + file.getAbsolutePath(), se);
-						}
-					}
-				} catch (IOException | SecurityException ioe) {
-				}
-			}
-		}
-
-		return isWritable;
-	}
-
-	/**
-	 * Determines whether the supplied directory is readable by trying to
-	 * read its contents.
-	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File#canRead()} on Windows and possibly on Unix.
-	 *
-	 * Note: since this method accesses the filesystem, it should not be
-	 * used in contexts in which performance is critical.
-	 * Note: this method changes the file access time.
-	 *
-	 * @since 1.71.0
-	 * @param dir the File whose permissions are to be determined
-	 * @return <code>true</code> if the File is not null, exists, is a
-	 *         directory and can be read, <code>false</code> otherwise
-	 */
-	// XXX dir.canRead() has issues on Windows, so verify it directly:
-	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6203387
-	public static boolean isDirectoryReadable(File dir) {
-		boolean isReadable = false;
-
-		if (dir != null) {
-			// new File("").isDirectory() is false, even though getAbsolutePath() returns the right path.
-			// this resolves it
-			dir = dir.getAbsoluteFile();
-
-			if (dir.isDirectory()) {
-				try {
-					File[] files = dir.listFiles(); // null if an I/O error occurs
-					isReadable = files != null;
-				} catch (SecurityException se) { }
-			}
-		}
-
-		return isReadable;
-	}
-
-	/**
-	 * Determines whether the supplied directory is writable by trying to
-	 * write a file to it.
-	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File#canWrite()} on Windows and possibly on Unix.
-	 *
-	 * Note: since this method accesses the filesystem, it should not be
-	 * used in contexts in which performance is critical.
-	 * Note: this method changes the file access time and may change the
-	 * file modification time.
-	 *
-	 * @since 1.71.0
-	 * @param dir the File whose permissions are to be determined
-	 * @return <code>true</code> if the File is not null, exists, is a
-	 *         directory and can be written to, <code>false</code> otherwise
-	 */
-	// XXX dir.canWrite() has issues on Windows, so verify it directly:
-	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6203387
-	public static boolean isDirectoryWritable(File dir) {
-		boolean isWritable = false;
-
-		if (dir != null) {
-			// new File("").isDirectory() is false, even though getAbsolutePath() returns the right path.
-			// this resolves it
-			dir = dir.getAbsoluteFile();
-
-			if (dir.isDirectory()) {
-				File file = new File(
-					dir,
-					String.format(
-						"pms_directory_write_test_%d_%d.tmp",
-						System.currentTimeMillis(),
-						Thread.currentThread().getId()
-					)
-				);
-
-				try {
-					if (file.createNewFile()) {
-						if (isFileWritable(file)) {
-							isWritable = true;
-						}
-
-						if (!file.delete()) {
-							LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
-						}
-					}
-				} catch (IOException | SecurityException ioe) {
-				}
-			}
-		}
-
-		return isWritable;
 	}
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
@@ -1235,12 +1176,12 @@ public class FileUtil {
 
 	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
 		BufferedReader reader;
-		String fileCharset = getFileCharset(file);
-		final boolean iscodepageAutoDetectedAndSupportedByJVM = isNotBlank(fileCharset) && Charset.isSupported(fileCharset);
-		if (iscodepageAutoDetectedAndSupportedByJVM) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName(fileCharset)));
+		Charset fileCharset = getFileCharset(file);
+		if (fileCharset != null) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), fileCharset));
 		} else {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+			LOGGER.warn("Could not detect character encoding for file \"{}\". It will probably be interpreted wrong", file.getAbsolutePath());
 		}
 		return reader;
 	}
@@ -1276,15 +1217,93 @@ public class FileUtil {
 	 * @return the corrected path
 	 */
 	public static String appendPathSeparator(String path) {
-		if (path.contains("\\")) {
-			if (!path.endsWith("\\")) {
+		if (!path.endsWith("\\") && !path.endsWith("/")) {
+			if (path.contains("\\")) {
 				path += "\\";
-			}
-		} else {
-			if (!path.endsWith("/")) {
+			} else {
 				path += "/";
 			}
 		}
 		return path;
+	}
+
+	private static Boolean admin = null;
+	private static Object isAdminLock = new Object();
+
+	/**
+	 * Determines whether or not the program has admin/root permissions.
+	 */
+	public static boolean isAdmin() {
+		synchronized(isAdminLock) {
+			if (admin != null) {
+				return admin;
+			}
+			if (Platform.isWindows()) {
+				Float ver = null;
+				try {
+					ver = Float.valueOf(System.getProperty("os.version"));
+				} catch (NullPointerException | NumberFormatException e) {
+					LOGGER.error(
+						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
+						System.getProperty("os.version"), e.getMessage()
+					);
+					admin = false;
+					return false;
+				}
+				if (ver >= 5.1) {
+					try {
+						String command = "reg query \"HKU\\S-1-5-19\"";
+						Process p = Runtime.getRuntime().exec(command);
+						p.waitFor();
+						int exitValue = p.exitValue();
+
+						if (0 == exitValue) {
+							admin = true;
+							return true;
+						}
+						admin = false;
+						return false;
+					} catch (IOException | InterruptedException e) {
+						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
+					}
+				} else {
+					admin = true;
+					return true;
+				}
+			} else if (Platform.isLinux() || Platform.isMac()) {
+				try {
+					final String command = "id -Gn";
+					LOGGER.trace("isAdmin: Executing \"{}\"", command);
+					Process p = Runtime.getRuntime().exec(command);
+					InputStream is = p.getInputStream();
+					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
+					BufferedReader br = new BufferedReader(isr);
+					p.waitFor();
+					int exitValue = p.exitValue();
+					String exitLine = br.readLine();
+					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
+						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
+						admin = false;
+						return false;
+					}
+					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
+					if
+						((Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
+						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
+					{
+						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
+						admin = true;
+						return true;
+					}
+					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
+					admin = false;
+					return false;
+				} catch (IOException | InterruptedException e) {
+					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
+				}
+			}
+			admin = false;
+			return false;
+		}
 	}
 }

@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
@@ -8,22 +9,30 @@ import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NameFilter {
 	private final PropertiesConfiguration configuration;
 	private final ConfigurationReader configurationReader;
+	private static final Logger LOGGER = LoggerFactory.getLogger(NameFilter.class);
+
 
 	public NameFilter() throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
 		configurationReader = new ConfigurationReader(configuration, true); // true: log
 		configuration.setListDelimiter((char) 0);
 
-		String denyFile = PMS.getConfiguration().getProfileDirectory() + File.separator + "UMS.deny";
-		File f = new File(denyFile);
+		File denyFile = new File(PMS.getConfiguration().getProfileDirectory(), "UMS.deny");
 
-		if (f.exists() && FileUtil.isFileReadable(f)) {
-			configuration.load(denyFile);
-			configuration.setPath(denyFile);
+		try {
+			if (FileUtil.getFilePermissions(denyFile).isReadable()) {
+				configuration.load(denyFile);
+				configuration.setPath(denyFile.getAbsolutePath());
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.trace("Could not read name filter: {}", e.getMessage());
+			throw new ConfigurationException("Could not read NameFilter " + e.getMessage(), e);
 		}
 	}
 
