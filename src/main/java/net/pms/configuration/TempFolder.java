@@ -3,6 +3,7 @@ package net.pms.configuration;
 import java.io.File;
 import java.io.IOException;
 import net.pms.util.FileUtil;
+import net.pms.util.FilePermissions;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,12 +78,15 @@ class TempFolder {
 	}
 
 	private static void assertFolderIsValid(File folder) throws IOException {
-		if (!folder.isDirectory()) {
-			throw new IOException("Temp directory must be a directory: " + folder);
+		FilePermissions permission = FileUtil.getFilePermissions(folder);
+		if (!permission.isFolder()) {
+			throw new IOException("Temporary folder isn't a folder: " + folder.getAbsolutePath());
 		}
-
-		if (!FileUtil.isDirectoryWritable(folder)) {
-			throw new IOException("Temp directory is not writable: " + folder);
+		if (!permission.isBrowsable()) {
+			throw new IOException("Temporary folder isn't browsable: " + folder.getAbsolutePath());
+		}
+		if (!permission.isWritable()) {
+			throw new IOException("Temporary folder isn't writable:" + folder.getAbsolutePath());
 		}
 	}
 }

@@ -190,6 +190,10 @@ FunctionEnd
 Section "Program Files"
 	SetOutPath "$INSTDIR"
 	SetOverwrite on
+	
+	CreateDirectory "$INSTDIR\plugins"
+	AccessControl::GrantOnFile "$INSTDIR\plugins" "(S-1-5-32-545)" "FullAccess"
+		
 	File /r /x "*.conf" /x "*.zip" /x "*.dll" /x "third-party" "${PROJECT_BASEDIR}\src\main\external-resources\plugins"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
