@@ -154,7 +154,8 @@ public class MediaMonitor extends VirtualFolder {
 		 * video is fast-forwarded, rewound or played at a faster rate
 		 * than 1 second per second, it will no longer be accurate.
 		 */
-		long played = (System.currentTimeMillis() - rf.getStartTime()) / 1000;
+		double played = (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
+		played = played + res.getLastStartPosition();
 
 		String watchedVideoAction = configuration.getWatchedVideoAction();
 

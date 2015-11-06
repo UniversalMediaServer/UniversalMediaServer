@@ -2797,6 +2797,52 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * The system time when the resource was last (re)started.
+	 */
+	private long lastStartSystemTime;
+
+	/**
+	 * Gets the system time when the resource was last (re)started.
+	 *
+	 * @return The system time when the resource was last (re)started
+	 */
+	public double getLastStartSystemTime() {
+		return lastStartSystemTime;
+	}
+
+	/**
+	 * Sets the system time when the resource was last (re)started.
+	 *
+	 * @param startTime the system time to set
+	 */
+	public void setLastStartSystemTime(long startTime) {
+		lastStartSystemTime = startTime;
+	}
+
+	/**
+	 * The most recently requested time offset in seconds.
+	 */
+	private double lastStartPosition;
+
+	/**
+	 * Gets the most recently requested time offset in seconds.
+	 *
+	 * @return The most recently requested time offset in seconds
+	 */
+	public double getLastStartPosition() {
+		return lastStartPosition;
+	}
+
+	/**
+	 * Sets the most recently requested time offset in seconds.
+	 *
+	 * @param startPosition the time offset in seconds
+	 */
+	public void setLastStartPosition(long startPosition) {
+		lastStartPosition = startPosition;
+	}
+
+	/**
 	 * Returns an InputStream of this DLNAResource that starts at a given time, if possible. Very useful if video chapters are being used.
 	 *
 	 * @param range
@@ -2804,8 +2850,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The inputstream
 	 * @throws IOException
 	 */
-	private long lastStart;
-
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
@@ -2839,6 +2883,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				timeseek_auto = true;
 			}
 		}
+
+		lastStartPosition = timeRange.getStartOrZero();
 
 		// Determine source of the stream
 		if (player == null && !isResume()) {
@@ -2906,7 +2952,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			if (System.currentTimeMillis() - lastStart < 500) {
+			if (System.currentTimeMillis() - lastStartSystemTime < 500) {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
@@ -2918,7 +2964,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				// First playback attempt => start new transcoding process
 				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
-				lastStart = System.currentTimeMillis();
+				lastStartSystemTime = System.currentTimeMillis();
 				externalProcess = player.launchTranscode(this, media, params);
 				if (params.waitbeforestart > 0) {
 					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
@@ -2947,7 +2993,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				};
 
 				new Thread(r, "External Process Stopper").start();
-				lastStart = System.currentTimeMillis();
+				lastStartSystemTime = System.currentTimeMillis();
 				ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
 				try {
 					Thread.sleep(1000);
