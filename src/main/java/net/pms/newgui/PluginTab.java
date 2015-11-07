@@ -13,7 +13,9 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
@@ -150,82 +152,63 @@ public class PluginTab {
 
 		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
 		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-		install.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!ExternalFactory.localPluginsInstalled()) {
+		install.addActionListener((ActionEvent e) -> {
+			if (!ExternalFactory.localPluginsInstalled()) {
+				JOptionPane.showMessageDialog(
+					looksFrame,
+					Messages.getString("NetworkTab.40")
+				);
+				return;
+			}
+			// See if we have write permission in 'plugins'. We don't necessarily
+			// need admin rights here.
+			try {
+				if (!FileUtil.getFilePermissions(configuration.getPluginDirectory()).isWritable()) {
 					JOptionPane.showMessageDialog(
 						looksFrame,
-						Messages.getString("NetworkTab.40")
+						Messages.getString("PluginTab.16") + (Platform.isWindows() ? "\n" + Messages.getString("AutoUpdate.13") : ""),
+						Messages.getString("Dialog.PermissionsError"),
+						JOptionPane.ERROR_MESSAGE
 					);
 					return;
 				}
-
-				// See if we have write permission in 'plugins'. We don't necessarily
-				// need admin rights here.
-				try {
-					if (!FileUtil.getFilePermissions(configuration.getPluginDirectory()).isWritable()) {
+			} catch (FileNotFoundException e1) {
+				JOptionPane.showMessageDialog(
+					looksFrame,
+					String.format(Messages.getString("PluginTab.17"), configuration.getPluginDirectory()),
+					Messages.getString("Dialog.Error"),
+					JOptionPane.ERROR_MESSAGE
+				);
+				return;
+			}
+			final int[] rows = table.getSelectedRows();
+			JPanel panel = new JPanel();
+			GridLayout layout1 = new GridLayout(3, 1);
+			panel.setLayout(layout1);
+			final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
+			frame.setSize(250, 110);
+			JProgressBar progressBar = new JProgressBar();
+			progressBar.setIndeterminate(true);
+			panel.add(progressBar);
+			final JLabel label = new JLabel("");
+			final JLabel inst = new JLabel("");
+			panel.add(inst);
+			panel.add(label);
+			frame.add(panel);
+			// Center the installation progress window
+			frame.setLocationRelativeTo(null);
+			Runnable r = () -> {
+				for (int i = 0; i < rows.length; i++) {
+					DownloadPlugins plugin = plugins.get(rows[i]);
+					if (plugin.isOld()) {
+						// This plugin requires newer UMS
+						// display error and skip it.
 						JOptionPane.showMessageDialog(
 							looksFrame,
-							Messages.getString("PluginTab.16") + (Platform.isWindows() ? "\n" + Messages.getString("AutoUpdate.13") : ""),
-							Messages.getString("Dialog.PermissionsError"),
+							"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
+							"Version Error",
 							JOptionPane.ERROR_MESSAGE
 						);
-						return;
-					}
-				} catch (FileNotFoundException e1) {
-					JOptionPane.showMessageDialog(
-							looksFrame,
-							String.format(Messages.getString("PluginTab.17"), configuration.getPluginDirectory()),
-							Messages.getString("Dialog.Error"),
-							JOptionPane.ERROR_MESSAGE
-						);
-					return;
-				}
-
-				final int[] rows = table.getSelectedRows();
-				JPanel panel = new JPanel();
-				GridLayout layout = new GridLayout(3, 1);
-				panel.setLayout(layout);
-				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
-				frame.setSize(250, 110);
-				JProgressBar progressBar = new JProgressBar();
-				progressBar.setIndeterminate(true);
-				panel.add(progressBar);
-				final JLabel label = new JLabel("");
-				final JLabel inst = new JLabel("");
-				panel.add(inst);
-				panel.add(label);
-				frame.add(panel);
-
-				// Center the installation progress window
-				frame.setLocationRelativeTo(null);
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						for (int i = 0; i < rows.length; i++) {
-							DownloadPlugins plugin = plugins.get(rows[i]);
-							if (plugin.isOld()) {
-								// This plugin requires newer UMS
-								// display error and skip it.
-								JOptionPane.showMessageDialog(
-										looksFrame,
-										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
-										"Version Error",
-										JOptionPane.ERROR_MESSAGE
-									);
-									frame.setVisible(false);
-									continue;
-							}
-							frame.setVisible(true);
-							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
-							try {
-								plugin.install(label);
-							} catch (Exception e) {
-								LOGGER.debug("An error occurred when trying to install the plugin: " + plugin.getName());
-								LOGGER.debug("Full error: " + e);
-							}
-						}
 						frame.setVisible(false);
 						continue;
 					}
@@ -325,21 +308,13 @@ public class PluginTab {
 						}
 						cred.clearProperty(key);
 					}
-
-					try {
-						cred.save();
-					} catch (ConfigurationException e1) {
-						LOGGER.warn("Couldn't save credentials file {}", e1.getMessage());
-						LOGGER.trace("", e1);
-					}
-
-					refreshCred(credTable);
 				}
 				
 				try {
 					cred.save();
 				} catch (ConfigurationException e1) {
-					LOGGER.warn("Couldn't save cred file " + e1);
+					LOGGER.warn("Couldn't save credentials file {}", e1.getMessage());
+					LOGGER.trace("", e1);
 				}
 				
 				refreshCred(credTable);
@@ -350,49 +325,46 @@ public class PluginTab {
 		CustomJButton credEdit = new CustomJButton(Messages.getString("NetworkTab.54"));
 		credEdit.addActionListener((ActionEvent e) -> {
 			JPanel tPanel = new JPanel(new BorderLayout());
-
+			
 			final JTextArea textArea = new JTextArea();
 			textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 			JScrollPane scrollPane = new JScrollPane(textArea);
 			scrollPane.setPreferredSize(new Dimension(900, 450));
-
-				try {
-					configuration.initCred();
-				} catch (IOException e2) {
-					LOGGER.error("Could not create credentials file: {}", e2.getMessage());
-					LOGGER.trace("", e2);
-					return;
-				}
-
-				try {
-					cred.save();
-				} catch (ConfigurationException e3) {
-					LOGGER.error("Could not save credentials file: {}", e3.getMessage());
-					LOGGER.trace("", e3);
-				}
-				File f = configuration.getCredFile();
-
-				try {
-					try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
-						String line;
-						StringBuilder sb = new StringBuilder();
-						while ((line = in.readLine()) != null) {
-							sb.append(line);
-							sb.append("\n");
-						}
-						textArea.setText(sb.toString());
-					}
-				} catch (IOException e1) {
-					LOGGER.error("Could not read credentials file: {}", e1.getMessage());
-					LOGGER.trace("", e1);
-					return;
-				}
-			} catch (IOException e1) {
+			
+			try {
+				configuration.initCred();
+			} catch (IOException e2) {
+				LOGGER.error("Could not create credentials file: {}", e2.getMessage());
+				LOGGER.trace("", e2);
 				return;
 			}
-
+			
+			try {
+				cred.save();
+			} catch (ConfigurationException e3) {
+				LOGGER.error("Could not save credentials file: {}", e3.getMessage());
+				LOGGER.trace("", e3);
+			}
+			File f = configuration.getCredFile();
+			
+			try {
+				try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
+					String line;
+					StringBuilder sb = new StringBuilder();
+					while ((line = in.readLine()) != null) {
+						sb.append(line);
+						sb.append("\n");
+					}
+					textArea.setText(sb.toString());
+				}
+			} catch (IOException e1) {
+				LOGGER.error("Could not read credentials file: {}", e1.getMessage());
+				LOGGER.trace("", e1);
+				return;
+			}
+			
 			tPanel.add(scrollPane, BorderLayout.NORTH);
-
+			
 			Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
 			if (
 				JOptionPane.showOptionDialog(
@@ -406,26 +378,22 @@ public class PluginTab {
 					null
 				) == JOptionPane.OK_OPTION
 				) {
-					String text = textArea.getText();
-					try {
-						try (FileOutputStream fos = new FileOutputStream(f)) {
-							fos.write(text.getBytes(StandardCharsets.UTF_8));
-							fos.flush();
-						}
-						PMS.getConfiguration().reload();
-						try {
-							cred.refresh();
-						} catch (ConfigurationException e2) {
-							LOGGER.error("An error occurred while updating credentials: {}", e2);
-							LOGGER.trace("", e2);
-						}
-						refreshCred(credTable);
-					} catch (Exception e1) {
-						JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + ": " + e1.getMessage());
+				String text = textArea.getText();
+				try {
+					try (FileOutputStream fos = new FileOutputStream(f)) {
+						fos.write(text.getBytes(StandardCharsets.UTF_8));
+						fos.flush();
 					}
 					PMS.getConfiguration().reload();
+					try {
+						cred.refresh();
+					} catch (ConfigurationException e2) {
+						LOGGER.error("An error occurred while updating credentials: {}", e2);
+						LOGGER.trace("", e2);
+					}
+					refreshCred(credTable);
 				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + e1.toString());
+					JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + ": " + e1.getMessage());
 				}
 			}
 		});
@@ -655,33 +623,14 @@ public class PluginTab {
 		final char defEchoChar = pText.getEchoChar();
 
 		JButton ok = new JButton(Messages.getString("Dialog.OK"));
-		ok.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				frame.setVisible(false);
-				String key = oText.getText();
-				String pwd = new String(pText.getPassword());
-				if (
-					StringUtils.isEmpty(key) ||
-					StringUtils.isEmpty(uText.getText()) ||
-					StringUtils.isEmpty(pwd)
-				) {
-					// ignore this
-					return;
-				}
-
-				if (StringUtils.isNotEmpty(tText.getText())) {
-					key = key + "." + tText.getText();
-				}
-				String val = uText.getText() + "," + pwd;
-				cred.addProperty(key, val);
-				try {
-					cred.save();
-				} catch (ConfigurationException e1) {
-					LOGGER.warn("Error saving credentials file {}", e1);
-					LOGGER.trace("", e1);
-				}
-				refreshCred(table);
+		ok.addActionListener((ActionEvent e) -> {
+			frame.setVisible(false);
+			String key = oText.getText();
+			String pwd1 = new String(pText.getPassword());
+			if (StringUtils.isEmpty(key) ||
+				StringUtils.isEmpty(uText.getText()) || StringUtils.isEmpty(pwd1)) {
+				// ignore this
+				return;
 			}
 			if (StringUtils.isNotEmpty(tText.getText())) {
 				key = key + "." + tText.getText();
@@ -691,7 +640,8 @@ public class PluginTab {
 			try {
 				cred.save();
 			} catch (ConfigurationException e1) {
-				LOGGER.warn("Error saving cred file "+e1);
+				LOGGER.warn("Error saving credentials file {}", e1);
+				LOGGER.trace("", e1);
 			}
 			refreshCred(table);
 		});

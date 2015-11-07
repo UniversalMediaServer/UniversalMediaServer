@@ -606,7 +606,6 @@ public class NavigationShareTab {
 				}
 				updateModel();
 			}
-			updateModel();
 		});
 		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 

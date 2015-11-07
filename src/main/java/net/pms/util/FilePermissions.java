@@ -76,13 +76,13 @@ public class FilePermissions {
 	private void checkPermissions(boolean checkRead, boolean checkWrite, boolean checkExecute) {
 
 		if (read == null && checkRead) {
-			read = Boolean.valueOf(Files.isReadable(path));
+			read = Files.isReadable(path);
 		}
 		if (write == null && checkWrite) {
-			write = Boolean.valueOf(Files.isWritable(path));
+			write = Files.isWritable(path);
 		}
 		if (execute == null && checkExecute) {
-			execute = Boolean.valueOf(Files.isExecutable(path) || (Platform.isLinux() && FileUtil.isAdmin()));
+			execute = Files.isExecutable(path) || (Platform.isLinux() && FileUtil.isAdmin());
 		}
 	}
 
@@ -99,7 +99,7 @@ public class FilePermissions {
 	 */
 	public synchronized boolean isReadable() {
 		checkPermissions(true, false, false);
-		return read.booleanValue();
+		return read;
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class FilePermissions {
 	 */
 	public synchronized boolean isWritable() {
 		checkPermissions(false, true, false);
-		return write.booleanValue();
+		return write;
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class FilePermissions {
 	 */
 	public synchronized boolean isExecutable() {
 		checkPermissions(false, false, true);
-		return execute.booleanValue();
+		return execute;
 	}
 
 	/**
@@ -126,7 +126,7 @@ public class FilePermissions {
 	 */
 	public synchronized boolean isBrowsable() {
 		checkPermissions(true, false, true);
-		return folder && read.booleanValue() && execute.booleanValue();
+		return folder && read && execute;
 	}
 
 	/**
@@ -162,17 +162,17 @@ public class FilePermissions {
 		if (read == null) {
 			sb.append("?");
 		} else {
-			sb.append(read.booleanValue() ? "r" : "-");
+			sb.append(read ? "r" : "-");
 		}
 		if (write == null) {
 			sb.append("?");
 		} else {
-			sb.append(write.booleanValue() ? "w" : "-");
+			sb.append(write ? "w" : "-");
 		}
 		if (execute == null) {
 			sb.append("?");
 		} else {
-			sb.append(execute.booleanValue() ? "x" : "-");
+			sb.append(execute ? "x" : "-");
 		}
 		return sb.toString();
 	}

@@ -20,6 +20,7 @@ package net.pms.external;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -382,8 +383,7 @@ public class ExternalFactory {
 		}
 
 		// Find all .jar files in the plugin directory
-		File[] jarFiles = pluginsFolder.listFiles(
-			(File file) -> file.isFile() && file.getName().toLowerCase().endsWith(".jar"));
+		File[] jarFiles = pluginsFolder.listFiles((File file) -> file.isFile() && file.getName().toLowerCase().endsWith(".jar"));
 
 		int nJars = (jarFiles == null) ? 0 : jarFiles.length;
 
