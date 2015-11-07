@@ -65,7 +65,7 @@ public class MediaMonitor extends VirtualFolder {
 
 	public void scanDir(File[] files, final DLNAResource res) {
 		final DLNAResource mm = this;
-		res.addChild(new VirtualVideoAction(Messages.getString("PMS.139"), true) {
+		res.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
 			@Override
 			public boolean enable() {
 				for (DLNAResource r : res.getChildren()) {
@@ -116,7 +116,7 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
-	private boolean monitorClass(DLNAResource res) {
+	private boolean isMonitorClass(DLNAResource res) {
 		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
 	}
 
@@ -124,10 +124,11 @@ public class MediaMonitor extends VirtualFolder {
 		if (!(res instanceof RealFile)) {
 			return;
 		}
+
 		RealFile rf = (RealFile) res;
 		DLNAResource tmp = res.getParent();
 		while (tmp != null) {
-			if (monitorClass(tmp)) {
+			if (isMonitorClass(tmp)) {
 				if (isWatched(rf.getFile().getAbsolutePath())) { // no duplicates!
 					return;
 				}

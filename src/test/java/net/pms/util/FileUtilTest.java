@@ -23,11 +23,14 @@ import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Random;
 import static net.pms.util.Constants.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Fail;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -83,70 +86,100 @@ public class FileUtilTest {
 	/**
 	 * Note: The method this is testing handles numerous inputs, so this test
 	 * could get very large. It should get much larger than it is now.
+	 *
+	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testGetFileNameWithRewriting() throws Exception {
-		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E01E02.720p.mkv", null)).isEqualTo("Universal Media Server - 101-102");
+		// Video of a TV episode
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E02.720p.mkv", null)).isEqualTo("Universal Media Server - 102");
+
+		// Video of a TV episode in double-digit seasons
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S12E03.720p.mkv", null)).isEqualTo("Universal Media Server - 1203");
+
+		// Video spanning two TV episodes
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E02E03.720p.mkv", null)).isEqualTo("Universal Media Server - 102-103");
+
+		// Video of an extended TV episode
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E02.EXTENDED.720p.mkv", null)).isEqualTo("Universal Media Server - 102");
+
+		// Video of a TV episode with the "Mysterious Wordplay" title
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E02.Mysterious.Wordplay.720p.mkv", null)).isEqualTo("Universal Media Server - 102 - Mysterious Wordplay");
+
+		// Video of an extended cut of a TV episode
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E02.Extended.Cut.720p.mkv", null)).isEqualTo("Universal Media Server - 102 (Extended Cut)");
+
+		// Video of a TV episode that airs very regularly
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.2015.01.23.720p.mkv", null)).isEqualTo("Universal Media Server - 2015/01/23");
+
+		// Video of a TV episode that airs very regularly and has an episode title
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.2015.01.23.Mysterious.Wordplay.720p.mkv", null)).isEqualTo("Universal Media Server - 2015/01/23 - Mysterious Wordplay");
+
+		// Video of a movie
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.2015.720p.mkv", null)).isEqualTo("Universal Media Server (2015)");
+
+		// Video of a special edition of a movie
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.Special.Edition.2015.720p.mkv", null)).isEqualTo("Universal Media Server (Special Edition) (2015)");
 	}
 
 	@Test
 	public void testGetFileCharset_WINDOWS_1251() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_WINDOWS_1251);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_WINDOWS_1251);
 	}
 
 	@Test
 	public void testGetFileCharset_KOI8_R() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-koi8-r.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_KOI8_R);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_KOI8_R);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF8_without_BOM() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_8);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_UTF_8);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF8_with_BOM() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_8);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_UTF_8);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF16_LE() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_16LE);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_UTF_16LE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF16_BE() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_16BE);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_UTF_16BE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF32_LE() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf32-le.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_32LE);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_UTF_32LE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF32_BE() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-utf32-be.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_UTF_32BE);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_UTF_32BE);
 	}
 
 	@Test
 	public void testGetFileCharset_BIG5() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_GB18030);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_GB18030);
 	}
 
 	@Test
 	public void testGetFileCharset_GB2312() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(CHARSET_BIG5);
+		assertThat(FileUtil.getFileCharsetName(file)).isEqualTo(CHARSET_BIG5);
 	}
 
 	@Test
@@ -178,7 +211,10 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsCharsetUTF18_withNullOrEmptyCharset() throws Exception {
-		assertThat(FileUtil.isCharsetUTF8(null)).isFalse();
+		String s = null;
+		assertThat(FileUtil.isCharsetUTF8(s)).isFalse();
+		Charset c = null;
+		assertThat(FileUtil.isCharsetUTF8(c)).isFalse();
 		assertThat(FileUtil.isCharsetUTF8("")).isFalse();
 	}
 
@@ -213,7 +249,10 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsCharsetUTF16_withNullOrEmptyCharset() throws Exception {
-		assertThat(FileUtil.isCharsetUTF16(null)).isFalse();
+		String s = null;
+		assertThat(FileUtil.isCharsetUTF16(s)).isFalse();
+		Charset c = null;
+		assertThat(FileUtil.isCharsetUTF16(c)).isFalse();
 		assertThat(FileUtil.isCharsetUTF16("")).isFalse();
 	}
 
@@ -267,76 +306,66 @@ public class FileUtilTest {
 	}
 
 	@Test
-	public void testIsFileReadable() {
-		assertThat(FileUtil.isFileReadable(null)).isFalse();
-		assertThat(FileUtil.isFileReadable(new File(""))).isFalse();
-		assertThat(FileUtil.isFileReadable(new File(System.getProperty("user.dir")))).isFalse();
-		assertThat(FileUtil.isFileReadable(new File("no such file"))).isFalse();
-
-		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileReadable(file)).isTrue();
-
-		assertThat(file.getParentFile()).isNotNull();
-		assertThat(FileUtil.isFileReadable(new File(file.getParentFile(), "no such file"))).isFalse();
-	}
-
-	@Test
-	public void testIsFileWritable() throws IOException {
-		assertThat(FileUtil.isFileWritable(null)).isFalse();
-		assertThat(FileUtil.isFileWritable(new File(""))).isFalse();
-		assertThat(FileUtil.isFileWritable(new File(System.getProperty("user.dir")))).isFalse();
-		String filename = String.format("pms_temp_writable_file_%d_1.tmp", System.currentTimeMillis());
-		assertThat(FileUtil.isFileWritable(new File(filename))).isTrue();
-
-		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileReadable(file)).isTrue();
-
-		assertThat(file.getParentFile()).isNotNull();
-
-		filename = String.format("pms_temp_writable_file_%d_2.tmp", System.currentTimeMillis());
-		File tempFile = null;
-
+	public void testGetFilePermissions() throws FileNotFoundException {
+		File file = null;
+		String path = null;
 		try {
-			tempFile = new File(file.getParentFile(), filename);
-			tempFile.createNewFile();
-			assertThat(file.isFile()).isTrue();
-			assertThat(FileUtil.isFileReadable(tempFile)).isTrue();
-			assertThat(FileUtil.isFileWritable(tempFile)).isTrue();
-		} finally {
-			if (tempFile != null) {
-				tempFile.delete();
-			}
+			FileUtil.getFilePermissions(file);
+			Fail.fail("Expected IllegalArgumentException");
+		} catch (IllegalArgumentException e) {
+			// As expected
 		}
-	}
+		try {
+			FileUtil.getFilePermissions(path);
+			Fail.fail("Expected IllegalArgumentException");
+		} catch (IllegalArgumentException e) {
+			// As expected
+		}
+		assertNull("NullIsNull", FileUtil.getFilePermissionsNoThrow(file));
+		assertNull("NullIsNull", FileUtil.getFilePermissionsNoThrow(path));
+		assertTrue("CurrentFolderIsFolder", FileUtil.getFilePermissions(new File("")).isFolder());
+		assertTrue("CurrentFolderIsReadable", FileUtil.getFilePermissions(new File("")).isReadable());
+		assertTrue("CurrentFolderIsBrowsable", FileUtil.getFilePermissions(new File("")).isBrowsable());
+		assertTrue("user.dirFolderIsFolder", FileUtil.getFilePermissions(new File(System.getProperty("user.dir"))).isFolder());
+		try {
+			FileUtil.getFilePermissions("No such file");
+			Fail.fail("Expected FileNotFoundException");
+		} catch (FileNotFoundException e) {
+			// As expected
+		}
+		assertNull("NoSuchFileIsNull", FileUtil.getFilePermissionsNoThrow("No such file"));
 
-	@Test
-	public void testIsDirectoryReadable() {
-		assertThat(FileUtil.isDirectoryReadable(null)).isFalse();
-		assertThat(FileUtil.isDirectoryReadable(new File("no such directory"))).isFalse();
-		assertThat(FileUtil.isDirectoryReadable(FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt")))).isFalse();
+		file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
+		assertTrue("FileIsReadable", FileUtil.getFilePermissions(file).isReadable());
+		assertTrue("FileIsWritable", FileUtil.getFilePermissions(file).isWritable());
+		assertFalse("FileIsNotFolder", FileUtil.getFilePermissions(file).isFolder());
+		assertFalse("FileIsNotBrowsable", FileUtil.getFilePermissions(file).isBrowsable());
+		assertTrue("ParentIsFolder", FileUtil.getFilePermissions(file.getParentFile()).isFolder());
+		assertTrue("ParentIsBrowsable", FileUtil.getFilePermissions(file.getParentFile()).isBrowsable());
+		try {
+			FileUtil.getFilePermissions(new File(file.getParentFile(),"No such file"));
+			Fail.fail("Expected FileNotFoundException");
+		} catch (FileNotFoundException e) {
+			// As expected
+		}
+		assertNull("NoSuchFileIsNull", FileUtil.getFilePermissionsNoThrow(new File(file.getParentFile(),"No such file")));
 
-		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileReadable(file)).isTrue();
-
-		File dir = file.getParentFile();
-		assertThat(dir).isNotNull();
-		assertThat(dir.isDirectory()).isTrue();
-		assertThat(FileUtil.isDirectoryReadable(dir)).isTrue();
-	}
-
-	@Test
-	public void testIsDirectoryWritable() {
-		assertThat(FileUtil.isDirectoryWritable(null)).isFalse();
-		assertThat(FileUtil.isDirectoryWritable(new File("no such directory"))).isFalse();
-		assertThat(FileUtil.isDirectoryWritable(FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt")))).isFalse();
-
-		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileReadable(file)).isTrue();
-
-		File dir = file.getParentFile();
-		assertThat(dir).isNotNull();
-		assertThat(dir.isDirectory()).isTrue();
-		assertThat(FileUtil.isDirectoryWritable(dir)).isTrue();
+		path = String.format("UMS_temp_writable_file_%d.tmp", new Random().nextInt(10000));
+		file = new File(System.getProperty("java.io.tmpdir"), path);
+		try {
+			if (file.createNewFile()) {
+				try {
+					assertTrue("TempFileIsReadable", FileUtil.getFilePermissions(file).isReadable());
+					assertTrue("TempFileIsWritable", FileUtil.getFilePermissions(file).isWritable());
+					assertFalse("TempFileIsNotFolder", FileUtil.getFilePermissions(file).isFolder());
+					assertFalse("TempFileIsNotBrowsable", FileUtil.getFilePermissions(file).isBrowsable());
+				} finally {
+					file.delete();
+				}
+			}
+		} catch (IOException e) {
+			// Move on
+		}
 	}
 
 	@Test

@@ -4,11 +4,13 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -16,9 +18,11 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -60,8 +64,9 @@ public class PluginTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PluginTab.class);
 	private final PmsConfiguration configuration;
 	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, fill:p, 3dlu, p, 15dlu, p, 8dlu, p, 8dlu, p, 3dlu, fill:p:grow, 3dlu, p, 3dlu, p";
 	private JPanel pPlugins;
+	private JPanel installedPluginsSeparator;
 	private ArrayList<DownloadPlugins> plugins;
 	private LooksFrame looksFrame;
 
@@ -117,8 +122,14 @@ public class PluginTab {
 
 		refresh(table, cols);
 
-		table.setRowHeight(22);
-		table.setIntercellSpacing(new Dimension(8, 0));
+		/* An attempt to set the correct row height adjusted for font scaling.
+		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
+		 * to allow 2 pixels above and below the text. */
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) table.getCellRenderer(0,0);
+		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
+		table.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+
+		table.setIntercellSpacing(new Dimension(8, 2));
 
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
@@ -132,61 +143,89 @@ public class PluginTab {
 		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
 		descriptionColumn.setMinWidth(300);
 
-		JScrollPane pane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane pane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 139));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
 
 		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
 		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-		install.addActionListener((ActionEvent e) -> {
-			if (!ExternalFactory.localPluginsInstalled()) {
-				JOptionPane.showMessageDialog(
-					looksFrame,
-					Messages.getString("NetworkTab.40")
-				);
-				return;
-			}
-			// See if we have write permission in 'plugins'. We don't necessarily
-			// need admin rights here, this could be a standalone/local install
-			if (!FileUtil.getPathPermissions(configuration.getPluginDirectory()).contains("w")) {
-				JOptionPane.showMessageDialog(
-					looksFrame,
-					Messages.getString("PluginTab.15") + "\n" + Messages.getString("AutoUpdate.12"),
-					Messages.getString("Dialog.PermissionsError"),
-					JOptionPane.ERROR_MESSAGE
-				);
-				
-				return;
-			}
-			final int[] rows = table.getSelectedRows();
-			JPanel panel = new JPanel();
-			GridLayout layout1 = new GridLayout(3, 1);
-			panel.setLayout(layout1);
-			final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
-			frame.setSize(250, 110);
-			JProgressBar progressBar = new JProgressBar();
-			progressBar.setIndeterminate(true);
-			panel.add(progressBar);
-			final JLabel label = new JLabel("");
-			final JLabel inst = new JLabel("");
-			panel.add(inst);
-			panel.add(label);
-			frame.add(panel);
-			// Center the installation progress window
-			frame.setLocationRelativeTo(null);
-			Runnable r = () -> {
-				for (int i = 0; i < rows.length; i++) {
-					DownloadPlugins plugin = plugins.get(rows[i]);
-					if (plugin.isOld()) {
-						// This plugin requires newer UMS
-						// display error and skip it.
+		install.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!ExternalFactory.localPluginsInstalled()) {
+					JOptionPane.showMessageDialog(
+						looksFrame,
+						Messages.getString("NetworkTab.40")
+					);
+					return;
+				}
+
+				// See if we have write permission in 'plugins'. We don't necessarily
+				// need admin rights here.
+				try {
+					if (!FileUtil.getFilePermissions(configuration.getPluginDirectory()).isWritable()) {
 						JOptionPane.showMessageDialog(
 							looksFrame,
-							"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
-							"Version Error",
+							Messages.getString("PluginTab.16") + (Platform.isWindows() ? "\n" + Messages.getString("AutoUpdate.13") : ""),
+							Messages.getString("Dialog.PermissionsError"),
 							JOptionPane.ERROR_MESSAGE
 						);
+						return;
+					}
+				} catch (FileNotFoundException e1) {
+					JOptionPane.showMessageDialog(
+							looksFrame,
+							String.format(Messages.getString("PluginTab.17"), configuration.getPluginDirectory()),
+							Messages.getString("Dialog.Error"),
+							JOptionPane.ERROR_MESSAGE
+						);
+					return;
+				}
+
+				final int[] rows = table.getSelectedRows();
+				JPanel panel = new JPanel();
+				GridLayout layout = new GridLayout(3, 1);
+				panel.setLayout(layout);
+				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
+				frame.setSize(250, 110);
+				JProgressBar progressBar = new JProgressBar();
+				progressBar.setIndeterminate(true);
+				panel.add(progressBar);
+				final JLabel label = new JLabel("");
+				final JLabel inst = new JLabel("");
+				panel.add(inst);
+				panel.add(label);
+				frame.add(panel);
+
+				// Center the installation progress window
+				frame.setLocationRelativeTo(null);
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						for (int i = 0; i < rows.length; i++) {
+							DownloadPlugins plugin = plugins.get(rows[i]);
+							if (plugin.isOld()) {
+								// This plugin requires newer UMS
+								// display error and skip it.
+								JOptionPane.showMessageDialog(
+										looksFrame,
+										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
+										"Version Error",
+										JOptionPane.ERROR_MESSAGE
+									);
+									frame.setVisible(false);
+									continue;
+							}
+							frame.setVisible(true);
+							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
+							try {
+								plugin.install(label);
+							} catch (Exception e) {
+								LOGGER.debug("An error occurred when trying to install the plugin: " + plugin.getName());
+								LOGGER.debug("Full error: " + e);
+							}
+						}
 						frame.setVisible(false);
 						continue;
 					}
@@ -211,20 +250,30 @@ public class PluginTab {
 		});
 
 		// Installed Plugins section
-		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		JComponent component;
+		installedPluginsSeparator = (JPanel) builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
+		installedPluginsSeparator.setVisible(false);
+		component = (JComponent) installedPluginsSeparator.getComponent(0);
+		component.setFont(component.getFont().deriveFont(Font.BOLD));
 
 		pPlugins = new JPanel(new GridLayout());
+		pPlugins.setVisible(false);
 		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
 
 		// Credentials section
-		cmp = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		component = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
+		component = (JComponent) component.getComponent(0);
+		component.setFont(component.getFont().deriveFont(Font.BOLD));
 
-		credTable.setRowHeight(22);
-		credTable.setIntercellSpacing(new Dimension(8, 0));
+		/* An attempt to set the correct row height adjusted for font scaling.
+		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
+		 * to allow 2 pixels above and below the text. */
+		cellRenderer = (DefaultTableCellRenderer) credTable.getCellRenderer(0,0);
+		metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
+		credTable.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+		credTable.setFillsViewportHeight(true);
+
+		credTable.setIntercellSpacing(new Dimension(8, 2));
 
 		// Define column widths
 		TableColumn ownerColumn = credTable.getColumnModel().getColumn(0);
@@ -236,7 +285,7 @@ public class PluginTab {
 		TableColumn pwdColumn = credTable.getColumnModel().getColumn(3);
 		pwdColumn.setPreferredWidth(45);
 
-		pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 95));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
@@ -276,6 +325,15 @@ public class PluginTab {
 						}
 						cred.clearProperty(key);
 					}
+
+					try {
+						cred.save();
+					} catch (ConfigurationException e1) {
+						LOGGER.warn("Couldn't save credentials file {}", e1.getMessage());
+						LOGGER.trace("", e1);
+					}
+
+					refreshCred(credTable);
 				}
 				
 				try {
@@ -298,24 +356,36 @@ public class PluginTab {
 			JScrollPane scrollPane = new JScrollPane(textArea);
 			scrollPane.setPreferredSize(new Dimension(900, 450));
 
-			try {
-				configuration.initCred();
-			} catch (IOException e2) {
-				LOGGER.debug("error creating cred file");
-				return;
-			}
+				try {
+					configuration.initCred();
+				} catch (IOException e2) {
+					LOGGER.error("Could not create credentials file: {}", e2.getMessage());
+					LOGGER.trace("", e2);
+					return;
+				}
 
-			File f = configuration.getCredFile();
+				try {
+					cred.save();
+				} catch (ConfigurationException e3) {
+					LOGGER.error("Could not save credentials file: {}", e3.getMessage());
+					LOGGER.trace("", e3);
+				}
+				File f = configuration.getCredFile();
 
-			try {
-				try (FileInputStream fis = new FileInputStream(f); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
-					String line;
-					StringBuilder sb = new StringBuilder();
-					while ((line = in.readLine()) != null) {
-						sb.append(line);
-						sb.append("\n");
+				try {
+					try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
+						String line;
+						StringBuilder sb = new StringBuilder();
+						while ((line = in.readLine()) != null) {
+							sb.append(line);
+							sb.append("\n");
+						}
+						textArea.setText(sb.toString());
 					}
-					textArea.setText(sb.toString());
+				} catch (IOException e1) {
+					LOGGER.error("Could not read credentials file: {}", e1.getMessage());
+					LOGGER.trace("", e1);
+					return;
 				}
 			} catch (IOException e1) {
 				return;
@@ -336,11 +406,22 @@ public class PluginTab {
 					null
 				) == JOptionPane.OK_OPTION
 				) {
-				String text = textArea.getText();
-				try {
-					try (FileOutputStream fos = new FileOutputStream(f)) {
-						fos.write(text.getBytes());
-						fos.flush();
+					String text = textArea.getText();
+					try {
+						try (FileOutputStream fos = new FileOutputStream(f)) {
+							fos.write(text.getBytes(StandardCharsets.UTF_8));
+							fos.flush();
+						}
+						PMS.getConfiguration().reload();
+						try {
+							cred.refresh();
+						} catch (ConfigurationException e2) {
+							LOGGER.error("An error occurred while updating credentials: {}", e2);
+							LOGGER.trace("", e2);
+						}
+						refreshCred(credTable);
+					} catch (Exception e1) {
+						JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + ": " + e1.getMessage());
 					}
 					PMS.getConfiguration().reload();
 				} catch (Exception e1) {
@@ -383,11 +464,14 @@ public class PluginTab {
 			"fill:10:grow",
 			"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p");
 		pPlugins.setLayout(layout);
-		for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
+		List<ExternalListener> externalListeners = ExternalFactory.getExternalListeners();
+		for (final ExternalListener listener : externalListeners) {
 			if (!appendPlugin(listener)) {
 				break;
 			}
 		}
+		pPlugins.setVisible(externalListeners.size() > 0);
+		installedPluginsSeparator.setVisible(externalListeners.size() > 0);
 	}
 
 	public boolean appendPlugin(final ExternalListener listener) {
@@ -474,15 +558,17 @@ public class PluginTab {
 
 	public void init() {
 		File cFile = configuration.getCredFile();
-		if (cFile.isFile() && FileUtil.isFileReadable(cFile)) {
+
+		if (cFile != null) {
 			try {
 				cred.load(cFile);
 				cred.setFile(cFile);
 			} catch (ConfigurationException e) {
-				LOGGER.warn("Could not load cred file "+cFile);
+				LOGGER.warn("Can't load credentials file {}: {}", cFile, e.getMessage());
+				LOGGER.trace("", e);
 			}
 		} else {
-			LOGGER.warn("Cred file unreadable "+cFile);
+			LOGGER.debug("Something went seriously wrong - getCredFile() returned null!");
 		}
 
 		refreshCred(credTable);
@@ -497,7 +583,7 @@ public class PluginTab {
 		TableColumn tcol = credTable.getColumnModel().getColumn(3);
 		tcol.setCellRenderer(new PasswordCellRenderer());
 
-		Iterator itr = cred.getKeys();
+		Iterator<String> itr = cred.getKeys();
 
 		int i = 0;
 		while (itr.hasNext()) {
@@ -569,14 +655,33 @@ public class PluginTab {
 		final char defEchoChar = pText.getEchoChar();
 
 		JButton ok = new JButton(Messages.getString("Dialog.OK"));
-		ok.addActionListener((ActionEvent e) -> {
-			frame.setVisible(false);
-			String key = oText.getText();
-			String pwd1 = new String(pText.getPassword());
-			if (StringUtils.isEmpty(key) ||
-				StringUtils.isEmpty(uText.getText()) || StringUtils.isEmpty(pwd1)) {
-				// ignore this
-				return;
+		ok.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.setVisible(false);
+				String key = oText.getText();
+				String pwd = new String(pText.getPassword());
+				if (
+					StringUtils.isEmpty(key) ||
+					StringUtils.isEmpty(uText.getText()) ||
+					StringUtils.isEmpty(pwd)
+				) {
+					// ignore this
+					return;
+				}
+
+				if (StringUtils.isNotEmpty(tText.getText())) {
+					key = key + "." + tText.getText();
+				}
+				String val = uText.getText() + "," + pwd;
+				cred.addProperty(key, val);
+				try {
+					cred.save();
+				} catch (ConfigurationException e1) {
+					LOGGER.warn("Error saving credentials file {}", e1);
+					LOGGER.trace("", e1);
+				}
+				refreshCred(table);
 			}
 			if (StringUtils.isNotEmpty(tText.getText())) {
 				key = key + "." + tText.getText();

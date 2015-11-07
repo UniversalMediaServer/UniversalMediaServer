@@ -25,6 +25,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
@@ -330,99 +331,99 @@ public class RootFolder extends DLNAResource {
 		File webConf = new File(webConfPath);
 		if (webConf.exists() && configuration.getExternalNetwork() && !configuration.isHideWebFolder(tags)) {
 			addWebFolder(webConf);
-			PMS.getFileWatcher().add(new FileWatcher.Watch(webConf.getPath(), rootWatcher, this, RELOAD_WEB_CONF));
+			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), rootWatcher, this, RELOAD_WEB_CONF));
 		}
 		setLastModified(1);
 	}
 
 	private void addWebFolder(File webConf) {
-		if (webConf.exists()) {
-			try {
-				try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), "UTF-8"))) {
-					String line;
-					while ((line = br.readLine()) != null) {
-						line = line.trim();
+		try {
+			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
 
-						if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
-							String key = line.substring(0, line.indexOf('='));
-							String value = line.substring(line.indexOf('=') + 1);
-							String[] keys = parseFeedKey(key);
+					if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
+						String key = line.substring(0, line.indexOf('='));
+						String value = line.substring(line.indexOf('=') + 1);
+						String[] keys = parseFeedKey(key);
 
-							try {
-								if (
-									keys[0].equals("imagefeed") ||
-									keys[0].equals("audiofeed") ||
-									keys[0].equals("videofeed") ||
-									keys[0].equals("audiostream") ||
-									keys[0].equals("videostream")
-								) {
-									String[] values = parseFeedValue(value);
-									DLNAResource parent = null;
+						try {
+							if (
+								keys[0].equals("imagefeed") ||
+								keys[0].equals("audiofeed") ||
+								keys[0].equals("videofeed") ||
+								keys[0].equals("audiostream") ||
+								keys[0].equals("videostream")
+							) {
+								String[] values = parseFeedValue(value);
+								DLNAResource parent = null;
 
-									if (keys[1] != null) {
-										StringTokenizer st = new StringTokenizer(keys[1], ",");
-										DLNAResource currentRoot = this;
+								if (keys[1] != null) {
+									StringTokenizer st = new StringTokenizer(keys[1], ",");
+									DLNAResource currentRoot = this;
 
-										while (st.hasMoreTokens()) {
-											String folder = st.nextToken();
-											parent = currentRoot.searchByName(folder);
+									while (st.hasMoreTokens()) {
+										String folder = st.nextToken();
+										parent = currentRoot.searchByName(folder);
 
-											if (parent == null) {
-												parent = new VirtualFolder(folder, "");
-												if (currentRoot == this) {
-													// parent is a top-level web folder
-													webFolders.add(parent);
-												}
-												currentRoot.addChild(parent);
+										if (parent == null) {
+											parent = new VirtualFolder(folder, "");
+											if (currentRoot == this) {
+												// parent is a top-level web folder
+												webFolders.add(parent);
 											}
-
-											currentRoot = parent;
+											currentRoot.addChild(parent);
 										}
-									}
 
-									if (parent == null) {
-										parent = this;
-									}
-									if (keys[0].endsWith("stream")) {
-										int type = keys[0].startsWith("audio") ? Format.AUDIO : Format.VIDEO;
-										DLNAResource playlist = PlaylistFolder.getPlaylist(values[0], values[1], type);
-										if (playlist != null) {
-											parent.addChild(playlist);
-											continue;
-										}
-									}
-									switch (keys[0]) {
-										case "imagefeed":
-											parent.addChild(new ImagesFeed(values[0]));
-											break;
-										case "videofeed":
-											parent.addChild(new VideosFeed(values[0]));
-											break;
-										case "audiofeed":
-											parent.addChild(new AudiosFeed(values[0]));
-											break;
-										case "audiostream":
-											parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
-											break;
-										case "videostream":
-											parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
-											break;
-										default:
-											break;
+										currentRoot = parent;
 									}
 								}
-							} catch (ArrayIndexOutOfBoundsException e) {
-								// catch exception here and go with parsing
-								LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
-								LOGGER.debug(null, e);
+
+								if (parent == null) {
+									parent = this;
+								}
+								if (keys[0].endsWith("stream")) {
+									int type = keys[0].startsWith("audio") ? Format.AUDIO : Format.VIDEO;
+									DLNAResource playlist = PlaylistFolder.getPlaylist(values[0], values[1], type);
+									if (playlist != null) {
+										parent.addChild(playlist);
+										continue;
+									}
+								}
+								switch (keys[0]) {
+									case "imagefeed":
+										parent.addChild(new ImagesFeed(values[0]));
+										break;
+									case "videofeed":
+										parent.addChild(new VideosFeed(values[0]));
+										break;
+									case "audiofeed":
+										parent.addChild(new AudiosFeed(values[0]));
+										break;
+									case "audiostream":
+										parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
+										break;
+									case "videostream":
+										parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+										break;
+									default:
+										break;
+								}
 							}
+						} catch (ArrayIndexOutOfBoundsException e) {
+							// catch exception here and go with parsing
+							LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
+							LOGGER.debug(null, e);
 						}
 					}
 				}
-			} catch (IOException e) {
-				LOGGER.info("Unexpected error in WEB.conf" + e.getMessage());
-				LOGGER.debug(null, e);
 			}
+		} catch (FileNotFoundException e) {
+			LOGGER.debug("Can't read web configuration file {}", e.getMessage());
+		} catch (IOException e) {
+			LOGGER.warn("Unexpected error in WEB.conf: " + e.getMessage());
+			LOGGER.debug("", e);
 		}
 	}
 

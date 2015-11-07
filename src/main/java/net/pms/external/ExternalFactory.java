@@ -21,6 +21,7 @@ package net.pms.external;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,6 +42,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.URLResolver.URLResult;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.FilePermissions;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -118,6 +120,7 @@ public class ExternalFactory {
 	private static String getMainClass(URL jar) {
 		URL[] jarURLs1 = {jar};
 		URLClassLoader classLoader = new URLClassLoader(jarURLs1);
+		try {
 		Enumeration<URL> resources;
 
 		try {
@@ -140,6 +143,14 @@ public class ExternalFactory {
 			}
 		} catch (IOException e) {
 			LOGGER.error("Can't load plugin resources", e);
+		}
+		} finally {
+			try {
+				classLoader.close();
+			} catch (IOException e) {
+				LOGGER.error("Error closing plugin finder: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
 
 		return null;
@@ -174,8 +185,14 @@ public class ExternalFactory {
 	 * or if installed from the web.
 	 */
 	public static void loadJAR(URL[] jarURL, boolean download, URL newURL) {
-		// Create a classloader to take care of loading the plugin classes from
-		// their URL.
+		/* Create a classloader to take care of loading the plugin classes from
+		 * their URL.
+		 *
+		 * A not on the suppressed warning: The classloader need to remain open as long
+		 * as the loaded classes are in use - in our case forever.
+		 * @see http://stackoverflow.com/questions/13944868/leaving-classloader-open-after-first-use
+		 */
+		@SuppressWarnings("resource")
 		URLClassLoader classLoader = new URLClassLoader(jarURL);
 		Enumeration<URL> resources;
 
@@ -184,7 +201,13 @@ public class ExternalFactory {
 			// which should contain the name of the main plugin class.
 			resources = classLoader.getResources("plugin");
 		} catch (IOException e) {
-			LOGGER.error("Can't load plugin resources", e);
+			LOGGER.error("Can't load plugin resources: {}", e.getMessage());
+			LOGGER.trace("", e);
+			try {
+				classLoader.close();
+			} catch (IOException e2) {
+				// Just swallow
+			}
 			return;
 		}
 
@@ -340,26 +363,26 @@ public class ExternalFactory {
 	public static void lookup() {
 		// Start by purging files
 		purgeFiles();
-		File pluginDirectory = new File(configuration.getPluginDirectory());
-		LOGGER.info("Searching for plugins in " + pluginDirectory.getAbsolutePath());
+		File pluginsFolder = new File(configuration.getPluginDirectory());
+		LOGGER.info("Searching for plugins in " + pluginsFolder.getAbsolutePath());
 
-		if (!pluginDirectory.exists()) {
-			LOGGER.warn("Plugin directory doesn't exist: " + pluginDirectory);
-			return;
-		}
-
-		if (!pluginDirectory.isDirectory()) {
-			LOGGER.warn("Plugin directory is not a directory: " + pluginDirectory);
-			return;
-		}
-
-		if (!pluginDirectory.canRead()) {
-			LOGGER.warn("Plugin directory is not readable: " + pluginDirectory);
+		try {
+			FilePermissions permissions = new FilePermissions(pluginsFolder);
+			if (!permissions.isFolder()) {
+				LOGGER.warn("Plugins folder is not a folder: " + pluginsFolder.getAbsolutePath());
+				return;
+			}
+			if (!permissions.isBrowsable()) {
+				LOGGER.warn("Plugins folder is not readable: " + pluginsFolder.getAbsolutePath());
+				return;
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.warn("Can't find plugins folder: {}", e.getMessage());
 			return;
 		}
 
 		// Find all .jar files in the plugin directory
-		File[] jarFiles = pluginDirectory.listFiles(
+		File[] jarFiles = pluginsFolder.listFiles(
 			(File file) -> file.isFile() && file.getName().toLowerCase().endsWith(".jar"));
 
 		int nJars = (jarFiles == null) ? 0 : jarFiles.length;
