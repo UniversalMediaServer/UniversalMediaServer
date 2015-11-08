@@ -154,8 +154,7 @@ public class MediaMonitor extends VirtualFolder {
 		/**
 		 * Time since the file started playing.
 		 * This is not a great way to get this value because if the
-		 * video is fast-forwarded, rewound or played at a faster rate
-		 * than 1 second per second, it will no longer be accurate.
+		 * video is paused, it will no longer be accurate.
 		 */
 		double played = (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
 		played = played + res.getLastStartPosition();
