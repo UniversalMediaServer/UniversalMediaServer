@@ -4,12 +4,13 @@ import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
+import com.sun.jna.Platform;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 import net.pms.util.FileUtil;
@@ -22,8 +23,6 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private JButton cancelButton = new CancelButton();
 	private JProgressBar downloadProgressBar = new JProgressBar();
 	private static AutoUpdateDialog instance;
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
-
 	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {
 			if (instance == null) {
@@ -172,9 +171,21 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 				String permissionsReminder = "";
 
 				// See if we have write permission in the program folder. We don't necessarily
-				// need admin rights here, this could be a standalone/local install
-				if (!FileUtil.getPathPermissions(System.getProperty("user.dir")).contains("w")) {
-					permissionsReminder = Messages.getString("AutoUpdate.6") + "\n" + Messages.getString("AutoUpdate.12");
+				// need admin rights here.
+				File file = new File(System.getProperty("user.dir"));
+				try {
+					if (!FileUtil.getFilePermissions(file).isWritable()) {
+						permissionsReminder = Messages.getString("AutoUpdate.12");
+						if (Platform.isWindows()) {
+							permissionsReminder += "\n" + Messages.getString("AutoUpdate.13");
+						}
+						cancelButton.setText(Messages.getString("Dialog.Close"));
+						okButton.setEnabled(false);
+						okButton.setVisible(false);
+					}
+				} catch (FileNotFoundException e) {
+					// This should never happen
+					permissionsReminder = "\n" + String.format(Messages.getString("TracesTab.21"), file.getAbsolutePath());
 					cancelButton.setText(Messages.getString("Dialog.Close"));
 					okButton.setEnabled(false);
 					okButton.setVisible(false);

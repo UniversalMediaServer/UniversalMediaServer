@@ -10,10 +10,21 @@ class LinuxDefaultPaths implements ProgramPaths {
 
 	@Override
 	public String getFfmpegPath() {
+		String ffmpegPath;
 		if (Platform.is64Bit()) {
-			return getBinaryPath("ffmpeg64");
+			ffmpegPath = getBinaryPath("ffmpeg64");
+
+			/**
+			 * Use the default FFmpeg binary if we can't find ffmpeg64
+			 */
+			if (ffmpegPath.equals("ffmpeg64")) {
+				ffmpegPath = getBinaryPath("ffmpeg");
+			}
+		} else {
+			ffmpegPath = getBinaryPath("ffmpeg");
 		}
-		return getBinaryPath("ffmpeg");
+
+		return ffmpegPath;
 	}
 
 	@Override

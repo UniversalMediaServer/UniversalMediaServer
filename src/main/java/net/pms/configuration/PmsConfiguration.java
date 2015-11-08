@@ -22,13 +22,13 @@ import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
+import java.io.BufferedWriter;
 import java.awt.Frame;
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -42,6 +42,7 @@ import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
+import net.pms.util.FilePermissions;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
@@ -245,7 +246,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_RESUME_REWIND = "resume_rewind";
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
-	protected static final String KEY_SCREEN_SIZE = "screen_size"; 
+	protected static final String KEY_SCREEN_SIZE = "screen_size";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
 	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
@@ -432,6 +433,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	protected static final String ENV_PROFILE_PATH = "UMS_PROFILE";
 	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
+	protected static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 
 	// Path to directory containing UMS config files
 	protected static final String PROFILE_DIRECTORY;
@@ -535,23 +537,22 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
 
-			if (pmsConfFile.isFile()) {
-				if (FileUtil.isFileReadable(pmsConfFile)) {
-					((PropertiesConfiguration)configuration).load(pmsConfFile);
-				} else {
-					LOGGER.warn("Can't load {}", PROFILE_PATH);
-				}
-			} else if (SKEL_PROFILE_PATH != null) {
-				File pmsSkelConfFile = new File(SKEL_PROFILE_PATH);
+			try {
+				((PropertiesConfiguration)configuration).load(pmsConfFile);
+			} catch (ConfigurationException e) {
+				if (Platform.isLinux() && SKEL_PROFILE_PATH != null) {
+					LOGGER.debug("Failed to load {} ({}) - attempting to load skel profile", PROFILE_PATH, e.getMessage());
+					File skelConfigFile = new File(SKEL_PROFILE_PATH);
 
-				if (pmsSkelConfFile.isFile()) {
-					if (FileUtil.isFileReadable(pmsSkelConfFile)) {
-						// Load defaults from skel file, save them later to PROFILE_PATH
-						((PropertiesConfiguration)configuration).load(pmsSkelConfFile);
-						LOGGER.info("Default configuration loaded from " + SKEL_PROFILE_PATH);
-					} else {
-						LOGGER.warn("Can't load {}", SKEL_PROFILE_PATH);
+					try {
+						// Load defaults from skel profile, save them later to PROFILE_PATH
+						((PropertiesConfiguration)configuration).load(skelConfigFile);
+						LOGGER.info("Default configuration loaded from {}", SKEL_PROFILE_PATH);
+					} catch (ConfigurationException ce) {
+						LOGGER.warn("Can't load neither {}: {} nor {}: {}", PROFILE_PATH, e.getMessage(), SKEL_PROFILE_PATH, ce.getMessage());
 					}
+				} else {
+					LOGGER.warn("Can't load {}: {}", PROFILE_PATH, e.getMessage());
 				}
 			}
 		}
@@ -561,7 +562,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = createProgramPathsChain(configuration);
 		filter = new IpFilter();
-		PMS.setLocale(getLanguageLocale());
+		PMS.setLocale(getLanguageLocale(true));
 		//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
 		Locale.setDefault(getLanguageLocale());
 
@@ -615,6 +616,30 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
+	private String verifyLogFolder(File folder, String fallbackTo) {
+		try {
+			FilePermissions permissions = FileUtil.getFilePermissions(folder);
+			if (LOGGER.isTraceEnabled()) {
+				if (!permissions.isFolder()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not a folder, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				} else if (!permissions.isBrowsable()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not browsable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				} else if (!permissions.isWritable()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				}
+			}
+			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable()) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Default logfile folder set to: {}", folder.getAbsolutePath());
+				}
+				return folder.getAbsolutePath();
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.trace("getDefaultLogFileFolder: \"{}\" not found, falling back to {} for logging: {}", folder.getAbsolutePath(), fallbackTo, e.getMessage());
+		}
+		return null;
+	}
+
 	/**
 	 * @return first writable folder in the following order:
 	 * <p>
@@ -655,41 +680,26 @@ public class PmsConfiguration extends RendererConfiguration {
 						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
 					}
 				}
-				if (logDirectory.exists() && FileUtil.isDirectoryWritable(logDirectory)) {
-					defaultLogFileDir = logDirectory.getAbsolutePath();
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
-					}
-				} else if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to profile folder for logging", logDirectory.getAbsolutePath());
-				}
+				defaultLogFileDir = verifyLogFolder(logDirectory, "profile folder");
 			}
 
 			if (defaultLogFileDir == null) {
 				// Log to profile directory if it is writable.
 				final File profileDirectory = new File(PROFILE_DIRECTORY);
-				if (FileUtil.isDirectoryWritable(profileDirectory)) {
-					defaultLogFileDir = profileDirectory.getAbsolutePath();
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
-					}
-				} else {
-					// Try user-defined temporary folder or fall back to system temporary folder.
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to temporary folder for logging", profileDirectory.getAbsolutePath());
-					}
-					try {
-						defaultLogFileDir = getTempFolder().getAbsolutePath();
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("getDefaultLogFileFolder: Default log file folder set to: {}", defaultLogFileDir);
-						}
-					} catch (IOException e) {
-						LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
-						defaultLogFileDir = "";
-					}
+				defaultLogFileDir = verifyLogFolder(profileDirectory, "temporary folder");
+			}
+
+			if (defaultLogFileDir == null) {
+				// Try user-defined temporary folder or fall back to system temporary folder.
+				try {
+					defaultLogFileDir = verifyLogFolder(getTempFolder(), "working folder");
+				} catch (IOException e) {
+					LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
+					defaultLogFileDir = "";
 				}
 			}
 		}
+
 		return defaultLogFileDir;
 	}
 
@@ -841,23 +851,24 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Get the {@link java.util.Locale} of the preferred language for the UMS
 	 * user interface. The default is based on the default (OS) locale.
+	 * @param log determines if any issues should be logged.
 	 * @return The {@link java.util.Locale}.
 	 */
-	public Locale getLanguageLocale() {
+	public Locale getLanguageLocale(boolean log) {
 		String languageCode = configuration.getString(KEY_LANGUAGE);
 		Locale locale = null;
 		if (languageCode != null && !languageCode.isEmpty()) {
 			locale = Languages.toLocale(Locale.forLanguageTag(languageCode));
-			if (locale == null) {
+			if (log && locale == null) {
 				LOGGER.error("Invalid or unsupported language tag \"{}\", defaulting to OS language.", languageCode);
 			}
-		} else {
+		} else if (log) {
 			LOGGER.info("Language not specified, defaulting to OS language.");
 		}
 
 		if (locale == null) {
 			locale = Languages.toLocale(Locale.getDefault());
-			if (locale == null) {
+			if (log && locale == null) {
 				LOGGER.error("Unsupported language tag \"{}\", defaulting to US English.", Locale.getDefault().toLanguageTag());
 			}
 		}
@@ -866,6 +877,16 @@ public class PmsConfiguration extends RendererConfiguration {
 			locale = Locale.forLanguageTag("en-US"); // Default
 		}
 		return locale;
+	}
+
+	/**
+	 * Get the {@link java.util.Locale} of the preferred language for the UMS
+	 * user interface. The default is based on the default (OS) locale. Doesn't
+	 * log potential issues.
+	 * @return The {@link java.util.Locale}.
+	 */
+	public Locale getLanguageLocale() {
+		return getLanguageLocale(false);
 	}
 
 	/**
@@ -1779,7 +1800,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					LOGGER.info("An error occurred while trying to make UMS start automatically with Windows");
 				}
 			} catch (IOException e) {
-				if (!isAdmin()) {
+				if (!FileUtil.isAdmin()) {
 					try {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
@@ -3009,8 +3030,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_GPU_ACCELERATION, value);
 	}
 
-	private Boolean admin = null;
-	private Object isAdminLock = new Object();
 	/**
 	 * Get the state of the GUI log tab "Case sensitive" check box
 	 * @return true if enabled, false if disabled
@@ -3059,87 +3078,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
 	}
 
-	/**
-	 * Finds out whether the program has admin rights.
-	 * It only checks on Windows and returns true if on a non-Windows OS.
-	 *
-	 * Note: Detection of Windows 8 depends on the user having a version of
-	 * JRE newer than 1.6.0_31 installed.
-	 */
-	public boolean isAdmin() {
-		synchronized(isAdminLock) {
-			if (admin != null) {
-				return admin;
-			}
-			if (Platform.isWindows()) {
-				Float ver = null;
-				try {
-					ver = Float.valueOf(System.getProperty("os.version"));
-				} catch (NullPointerException | NumberFormatException e) {
-					LOGGER.error(
-						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
-						System.getProperty("os.version"), e.getMessage()
-					);
-					admin = false;
-					return false;
-				}
-				if (ver >= 5.1) {
-					try {
-						String command = "reg query \"HKU\\S-1-5-19\"";
-						Process p = Runtime.getRuntime().exec(command);
-						p.waitFor();
-						int exitValue = p.exitValue();
-
-						if (0 == exitValue) {
-							admin = true;
-							return true;
-						}
-						admin = false;
-						return false;
-					} catch (IOException | InterruptedException e) {
-						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
-					}
-				} else {
-					admin = true;
-					return true;
-				}
-			} else if (Platform.isLinux() || Platform.isMac()) {
-				try {
-					final String command = "id -Gn";
-					LOGGER.trace("isAdmin: Executing \"{}\"", command);
-					Process p = Runtime.getRuntime().exec(command);
-					InputStream is = p.getInputStream();
-					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
-					BufferedReader br = new BufferedReader(isr);
-					p.waitFor();
-					int exitValue = p.exitValue();
-					String exitLine = br.readLine();
-					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
-						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
-						admin = false;
-						return false;
-					}
-					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
-					if
-						((Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
-						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
-					{
-						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
-						admin = true;
-						return true;
-					}
-					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
-					admin = false;
-					return false;
-				} catch (IOException | InterruptedException e) {
-					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
-				}
-			}
-			admin = false;
-			return false;
-		}
-	}
-
 	/* Start without external netowrk (increase startup speed) */
 	public static final String KEY_EXTERNAL_NETWORK = "external_network";
 
@@ -3155,44 +3093,43 @@ public class PmsConfiguration extends RendererConfiguration {
 	public static final String KEY_CRED_PATH = "cred.path";
 
 	public void initCred() throws IOException {
-		String cp = getCredPath();
-		if (StringUtils.isEmpty(cp)) {
-			// need to make sure we got a cred path here
-			cp = new File(getProfileDirectory() + File.separator + "UMS.cred").getAbsolutePath();
-			configuration.setProperty(KEY_CRED_PATH, cp);
+		File credFile = getCredFile();
+
+		if (!credFile.exists()) {
+			// Create an empty file and save the path if needed
+			try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(credFile), StandardCharsets.UTF_8))) {
+				writer.write("# Add credentials to the file");
+				writer.newLine();
+				writer.write("# on the format tag=user,password");
+				writer.newLine();
+				writer.write("# For example:");
+				writer.newLine();
+				writer.write("# channels.xxx=name,secret");
+				writer.newLine();
+			}
+			// Save the path if we got here
+			configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 			try {
 				((PropertiesConfiguration)configuration).save();
 			} catch (ConfigurationException e) {
-			}
-		}
-
-		// Now we know cred path is set
-		File f = new File(cp);
-		if (!f.exists()) {
-			// Cred path is set but file isn't there
-			// Create empty file with some comments
-			try (FileOutputStream fos = new FileOutputStream(f)) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("# Add credentials to the file");
-				sb.append("\n");
-				sb.append("# on the format tag=user,pwd");
-				sb.append("\n");
-				sb.append("# For example:");
-				sb.append("\n");
-				sb.append("# channels.xxx=name,secret");
-				sb.append("\n");
-				fos.write(sb.toString().getBytes());
-				fos.flush();
+				LOGGER.warn("An error occurred while saving configuration: {}", e.getMessage());
 			}
 		}
 	}
 
+	/**
+	 * @deprecated Use {@link #getCredFile()} instead.
+	 */
 	public String getCredPath() {
-		return getString(KEY_CRED_PATH, "");
+		return getCredFile().getAbsolutePath();
 	}
 
 	public File getCredFile() {
-		return new File(getCredPath());
+		String path = getString(KEY_CRED_PATH, "");
+		if (path != null && !path.trim().isEmpty()) {
+			return new File(path);
+		}
+		return new File(getProfileDirectory(), DEFAULT_CREDENTIALS_FILENAME);
 	}
 
 	public int getATZLimit() {
