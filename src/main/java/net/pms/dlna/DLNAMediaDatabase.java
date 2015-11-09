@@ -129,7 +129,7 @@ public class DLNAMediaDatabase implements Runnable {
 					if (!net.pms.PMS.isHeadless()) {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
+							Messages.getString("DLNAMediaDatabase.5", dbDir),
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE);
 					}

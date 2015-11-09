@@ -178,7 +178,7 @@ public class PluginTab {
 				} catch (FileNotFoundException e1) {
 					JOptionPane.showMessageDialog(
 							looksFrame,
-							String.format(Messages.getString("PluginTab.17"), configuration.getPluginDirectory()),
+							Messages.getString("PluginTab.17", configuration.getPluginDirectory()),
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE
 						);

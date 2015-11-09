@@ -274,7 +274,7 @@ public class DbgPacker implements ActionListener {
 				}
 			} else {
 				JOptionPane.showMessageDialog(
-					null, String.format(Messages.getString("DbgPacker.7"), file.getAbsolutePath()), null, JOptionPane.INFORMATION_MESSAGE);
+					null, Messages.getString("DbgPacker.7", file.getAbsolutePath()), null, JOptionPane.INFORMATION_MESSAGE);
 				reload((JComponent) e.getSource());
 			}
 		}

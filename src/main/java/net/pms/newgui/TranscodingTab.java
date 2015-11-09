@@ -402,7 +402,7 @@ public class TranscodingTab {
 			});
 			builder.add(maxbuffer, cc.xy(3, 3));
 
-			String nCpusLabel = String.format(Messages.getString("TrTab2.24"), Runtime.getRuntime().availableProcessors());
+			String nCpusLabel = Messages.getString("TrTab2.24", Runtime.getRuntime().availableProcessors());
 			builder._addLabel(nCpusLabel, cc.xy(1, 5));
 
 			String[] guiCores = new String[MAX_CORES];

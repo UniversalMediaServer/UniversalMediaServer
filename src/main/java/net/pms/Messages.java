@@ -101,13 +101,18 @@ public class Messages {
 	 *            Keys in UMS follow the format "group.x". group states where
 	 *            this key is likely to be used. For example, StatusTab refers
 	 *            to the status tab in the UMS GUI. "x" can be anything.
-	 * @return Descriptive string if key is found or a copy of the key string if
-	 *         it is not.
+	 *
+	 * @param args
+	 *            Optional arguments referenced by '%' format specifiers in the string, if any
+	 *
+	 * @return Descriptive, optionally expanded string if key is found, or a copy of the key
+	 *         string if it is not.
 	 */
-	public static String getString(String key) {
+	public static String getString(String key, Object... args) {
 		resourceBundleLock.readLock().lock();
 		try {
-			return getString(key, resourceBundle);
+			String s = getString(key, resourceBundle);
+			return args.length == 0 ? s : String.format(s, args);
 		} finally {
 			resourceBundleLock.readLock().unlock();
 		}

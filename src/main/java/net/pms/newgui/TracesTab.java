@@ -237,10 +237,10 @@ public class TracesTab {
 					jList.moveCaretPosition(match.end());
 					jSearchOutput.setText("");
 				} else {
-					jSearchOutput.setText(String.format(Messages.getString("TracesTab.21"), jSearchBox.getText()));
+					jSearchOutput.setText(Messages.getString("TracesTab.21", jSearchBox.getText()));
 				}
 			} catch (PatternSyntaxException pe) {
-				jSearchOutput.setText(String.format(Messages.getString("TracesTab.22"),pe.getLocalizedMessage()));
+				jSearchOutput.setText(Messages.getString("TracesTab.22", pe.getLocalizedMessage()));
 			} catch (Exception ex) {
 				LOGGER.debug("Exception caught while searching traces list: "+ex);
 				jSearchOutput.setText(Messages.getString("TracesTab.23"));
@@ -513,7 +513,7 @@ public class TracesTab {
 					// Simplified IPv6
 					s.matches("(^([0-9a-fA-F]{0,4}:)+[0-9a-fA-F]{1,4}([0-9a-fA-F]{0,4}:)*$)|(^([0-9a-fA-F]{0,4}:)*[0-9a-fA-F]{1,4}([0-9a-fA-F]{0,4}:)+$)|(^::$)")
 				)) {
-					jSearchOutput.setText(String.format(Messages.getString("TracesTab.32"), s));
+					jSearchOutput.setText(Messages.getString("TracesTab.32", s));
 					return false;
 				}
 				jSearchOutput.setText("");
