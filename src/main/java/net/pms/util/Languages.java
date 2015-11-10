@@ -63,7 +63,7 @@ public final class Languages {
 		"ja",      // Japanese
 		"ko",      // Korean
 		"no",      // Norwegian
-		"fa",......// Persian
+		"fa",      // Persian
 		"pl",      // Polish
 		"pt",      // Portuguese
 		"ro",      // Romanian, Moldavian, Moldovan
