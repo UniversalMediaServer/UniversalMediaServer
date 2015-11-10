@@ -102,7 +102,7 @@ public class StringUtil {
 		 * s = s.replace("\"", "&quot;");
 		 * s = s.replace("'", "&apos;");
 		 */
-		
+
 		// The second encoding/escaping of & is not a bug, it's what effectively adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
 		return s;
@@ -268,7 +268,7 @@ public class StringUtil {
 	 * otherwise returns the string as is.
 	 *
 	 * @param arg The argument string
-	 * @return The string, optionally in quotes. 
+	 * @return The string, optionally in quotes.
 	 */
 	public static String quoteArg(String arg) {
 		if (arg != null && arg.indexOf(' ') > -1) {
@@ -278,4 +278,43 @@ public class StringUtil {
 		return arg;
 	}
 
+	/**
+	 * Fill a string in a unicode safe way.
+	 * @param subString The <code>String</code> to be filled with
+	 * @param count The number of times to repeat the <code>String</code>
+	 * @return The filled string
+	 */
+	public static String fillString(String subString, int count) {
+		StringBuilder sb = new StringBuilder(subString.length() * count);
+		for (int i = 0; i < count; i++) {
+			sb.append(subString);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Fill a string in a unicode safe way provided that the char array contains
+	 * a valid unicode sequence.
+	 * @param chars The <code>char[]</code> to be filled with
+	 * @param count The number of times to repeat the <code>char[]</code>
+	 * @return The filled string
+	 */
+	public static String fillString(char[] chars, int count) {
+		StringBuilder sb = new StringBuilder(chars.length * count);
+		for (int i = 0; i < count; i++) {
+			sb.append(chars);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Fill a string in a unicode safe way. 8 bit (&lt; 256) code points
+	 * equals ISO 8859-1 codes.
+	 * @param codePoint The unicode code point to be filled with
+	 * @param count The number of times to repeat the unicode code point
+	 * @return The filled string
+	 */
+	public static String fillString(int codePoint, int count) {
+		return fillString(Character.toChars(codePoint), count);
+	}
 }

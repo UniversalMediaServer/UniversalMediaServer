@@ -89,7 +89,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected Map<String, DLNAResource> renderCache;
 
 	// TextWrap parameters
-	protected int line_w, line_h, indent;
+	protected int lineWidth, lineHeight, indent;
 	protected String inset, dots;
 
 	// property values
@@ -1015,14 +1015,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		String s = getString(TEXTWRAP, "").toLowerCase();
-		line_w = getIntAt(s, "width:", 0);
-		if (line_w > 0) {
-			line_h = getIntAt(s, "height:", 0);
+		lineWidth = getIntAt(s, "width:", 0);
+		if (lineWidth > 0) {
+			lineHeight = getIntAt(s, "height:", 0);
 			indent = getIntAt(s, "indent:", 0);
-			int ws = getIntAt(s, "whitespace:", 9);
-			int dotct = getIntAt(s, "dots:", 0);
-			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
-			dots = new String(new byte[dotct]).replaceAll(".", ".");
+			int whitespace = getIntAt(s, "whitespace:", 9);
+			int dotCount = getIntAt(s, "dots:", 0);
+			inset = StringUtil.fillString(whitespace, indent);
+			dots = StringUtil.fillString(".", dotCount);
 		}
 
 		charMap = new HashMap<>();
@@ -2216,21 +2216,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + tuncate
 		int len = 0;
-		if (line_w > 0 && (name.length() + suffix.length()) > line_w) {
+		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
-			if (line_h == 1) {
-				len = line_w - suffix_len;
+			if (lineHeight == 1) {
+				len = lineWidth - suffix_len;
 			} else {
 				// Wrap
 				int i = dlna.isFolder() ? 0 : indent;
 				String newline = "\n" + (dlna.isFolder() ? "" : inset);
 				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
-					+ WordUtils.wrap(name.substring(i) + suffix, line_w - i, newline, true);
-				len = line_w * line_h;
+					+ WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
+				len = lineWidth * lineHeight;
 				if (len != 0 && name.length() > len) {
-					len = name.substring(0, name.length() - line_w).lastIndexOf(newline) + newline.length();
-					name = name.substring(0, len) + name.substring(len, len + line_w).replace(newline, " ");
-					len += (line_w - suffix_len - i);
+					len = name.substring(0, name.length() - lineWidth).lastIndexOf(newline) + newline.length();
+					name = name.substring(0, len) + name.substring(len, len + lineWidth).replace(newline, " ");
+					len += (lineWidth - suffix_len - i);
 				} else {
 					len = -1; // done
 				}
