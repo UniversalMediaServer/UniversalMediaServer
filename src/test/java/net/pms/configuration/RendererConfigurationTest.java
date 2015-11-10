@@ -21,6 +21,7 @@ package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.util.*;
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration.SortedHeaderMap;
 import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByHeaders;
 import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
@@ -43,22 +44,20 @@ public class RendererConfigurationTest {
 
 		// Set locale to EN to ignore translations for renderers
 		Locale.setDefault(Locale.ENGLISH);
+		PMS.setLocale(Locale.ENGLISH);
 	}
 
 	/**
 	 * Test the RendererConfiguration class and the consistency of the renderer
 	 * .conf files it reads. This is done by feeding it known headers and
 	 * checking whether it recognizes the correct renderer.
+	 * @throws ConfigurationException
 	 */
 	@Test
-	public void testKnownHeaders() {
+	public void testKnownHeaders() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
-		try {
-			pmsConf = new PmsConfiguration(false);
-		} catch (ConfigurationException e) {
-			// This should be impossible since no configuration file will be loaded.
-		}
+		pmsConf = new PmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
 		loadRendererConfigurations(pmsConf);
@@ -165,54 +164,48 @@ public class RendererConfigurationTest {
 
 	/**
 	 * Test recognition with a forced default renderer configured.
+	 * @throws ConfigurationException
 	 */
 	@Test
-	public void testForcedDefault() {
+	public void testForcedDefault() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
-		try {
-			pmsConf = new PmsConfiguration(false);
+		pmsConf = new PmsConfiguration(false);
 
-			// Set default to PlayStation 3
-			pmsConf.setRendererDefault("PlayStation 3");
-			pmsConf.setRendererForceDefault(true);
+		// Set default to PlayStation 3
+		pmsConf.setRendererDefault("PlayStation 3");
+		pmsConf.setRendererForceDefault(true);
 
-			// Initialize the RendererConfiguration
-			loadRendererConfigurations(pmsConf);
+		// Initialize the RendererConfiguration
+		loadRendererConfigurations(pmsConf);
 
-			// Known and unknown renderers should always return default
-			testHeaders("PlayStation 3", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
-			testHeaders("PlayStation 3", "User-Agent: Unknown Renderer");
-			testHeaders("PlayStation 3", "X-Unknown-Header: Unknown Content");
-		} catch (ConfigurationException e) {
-			// This should be impossible since no configuration file will be loaded.
-		}
+		// Known and unknown renderers should always return default
+		testHeaders("PlayStation 3", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
+		testHeaders("PlayStation 3", "User-Agent: Unknown Renderer");
+		testHeaders("PlayStation 3", "X-Unknown-Header: Unknown Content");
 	}
 
 	/**
 	 * Test recognition with a forced bogus default renderer configured.
+	 * @throws ConfigurationException
 	 */
 	@Test
-	public void testBogusDefault() {
+	public void testBogusDefault() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
-		try {
-			pmsConf = new PmsConfiguration(false);
+		pmsConf = new PmsConfiguration(false);
 
-			// Set default to non existent renderer
-			pmsConf.setRendererDefault("Bogus Renderer");
-			pmsConf.setRendererForceDefault(true);
+		// Set default to non existent renderer
+		pmsConf.setRendererDefault("Bogus Renderer");
+		pmsConf.setRendererForceDefault(true);
 
-			// Initialize the RendererConfiguration
-			loadRendererConfigurations(pmsConf);
+		// Initialize the RendererConfiguration
+		loadRendererConfigurations(pmsConf);
 
-			// Known and unknown renderers should return "Unknown renderer"
-			testHeaders("Unknown renderer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
-			testHeaders("Unknown renderer", "User-Agent: Unknown Renderer");
-			testHeaders("Unknown renderer", "X-Unknown-Header: Unknown Content");
-		} catch (ConfigurationException e) {
-			// This should be impossible since no configuration file will be loaded.
-		}
+		// Known and unknown renderers should return "Unknown renderer"
+		testHeaders("Unknown renderer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
+		testHeaders("Unknown renderer", "User-Agent: Unknown Renderer");
+		testHeaders("Unknown renderer", "X-Unknown-Header: Unknown Content");
 	}
 
 	/**

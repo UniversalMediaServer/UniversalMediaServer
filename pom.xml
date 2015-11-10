@@ -9,10 +9,9 @@
 		building the pms.jar and then assembling all application resources.
 
 		Note that Maven 3 does not automatically install all dependencies, unlike Maven 2.
-		To install all dependencies to your local repository, run the following commands:
+		To install external dependencies to your local repository, run the following commands:
 
-		mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
-		mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
+		mvn external:install
 
 		To build UMS, do:
 
@@ -31,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>5.2.4-SNAPSHOT</version>
+	<version>5.3.1-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -75,7 +74,8 @@
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
 		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
 
-		<jgoodies-looks-version>2.5.3</jgoodies-looks-version>
+		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
+		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<xmlwise-version>1.2.11</xmlwise-version>
@@ -89,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>30</binary-revision>
+		<binary-revision>33</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
@@ -110,26 +110,6 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-		<!-- Java.net -->
-		<repository>
-			<id>java.net</id>
-			<name>Java.net Repository</name>
-			<url>https://maven.java.net/content/groups/public/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-
-		<!-- Maven Central -->
-		<repository>
-			<id>maven-central</id>
-			<name>Maven Central Repository</name>
-			<url>http://repo.maven.apache.org/maven2/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-
 		<!-- GSON -->
 		<repository>
 			<id>google-gson</id>
@@ -201,7 +181,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.189</version>
+			<version>1.4.190</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -236,7 +216,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.10.4.Final</version>
+			<version>3.10.5.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -332,7 +312,7 @@
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
-			<version>4.2.0</version>
+			<version>4.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
@@ -387,7 +367,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>55.1</version>
+			<version>56.1</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -488,7 +468,7 @@
 						-->
 						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
 					</configuration>
-					<version>2.18.1</version>
+					<version>2.19</version>
 				</plugin>
 
 				<!--
@@ -543,21 +523,24 @@
 								<pluginExecution>
 									<pluginExecutionFilter>
 										<groupId>
-											com.savage7.maven.plugins
+											com.universalmediaserver
 										</groupId>
 										<artifactId>
-											maven-external-dependency-plugin
+											external-maven-plugin
 										</artifactId>
 										<versionRange>
-											[0.5,)
-										</versionRange>
+											[0.1,)
+										</versionRange>										
 										<goals>
-											<goal>install-external</goal>
-											<goal>resolve-external</goal>
+											<goal>clean</goal>
+											<goal>deploy</goal>
+											<goal>install</goal>
+											<goal>resolve</goal>
+											<goal>localinstall</goal>
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore></ignore>
+										<execute></execute>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
@@ -604,7 +587,7 @@
 
 			<plugin>
 				<artifactId>maven-eclipse-plugin</artifactId>
-				<version>2.9</version>
+				<version>2.10</version>
 				<configuration>
 					<additionalProjectnatures>
 						<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
@@ -635,48 +618,33 @@
 				"src/main/external-resources/lib" directory and have this plugin take care of
 				the installation at build time.
 
-				Note: The plugin does not work automatically in Maven 3. To install the required
-				dependencies execute the following commands:
-
-				mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
-				mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
-
 				Checksums can be calculated with "openssl sha1 [filename]".
-
-				See: http://code.google.com/p/maven-external-dependency-plugin/issues/detail?id=8#c4
 			-->
 			<plugin>
-				<groupId>com.savage7.maven.plugins</groupId>
-				<artifactId>maven-external-dependency-plugin</artifactId>
-				<version>0.5</version>
+				<groupId>com.universalmediaserver</groupId>
+				<artifactId>external-maven-plugin</artifactId>
+				<version>0.1</version>
 				<inherited>false</inherited>
 				<configuration>
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
 					<createChecksum>true</createChecksum>
-					<skipChecksumVerification>false</skipChecksumVerification>
-					<force>false</force>
 					<artifactItems>
 						<artifactItem>
 							<groupId>sevenzip</groupId>
 							<artifactId>jbinding</artifactId>
 							<version>${sevenzip-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
 							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-{version}.{packaging}</downloadUrl>
 						</artifactItem>
 						<artifactItem>
 							<groupId>sevenzip-allplatforms</groupId>
 							<artifactId>jbinding-allplatforms</artifactId>
 							<version>${sevenzip-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
 							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
 						</artifactItem>
 						<artifactItem>
 							<groupId>jwbroek.cuelib</groupId>
 							<artifactId>cuelib</artifactId>
 							<version>${cuelib-version}</version>
-							<packaging>jar</packaging>
 							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
 						</artifactItem>
@@ -684,9 +652,6 @@
 							<groupId>mediautil</groupId>
 							<artifactId>mediautil</artifactId>
 							<version>${mediautil-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
 							<downloadUrl>http://downloads.sourceforge.net/project/mediachest/MediaUtil/Version%201.0/mediautil-1.zip</downloadUrl>
 							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
 							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
@@ -699,20 +664,7 @@
 						<id>clean-external-dependencies</id>
 						<phase>clean</phase>
 						<goals>
-							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:clean-external -->
-							<goal>clean-external</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>resolve-install-external-dependencies</id>
-						<!-- Note: this phase works in Maven 2. In Maven 3, it needs to be triggered manually. See above -->
-						<phase>validate</phase>
-						<goals>
-							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external -->
-							<goal>resolve-external</goal>
-
-							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external -->
-							<goal>install-external</goal>
+							<goal>clean</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -747,7 +699,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-surefire-report-plugin</artifactId>
-							<version>2.18</version>
+							<version>2.19</version>
 							<configuration>
 								<showSuccess>false</showSuccess>
 							</configuration>
@@ -915,25 +867,12 @@
 				</os>
 			</activation>
 
-			<pluginRepositories>
-				<pluginRepository>
-					<id>Codehaus Snapshots</id>
-					<url>http://nexus.codehaus.org/snapshots/</url>
-					<snapshots>
-						<enabled>true</enabled>
-					</snapshots>
-					<releases>
-						<enabled>true</enabled>
-					</releases>
-				</pluginRepository>
-			</pluginRepositories>
-
 			<build>
 				<plugins>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.5.4</version>
+						<version>2.6</version>
 							<configuration>
 								<descriptors>
 									<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>

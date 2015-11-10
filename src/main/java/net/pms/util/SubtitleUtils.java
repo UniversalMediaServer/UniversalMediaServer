@@ -21,6 +21,7 @@ package net.pms.util;
 import java.awt.Color;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -476,9 +477,9 @@ public class SubtitleUtils {
 	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media, OutputParams params) throws IOException, NullPointerException {
 		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
-		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
+		Charset subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		if (subsFileCharset == null) {
-			subsFileCharset = CHARSET_UTF_8;
+			subsFileCharset = StandardCharsets.UTF_8;
 		}
 		BufferedWriter output;
 		Mode3D mode3D = media.get3DLayout();
@@ -505,7 +506,7 @@ public class SubtitleUtils {
 		int topSubsPositionTb = playResY + bottomSubsPosition;
 		int middleSbs = media.getWidth() / 2;
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
-		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), subsFileCharset))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
 			String line;
 			outputString.append("[Script Info]\n");
@@ -548,7 +549,7 @@ public class SubtitleUtils {
 					String[] dialogPattern = line.split(",");
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
-					if (timeMatcher.find()) {	
+					if (timeMatcher.find()) {
 						if (mode3D == Mode3D.OUL || mode3D == Mode3D.HOUL) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
@@ -613,7 +614,7 @@ public class SubtitleUtils {
 							.append(text).append("\n");
 						}
 					}
-						
+
 					output.write(outputString.toString());
 				}
 			}

@@ -59,18 +59,14 @@ public class FormatRecognitionTest {
 	private boolean mediaInfoParserIsValid;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws ConfigurationException {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         context.reset(); 
 
 		PmsConfiguration pmsConf = null;
 
-		try {
-			pmsConf = new PmsConfiguration(false);
-		} catch (ConfigurationException e) {
-			// This should be impossible since no configuration file will be loaded.
-		}
+		pmsConf = new PmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
 		RendererConfiguration.loadRendererConfigurations(pmsConf);
@@ -245,7 +241,7 @@ public class FormatRecognitionTest {
 	 * Test the backwards compatibility of
 	 * {@link Format#isCompatible(DLNAMediaInfo, RendererConfiguration)} and
 	 * {@link Format#ps3compatible()}.
-	 * 
+	 *
 	 */
 	@SuppressWarnings("deprecation")
 	@Test
@@ -385,7 +381,7 @@ public class FormatRecognitionTest {
 
 		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
 		assumeTrue(LibMediaInfoParser.isValid());
-		
+
 		// Construct media info exactly as VirtualVideoAction does
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mpegps");
@@ -403,5 +399,5 @@ public class FormatRecognitionTest {
 		assertEquals("VirtualVideoAction is initialized as compatible with null configuration",
 				true, format.isCompatible(info, null));
 	}
-	
+
 }

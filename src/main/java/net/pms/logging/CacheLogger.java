@@ -36,7 +36,7 @@ import ch.qos.logback.core.Appender;
 public class CacheLogger {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(CacheLogger.class); 
-	private static LinkedList<Appender<ILoggingEvent>> appenderList = new LinkedList<Appender<ILoggingEvent>>();
+	private static LinkedList<Appender<ILoggingEvent>> appenderList = new LinkedList<>();
 	private static volatile CacheAppender<ILoggingEvent> cacheAppender = null;	
 	private static LoggerContext loggerContext = null;
 	private static ch.qos.logback.classic.Logger rootLogger;
@@ -102,7 +102,7 @@ public class CacheLogger {
 		if (isActive()) {
 			LOGGER.debug("StartCaching() failed: Caching already started"); 			
 		} else {
-			cacheAppender = new CacheAppender<ILoggingEvent>();
+			cacheAppender = new CacheAppender<>();
 			initContext();
 		}		
 	}

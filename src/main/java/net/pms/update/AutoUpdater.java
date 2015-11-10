@@ -134,7 +134,8 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			if (!exe.exists()) {
 				exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
 			}
-			Runtime.getRuntime().exec(exe.getAbsolutePath());
+			// Use exec(String[]) to avoid space-quoting issues
+			Runtime.getRuntime().exec(new String[] {exe.getAbsolutePath()});
 		} catch (IOException e) {
 			wrapException("Unable to run update. You may need to manually download it.", e);
 		}
