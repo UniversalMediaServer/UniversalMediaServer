@@ -9,10 +9,9 @@
 		building the pms.jar and then assembling all application resources.
 
 		Note that Maven 3 does not automatically install all dependencies, unlike Maven 2.
-		To install all dependencies to your local repository, run the following commands:
+		To install external dependencies to your local repository, run the following commands:
 
-		mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
-		mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
+		mvn external:install
 
 		To build UMS, do:
 
@@ -111,26 +110,6 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-		<!-- Java.net -->
-		<repository>
-			<id>java.net</id>
-			<name>Java.net Repository</name>
-			<url>https://maven.java.net/content/groups/public/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-
-		<!-- Maven Central -->
-		<repository>
-			<id>maven-central</id>
-			<name>Maven Central Repository</name>
-			<url>http://repo.maven.apache.org/maven2/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-
 		<!-- GSON -->
 		<repository>
 			<id>google-gson</id>
@@ -393,7 +372,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>55.1</version>
+			<version>56.1</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -549,21 +528,24 @@
 								<pluginExecution>
 									<pluginExecutionFilter>
 										<groupId>
-											com.savage7.maven.plugins
+											com.universalmediaserver
 										</groupId>
 										<artifactId>
-											maven-external-dependency-plugin
+											external-maven-plugin
 										</artifactId>
 										<versionRange>
-											[0.5,)
-										</versionRange>
+											[0.1,)
+										</versionRange>										
 										<goals>
-											<goal>install-external</goal>
-											<goal>resolve-external</goal>
+											<goal>clean</goal>
+											<goal>deploy</goal>
+											<goal>install</goal>
+											<goal>resolve</goal>
+											<goal>localinstall</goal>
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore></ignore>
+										<execute></execute>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
@@ -641,48 +623,33 @@
 				"src/main/external-resources/lib" directory and have this plugin take care of
 				the installation at build time.
 
-				Note: The plugin does not work automatically in Maven 3. To install the required
-				dependencies execute the following commands:
-
-				mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
-				mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
-
 				Checksums can be calculated with "openssl sha1 [filename]".
-
-				See: http://code.google.com/p/maven-external-dependency-plugin/issues/detail?id=8#c4
 			-->
 			<plugin>
-				<groupId>com.savage7.maven.plugins</groupId>
-				<artifactId>maven-external-dependency-plugin</artifactId>
-				<version>0.5</version>
+				<groupId>com.universalmediaserver</groupId>
+				<artifactId>external-maven-plugin</artifactId>
+				<version>0.1</version>
 				<inherited>false</inherited>
 				<configuration>
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
 					<createChecksum>true</createChecksum>
-					<skipChecksumVerification>false</skipChecksumVerification>
-					<force>false</force>
 					<artifactItems>
 						<artifactItem>
 							<groupId>sevenzip</groupId>
 							<artifactId>jbinding</artifactId>
 							<version>${sevenzip-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
 							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-{version}.{packaging}</downloadUrl>
 						</artifactItem>
 						<artifactItem>
 							<groupId>sevenzip-allplatforms</groupId>
 							<artifactId>jbinding-allplatforms</artifactId>
 							<version>${sevenzip-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
 							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
 						</artifactItem>
 						<artifactItem>
 							<groupId>jwbroek.cuelib</groupId>
 							<artifactId>cuelib</artifactId>
 							<version>${cuelib-version}</version>
-							<packaging>jar</packaging>
 							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
 						</artifactItem>
@@ -690,9 +657,6 @@
 							<groupId>mediautil</groupId>
 							<artifactId>mediautil</artifactId>
 							<version>${mediautil-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
 							<downloadUrl>http://downloads.sourceforge.net/project/mediachest/MediaUtil/Version%201.0/mediautil-1.zip</downloadUrl>
 							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
 							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
@@ -705,20 +669,7 @@
 						<id>clean-external-dependencies</id>
 						<phase>clean</phase>
 						<goals>
-							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:clean-external -->
-							<goal>clean-external</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>resolve-install-external-dependencies</id>
-						<!-- Note: this phase works in Maven 2. In Maven 3, it needs to be triggered manually. See above -->
-						<phase>validate</phase>
-						<goals>
-							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external -->
-							<goal>resolve-external</goal>
-
-							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external -->
-							<goal>install-external</goal>
+							<goal>clean</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -914,19 +865,6 @@
 					<family>windows</family>
 				</os>
 			</activation>
-
-			<pluginRepositories>
-				<pluginRepository>
-					<id>Codehaus Snapshots</id>
-					<url>http://nexus.codehaus.org/snapshots/</url>
-					<snapshots>
-						<enabled>true</enabled>
-					</snapshots>
-					<releases>
-						<enabled>true</enabled>
-					</releases>
-				</pluginRepository>
-			</pluginRepositories>
 
 			<build>
 				<plugins>
