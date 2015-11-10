@@ -42,6 +42,7 @@ public final class Languages {
 	private final static String[] UMS_BCP47_CODES = {
 		"af",      // Afrikaans
 		"ar",      // Arabic
+		"pt-BR",   // Brazilian Portuguese
 		"bg",      // Bulgarian
 		"ca",      // Catalan, Valencian
 		"zh-Hans", // Chinese, Han (Simplified variant)
@@ -62,13 +63,14 @@ public final class Languages {
 		"ja",      // Japanese
 		"ko",      // Korean
 		"no",      // Norwegian
+		"fa",......// Persian
 		"pl",      // Polish
 		"pt",      // Portuguese
-		"pt-BR",   // Brazilian Portuguese
 		"ro",      // Romanian, Moldavian, Moldovan
 		"ru",      // Russian
-		"sl",      // Slovenian
 		"sr",      // Serbian (Cyrillic)
+		"sk",      // Slovak
+		"sl",      // Slovenian
 		"es",      // Spanish, Castilian
 		"sv",      // Swedish
 		"tr",      // Turkish
