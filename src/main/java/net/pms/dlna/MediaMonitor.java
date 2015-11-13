@@ -23,12 +23,10 @@ public class MediaMonitor extends VirtualFolder {
 	private PmsConfiguration config;
 	private static final FileUtils FILE_UTILS = FileUtils.getInstance();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
-	protected boolean newMediaFolder;
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
 		this.dirs = dirs;
-		this.newMediaFolder = true;
 		watchedEntries = new HashSet<>();
 		config = PMS.getConfiguration();
 		parseMonitorFile();
@@ -37,7 +35,6 @@ public class MediaMonitor extends VirtualFolder {
 	public MediaMonitor(File[] dirs, String name) {
 		super(name, "images/thumbnail-folder-256.png");
 		this.dirs = dirs;
-		this.newMediaFolder = false;
 		watchedEntries = new HashSet<>();
 		config = PMS.getConfiguration();
 		parseMonitorFile();
@@ -102,7 +99,7 @@ public class MediaMonitor extends VirtualFolder {
 
 		for (File f : files) {
 			if (f.isFile()) {
-				if (isOnlyShowNewMedia() && isWatched(f.getAbsolutePath())) {
+				if (isWatched(f.getAbsolutePath())) {
 					continue;
 				}
 				res.addChild(new RealFile(f));
@@ -110,7 +107,7 @@ public class MediaMonitor extends VirtualFolder {
 			if (f.isDirectory()) {
 				boolean add = true;
 				if (config.isHideEmptyFolders()) {
-					add = FileUtil.isFolderRelevant(f, config, isOnlyShowNewMedia() ? watchedEntries : null);
+					add = FileUtil.isFolderRelevant(f, config, watchedEntries);
 				}
 				if (add) {
 					res.addChild(new MonitorEntry(f, this));
@@ -129,10 +126,6 @@ public class MediaMonitor extends VirtualFolder {
 	@Override
 	public boolean isRefreshNeeded() {
 		return true;
-	}
-
-	private boolean isOnlyShowNewMedia() {
-		return newMediaFolder || "2".equals(configuration.getWatchedVideoAction());
 	}
 
 	private boolean isMonitorClass(DLNAResource res) {
