@@ -558,11 +558,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				// Do not add unsupported media formats to the list
-				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
-					LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
-					children.remove(child);
-					return;
+				if (child.format != null) {
+					// Do not add unsupported media formats to the list
+					if (defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
+						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
+						children.remove(child);
+						return;
+					}
+
+					// Hide watched videos depending user preference
+					if ("2".equals(configuration.getWatchedVideoAction()) && child.format.isVideo() && MediaMonitor.isWatched(child.getSystemName())) {
+						LOGGER.trace("Ignoring file \"{}\" because it has been watched", child.getName());
+						return;
+					}
 				}
 
 				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
