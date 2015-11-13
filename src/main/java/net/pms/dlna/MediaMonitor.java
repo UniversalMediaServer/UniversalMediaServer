@@ -150,45 +150,57 @@ public class MediaMonitor extends VirtualFolder {
 		if (videoDuration > configuration.getMinimumWatchedPlayTimeSeconds() && played >= (videoDuration * configuration.getResumeBackFactor())) {
 			DLNAResource tmp = res.getParent();
 			if (tmp != null) {
-				// Prevent duplicates from being added
-				if (isWatched(rf.getFile().getAbsolutePath())) {
-					return;
-				}
-
-				watchedEntries.add(rf.getFile().getAbsolutePath());
-				setDiscovered(false);
-				getChildren().clear();
-
-				try {
-					dumpFile();
-				} catch (IOException e) {
-					LOGGER.debug("An error occurred when dumping monitor file: " + e);
-				}
-
-				File watchedFile = new File(rf.getFile().getAbsolutePath());
-
-				if (watchedVideoAction.startsWith("3;") && watchedVideoAction.length() > 3) {
-					// Move the video to a different folder
-					String newDirectory = watchedVideoAction.split(";")[1];
-					if (!newDirectory.endsWith("\\")) {
-						newDirectory += "\\\\";
-					}
-
-					try {
-						if (watchedFile.renameTo(new File(newDirectory + watchedFile.getName()))) {
-							LOGGER.debug("Moved {} because it has been watched", watchedFile.getName());
-						} else {
-							LOGGER.info("Failed to move {}", watchedFile.getName());
+				boolean isMonitored = false;
+				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
+				if (foldersMonitored != null && foldersMonitored.length > 0) {
+					for (File folderMonitored : foldersMonitored) {
+						if (rf.getFile().getAbsolutePath().contains(folderMonitored.getAbsolutePath())) {
+							isMonitored = true;
 						}
-					} catch (Exception e) {
-						LOGGER.info("Failed to move {} because {}", watchedFile.getName(), e.getMessage());
 					}
-				} else if ("4".equals(configuration.getWatchedVideoAction())) {
+				}
+
+				if (isMonitored) {
+					// Prevent duplicates from being added
+					if (isWatched(rf.getFile().getAbsolutePath())) {
+						return;
+					}
+
+					watchedEntries.add(rf.getFile().getAbsolutePath());
+					setDiscovered(false);
+					getChildren().clear();
+
 					try {
-						FreedesktopTrash.moveToTrash(watchedFile);
-					} catch (IOException | FileUtil.InvalidFileSystemException e) {
-						LOGGER.error(String.format("Failed to send the file %s to the trash after it has been played. Please enable the functionality on your operating system.", watchedFile.getAbsoluteFile()));
-						LOGGER.trace("The error was", e);
+						dumpFile();
+					} catch (IOException e) {
+						LOGGER.debug("An error occurred when dumping monitor file: " + e);
+					}
+
+					File watchedFile = new File(rf.getFile().getAbsolutePath());
+
+					if (watchedVideoAction.startsWith("3;") && watchedVideoAction.length() > 3) {
+						// Move the video to a different folder
+						String newDirectory = watchedVideoAction.split(";")[1];
+						if (!newDirectory.endsWith("\\")) {
+							newDirectory += "\\\\";
+						}
+
+						try {
+							if (watchedFile.renameTo(new File(newDirectory + watchedFile.getName()))) {
+								LOGGER.debug("Moved {} because it has been watched", watchedFile.getName());
+							} else {
+								LOGGER.info("Failed to move {}", watchedFile.getName());
+							}
+						} catch (Exception e) {
+							LOGGER.info("Failed to move {} because {}", watchedFile.getName(), e.getMessage());
+						}
+					} else if ("4".equals(configuration.getWatchedVideoAction())) {
+						try {
+							FreedesktopTrash.moveToTrash(watchedFile);
+						} catch (IOException | FileUtil.InvalidFileSystemException e) {
+							LOGGER.error(String.format("Failed to send the file %s to the trash after it has been played. Please enable the functionality on your operating system.", watchedFile.getAbsoluteFile()));
+							LOGGER.trace("The error was", e);
+						}
 					}
 				}
 			}
