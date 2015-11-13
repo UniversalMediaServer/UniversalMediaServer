@@ -1,5 +1,7 @@
 package net.pms.dlna;
 
+import com.sun.jna.platform.FileUtils;
+import com.sun.jna.Platform;
 import java.io.*;
 import java.util.Date;
 import java.util.HashSet;
@@ -10,12 +12,11 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
+import net.pms.util.FreedesktopTrash;
 import org.apache.commons.lang.StringUtils;
 import org.fest.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.platform.FileUtils;
-import net.pms.util.FreedesktopTrash;
 
 public class MediaMonitor extends VirtualFolder {
 	private static Set<String> watchedEntries;
@@ -196,7 +197,11 @@ public class MediaMonitor extends VirtualFolder {
 						}
 					} else if ("4".equals(configuration.getWatchedVideoAction())) {
 						try {
-							FreedesktopTrash.moveToTrash(watchedFile);
+							if (Platform.isLinux()) {
+								FreedesktopTrash.moveToTrash(watchedFile);
+							} else {
+								FILE_UTILS.moveToTrash(Arrays.array(watchedFile));
+							}
 						} catch (IOException | FileUtil.InvalidFileSystemException e) {
 							LOGGER.error(String.format("Failed to send the file %s to the trash after it has been played. Please enable the functionality on your operating system.", watchedFile.getAbsoluteFile()));
 							LOGGER.trace("The error was", e);
