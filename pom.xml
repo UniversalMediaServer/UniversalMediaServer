@@ -471,6 +471,26 @@
 					<version>2.19</version>
 				</plugin>
 
+				<!-- 
+					This plugin's configuration is used to run crowdin plugin from the command line,
+					it has no influence on the Maven build itself. 
+				-->
+				<plugin>
+					<groupId>com.universalmediaserver</groupId>
+					<artifactId>crowdin-maven-plugin</artifactId>
+					<version>0.3</version>
+					<configuration>
+						<project>${project}</project>
+						<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
+						<downloadFolder>${project.basedir}/extras/crowdin</downloadFolder>
+						<statusFile>${project.basedir}/src/main/resources/languages.properties</statusFile>
+						<crowdinServerId>crowdin-ums</crowdinServerId>
+						<pushFileName>messages.properties</pushFileName>
+						<pushFileTitle>Universal Media Server</pushFileTitle>
+						<projectName>Universal Media Server</projectName>
+					</configuration>
+				</plugin>
+
 				<!--
 					This plugin's configuration is used to store Eclipse m2e settings only.
 					It has no influence on the Maven build itself.
@@ -537,6 +557,27 @@
 											<goal>install</goal>
 											<goal>resolve</goal>
 											<goal>localinstall</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute></execute>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.universalmediaserver</groupId>
+										<artifactId>
+											crowdin-maven-plugin
+										</artifactId>
+										<versionRange>
+											[0.1,)
+										</versionRange>
+										<goals>
+											<goal>fetch</goal>
+											<goal>push</goal>
+											<goal>build</goal>
+											<goal>apply</goal>
+											<goal>pull</goal>
 										</goals>
 									</pluginExecutionFilter>
 									<action>
@@ -1807,7 +1848,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.3.2</version>
+						<version>1.4.0</version>
 						<executions>
 							<execution>
 								<phase>test</phase>
