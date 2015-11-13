@@ -32,14 +32,6 @@ public class MediaMonitor extends VirtualFolder {
 		parseMonitorFile();
 	}
 
-	public MediaMonitor(File[] dirs, String name) {
-		super(name, "images/thumbnail-folder-256.png");
-		this.dirs = dirs;
-		watchedEntries = new HashSet<>();
-		config = PMS.getConfiguration();
-		parseMonitorFile();
-	}
-
 	private File monitorFile() {
 		return new File(config.getDataFile("UMS.mon"));
 	}
@@ -128,10 +120,6 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
-	private boolean isMonitorClass(DLNAResource res) {
-		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
-	}
-
 	public void stopped(DLNAResource res) {
 		if (!(res instanceof RealFile) || res.getMedia() == null || !res.getMedia().isVideo()) {
 			return;
@@ -161,7 +149,7 @@ public class MediaMonitor extends VirtualFolder {
 		 */
 		if (videoDuration > configuration.getMinimumWatchedPlayTimeSeconds() && played >= (videoDuration * configuration.getResumeBackFactor())) {
 			DLNAResource tmp = res.getParent();
-			if (tmp != null && isMonitorClass(tmp)) {
+			if (tmp != null) {
 				// Prevent duplicates from being added
 				if (isWatched(rf.getFile().getAbsolutePath())) {
 					return;

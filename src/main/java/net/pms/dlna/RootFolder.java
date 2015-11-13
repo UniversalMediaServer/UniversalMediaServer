@@ -145,7 +145,9 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		addSharedFolders(tags);
+		for (DLNAResource r : getConfiguredFolders(tags)) {
+			addChild(r);
+		}
 
 		for (DLNAResource r : getVirtualFolders(tags)) {
 			addChild(r);
@@ -265,17 +267,9 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	/**
-	 * Adds shared folders, including monitored folders and the search
-	 * folder when applicable.
-	 *
-	 * @param tags
-	 * @return 
-	 */
-	private void addSharedFolders(ArrayList<String> tags) {
+	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
 		List<RealFile> res = new ArrayList<>();
-		File[] foldersShared = PMS.get().getSharedFoldersArray(false, tags, configuration);
-		File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
+		File[] files = PMS.get().getSharedFoldersArray(false, tags, configuration);
 		String s = configuration.getFoldersIgnored(tags);
 		String[] skips = null;
 
@@ -283,38 +277,23 @@ public class RootFolder extends DLNAResource {
 			skips = s.split(",");
 		}
 
-		if (foldersShared == null || foldersShared.length == 0) {
-			foldersShared = File.listRoots();
+		if (files == null || files.length == 0) {
+			files = File.listRoots();
 		}
 
-		for (File folder : foldersShared) {
-			if (skipPath(skips, folder.getAbsolutePath().toLowerCase())) {
+		for (File f : files) {
+			if (skipPath(skips, f.getAbsolutePath().toLowerCase())) {
 				continue;
 			}
-			
-			boolean isMonitored = false;
-			if (foldersMonitored != null && foldersMonitored.length > 0) {
-				for (File folderMonitored : foldersMonitored) {
-					if (folderMonitored.getAbsolutePath().equals(folder.getAbsolutePath())) {
-						isMonitored = true;
-					}
-				}
-			}
-
-			if (isMonitored) {
-				File[] dirs = new File[1];
-				dirs[0] = folder;
-				MediaMonitor monitoredFolder = new MediaMonitor(dirs, folder.getName());
-				addChild(monitoredFolder);
-			} else {
-				addChild(new RealFile(folder));
-			}
+			res.add(new RealFile(f));
 		}
 
 		if (configuration.getSearchFolder()) {
 			SearchFolder sf = new SearchFolder(Messages.getString("PMS.143"), new FileSearch(res));
 			addChild(sf);
 		}
+
+		return res;
 	}
 
 	private boolean skipPath(String[] skips, String path) {
@@ -1411,7 +1390,7 @@ public class RootFolder extends DLNAResource {
 	}
 
 	public void stopPlaying(DLNAResource res) {
-		if (res instanceof MonitorEntry || res instanceof MediaMonitor) {
+		if (mon != null) {
 			mon.stopped(res);
 		}
 		if (last != null) {
