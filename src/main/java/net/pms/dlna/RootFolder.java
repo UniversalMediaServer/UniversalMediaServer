@@ -301,7 +301,7 @@ public class RootFolder extends DLNAResource {
 				}
 			}
 
-			if (isMonitored && !"0".equals(configuration.getWatchedVideoAction())) {
+			if (isMonitored) {
 				File[] dirs = new File[1];
 				dirs[0] = folder;
 				MediaMonitor monitoredFolder = new MediaMonitor(dirs, folder.getName());
@@ -1411,15 +1411,7 @@ public class RootFolder extends DLNAResource {
 	}
 
 	public void stopPlaying(DLNAResource res) {
-		// If the file was played via a monitored folder
-		if (
-			res.getParent() instanceof MediaMonitor ||
-			(
-				res.getParent() instanceof FileTranscodeVirtualFolder &&
-				res.getParent().getParent().getParent() != null &&
-				res.getParent().getParent().getParent() instanceof MediaMonitor
-			)
-		) {
+		if (res instanceof MonitorEntry || res instanceof MediaMonitor) {
 			mon.stopped(res);
 		}
 		if (last != null) {
