@@ -82,9 +82,9 @@ public class NavigationShareTab {
 	private JCheckBox newmediafolder;
 	private JCheckBox recentlyplayedfolder;
 	private JCheckBox resume;
-	private JComboBox watchedVideoAction;
-	private JTextField watchedVideoOutputDirectory;
-	private CustomJButton selectWatchedVideoOutputDirectory;
+	private JComboBox fullyPlayedAction;
+	private JTextField fullyPlayedOutputDirectory;
+	private CustomJButton selectFullyPlayedOutputDirectory;
 
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;
@@ -247,9 +247,9 @@ public class NavigationShareTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(recentlyplayedfolder),    FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.72"),                      FormLayoutUtil.flip(cc.xy (1,  29   ), colSpec, orientation));
-			builder.add(watchedVideoAction,                                         FormLayoutUtil.flip(cc.xyw(4,  29, 3), colSpec, orientation));
-			builder.add(watchedVideoOutputDirectory,                                FormLayoutUtil.flip(cc.xyw(9,  29, 2), colSpec, orientation));
-			builder.add(selectWatchedVideoOutputDirectory,                          FormLayoutUtil.flip(cc.xyw(11, 29, 2), colSpec, orientation));
+			builder.add(fullyPlayedAction,                                         FormLayoutUtil.flip(cc.xyw(4,  29, 3), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xyw(9,  29, 2), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory,                          FormLayoutUtil.flip(cc.xyw(11, 29, 2), colSpec, orientation));
 
 			builder.add(builderSharedFolder.getPanel(),                             FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
 		} else {
@@ -670,7 +670,7 @@ public class NavigationShareTab {
 		});
 
 		// Watched video action
-		final KeyedComboBoxModel watchedVideoActionDropdown = new KeyedComboBoxModel(
+		final KeyedComboBoxModel fullyPlayedActionDropdown = new KeyedComboBoxModel(
 			new Object[]{
 				0,
 				1,
@@ -686,38 +686,38 @@ public class NavigationShareTab {
 				Messages.getString("FoldTab.71")
 			}
 		);
-		watchedVideoAction = new JComboBox(watchedVideoActionDropdown);
-		watchedVideoAction.setEditable(false);
-		watchedVideoActionDropdown.setSelectedKey(configuration.getWatchedVideoAction());
-		watchedVideoAction.addItemListener(new ItemListener() {
+		fullyPlayedAction = new JComboBox(fullyPlayedActionDropdown);
+		fullyPlayedAction.setEditable(false);
+		fullyPlayedActionDropdown.setSelectedKey(configuration.getFullyPlayedAction());
+		fullyPlayedAction.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					try {
-						int selectedKey = (int) watchedVideoActionDropdown.getSelectedKey();
-						configuration.setWatchedVideoAction(selectedKey);
-						watchedVideoOutputDirectory.setEnabled(selectedKey == 3);
-						selectWatchedVideoOutputDirectory.setEnabled(selectedKey == 3);
+						int selectedKey = (int) fullyPlayedActionDropdown.getSelectedKey();
+						configuration.setFullyPlayedAction(selectedKey);
+						fullyPlayedOutputDirectory.setEnabled(selectedKey == 3);
+						selectFullyPlayedOutputDirectory.setEnabled(selectedKey == 3);
 					} catch (NumberFormatException nfe) {
-						LOGGER.debug("Could not parse watched video action from \"" + watchedVideoActionDropdown.getSelectedKey() + "\"");
+						LOGGER.debug("Could not parse watched video action from \"" + fullyPlayedActionDropdown.getSelectedKey() + "\"");
 					}
 				}
 			}
 		});
 
 		// Watched video output directory
-		watchedVideoOutputDirectory = new JTextField(configuration.getWatchedVideoOutputDirectory());
-		watchedVideoOutputDirectory.addKeyListener(new KeyAdapter() {
+		fullyPlayedOutputDirectory = new JTextField(configuration.getFullyPlayedOutputDirectory());
+		fullyPlayedOutputDirectory.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setWatchedVideoOutputDirectory(watchedVideoOutputDirectory.getText());
+				configuration.setFullyPlayedOutputDirectory(fullyPlayedOutputDirectory.getText());
 			}
 		});
-		watchedVideoOutputDirectory.setEnabled(configuration.getWatchedVideoAction() == 3);
+		fullyPlayedOutputDirectory.setEnabled(configuration.getFullyPlayedAction() == 3);
 
 		// Watched video output directory selection button
-		selectWatchedVideoOutputDirectory = new CustomJButton("...");
-		selectWatchedVideoOutputDirectory.addActionListener(new ActionListener() {
+		selectFullyPlayedOutputDirectory = new CustomJButton("...");
+		selectFullyPlayedOutputDirectory.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser;
@@ -729,12 +729,12 @@ public class NavigationShareTab {
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("FoldTab.28"));
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					watchedVideoOutputDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setWatchedVideoOutputDirectory(chooser.getSelectedFile().getAbsolutePath());
+					fullyPlayedOutputDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
+					configuration.setFullyPlayedOutputDirectory(chooser.getSelectedFile().getAbsolutePath());
 				}
 			}
 		});
-		selectWatchedVideoOutputDirectory.setEnabled(configuration.getWatchedVideoAction() == 3);
+		selectFullyPlayedOutputDirectory.setEnabled(configuration.getFullyPlayedAction() == 3);
 	}
 
 	private PanelBuilder initSharedFoldersGuiComponents(CellConstraints cc) {

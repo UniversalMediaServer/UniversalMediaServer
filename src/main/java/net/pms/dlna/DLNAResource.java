@@ -567,7 +567,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					// Hide watched videos depending user preference
-					if (configuration.getWatchedVideoAction() == 2 && child.format.isVideo() && MediaMonitor.isWatched(child.getSystemName())) {
+					if (configuration.getFullyPlayedAction() == 2 && child.format.isVideo() && MediaMonitor.isWatched(child.getSystemName())) {
 						LOGGER.trace("Ignoring file \"{}\" because it has been watched", child.getName());
 						return;
 					}
@@ -1535,7 +1535,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (
 				mediaRenderer != null &&
 				!mediaRenderer.isThumbnails() &&
-				configuration.getWatchedVideoAction() == 1 &&
+				configuration.getFullyPlayedAction() == 1 &&
 				MediaMonitor.isWatched(file.getAbsolutePath())
 			) {
 				displayName = Messages.getString("DLNAResource.4") + ": " + displayName;
@@ -3137,7 +3137,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			(
 				!media.isThumbready() ||
 				(
-					configuration.getWatchedVideoAction() == 1 &&
+					configuration.getFullyPlayedAction() == 1 &&
 					MediaMonitor.isWatched(inputFile.getFile().getAbsolutePath())
 				)
 			) &&

@@ -295,8 +295,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
 	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
-	protected static final String KEY_WATCHED_VIDEO_ACTION = "watched_video_action";
-	protected static final String KEY_WATCHED_VIDEO_OUTPUT_DIRECTORY = "watched_video_output_directory";
+	protected static final String KEY_FULLY_PLAYED_ACTION = "fully_played_action";
+	protected static final String KEY_FULLY_PLAYED_OUTPUT_DIRECTORY = "fully_played_output_directory";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
@@ -1891,7 +1891,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns what to do with a video after it has been watched.
+	 * Returns what to do with a file after it has been fully played.
 	 * The following options are available:
 	 *
 	 *   0 = Do nothing
@@ -1900,37 +1900,39 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *   3 = Move the file to a different folder
 	 *   4 = Move the file to the recycle/trash bin
 	 *
-	 * @return what to do with a video after it has been watched
+	 * @return what to do with a file after it has been fully played
 	 */
-	public int getWatchedVideoAction() {
-		return getInt(KEY_WATCHED_VIDEO_ACTION, 1);
+	public int getFullyPlayedAction() {
+		return getInt(KEY_FULLY_PLAYED_ACTION, 1);
 	}
 
 	/**
-	 * Sets what to do with a video after it has been watched.
+	 * Sets what to do with a file after it has been fully played.
 	 *
-	 * @param value what to do with a video after it has been watched
+	 * @param value what to do with a file after it has been fully played
 	 */
-	public void setWatchedVideoAction(int value) {
-		configuration.setProperty(KEY_WATCHED_VIDEO_ACTION, value);
+	public void setFullyPlayedAction(int value) {
+		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, value);
 	}
 
 	/**
-	 * Returns the folder to move watched videos to if the mode is selected.
+	 * Returns the folder to move fully played files to in mode 3.
 	 *
-	 * @return the folder to move watched videos to
+	 * @see #getFullyPlayedAction()
+	 * @return the folder to move fully played files to
 	 */
-	public String getWatchedVideoOutputDirectory() {
-		return getString(KEY_WATCHED_VIDEO_OUTPUT_DIRECTORY, "");
+	public String getFullyPlayedOutputDirectory() {
+		return getString(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, "");
 	}
 
 	/**
-	 * Sets the folder to move watched videos to if the mode is selected.
+	 * Sets the folder to move fully played files to in mode 3.
 	 *
-	 * @param value the folder to move watched videos to
+	 * @see #getFullyPlayedAction()
+	 * @param value the folder to move fully played files to
 	 */
-	public void setWatchedVideoOutputDirectory(String value) {
-		configuration.setProperty(KEY_WATCHED_VIDEO_OUTPUT_DIRECTORY, value);
+	public void setFullyPlayedOutputDirectory(String value) {
+		configuration.setProperty(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, value);
 	}
 
 	/**

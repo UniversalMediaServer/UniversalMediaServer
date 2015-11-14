@@ -122,16 +122,16 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public void stopped(DLNAResource res) {
-		if (!(res instanceof RealFile) || res.getMedia() == null || !res.getMedia().isVideo()) {
+		if (!(res instanceof RealFile)) {
 			return;
 		}
 
 		RealFile rf = (RealFile) res;
 
 		// The total video duration in seconds
-		double videoDuration = 0;
-		if (res.getMedia() != null) {
-			videoDuration = res.getMedia().getDuration();
+		double fileDuration = 0;
+		if (res.getMedia() != null && (res.getMedia().isAudio() || res.getMedia().isVideo())) {
+			fileDuration = res.getMedia().getDuration();
 		}
 
 		/**
@@ -142,13 +142,22 @@ public class MediaMonitor extends VirtualFolder {
 		double played = (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
 		played = played + res.getLastStartPosition();
 
-		int watchedVideoAction = configuration.getWatchedVideoAction();
+		int fullyPlayedAction = configuration.getFullyPlayedAction();
 
 		/**
 		 * Only mark the video as watched if more than 92% (default) of
 		 * the duration has elapsed since it started playing.
 		 */
-		if (videoDuration > configuration.getMinimumWatchedPlayTimeSeconds() && played >= (videoDuration * configuration.getResumeBackFactor())) {
+		if (
+			(
+				res.getMedia() != null &&
+				res.getMedia().isImage()
+			) ||
+			(
+				fileDuration > configuration.getMinimumWatchedPlayTimeSeconds() &&
+				played >= (fileDuration * configuration.getResumeBackFactor())
+			)
+		) {
 			DLNAResource tmp = res.getParent();
 			if (tmp != null) {
 				boolean isMonitored = false;
@@ -179,9 +188,9 @@ public class MediaMonitor extends VirtualFolder {
 
 					File watchedFile = new File(rf.getFile().getAbsolutePath());
 
-					if (watchedVideoAction == 3) {
+					if (fullyPlayedAction == 3) {
 						// Move the video to a different folder
-						String newDirectory = configuration.getWatchedVideoOutputDirectory();
+						String newDirectory = configuration.getFullyPlayedOutputDirectory();
 						if (!newDirectory.endsWith("\\")) {
 							newDirectory += "\\\\";
 						}
@@ -195,7 +204,7 @@ public class MediaMonitor extends VirtualFolder {
 						} catch (Exception e) {
 							LOGGER.info("Failed to move {} because {}", watchedFile.getName(), e.getMessage());
 						}
-					} else if (watchedVideoAction == 4) {
+					} else if (fullyPlayedAction == 4) {
 						try {
 							if (Platform.isLinux()) {
 								FreedesktopTrash.moveToTrash(watchedFile);
