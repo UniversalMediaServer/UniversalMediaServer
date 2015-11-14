@@ -133,11 +133,9 @@ public class AviDemuxerInputStream extends InputStream {
 					process = pb.start();
 					ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
 					attachedProcesses.add(pwi);
-
-					// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
-					// consumer that reads and discards the stream
-					new Gob(process.getErrorStream()).start();
-					new Gob(process.getInputStream()).start();
+					// consume the error and output process streams
+					new StreamGobbler(process.getErrorStream()).start();
+					new StreamGobbler(process.getInputStream()).start();
 
 					realIS = tsPipe.getInputStream();
 					ProcessUtil.waitFor(process);

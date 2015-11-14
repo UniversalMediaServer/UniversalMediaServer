@@ -25,13 +25,16 @@ import java.io.InputStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
-// consumer that reads and discards the stream
-public class Gob extends Thread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Gob.class);
+public class StreamGobbler extends Thread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(StreamGobbler.class);
 	BufferedReader in;
 
-	public Gob(InputStream in) {
+	/**
+	 * The stream consumer that reads and discards the stream
+	 *
+	 * @param in an ImputStream to be consumed
+	 */
+	public StreamGobbler(InputStream in) {
 		this.in = new BufferedReader(new InputStreamReader(in));
 	}
 
