@@ -2691,7 +2691,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
 							if (!quietPlay()) {
-								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
+								if (format != null && format.isImage()) {
+									LOGGER.info("Viewed " + getName() + " on your " + rendererName);
+								} else {
+									LOGGER.info("Started playing " + getName() + " on your " + rendererName);
+								}
 								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 							}
 						} catch (UnknownHostException ex) {
@@ -2777,7 +2781,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									} catch (NullPointerException e) { }
 
 									if (!quietPlay()) {
-										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
+										if (!(format != null && format.isImage())) {
+											LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
+										}
 										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 									}
 								} catch (UnknownHostException ex) {

@@ -296,10 +296,18 @@ public class DLNAMediaInfo implements Cloneable {
 	private int videoTrackCount = 0;
 	private int imageCount = 0;
 
-	private static int thumbnailFontSize;
-	private static int thumbnailTextHorizontalPosition;
-	private static int thumbnailTextVerticalPosition;
-	private static final String THUMBNAIL_TEXT = Messages.getString("DLNAResource.4");
+	private static int thumbnailFontSizeVideo;
+	private static int thumbnailTextHorizontalPositionVideo;
+	private static int thumbnailTextVerticalPositionVideo;
+	private static int thumbnailFontSizeAudio;
+	private static int thumbnailTextHorizontalPositionAudio;
+	private static int thumbnailTextVerticalPositionAudio;
+	private static int thumbnailFontSizeImage;
+	private static int thumbnailTextHorizontalPositionImage;
+	private static int thumbnailTextVerticalPositionImage;
+	private static final String THUMBNAIL_TEXT_VIDEO = Messages.getString("DLNAResource.4");
+	private static final String THUMBNAIL_TEXT_AUDIO = Messages.getString("DLNAResource.5");
+	private static final String THUMBNAIL_TEXT_IMAGE = Messages.getString("DLNAResource.6");
 
 	public int getVideoTrackCount() {
 		return videoTrackCount;
@@ -968,6 +976,26 @@ public class DLNAMediaInfo implements Cloneable {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null) {
 								if (configuration.getFullyPlayedAction() == 1 && file != null && MediaMonitor.isWatched(file.getAbsolutePath())) {
+									int thumbnailFontSize;
+									String thumbnailText;
+									int thumbnailTextHorizontalPosition;
+									int thumbnailTextVerticalPosition;
+									if (isVideo()) {
+										thumbnailFontSize = thumbnailFontSizeVideo;
+										thumbnailText = THUMBNAIL_TEXT_VIDEO;
+										thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionVideo;
+										thumbnailTextVerticalPosition = thumbnailTextVerticalPositionVideo;
+									} else if (isAudio()) {
+										thumbnailFontSize = thumbnailFontSizeAudio;
+										thumbnailText = THUMBNAIL_TEXT_AUDIO;
+										thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionAudio;
+										thumbnailTextVerticalPosition = thumbnailTextVerticalPositionAudio;
+									} else {
+										thumbnailFontSize = thumbnailFontSizeImage;
+										thumbnailText = THUMBNAIL_TEXT_IMAGE;
+										thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionImage;
+										thumbnailTextVerticalPosition = thumbnailTextVerticalPositionImage;
+									}
 									/**
 									 * TODO: Include and use a custom font
 									 */
@@ -978,7 +1006,7 @@ public class DLNAMediaInfo implements Cloneable {
 										g.fillRect(0, 0, thumbnailWidth, renderer.getThumbnailHeight());
 										g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 										g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
-										g.drawString(THUMBNAIL_TEXT, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
+										g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
 									} else {
 										thumbnailFontSize = thumbnailWidth / 6;
 										Graphics2D g = image.createGraphics();
@@ -987,7 +1015,7 @@ public class DLNAMediaInfo implements Cloneable {
 										g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 										g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 										FontMetrics fm = g.getFontMetrics();
-										Rectangle2D textsize = fm.getStringBounds(THUMBNAIL_TEXT, g);
+										Rectangle2D textsize = fm.getStringBounds(thumbnailText, g);
 										int textWidth = (int) textsize.getWidth();
 										thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
 
@@ -997,7 +1025,7 @@ public class DLNAMediaInfo implements Cloneable {
 												thumbnailFontSize = thumbnailWidth / divider;
 												g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 												fm = g.getFontMetrics();
-												textsize = fm.getStringBounds(THUMBNAIL_TEXT, g);
+												textsize = fm.getStringBounds(thumbnailText, g);
 												textWidth = (int) textsize.getWidth();
 												if (textWidth <= (thumbnailWidth * 0.9)) {
 													thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
@@ -1007,7 +1035,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 
 										thumbnailTextVerticalPosition = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
-										g.drawString(THUMBNAIL_TEXT, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
+										g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
 									}
 								}
 								ByteArrayOutputStream out = new ByteArrayOutputStream();
