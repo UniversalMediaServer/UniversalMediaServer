@@ -134,8 +134,8 @@ public class AviDemuxerInputStream extends InputStream {
 					ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
 					attachedProcesses.add(pwi);
 					// consume the error and output process streams
-					new StreamGobbler(process.getErrorStream()).start();
-					new StreamGobbler(process.getInputStream()).start();
+					new StreamGobbler(process.getErrorStream(), true).start();
+					new StreamGobbler(process.getInputStream(), true).start();
 
 					realIS = tsPipe.getInputStream();
 					ProcessUtil.waitFor(process);

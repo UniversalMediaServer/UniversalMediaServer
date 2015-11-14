@@ -116,8 +116,8 @@ public class ProcessUtil {
 		try {
 			Process process = Runtime.getRuntime().exec("kill -" + signal + " " + pid);
 			// consume the error and output process streams
-			new StreamGobbler(process.getErrorStream()).start();
-			new StreamGobbler(process.getInputStream()).start();
+			new StreamGobbler(process.getErrorStream(), true).start();
+			new StreamGobbler(process.getInputStream(), true).start();
 			int exit = waitFor(process);
 			if (exit == 0) {
 				killed = true;
