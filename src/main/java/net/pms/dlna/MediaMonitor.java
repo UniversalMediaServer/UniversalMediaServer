@@ -142,7 +142,7 @@ public class MediaMonitor extends VirtualFolder {
 		double played = (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
 		played = played + res.getLastStartPosition();
 
-		String watchedVideoAction = configuration.getWatchedVideoAction();
+		int watchedVideoAction = configuration.getWatchedVideoAction();
 
 		/**
 		 * Only mark the video as watched if more than 92% (default) of
@@ -179,9 +179,9 @@ public class MediaMonitor extends VirtualFolder {
 
 					File watchedFile = new File(rf.getFile().getAbsolutePath());
 
-					if (watchedVideoAction.startsWith("3;") && watchedVideoAction.length() > 3) {
+					if (watchedVideoAction == 3) {
 						// Move the video to a different folder
-						String newDirectory = watchedVideoAction.split(";")[1];
+						String newDirectory = configuration.getWatchedVideoOutputDirectory();
 						if (!newDirectory.endsWith("\\")) {
 							newDirectory += "\\\\";
 						}
@@ -195,7 +195,7 @@ public class MediaMonitor extends VirtualFolder {
 						} catch (Exception e) {
 							LOGGER.info("Failed to move {} because {}", watchedFile.getName(), e.getMessage());
 						}
-					} else if ("4".equals(configuration.getWatchedVideoAction())) {
+					} else if (watchedVideoAction == 4) {
 						try {
 							if (Platform.isLinux()) {
 								FreedesktopTrash.moveToTrash(watchedFile);

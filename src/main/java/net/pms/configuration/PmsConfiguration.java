@@ -296,6 +296,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
 	protected static final String KEY_WATCHED_VIDEO_ACTION = "watched_video_action";
+	protected static final String KEY_WATCHED_VIDEO_OUTPUT_DIRECTORY = "watched_video_output_directory";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
@@ -1892,17 +1893,17 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns what to do with a video after it has been watched.
 	 * The following options are available:
-	 * 
-	 *   0           = Do nothing
-	 *   1           = Write "Watched" on the thumbnail
-	 *   2           = Hide the video in UMS
-	 *   3;directory = Move the video to a different folder
-	 *   4           = Delete the video
+	 *
+	 *   0 = Do nothing
+	 *   1 = Add an overlay to the thumbnail
+	 *   2 = Hide the video in UMS
+	 *   3 = Move the video to a different folder
+	 *   4 = Send the video to the Recycle Bin/trash
 	 *
 	 * @return what to do with a video after it has been watched
 	 */
-	public String getWatchedVideoAction() {
-		return getString(KEY_WATCHED_VIDEO_ACTION, "1");
+	public int getWatchedVideoAction() {
+		return getInt(KEY_WATCHED_VIDEO_ACTION, 1);
 	}
 
 	/**
@@ -1910,8 +1911,26 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *
 	 * @param value what to do with a video after it has been watched
 	 */
-	public void setWatchedVideoAction(boolean value) {
+	public void setWatchedVideoAction(int value) {
 		configuration.setProperty(KEY_WATCHED_VIDEO_ACTION, value);
+	}
+
+	/**
+	 * Returns the folder to move watched videos to if the mode is selected.
+	 *
+	 * @return the folder to move watched videos to
+	 */
+	public String getWatchedVideoOutputDirectory() {
+		return getString(KEY_WATCHED_VIDEO_OUTPUT_DIRECTORY, "");
+	}
+
+	/**
+	 * Sets the folder to move watched videos to if the mode is selected.
+	 *
+	 * @param value the folder to move watched videos to
+	 */
+	public void setWatchedVideoOutputDirectory(String value) {
+		configuration.setProperty(KEY_WATCHED_VIDEO_OUTPUT_DIRECTORY, value);
 	}
 
 	/**
