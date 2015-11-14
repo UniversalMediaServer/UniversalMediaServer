@@ -1896,9 +1896,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *
 	 *   0 = Do nothing
 	 *   1 = Add an overlay to the thumbnail
-	 *   2 = Hide the video in UMS
-	 *   3 = Move the video to a different folder
-	 *   4 = Send the video to the Recycle Bin/trash
+	 *   2 = Hide the file
+	 *   3 = Move the file to a different folder
+	 *   4 = Move the file to the recycle/trash bin
 	 *
 	 * @return what to do with a video after it has been watched
 	 */
