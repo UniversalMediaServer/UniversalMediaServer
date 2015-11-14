@@ -180,6 +180,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
 	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
+	protected static final String THUMBNAILS = "Thumbnails";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
 	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	protected static final String TRANSCODE_EXT = "TranscodeExtensions";
@@ -2697,5 +2698,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			LOGGER.debug("Purging renderer {} as invalid", r);
 			r.delete(0);
 		}
+	}
+
+	/**
+	 * Whether the renderer can display thumbnails.
+	 *
+	 * @return whether the renderer can display thumbnails
+	 */
+	public boolean isThumbnails() {
+		return getBoolean(THUMBNAILS, true);
 	}
 }

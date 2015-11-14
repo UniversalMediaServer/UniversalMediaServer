@@ -1524,11 +1524,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			) &&
 			!isFolder()
 		) {
+			RealFile rf = (RealFile) this;
+			File file = rf.getFile();
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
-				RealFile rf = (RealFile) this;
-				displayName = FileUtil.getFileNameWithRewriting(displayName, rf.getFile());
+				displayName = FileUtil.getFileNameWithRewriting(displayName, file);
 			} else {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
+			}
+
+			if (
+				mediaRenderer != null &&
+				!mediaRenderer.isThumbnails() &&
+				configuration.getWatchedVideoAction() == 1 &&
+				MediaMonitor.isWatched(file.getAbsolutePath())
+			) {
+				displayName = Messages.getString("DLNAResource.4") + ": " + displayName;
 			}
 		}
 
@@ -3131,7 +3141,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					MediaMonitor.isWatched(inputFile.getFile().getAbsolutePath())
 				)
 			) &&
-			configuration.isThumbnailGenerationEnabled()
+			configuration.isThumbnailGenerationEnabled() &&
+			renderer.isThumbnails()
 		) {
 			Double seekPosition = (double) configuration.getThumbnailSeekPos();
 			if (isResume()) {
