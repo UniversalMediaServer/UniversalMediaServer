@@ -197,9 +197,21 @@ public class MediaMonitor extends VirtualFolder {
 
 						try {
 							if (watchedFile.renameTo(new File(newDirectory + watchedFile.getName()))) {
-								LOGGER.debug("Moved {} because it has been watched", watchedFile.getName());
+								LOGGER.debug("Moved {} because it has been fully played", watchedFile.getName());
 							} else {
-								LOGGER.info("Failed to move {}", watchedFile.getName());
+								LOGGER.debug("Moving {} failed, trying again in 3 seconds", watchedFile.getName());
+
+								try {
+									Thread.sleep(3000);
+								} catch (InterruptedException e) {
+									LOGGER.error(null, e);
+								}
+
+								if (watchedFile.renameTo(new File(newDirectory + watchedFile.getName()))) {
+									LOGGER.debug("Moved {} because it has been fully played", watchedFile.getName());
+								} else {
+									LOGGER.info("Failed to move {}", watchedFile.getName());
+								}
 							}
 						} catch (Exception e) {
 							LOGGER.info("Failed to move {} because {}", watchedFile.getName(), e.getMessage());
@@ -212,7 +224,7 @@ public class MediaMonitor extends VirtualFolder {
 								FILE_UTILS.moveToTrash(Arrays.array(watchedFile));
 							}
 						} catch (IOException | FileUtil.InvalidFileSystemException e) {
-							LOGGER.error(String.format("Failed to send the file %s to the trash after it has been played. Please enable the functionality on your operating system.", watchedFile.getAbsoluteFile()));
+							LOGGER.error(String.format("Failed to send the file %s to the trash after it has been fully played. Please enable the functionality on your operating system.", watchedFile.getAbsoluteFile()));
 							LOGGER.trace("The error was", e);
 						}
 					}
