@@ -17,6 +17,7 @@ import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
+import net.pms.formats.v2.AudioProperties;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
@@ -1251,7 +1252,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 *            configured for this renderer.
 	 * @return The mime type.
 	 */
-	public String getMimeType(String mimeType) {
+	public String getMimeType(String mimeType, DLNAMediaInfo media) {
 		if (mimeType == null) {
 			return null;
 		}
@@ -1287,10 +1288,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
 
 					if (matchedMimeType != null) {
-						if (isTranscodeAudioTo441()) {
-							matchedMimeType += ";rate=44100;channels=2";
-						} else {
-							matchedMimeType += ";rate=48000;channels=2";
+						if (pmsConfiguration.isAudioResample()) {
+							if (isTranscodeAudioTo441()) {
+								matchedMimeType += ";rate=44100;channels=2";
+							} else {
+								matchedMimeType += ";rate=48000;channels=2";
+							}
+						} else if (media != null) {
+							AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+							if (audio.getSampleFrequency() > 0) {
+								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+							}
+							if (audio.getNumberOfChannels() > 0) {
+								matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
+							}
 						}
 					}
 				}
@@ -1315,10 +1326,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
 
-					if (isTranscodeAudioTo441()) {
-						matchedMimeType += ";rate=44100;channels=2";
-					} else {
-						matchedMimeType += ";rate=48000;channels=2";
+					if (pmsConfiguration.isAudioResample()) {
+						if (isTranscodeAudioTo441()) {
+							matchedMimeType += ";rate=44100;channels=2";
+						} else {
+							matchedMimeType += ";rate=48000;channels=2";
+						}
+					} else if (media != null) {
+						AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+						if (audio.getSampleFrequency() > 0) {
+							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+						}
+						if (audio.getNumberOfChannels() > 0) {
+							matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
+						}
 					}
 				}
 			}
