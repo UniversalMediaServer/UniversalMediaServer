@@ -30,6 +30,7 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
+import net.coobird.thumbnailator.Thumbnails;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
@@ -584,5 +585,33 @@ public class UMSUtils {
 			}
 			return null;
 		}
+	}
+
+	/**
+	 * Scale the image to the width and height while preserving aspect ratio.
+	 *
+	 * @param image
+	 * @param width
+	 * @param height
+	 * @return the scaled image
+	 */
+	public static byte[] scaleImage(byte[] image, int width, int height) {
+		ByteArrayInputStream in = new ByteArrayInputStream(image);
+		try {
+			BufferedImage img = ImageIO.read(in);
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+			Thumbnails.of(img)
+				.size(width, height)
+				.outputFormat("JPEG")
+				.outputQuality(1.0f)
+				.toOutputStream(out);
+
+			return out.toByteArray();
+		} catch (IOException e) {
+			LOGGER.trace("Failed to resize image");
+		}
+
+		return null;
 	}
 }

@@ -27,7 +27,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.Thumbnails;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -43,6 +42,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
+import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.sanselan.ImageInfo;
@@ -800,6 +800,12 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 
+							int thumbnailWidth = renderer.getThumbnailWidth();
+							int thumbnailHeight = renderer.getThumbnailHeight();
+
+							// Make sure the image fits in the renderer's bounds
+							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight);
+
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null && configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath())) {
 								int thumbnailFontSize;
@@ -815,11 +821,10 @@ public class DLNAMediaInfo implements Cloneable {
 								/**
 								 * TODO: Include and use a custom font
 								 */
-								int thumbnailWidth = renderer.getThumbnailWidth();
 								if (thumbnailFontSize > 0) {
 									Graphics2D g = image.createGraphics();
 									g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-									g.fillRect(0, 0, thumbnailWidth, thumbnailWidth);
+									g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
 									g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 									g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
@@ -827,7 +832,7 @@ public class DLNAMediaInfo implements Cloneable {
 									thumbnailFontSize = thumbnailWidth / 6;
 									Graphics2D g = image.createGraphics();
 									g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-									g.fillRect(0, 0, thumbnailWidth, thumbnailWidth);
+									g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
 									g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 									FontMetrics fm = g.getFontMetrics();
@@ -933,14 +938,11 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Create the thumbnail image using the Thumbnailator library
 					try {
-						ByteArrayOutputStream out = new ByteArrayOutputStream();
-						Thumbnails.of(file)
-								.size(320, 180)
-								.outputFormat("JPEG")
-								.outputQuality(1.0f)
-								.toOutputStream(out);
+						int thumbnailWidth = renderer.getThumbnailWidth();
+						int thumbnailHeight = renderer.getThumbnailHeight();
 
-						thumb = out.toByteArray();
+						// Make sure the image fits in the renderer's bounds
+						thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight);
 
 						BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 						if (image != null && configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath())) {
@@ -957,11 +959,10 @@ public class DLNAMediaInfo implements Cloneable {
 							/**
 							 * TODO: Include and use a custom font
 							 */
-							int thumbnailWidth = renderer.getThumbnailWidth();
 							if (thumbnailFontSize > 0) {
 								Graphics2D g = image.createGraphics();
 								g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-								g.fillRect(0, 0, thumbnailWidth, renderer.getThumbnailHeight());
+								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
 								g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 								g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
@@ -969,7 +970,7 @@ public class DLNAMediaInfo implements Cloneable {
 								thumbnailFontSize = thumbnailWidth / 6;
 								Graphics2D g = image.createGraphics();
 								g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-								g.fillRect(0, 0, thumbnailWidth, renderer.getThumbnailHeight());
+								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
 								g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 								FontMetrics fm = g.getFontMetrics();
@@ -995,6 +996,7 @@ public class DLNAMediaInfo implements Cloneable {
 								thumbnailTextVerticalPosition = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
 								g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
 							}
+							ByteArrayOutputStream out = new ByteArrayOutputStream();
 							ImageIO.write(image, "jpeg", out);
 							thumb = out.toByteArray();
 						}
