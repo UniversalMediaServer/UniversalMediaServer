@@ -22,17 +22,33 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
-// consumer that reads and discards the stream
-public class Gob extends Thread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Gob.class);
+public class StreamGobbler extends Thread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(StreamGobbler.class);
 	BufferedReader in;
+	private boolean logging;
 
-	public Gob(InputStream in) {
-		this.in = new BufferedReader(new InputStreamReader(in));
+	/**
+	 * The stream consumer that reads and discards the stream
+	 *
+	 * @param in the {@link InputStream} to be consumed
+	 * @param enableLogging true if the stream content should be logged to TRACE level
+	 */
+	public StreamGobbler(InputStream in, boolean enableLogging) {
+		this.in = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+		this.logging = enableLogging;
+	}
+
+	/**
+	 * The stream consumer that reads and discards the stream
+	 *
+	 * @param in the {@link InputStream} to be consumed
+	 */
+	public StreamGobbler(InputStream in) {
+		this(in, false);
 	}
 
 	@Override
@@ -40,13 +56,14 @@ public class Gob extends Thread {
 		String line = null;
 		try {
 			while ((line = in.readLine()) != null) {
-				if (!line.startsWith("100")) {
+				if (logging && !line.startsWith("100")) {
 					LOGGER.trace(line);
 				}
 			}
 			in.close();
 		} catch (IOException e) {
-			LOGGER.trace("Caught exception", e);
+			LOGGER.debug("Caught exception while gobbling stream: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 
 	}
