@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,22 +34,21 @@ public class StreamGobbler extends Thread {
 	/**
 	 * The stream consumer that reads and discards the stream
 	 *
-	 * @param in an ImputStream to be consumed
+	 * @param in the {@link InputStream} to be consumed
+	 * @param enableLogging true if the stream content should be logged to TRACE level
 	 */
-	public StreamGobbler(InputStream in) {
-		this.in = new BufferedReader(new InputStreamReader(in));
-		this.logging = false;
+	public StreamGobbler(InputStream in, boolean enableLogging) {
+		this.in = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+		this.logging = enableLogging;
 	}
 
 	/**
 	 * The stream consumer that reads and discards the stream
 	 *
-	 * @param in an ImputStream to be consumed
-	 * @param enableLogging true if the stream should be logged to the TRACE level
+	 * @param in the {@link InputStream} to be consumed
 	 */
-	public StreamGobbler(InputStream in, boolean enableLogging) {
-		this.in = new BufferedReader(new InputStreamReader(in));
-		this.logging = enableLogging;
+	public StreamGobbler(InputStream in) {
+		this(in, false);
 	}
 
 	@Override
@@ -62,7 +62,8 @@ public class StreamGobbler extends Thread {
 			}
 			in.close();
 		} catch (IOException e) {
-			LOGGER.trace("Caught exception", e);
+			LOGGER.debug("Caught exception while gobbling stream: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 
 	}
