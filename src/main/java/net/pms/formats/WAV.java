@@ -18,7 +18,7 @@
  */
 package net.pms.formats;
 
-public class WAV extends Format {
+public class WAV extends AudioFile {
 	/**
 	 * {@inheritDoc} 
 	 */
@@ -27,21 +27,12 @@ public class WAV extends Format {
 		return Identifier.WAV;
 	}
 
-	public WAV() {
-		type = AUDIO;
-	}
-	
-	@Override
-	public boolean transcodable() {
-		return true;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "wav" };
+		return new String[] { "wav", "wave" };
 	}
 
 	/**

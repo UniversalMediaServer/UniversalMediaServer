@@ -249,13 +249,34 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
+		// XXX Matching on file format isn't really enough, codec should also be evaluated
 		if (
+			PlayerUtil.isAudio(resource, Format.Identifier.AC3) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.ADPCM) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.ADTS) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.AIFF) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.APE) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.ATRAC) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.AU) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.DSD) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.DTS) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.EAC3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.FLAC) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.M4A) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.MKA) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.MLP) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MP3) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.MPA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.RA) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.SHN) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.THREEGA) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.THREEG2A) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.THD) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.TTA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.WAV) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.WMA) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.WV) ||
 			PlayerUtil.isWebAudio(resource)
 		) {
 			return true;

@@ -19,13 +19,18 @@
  */
 package net.pms.formats;
 
-public class AIFF extends AudioFile {
+public class MLP extends AudioFile {
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.AIFF;
+		return Identifier.MLP;
+	}
+
+	public MLP() {
+		type = AUDIO;
+		secondaryFormat = new AudioAsVideo();
 	}
 
 	/**
@@ -33,10 +38,6 @@ public class AIFF extends AudioFile {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] {
-			"aif",
-			"aiff",
-			"aifc"
-		};
+		return new String[] { "mlp" };
 	}
 }

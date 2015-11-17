@@ -19,13 +19,13 @@
  */
 package net.pms.formats;
 
-public class AIFF extends AudioFile {
+public class MPC extends AudioFile {
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.AIFF;
+		return Identifier.MPC;
 	}
 
 	/**
@@ -34,9 +34,9 @@ public class AIFF extends AudioFile {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
-			"aif",
-			"aiff",
-			"aifc"
+			"mpc",
+			"mp+",
+			"mpp",
 		};
 	}
 }
