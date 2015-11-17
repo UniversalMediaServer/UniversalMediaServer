@@ -18,7 +18,6 @@
  */
 package net.pms.formats;
 
-import java.util.StringTokenizer;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
@@ -47,22 +46,30 @@ public abstract class Format implements Cloneable {
 	public enum Identifier {
 		AUDIO_AS_VIDEO,
 		AIFF,
+		ASS,
 		BMP,
 		DVRMS,
 		FLAC,
 		GIF,
+		IDX,
 		ISO,
 		JPG,
 		M4A,
+		MICRODVD,
 		MKV,
 		MP3,
 		MPG,
 		OGG,
 		PNG,
 		RAW,
+		SAMI,
+		SUBRIP,
+		SUP,
+		TXT,
 		TIF,
 		WAV,
 		WEB,
+		WEBVTT,
 		CUSTOM,
 		PLAYLIST
 	}
@@ -73,6 +80,7 @@ public abstract class Format implements Cloneable {
 	public static final int UNKNOWN  =  8;
 	public static final int PLAYLIST = 16;
 	public static final int ISO      = 32;
+	public static final int SUBTITLE = 64;
 
 	public int getType() {
 		return type;
@@ -242,6 +250,10 @@ public abstract class Format implements Cloneable {
 
 	public boolean isUnknown() {
 		return (type & UNKNOWN) == UNKNOWN;
+	}
+
+	public boolean isSubtitle() {
+		return (type & SUBTITLE) == SUBTITLE;
 	}
 
 	@Override
