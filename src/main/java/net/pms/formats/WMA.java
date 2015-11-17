@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -18,13 +19,13 @@
  */
 package net.pms.formats;
 
-public class WAV extends AudioFile {
+public class WMA extends AudioFile {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.WAV;
+		return Identifier.WMA;
 	}
 
 	/**
@@ -32,7 +33,7 @@ public class WAV extends AudioFile {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "wav", "wave" };
+		return new String[] { "wma" };
 	}
 
 	/**
@@ -41,7 +42,7 @@ public class WAV extends AudioFile {
 	 * Returns whether or not a format can be handled by the PS3 natively.
 	 * This means the format can be streamed to PS3 instead of having to be
 	 * transcoded.
-	 * 
+	 *
 	 * @return True if the format can be handled by PS3, false otherwise.
 	 */
 	@Deprecated

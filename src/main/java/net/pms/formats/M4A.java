@@ -13,7 +13,7 @@
  */
 package net.pms.formats;
 
-public class M4A extends OGG {
+public class M4A extends AudioFile {
 	/**
 	 * {@inheritDoc} 
 	 */
@@ -22,21 +22,12 @@ public class M4A extends OGG {
 		return Identifier.M4A;
 	}
 
-	@Override
-	public boolean transcodable() {
-		return true;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] {
-			"aac",
-			"m4a",
-			"wma",
-		};
+		return new String[] { "m4a" };
 	}
 
 	/**
@@ -51,6 +42,6 @@ public class M4A extends OGG {
 	@Deprecated
 	@Override
 	public boolean ps3compatible() {
-		return false;
+		return true;
 	}
 }
