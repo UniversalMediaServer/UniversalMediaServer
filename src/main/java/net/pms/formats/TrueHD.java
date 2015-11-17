@@ -19,24 +19,21 @@
  */
 package net.pms.formats;
 
-public class AIFF extends AudioFile {
+public class TrueHD extends AudioFile {
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.AIFF;
+		return Identifier.THD;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
+	// Be careful adding extensions here since it's a raw stream and FFmpeg relies on file extension for format recognition
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] {
-			"aif",
-			"aiff",
-			"aifc"
-		};
+		return new String[] { "thd" };
 	}
 }

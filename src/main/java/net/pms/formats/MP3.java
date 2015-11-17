@@ -18,17 +18,13 @@
  */
 package net.pms.formats;
 
-public class MP3 extends Format {
+public class MP3 extends AudioFile {
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
 	public Identifier getIdentifier() {
 		return Identifier.MP3;
-	}
-
-	public MP3() {
-		type = AUDIO;
 	}
 
 	/**

@@ -87,7 +87,7 @@ public class FormatFactoryTest {
 		testSingleFormat("test.gif", "GIF");
 		testSingleFormat("test.iso", "ISO");
 		testSingleFormat("test.jpg", "JPG");
-		testSingleFormat("test.wma", "M4A");
+		testSingleFormat("test.wma", "WMA");
 		testSingleFormat("test.mkv", "MKV");
 		testSingleFormat("test.mp3", "MP3");
 		testSingleFormat("test.mpg", "MPG");
@@ -102,7 +102,7 @@ public class FormatFactoryTest {
 	/**
 	 * Verify if a filename is recognized as a given format. Use
 	 * <code>null</code> as formatName when no match is expected.
-	 * 
+	 *
 	 * @param filename
 	 *            The filename to verify.
 	 * @param formatName

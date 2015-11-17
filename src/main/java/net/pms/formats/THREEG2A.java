@@ -19,13 +19,13 @@
  */
 package net.pms.formats;
 
-public class AIFF extends AudioFile {
+public class THREEG2A extends AudioFile {
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.AIFF;
+		return Identifier.THREEG2A;
 	}
 
 	/**
@@ -34,9 +34,7 @@ public class AIFF extends AudioFile {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
-			"aif",
-			"aiff",
-			"aifc"
+			"3g2a",
 		};
 	}
 }

@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
@@ -44,6 +45,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.imaging.ImageInfo.ColorType;
 import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -765,22 +767,24 @@ public class DLNAMediaInfo implements Cloneable {
 							int length = ah.getTrackLength();
 							int rate = ah.getSampleRateAsNumber();
 
-							if (ah.getEncodingType().toLowerCase().contains("flac 24")) {
+							if (ah.getEncodingType() != null && ah.getEncodingType().toLowerCase().contains("flac 24")) {
 								audio.setBitsperSample(24);
 							}
 
 							audio.setSampleFrequency("" + rate);
 							durationSec = (double) length;
 							bitrate = (int) ah.getBitRateAsNumber();
+
 							audio.getAudioProperties().setNumberOfChannels(2); // set default value of channels to 2
-							String channels = ah.getChannels().toLowerCase();
-							if (!channels.isEmpty()) {
+							String channels = ah.getChannels().toLowerCase(Locale.ROOT);
+							if (StringUtils.isNotBlank(channels)) {
 								if (channels.equals("1") || channels.contains("mono")) { // parse value "1" or "Mono"
 									audio.getAudioProperties().setNumberOfChannels(1);
-								} else if (!(channels.equals("2") || channels.contains("stereo"))){ // this value is default so try to parse the unknown value
+								} else if (!(channels.equals("2") || channels.contains("stereo"))) {
+									// No need to parse stereo as it's set as default
 									try {
 										audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(channels));
-									} catch (NumberFormatException e) {
+									} catch (IllegalArgumentException e) {
 										LOGGER.debug("Could not parse number of audio channels from \"{}\"", channels);
 									}
 								}
@@ -1361,6 +1365,75 @@ public class DLNAMediaInfo implements Cloneable {
 				case "mov":
 					mimeType = HTTPResource.MOV_TYPEMIME;
 					break;
+				case FormatConfiguration.ADPCM:
+					mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
+					break;
+				case FormatConfiguration.ADTS:
+					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
+					break;
+				case FormatConfiguration.M4A:
+					mimeType = HTTPResource.AUDIO_M4A_TYPEMIME;
+					break;
+				case FormatConfiguration.AC3:
+					mimeType = HTTPResource.AUDIO_AC3_TYPEMIME;
+					break;
+				case FormatConfiguration.DSDAudio:
+					mimeType = HTTPResource.AUDIO_DSD_TYPEMIME;
+					break;
+				case FormatConfiguration.EAC3:
+					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
+					break;
+				case FormatConfiguration.MPA:
+					mimeType = HTTPResource.AUDIO_MPA_TYPEMIME;
+					break;
+				case FormatConfiguration.MP2:
+					mimeType = HTTPResource.AUDIO_MP2_TYPEMIME;
+					break;
+				case FormatConfiguration.AIFF:
+					mimeType = HTTPResource.AUDIO_AIFF_TYPEMIME;
+					break;
+				case FormatConfiguration.ATRAC:
+					mimeType = HTTPResource.AUDIO_ATRAC_TYPEMIME;
+					break;
+				case FormatConfiguration.MKA:
+					mimeType = HTTPResource.AUDIO_MKA_TYPEMIME;
+					break;
+				case FormatConfiguration.MLP:
+					mimeType = HTTPResource.AUDIO_MLP_TYPEMIME;
+					break;
+				case FormatConfiguration.MONKEYS_AUDIO:
+					mimeType = HTTPResource.AUDIO_APE_TYPEMIME;
+					break;
+				case FormatConfiguration.MPC:
+					mimeType = HTTPResource.AUDIO_MPC_TYPEMIME;
+					break;
+				case FormatConfiguration.RA:
+					mimeType = HTTPResource.AUDIO_RA_TYPEMIME;
+					break;
+				case FormatConfiguration.SHORTEN:
+					mimeType = HTTPResource.AUDIO_SHN_TYPEMIME;
+					break;
+				case FormatConfiguration.THREEGA:
+					mimeType = HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
+					break;
+				case FormatConfiguration.TRUEHD:
+					mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
+					break;
+				case FormatConfiguration.TTA:
+					mimeType = HTTPResource.AUDIO_TTA_TYPEMIME;
+					break;
+				case FormatConfiguration.WAVPACK:
+					mimeType = HTTPResource.AUDIO_WV_TYPEMIME;
+					break;
+				case FormatConfiguration.WMA:
+					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
+					break;
+				case FormatConfiguration.OGG:
+					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+					break;
+				case FormatConfiguration.AU:
+					mimeType = HTTPResource.AUDIO_AU_TYPEMIME;
+					break;
 			}
 		}
 
@@ -1401,19 +1474,33 @@ public class DLNAMediaInfo implements Cloneable {
 				} else if ("adts".equals(container)) {
 					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
 				} else if ("matroska".equals(container) || "mkv".equals(container)) {
-					mimeType = HTTPResource.AUDIO_MATROSKA_TYPEMIME;
+					mimeType = HTTPResource.AUDIO_MKA_TYPEMIME;
 				} else if ("webm".equals(container)) {
 					mimeType = HTTPResource.AUDIO_WEBM_TYPEMIME;
 				} else if (codecA.contains("mp3")) {
 					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-				} else if (codecA.contains("aac")) {
-					mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.MPA)) {
+					mimeType = HTTPResource.AUDIO_MPA_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.MP2)) {
+					mimeType = HTTPResource.AUDIO_MP2_TYPEMIME;
 				} else if (codecA.contains("flac")) {
 					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
+				} else if (codecA.contains("vorbis")) {
+					mimeType = HTTPResource.AUDIO_VORBIS_TYPEMIME;
 				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
 				} else if (codecA.contains("pcm") || codecA.contains("wav") || codecA.contains("dts")) {
 					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				} else if (codecA.contains("aac")) {
+					mimeType = HTTPResource.AUDIO_M4A_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.TRUEHD)) {
+					mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.DTS)) {
+					mimeType = HTTPResource.AUDIO_DTS_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.DTSHD)) {
+					mimeType = HTTPResource.AUDIO_DTSHD_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.EAC3)) {
+					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
 				}
 			}
 
