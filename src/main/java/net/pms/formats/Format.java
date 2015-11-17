@@ -45,6 +45,7 @@ public abstract class Format implements Cloneable {
 
 	public enum Identifier {
 		AUDIO_AS_VIDEO,
+		ASS,
 		BMP,
 		DVRMS,
 		FLAC,
@@ -52,15 +53,20 @@ public abstract class Format implements Cloneable {
 		ISO,
 		JPG,
 		M4A,
+		MicroDVD,
 		MKV,
 		MP3,
 		MPG,
 		OGG,
 		PNG,
 		RAW,
+		SAMI,
+		SUBRIP,
+		TXT,
 		TIF,
 		WAV,
 		WEB,
+		WebTT,
 		CUSTOM,
 		PLAYLIST
 	}
@@ -71,6 +77,7 @@ public abstract class Format implements Cloneable {
 	public static final int UNKNOWN  =  8;
 	public static final int PLAYLIST = 16;
 	public static final int ISO      = 32;
+	public static final int SUBTITLE = 64;
 
 	public int getType() {
 		return type;
@@ -240,6 +247,10 @@ public abstract class Format implements Cloneable {
 
 	public boolean isUnknown() {
 		return (type & UNKNOWN) == UNKNOWN;
+	}
+
+	public boolean isSubtitle() {
+		return (type & SUBTITLE) == SUBTITLE;
 	}
 
 	@Override
