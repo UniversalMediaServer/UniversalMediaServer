@@ -25,6 +25,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import javax.imageio.ImageIO;
 import net.pms.Messages;
@@ -308,6 +309,8 @@ public class DLNAMediaInfo implements Cloneable {
 	private static final String THUMBNAIL_TEXT_VIDEO = Messages.getString("DLNAResource.4");
 	private static final String THUMBNAIL_TEXT_AUDIO = Messages.getString("DLNAResource.5");
 	private static final String THUMBNAIL_TEXT_IMAGE = Messages.getString("DLNAResource.6");
+	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.6f);
+	private static final Color THUMBNAIL_OVERLAY_TEXT_COLOR = new Color(0.9f, 0.9f, 0.9f, 1.0f);
 
 	public int getVideoTrackCount() {
 		return videoTrackCount;
@@ -801,13 +804,13 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 
 							int thumbnailWidth = renderer.getThumbnailWidth();
-							int thumbnailHeight = renderer.getThumbnailHeight();
 
 							// Make sure the image fits in the renderer's bounds
-							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight);
+							boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath());
+							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailWidth, isWatchedThumbnail);
 
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
-							if (image != null && configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath())) {
+							if (image != null && isWatchedThumbnail) {
 								int thumbnailFontSize;
 								String thumbnailText;
 								int thumbnailTextHorizontalPosition;
@@ -818,22 +821,19 @@ public class DLNAMediaInfo implements Cloneable {
 								thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionAudio;
 								thumbnailTextVerticalPosition = thumbnailTextVerticalPositionAudio;
 
+								Graphics2D g = image.createGraphics();
+								g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
+								g.fillRect(0, 0, thumbnailWidth, thumbnailWidth);
+								g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
+
 								/**
 								 * TODO: Include and use a custom font
 								 */
 								if (thumbnailFontSize > 0) {
-									Graphics2D g = image.createGraphics();
-									g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-									g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
-									g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 									g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
 								} else {
 									thumbnailFontSize = thumbnailWidth / 6;
-									Graphics2D g = image.createGraphics();
-									g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-									g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
-									g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 									FontMetrics fm = g.getFontMetrics();
 									Rectangle2D textsize = fm.getStringBounds(thumbnailText, g);
@@ -850,6 +850,7 @@ public class DLNAMediaInfo implements Cloneable {
 											textWidth = (int) textsize.getWidth();
 											if (textWidth <= (thumbnailWidth * 0.9)) {
 												thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
+												thumbnailFontSizeAudio = thumbnailFontSize;
 												break;
 											}
 										}
@@ -939,13 +940,14 @@ public class DLNAMediaInfo implements Cloneable {
 					// Create the thumbnail image using the Thumbnailator library
 					try {
 						int thumbnailWidth = renderer.getThumbnailWidth();
-						int thumbnailHeight = renderer.getThumbnailHeight();
+						int thumbnailHeight = renderer.getThumbnailWidth();
 
 						// Make sure the image fits in the renderer's bounds
-						thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight);
+						boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath());
+						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isWatchedThumbnail);
 
 						BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
-						if (image != null && configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath())) {
+						if (image != null && isWatchedThumbnail) {
 							int thumbnailFontSize;
 							String thumbnailText;
 							int thumbnailTextHorizontalPosition;
@@ -956,22 +958,19 @@ public class DLNAMediaInfo implements Cloneable {
 							thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionImage;
 							thumbnailTextVerticalPosition = thumbnailTextVerticalPositionImage;
 
+							Graphics2D g = image.createGraphics();
+							g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
+							g.fillRect(0, 0, thumbnailWidth, thumbnailWidth);
+							g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
+
 							/**
 							 * TODO: Include and use a custom font
 							 */
 							if (thumbnailFontSize > 0) {
-								Graphics2D g = image.createGraphics();
-								g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
-								g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 								g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
 							} else {
 								thumbnailFontSize = thumbnailWidth / 6;
-								Graphics2D g = image.createGraphics();
-								g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
-								g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 								FontMetrics fm = g.getFontMetrics();
 								Rectangle2D textsize = fm.getStringBounds(thumbnailText, g);
@@ -988,6 +987,7 @@ public class DLNAMediaInfo implements Cloneable {
 										textWidth = (int) textsize.getWidth();
 										if (textWidth <= (thumbnailWidth * 0.9)) {
 											thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
+											thumbnailFontSizeImage = thumbnailFontSize;
 											break;
 										}
 									}
@@ -1096,29 +1096,26 @@ public class DLNAMediaInfo implements Cloneable {
 								String thumbnailText;
 								int thumbnailTextHorizontalPosition;
 								int thumbnailTextVerticalPosition;
+								int thumbnailWidth = renderer.getThumbnailWidth();
 
 								thumbnailFontSize = thumbnailFontSizeVideo;
 								thumbnailText = THUMBNAIL_TEXT_VIDEO;
 								thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionVideo;
 								thumbnailTextVerticalPosition = thumbnailTextVerticalPositionVideo;
 
+								Graphics2D g = image.createGraphics();
+								g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
+								g.fillRect(0, 0, thumbnailWidth, thumbnailWidth);
+								g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
+
 								/**
 								 * TODO: Include and use a custom font
 								 */
-								int thumbnailWidth = renderer.getThumbnailWidth();
 								if (thumbnailFontSize > 0) {
-									Graphics2D g = image.createGraphics();
-									g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-									g.fillRect(0, 0, thumbnailWidth, renderer.getThumbnailHeight());
-									g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 									g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
 								} else {
 									thumbnailFontSize = thumbnailWidth / 6;
-									Graphics2D g = image.createGraphics();
-									g.setPaint(new Color(0.0f, 0.0f, 0.0f, 0.6f));
-									g.fillRect(0, 0, thumbnailWidth, renderer.getThumbnailHeight());
-									g.setColor(new Color(0.9f, 0.9f, 0.9f, 1.0f));
 									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
 									FontMetrics fm = g.getFontMetrics();
 									Rectangle2D textsize = fm.getStringBounds(thumbnailText, g);
@@ -1135,6 +1132,7 @@ public class DLNAMediaInfo implements Cloneable {
 											textWidth = (int) textsize.getWidth();
 											if (textWidth <= (thumbnailWidth * 0.9)) {
 												thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
+												thumbnailFontSizeVideo = thumbnailFontSize;
 												break;
 											}
 										}
