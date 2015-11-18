@@ -617,11 +617,9 @@ public class UMSUtils {
 			BufferedImage img = ImageIO.read(in);
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-			Canvas canvas = new Canvas(width, height, Positions.CENTER, Color.BLACK);
-			img = canvas.apply(img);
-
 			Thumbnails.of(img)
 				.size(width, height)
+				.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
 				.outputFormat("JPEG")
 				.outputQuality(1.0f)
 				.toOutputStream(out);
