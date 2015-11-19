@@ -166,18 +166,6 @@ public abstract class Format implements Cloneable {
 	}
 
 	/**
-	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.
-	 * <p>
-	 * Returns whether or not a format can be handled by the PS3 natively.
-	 * This means the format can be streamed to PS3 instead of having to be
-	 * transcoded.
-	 *
-	 * @return True if the format can be handled by PS3, false otherwise.
-	 */
-	@Deprecated
-	public abstract boolean ps3compatible();
-
-	/**
 	 * Returns whether or not media can be handled by the renderer natively,
 	 * based on the given media information and renderer. If the format can be
 	 * streamed (as opposed to having to be transcoded), <code>true</code> will
