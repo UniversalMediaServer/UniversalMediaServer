@@ -12,7 +12,7 @@
 	Languages:
 		Synchronized translations with Crowdin
 	External Components:
-		Update icu4j version to 56.1
+		Updated icu4j version to 56.1
 		Updated JGoodies Looks to 2.7.0
 		Updated JNA to 4.2.1
 
