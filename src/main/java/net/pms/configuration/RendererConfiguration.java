@@ -1514,7 +1514,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns whether this renderer provides upnp control services.
+	 * Returns whether this renderer provides UPnP control services.
 	 *
 	 * @return Whether controllable.
 	 */
@@ -1523,7 +1523,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns a upnp player for this renderer if upnp control is supported.
+	 * Returns a UPnP player for this renderer if UPnP control is supported.
 	 *
 	 * @return a player or null.
 	 */
@@ -1536,9 +1536,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Sets the upnp player.
+	 * Sets the UPnP player.
 	 *
-	 * @param the player.
+	 * @param player
 	 */
 	public void setPlayer(UPNPHelper.Player player) {
 		this.player = player;
@@ -2561,7 +2561,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			state.name = res.getDisplayName();
 			duration = 0;
 			if (res.getMedia() != null) {
-				duration = (long)res.getMedia().getDurationInSeconds() * 1000;
+				duration = (long) res.getMedia().getDurationInSeconds() * 1000;
 				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
 			}
 			Runnable r = new Runnable() {
@@ -2569,8 +2569,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				public void run() {
 					state.playback = PLAYING;
 					while (res == renderer.getPlayingRes()) {
-						long elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
-						elapsed = elapsed + (long) (res.getLastStartPosition() * 1000);
+						long elapsed;
+						if ((long) res.getLastStartPosition() == 0) {
+							elapsed = System.currentTimeMillis() - (long) res.getStartTime();
+						} else {
+							elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
+							elapsed += (long) (res.getLastStartPosition() * 1000);
+						}
 
 						if (duration == 0 || elapsed < duration + 500) {
 							// Position is valid as far as we can tell

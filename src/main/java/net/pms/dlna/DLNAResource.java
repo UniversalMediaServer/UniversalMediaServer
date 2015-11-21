@@ -2923,6 +2923,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
 
+				lastStartSystemTime = System.currentTimeMillis();
 				return wrap(fis, high, low);
 			}
 
@@ -2949,6 +2950,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
+			lastStartSystemTime = System.currentTimeMillis();
 			return fis;
 		} else {
 			// Pipe transcoding result
