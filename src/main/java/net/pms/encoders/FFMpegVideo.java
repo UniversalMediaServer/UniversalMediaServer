@@ -180,7 +180,7 @@ public class FFMpegVideo extends Player {
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;
 				String subsFilename;
-				if (params.sid.isEmbedded() || configuration.isFFmpegFontConfig() || is3D) {
+				if (params.sid.isEmbedded() || is3D) {
 					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
@@ -224,17 +224,22 @@ public class FFMpegVideo extends Player {
 							}
 
 							if (!is3D) {
-								subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
+								subsFilter.append(":original_size=").append(subtitlesWidth).append("x").append(subtitlesHeight);
 							}
 
 							// Set the input subtitles character encoding if not UTF-8
 							if (!params.sid.isExternalFileUtf8()) {
 								String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
-										configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
-										params.sid.getExternalFileCharacterSet() : null;
+									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
+									params.sid.getExternalFileCharacterSet() : null;
 								if (encoding != null) {
-									subsFilter.append(":").append(encoding);
+									subsFilter.append(":charenc=").append(encoding);
 								}
+							}
+
+							// If the font color is set than add it to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
+							if (configuration.isFFmpegFontConfig()) {
+								subsFilter.append(":force_style=PrimaryColour=").append(SubtitleUtils.convertColorToASSColorString(configuration.getSubsColor()));
 							}
 						}
 					}
