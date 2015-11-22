@@ -1,4 +1,4 @@
-6.0.0-a1 - 2015-11-?? - Changes since 5.3.1
+6.0.0-a1 - 2015-11-23 - Changes since 5.3.1
 
 	General:
 		Added "Fully played action" setting to control what UMS does with media that has been fully played. The options are:
