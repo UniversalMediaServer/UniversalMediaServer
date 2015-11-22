@@ -96,44 +96,42 @@ public class AviDemuxerInputStream extends InputStream {
 				try (PrintWriter pw = new PrintWriter(f)) {
 					pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 					String videoType = "V_MPEG-2";
-
+					
 					if (params.no_videoencode && params.forceType != null) {
 						videoType = params.forceType;
 					}
-
+					
 					String fps = "";
-
+					
 					if (params.forceFps != null) {
 						fps = "fps=" + params.forceFps + ", ";
 					}
-
+					
 					String audioType = "A_LPCM";
-
+					
 					if (params.lossyaudio) {
 						audioType = "A_AC3";
 					}
-
+					
 					pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
 					pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
 				}
-
+				
 				PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 				ProcessWrapper pipe_process = tsPipe.getPipeProcess();
 				attachedProcesses.add(pipe_process);
 				pipe_process.runInNewThread();
 				tsPipe.deleteLater();
-
+				
 				String[] cmd = new String[]{ts.executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
 				ProcessBuilder pb = new ProcessBuilder(cmd);
 				process = pb.start();
 				ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
 				attachedProcesses.add(pwi);
-
-				// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
-				// consumer that reads and discards the stream
-				new Gob(process.getErrorStream()).start();
-				new Gob(process.getInputStream()).start();
-
+				// consume the error and output process streams
+				new StreamGobbler(process.getErrorStream(), true).start();
+				new StreamGobbler(process.getInputStream(), true).start();
+				
 				realIS = tsPipe.getInputStream();
 				ProcessUtil.waitFor(process);
 				LOGGER.trace("tsMuxeR muxing finished");

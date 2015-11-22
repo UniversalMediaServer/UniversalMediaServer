@@ -114,7 +114,7 @@ public class MediaInfo {
 		Menu,
 		Other;
 	}
-	
+
 	// Enums
 	@Deprecated
 	public enum InfoKind {
@@ -153,7 +153,7 @@ public class MediaInfo {
 		 */
 		Domain;
 	}
-	
+
 	public enum InfoType {
 		/**
 		 * Unique name of parameter.
@@ -198,7 +198,7 @@ public class MediaInfo {
 			Handle = MediaInfoDLL_Internal.INSTANCE.New();
 			LOGGER.info("Loaded " + Option_Static("Info_Version"));
 		} catch (Throwable e) {
-			LOGGER.info("Error loading MediaInfo library: " + e.getMessage());
+			LOGGER.error("Error loading MediaInfo library: " + e.getMessage());
 			if (!Platform.isWindows() && !Platform.isMac()) {
 				LOGGER.info("Make sure you have libmediainfo and libzen installed");
 			}

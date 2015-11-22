@@ -846,7 +846,6 @@ public class PMS {
 
 	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
 		String folders;
-
 		if (monitored) {
 			folders = configuration.getFoldersMonitored();
 		} else {
