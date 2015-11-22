@@ -1,5 +1,7 @@
 package net.pms.dlna;
 
+import com.sun.jna.platform.FileUtils;
+import com.sun.jna.Platform;
 import java.io.*;
 import java.util.Date;
 import java.util.HashSet;
@@ -10,14 +12,17 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
+import net.pms.util.FreedesktopTrash;
 import org.apache.commons.lang.StringUtils;
+import org.fest.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private Set<String> watchedEntries;
+	private static Set<String> watchedEntries;
 	private File[] dirs;
 	private PmsConfiguration config;
+	private static final FileUtils FILE_UTILS = FileUtils.getInstance();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
 	public MediaMonitor(File[] dirs) {
@@ -116,37 +121,120 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
-	private boolean isMonitorClass(DLNAResource res) {
-		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
-	}
-
 	public void stopped(DLNAResource res) {
 		if (!(res instanceof RealFile)) {
 			return;
 		}
 
 		RealFile rf = (RealFile) res;
-		DLNAResource tmp = res.getParent();
-		while (tmp != null) {
-			if (isMonitorClass(tmp)) {
-				if (isWatched(rf.getFile().getAbsolutePath())) { // no duplicates!
-					return;
+
+		// The total video duration in seconds
+		double fileDuration = 0;
+		if (res.getMedia() != null && (res.getMedia().isAudio() || res.getMedia().isVideo())) {
+			fileDuration = res.getMedia().getDuration();
+		}
+
+		/**
+		 * Time since the file started playing.
+		 * This is not a great way to get this value because if the
+		 * video is paused, it will no longer be accurate.
+		 */
+		double played = (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
+		played = played + res.getLastStartPosition();
+
+		int fullyPlayedAction = configuration.getFullyPlayedAction();
+
+		/**
+		 * Only mark the video as watched if more than 92% (default) of
+		 * the duration has elapsed since it started playing.
+		 */
+		if (
+			(
+				res.getMedia() != null &&
+				res.getMedia().isImage()
+			) ||
+			(
+				fileDuration > configuration.getMinimumWatchedPlayTimeSeconds() &&
+				played >= (fileDuration * configuration.getResumeBackFactor())
+			)
+		) {
+			DLNAResource tmp = res.getParent();
+			if (tmp != null) {
+				boolean isMonitored = false;
+				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
+				if (foldersMonitored != null && foldersMonitored.length > 0) {
+					for (File folderMonitored : foldersMonitored) {
+						if (rf.getFile().getAbsolutePath().contains(folderMonitored.getAbsolutePath())) {
+							isMonitored = true;
+						}
+					}
 				}
-				watchedEntries.add(rf.getFile().getAbsolutePath());
-				setDiscovered(false);
-				getChildren().clear();
-				try {
-					dumpFile();
-				} catch (IOException e) {
+
+				if (isMonitored) {
+					// Prevent duplicates from being added
+					if (isWatched(rf.getFile().getAbsolutePath())) {
+						return;
+					}
+
+					watchedEntries.add(rf.getFile().getAbsolutePath());
+					setDiscovered(false);
+					getChildren().clear();
+
+					try {
+						dumpFile();
+					} catch (IOException e) {
+						LOGGER.debug("An error occurred when dumping monitor file: " + e);
+					}
+
+					File watchedFile = new File(rf.getFile().getAbsolutePath());
+
+					if (fullyPlayedAction == 3) {
+						// Move the video to a different folder
+						String newDirectory = configuration.getFullyPlayedOutputDirectory();
+						if (!newDirectory.endsWith("\\")) {
+							newDirectory += "\\\\";
+						}
+
+						try {
+							if (watchedFile.renameTo(new File(newDirectory + watchedFile.getName()))) {
+								LOGGER.debug("Moved {} because it has been fully played", watchedFile.getName());
+							} else {
+								LOGGER.debug("Moving {} failed, trying again in 3 seconds", watchedFile.getName());
+
+								try {
+									Thread.sleep(3000);
+								} catch (InterruptedException e) {
+									LOGGER.error(null, e);
+								}
+
+								if (watchedFile.renameTo(new File(newDirectory + watchedFile.getName()))) {
+									LOGGER.debug("Moved {} because it has been fully played", watchedFile.getName());
+								} else {
+									LOGGER.info("Failed to move {}", watchedFile.getName());
+								}
+							}
+						} catch (Exception e) {
+							LOGGER.info("Failed to move {} because {}", watchedFile.getName(), e.getMessage());
+						}
+					} else if (fullyPlayedAction == 4) {
+						try {
+							if (Platform.isLinux()) {
+								FreedesktopTrash.moveToTrash(watchedFile);
+							} else {
+								FILE_UTILS.moveToTrash(Arrays.array(watchedFile));
+							}
+						} catch (IOException | FileUtil.InvalidFileSystemException e) {
+							LOGGER.error(String.format("Failed to send the file %s to the trash after it has been fully played. Please enable the functionality on your operating system.", watchedFile.getAbsoluteFile()));
+							LOGGER.trace("The error was", e);
+						}
+					}
 				}
-				return;
 			}
-			tmp = tmp.getParent();
 		}
 	}
 
-	private boolean isWatched(String str) {
-		return watchedEntries.contains(str);
+	public static boolean isWatched(String str) {
+		return watchedEntries != null && watchedEntries.contains(str);
 	}
 
 	/**

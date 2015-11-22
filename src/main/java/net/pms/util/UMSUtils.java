@@ -30,6 +30,9 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
+import net.coobird.thumbnailator.filters.Canvas;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.geometry.Positions;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
@@ -584,5 +587,48 @@ public class UMSUtils {
 			}
 			return null;
 		}
+	}
+
+	/**
+	 * Creates a black background with the exact dimensions specified, then
+	 * centers the image on the background, preserving the aspect ratio.
+	 *
+	 * @param image
+	 * @param width
+	 * @param height
+	 * @param outputBlank whether to return null or a black image when the
+	 *                    image parameter is null
+	 *
+	 * @return the scaled image
+	 */
+	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank) {
+		ByteArrayInputStream in;
+		if (image == null) {
+			if (outputBlank) {
+				in = new ByteArrayInputStream(new byte[0]);
+			} else {
+				return null;
+			}
+		} else {
+			in = new ByteArrayInputStream(image);
+		}
+
+		try {
+			BufferedImage img = ImageIO.read(in);
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+			Thumbnails.of(img)
+				.size(width, height)
+				.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
+				.outputFormat("JPEG")
+				.outputQuality(1.0f)
+				.toOutputStream(out);
+
+			return out.toByteArray();
+		} catch (IOException e) {
+			LOGGER.trace("Failed to resize image");
+		}
+
+		return null;
 	}
 }

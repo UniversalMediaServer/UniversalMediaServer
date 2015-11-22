@@ -180,6 +180,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
 	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
+	protected static final String THUMBNAILS = "Thumbnails";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
 	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	protected static final String TRANSCODE_EXT = "TranscodeExtensions";
@@ -1513,7 +1514,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns whether this renderer provides upnp control services.
+	 * Returns whether this renderer provides UPnP control services.
 	 *
 	 * @return Whether controllable.
 	 */
@@ -1522,7 +1523,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns a upnp player for this renderer if upnp control is supported.
+	 * Returns a UPnP player for this renderer if UPnP control is supported.
 	 *
 	 * @return a player or null.
 	 */
@@ -1535,9 +1536,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Sets the upnp player.
+	 * Sets the UPnP player.
 	 *
-	 * @param the player.
+	 * @param player
 	 */
 	public void setPlayer(UPNPHelper.Player player) {
 		this.player = player;
@@ -2547,7 +2548,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static class PlaybackTimer extends BasicPlayer.Minimal {
-
 		private long duration = 0;
 
 		public PlaybackTimer(DeviceConfiguration renderer) {
@@ -2561,20 +2561,29 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			state.name = res.getDisplayName();
 			duration = 0;
 			if (res.getMedia() != null) {
-				duration = (long)res.getMedia().getDurationInSeconds() * 1000;
+				duration = (long) res.getMedia().getDurationInSeconds() * 1000;
 				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
 			}
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
 					state.playback = PLAYING;
-					while(res == renderer.getPlayingRes()) {
-						long elapsed = System.currentTimeMillis() - res.getStartTime();
-						state.position = (duration == 0 || elapsed < duration + 500) ?
+					while (res == renderer.getPlayingRes()) {
+						long elapsed;
+						if ((long) res.getLastStartPosition() == 0) {
+							elapsed = System.currentTimeMillis() - (long) res.getStartTime();
+						} else {
+							elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
+							elapsed += (long) (res.getLastStartPosition() * 1000);
+						}
+
+						if (duration == 0 || elapsed < duration + 500) {
 							// Position is valid as far as we can tell
-							DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss") :
+							state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
+						} else {
 							// Position is invalid, blink instead
-							("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
+							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
+						}
 						alert();
 						try {
 							Thread.sleep(1000);
@@ -2697,5 +2706,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			LOGGER.debug("Purging renderer {} as invalid", r);
 			r.delete(0);
 		}
+	}
+
+	/**
+	 * Whether the renderer can display thumbnails.
+	 *
+	 * @return whether the renderer can display thumbnails
+	 */
+	public boolean isThumbnails() {
+		return getBoolean(THUMBNAILS, true);
 	}
 }

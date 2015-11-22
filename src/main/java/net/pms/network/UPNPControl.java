@@ -366,7 +366,8 @@ public class UPNPControl {
 	}
 
 	public static boolean isUpnpControllable(String uuid) {
-		if (rendererMap.containsKey(uuid)) {
+		// Disable manually for Panasonic TVs since they lie
+		if (rendererMap.containsKey(uuid) && !getDeviceDetailsString(getDevice(uuid)).contains("VIERA")) {
 			return rendererMap.get(uuid, "0").controls != 0;
 		}
 		return false;

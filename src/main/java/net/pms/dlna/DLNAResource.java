@@ -558,11 +558,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				// Do not add unsupported media formats to the list
-				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
-					LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
-					children.remove(child);
-					return;
+				if (child.format != null) {
+					// Do not add unsupported media formats to the list
+					if (defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
+						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
+						children.remove(child);
+						return;
+					}
+
+					// Hide watched videos depending user preference
+					if (configuration.getFullyPlayedAction() == 2 && child.format.isVideo() && MediaMonitor.isWatched(child.getSystemName())) {
+						LOGGER.trace("Ignoring file \"{}\" because it has been watched", child.getName());
+						return;
+					}
 				}
 
 				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
@@ -1516,11 +1524,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			) &&
 			!isFolder()
 		) {
+			RealFile rf = (RealFile) this;
+			File file = rf.getFile();
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
-				RealFile rf = (RealFile) this;
-				displayName = FileUtil.getFileNameWithRewriting(displayName, rf.getFile());
+				displayName = FileUtil.getFileNameWithRewriting(displayName, file);
 			} else {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
+			}
+
+			if (
+				mediaRenderer != null &&
+				!mediaRenderer.isThumbnails() &&
+				configuration.getFullyPlayedAction() == 1 &&
+				MediaMonitor.isWatched(file.getAbsolutePath())
+			) {
+				displayName = Messages.getString("DLNAResource.4") + ": " + displayName;
 			}
 		}
 
@@ -2673,7 +2691,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
 							if (!quietPlay()) {
-								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
+								if (format != null && format.isImage()) {
+									LOGGER.info("Viewed " + getName() + " on your " + rendererName);
+								} else {
+									LOGGER.info("Started playing " + getName() + " on your " + rendererName);
+								}
 								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 							}
 						} catch (UnknownHostException ex) {
@@ -2759,7 +2781,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									} catch (NullPointerException e) { }
 
 									if (!quietPlay()) {
-										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
+										if (!(format != null && format.isImage())) {
+											LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
+										}
 										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 									}
 								} catch (UnknownHostException ex) {
@@ -2850,7 +2874,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The inputstream
 	 * @throws IOException
 	 */
-
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
@@ -2900,6 +2923,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
 
+				lastStartSystemTime = System.currentTimeMillis();
 				return wrap(fis, high, low);
 			}
 
@@ -2926,6 +2950,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
+			lastStartSystemTime = System.currentTimeMillis();
 			return fis;
 		} else {
 			// Pipe transcoding result
@@ -3115,7 +3140,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
-		if (media != null && !media.isThumbready() && configuration.isThumbnailGenerationEnabled()) {
+		if (
+			media != null &&
+			(
+				!media.isThumbready() ||
+				(
+					configuration.getFullyPlayedAction() == 1 &&
+					MediaMonitor.isWatched(inputFile.getFile().getAbsolutePath())
+				)
+			) &&
+			configuration.isThumbnailGenerationEnabled() &&
+			renderer.isThumbnails()
+		) {
 			Double seekPosition = (double) configuration.getThumbnailSeekPos();
 			if (isResume()) {
 				Double resumePosition = (double) (resume.getTimeOffset() / 1000);

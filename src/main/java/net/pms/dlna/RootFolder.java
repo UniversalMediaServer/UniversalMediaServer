@@ -119,15 +119,16 @@ public class RootFolder extends DLNAResource {
 			addChild(last);
 		}
 
-		if (!configuration.isHideNewMediaFolder()) {
-			String m = configuration.getFoldersMonitored();
-			if (!StringUtils.isEmpty(m)) {
-				String[] tmp = m.split(",");
-				File[] dirs = new File[tmp.length];
-				for (int i = 0; i < tmp.length; i++) {
-					dirs[i] = new File(tmp[i]);
-				}
-				mon = new MediaMonitor(dirs);
+		String m = configuration.getFoldersMonitored();
+		if (!StringUtils.isEmpty(m)) {
+			String[] tmp = m.split(",");
+			File[] dirs = new File[tmp.length];
+			for (int i = 0; i < tmp.length; i++) {
+				dirs[i] = new File(tmp[i]);
+			}
+			mon = new MediaMonitor(dirs);
+
+			if (!configuration.isHideNewMediaFolder()) {
 				addChild(mon);
 			}
 		}
