@@ -637,6 +637,8 @@ public class SubtitleUtils {
 
 	public static String convertColourToASSColourString(int colour) {
 		String primaryColour = Integer.toHexString(colour);
-		return "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+		StringBuilder outputString = new StringBuilder();
+		outputString.append("&H").append(primaryColour.substring(6, 8)).append(primaryColour.substring(4, 6)).append(primaryColour.substring(2, 4));
+		return outputString.toString();
 	}
 }
