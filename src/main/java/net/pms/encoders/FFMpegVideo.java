@@ -237,9 +237,17 @@ public class FFMpegVideo extends Player {
 								}
 							}
 
-							// If the font color is set than add it to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
+							// If the FFmpeg font config is enabled than we need to add settings to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
 							if (configuration.isFFmpegFontConfig()) {
-								subsFilter.append(":force_style=PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
+								subsFilter.append(":force_style=");
+								subsFilter.append("'");
+								// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
+								subsFilter.append("Fontsize=").append(Integer.toString((int) ((16 * Double.parseDouble(configuration.getAssScale())))));
+								subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
+								subsFilter.append(",Outline=").append(configuration.getAssOutline());
+								subsFilter.append(",Shadow=").append(configuration.getAssShadow());
+								subsFilter.append(",MarginV=").append(configuration.getAssMargin());
+								subsFilter.append("'");
 							}
 						}
 					}
