@@ -130,12 +130,12 @@ public class AviDemuxerInputStream extends InputStream {
 
 					String[] cmd = new String[]{ts.executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
 					ProcessBuilder pb = new ProcessBuilder(cmd);
+					pb.redirectErrorStream(true);
 					process = pb.start();
 					ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
 					attachedProcesses.add(pwi);
 					// consume the error and output process streams
-					new StreamGobbler(process.getErrorStream(), true).start();
-					new StreamGobbler(process.getInputStream(), true).start();
+					StreamGobbler.consume(process.getInputStream(), true);
 
 					realIS = tsPipe.getInputStream();
 					ProcessUtil.waitFor(process);
