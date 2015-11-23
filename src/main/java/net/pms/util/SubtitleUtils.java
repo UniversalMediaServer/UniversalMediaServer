@@ -430,7 +430,7 @@ public class SubtitleUtils {
 
 								break;
 							case "PrimaryColour":
-								params[i] = convertColorToASSColorString(configuration.getSubsColor());
+								params[i] = convertColourToASSColourString(configuration.getSubsColor());
 								break;
 							case "Outline":
 								params[i] = configuration.getAssOutline();
@@ -635,8 +635,8 @@ public class SubtitleUtils {
 		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
 	}
 
-	public static String convertColorToASSColorString(int color) {
-		String primaryColour = Integer.toHexString(color);
+	public static String convertColourToASSColourString(int colour) {
+		String primaryColour = Integer.toHexString(colour);
 		return "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
 	}
 }

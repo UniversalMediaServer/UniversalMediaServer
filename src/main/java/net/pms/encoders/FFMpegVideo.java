@@ -239,7 +239,7 @@ public class FFMpegVideo extends Player {
 
 							// If the font color is set than add it to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
 							if (configuration.isFFmpegFontConfig()) {
-								subsFilter.append(":force_style=PrimaryColour=").append(SubtitleUtils.convertColorToASSColorString(configuration.getSubsColor()));
+								subsFilter.append(":force_style=PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
 							}
 						}
 					}
