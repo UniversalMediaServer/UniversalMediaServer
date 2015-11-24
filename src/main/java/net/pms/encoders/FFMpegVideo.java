@@ -180,12 +180,12 @@ public class FFMpegVideo extends Player {
 			if (params.sid != null && params.sid.getType().isText()) {
 				String originalSubsFilename = null;
 				String subsFilename;
-				if (params.sid.isExternal()) {
+				if (is3D) {
+					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
+				} else if (params.sid.isExternal()) {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 				} else if (params.sid.isEmbedded()) {
 					originalSubsFilename = dlna.getSystemName();
-				} else if (is3D) {
-					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				}
 
 				if (originalSubsFilename != null) {
@@ -243,7 +243,7 @@ public class FFMpegVideo extends Player {
 							}
 
 							// If the FFmpeg font config is enabled than we need to add settings to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
-							if (configuration.isFFmpegFontConfig()) {
+							if (configuration.isFFmpegFontConfig() && !is3D) {
 								subsFilter.append(":force_style=");
 								subsFilter.append("'");
 								// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
