@@ -177,13 +177,15 @@ public class FFMpegVideo extends Player {
 
 		if (!isDisableSubtitles(params) && override) {
 			StringBuilder subsFilter = new StringBuilder();
-			if (params.sid.getType().isText()) {
-				String originalSubsFilename;
+			if (params.sid != null && params.sid.getType().isText()) {
+				String originalSubsFilename = null;
 				String subsFilename;
-				if (params.sid.isEmbedded() || is3D) {
+				if (is3D) {
 					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
-				} else {
+				} else if (params.sid.isExternal()) {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
+				} else if (params.sid.isEmbedded()) {
+					originalSubsFilename = dlna.getSystemName();
 				}
 
 				if (originalSubsFilename != null) {
@@ -212,6 +214,9 @@ public class FFMpegVideo extends Player {
 					subsFilename = s.toString();
 					subsFilename = subsFilename.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFilename);
+					if (params.sid.isEmbedded()) {
+						subsFilter.append(":si=").append(params.sid.getId());
+					}
 
 					// Set the resolution for subtitles to use
 					int subtitlesWidth = scaleWidth; 
@@ -238,11 +243,11 @@ public class FFMpegVideo extends Player {
 							}
 
 							// If the FFmpeg font config is enabled than we need to add settings to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
-							if (configuration.isFFmpegFontConfig()) {
+							if (configuration.isFFmpegFontConfig() && !is3D) {
 								subsFilter.append(":force_style=");
 								subsFilter.append("'");
 								// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-								subsFilter.append("Fontsize=").append(16 * Double.parseDouble(configuration.getAssScale()));
+								subsFilter.append("Fontsize=").append((int) 16 * Double.parseDouble(configuration.getAssScale()));
 								subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
 								subsFilter.append(",Outline=").append(configuration.getAssOutline());
 								subsFilter.append(",Shadow=").append(configuration.getAssShadow());
