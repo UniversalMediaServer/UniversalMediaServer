@@ -334,17 +334,15 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		int posY = Integer.valueOf(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf("=") + 1));
 		storedWindowSize.width = Integer.valueOf(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf("=") + 1));
 		storedWindowSize.height = Integer.valueOf(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf("=") + 1));
+		setSize(storedWindowSize);
 		boolean screenChanged = false;
 		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
 			setSize(STANDARD_SIZE);
 			screenChanged = true;
 		} else if (configuration.getWindowExtendedState() != NORMAL) {
-			setSize(STANDARD_SIZE);
 			setExtendedState(configuration.getWindowExtendedState());
 		} else if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
 			setSize(screenSize);
-		} else {
-			setSize(storedWindowSize);
 		}
 
 		// Customize the colors used in tooltips

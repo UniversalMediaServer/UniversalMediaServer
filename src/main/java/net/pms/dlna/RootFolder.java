@@ -1116,7 +1116,7 @@ public class RootFolder extends DLNAResource {
 										pb.redirectErrorStream(true);
 										Process pid = pb.start();
 										// consume the error and output process streams
-										new StreamGobbler(pid.getInputStream()).start();
+										StreamGobbler.consume(pid.getInputStream());
 										pid.waitFor();
 									} catch (IOException | InterruptedException e) {
 									}
