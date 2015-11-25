@@ -80,6 +80,9 @@
 		<mediautil-version>1.0</mediautil-version>
 		<xmlwise-version>1.2.11</xmlwise-version>
 		<slf4j-version>1.7.12</slf4j-version>
+		<!-- This version works only with JDK 7 and above-->
+		<findbugs-version>3.0.3</findbugs-version>
+		<findbugs-annotations-version>3.0.1u2</findbugs-annotations-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
@@ -369,6 +372,11 @@
 			<artifactId>icu4j</artifactId>
 			<version>56.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>annotations</artifactId>
+			<version>${findbugs-annotations-version}</version>
+		</dependency>		
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
@@ -795,7 +803,7 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>3.0.1</version> <!-- This version works only with JDK 7-->
+							<version>${findbugs-version}</version>														
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
