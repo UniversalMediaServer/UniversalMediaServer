@@ -107,7 +107,7 @@ public class GeneralTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		ypos = 7; // we hardcode here (promise last time)
 		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(Languages.getLanguageTags(), Languages.getLanguageNames());
+		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(Languages.getLanguageTags(PMS.getLocale()), Languages.getLanguageNames(PMS.getLocale()));
 		jLanguage = new JComboBox(kcbm);
 		jLanguage.setEditable(false);
 
