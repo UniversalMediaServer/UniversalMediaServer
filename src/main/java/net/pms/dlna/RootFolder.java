@@ -41,6 +41,7 @@ import net.pms.external.AdditionalFoldersAtRoot;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
+import net.pms.io.StreamGobbler;
 import net.pms.newgui.IFrame;
 import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
@@ -1113,15 +1114,10 @@ public class RootFolder extends DLNAResource {
 									public boolean enable() {
 										try {
 											ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
+											pb.redirectErrorStream(true);
 											Process pid = pb.start();
-											InputStream is = pid.getInputStream();
-											BufferedReader br;
-											try (InputStreamReader isr = new InputStreamReader(is)) {
-												br = new BufferedReader(isr);
-												while (br.readLine() != null) {
-												}
-											}
-											br.close();
+											// consume the error and output process streams
+											StreamGobbler.consume(pid.getInputStream());
 											pid.waitFor();
 										} catch (IOException | InterruptedException e) {
 										}

@@ -32,7 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
-import net.pms.io.Gob;
+import net.pms.io.StreamGobbler;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,11 +114,11 @@ public class ProcessUtil {
 		boolean killed = false;
 		LOGGER.warn("Sending kill -" + signal + " to the Unix process: " + pid);
 		try {
-			Process process = Runtime.getRuntime().exec("kill -" + signal + " " + pid);
-			// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
-			// consumer that reads and discards the stream
-			new Gob(process.getErrorStream()).start();
-			new Gob(process.getInputStream()).start();
+			ProcessBuilder processBuilder = new ProcessBuilder("kill", "-" + signal, Integer.toString(pid));
+			processBuilder.redirectErrorStream(true);
+			Process process = processBuilder.start();
+			// consume the error and output process streams
+			StreamGobbler.consume(process.getInputStream(), true);
 			int exit = waitFor(process);
 			if (exit == 0) {
 				killed = true;

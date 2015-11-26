@@ -16,11 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
+	private Set<String> watchedEntries;
+	private File[] dirs;
+	private PmsConfiguration config;
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
-	private File[] dirs;
-	private Set<String> watchedEntries;
-	private PmsConfiguration config;
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
