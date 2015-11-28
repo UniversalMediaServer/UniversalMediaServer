@@ -108,7 +108,8 @@ public class TranscodingTab {
 	private JButton subColor;
 	private JCheckBox forceExternalSubtitles;
 	private JCheckBox useEmbeddedSubtitlesStyle;
-	private JTextField depth3D;
+//	private JTextField depth3D;
+	private JComboBox depth3D;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -1010,13 +1011,22 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle), FormLayoutUtil.flip(cc.xyw(1, 18, 11), colSpec, orientation));
 
+		ArrayList<String> depth = new ArrayList<String>();
+		for (int i = -5; i <= 5; ++i) {
+		    depth.add(String.valueOf(i));
+		}
+		
 		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(1, 20), colSpec, orientation));
-		depth3D = new JTextField(configuration.getDepth3D());
-		depth3D.setToolTipText(Messages.getString("TrTab2.91"));
-		depth3D.addKeyListener(new KeyAdapter() {
+		GuiUtil.MyComboBoxModel cbm2 = new GuiUtil.MyComboBoxModel(depth.toArray());
+		depth3D = new JComboBox(cbm2);
+		depth3D.setSelectedItem(configuration.getDepth3D());
+		depth3D.addItemListener(new ItemListener() {
 			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setDepth3D(depth3D.getText());
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					String s = (String) e.getItem();
+					configuration.setDepth3D(s);
+				}
 			}
 		});
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 20), colSpec, orientation));
