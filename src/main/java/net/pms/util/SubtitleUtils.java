@@ -482,47 +482,49 @@ public class SubtitleUtils {
 		}
 		BufferedWriter output;
 		Mode3D mode3D = media.get3DLayout();
+		boolean isOU = mode3D == Mode3D.OUL || mode3D == Mode3D.OUR || mode3D == Mode3D.HOUL;
+		boolean isSBS = mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR || mode3D == Mode3D.HSBSL;
 		if (mode3D == null) {
 			LOGGER.debug("The 3D layout not recognized for the 3D video");
 			throw new NullPointerException("The 3D layout not recognized for the 3D video");
 		}
 
-		int playResX;
-		int playResY;
-		if (mode3D == Mode3D.OUL || mode3D == Mode3D.OUR) {
-			playResX = media.getWidth();
-			playResY = media.getHeight() / 2;
-		} else {
-			playResX = media.getWidth() / 2;
-			playResY = media.getHeight();
-		}
-
-		// First try to calculate subtitles position and depth
-		// Max depth - 2% ... + 2%
-		int depth3D = (int) - (((double) playResX /(double) 100) * Double.valueOf(configuration.getDepth3D()));
-		int offset = (playResX / 100) * 2;
-		int bottomSubsPosition = (int) ((playResY /(double) 100) * Double.valueOf(configuration.getAssMargin()));
-		int topSubsPositionTb = playResY + bottomSubsPosition;
-		int middleSbs = media.getWidth() / 2;
+		int depth3D = Integer.valueOf(configuration.getDepth3D());
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
 		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), subsFileCharset))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
 			String line;
 			outputString.append("[Script Info]\n");
 			outputString.append("ScriptType: v4.00+\n");
-			outputString.append("WrapStyle: 0\n");
-			outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
-			outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
-			outputString.append("ScaledBorderAndShadow: yes\n\n");
+			outputString.append("Collisions: Normal\n");
+			outputString.append("PlayResX: ").append("384\n");
+			outputString.append("PlayResY: ").append("288\n");
+			outputString.append("ScaledBorderAndShadow: yes\n");
+			outputString.append("PlayDepth: 0\n");
+			outputString.append("Timer: 100.0\n");
+			outputString.append("WrapStyle: 0\n\n");
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
-			String fontScale = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
+			String fontScaleX = "1";
+			String fontScaleY = "1";
+			if (isOU) {
+				fontScaleX = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
+				fontScaleY = Double.toString((100 * Double.parseDouble(configuration.getAssScale())) / 2);
+			} else if (isSBS) {
+				fontScaleX = Double.toString((100 * Double.parseDouble(configuration.getAssScale())) / 2);
+				fontScaleY = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
+			}
+			
 			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
-			String fontSize = Integer.toString((int) (16 * media.getHeight() / (double) 288));
-			outputString.append("Style: 3D1,Arial,").append(fontSize).append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n");
-			outputString.append("Style: 3D2,Arial,").append(fontSize).append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n\n");
+//			String fontSize = Integer.toString((int) (16 * media.getHeight() / (double) 288));
+			outputString.append("Style: Default,Arial,").append("15").append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(",").append(fontScaleY).append(",0,0,1,").append(outline).append(",").append(shadow);
+			if (isOU) {
+				outputString.append(",2,15,15,15,0\n\n");
+			} else if (isSBS) {
+				outputString.append(",2,0,0,15,0\n\n");
+			}
 
 			outputString.append("[Events]\n");
 			outputString.append("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n\n");
@@ -549,67 +551,39 @@ public class SubtitleUtils {
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
 					if (timeMatcher.find()) {
-						if (mode3D == Mode3D.OUL || mode3D == Mode3D.HOUL) {
+						if (isOU) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
-							.append("3D1,,")
-							.append(String.format("%04d,", offset - depth3D))
-							.append(String.format("%04d,", offset + depth3D))
-							.append(String.format("%04d,,", topSubsPositionTb))
+							.append("Default,,");
+							if (depth3D > 0) {
+								outputString.append("0000,")
+								.append(String.format("%04d,", depth3D));
+							} else if (depth3D < 0) {
+								outputString.append(String.format("%04d,", -depth3D))
+								.append("0000,");
+							} else {
+								outputString.append("0000,0000,");
+							}
+
+							outputString.append(String.format("%04d,,", 159))
+							.append(text).append("\n")
+							.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("Default,,0000,0000,0000,,")
 							.append(text).append("\n");
+						} else if (isSBS) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
-							.append("3D2,,")
-							.append(String.format("%04d,", offset + depth3D))
-							.append(String.format("%04d,", offset - depth3D))
-							.append(String.format("%04d,,", bottomSubsPosition))
-							.append(text).append("\n");
-						} else if (mode3D == Mode3D.OUR) {
-							outputString.append("Dialogue: 0,")
+							.append("Default,,")
+							.append("0000,")
+							.append(String.format("%04d,", 192 - depth3D))
+							.append("0000,")
+							.append(text).append("\n")
+							.append("Dialogue: 0,")
 							.append(timeMatcher.group())
-							.append("3D1,,")
-							.append(String.format("%04d,", offset + depth3D))
-							.append(String.format("%04d,", offset - depth3D))
-							.append(String.format("%04d,,", topSubsPositionTb))
-							.append(text).append("\n");
-							outputString.append("Dialogue: 0,")
-							.append(timeMatcher.group())
-							.append("3D2,,")
-							.append(String.format("%04d,", offset - depth3D))
-							.append(String.format("%04d,", offset + depth3D))
-							.append(String.format("%04d,,", bottomSubsPosition))
-							.append(text).append("\n");
-						} else if (mode3D == Mode3D.SBSL || mode3D == Mode3D.HSBSL) {
-							int marginR1 = playResX + offset + depth3D;
-							int marginL2 = playResX + offset + depth3D;
-							outputString.append("Dialogue: 0,")
-							.append(timeMatcher.group())
-							.append("3D1,,")
-							.append(String.format("%04d,", offset - depth3D))
-							.append(String.format("%04d,", marginR1))
-							.append(String.format("%04d,,", bottomSubsPosition))
-							.append(text).append("\n");
-							outputString.append("Dialogue: 0,")
-							.append(timeMatcher.group())
-							.append("3D2,,")
-							.append(String.format("%04d,", marginL2))
-							.append(String.format("%04d,", offset - depth3D))
-							.append(String.format("%04d,,", bottomSubsPosition))
-							.append(text).append("\n");
-						} else if (mode3D == Mode3D.SBSR) {
-							outputString.append("Dialogue: 0,")
-							.append(timeMatcher.group())
-							.append("3D1,,")
-							.append(String.format("%04d,", offset - depth3D))
-							.append(String.format("%04d,", middleSbs - offset + depth3D))
-							.append(String.format("%04d,,", bottomSubsPosition))
-							.append(text).append("\n");
-							outputString.append("Dialogue: 0,")
-							.append(timeMatcher.group())
-							.append("3D2,,")
-							.append(String.format("%04d,", middleSbs - offset + depth3D))
-							.append(String.format("%04d,", offset - depth3D))
-							.append(String.format("%04d,,", bottomSubsPosition))
+							.append("Default,,")
+							.append(String.format("%04d,", 192 - depth3D))
+							.append("0000,0000,")
 							.append(text).append("\n");
 						}
 					}
