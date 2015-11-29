@@ -158,7 +158,7 @@ public class MediaMonitor extends VirtualFolder {
 		LOGGER.trace("   minimum play time needed: " + (fileDuration * configuration.getResumeBackFactor()));
 
 		/**
-		 * Only mark the video as watched if more than 92% (default) of
+		 * Only mark the file as fully played if more than 92% (default) of
 		 * the duration has elapsed since it started playing.
 		 */
 		if (
@@ -241,9 +241,9 @@ public class MediaMonitor extends VirtualFolder {
 							LOGGER.trace("The error was", e);
 						}
 					}
+					LOGGER.info("{} marked as fully played", watchedFile.getName());
 				}
 			}
-			LOGGER.trace("   final decision: fully played");
 		} else {
 			LOGGER.trace("   final decision: not fully played");
 		}
