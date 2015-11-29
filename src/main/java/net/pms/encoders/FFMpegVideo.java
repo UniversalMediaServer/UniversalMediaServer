@@ -180,7 +180,8 @@ public class FFMpegVideo extends Player {
 			if (params.sid != null && params.sid.getType().isText()) {
 				String originalSubsFilename = null;
 				String subsFilename;
-				if (is3D) {
+				// assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
+				if (is3D && params.sid.getType() != SubtitleType.ASS) {
 					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else if (params.sid.isExternal()) {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
