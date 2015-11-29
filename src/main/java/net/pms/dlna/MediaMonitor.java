@@ -139,10 +139,23 @@ public class MediaMonitor extends VirtualFolder {
 		 * This is not a great way to get this value because if the
 		 * video is paused, it will no longer be accurate.
 		 */
-		double played = (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
-		played = played + res.getLastStartPosition();
+		double elapsed;
+		if (res.getLastStartPosition() == 0) {
+			elapsed = (System.currentTimeMillis() - res.getStartTime()) / 1000;
+		} else {
+			elapsed = (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
+			elapsed += res.getLastStartPosition();
+		}
 
 		int fullyPlayedAction = configuration.getFullyPlayedAction();
+
+		LOGGER.trace("Fully Played feature logging:");
+		LOGGER.trace("   duration: " + fileDuration);
+		LOGGER.trace("   getLastStartPosition: " + res.getLastStartPosition());
+		LOGGER.trace("   getStartTime: " + res.getStartTime());
+		LOGGER.trace("   getLastStartSystemTime: " + res.getLastStartSystemTime());
+		LOGGER.trace("   elapsed: " + elapsed);
+		LOGGER.trace("   minimum play time needed: " + (fileDuration * configuration.getResumeBackFactor()));
 
 		/**
 		 * Only mark the video as watched if more than 92% (default) of
@@ -155,7 +168,7 @@ public class MediaMonitor extends VirtualFolder {
 			) ||
 			(
 				fileDuration > configuration.getMinimumWatchedPlayTimeSeconds() &&
-				played >= (fileDuration * configuration.getResumeBackFactor())
+				elapsed >= (fileDuration * configuration.getResumeBackFactor())
 			)
 		) {
 			DLNAResource tmp = res.getParent();
@@ -230,6 +243,9 @@ public class MediaMonitor extends VirtualFolder {
 					}
 				}
 			}
+			LOGGER.trace("   final decision: fully played");
+		} else {
+			LOGGER.trace("   final decision: not fully played");
 		}
 	}
 
