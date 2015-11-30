@@ -25,7 +25,9 @@ import java.io.IOException;
 import net.pms.PMS;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
+import static net.pms.util.Constants.CHARSET_UTF_8;
 import net.pms.util.FileUtil;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private String subtitlesTrackTitleFromMetadata;
 
 	private File externalFile;
-	private String externalFileCharacterSet;
+	private String subsCharacterSet;
 
 	private String liveSubURL;
 	private String liveSubFile;
@@ -87,7 +89,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 			result.append(", externalFile: ");
 			result.append(externalFile.toString());
 			result.append(", external file character set: ");
-			result.append(externalFileCharacterSet);
+			result.append(subsCharacterSet);
 		}
 
 		return result.toString();
@@ -147,9 +149,8 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @deprecated use FileUtil.convertFileFromUtf16ToUtf8() for UTF-16 -> UTF-8 conversion.
+	 * @deprecated use {@link #FileUtil.convertFileFromUtf16ToUtf8()} for UTF-16 -> UTF-8 conversion.
 	 */
-	@Deprecated
 	public File getPlayableExternalFile() {
 		return getExternalFile();
 	}
@@ -172,55 +173,76 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		}
 
 		this.externalFile = externalFile;
-		setExternalFileCharacterSet();
+		setFileSubsCharacterSet();
 	}
 
-	private void setExternalFileCharacterSet() {
+	private void setFileSubsCharacterSet() {
 		if (type.isPicture()) {
-			externalFileCharacterSet = null;
+			subsCharacterSet = null;
 		} else {
 			try {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
-					externalFileCharacterSet = match.getName().toUpperCase(PMS.getLocale());
+					subsCharacterSet = match.getName().toUpperCase(PMS.getLocale());
 					lang = match.getLanguage();
 				} else {
-					externalFileCharacterSet = null;
+					subsCharacterSet = null;
 				}
 			} catch (IOException ex) {
-				externalFileCharacterSet = null;
+				subsCharacterSet = null;
 				LOGGER.warn("Exception during external file charset detection.", ex);
 			}
 		}
 	}
 
+	/**
+	 * @deprecated use {@link #setSubCharacterSet(String)}
+	 */
 	public void setExternalFileCharacterSet(String charSet) {
-		externalFileCharacterSet = charSet;
+		setSubCharacterSet(charSet);
+	}
+	
+	public void setSubCharacterSet(String charSet) {
+		subsCharacterSet = charSet;
 	}
 
+	/**
+	 * @deprecated use {@link #getSubCharacterSet()}
+	 */
 	public String getExternalFileCharacterSet() {
-		return externalFileCharacterSet;
+		return getSubCharacterSet();
+	}
+
+	public String getSubCharacterSet() {
+		return subsCharacterSet;
+	}
+
+	/**
+	 * @return true if subtitles is UTF-8 encoded, false otherwise.
+	 */
+	public boolean isSubsUtf8() {
+		return equalsIgnoreCase(subsCharacterSet, CHARSET_UTF_8);
 	}
 
 	/**
 	 * @return true if external subtitles file is UTF-8 encoded, false otherwise.
 	 */
 	public boolean isExternalFileUtf8() {
-		return FileUtil.isCharsetUTF8(externalFileCharacterSet);
+		return FileUtil.isCharsetUTF8(subsCharacterSet);
 	}
 
 	/**
 	 * @return true if external subtitles file is UTF-16 encoded, false otherwise.
 	 */
 	public boolean isExternalFileUtf16() {
-		return FileUtil.isCharsetUTF16(externalFileCharacterSet);
+		return FileUtil.isCharsetUTF16(subsCharacterSet);
 	}
 
 	/**
 	 * @return true if external subtitles file is UTF-32 encoded, false otherwise.
 	 */
 	public boolean isExternalFileUtf32() {
-		return FileUtil.isCharsetUTF32(externalFileCharacterSet);
+		return FileUtil.isCharsetUTF32(subsCharacterSet);
 	}
 
 	/**
