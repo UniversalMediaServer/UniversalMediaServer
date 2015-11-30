@@ -149,9 +149,8 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @deprecated use FileUtil.convertFileFromUtf16ToUtf8() for UTF-16 -> UTF-8 conversion.
+	 * @deprecated use {@link #FileUtil.convertFileFromUtf16ToUtf8()} for UTF-16 -> UTF-8 conversion.
 	 */
-	@Deprecated
 	public File getPlayableExternalFile() {
 		return getExternalFile();
 	}
@@ -196,14 +195,31 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		}
 	}
 
+	/**
+	 * @deprecated use {@link #setSubCharacterSet(String)}
+	 */
+	public void setExternalFileCharacterSet(String charSet) {
+		setSubCharacterSet(charSet);
+	}
+	
 	public void setSubCharacterSet(String charSet) {
 		subsCharacterSet = charSet;
+	}
+
+	/**
+	 * @deprecated use {@link #getSubCharacterSet()}
+	 */
+	public String getExternalFileCharacterSet() {
+		return getSubCharacterSet();
 	}
 
 	public String getSubCharacterSet() {
 		return subsCharacterSet;
 	}
 
+	/**
+	 * @return true if subtitles is UTF-8 encoded, false otherwise.
+	 */
 	public boolean isSubsUtf8() {
 		return equalsIgnoreCase(subsCharacterSet, CHARSET_UTF_8);
 	}
