@@ -219,15 +219,13 @@ public class FFMpegVideo extends Player {
 						subsFilter.append(":si=").append(params.sid.getId());
 					}
 
-					if (params.sid.isExternal()) {
-						// Set the input subtitles character encoding if not UTF-8
-						if (!params.sid.isExternalFileUtf8()) {
-							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
-							configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
-							params.sid.getExternalFileCharacterSet() : null;
-							if (encoding != null) {
-								subsFilter.append(":charenc=").append(encoding);
-							}
+					// Set the input subtitles character encoding if not UTF-8
+					if (!params.sid.isSubsUtf8()) {
+						String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+						configuration.getSubtitlesCodepage() : params.sid.getSubCharacterSet() != null ?
+						params.sid.getSubCharacterSet() : null;
+						if (encoding != null) {
+							subsFilter.append(":charenc=").append(encoding);
 						}
 					}
 
