@@ -219,35 +219,35 @@ public class FFMpegVideo extends Player {
 						subsFilter.append(":si=").append(params.sid.getId());
 					}
 
-					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
+					if (params.sid.isExternal()) {
 						// Set the input subtitles character encoding if not UTF-8
 						if (!params.sid.isExternalFileUtf8()) {
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
-								configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
-								params.sid.getExternalFileCharacterSet() : null;
+							configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
+							params.sid.getExternalFileCharacterSet() : null;
 							if (encoding != null) {
 								subsFilter.append(":charenc=").append(encoding);
 							}
 						}
+					}
 
-						// If the FFmpeg font config is enabled than we need to add settings to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
-						if (configuration.isFFmpegFontConfig()) {
-							subsFilter.append(":force_style=");
-							subsFilter.append("'");
-							// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-							if (!is3D) {
-								subsFilter.append("Fontsize=").append((int) 16 * Double.parseDouble(configuration.getAssScale()));
-							}
-							
-							subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
-							subsFilter.append(",Outline=").append(configuration.getAssOutline());
-							subsFilter.append(",Shadow=").append(configuration.getAssShadow());
-							if (!is3D) {
-								subsFilter.append(",MarginV=").append(configuration.getAssMargin());
-							}
-							;
-							subsFilter.append("'");
+					// If the FFmpeg font config is enabled than we need to add settings to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
+					if (configuration.isFFmpegFontConfig() && !is3D) {
+						subsFilter.append(":force_style=");
+						subsFilter.append("'");
+						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
+						if (!is3D) {
+							subsFilter.append("Fontsize=").append((int) 16 * Double.parseDouble(configuration.getAssScale()));
 						}
+							
+						subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
+						subsFilter.append(",Outline=").append(configuration.getAssOutline());
+						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
+						if (!is3D) {
+							subsFilter.append(",MarginV=").append(configuration.getAssMargin());
+						};
+
+						subsFilter.append("'");
 					}
 				}
 			} else if (params.sid.getType().isPicture()) {
