@@ -1316,32 +1316,39 @@ public class FFMpegVideo extends Player {
 		return builder.getPanel();
 	}
 
+	/**
+	 * A simple arg parser with basic quote comprehension
+	 */
 	protected static List<String> parseOptions(String str) {
 		return str == null ? null : parseOptions(str, new ArrayList<String>());
 	}
 
 	protected static List<String> parseOptions(String str, List<String> cmdList) {
-		while (str.length() > 0) {
-			if (str.charAt(0) == '\"') {
-				int pos = str.indexOf('"', 1);
-				if (pos == -1) {
-					// No ", error
-					break;
-				}
-				String tmp = str.substring(1, pos);
-				cmdList.add(tmp.trim());
-				str = str.substring(pos + 1);
+		int start, pos = 0, len = str.length();
+		while (pos < len) {
+			// New arg
+			if (str.charAt(pos) == '\"') {
+				start = pos + 1;
+				// Find next quote. No support for escaped quotes here, and
+				// -1 means no matching quote but be lax and accept the fragment anyway
+				pos = str.indexOf('"', start);
 			} else {
-				// New arg, find space
-				int pos = str.indexOf(' ');
-				if (pos == -1) {
-					// No space, we're done
-					cmdList.add(str);
-					break;
-				}
-				String tmp = str.substring(0, pos);
-				cmdList.add(tmp.trim());
-				str = str.substring(pos + 1);
+				start = pos;
+				// Find next space
+				pos = str.indexOf(' ', start);
+			}
+			if (pos == -1) {
+				// We're done
+				pos = len;
+			}
+			// Add the arg, if any
+			if (pos - start > 0) {
+				cmdList.add(str.substring(start, pos).trim());
+			}
+			pos++;
+			// Advance to next non-space char
+			while (pos < len && str.charAt(pos) == ' ') {
+				pos++;
 			}
 		}
 		return cmdList;
