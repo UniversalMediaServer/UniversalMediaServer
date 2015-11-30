@@ -26,9 +26,7 @@ import net.pms.PMS;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
 import static net.pms.util.Constants.CHARSET_UTF_8;
-
 import net.pms.util.FileUtil;
-
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
