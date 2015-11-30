@@ -107,10 +107,10 @@ public class SubtitleUtils {
 		if (dlnaMediaSubtitle == null) {
 			throw new NullPointerException("dlnaMediaSubtitle can't be null.");
 		}
-		if (isBlank(dlnaMediaSubtitle.getExternalFileCharacterSet())) {
+		if (isBlank(dlnaMediaSubtitle.getSubCharacterSet())) {
 			return null;
 		}
-		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getExternalFileCharacterSet());
+		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getSubCharacterSet());
 	}
 
 	/**
@@ -200,7 +200,7 @@ public class SubtitleUtils {
 			// subs are already converted
 			if (applyFontConfig || isEmbeddedSource || is3D) {
 				params.sid.setType(SubtitleType.ASS);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+				params.sid.setSubCharacterSet(CHARSET_UTF_8);
 				if (is3D) {
 					try {
 						convertedSubs = convertASSToASS3D(convertedSubs, media, params);
@@ -246,9 +246,9 @@ public class SubtitleUtils {
 		if (!FileUtil.isFileUTF8(tempSubs)) {
 			try {
 				tempSubs = applyCodepageConversion(tempSubs, convertedSubs);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+				params.sid.setSubCharacterSet(CHARSET_UTF_8);
 			} catch (IOException ex) {
-				params.sid.setExternalFileCharacterSet(null);
+				params.sid.setSubCharacterSet(null);
 				LOGGER.warn("Exception during external file charset detection.", ex);
 			}
 		} else {
@@ -266,7 +266,7 @@ public class SubtitleUtils {
 		) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+				params.sid.setSubCharacterSet(CHARSET_UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
@@ -322,10 +322,10 @@ public class SubtitleUtils {
 					// Prefer the global user-specified encoding if we have one.
 					// Note: likely wrong if the file isn't supplied by the user.
 					configuration.getSubtitlesCodepage() :
-				params.sid.getExternalFileCharacterSet() != null ?
+				params.sid.getSubCharacterSet() != null ?
 					// Fall back on the actually detected encoding if we have it.
 					// Note: accuracy isn't 100% guaranteed.
-					params.sid.getExternalFileCharacterSet() :
+					params.sid.getSubCharacterSet() :
 				null; // Otherwise we're out of luck!
 			if (encoding != null) {
 				cmdList.add("-sub_charenc");
