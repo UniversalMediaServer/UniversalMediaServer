@@ -342,6 +342,7 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
 	; Current renderer files
+	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-AirPlayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\BlackBerry-PlayBook-KalemSoftMP.conf"
