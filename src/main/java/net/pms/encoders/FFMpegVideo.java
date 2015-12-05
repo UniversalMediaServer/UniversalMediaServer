@@ -220,6 +220,10 @@ public class FFMpegVideo extends Player {
 					}
 
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
+						if (!is3D) {
+							subsFilter.append(":original_size=").append(media.getWidth()).append("x").append(media.getHeight());
+						}
+
 						// Set the input subtitles character encoding if not UTF-8
 						if (!params.sid.isExternalFileUtf8()) {
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
