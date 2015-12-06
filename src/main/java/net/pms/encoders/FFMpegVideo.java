@@ -248,8 +248,8 @@ public class FFMpegVideo extends Player {
 							subsFilter.append(",Shadow=").append(configuration.getAssShadow());
 							if (!is3D) {
 								subsFilter.append(",MarginV=").append(configuration.getAssMargin());
-							}
-							;
+							};
+
 							subsFilter.append("'");
 						}
 					}
