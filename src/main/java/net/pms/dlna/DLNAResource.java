@@ -1555,6 +1555,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			media_audio == null &&
 			media_subtitle == null &&
 			!configuration.hideSubsInfo() &&
+			!configuration.isDisableSubtitles() &&
 			(
 				player == null ||
 				player.isExternalSubtitlesSupported()
@@ -1586,7 +1587,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			media_subtitle != null &&
 			media_subtitle.getId() != -1 &&
-			!configuration.hideSubsInfo()
+			!configuration.hideSubsInfo() &&
+			!configuration.isDisableSubtitles()
 		) {
 			subtitleFormat = media_subtitle.getType().getDescription();
 			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
@@ -1953,6 +1955,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 								}
 
+								if (configuration.isDisableSubtitles()) {
+									finishedMatchingPreferences = true;
+								}
+
 								if (!finishedMatchingPreferences) {
 									StringTokenizer st = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
 
@@ -2061,7 +2067,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									/**
 									 * Check for forced subtitles.
 									 */
-									if (!configuration.isDisableSubtitles() && params.sid == null && media != null) {
+									if (params.sid == null && media != null) {
 										// Check for subtitles again
 										File video = new File(getSystemName());
 										FileUtil.isSubtitlesExists(video, media, false);
@@ -3817,6 +3823,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private SubSelect getSubSelector(boolean create) {
 		if (
+			// XXX should be LIVE SUBTITLES also disabled when subtitles are generally disabled?
 			configuration.isDisableSubtitles() ||
 			!configuration.isAutoloadExternalSubtitles() ||
 			configuration.isHideLiveSubtitlesFolder() ||
