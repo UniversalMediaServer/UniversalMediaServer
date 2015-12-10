@@ -1045,9 +1045,6 @@ public class PMS {
 		assert instance == null; // this should only be called once
 		instance = new PMS();
 
-		// Temporary set system locale until configuration is loaded for tests
-		PMS.setLocale(Locale.getDefault());
-
 		try {
 			if (instance.init()) {
 				LOGGER.info("The server is now available for renderers to find");
@@ -1108,9 +1105,6 @@ public class PMS {
 				}
 			}
 		}
-
-		// Temporary set system locale until configuration is loaded
-		PMS.setLocale(Locale.getDefault());
 
 		try {
 			Toolkit.getDefaultToolkit();
@@ -1573,14 +1567,29 @@ public class PMS {
 	private static Locale locale = null;
 	private static ReadWriteLock localeLock = new ReentrantReadWriteLock();
 
+	/**
+	 * Gets UMS' current {@link Locale} to be used in any {@link Locale}
+	 * sensitive operations. If <code>null</code> the default {@link Locale}
+	 * is returned.
+	 */
+
 	public static Locale getLocale() {
 		localeLock.readLock().lock();
 		try {
-			return locale;
+			if (locale != null) {
+				return locale;
+			} else {
+				return Locale.getDefault();
+			}
 		} finally {
 			localeLock.readLock().unlock();
 		}
 	}
+
+	/**
+	 * Sets UMS' {@link Locale}.
+	 * @param aLocale the {@link Locale} to set
+	 */
 
 	public static void setLocale(Locale aLocale) {
 		localeLock.writeLock().lock();
@@ -1593,8 +1602,8 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS locale with the same parameters as the Locale class constructor.
-	 * <code>null</code> values are treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * class constructor. <code>null</code> values are treated as empty strings.
 	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
      * up to 8 characters in length.  See the <code>Locale</code> class description about
@@ -1620,8 +1629,8 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS locale with the same parameters as the Locale class constructor.
-	 * <code>null</code> values are treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * class constructor. <code>null</code> values are treated as empty strings.
 	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
      * up to 8 characters in length.  See the <code>Locale</code> class description about
@@ -1634,8 +1643,8 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS locale with the same parameters as the Locale class constructor.
-	 * <code>null</code> values are treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * class constructor. <code>null</code> values are treated as empty strings.
 	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
      * up to 8 characters in length.  See the <code>Locale</code> class description about
