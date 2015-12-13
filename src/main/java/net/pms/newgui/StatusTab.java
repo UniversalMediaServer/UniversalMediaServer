@@ -72,7 +72,6 @@ public class StatusTab {
 
 		public RendererItem(RendererConfiguration r) {
 			icon = addRendererIcon(r.getRendererIcon());
-			icon.enableRollover();
 			label = new JLabel(r.getRendererName());
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
 //			playingLabel = new GuiUtil.ScrollLabel(" ");
@@ -134,7 +133,9 @@ public class StatusTab {
 				));
 				b.opaque(true);
 				CellConstraints cc = new CellConstraints();
-				b.add(icon, cc.xy(1, 1));
+				if (icon != null) {
+					b.add(icon, cc.xy(1, 1));
+				}
 				b.add(label, cc.xy(1, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
 				b.add(rendererProgressBar, cc.xy(1, 5));
 				b.add(playing, cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
@@ -327,41 +328,48 @@ public class StatusTab {
 		return new ImagePanel(bi);
 	}
 
+	private static void setRendererIconAction(final RendererConfiguration renderer) {
+		if (renderer.gui.icon != null) {
+			renderer.gui.icon.setAction(new AbstractAction() {
+				private static final long serialVersionUID = -6316055325551243347L;
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							if (renderer.gui.frame == null) {
+								JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+								// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
+								// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
+								// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
+								renderer.gui.frame = new JFrame();
+								renderer.gui.panel = new RendererPanel(renderer);
+								renderer.gui.frame.add(renderer.gui.panel);
+								renderer.gui.panel.update();
+								renderer.gui.frame.setResizable(false);
+								renderer.gui.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+								renderer.gui.frame.setLocationRelativeTo(top);
+								renderer.gui.frame.setVisible(true);
+							} else {
+								renderer.gui.frame.setVisible(true);
+								renderer.gui.frame.toFront();
+							}
+						}
+					});
+				}
+			});
+		} else {
+			LOGGER.warn("Failed to add renderer panel for renderer {} since its icon is missing", renderer.getRendererName());
+		}
+	}
+
 	public void addRenderer(final RendererConfiguration renderer) {
 
-		final RendererItem r = new RendererItem(renderer);
-		r.addTo(renderers);
-		renderer.setGuiComponents(r);
-		r.icon.setAction(new AbstractAction() {
-			private static final long serialVersionUID = -6316055325551243347L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						if (r.frame == null) {
-							JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
-							// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
-							// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
-							// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
-							r.frame = new JFrame();
-							r.panel = new RendererPanel(renderer);
-							r.frame.add(r.panel);
-							r.panel.update();
-							r.frame.setResizable(false);
-							r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
-							r.frame.setLocationRelativeTo(top);
-							r.frame.setVisible(true);
-						} else {
-							r.frame.setVisible(true);
-							r.frame.toFront();
-						}
-					}
-				});
-			}
-		});
-
+		final RendererItem rendererItem = new RendererItem(renderer);
+		rendererItem.addTo(renderers);
+		renderer.setGuiComponents(rendererItem);
+		setRendererIconAction(renderer);
 	}
 
 	public static void updateRenderer(final RendererConfiguration renderer) {
@@ -369,7 +377,15 @@ public class StatusTab {
 			@Override
 			public void run() {
 				if (renderer.gui != null) {
-					renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
+					if (renderer.gui.icon != null) {
+						BufferedImage icon = getRendererIcon(renderer.getRendererIcon());
+						if (icon != null) {
+							renderer.gui.icon.set(icon);
+						}
+					} else {
+						renderer.gui.icon = addRendererIcon(renderer.getRendererIcon());
+						setRendererIconAction(renderer);
+					}
 					renderer.gui.label.setText(renderer.getRendererName());
 					// Update the popup panel if it's been opened
 					if (renderer.gui.panel != null) {
@@ -380,9 +396,24 @@ public class StatusTab {
 		});
 	}
 
-	public static ImagePanel addRendererIcon(String icon) {
-		BufferedImage bi = getRendererIcon(icon);
-		return bi != null ? new ImagePanel(bi) : null;
+	public static ImagePanel addRendererIcon(String iconName) {
+		BufferedImage bi = getRendererIcon(iconName);
+		ImagePanel icon = null;
+		if (bi != null) {
+			icon = new ImagePanel(bi);
+		} else {
+			// Insert a standard LAF icon as a last resort
+			try {
+				icon = new ImagePanel(UIManager.getIcon("OptionPane.warningIcon"));
+			} catch (Exception e) {
+				LOGGER.debug("Failed to insert OptionPane.warningIcon as a fallback renderer icon");
+			}
+		}
+		if (icon != null) {
+			icon.enableRollover();
+		}
+
+		return icon;
 	}
 
 	public static BufferedImage getRendererIcon(String icon) {
@@ -440,6 +471,11 @@ public class StatusTab {
 					is = LooksFrame.class.getResourceAsStream("/renderers/" + icon);
 				}
 
+				// If it can't be found, use the "missing icon"
+				if (is == null) {
+					is = LooksFrame.class.getResourceAsStream("/resources/images/clients/" + RendererConfiguration.MISSING_ICON);
+				}
+
 				if (is != null) {
 					bi = ImageIO.read(is);
 				}
@@ -448,7 +484,7 @@ public class StatusTab {
 			}
 		}
 		if (bi == null) {
-			LOGGER.debug("Failed to load icon: " + icon);
+			LOGGER.warn("Failed to load icon: " + icon);
 		}
 		return bi;
 	}
