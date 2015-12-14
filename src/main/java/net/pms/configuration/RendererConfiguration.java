@@ -1338,16 +1338,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean matchUPNPDetails(String details) {
-		String upnpDetails = getUpnpDetailsString();
-		Pattern pattern;
-
-		if (StringUtils.isNotBlank(upnpDetails)) {
-			String p = StringUtils.join(upnpDetails.split(" , "), ".*");
-			pattern = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
-			return pattern.matcher(details.replace("\n", " ")).find();
-		} else {
-			return false;
-		}
+		return StringUtil.matchConfigurationRegEx(getUpnpDetailsString(), details);
 	}
 
 	/**

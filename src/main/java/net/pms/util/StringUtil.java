@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.regex.Pattern;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +104,7 @@ public class StringUtil {
 		 * s = s.replace("\"", "&quot;");
 		 * s = s.replace("'", "&apos;");
 		 */
-		
+
 		// The second encoding/escaping of & is not a bug, it's what effectively adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
 		return s;
@@ -268,7 +270,7 @@ public class StringUtil {
 	 * otherwise returns the string as is.
 	 *
 	 * @param arg The argument string
-	 * @return The string, optionally in quotes. 
+	 * @return The string, optionally in quotes.
 	 */
 	public static String quoteArg(String arg) {
 		if (arg != null && arg.indexOf(' ') > -1) {
@@ -276,6 +278,57 @@ public class StringUtil {
 		}
 
 		return arg;
+	}
+
+	/**
+	 * This method is written for matching renderer HTTP user agent and UPnP
+	 * details, but can be used for anything that want to use the same matching
+	 * rules. The rules are: <ul>
+	 * <li>Matching is case sensitive unless the search string starts with
+	 * <code>(?i)</code></li>
+	 * <li>Normal regex rules apply, but dot matches all including newline</li>
+	 * <li>If leading or trailing spaces are to be included, the regex must be
+	 * double quoted</li>
+	 * <li>Double quotes are stripped only if they exist in the first and last
+	 * position of the regex, flags excluded
+	 * </ul>
+	 * Examples of valid syntax:
+	 * <pre>
+	 * Case sensitive search term
+	 * (?i)caSE inSensitive search term
+	 * "Double quoted search term with trailing spaces   "
+	 * (?i)"caSE inSensitive double quoted search term"
+	 * </pre>
+	 * @param searchTerm the regex string following the above rules
+	 * @param content the string to search
+	 * @return The result of the regex search
+	 */
+	public static boolean matchConfigurationRegEx(String searchTerm, String content) {
+		if (content == null) {
+			throw new IllegalArgumentException("content cannot be null");
+		}
+		if (searchTerm == null) {
+			return false;
+		}
+
+		// Strip case insensitivity flag
+		boolean caseInsensitive = false;
+		if (searchTerm.startsWith("(?i)")) {
+			caseInsensitive = true;
+			searchTerm = searchTerm.substring(4);
+		}
+
+		// Strip double quotes
+		if (searchTerm.startsWith("\"") && searchTerm.endsWith("\"")) {
+			searchTerm = searchTerm.substring(1, searchTerm.length() - 1);
+		}
+
+		if (StringUtils.isBlank(searchTerm)) {
+			return false;
+		}
+
+		Pattern pattern = Pattern.compile(searchTerm, caseInsensitive ? Pattern.DOTALL + Pattern.CASE_INSENSITIVE : Pattern.DOTALL);
+		return pattern.matcher(content).find();
 	}
 
 }
