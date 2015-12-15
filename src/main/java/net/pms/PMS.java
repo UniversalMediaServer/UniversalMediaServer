@@ -508,6 +508,8 @@ public class PMS {
 			}
 		}
 
+		Splash splash = new Splash(configuration);
+
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
@@ -530,6 +532,10 @@ public class PMS {
 			LOGGER.info("GUI environment not available");
 			LOGGER.info("Switching to console mode");
 			frame = new DummyFrame();
+		}
+
+		if (splash != null) {
+			splash.dispose();
 		}
 
 		/*
