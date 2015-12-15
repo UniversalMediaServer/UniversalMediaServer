@@ -79,6 +79,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int PS4 = 5;
 	protected static final int XBOX1 = 6;
 	protected static final int OPERA = 7;
+	protected static final int EDGE = 8;
 
 	private StartStopListenerDelegate startStop;
 
@@ -150,6 +151,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case PS4:     return "Playstation 4";
 			case XBOX1:   return "Xbox One";
 			case OPERA:   return "Opera";
+			case EDGE:    return "Edge";
 			default:      return Messages.getString("PMS.142");
 		}
 	}
@@ -157,6 +159,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	public static int getBrowser(String userAgent) {
 		String ua = userAgent.toLowerCase();
 		return
+			ua.contains("edge")          ? EDGE :
 			ua.contains("chrome")        ? CHROME :
 			(ua.contains("msie") ||
 			ua.contains("trident"))      ? MSIE :
@@ -213,6 +216,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case PS4:     return "ps4.png";
 			case XBOX1:   return "xbox-one.png";
 			case OPERA:   return "opera.png";
+			case EDGE:    return "edge.png";
 			default:      return super.getRendererIcon();
 		}
 	}

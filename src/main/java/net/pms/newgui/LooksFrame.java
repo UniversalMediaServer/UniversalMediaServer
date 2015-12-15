@@ -20,6 +20,7 @@ package net.pms.newgui;
 
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
+import com.jgoodies.looks.windows.WindowsLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -134,11 +135,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		LookAndFeel selectedLaf = null;
 		if (Platform.isWindows()) {
-			try {
-				selectedLaf = (LookAndFeel) Class.forName("com.jgoodies.looks.windows.WindowsLookAndFeel").newInstance();
-			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-				selectedLaf = new PlasticLookAndFeel();
-			}
+			selectedLaf = new WindowsLookAndFeel();
 		} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
 			selectedLaf = new PlasticLookAndFeel();
 		} else {
@@ -321,10 +318,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			title = title + "  [" + Messages.getString("TracesTab.10").toUpperCase() + "]";
 		}
 
-		this.setTitle(title);
-		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-//		Dimension screenSize = getToolkit().getScreenSize();
-
+		setTitle(title);
+		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		if (screenSize.width < MINIMUM_SIZE.width || screenSize.height < MINIMUM_SIZE.height) {
 			setMinimumSize(screenSize);
 		} else {
@@ -339,14 +334,15 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		int posY = Integer.valueOf(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf("=") + 1));
 		storedWindowSize.width = Integer.valueOf(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf("=") + 1));
 		storedWindowSize.height = Integer.valueOf(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf("=") + 1));
+		setSize(storedWindowSize);
 		boolean screenChanged = false;
 		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
 			setSize(STANDARD_SIZE);
 			screenChanged = true;
+		} else if (configuration.getWindowExtendedState() != NORMAL) {
+			setExtendedState(configuration.getWindowExtendedState());
 		} else if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
 			setSize(screenSize);
-		} else {
-			setSize(storedWindowSize);
 		}
 
 		// Customize the colors used in tooltips
@@ -369,7 +365,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		} else {
 			setLocation(posX, posY);
 		}
-		
+
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
@@ -496,12 +492,22 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
 		String windowGeometry = getBounds().toString();
-		configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf("[") + 1, windowGeometry.indexOf("]")));
-		configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
+		try {
+			if (getExtendedState() != NORMAL) {
+				configuration.setWindowExtendedState(getExtendedState());
+			} else {
+				configuration.setWindowExtendedState(NORMAL);
+				configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf("[") + 1, windowGeometry.indexOf("]")));
+			}
+			configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
+		} catch (Exception e) {
+			LOGGER.warn("Failed to save window geometry and size: {}", e.getMessage());
+			LOGGER.debug("", e);
+		}
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
-			LOGGER.error(null, e);
+			LOGGER.error("Interrupted during shutdown: {}", e);
 		}
 
 		System.exit(0);
