@@ -3790,7 +3790,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isShowSplashScreen() {
-		return getBoolean(KEY_SHOW_SPLASH_SCREEN, true);
+		return getBoolean(KEY_SHOW_SPLASH_SCREEN, false);
 	}
 
 	public void setShowSplashScreen(boolean value) {
