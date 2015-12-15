@@ -517,7 +517,7 @@ public class SubtitleUtils {
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
 			String fontScale = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
-			String primaryColour = convertColorToAssHexFormat(new Color(configuration.getSubsColor()));
+			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
 			String fontSize = Integer.toString((int) (16 * media.getHeight() / (double) 288));
@@ -626,19 +626,20 @@ public class SubtitleUtils {
 		return outputSubs;
 	}
 
-	public static String convertColorToAssHexFormat(Color color) {
-		String colour = Integer.toHexString(color.getRGB());
-		return "&H" + colour.substring(6, 8) + colour.substring(4, 6) + colour.substring(2, 4);
-	}
-
 	public static void deleteSubs() {
 		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
 	}
 
+	/**
+	 * Converts the standard Colour RGB integer presentation to the SSA/ASS string format which
+	 * is formatted as BGR (really stupid SSA/ASS implementation)
+	 * @param colour the RGB color in the integer format
+	 * @return Converted color string in the ASS format
+	 */
 	public static String convertColourToASSColourString(int colour) {
-		String primaryColour = Integer.toHexString(colour);
+		String colourString = Integer.toHexString(colour);
 		StringBuilder outputString = new StringBuilder();
-		outputString.append("&H").append(primaryColour.substring(6, 8)).append(primaryColour.substring(4, 6)).append(primaryColour.substring(2, 4));
+		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
 		return outputString.toString();
 	}
 }
