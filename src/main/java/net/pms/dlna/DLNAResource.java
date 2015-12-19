@@ -2908,7 +2908,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		lastStartPosition = timeRange.getStartOrZero();
+		if (low > 0 && media.getBitrate() > 0) {
+			lastStartPosition = (low * 8) / media.getBitrate();
+			LOGGER.trace("Estimating seek position from byte range:");
+			LOGGER.trace("   media.getBitrate: " + media.getBitrate());
+			LOGGER.trace("   low: " + low);
+			LOGGER.trace("   lastStartPosition: " + lastStartPosition);
+		} else {
+			lastStartPosition = timeRange.getStartOrZero();
+			LOGGER.trace("Setting lastStartPosition from time-seeking: " + lastStartPosition);
+		}
 
 		// Determine source of the stream
 		if (player == null && !isResume()) {
