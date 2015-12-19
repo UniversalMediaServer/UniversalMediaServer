@@ -90,7 +90,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private PluginTab pt;
 	private AbstractButton reload;
 	private JLabel status;
-	private static Boolean lookAndFeelInitialized = Boolean.valueOf(false);
+	private static Object lookAndFeelInitializedLock = new Object();
+	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
 
 	public ViewLevel getViewLevel() {
@@ -130,55 +131,53 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public static void initializeLookAndFeel() {
 
-		synchronized (lookAndFeelInitialized) {
-			if (lookAndFeelInitialized.booleanValue()) {
+		synchronized (lookAndFeelInitializedLock) {
+			if (lookAndFeelInitialized) {
 				return;
 			}
-		}
 
-		LookAndFeel selectedLaf = null;
-		if (Platform.isWindows()) {
-			selectedLaf = new WindowsLookAndFeel();
-		} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
-			selectedLaf = new PlasticLookAndFeel();
-		} else {
-			try {
-				String systemClassName = UIManager.getSystemLookAndFeelClassName();
-				// Workaround for Gnome
-				try {
-					String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-					Class.forName(gtkLAF);
-
-					if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
-						systemClassName = gtkLAF;
-					}
-				} catch (ClassNotFoundException ce) {
-					LOGGER.error("Error loading GTK look and feel: ", ce);
-				}
-
-				LOGGER.trace("Choosing Java look and feel: " + systemClassName);
-				UIManager.setLookAndFeel(systemClassName);
-			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e1) {
+			LookAndFeel selectedLaf = null;
+			if (Platform.isWindows()) {
+				selectedLaf = new WindowsLookAndFeel();
+			} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
 				selectedLaf = new PlasticLookAndFeel();
-				LOGGER.error("Error while setting native look and feel: ", e1);
+			} else {
+				try {
+					String systemClassName = UIManager.getSystemLookAndFeelClassName();
+					// Workaround for Gnome
+					try {
+						String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+						Class.forName(gtkLAF);
+
+						if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
+							systemClassName = gtkLAF;
+						}
+					} catch (ClassNotFoundException ce) {
+						LOGGER.error("Error loading GTK look and feel: ", ce);
+					}
+
+					LOGGER.trace("Choosing Java look and feel: " + systemClassName);
+					UIManager.setLookAndFeel(systemClassName);
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e1) {
+					selectedLaf = new PlasticLookAndFeel();
+					LOGGER.error("Error while setting native look and feel: ", e1);
+				}
 			}
-		}
 
-		if (selectedLaf instanceof PlasticLookAndFeel) {
-			PlasticLookAndFeel.setPlasticTheme(PlasticLookAndFeel.createMyDefaultTheme());
-			PlasticLookAndFeel.setTabStyle(PlasticLookAndFeel.TAB_STYLE_DEFAULT_VALUE);
-			PlasticLookAndFeel.setHighContrastFocusColorsEnabled(false);
-		} else if (selectedLaf != null && selectedLaf.getClass() == MetalLookAndFeel.class) {
-			MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
-		}
+			if (selectedLaf instanceof PlasticLookAndFeel) {
+				PlasticLookAndFeel.setPlasticTheme(PlasticLookAndFeel.createMyDefaultTheme());
+				PlasticLookAndFeel.setTabStyle(PlasticLookAndFeel.TAB_STYLE_DEFAULT_VALUE);
+				PlasticLookAndFeel.setHighContrastFocusColorsEnabled(false);
+			} else if (selectedLaf != null && selectedLaf.getClass() == MetalLookAndFeel.class) {
+				MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
+			}
 
-		// Work around caching in MetalRadioButtonUI
-		JRadioButton radio = new JRadioButton();
-		radio.getUI().uninstallUI(radio);
-		JCheckBox checkBox = new JCheckBox();
-		checkBox.getUI().uninstallUI(checkBox);
+			// Work around caching in MetalRadioButtonUI
+			JRadioButton radio = new JRadioButton();
+			radio.getUI().uninstallUI(radio);
+			JCheckBox checkBox = new JCheckBox();
+			checkBox.getUI().uninstallUI(checkBox);
 
-		synchronized (lookAndFeelInitialized) {
 			if (selectedLaf != null) {
 				try {
 					UIManager.setLookAndFeel(selectedLaf);
@@ -187,7 +186,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 				}
 			}
 
-			lookAndFeelInitialized = Boolean.valueOf(true);
+			lookAndFeelInitialized = true;
 		}
 	}
 
@@ -332,13 +331,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 
 		String ss = configuration.getScreenSize();
-		storedScreenSize.height = Integer.valueOf(ss.substring(ss.indexOf("x") + 1));
-		storedScreenSize.width = Integer.valueOf(ss.substring(0, ss.indexOf("x")));
+		storedScreenSize.height = Integer.parseInt(ss.substring(ss.indexOf("x") + 1));
+		storedScreenSize.width = Integer.parseInt(ss.substring(0, ss.indexOf("x")));
 		String[] windowGeometryValues = configuration.getWindowGeometry().split(",");
-		int posX = Integer.valueOf(windowGeometryValues[0].substring(windowGeometryValues[0].indexOf("=") + 1));
-		int posY = Integer.valueOf(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf("=") + 1));
-		storedWindowSize.width = Integer.valueOf(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf("=") + 1));
-		storedWindowSize.height = Integer.valueOf(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf("=") + 1));
+		int posX = Integer.parseInt(windowGeometryValues[0].substring(windowGeometryValues[0].indexOf("=") + 1));
+		int posY = Integer.parseInt(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf("=") + 1));
+		storedWindowSize.width = Integer.parseInt(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf("=") + 1));
+		storedWindowSize.height = Integer.parseInt(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf("=") + 1));
 		setSize(storedWindowSize);
 		boolean screenChanged = false;
 		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
@@ -612,7 +611,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void updateRenderer(RendererConfiguration renderer) {
-		st.updateRenderer(renderer);
+		StatusTab.updateRenderer(renderer);
 	}
 
 	@Override
