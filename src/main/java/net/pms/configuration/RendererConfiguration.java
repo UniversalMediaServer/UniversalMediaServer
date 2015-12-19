@@ -206,6 +206,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
+	public static final String MISSING_ICON = "missing-icon.png";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -1337,16 +1338,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean matchUPNPDetails(String details) {
-		String upnpDetails = getUpnpDetailsString();
-		Pattern pattern;
-
-		if (StringUtils.isNotBlank(upnpDetails)) {
-			String p = StringUtils.join(upnpDetails.split(" , "), ".*");
-			pattern = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
-			return pattern.matcher(details.replace("\n", " ")).find();
-		} else {
-			return false;
-		}
+		return StringUtil.matchConfigurationRegEx(getUpnpDetailsString(), details);
 	}
 
 	/**
@@ -1546,7 +1538,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	@Override
 	public void setActive(boolean b) {
 		super.setActive(b);
-		if (gui != null) {
+		if (gui != null && gui.icon != null) {
 			gui.icon.setGrey(!active);
 		}
 	}

@@ -36,7 +36,7 @@ public class ImagePanel extends JButton {
 	protected boolean isGrey;
 
 	public ImagePanel() {
-		this(null);
+		this((RenderedImage) null);
 	}
 
 	public ImagePanel(RenderedImage renderedimage) {
@@ -59,6 +59,10 @@ public class ImagePanel extends JButton {
 		setContentAreaFilled(false);
 		setBorderPainted(false);
 		setFocusPainted(false);
+	}
+
+	public ImagePanel(Icon icon) {
+		this((RenderedImage) ((ImageIcon) icon).getImage());
 	}
 
 	public void setOrigin(int i, int j) {

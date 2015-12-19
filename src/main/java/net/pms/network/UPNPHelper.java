@@ -610,7 +610,7 @@ public class UPNPHelper extends UPNPControl {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
 			DeviceConfiguration r = (DeviceConfiguration) RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
 			RendererConfiguration ref = configuration.isRendererForceDefault() ?
-				null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+				null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceMatchableDetailsString(d));
 
 			if (r != null && ! r.isUpnpAllowed()) {
 				LOGGER.debug("Upnp service is {} for \"{}\"", r.getUpnpModeString(), r);
@@ -625,7 +625,7 @@ public class UPNPHelper extends UPNPControl {
 
 			boolean distinct = r != null && StringUtils.isNotBlank(r.getUUID()) && ! uuid.equals(r.getUUID());
 
-			if (! distinct && r != null && (r.matchUPNPDetails(getDeviceDetailsString(d)) || ! r.loaded)) {
+			if (! distinct && r != null && (r.matchUPNPDetails(getDeviceMatchableDetailsString(d)) || ! r.loaded)) {
 				// Already seen by the http server
 				if (
 					ref != null &&

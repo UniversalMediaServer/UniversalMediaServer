@@ -435,6 +435,28 @@ public class UPNPControl {
 		return StringUtils.join(getDeviceDetails(d).values(), " ");
 	}
 
+	/**
+	 * Concatenates the device details that's relevant for matching into a
+	 * space separated {@link String}. Details unique to the individual
+	 * renderer (IP address and UUID) are excluded.
+	 * @param device the {@link Device} from which to get the details
+	 * @return The concatenated {@link String}
+	 */
+	public static String getDeviceMatchableDetailsString(Device device) {
+		StringBuilder sb = new StringBuilder(255);
+		for (Map.Entry<String, String> detail : getDeviceDetails(device).entrySet()) {
+			switch (detail.getKey()) {
+				case "address" : // Exclude
+				case "udn" : // Exclude
+					break;
+				default :
+					sb.append((sb.length() > 0 ? " " : "") + detail.getValue());
+			}
+		}
+		return sb.toString();
+
+	}
+
 	public static String getDeviceIcon(Renderer r, int maxHeight) {
 		if (isUpnpDevice(r.uuid)) {
 			return getDeviceIcon(getDevice(r.uuid), maxHeight);
@@ -618,7 +640,7 @@ public class UPNPControl {
 
 		@Override
 		public void established(GENASubscription sub) {
-			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() + 
+			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() +
 				" on " + getFriendlyName(uuid));
 		}
 
