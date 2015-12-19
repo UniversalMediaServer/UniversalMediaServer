@@ -1,4 +1,4 @@
-5.3.2 - 2015-12-??
+5.4.0 - 2015-12-??
 
 	General:
 		Added splash screen, disabled by default
