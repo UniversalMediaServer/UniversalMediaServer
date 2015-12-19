@@ -809,15 +809,16 @@ public class UPNPHelper extends UPNPControl {
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
 				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
-			state.mute = "0".equals(data.get("Mute")) ? false : true;
+			state.mute = !"0".equals(data.get("Mute"));
 			s = data.get("Volume");
 			state.volume = s == null ? 0 : (Integer.valueOf(s) * 100 / maxVol);
 			state.position = data.get("RelTime");
-			if (! ignoreUpnpDuration) {
+			if (!ignoreUpnpDuration) {
 				state.duration = data.get("CurrentMediaDuration");
 			}
 			state.uri = data.get("AVTransportURI");
 			state.metadata = data.get("AVTransportURIMetaData");
+
 			// update playlist only if uri has changed
 			if (!StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi)) {
 				playlist.set(state.uri, null, state.metadata);
@@ -825,7 +826,6 @@ public class UPNPHelper extends UPNPControl {
 			lasturi = state.uri;
 			alert();
 		}
-
 
 		@Override
 		public void start() {

@@ -531,13 +531,11 @@ public class NavigationShareTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-
 					try {
 						configuration.setSortMethod(Integer.parseInt((String) kcbm.getSelectedKey()));
 					} catch (NumberFormatException nfe) {
 						LOGGER.debug("Could not parse sort method from \"" + kcbm.getSelectedKey() + "\"");
 					}
-
 				}
 			}
 		});
