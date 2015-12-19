@@ -87,7 +87,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		// Initialize our internal RendererConfiguration vars
 		renderCache = new HashMap<>();
 		sortedHeaderMatcher = ref.sortedHeaderMatcher;
-		// Note: intentionally omitting 'player = null' so as to preserve player state when reloading
+		// Note: intentionally omitting 'player = null' so as to preserve player state when reloading/replacing
 		loaded = true;
 		this.ref = ref;
 

@@ -619,6 +619,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 
 		public void setData(String jsonData) {
+			if (state == null) {
+				// We've been disabled
+				return;
+			}
 			data = gson.fromJson(jsonData, data.getClass());
 			String s = data.get("playback");
 			state.playback = "STOPPED".equals(s) ? STOPPED :

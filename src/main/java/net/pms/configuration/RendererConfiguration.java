@@ -1534,6 +1534,18 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return player;
 	}
 
+	public void resetPlayer() {
+		// Replace the player if already existing and transfer its state
+		if (player != null) {
+			BasicPlayer old = player;
+			player = null;
+			getPlayer().replace(old);
+			LOGGER.debug("{}: swapped data from {} to {}", getRendererName(), StringUtils.substringAfterLast(old.getClass().getName(), "."), StringUtils.substringAfterLast(player.getClass().getName(), "."));
+		} else {
+			getPlayer();
+		}
+	}
+
 	/**
 	 * Sets the UPnP player.
 	 *
@@ -2569,6 +2581,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					state.playback = PLAYING;
 					while (res == renderer.getPlayingRes()) {
 						long elapsed = System.currentTimeMillis() - res.getStartTime();
+						if (state == null) {
+							// We've been disabled
+							return;
+						}
 						state.position = (duration == 0 || elapsed < duration + 500) ?
 							// Position is valid as far as we can tell
 							DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss") :

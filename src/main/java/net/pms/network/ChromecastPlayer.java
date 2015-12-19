@@ -118,6 +118,10 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 				for(;;) {
 					try {
 						Thread.sleep(1000);
+						if (state == null) {
+							// We've been disabled
+							return;
+						}
 						Status s1 = api.getStatus();
 						if (!s1.isAppRunning(MediaPlayer)) {
 							continue;

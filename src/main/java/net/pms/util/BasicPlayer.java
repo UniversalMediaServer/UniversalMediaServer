@@ -84,6 +84,8 @@ public interface BasicPlayer extends ActionListener {
 
 	public void close();
 
+	public void replace(BasicPlayer other);
+
 	// An empty implementation with some basic funtionalities defined
 
 	public static class Minimal implements BasicPlayer {
@@ -223,6 +225,17 @@ public interface BasicPlayer extends ActionListener {
 
 		@Override
 		public void actionPerformed(final ActionEvent e) {
+		}
+
+		@Override
+		public void replace(BasicPlayer other) {
+			if (other instanceof Minimal) {
+				Minimal o = (Minimal)other;
+				state = o.state;
+				o.state = null;
+				listeners = o.listeners;
+				o.listeners = null;
+			}
 		}
 	}
 
@@ -375,6 +388,19 @@ public interface BasicPlayer extends ActionListener {
 			}
 		}
 
+		@Override
+		public void replace(BasicPlayer other) {
+			super.replace(other);
+			if (other instanceof Logical) {
+				Logical o = (Logical)other;
+				playlist = o.playlist;
+				o.playlist = null;
+				playlist.setPlayer(this);
+				forceStop = o.forceStop;
+				lastPlayback = o.lastPlayback;
+			}
+		}
+
 		public void clear() {
 			playlist.removeAllElements();
 		}
@@ -426,7 +452,12 @@ public interface BasicPlayer extends ActionListener {
 			Logical player;
 
 			public Playlist(Logical p) {
+				setPlayer(p);
+			}
+
+			public void setPlayer(Logical p) {
 				player = p;
+				validate();
 			}
 
 			public Item get(String uri) {
