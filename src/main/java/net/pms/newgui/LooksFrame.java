@@ -370,6 +370,9 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setVisible(true);
 		}
 		PMS.get().getRegistry().addSystemTray(this);
+
+		// Give a green light to the CheckOSClock to present a warning dialog if needed
+		PMS.getGUIReadyLatch().countDown();
 	}
 
 	public static ImageIcon readImageIcon(String filename) {

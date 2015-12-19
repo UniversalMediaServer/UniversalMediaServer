@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
@@ -149,6 +150,21 @@ public class PMS {
 	 */
 	private static PMS instance = null;
 
+	private static CountDownLatch guiReadyLatch;
+
+	/**
+	 * @return The {@link java.util.concurrent.CountDownLatch} used by the
+	 * <code>CheckOSClock</code> thread. Any thread that needs to wait for
+	 * the GUI to be ready before proceeding can simply wait for this.
+	 */
+	public static CountDownLatch getGUIReadyLatch() {
+		return guiReadyLatch;
+	}
+
+	static {
+		guiReadyLatch = new CountDownLatch(1);
+	}
+
 	/**
 	 * Array of {@link net.pms.configuration.RendererConfiguration} that have
 	 * been found by UMS.<br><br>
@@ -221,6 +237,14 @@ public class PMS {
 		return proxyServer;
 	}
 
+	/**
+	 * All access to this object MUST be enclosed in
+	 * <pre><code>
+	 * synchronized(currentProcesses) {
+	 *      ..code..
+	 * }
+	 * </code></pre>
+	 */
 	public ArrayList<Process> currentProcesses = new ArrayList<>();
 
 	private PMS() {
@@ -229,7 +253,7 @@ public class PMS {
 	/**
 	 * {@link net.pms.newgui.IFrame} object that represents the PMS GUI.
 	 */
-	private IFrame frame;
+	private volatile IFrame frame;
 
 	/**
 	 * Interface to Windows-specific functions, like Windows Registry. registry is set by {@link #init()}.
@@ -406,6 +430,9 @@ public class PMS {
 
 		// call this as early as possible
 		displayBanner();
+
+		// Initiate the OS clock check
+		checkOSClock();
 
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
@@ -764,12 +791,14 @@ public class PMS {
 					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");
 
-					for (Process p : currentProcesses) {
-						try {
-							p.exitValue();
-						} catch (IllegalThreadStateException ise) {
-							LOGGER.trace("Forcing shutdown of process: " + p);
-							ProcessUtil.destroy(p);
+					synchronized(currentProcesses) {
+						for (Process p : currentProcesses) {
+							try {
+								p.exitValue();
+							} catch (IllegalThreadStateException ise) {
+								LOGGER.trace("Forcing shutdown of process: " + p);
+								ProcessUtil.destroy(p);
+							}
 						}
 					}
 
@@ -1039,7 +1068,7 @@ public class PMS {
 	 * Returns the PMS instance.
 	 * @return {@link net.pms.PMS}
 	 */
-	public static PMS get() {
+	public static synchronized PMS get() {
 		// XXX when PMS is run as an application, the instance is initialized via the createInstance call in main().
 		// However, plugin tests may need access to a PMS instance without going
 		// to the trouble of launching the PMS application, so we provide a fallback
@@ -1813,5 +1842,25 @@ public class PMS {
 	 */
 	public static int getTraceMode() {
 		return traceMode;
+	}
+
+	/**
+	 * Starts a thread that compares the OS clock to a NTP server and reports
+	 * to the user if the discrepancy is to big via the log and a message dialog
+	 * if GUI is available. This can take some time under some
+	 * circumstances, and is thus handles by a thread in parallel. The check
+	 * respects {@link PmsConfiguration.getExternalNetwork()}.
+	 * @throws IllegalStateException If configuration is not initialized.
+	 */
+	private static void checkOSClock() throws IllegalStateException {
+		if (configuration == null) {
+			throw new IllegalStateException("checkOSClock cannot be called until configuration is initialized!");
+		}
+		if (configuration.getExternalNetwork()) {
+			LOGGER.trace("Starting CheckOSClock thread");
+			new Thread(new CheckOSClock(), "CheckOSClock").start();
+		} else if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Skipping computer clock check because external network access is disabled");
+		}
 	}
 }

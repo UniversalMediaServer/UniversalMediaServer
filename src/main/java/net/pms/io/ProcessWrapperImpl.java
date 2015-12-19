@@ -161,8 +161,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			// following line:
 			// pb.redirectErrorStream(true);
 			process = pb.start();
-			PMS.get().currentProcesses.add(process);
-
+			synchronized(PMS.get().currentProcesses) {
+				PMS.get().currentProcesses.add(process);
+			}
 			if (stderrConsumer == null) {
 				stderrConsumer = keepStderr
 					? new OutputTextConsumer(process.getErrorStream(), true)
@@ -263,7 +264,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					}
 				}
 			}
-			PMS.get().currentProcesses.remove(process);
+			synchronized(PMS.get().currentProcesses) {
+				PMS.get().currentProcesses.remove(process);
+			}
 		}
 	}
 
