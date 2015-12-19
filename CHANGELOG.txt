@@ -1,12 +1,17 @@
 5.3.2 - 2015-12-??
 
 	General:
+		Added splash screen, disabled by default
 		Improved support for subtitles in FFmpeg
 		Fixed support for 3D subtitles
 		Fixed the saving of window size
 	Renderers:
+		Added support for AnyCast
+		Added support for Miracast M806
 		Added support for Sony Bravia NX800 TVs
+		Improved playback support for several renderers
 	External Components:
+		Updated Cling to 2.1.0
 		Updated FFmpeg
 
 6.0.0-a1 - 2015-11-23 - Changes since 5.3.1
