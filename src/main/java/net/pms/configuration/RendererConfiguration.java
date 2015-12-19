@@ -170,6 +170,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
+	protected static final String SQUARE_AUDIO_THUMBNAILS = "SquareAudioThumbnails";
+	protected static final String SQUARE_IMAGE_THUMBNAILS = "SquareImageThumbnails";
 	protected static final String STREAM_EXT = "StreamExtensions";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	protected static final String SUPPORTED = "Supported";
@@ -2715,5 +2717,23 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isThumbnails() {
 		return getBoolean(THUMBNAILS, true);
+	}
+
+	/**
+	 * Whether to use ThumbnailHeight as ThumbnailWidth for audio thumbnails.
+	 *
+	 * @return whether to use ThumbnailHeight as ThumbnailWidth for audio thumbnails
+	 */
+	public boolean isSquareAudioThumbnails() {
+		return getBoolean(SQUARE_AUDIO_THUMBNAILS, false);
+	}
+
+	/**
+	 * Whether to use ThumbnailHeight as ThumbnailWidth for image thumbnails.
+	 *
+	 * @return whether to use ThumbnailHeight as ThumbnailWidth for image thumbnails
+	 */
+	public boolean isSquareImageThumbnails() {
+		return getBoolean(SQUARE_IMAGE_THUMBNAILS, false);
 	}
 }

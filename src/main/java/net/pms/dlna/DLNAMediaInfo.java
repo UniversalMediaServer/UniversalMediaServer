@@ -803,11 +803,12 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 
-							int thumbnailWidth = renderer.getThumbnailWidth();
+							int thumbnailWidth = renderer.isSquareAudioThumbnails() ? renderer.getThumbnailHeight() : renderer.getThumbnailWidth();
+							int thumbnailHeight = renderer.getThumbnailHeight();
 
 							// Make sure the image fits in the renderer's bounds
 							boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath());
-							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailWidth, isWatchedThumbnail);
+							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isWatchedThumbnail);
 
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null && isWatchedThumbnail) {
@@ -823,7 +824,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 								Graphics2D g = image.createGraphics();
 								g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
-								g.fillRect(0, 0, thumbnailWidth, thumbnailWidth);
+								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
 								g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
 
 								/**
@@ -856,7 +857,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									}
 
-									thumbnailTextVerticalPosition = (int) (thumbnailWidth - textsize.getHeight()) / 2 + fm.getAscent();
+									thumbnailTextVerticalPosition = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
 									g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
 								}
 							}
@@ -939,8 +940,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Create the thumbnail image using the Thumbnailator library
 					try {
-						int thumbnailWidth = renderer.getThumbnailWidth();
-						int thumbnailHeight = renderer.getThumbnailWidth();
+						int thumbnailWidth = renderer.isSquareImageThumbnails() ? renderer.getThumbnailHeight() : renderer.getThumbnailWidth();
+						int thumbnailHeight = renderer.getThumbnailHeight();
 
 						// Make sure the image fits in the renderer's bounds
 						boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath());
@@ -960,7 +961,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 							Graphics2D g = image.createGraphics();
 							g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
-							g.fillRect(0, 0, thumbnailWidth, thumbnailWidth);
+							g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
 							g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
 
 							/**
@@ -993,7 +994,7 @@ public class DLNAMediaInfo implements Cloneable {
 									}
 								}
 
-								thumbnailTextVerticalPosition = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
+								thumbnailTextVerticalPosition = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
 								g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
 							}
 							ByteArrayOutputStream out = new ByteArrayOutputStream();
