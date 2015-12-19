@@ -362,7 +362,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The list of connected renderers.
 	 */
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
-		// We need to check both upnp and http sides to ensure a complete list
+		// We need to check both UPnP and http sides to ensure a complete list
 		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
 		renderers.addAll(addressAssociation.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
@@ -665,7 +665,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		} catch (Exception e) {
 		}
 		if (! recognized) {
-			// Mark it as unloaded so actual recognition can happen later if upnp sees it.
+			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
 			LOGGER.debug("Marking renderer \"{}\" at {} as unrecognized", r, ia);
 			r.loaded = false;
 		}
@@ -1363,7 +1363,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the unique upnp details of this renderer as defined in the
+	 * Returns the unique UPnP details of this renderer as defined in the
 	 * renderer configuration. Default value is "".
 	 *
 	 * @return The detail string.
@@ -1373,7 +1373,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the upnp details of this renderer as broadcast by itself, if known.
+	 * Returns the UPnP details of this renderer as broadcast by itself, if known.
 	 * Default value is null.
 	 *
 	 * @return The detail map.
@@ -1411,7 +1411,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the current upnp state variables of this renderer, if known. Default value is null.
+	 * Returns the current UPnP state variables of this renderer, if known. Default value is null.
 	 *
 	 * @return The data.
 	 */
@@ -1420,7 +1420,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the upnp services of this renderer.
+	 * Returns the UPnP services of this renderer.
 	 * Default value is null.
 	 *
 	 * @return The list of service names.
@@ -1448,7 +1448,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the upnp instance id of this renderer, if known. Default value is null.
+	 * Returns the UPnP instance id of this renderer, if known. Default value is null.
 	 *
 	 * @return The instance id.
 	 */
@@ -1457,7 +1457,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Sets the upnp instance id of this renderer.
+	 * Sets the UPnP instance id of this renderer.
 	 *
 	 * @param id The instance id.
 	 */
@@ -1475,7 +1475,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns whether this renderer is currently connected via upnp.
+	 * Returns whether this renderer is currently connected via UPnP.
 	 *
 	 * @return Whether connected.
 	 */
@@ -1498,7 +1498,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The address.
 	 */
 	public InetAddress getAddress() {
-		// If we have a uuid look up the upnp device address, which is always
+		// If we have a uuid look up the UPnP device address, which is always
 		// correct even if another device has overwritten our association
 		if (uuid != null) {
 			InetAddress address = UPNPHelper.getAddress(uuid);
@@ -2702,7 +2702,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static void verify(RendererConfiguration r) {
 		// FIXME: this is a very fallible, incomplete validity test for use only until
 		// we find something better. The assumption is that renderers unable determine
-		// their own address (i.e. non-upnp/web renderers that have lost their spot in the
+		// their own address (i.e. non-UPnP/web renderers that have lost their spot in the
 		// address association to a newer renderer at the same ip) are "invalid".
 		if (r.getUpnpMode() != BLOCK && r.getAddress() == null) {
 			LOGGER.debug("Purging renderer {} as invalid", r);

@@ -508,7 +508,11 @@ public class PMS {
 			}
 		}
 
-		Splash splash = new Splash(configuration);
+		// Splash
+		Splash splash = null;
+		if (!isHeadless()) {
+			splash = new Splash(configuration);
+		}
 
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
