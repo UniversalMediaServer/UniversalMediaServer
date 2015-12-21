@@ -60,6 +60,7 @@ public final class Languages {
 		"ja",      // Japanese
 		"ko",      // Korean
 		"no",      // Norwegian
+		"fa",      // Farsi (aka Persian)
 		"pl",      // Polish
 		"pt",      // Portuguese
 		"pt-BR",   // Brazilian Portuguese
