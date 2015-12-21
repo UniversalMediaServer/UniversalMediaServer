@@ -18,10 +18,8 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -39,6 +37,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	// should be private
 	@Deprecated
-	JCheckBox noresample;
+	CustomJCheckBox noresample;
 
 	@Deprecated
 	public FFmpegAudio(PmsConfiguration configuration) {
@@ -62,21 +62,20 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public JComponent config() {
-		FormLayout layout = new FormLayout(
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
 			"left:pref, 0:grow",
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		noresample = new JCheckBox(Messages.getString("TrTab2.22"), configuration.isAudioResample());
+		noresample = new CustomJCheckBox(Messages.getString("TrTab2.22"), configuration.isAudioResample());
 		noresample.setContentAreaFilled(false);
 		noresample.addItemListener(new ItemListener() {
 			@Override
@@ -84,9 +83,9 @@ public class FFmpegAudio extends FFMpegVideo {
 				configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(noresample), cc.xy(2, 3));
+		builder.add(noresample, cc.xy(2, 3));
 
-		return builder.getPanel();
+		return builder._getPanel();
 	}
 
 	@Override

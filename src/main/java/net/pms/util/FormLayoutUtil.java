@@ -203,7 +203,8 @@ public class FormLayoutUtil {
 		if (orientation.isLeftToRight()) {
 			return cc;
 		} else {
-			int columnCount = colSpec.split(",").length;
+			// Get the column count, handling multipliers correctly e.g. "3*(p, 3dlu), p"
+			int columnCount = ColumnSpec.decodeSpecs(colSpec).length;
 			return flipHorizontally(cc, columnCount);
 		}
 	}

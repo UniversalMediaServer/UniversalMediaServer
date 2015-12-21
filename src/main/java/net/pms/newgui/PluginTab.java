@@ -1,6 +1,5 @@
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -17,20 +16,21 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -47,15 +47,17 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.Messages;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.CustomJLabel;
+import net.pms.newgui.components.OrientedPanelBuilder;
+import net.pms.PMS;
 import net.pms.util.FileUtil;
-import net.pms.util.FormLayoutUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -81,18 +83,14 @@ public class PluginTab {
 	}
 
 	public JComponent build() {
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
-
-		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(COL_SPEC, ROW_SPEC);
 		builder.border(Borders.DLU4);
 		builder.opaque(true);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		// Available Plugins section
-		JComponent availablePluginsHeading = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+		JComponent availablePluginsHeading = builder._addSeparator(Messages.getString("PluginTab.1"), cc.xyw(1, 1, 9));
 		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
 		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
 
@@ -122,6 +120,8 @@ public class PluginTab {
 			}
 		};
 
+		builder.orientLabelRenderer((JLabel)table.getDefaultRenderer(table.getColumnClass(0)));
+
 		refresh(table, cols);
 
 		/* An attempt to set the correct row height adjusted for font scaling.
@@ -148,10 +148,10 @@ public class PluginTab {
 		JScrollPane pane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 139));
-		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
+		builder.add(pane, cc.xyw(1, 3, 9));
 
 		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
-		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		builder.add(install, cc.xy(1, 5));
 		install.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -178,7 +178,7 @@ public class PluginTab {
 				} catch (FileNotFoundException e1) {
 					JOptionPane.showMessageDialog(
 							looksFrame,
-							String.format(Messages.getString("PluginTab.17"), configuration.getPluginDirectory()),
+							Messages.getString("PluginTab.17", configuration.getPluginDirectory()),
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE
 						);
@@ -194,8 +194,8 @@ public class PluginTab {
 				JProgressBar progressBar = new JProgressBar();
 				progressBar.setIndeterminate(true);
 				panel.add(progressBar);
-				final JLabel label = new JLabel("");
-				final JLabel inst = new JLabel("");
+				final CustomJLabel label = new CustomJLabel("");
+				final CustomJLabel inst = new CustomJLabel("");
 				panel.add(inst);
 				panel.add(label);
 				frame.add(panel);
@@ -236,7 +236,7 @@ public class PluginTab {
 		});
 
 		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
-		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
+		builder.add(refresh, cc.xy(3, 5));
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -246,17 +246,17 @@ public class PluginTab {
 
 		// Installed Plugins section
 		JComponent component;
-		installedPluginsSeparator = (JPanel) builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
+		installedPluginsSeparator = (JPanel) builder._addSeparator(Messages.getString("PluginTab.0"), cc.xyw(1, 7, 9));
 		installedPluginsSeparator.setVisible(false);
 		component = (JComponent) installedPluginsSeparator.getComponent(0);
 		component.setFont(component.getFont().deriveFont(Font.BOLD));
 
 		pPlugins = new JPanel(new GridLayout());
 		pPlugins.setVisible(false);
-		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
+		builder.add(pPlugins, cc.xyw(1, 9, 9));
 
 		// Credentials section
-		component = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
+		component = builder._addSeparator(Messages.getString("PluginTab.8"), cc.xyw(1, 11, 9));
 		component = (JComponent) component.getComponent(0);
 		component.setFont(component.getFont().deriveFont(Font.BOLD));
 
@@ -269,6 +269,8 @@ public class PluginTab {
 		credTable.setFillsViewportHeight(true);
 
 		credTable.setIntercellSpacing(new Dimension(8, 2));
+
+		builder.orientLabelRenderer((JLabel)credTable.getDefaultRenderer(credTable.getColumnClass(0)));
 
 		// Define column widths
 		TableColumn ownerColumn = credTable.getColumnModel().getColumn(0);
@@ -283,11 +285,11 @@ public class PluginTab {
 		pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 95));
-		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
+		builder.add(pane, cc.xyw(1, 13, 9));
 
 		// Add button
 		CustomJButton add = new CustomJButton(Messages.getString("PluginTab.9"));
-		builder.add(add, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
+		builder.add(add, cc.xy(1, 15));
 		add.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -297,7 +299,7 @@ public class PluginTab {
 
 		// Edit button
 		CustomJButton edit = new CustomJButton(Messages.getString("PluginTab.11"));
-		builder.add(edit, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
+		builder.add(edit, cc.xy(3, 15));
 		edit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -307,7 +309,7 @@ public class PluginTab {
 
 		// Delete button
 		CustomJButton del = new CustomJButton(Messages.getString("PluginTab.12"));
-		builder.add(del, FormLayoutUtil.flip(cc.xy(5, 15), colSpec, orientation));
+		builder.add(del, cc.xy(5, 15));
 		del.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -421,9 +423,9 @@ public class PluginTab {
 				}
 			}
 		});
-		builder.add(credEdit, FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
+		builder.add(credEdit, cc.xy(7, 15));
 
-		JPanel panel = builder.getPanel();
+		JPanel panel = builder._getPanel();
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -627,12 +629,12 @@ public class PluginTab {
 		panel.setLayout(layout);
 		final JFrame frame = new JFrame(Messages.getString("PluginTab.10"));
 		frame.setSize(270, 130);
-		final JLabel owner = new JLabel(Messages.getString("PluginTab.4"));
-		final JLabel tag = new JLabel(Messages.getString("PluginTab.5"));
-		final JLabel usr = new JLabel(Messages.getString("PluginTab.6"));
-		final JLabel pwd = new JLabel(Messages.getString("PluginTab.7"));
-		final JCheckBox hidden = new JCheckBox(Messages.getString("PluginTab.14"), false);
-		JLabel empty = new JLabel(" ");
+		final CustomJLabel owner = new CustomJLabel(Messages.getString("PluginTab.4"));
+		final CustomJLabel tag = new CustomJLabel(Messages.getString("PluginTab.5"));
+		final CustomJLabel usr = new CustomJLabel(Messages.getString("PluginTab.6"));
+		final CustomJLabel pwd = new CustomJLabel(Messages.getString("PluginTab.7"));
+		final CustomJCheckBox hidden = new CustomJCheckBox(Messages.getString("PluginTab.14"), false);
+		CustomJLabel empty = new CustomJLabel(" ");
 		String o = "";
 		String t = "";
 		String u = "";
@@ -740,7 +742,7 @@ public class PluginTab {
 				l.setText("**************");
 			}
 
-			return l;
+			return c;
 		}
 	}
 }

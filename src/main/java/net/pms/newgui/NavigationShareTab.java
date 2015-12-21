@@ -18,29 +18,28 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.Component;
-import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.event.*;
+import java.awt.Font;
 import java.io.File;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.Messages;
 import net.pms.newgui.components.CustomJButton;
-import net.pms.util.FormLayoutUtil;
+import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
+import net.pms.PMS;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
@@ -57,36 +56,36 @@ public class NavigationShareTab {
 
 	private JTable FList;
 	private SharedFoldersTableModel folderTableModel;
-	private JCheckBox hidevideosettings;
-	private JCheckBox hidetranscode;
-	private JCheckBox hidemedialibraryfolder;
-	private JCheckBox hideextensions;
-	private JCheckBox hideemptyfolders;
-	private JCheckBox hideengines;
+	private CustomJCheckBox hidevideosettings;
+	private CustomJCheckBox hidetranscode;
+	private CustomJCheckBox hidemedialibraryfolder;
+	private CustomJCheckBox hideextensions;
+	private CustomJCheckBox hideemptyfolders;
+	private CustomJCheckBox hideengines;
 	private CustomJButton but5;
 	private JTextField seekpos;
-	private JCheckBox thumbgenCheckBox;
-	private JCheckBox mplayer_thumb;
-	private JCheckBox dvdiso_thumb;
-	private JCheckBox image_thumb;
-	private JCheckBox cacheenable;
-	private JCheckBox archive;
+	private CustomJCheckBox thumbgenCheckBox;
+	private CustomJCheckBox mplayer_thumb;
+	private CustomJCheckBox dvdiso_thumb;
+	private CustomJCheckBox image_thumb;
+	private CustomJCheckBox cacheenable;
+	private CustomJCheckBox archive;
 	private JComboBox sortmethod;
 	private JComboBox audiothumbnail;
 	private JTextField defaultThumbFolder;
-	private JCheckBox iphoto;
-	private JCheckBox aperture;
-	public static JCheckBox itunes;
+	private CustomJCheckBox iphoto;
+	private CustomJCheckBox aperture;
+	public static CustomJCheckBox itunes;
 	private CustomJButton select;
 	private CustomJButton cachereset;
-	private JCheckBox ignorethewordthe;
+	private CustomJCheckBox ignorethewordthe;
 	private JTextField atzLimit;
-	private JCheckBox liveSubtitles;
-	private JCheckBox prettifyfilenames;
-	private JCheckBox episodeTitles;
-	private JCheckBox newmediafolder;
-	private JCheckBox recentlyplayedfolder;
-	private JCheckBox resume;
+	private CustomJCheckBox liveSubtitles;
+	private CustomJCheckBox prettifyfilenames;
+	private CustomJCheckBox episodeTitles;
+	private CustomJCheckBox newmediafolder;
+	private CustomJCheckBox recentlyplayedfolder;
+	private CustomJCheckBox resume;
 
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;
@@ -136,92 +135,82 @@ public class NavigationShareTab {
 	}
 
 	public JComponent build() {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec(PANEL_COL_SPEC, orientation);
-
 		// Set basic layout
-		FormLayout layout = new FormLayout(colSpec, PANEL_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(PANEL_COL_SPEC, PANEL_ROW_SPEC);
 		builder.border(Borders.DLU4);
 		builder.opaque(true);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		// Init all gui components
-		initSimpleComponents(cc);
-		PanelBuilder builderSharedFolder = initSharedFoldersGuiComponents(cc);
+		initSimpleComponents(cc, builder);
+		OrientedPanelBuilder builderSharedFolder = initSharedFoldersGuiComponents(cc);
 
 		// Build gui with initialized components
 		if (!configuration.isHideAdvancedOptions()) {
-			JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
+			JComponent cmp = builder._addSeparator(Messages.getString("FoldTab.13"), cc.xyw(1, 1, 10));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(thumbgenCheckBox),        FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
-			builder.addLabel(Messages.getString("NetworkTab.16"),                   FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
-			builder.add(seekpos,                                                    FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(image_thumb),             FormLayoutUtil.flip(cc.xy(9, 3), colSpec, orientation));
+			builder.add(thumbgenCheckBox, cc.xyw(1, 3, 3));
+			builder._addLabel(Messages.getString("NetworkTab.16"), cc.xyw(4, 3, 2));
+			builder.add(seekpos, cc.xy(6, 3));
+			builder.add(image_thumb, cc.xy(9, 3));
 
-			builder.addLabel(Messages.getString("FoldTab.26"),                      FormLayoutUtil.flip(cc.xyw(1, 5, 3), colSpec, orientation));
-			builder.add(audiothumbnail,                                             FormLayoutUtil.flip(cc.xyw(4, 5, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(mplayer_thumb),           FormLayoutUtil.flip(cc.xy(9, 5), colSpec, orientation));
+			builder._addLabel(Messages.getString("FoldTab.26"), cc.xyw(1, 5, 3));
+			builder.add(audiothumbnail, cc.xyw(4, 5, 3));
+			builder.add(mplayer_thumb, cc.xy(9, 5));
 
-			builder.addLabel(Messages.getString("FoldTab.27"),                      FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
-			builder.add(defaultThumbFolder,                                         FormLayoutUtil.flip(cc.xyw(4, 7, 2), colSpec, orientation));
-			builder.add(select,                                                     FormLayoutUtil.flip(cc.xy(6, 7), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(dvdiso_thumb),            FormLayoutUtil.flip(cc.xy(9, 7), colSpec, orientation));
+			builder._addLabel(Messages.getString("FoldTab.27"), cc.xy(1, 7));
+			builder.add(defaultThumbFolder, cc.xyw(4, 7, 2));
+			builder.add(select, cc.xy(6, 7));
+			builder.add(dvdiso_thumb, cc.xy(9, 7));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.59"),         FormLayoutUtil.flip(cc.xyw(1, 9, 10), colSpec, orientation));
+			cmp = builder._addSeparator(Messages.getString("NetworkTab.59"), cc.xyw(1, 9, 10));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.addLabel(Messages.getString("FoldTab.18"),                      FormLayoutUtil.flip(cc.xyw(1, 11, 3), colSpec, orientation));
-			builder.add(sortmethod,                                                 FormLayoutUtil.flip(cc.xyw(4, 11, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(ignorethewordthe),        FormLayoutUtil.flip(cc.xy(9, 11), colSpec, orientation));
+			builder._addLabel(Messages.getString("FoldTab.18"), cc.xyw(1, 11, 3));
+			builder.add(sortmethod, cc.xyw(4, 11, 3));
+			builder.add(ignorethewordthe, cc.xy(9, 11));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),       FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),           FormLayoutUtil.flip(cc.xy(9, 13), colSpec, orientation));
+			builder.add(prettifyfilenames, cc.xyw(1, 13, 5));
+			builder.add(episodeTitles, cc.xy(9, 13));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),         FormLayoutUtil.flip(cc.xyw(1, 15, 10), colSpec, orientation));
+			cmp = builder._addSeparator(Messages.getString("NetworkTab.60"), cc.xyw(1, 15, 10));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),          FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),             FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),        FormLayoutUtil.flip(cc.xy(9, 17), colSpec, orientation));
+			builder.add(hideextensions, cc.xyw(1, 17, 3));
+			builder.add(hideengines, cc.xyw(4, 17, 3));
+			builder.add(hideemptyfolders, cc.xy(9, 17));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                  FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                  FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                FormLayoutUtil.flip(cc.xy(9, 19), colSpec, orientation));
+			builder.add(itunes, cc.xy(1, 19));
+			builder.add(iphoto, cc.xyw(4, 19, 3));
+			builder.add(aperture, cc.xy(9, 19));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(cacheenable),             FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
-			builder.add(cachereset,                                                 FormLayoutUtil.flip(cc.xyw(4, 21, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hidemedialibraryfolder),  FormLayoutUtil.flip(cc.xy(9, 21), colSpec, orientation));
+			builder.add(cacheenable, cc.xy(1, 21));
+			builder.add(cachereset, cc.xyw(4, 21, 3));
+			builder.add(hidemedialibraryfolder, cc.xy(9, 21));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(archive),                 FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hidevideosettings),       FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hidetranscode),           FormLayoutUtil.flip(cc.xy(9, 23), colSpec, orientation));
+			builder.add(archive, cc.xyw(1, 23, 3));
+			builder.add(hidevideosettings, cc.xyw(4, 23, 3));
+			builder.add(hidetranscode, cc.xy(9, 23));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(liveSubtitles),           FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
-			builder.addLabel(Messages.getString("FoldTab.37"),                      FormLayoutUtil.flip(cc.xyw(4, 25, 2), colSpec, orientation));
-			builder.add(atzLimit,                                                   FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(newmediafolder),          FormLayoutUtil.flip(cc.xy(9, 25), colSpec, orientation));
+			builder.add(liveSubtitles, cc.xyw(1, 25, 3));
+			builder._addLabel(Messages.getString("FoldTab.37"), cc.xyw(4, 25, 2));
+			builder.add(atzLimit, cc.xy(6, 25));
+			builder.add(newmediafolder, cc.xy(9, 25));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(resume),                  FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(recentlyplayedfolder),    FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
+			builder.add(resume, cc.xy(1, 27));
+			builder.add(recentlyplayedfolder, cc.xyw(4, 27, 3));
 
-			builder.add(builderSharedFolder.getPanel(),                             FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
+			builder.add(builderSharedFolder.getPanel(), cc.xyw(1, 29, 10));
 		} else {
-			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
+			builder.add(builderSharedFolder.getPanel(), cc.xyw(1, 1, 10));
 		}
 
-		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 29, 10), colSpec, orientation));
-
-		JPanel panel = builder.getPanel();
-
-		// Apply the orientation to the panel and all components in it
-		panel.applyComponentOrientation(orientation);
+		JPanel panel = builder._getPanel();
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
@@ -233,7 +222,7 @@ public class NavigationShareTab {
 		return scrollPane;
 	}
 
-	private void initSimpleComponents(CellConstraints cc) {
+	private void initSimpleComponents(CellConstraints cc, OrientedPanelBuilder builder) {
 		// Thumbnail seeking position
 		seekpos = new JTextField("" + configuration.getThumbnailSeekPos());
 		seekpos.addKeyListener(new KeyAdapter() {
@@ -258,7 +247,7 @@ public class NavigationShareTab {
 		}
 
 		// Generate thumbnails
-		thumbgenCheckBox = new JCheckBox(Messages.getString("NetworkTab.2"), configuration.isThumbnailGenerationEnabled());
+		thumbgenCheckBox = new CustomJCheckBox(Messages.getString("NetworkTab.2"), configuration.isThumbnailGenerationEnabled());
 		thumbgenCheckBox.setContentAreaFilled(false);
 		thumbgenCheckBox.addItemListener(new ItemListener() {
 			@Override
@@ -270,7 +259,7 @@ public class NavigationShareTab {
 		});
 
 		// Use MPlayer for video thumbnails
-		mplayer_thumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
+		mplayer_thumb = new CustomJCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
 		mplayer_thumb.setToolTipText(Messages.getString("FoldTab.61"));
 		mplayer_thumb.setContentAreaFilled(false);
 		mplayer_thumb.addItemListener(new ItemListener() {
@@ -286,7 +275,7 @@ public class NavigationShareTab {
 		}
 
 		// DVD ISO thumbnails
-		dvdiso_thumb = new JCheckBox(Messages.getString("FoldTab.19"), configuration.isDvdIsoThumbnails());
+		dvdiso_thumb = new CustomJCheckBox(Messages.getString("FoldTab.19"), configuration.isDvdIsoThumbnails());
 		dvdiso_thumb.setContentAreaFilled(false);
 		dvdiso_thumb.addItemListener(new ItemListener() {
 			@Override
@@ -296,7 +285,7 @@ public class NavigationShareTab {
 		});
 
 		// Image thumbnails
-		image_thumb = new JCheckBox(Messages.getString("FoldTab.21"), configuration.getImageThumbnailsEnabled());
+		image_thumb = new CustomJCheckBox(Messages.getString("FoldTab.21"), configuration.getImageThumbnailsEnabled());
 		image_thumb.setContentAreaFilled(false);
 		image_thumb.addItemListener(new ItemListener() {
 			@Override
@@ -309,6 +298,7 @@ public class NavigationShareTab {
 		final KeyedComboBoxModel thumbKCBM = new KeyedComboBoxModel(new Object[]{"0", "1", "2"}, new Object[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
 		audiothumbnail = new JComboBox(thumbKCBM);
 		audiothumbnail.setEditable(false);
+		builder.orientLabelRenderer((JLabel)audiothumbnail.getRenderer());
 
 		thumbKCBM.setSelectedKey("" + configuration.getAudioThumbnailMethod());
 
@@ -357,7 +347,7 @@ public class NavigationShareTab {
 		});
 
 		// Hide Server Settings folder
-		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.38"), configuration.getHideVideoSettings());
+		hidevideosettings = new CustomJCheckBox(Messages.getString("FoldTab.38"), configuration.getHideVideoSettings());
 		hidevideosettings.setContentAreaFilled(false);
 		hidevideosettings.addItemListener(new ItemListener() {
 			@Override
@@ -367,7 +357,7 @@ public class NavigationShareTab {
 		});
 
 		// Hide #--TRANSCODE--# folder
-		hidetranscode = new JCheckBox(Messages.getString("FoldTab.33"), configuration.getHideTranscodeEnabled());
+		hidetranscode = new CustomJCheckBox(Messages.getString("FoldTab.33"), configuration.getHideTranscodeEnabled());
 		hidetranscode.setContentAreaFilled(false);
 		hidetranscode.addItemListener(new ItemListener() {
 			@Override
@@ -377,7 +367,7 @@ public class NavigationShareTab {
 		});
 
 		// Hide cache folder
-		hidemedialibraryfolder = new JCheckBox(Messages.getString("FoldTab.32"), configuration.isHideMediaLibraryFolder());
+		hidemedialibraryfolder = new CustomJCheckBox(Messages.getString("FoldTab.32"), configuration.isHideMediaLibraryFolder());
 		hidemedialibraryfolder.setContentAreaFilled(false);
 		hidemedialibraryfolder.addItemListener(new ItemListener() {
 			@Override
@@ -387,7 +377,7 @@ public class NavigationShareTab {
 		});
 
 		// Browse compressed archives
-		archive = new JCheckBox(Messages.getString("NetworkTab.1"), configuration.isArchiveBrowsing());
+		archive = new CustomJCheckBox(Messages.getString("NetworkTab.1"), configuration.isArchiveBrowsing());
 		archive.setContentAreaFilled(false);
 		archive.addItemListener(new ItemListener() {
 			@Override
@@ -397,7 +387,7 @@ public class NavigationShareTab {
 		});
 
 		// Enable the cache
-		cacheenable = new JCheckBox(Messages.getString("NetworkTab.17"), configuration.getUseCache());
+		cacheenable = new CustomJCheckBox(Messages.getString("NetworkTab.17"), configuration.getUseCache());
 		cacheenable.setToolTipText(Messages.getString("FoldTab.48"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.addItemListener(new ItemListener() {
@@ -428,7 +418,7 @@ public class NavigationShareTab {
 		cachereset.setEnabled(configuration.getUseCache());
 
 		// Hide file extensions
-		hideextensions = new JCheckBox(Messages.getString("FoldTab.5"), configuration.isHideExtensions());
+		hideextensions = new CustomJCheckBox(Messages.getString("FoldTab.5"), configuration.isHideExtensions());
 		hideextensions.setContentAreaFilled(false);
 		if (configuration.isPrettifyFilenames()) {
 			hideextensions.setEnabled(false);
@@ -441,7 +431,7 @@ public class NavigationShareTab {
 		});
 
 		// Hide transcoding engine names
-		hideengines = new JCheckBox(Messages.getString("FoldTab.8"), configuration.isHideEngineNames());
+		hideengines = new CustomJCheckBox(Messages.getString("FoldTab.8"), configuration.isHideEngineNames());
 		hideengines.setToolTipText(Messages.getString("FoldTab.46"));
 		hideengines.setContentAreaFilled(false);
 		hideengines.addItemListener(new ItemListener() {
@@ -452,7 +442,7 @@ public class NavigationShareTab {
 		});
 
 		// Hide empty folders
-		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"), configuration.isHideEmptyFolders());
+		hideemptyfolders = new CustomJCheckBox(Messages.getString("FoldTab.31"), configuration.isHideEmptyFolders());
 		hideemptyfolders.setToolTipText(Messages.getString("FoldTab.59"));
 		hideemptyfolders.setContentAreaFilled(false);
 		hideemptyfolders.addItemListener(new ItemListener() {
@@ -463,7 +453,7 @@ public class NavigationShareTab {
 		});
 
 		// Show iTunes library
-		itunes = new JCheckBox(Messages.getString("FoldTab.30"), configuration.isShowItunesLibrary());
+		itunes = new CustomJCheckBox(Messages.getString("FoldTab.30"), configuration.isShowItunesLibrary());
 		itunes.setToolTipText(Messages.getString("FoldTab.47"));
 		itunes.setContentAreaFilled(false);
 		if (!(Platform.isMac() || Platform.isWindows())) {
@@ -477,7 +467,7 @@ public class NavigationShareTab {
 		});
 
 		// Show iPhoto library
-		iphoto = new JCheckBox(Messages.getString("FoldTab.29"), configuration.isShowIphotoLibrary());
+		iphoto = new CustomJCheckBox(Messages.getString("FoldTab.29"), configuration.isShowIphotoLibrary());
 		iphoto.setContentAreaFilled(false);
 		if (!Platform.isMac()) {
 			iphoto.setEnabled(false);
@@ -490,7 +480,7 @@ public class NavigationShareTab {
 		});
 
 		// Show aperture library
-		aperture = new JCheckBox(Messages.getString("FoldTab.34"), configuration.isShowApertureLibrary());
+		aperture = new CustomJCheckBox(Messages.getString("FoldTab.34"), configuration.isShowApertureLibrary());
 		aperture.setContentAreaFilled(false);
 		if (!Platform.isMac()) {
 			aperture.setEnabled(false);
@@ -525,6 +515,7 @@ public class NavigationShareTab {
 		);
 		sortmethod = new JComboBox(kcbm);
 		sortmethod.setEditable(false);
+		builder.orientLabelRenderer((JLabel)sortmethod.getRenderer());
 		kcbm.setSelectedKey("" + configuration.getSortMethod(null));
 
 		sortmethod.addItemListener(new ItemListener() {
@@ -541,7 +532,7 @@ public class NavigationShareTab {
 		});
 
 		// Ignore the word "the" while sorting
-		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordThe());
+		ignorethewordthe = new CustomJCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordThe());
 		ignorethewordthe.setToolTipText(Messages.getString("FoldTab.44"));
 		ignorethewordthe.setContentAreaFilled(false);
 		ignorethewordthe.addItemListener(new ItemListener() {
@@ -566,7 +557,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		liveSubtitles = new JCheckBox(Messages.getString("FoldTab.42"), configuration.isHideLiveSubtitlesFolder());
+		liveSubtitles = new CustomJCheckBox(Messages.getString("FoldTab.42"), configuration.isHideLiveSubtitlesFolder());
 		liveSubtitles.setContentAreaFilled(false);
 		liveSubtitles.addItemListener(new ItemListener() {
 			@Override
@@ -575,7 +566,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.43"), configuration.isPrettifyFilenames());
+		prettifyfilenames = new CustomJCheckBox(Messages.getString("FoldTab.43"), configuration.isPrettifyFilenames());
 		prettifyfilenames.setToolTipText(Messages.getString("FoldTab.45"));
 		prettifyfilenames.setContentAreaFilled(false);
 		prettifyfilenames.addItemListener(new ItemListener() {
@@ -587,7 +578,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		episodeTitles = new JCheckBox(Messages.getString("FoldTab.63"), configuration.isUseInfoFromIMDB());
+		episodeTitles = new CustomJCheckBox(Messages.getString("FoldTab.63"), configuration.isUseInfoFromIMDB());
 		episodeTitles.setToolTipText(Messages.getString("FoldTab.64"));
 		episodeTitles.setContentAreaFilled(false);
 		if (!configuration.isPrettifyFilenames()) {
@@ -600,7 +591,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"), configuration.isHideNewMediaFolder());
+		newmediafolder = new CustomJCheckBox(Messages.getString("FoldTab.54"), configuration.isHideNewMediaFolder());
 		newmediafolder.setToolTipText(Messages.getString("FoldTab.60"));
 		newmediafolder.setContentAreaFilled(false);
 		newmediafolder.addItemListener(new ItemListener() {
@@ -610,7 +601,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		resume = new JCheckBox(Messages.getString("NetworkTab.68"), configuration.isResumeEnabled());
+		resume = new CustomJCheckBox(Messages.getString("NetworkTab.68"), configuration.isResumeEnabled());
 		resume.setToolTipText(Messages.getString("NetworkTab.69"));
 		resume.setContentAreaFilled(false);
 		resume.addItemListener(new ItemListener() {
@@ -620,7 +611,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"), configuration.isHideRecentlyPlayedFolder());
+		recentlyplayedfolder = new CustomJCheckBox(Messages.getString("FoldTab.55"), configuration.isHideRecentlyPlayedFolder());
 		recentlyplayedfolder.setContentAreaFilled(false);
 		recentlyplayedfolder.addItemListener(new ItemListener() {
 			@Override
@@ -630,21 +621,19 @@ public class NavigationShareTab {
 		});
 	}
 
-	private PanelBuilder initSharedFoldersGuiComponents(CellConstraints cc) {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec(SHARED_FOLDER_COL_SPEC, orientation);
-
-		FormLayout layoutFolders = new FormLayout(colSpec, SHARED_FOLDER_ROW_SPEC);
-		PanelBuilder builderFolder = new PanelBuilder(layoutFolders);
+	private OrientedPanelBuilder initSharedFoldersGuiComponents(CellConstraints cc) {
+		OrientedPanelBuilder builderFolder = new OrientedPanelBuilder(SHARED_FOLDER_COL_SPEC, SHARED_FOLDER_ROW_SPEC);
 		builderFolder.opaque(true);
 
-		JComponent cmp = builderFolder.addSeparator(Messages.getString("FoldTab.7"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
+		JComponent cmp = builderFolder._addSeparator(Messages.getString("FoldTab.7"), cc.xyw(1, 1, 7));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		folderTableModel = new SharedFoldersTableModel();
 		FList = new JTable(folderTableModel);
+
+		builderFolder.orientLabelRenderer((JLabel)FList.getDefaultRenderer(FList.getColumnClass(0)));
+
 		TableColumn column = FList.getColumnModel().getColumn(0);
 		column.setMinWidth(650);
 
@@ -678,7 +667,7 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+		builderFolder.add(but, cc.xy(1, 3));
 
 		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-remove.png"));
 		but2.setToolTipText(Messages.getString("FoldTab.36"));
@@ -694,7 +683,7 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		builderFolder.add(but2, cc.xy(2, 3));
 
 		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
 		but3.setToolTipText(Messages.getString("FoldTab.12"));
@@ -717,7 +706,7 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+		builderFolder.add(but3, cc.xy(3, 3));
 
 		CustomJButton but4 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
 		but4.setToolTipText(Messages.getString("FoldTab.12"));
@@ -741,7 +730,7 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
+		builderFolder.add(but4, cc.xy(4, 3));
 
 		but5 = new CustomJButton(LooksFrame.readImageIcon("button-scan.png"));
 		but5.setToolTipText(Messages.getString("FoldTab.2"));
@@ -781,7 +770,7 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+		builderFolder.add(but5, cc.xy(5, 3));
 		but5.setEnabled(configuration.getUseCache());
 
 		File[] folders = PMS.get().getSharedFoldersArray(false);
@@ -805,7 +794,7 @@ public class NavigationShareTab {
 		JScrollPane pane = new JScrollPane(FList);
 		Dimension d = FList.getPreferredSize();
 		pane.setPreferredSize(new Dimension(d.width, FList.getRowHeight() * 2));
-		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
+		builderFolder.add(pane, cc.xyw(1, 5, 7));
 
 		return builderFolder;
 	}

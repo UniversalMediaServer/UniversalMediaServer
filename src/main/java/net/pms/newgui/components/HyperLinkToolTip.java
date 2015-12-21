@@ -10,6 +10,7 @@ import javax.swing.event.*;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.ToolTipUI;
 import net.pms.PMS;
+import net.pms.newgui.GuiUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +23,14 @@ public class HyperLinkToolTip extends JToolTip {
 	private static ColorUIResource bg = new ColorUIResource(PMS.getConfiguration().getToolTipBackgroundColor());
 
 	private JEditorPane editorPane;
+	private boolean ltr;
 
 	public HyperLinkToolTip() {
+		this(PMS.isLeftToRightLocale());
+	}
+
+	public HyperLinkToolTip(boolean ltr) {
+		this.ltr = ltr;
 		setLayout(new BorderLayout());
 		editorPane = new JEditorPane();
 		editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
@@ -54,7 +61,7 @@ public class HyperLinkToolTip extends JToolTip {
 
 	@Override
 	public void setTipText(String tipText) {
-		editorPane.setText(tipText);
+		editorPane.setText(GuiUtil.htmlify(tipText, ltr));
 	}
 
 	@Override

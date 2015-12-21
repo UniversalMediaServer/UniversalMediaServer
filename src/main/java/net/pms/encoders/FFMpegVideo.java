@@ -18,10 +18,8 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -33,7 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -48,6 +45,8 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
@@ -1244,10 +1243,10 @@ public class FFMpegVideo extends Player {
 		return pw;
 	}
 
-	private JCheckBox multithreading;
-	private JCheckBox videoRemuxTsMuxer;
-	private JCheckBox fc;
-	private JCheckBox deferToMEncoderForSubtitles;
+	private CustomJCheckBox multithreading;
+	private CustomJCheckBox videoRemuxTsMuxer;
+	private CustomJCheckBox fc;
+	private CustomJCheckBox deferToMEncoderForSubtitles;
 
 	@Override
 	public JComponent config() {
@@ -1255,21 +1254,20 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected JComponent config(String languageLabel) {
-		FormLayout layout = new FormLayout(
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
 			"left:pref, 0:grow",
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		JComponent cmp = builder.addSeparator(Messages.getString(languageLabel), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.isFfmpegMultithreading());
+		multithreading = new CustomJCheckBox(Messages.getString("MEncoderVideo.35"), configuration.isFfmpegMultithreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener(new ItemListener() {
 			@Override
@@ -1277,9 +1275,9 @@ public class FFMpegVideo extends Player {
 				configuration.setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
+		builder.add(multithreading, cc.xy(2, 3));
 
-		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
+		videoRemuxTsMuxer = new CustomJCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
 		videoRemuxTsMuxer.setContentAreaFilled(false);
 		videoRemuxTsMuxer.addItemListener(new ItemListener() {
 			@Override
@@ -1287,9 +1285,9 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(videoRemuxTsMuxer), cc.xy(2, 5));
+		builder.add(videoRemuxTsMuxer, cc.xy(2, 5));
 
-		fc = new JCheckBox(Messages.getString("FFmpeg.3"), configuration.isFFmpegFontConfig());
+		fc = new CustomJCheckBox(Messages.getString("FFmpeg.3"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
 		fc.setToolTipText(Messages.getString("FFmpeg.0"));
 		fc.addItemListener(new ItemListener() {
@@ -1298,9 +1296,9 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(fc), cc.xy(2, 7));
+		builder.add(fc, cc.xy(2, 7));
 
-		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForProblematicSubtitles());
+		deferToMEncoderForSubtitles = new CustomJCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForProblematicSubtitles());
 		deferToMEncoderForSubtitles.setContentAreaFilled(false);
 		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("FFmpeg.2"));
 		deferToMEncoderForSubtitles.addItemListener(new ItemListener() {
@@ -1309,9 +1307,9 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegDeferToMEncoderForProblematicSubtitles(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
+		builder.add(deferToMEncoderForSubtitles, cc.xy(2, 9));
 
-		return builder.getPanel();
+		return builder._getPanel();
 	}
 
 	/**

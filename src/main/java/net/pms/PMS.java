@@ -1588,6 +1588,10 @@ public class PMS {
 		}
 	}
 
+	public static boolean isLeftToRightLocale() {
+		return Messages.isResourceBundleLTR;
+	}
+
 	public static void setLocale(Locale aLocale) {
 		localeLock.writeLock().lock();
 		try {

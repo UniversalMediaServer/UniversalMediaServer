@@ -18,20 +18,18 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.Font;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
-import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -41,6 +39,8 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.Messages;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -177,21 +177,21 @@ public class FFmpegDVRMSRemux extends Player {
 
 	@Override
 	public JComponent config() {
-		FormLayout layout = new FormLayout(
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
 			"left:pref, 3dlu, p, 3dlu, 0:grow",
 			"p, 3dlu, p, 3dlu, 0:grow"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
+
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(1, 1, 5));
+		JComponent cmp = builder._addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(1, 1, 5));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("FFmpegDVRMSRemux.0"), cc.xy(1, 3));
+		builder._addLabel(Messages.getString("FFmpegDVRMSRemux.0"), cc.xy(1, 3));
 		altffpath = new JTextField(configuration.getFfmpegAlternativePath());
 		altffpath.addKeyListener(new KeyAdapter() {
 			@Override
@@ -201,7 +201,7 @@ public class FFmpegDVRMSRemux extends Player {
 		});
 		builder.add(altffpath, cc.xyw(3, 3, 3));
 
-		return builder.getPanel();
+		return builder._getPanel();
 	}
 
 	@Override

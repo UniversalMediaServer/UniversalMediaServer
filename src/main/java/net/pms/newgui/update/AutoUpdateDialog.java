@@ -11,6 +11,9 @@ import java.util.Observer;
 import javax.swing.*;
 import com.sun.jna.Platform;
 import net.pms.Messages;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.newgui.components.CustomJLabel;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 import net.pms.util.FileUtil;
@@ -18,7 +21,7 @@ import net.pms.util.FileUtil;
 public class AutoUpdateDialog extends JDialog implements Observer {
 	private static final long serialVersionUID = 3809427933990495309L;
 	private final AutoUpdater autoUpdater;
-	private JLabel stateLabel = new JLabel();
+	private CustomJLabel stateLabel = new CustomJLabel();
 	private JButton okButton = new DownloadButton();
 	private JButton cancelButton = new CancelButton();
 	private JProgressBar downloadProgressBar = new JProgressBar();
@@ -185,7 +188,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 					}
 				} catch (FileNotFoundException e) {
 					// This should never happen
-					permissionsReminder = "\n" + String.format(Messages.getString("TracesTab.21"), file.getAbsolutePath());
+					permissionsReminder = "\n" + Messages.getString("TracesTab.21", file.getAbsolutePath());
 					cancelButton.setText(Messages.getString("Dialog.Close"));
 					okButton.setEnabled(false);
 					okButton.setVisible(false);

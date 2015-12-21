@@ -18,10 +18,8 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -41,6 +39,8 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.newgui.components.CustomJCheckBox;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -63,28 +63,27 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	public static final String ID = "avsmencoder";
 
 	private JTextArea textArea;
-	private JCheckBox convertfps;
-	private JCheckBox interframe;
-	private static JCheckBox interframegpu;
-	private JCheckBox multithreading;
+	private CustomJCheckBox convertfps;
+	private CustomJCheckBox interframe;
+	private static CustomJCheckBox interframegpu;
+	private CustomJCheckBox multithreading;
 
 	@Override
 	public JComponent config() {
-		FormLayout layout = new FormLayout(
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(
 			"left:pref, 0:grow",
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 12dlu, p, 3dlu, 0:grow"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.getAvisynthMultiThreading());
+		multithreading = new CustomJCheckBox(Messages.getString("MEncoderVideo.35"), configuration.getAvisynthMultiThreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener(new ItemListener() {
 			@Override
@@ -92,9 +91,9 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				configuration.setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
+		builder.add(multithreading, cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getAvisynthInterFrame());
+		interframe = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
 		interframe.addActionListener(new ActionListener() {
 			@Override
@@ -110,9 +109,9 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				}
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
+		builder.add(interframe, cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getAvisynthInterFrameGPU());
+		interframegpu = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
@@ -120,9 +119,9 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				configuration.setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
+		builder.add(interframegpu, cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getAvisynthConvertFps());
+		convertfps = new CustomJCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener(new ItemListener() {
 			@Override
@@ -130,7 +129,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				configuration.setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 9));
+		builder.add(convertfps, cc.xy(2, 9));
 
 		String aviSynthScriptInstructions = Messages.getString("AviSynthMEncoder.4") +
 			Messages.getString("AviSynthMEncoder.5") +
@@ -192,7 +191,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			}
 		});
 
-		return builder.getPanel();
+		return builder._getPanel();
 	}
 
 	@Override

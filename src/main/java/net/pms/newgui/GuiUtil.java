@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.plaf.ProgressBarUI;
+import net.pms.PMS;
+import net.pms.Messages;
 import org.apache.commons.lang3.StringUtils;
 
 public final class GuiUtil {
@@ -575,6 +577,45 @@ public final class GuiUtil {
 			}
 
 			dim.height += rowHeight;
+		}
+	}
+
+	public static String htmlify(String text) {
+		return htmlify(text, PMS.isLeftToRightLocale());
+	}
+
+	public static String htmlify(String text, boolean ltr) {
+		// There is no syntax/encoding validation, we assume the string
+		// is either proper html or just ordinary plain text.
+		if (text != null) {
+			String s = text.trim().toLowerCase();
+			if (!s.startsWith("<html>")) {
+				return "<html>"
+					+ (!ltr ? "<div align=right>" : "")
+					+ text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+					+ (!ltr ? "</div>" : "")
+					+ "</html>";
+			}
+			// Ensure html alignment is specified if rtl
+			if (!ltr && !s.contains("<div align=right>")) {
+				return "<html><div align=right>"
+					+ text.trim().substring(6, text.length() - 7)
+					+ "</div></html>";
+			}
+		}
+		return text;
+	}
+	
+	public static String deHtmlify(String text) {
+		return text.replaceAll("\\<.*?>", "").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
+	}
+
+	public static void enableContainer(Container c, boolean enable) {
+		for (Component component : c.getComponents()) {
+			component.setEnabled(enable);
+			if (component instanceof Container) {
+				enableContainer((Container)component, enable);
+			}
 		}
 	}
 }

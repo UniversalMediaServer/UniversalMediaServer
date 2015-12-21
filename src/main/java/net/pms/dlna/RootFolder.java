@@ -855,7 +855,7 @@ public class RootFolder extends DLNAResource {
 										name = name.replace('.', '-');
 
 										if (track.containsKey("Protected") && track.get("Protected").equals(Boolean.TRUE)) {
-											name = String.format(Messages.getString("RootFolder.1"), name);
+											name = Messages.getString("RootFolder.1", name);
 										}
 
 										boolean isCompilation = (track.containsKey("Compilation") && track.get("Compilation").equals(Boolean.TRUE));
@@ -1027,7 +1027,7 @@ public class RootFolder extends DLNAResource {
 										name = name.replace('.', '-');
 
 										if (track.containsKey("Protected") && track.get("Protected").equals(Boolean.TRUE)) {
-											name = String.format(Messages.getString("RootFolder.1"), name);
+											name = Messages.getString("RootFolder.1", name);
 										}
 
 										URI tURI2 = new URI(track.get("Location").toString());

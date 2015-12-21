@@ -19,12 +19,9 @@
 package net.pms.newgui;
 
 import ch.qos.logback.classic.Level;
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -36,6 +33,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -52,7 +52,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.*;
-import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,10 +237,10 @@ public class TracesTab {
 					jList.moveCaretPosition(match.end());
 					jSearchOutput.setText("");
 				} else {
-					jSearchOutput.setText(String.format(Messages.getString("TracesTab.21"), jSearchBox.getText()));
+					jSearchOutput.setText(Messages.getString("TracesTab.21", jSearchBox.getText()));
 				}
 			} catch (PatternSyntaxException pe) {
-				jSearchOutput.setText(String.format(Messages.getString("TracesTab.22"),pe.getLocalizedMessage()));
+				jSearchOutput.setText(Messages.getString("TracesTab.22", pe.getLocalizedMessage()));
 			} catch (Exception ex) {
 				LOGGER.debug("Exception caught while searching traces list: "+ex);
 				jSearchOutput.setText(Messages.getString("TracesTab.23"));
@@ -251,20 +250,14 @@ public class TracesTab {
 
 	@SuppressWarnings("serial")
 	public JComponent build() {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec("pref, pref:grow, pref, 3dlu, pref, pref, pref", orientation);
+		String colSpec = "pref, pref:grow, pref, 3dlu, pref, pref, pref";
 
 		int cols = colSpec.split(",").length;
 
-		FormLayout layout = new FormLayout(
-			colSpec,
-			"p, fill:10:grow, p, p"
-		);
-		PanelBuilder builder = new PanelBuilder(layout);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder(colSpec, "p, fill:10:grow, p, p");
 		builder.opaque(true);
 
-		CellConstraints cc = new CellConstraints();
+		CellConstraints cc = builder.getCellConstraints();
 
 		// Create the search box
 		JPanel jSearchPanel = new JPanel();
@@ -275,6 +268,7 @@ public class TracesTab {
 		jFilterLabel.setDisplayedMnemonic(KeyEvent.VK_F);
 		jFilterLabel.setToolTipText(Messages.getString("TracesTab.33"));
 		jTracesFilter = new CustomJComboBox<>(levelStrings);
+		builder.orientLabelRenderer((JLabel)jTracesFilter.getRenderer());
 		jTracesFilter.setSelectedIndex(findLevelsIdx(configuration.getLoggingFilterLogsTab()));
 		jFilterLabel.setLabelFor(jTracesFilter);
 		jTracesFilter.setToolTipText(Messages.getString("TracesTab.33"));
@@ -381,7 +375,13 @@ public class TracesTab {
 		builder.add(jSearchPanel, cc.xyw(1, 1, cols));
 
 		// Create traces text box
-		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer());
+		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer()) {
+			@Override
+			public void applyComponentOrientation(java.awt.ComponentOrientation orientation) {
+				// Logging is always ltr
+				super.setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
+			}
+		};
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
 		jList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, jList.getFont().getSize()));
@@ -513,7 +513,7 @@ public class TracesTab {
 					// Simplified IPv6
 					s.matches("(^([0-9a-fA-F]{0,4}:)+[0-9a-fA-F]{1,4}([0-9a-fA-F]{0,4}:)*$)|(^([0-9a-fA-F]{0,4}:)*[0-9a-fA-F]{1,4}([0-9a-fA-F]{0,4}:)+$)|(^::$)")
 				)) {
-					jSearchOutput.setText(String.format(Messages.getString("TracesTab.32"), s));
+					jSearchOutput.setText(Messages.getString("TracesTab.32", s));
 					return false;
 				}
 				jSearchOutput.setText("");
@@ -547,6 +547,7 @@ public class TracesTab {
 		jOptionsPanel.add(jSyslogFacilityLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		jSyslogFacility = new CustomJComboBox<>(syslogFacilities);
+		builder.orientLabelRenderer((JLabel)jSyslogFacility.getRenderer());
 		jSyslogFacility.setToolTipText(Messages.getString("TracesTab.47"));
 		jSyslogFacility.setEnabled(!useSyslog);
 		jSyslogFacility.setSelectedIndex(findSyslogFacilityIdx(configuration.getLoggingSyslogFacility()));
@@ -608,11 +609,12 @@ public class TracesTab {
 
 		final ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-		JLabel rootLevelLabel = new JLabel(Messages.getString("TracesTab.11") + ": ");
+		CustomJLabel rootLevelLabel = new CustomJLabel(Messages.getString("TracesTab.11") + ": ");
 		rootLevelLabel.setDisplayedMnemonic(KeyEvent.VK_L);
 		rootLevelLabel.setToolTipText(Messages.getString("TracesTab.42"));
 
 		CustomJComboBox<String> rootLevel = new CustomJComboBox<>(levelStrings);
+		builder.orientLabelRenderer((JLabel)rootLevel.getRenderer());
 		rootLevelLabel.setLabelFor(rootLevel);
 		rootLevel.setSelectedIndex(findLevelsIdx(rootLogger.getLevel()));
 		rootLevel.setToolTipText(Messages.getString("TracesTab.42"));
@@ -677,7 +679,7 @@ public class TracesTab {
 		builder.add(pLogPackButtons, cc.xy(1, 4));
 		builder.add(jSearchOutput, cc.xy(2, 4));
 
-		JPanel builtPanel = builder.getPanel();
+		JPanel builtPanel = builder._getPanel();
 		// Add a Ctrl + F shortcut to search field
 		builtPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), "Ctrl_F");
 		builtPanel.getActionMap().put("Ctrl_F", new AbstractAction() {

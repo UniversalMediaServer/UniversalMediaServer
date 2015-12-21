@@ -1,8 +1,6 @@
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -19,6 +17,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.Messages;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.OrientedPanelBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
@@ -40,10 +39,11 @@ public class RendererPanel extends JPanel {
 	}
 
 	public JPanel buildPanel() {
-		FormLayout layout = new FormLayout("left:pref, 400:grow");
-		PanelBuilder builder = new PanelBuilder(layout);
+		OrientedPanelBuilder builder = new OrientedPanelBuilder("left:pref, 400:grow");
 		builder.border(new EmptyBorder(10, 10, 10, 10));
 		int y = 0;
+
+		cc = builder.getCellConstraints();
 
 		builder.appendRow(rspec);
 		editBar = new JPanel();
@@ -65,7 +65,7 @@ public class RendererPanel extends JPanel {
 			builder.appendRow(rspec);
 			builder.addLabel(" ", cc.xy(1, ++y));
 			builder.appendRow(rspec);
-			builder.addSeparator(Messages.getString("RendererPanel.1"), cc.xyw(1, ++y, 2));
+			builder._addSeparator(Messages.getString("RendererPanel.1"), cc.xyw(1, ++y, 2));
 			builder.appendRow(rspec);
 			builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
 		}
@@ -235,7 +235,7 @@ public class RendererPanel extends JPanel {
 		return null;
 	}
 
-	public int addItem(String key, String value, PanelBuilder builder, int y) {
+	public int addItem(String key, String value, OrientedPanelBuilder builder, int y) {
 		builder.appendRow(rspec);
 		builder.addLabel(key.length() > 0 ? key + ":  " : "", cc.xy(1, ++y));
 		JTextField val = new JTextField(value);
@@ -245,14 +245,14 @@ public class RendererPanel extends JPanel {
 		return y;
 	}
 
-	public int addMap(Map<String, String> map, PanelBuilder builder, int y) {
+	public int addMap(Map<String, String> map, OrientedPanelBuilder builder, int y) {
 		for (Map.Entry<String, String> entry : map.entrySet()) {
 			y = addItem(entry.getKey(), entry.getValue(), builder, y);
 		}
 		return y;
 	}
 
-	public int addStrings(String title, String[] strings, PanelBuilder builder, int y) {
+	public int addStrings(String title, String[] strings, OrientedPanelBuilder builder, int y) {
 		for (String string : strings) {
 			y = addItem(title, string, builder, y);
 			title = "";
@@ -260,7 +260,7 @@ public class RendererPanel extends JPanel {
 		return y;
 	}
 
-	public int addList(String title, List<String> list, PanelBuilder builder, int y) {
+	public int addList(String title, List<String> list, OrientedPanelBuilder builder, int y) {
 		for (String item : list) {
 			y = addItem(title, item, builder, y);
 			title = "";
