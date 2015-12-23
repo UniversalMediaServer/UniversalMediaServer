@@ -1,6 +1,7 @@
 package net.pms.dlna;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,6 +10,8 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.FileUtil;
+
 import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -398,7 +401,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WEBM;
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
-		} else if (value.equals("isom") || value.startsWith("mp4") || value.equals("20") || value.equals("m4v") || value.startsWith("mpeg-4") || value.startsWith("hvc1")) {
+		} else if (value.equals("isom") || value.startsWith("mp4") || value.equals("20") || value.equals("m4v") || value.startsWith("mpeg-4")) {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
 			format = FormatConfiguration.MPEGPS;
@@ -545,6 +548,9 @@ public class LibMediaInfoParser {
 			} else if (streamType == StreamType.Audio) {
 				audio.setCodecA(format);
 			}
+		// format not found so set container type based on the file extension. It will be overwritten when the correct type will be found
+		} else if (streamType == StreamType.General && media.getContainer() == null) { 
+			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()));
 		}
 	}
 
