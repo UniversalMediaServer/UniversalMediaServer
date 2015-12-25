@@ -9,6 +9,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.FileUtil;
 import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -545,6 +546,9 @@ public class LibMediaInfoParser {
 			} else if (streamType == StreamType.Audio) {
 				audio.setCodecA(format);
 			}
+		// format not found so set container type based on the file extension. It will be overwritten when the correct type will be found
+		} else if (streamType == StreamType.General && media.getContainer() == null) { 
+			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()));
 		}
 	}
 
