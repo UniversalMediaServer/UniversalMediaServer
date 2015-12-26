@@ -26,7 +26,6 @@ import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Locale;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -81,9 +80,9 @@ public class TranscodingTab {
 	private JCheckBox forcePCM;
 	private JCheckBox encodedAudioPassthrough;
 	public static JCheckBox forceDTSinPCM;
-	private JComboBox channels;
-	private JComboBox vq;
-	private JComboBox x264Quality;
+	private JComboBox<Object> channels;
+	private JComboBox<Object> vq;
+	private JComboBox<Object> x264Quality;
 	private JCheckBox ac3remux;
 	private JCheckBox mpeg2remux;
 	private JCheckBox chapter_support;
@@ -97,7 +96,7 @@ public class TranscodingTab {
 	private JButton folderSelectButton;
 	private JCheckBox autoloadExternalSubtitles;
 	private JTextField defaultaudiosubs;
-	private JComboBox subtitleCodePage;
+	private JComboBox<Object> subtitleCodePage;
 	private JTextField defaultfont;
 	private JButton fontselect;
 	private JCheckBox fribidi;
@@ -109,7 +108,7 @@ public class TranscodingTab {
 	private JCheckBox forceExternalSubtitles;
 	private JCheckBox useEmbeddedSubtitlesStyle;
 //	private JTextField depth3D;
-	private JComboBox depth3D;
+	private JComboBox<Object> depth3D;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -545,7 +544,7 @@ public class TranscodingTab {
 		};
 
 		GuiUtil.MyComboBoxModel cbm = new GuiUtil.MyComboBoxModel(data);
-		vq = new JComboBox(cbm);
+		vq = new JComboBox<Object>(cbm);
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
 		vq.addItemListener(new ItemListener() {
 			@Override
@@ -577,7 +576,7 @@ public class TranscodingTab {
 		};
 
 		GuiUtil.MyComboBoxModel cbm2 = new GuiUtil.MyComboBoxModel(x264QualityOptions);
-		x264Quality = new JComboBox(cbm2);
+		x264Quality = new JComboBox<Object>(cbm2);
 		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
 		x264Quality.addItemListener(new ItemListener() {
 			@Override
@@ -635,7 +634,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
-		channels = new JComboBox(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
+		channels = new JComboBox<Object>(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
 		channels.setEditable(false);
 		if (configuration.getAudioChannelCount() == 2) {
 			channels.setSelectedIndex(0);
@@ -843,7 +842,7 @@ public class TranscodingTab {
 		};
 
 		GuiUtil.MyComboBoxModel cbm = new GuiUtil.MyComboBoxModel(data);
-		subtitleCodePage = new JComboBox(cbm);
+		subtitleCodePage = new JComboBox<Object>(cbm);
 		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1018,14 +1017,13 @@ public class TranscodingTab {
 		
 		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(1, 20), colSpec, orientation));
 		GuiUtil.MyComboBoxModel cbm2 = new GuiUtil.MyComboBoxModel(depth.toArray());
-		depth3D = new JComboBox(cbm2);
+		depth3D = new JComboBox<Object>(cbm2);
 		depth3D.setSelectedItem(configuration.getDepth3D());
 		depth3D.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					configuration.setDepth3D(s);
+					configuration.setDepth3D((String) e.getItem());
 				}
 			}
 		});
