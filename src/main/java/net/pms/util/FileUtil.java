@@ -266,7 +266,7 @@ public class FileUtil {
 	 *
 	 * @param loopedOnce
 	 */
-	private static void capitalizeFirstLetter(boolean loopedOnce) {
+	private static void convertFormattedNameToTitleCase(boolean loopedOnce) {
 		if (formattedName.equals(formattedName.toLowerCase())) {
 			String formattedNameTemp = "";
 			for (String part : formattedName.split(" - ")) {
@@ -284,7 +284,7 @@ public class FileUtil {
 	/**
 	 * Capitalize the first letter of each word if the string contains no capital letters
 	 */
-	private static void capitalizeFirstLetter() {
+	private static void convertFormattedNameToTitleCase() {
 		if (formattedName.equals(formattedName.toLowerCase())) {
 			formattedName = convertLowerCaseStringToTitleCase(formattedName);
 		}
@@ -315,7 +315,7 @@ public class FileUtil {
 	/**
 	 * Remove stuff at the end of the filename like release group, quality, source, etc.
 	 */
-	private static void removeStuffAtTheEndOfFilename() {
+	private static void removeFilenameEndMetadata() {
 		formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
 		formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 	}
@@ -337,7 +337,7 @@ public class FileUtil {
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNameWithRewriting(String f, File file) {
+	public static String getFileNamePrettified(String f, File file) {
 		String fileNameWithoutExtension;
 		formattedName = "";
 		String formattedNameTemp;
@@ -370,12 +370,12 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeStuffAtTheEndOfFilename();
+			removeFilenameEndMetadata();
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter(loopedOnce);
+			convertFormattedNameToTitleCase(loopedOnce);
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons that are double episodes
 
@@ -391,12 +391,12 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeStuffAtTheEndOfFilename();
+			removeFilenameEndMetadata();
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter(loopedOnce);
+			convertFormattedNameToTitleCase(loopedOnce);
 		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
 			removeAndSaveEditionToBeAddedLater();
@@ -413,12 +413,12 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeStuffAtTheEndOfFilename();
+			removeFilenameEndMetadata();
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter(loopedOnce);
+			convertFormattedNameToTitleCase(loopedOnce);
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons
 
@@ -434,12 +434,12 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeStuffAtTheEndOfFilename();
+			removeFilenameEndMetadata();
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter(loopedOnce);
+			convertFormattedNameToTitleCase(loopedOnce);
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 
@@ -455,24 +455,24 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeStuffAtTheEndOfFilename();
+			removeFilenameEndMetadata();
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter(loopedOnce);
+			convertFormattedNameToTitleCase(loopedOnce);
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
-			removeStuffAtTheEndOfFilename();
+			removeFilenameEndMetadata();
 			removeAndSaveEditionToBeAddedLater();
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter();
+			convertFormattedNameToTitleCase();
 		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
 
@@ -482,21 +482,21 @@ public class FileUtil {
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter();
+			convertFormattedNameToTitleCase();
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
-			removeStuffAtTheEndOfFilename();
-			capitalizeFirstLetter();
+			removeFilenameEndMetadata();
+			convertFormattedNameToTitleCase();
 		} else if (formattedName.matches(commonFileEndsMatch)) {
 			// This is probably a movie that doesn't specify a year
 			isMovieToLookup = true;
-			removeStuffAtTheEndOfFilename();
+			removeFilenameEndMetadata();
 			removeAndSaveEditionToBeAddedLater();
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter();
+			convertFormattedNameToTitleCase();
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
 			// This matches anime with a hash at the end of the name
 
@@ -512,7 +512,7 @@ public class FileUtil {
 				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
 			}
 
-			capitalizeFirstLetter();
+			convertFormattedNameToTitleCase();
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
 
@@ -528,7 +528,7 @@ public class FileUtil {
 				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
 			}
 
-			capitalizeFirstLetter();
+			convertFormattedNameToTitleCase();
 		}
 
 		// Remove extra spaces
