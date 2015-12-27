@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.commons.lang.WordUtils;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
@@ -258,6 +261,7 @@ public class FileUtil {
 		String formattedName;
 		String formattedNameTemp;
 		String searchFormattedName;
+		String edition = "";
 		boolean loopedOnce = false;
 
 		// These are false unless we recognize that we could use some info on the video from IMDB
@@ -271,9 +275,9 @@ public class FileUtil {
 
 		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]2160p.*|[\\s\\.]WEB-DL.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]BRRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*|[\\s\\.]READNFO.*|[\\s\\.]60FPS.*";
 		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]2160p.*|.*[\\s\\.]WEB-DL.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]BRRip.*|.*[\\s\\.]WEBRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*|.*[\\s\\.]READNFO.*|.*[\\s\\.]60FPS.*";
-		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER[\\s\\.].*|[\\s\\.]iNTERNAL[\\s\\.].*|[\\s\\.]LIMITED[\\s\\.].*|[\\s\\.]LiMiTED[\\s\\.].*|[\\s\\.]FESTiVAL[\\s\\.].*|[\\s\\.]NORDIC[\\s\\.].*|[\\s\\.]REAL[\\s\\.].*|[\\s\\.]SUBBED[\\s\\.].*|[\\s\\.]RETAIL[\\s\\.].*|[\\s\\.]EXTENDED[\\s\\.].*";
+		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER[\\s\\.].*|[\\s\\.]iNTERNAL[\\s\\.].*|[\\s\\.]LIMITED[\\s\\.].*|[\\s\\.]LiMiTED[\\s\\.].*|[\\s\\.]FESTiVAL[\\s\\.].*|[\\s\\.]NORDIC[\\s\\.].*|[\\s\\.]REAL[\\s\\.].*|[\\s\\.]SUBBED[\\s\\.].*|[\\s\\.]RETAIL[\\s\\.].*|[\\s\\.]EXTENDED[\\s\\.].*|[\\s\\.]NEWEDIT[\\s\\.].*";
 
-		String commonFileMiddle = "(?i)(?!\\()(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|IMAX[\\s\\.]Edition|Uncensored|Directors[\\s\\.]Cut)(?!\\))";
+		String commonFileMiddle = "(?i)(?!\\()(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|IMAX[\\s\\.]Edition|Uncensored|Directors[\\s\\.]Cut|Uncut)(?!\\))";
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are double or triple episodes
@@ -283,16 +287,22 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3-$1$4$5");
 			formattedName = formattedName.replaceAll("[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3-$1$4$5");
 
+			// Remove and save edition information to be added later
+			Pattern r = Pattern.compile(commonFileMiddle);
+			Matcher m = r.matcher(formattedName);
+			if (m.find()) {
+				edition = m.group().replaceAll("\\.", " ");
+				edition = " (" + WordUtils.capitalizeFully(edition) + ")";
+				formattedName = formattedName.replaceAll(" - " + commonFileMiddle, "");
+				formattedName = formattedName.replaceAll(commonFileMiddle, "");
+			}
+
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
-
 			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
 				isEpisodeToLookup = true;
 			}
-
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
@@ -321,16 +331,22 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3-$1$4$5");
 			formattedName = formattedName.replaceAll("[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3-$1$4$5");
 
+			// Remove and save edition information to be added later
+			Pattern r = Pattern.compile(commonFileMiddle);
+			Matcher m = r.matcher(formattedName);
+			if (m.find()) {
+				edition = m.group().replaceAll("\\.", " ");
+				edition = "(" + WordUtils.capitalizeFully(edition) + ")";
+				formattedName = formattedName.replaceAll(" - " + commonFileMiddle, "");
+				formattedName = formattedName.replaceAll(commonFileMiddle, "");
+			}
+
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
-
 			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
 				isEpisodeToLookup = true;
 			}
-
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
@@ -355,6 +371,16 @@ public class FileUtil {
 		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
 
+			// Remove and save edition information to be added later
+			Pattern r = Pattern.compile(commonFileMiddle);
+			Matcher m = r.matcher(formattedName);
+			if (m.find()) {
+				edition = m.group().replaceAll("\\.", " ");
+				edition = "(" + WordUtils.capitalizeFully(edition) + ")";
+				formattedName = formattedName.replaceAll(" - " + commonFileMiddle, "");
+				formattedName = formattedName.replaceAll(commonFileMiddle, "");
+			}
+
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
@@ -362,14 +388,10 @@ public class FileUtil {
 
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
-
 			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
 				isEpisodeToLookup = true;
 			}
-
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
@@ -398,16 +420,22 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
 			formattedName = formattedName.replaceAll("[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3");
 
+			// Remove and save edition information to be added later
+			Pattern r = Pattern.compile(commonFileMiddle);
+			Matcher m = r.matcher(formattedName);
+			if (m.find()) {
+				edition = m.group().replaceAll("\\.", " ");
+				edition = "(" + WordUtils.capitalizeFully(edition) + ")";
+				formattedName = formattedName.replaceAll(" - " + commonFileMiddle, "");
+				formattedName = formattedName.replaceAll(commonFileMiddle, "");
+			}
+
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
-
 			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
 				isEpisodeToLookup = true;
 			}
-
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
@@ -436,16 +464,22 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + commonFileEnds + ")", " - $1$2/$3/$4");
 			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2/$3/$4");
 
+			// Remove and save edition information to be added later
+			Pattern r = Pattern.compile(commonFileMiddle);
+			Matcher m = r.matcher(formattedName);
+			if (m.find()) {
+				edition = m.group().replaceAll("\\.", " ");
+				edition = "(" + WordUtils.capitalizeFully(edition) + ")";
+				formattedName = formattedName.replaceAll(" - " + commonFileMiddle, "");
+				formattedName = formattedName.replaceAll(commonFileMiddle, "");
+			}
+
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]", " - $1$2/$3/$4 - ");
-
 			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
 				isEpisodeToLookup = true;
 			}
-
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
@@ -477,7 +511,15 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+			// Remove and save edition information to be added later
+			Pattern r = Pattern.compile(commonFileMiddle);
+			Matcher m = r.matcher(formattedName);
+			if (m.find()) {
+				edition = m.group().replaceAll("\\.", " ");
+				edition = "(" + WordUtils.capitalizeFully(edition) + ")";
+				formattedName = formattedName.replaceAll(" - " + commonFileMiddle, "");
+				formattedName = formattedName.replaceAll(commonFileMiddle, "");
+			}
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
@@ -528,7 +570,16 @@ public class FileUtil {
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+
+			// Remove and save edition information to be added later
+			Pattern r = Pattern.compile(commonFileMiddle);
+			Matcher m = r.matcher(formattedName);
+			if (m.find()) {
+				edition = m.group().replaceAll("\\.", " ");
+				edition = "(" + WordUtils.capitalizeFully(edition) + ")";
+				formattedName = formattedName.replaceAll(" - " + commonFileMiddle, "");
+				formattedName = formattedName.replaceAll(commonFileMiddle, "");
+			}
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
@@ -607,6 +658,9 @@ public class FileUtil {
 			}
 		}
 
+		// Remove extra spaces
+		formattedName = formattedName.replaceAll("  ", " ");
+
 		// Add episode name (if not there)
 		if (file != null && (isEpisodeToLookup || isMovieToLookup)) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
@@ -617,6 +671,16 @@ public class FileUtil {
 			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.year)) {
 				formattedName += " (" + info.year + ")";
 			}
+		}
+
+		// Add the edition information if it exists
+		if (!edition.isEmpty()) {
+			formattedName = formattedName.trim();
+			String substr = formattedName.substring(Math.max(0, formattedName.length() - 2));
+			if (" -".equals(substr)) {
+				formattedName = formattedName.substring(0, formattedName.length() - 2);
+			}
+			formattedName += " " + edition;
 		}
 
 		return formattedName;
