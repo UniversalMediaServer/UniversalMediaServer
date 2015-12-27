@@ -354,8 +354,6 @@ public class FileUtil {
 		formattedName = fileNameWithoutExtension;
 		searchFormattedName = "";
 
-
-
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are double or triple episodes
 
@@ -484,10 +482,6 @@ public class FileUtil {
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			capitalizeFirstLetter();
-		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
-			// This matches rarer types of movies
-			removeStuffAtTheEndOfFilename();
 			capitalizeFirstLetter();
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
