@@ -106,6 +106,9 @@ public class FileUtilTest {
 		// Video of a TV episode with the "Mysterious Wordplay" title
 		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E02.Mysterious.Wordplay.720p.mkv", null)).isEqualTo("Universal Media Server - 102 - Mysterious Wordplay");
 
+		// Video of an uncut TV episode
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E02.UNCUT.720p.mkv", null)).isEqualTo("Universal Media Server - 102 (Uncut)");
+
 		// Video of an extended cut of a TV episode
 		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.S01E02.Extended.Cut.720p.mkv", null)).isEqualTo("Universal Media Server - 102 (Extended Cut)");
 
@@ -119,7 +122,8 @@ public class FileUtilTest {
 		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.2015.720p.mkv", null)).isEqualTo("Universal Media Server (2015)");
 
 		// Video of a special edition of a movie
-		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.Special.Edition.2015.720p.mkv", null)).isEqualTo("Universal Media Server (Special Edition) (2015)");
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.Special.Edition.2015.720p.mkv", null)).isEqualTo("Universal Media Server (2015) (Special Edition)");
+		assertThat(FileUtil.getFileNameWithRewriting("Universal.Media.Server.2015.Special.Edition.720p.mkv", null)).isEqualTo("Universal Media Server (2015) (Special Edition)");
 	}
 
 	@Test
