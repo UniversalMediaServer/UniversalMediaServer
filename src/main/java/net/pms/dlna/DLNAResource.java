@@ -1518,7 +1518,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		) {
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
 				RealFile rf = (RealFile) this;
-				displayName = FileUtil.getFileNameWithRewriting(displayName, rf.getFile());
+				displayName = FileUtil.getFileNamePrettified(displayName, rf.getFile());
 			} else {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
 			}
