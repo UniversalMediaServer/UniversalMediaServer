@@ -25,6 +25,11 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.JEditorPane;
+import javax.swing.JTextPane;
+import javax.swing.text.html.HTMLEditorKit;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
@@ -316,5 +321,26 @@ public class StringUtil {
 	 */
 	public static String fillString(int codePoint, int count) {
 		return fillString(Character.toChars(codePoint), count);
+	}
+
+	/**
+	 * Returns the <code>body</code> of a HTML {@link String} formatted by
+	 * {@link HTMLEditorKit} as typically used by {@link JEditorPane} and
+	 * {@link JTextPane} stripped for tags, newline, indentation and with
+	 * <code>&lt;br&gt;</code> tags converted to newline.<br>
+	 * <br>
+	 * <strong>Note: This is not a universal or sophisticated HTML stripping
+	 * method, but is purpose built for these circumstances.</strong>
+	 * @param html the HTML formatted text as described above
+	 * @return The "deHTMLified" text
+	 */
+	public static String stripHTML(String html) {
+		Pattern pattern = Pattern.compile("<body>(.*)</body>", Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
+		Matcher matcher = pattern.matcher(html);
+		if (matcher.find()) {
+			return matcher.group(1).replaceAll("\n    ", "").trim().replaceAll("(?i)<br>", "\n").replaceAll("<.*?>","");
+		} else {
+			throw new IllegalArgumentException("HTML text not as expected, must have <body> section");
+		}
 	}
 }
