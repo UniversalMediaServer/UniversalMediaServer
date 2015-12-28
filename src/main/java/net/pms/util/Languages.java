@@ -61,18 +61,18 @@ public final class Languages {
 	 * Defines the minimum translation percentage a language can have to be
 	 * the recommended/default language.
 	 */
-	private static final int defaultTranslatePct = 90;
+	private static final int recommendedTranslatePct = 90;
 
 	/**
 	 * Defines the minimum approved translation percentage a language can have
 	 * to be the recommended/default language.
 	 */
-	private static final int defaultApprovedPct = 85;
+	private static final int recommendedApprovedPct = 85;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Languages.class);
 	/**
-	 * If the below list is changed, methods {@link #localeToLanguageCode()} and
-	 * {@link #languageCodeToLanguageCode()} must be updated correspondingly.
+	 * If the below list is changed, methods {@link #localeToLanguageTag(Locale)} and
+	 * {@link #languageTagToUMSLanguageTag(String)} must be updated correspondingly.
 	 */
 	private final static String[] UMS_BCP47_CODES = {
 		"af",      // Afrikaans
@@ -224,7 +224,7 @@ public final class Languages {
 		}
 	}
 
-	private static String localeToLanguageCode(Locale locale) {
+	private static String localeToLanguageTag(Locale locale) {
 		/*
 		 * This might seem redundant, but a language can also contain a
 		 * country/region and a variant. Stating that e.g language
@@ -238,9 +238,9 @@ public final class Languages {
 		if (locale == null) {
 			return null;
 		}
-		String languageCode = locale.getLanguage();
-		if (languageCode != null && !languageCode.isEmpty()) {
-			switch (languageCode) {
+		String languageTag = locale.getLanguage();
+		if (languageTag != null && !languageTag.isEmpty()) {
+			switch (languageTag) {
 				case "en":
 					if (locale.getCountry().equalsIgnoreCase("GB")) {
 						return "en-GB";
@@ -266,24 +266,24 @@ public final class Languages {
 						return "zh-Hant";
 					}
 				default:
-					return languageCode;
+					return languageTag;
 			}
 		} else {
 			return null;
 		}
 	}
 
-	private static String languageCodeToLanguageCode(String languageCode) {
+	private static String languageTagToUMSLanguageTag(String languageTag) {
 		/*
-		 * Performs the same conversion as localeToLanguageCode() but from a
+		 * Performs the same conversion as localeToLanguageTag() but from a
 		 * language tag instead of a Locale.
 		 */
-		if (languageCode == null) {
+		if (languageTag == null) {
 			return null;
-		} else if (languageCode.isEmpty()) {
+		} else if (languageTag.isEmpty()) {
 			return "";
 		}
-		switch (languageCode.toLowerCase(Locale.US)) {
+		switch (languageTag.toLowerCase(Locale.US)) {
 			case "en-gb":
 				return "en-GB";
 			case "pt-br":
@@ -296,17 +296,17 @@ public final class Languages {
 			case "zh-hans":
 				return "zh-Hans";
 			default:
-				if (languageCode.indexOf("-") > 0) {
-					languageCode = languageCode.substring(0, languageCode.indexOf("-"));
+				if (languageTag.indexOf("-") > 0) {
+					languageTag = languageTag.substring(0, languageTag.indexOf("-"));
 				}
-				if (languageCode.equalsIgnoreCase("nb") || languageCode.equalsIgnoreCase("nn")) {
+				if (languageTag.equalsIgnoreCase("nb") || languageTag.equalsIgnoreCase("nn")) {
 					return "no";
-				} else if (languageCode.equalsIgnoreCase("cmn") || languageCode.equalsIgnoreCase("zh")) {
+				} else if (languageTag.equalsIgnoreCase("cmn") || languageTag.equalsIgnoreCase("zh")) {
 					return "zh-Hant";
-				} else if (languageCode.equalsIgnoreCase("en")) {
+				} else if (languageTag.equalsIgnoreCase("en")) {
 					return "en-US";
 				} else {
-					return languageCode.toLowerCase(Locale.US);
+					return languageTag.toLowerCase(Locale.US);
 				}
 		}
 	}
@@ -444,6 +444,31 @@ public final class Languages {
 	}
 
 	/**
+	 * Returns whether the given {@link LanguageEntry} qualifies for being
+	 * recommended/default choice. English languages is always recommended,
+	 * as there's no way for us to calculate coverage for them since only the
+	 * strings that deviate from US-English is translated.
+	 * @param language the {@link LanguageEntry} to evaluate
+	 * @return The result
+	 */
+	private static boolean isRecommended(LanguageEntry language) {
+		return language.tag.startsWith("en") || language.coveragePercent >= recommendedTranslatePct || language.approvedPercent >= recommendedApprovedPct;
+	}
+
+	/**
+	 * Returns whether the given {@link TranslationStatistics} qualifies for
+	 * being recommended/default choice. English languages cannot be evaluated
+	 * by this method and should always be considered recommended.
+	 * @param languageStatistics the {@link TranslationStatistics} to evaluate
+	 * @return The result
+	 */
+
+	private static boolean isRecommended(TranslationStatistics languageStatistics) {
+		return languageStatistics.translated >= recommendedTranslatePct || languageStatistics.approved >= recommendedApprovedPct;
+
+	}
+
+	/**
 	 * This method must be called in a context synchronized on {@link #translationsStatistics}.
 	 * <p>
 	 * The sorting places the default/recommended choice on top of the list,
@@ -454,8 +479,8 @@ public final class Languages {
 	 * <ul>
 	 *   <li>The base language (en-US) and the language closest matching
 	 *       <code>preferredLocale</code> is looked up. If the closest matching
-	 *       language has a coverage greater or equal to {@link #defaultTranslatePct}
-	 *       or an approval greater or equal to {@link #defaultApprovedPct} it
+	 *       language has a coverage greater or equal to {@link #recommendedTranslatePct}
+	 *       or an approval greater or equal to {@link #recommendedApprovedPct} it
 	 *       will be placed on top. If not, the base language will be placed on
 	 *       top. Whichever of these is not placed on top is placed second. If
 	 *       a closely matching language cannot be found, only the base language
@@ -534,9 +559,7 @@ public final class Languages {
 			LanguageEntry preferredLanguage = getSortedLanguageByLocale(preferredLocale);
 			if (preferredLanguage != null && !preferredLanguage.tag.equals("en-US")) {
 				if (
-					sortedLanguages.remove(preferredLanguage) &&
-					(preferredLanguage.coveragePercent >= defaultTranslatePct ||
-					preferredLanguage.approvedPercent >= defaultApprovedPct)
+					sortedLanguages.remove(preferredLanguage) && isRecommended(preferredLanguage)
 				) {
 					sortedLanguages.add(0, preferredLanguage);
 				} else {
@@ -573,7 +596,7 @@ public final class Languages {
 	 * and returns them in a {@link HashMap} with language tags as keys.
 	 * Results are cached for subsequent reads.
 	 * <p>
-	 * <strong>The returned {@link HashMap} is never <code>null</code> must
+	 * <strong>The returned {@link HashMap} is never <code>null</code> and must
 	 * always be synchronized on itself during read or write</strong>
 	 * @return The resulting {@link HashMap}
 	 */
@@ -585,15 +608,59 @@ public final class Languages {
 	}
 
 	/**
+	 * Returns whether the given language has a translation percentage that
+	 * doesn't qualify it as being recommended/default choice. English
+	 * languages are always considered recommended since we can't calculate
+	 * their coverage.
+	 * @param languageTag The language tag in IEFT BCP 47 format.
+	 * @return <code>True</code> if a warning should be given for that language
+	 */
+	public static boolean warnCoverage(String languageTag) {
+		if (languageTag.startsWith("en")) {
+			return false;
+		}
+		synchronized (translationsStatistics) {
+			populateTranslationsStatistics();
+			TranslationStatistics stats = translationsStatistics.get(languageTag);
+			if (stats == null) {
+				return true;
+			}
+			return !isRecommended(stats);
+		}
+	}
+
+	/**
+	 * Returns the percentage of strings that is translation for the given
+	 * language. English languages always return 100% since we have no way
+	 * to calculate their coverage due to the fact that only those strings
+	 * that differ from US-English is translated.
+	 * @param languageTag The language tag in IEFT BCP 47 format.
+	 * @return The percentage
+	 */
+	public static int getLanguageCoverage(String languageTag) {
+		if (languageTag.startsWith("en")) {
+			return 100;
+		}
+		synchronized (translationsStatistics) {
+			populateTranslationsStatistics();
+			TranslationStatistics stats = translationsStatistics.get(languageTag);
+			if (stats == null) {
+				return 0;
+			}
+			return stats.translated;
+		}
+	}
+
+	/**
 	 * Verifies if a given <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
 	 * language tag is supported by UMS.
-	 * @param languageCode The language tag in IEFT BCP 47 format.
+	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return The result.
 	 */
-	public static boolean isValid(String languageCode) {
-		if (languageCode != null && !languageCode.isEmpty()) {
+	public static boolean isValid(String languageTag) {
+		if (languageTag != null && !languageTag.isEmpty()) {
 			for (String code : UMS_BCP47_CODES) {
-				if (code.equalsIgnoreCase(languageCode)) {
+				if (code.equalsIgnoreCase(languageTag)) {
 					return true;
 				}
 			}
@@ -607,30 +674,30 @@ public final class Languages {
 	 * @return The result.
 	 */
 	public static boolean isValid(Locale locale) {
-		return isValid(localeToLanguageCode(locale));
+		return isValid(localeToLanguageTag(locale));
 	}
 
 	/**
 	 * Verifies if a given <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
 	 * language tag is or can be converted into a language tag supported by UMS.
-	 * @param languageCode The language tag in IEFT BCP 47 format.
+	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return The result.
 	 */
-	public static boolean isCompatible(String languageCode) {
-		return isValid(languageCodeToLanguageCode(languageCode));
+	public static boolean isCompatible(String languageTag) {
+		return isValid(languageTagToUMSLanguageTag(languageTag));
 	}
 
 	/** Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
 	 *  language tag if the language tag is supported by UMS, or returns null.
-	 * @param languageCode The IEFT BCP 47 compatible language tag.
+	 * @param languageTag The IEFT BCP 47 compatible language tag.
 	 * @return The IEFT BCP 47 formatted language tag.
 	 */
-	public static String toLanguageCode(String languageCode) {
-		if (languageCode != null && !languageCode.isEmpty()) {
-			languageCode = languageCodeToLanguageCode(languageCode);
-			for (String code : UMS_BCP47_CODES) {
-				if (code.equalsIgnoreCase(languageCode)) {
-					return code;
+	public static String toLanguageTag(String languageTag) {
+		if (languageTag != null && !languageTag.isEmpty()) {
+			languageTag = languageTagToUMSLanguageTag(languageTag);
+			for (String tag : UMS_BCP47_CODES) {
+				if (tag.equalsIgnoreCase(languageTag)) {
+					return tag;
 				}
 			}
 		}
@@ -642,9 +709,9 @@ public final class Languages {
 	 * @param locale The {@link java.util.Locale}.
 	 * @return The IEFT BCP 47 formatted language tag.
 	 */
-	public static String toLanguageCode(Locale locale) {
+	public static String toLanguageTag(Locale locale) {
 		if (locale != null) {
-			return toLanguageCode(localeToLanguageCode(locale));
+			return toLanguageTag(localeToLanguageTag(locale));
 		}
 		return null;
 	}
@@ -659,9 +726,9 @@ public final class Languages {
 	 */
 	public static Locale toLocale(Locale locale) {
 		if (locale != null) {
-			String code = localeToLanguageCode(locale);
-			if (code != null && isValid(code)) {
-				return Locale.forLanguageTag(code);
+			String tag = localeToLanguageTag(locale);
+			if (tag != null && isValid(tag)) {
+				return Locale.forLanguageTag(tag);
 			}
 		}
 		return null;
@@ -676,11 +743,11 @@ public final class Languages {
 	 * @param locale Source {@link java.util.Locale}.
 	 * @return Resulting {@link java.util.Locale}.
 	 */
-	public static Locale toLocale(String languageCode) {
-		if (languageCode != null) {
-			String code = languageCodeToLanguageCode(languageCode);
-			if (isValid(code)) {
-				return Locale.forLanguageTag(code);
+	public static Locale toLocale(String languageTag) {
+		if (languageTag != null) {
+			String tag = languageTagToUMSLanguageTag(languageTag);
+			if (isValid(tag)) {
+				return Locale.forLanguageTag(tag);
 			}
 		}
 		return null;

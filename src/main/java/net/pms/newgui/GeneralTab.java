@@ -114,7 +114,7 @@ public class GeneralTab {
 		jLanguage = new JComboBox<String>(kcbm);
 		jLanguage.setEditable(false);
 
-		kcbm.setSelectedKey(Languages.toLanguageCode(PMS.getLocale()));
+		kcbm.setSelectedKey(Languages.toLanguageTag(PMS.getLocale()));
 
 		if (jLanguage.getSelectedIndex() == -1) {
 			jLanguage.setSelectedIndex(0);
