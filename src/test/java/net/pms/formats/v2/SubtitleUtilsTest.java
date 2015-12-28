@@ -59,7 +59,7 @@ public class SubtitleUtilsTest {
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../../util/russian-cp1251.srt"));
 		subtitle.setType(VOBSUB);
 		subtitle.setExternalFile(file_cp1251);
-		assertThat(subtitle.getExternalFileCharacterSet()).isNull();
+		assertThat(subtitle.getSubCharacterSet()).isNull();
 		assertThat(getSubCpOptionForMencoder(subtitle)).isNull();
 	}
 

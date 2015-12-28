@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>5.3.1</version>
+	<version>5.4.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -68,7 +68,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>5.2.4</project.version.short>
+		<project.version.short>5.4.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -89,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>33</binary-revision>
+		<binary-revision>37</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
@@ -327,12 +327,12 @@
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-core</artifactId>
-			<version>2.0.1</version>
+			<version>2.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-support</artifactId>
-			<version>2.0.1</version>
+			<version>2.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
@@ -792,13 +792,12 @@
 									<locale>ar</locale>
 									<locale>de</locale>
 									<locale>bg</locale>
-									<locale>br</locale>
 									<locale>ca</locale>
-									<locale>cz</locale>
+									<locale>cs</locale>
 									<locale>da</locale>
 									<locale>de</locale>
 									<locale>el</locale>
-									<locale>en_uk</locale>
+									<locale>en_GB</locale>
 									<locale>es</locale>
 									<locale>fi</locale>
 									<locale>fr</locale>
@@ -811,13 +810,14 @@
 									<locale>no</locale>
 									<locale>pl</locale>
 									<locale>pt</locale>
+									<locale>pt_BR</locale>
 									<locale>ro</locale>
 									<locale>ru</locale>
 									<locale>sl</locale>
 									<locale>sv</locale>
 									<locale>tr</locale>
-									<locale>zhs</locale>
-									<locale>zht</locale>
+									<locale>zh_Hans</locale>
+									<locale>zh_Hant</locale>
 								</locales>
 							</configuration>
 						</plugin>

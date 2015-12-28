@@ -1,3 +1,40 @@
+5.4.0 - 2015-12-29
+
+	General:
+		Added splash screen, disabled by default
+		Improved support for subtitles in FFmpeg
+		Improved headless support on Windows
+		Improved support for unrecognized filetypes
+		Improved speed and accuracy of the filename prettifying feature
+		Fixed support for 3D subtitles
+		Fixed the saving of window size
+	Renderers:
+		Added support for AnyCast
+		Added support for Miracast M806
+		Added support for Sony Bravia NX800 TVs
+		Improved playback support for several renderers
+	External Components:
+		Updated Cling to 2.1.0
+		Updated FFmpeg
+		Updated MediaInfo to 0.7.80
+
+6.0.0-a1 - 2015-11-23 - Changes since 5.3.1
+
+	General:
+		Added "Fully played action" setting to control what UMS does with media that has been fully played. The options are:
+			Do nothing
+			Add an overlay to the thumbnail (default)
+			Hide the file
+			Move the file to a different folder
+			Move the file to the recycle/trash bin
+		Added "Thumbnails" renderer config option, to specify whether the renderer can display thumbnails
+		The Status tab updates when media is fast-forwarded or rewound
+		Audio and image thumbnails are output at consistent dimensions
+	Renderers:
+		Improved Status tab display for Panasonic TVs
+	Languages:
+		Synchronized translations with Crowdin
+
 5.3.1 - 2015-11-23
 
 	General:

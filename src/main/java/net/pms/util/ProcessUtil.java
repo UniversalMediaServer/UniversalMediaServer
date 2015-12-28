@@ -114,10 +114,11 @@ public class ProcessUtil {
 		boolean killed = false;
 		LOGGER.warn("Sending kill -" + signal + " to the Unix process: " + pid);
 		try {
-			Process process = Runtime.getRuntime().exec("kill -" + signal + " " + pid);
+			ProcessBuilder processBuilder = new ProcessBuilder("kill", "-" + signal, Integer.toString(pid));
+			processBuilder.redirectErrorStream(true);
+			Process process = processBuilder.start();
 			// consume the error and output process streams
-			new StreamGobbler(process.getErrorStream(), true).start();
-			new StreamGobbler(process.getInputStream(), true).start();
+			StreamGobbler.consume(process.getInputStream(), true);
 			int exit = waitFor(process);
 			if (exit == 0) {
 				killed = true;

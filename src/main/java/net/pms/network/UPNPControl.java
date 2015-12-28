@@ -9,6 +9,7 @@ import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
+import net.pms.util.StringUtil;
 import net.pms.util.BasicPlayer;
 import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.UpnpService;
@@ -760,7 +761,7 @@ public class UPNPControl {
 	}
 
 	public static void setAVTransportURI(Device dev, String instanceID, String uri, String metaData) {
-		send(dev, instanceID, "AVTransport", "SetAVTransportURI", "CurrentURI", uri, "CurrentURIMetaData", metaData);
+		send(dev, instanceID, "AVTransport", "SetAVTransportURI", "CurrentURI", uri, "CurrentURIMetaData", StringUtil.unEncodeXML(metaData));
 	}
 
 	public static void setPlayMode(Device dev, String instanceID, String mode) {

@@ -1623,7 +1623,8 @@ public class MEncoderVideo extends Player {
 					cmdList.add("" + params.sid.getLang());
 				} else {
 					cmdList.add("-sub");
-					if (media.is3d()) {
+					// assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
+					if (media.is3d() && params.sid.getType() != SubtitleType.ASS) {
 						File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
 						cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
 					} else {
