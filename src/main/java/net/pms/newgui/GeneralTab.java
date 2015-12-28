@@ -38,7 +38,6 @@ import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
-import net.pms.util.Languages;
 import net.pms.util.WindowsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -58,7 +57,6 @@ public class GeneralTab {
 	private JCheckBox preventSleep;
 	private JTextField host;
 	private JTextField port;
-	private JComboBox<String> jLanguage;
 	private JTextField serverName;
 	private JComboBox<String> networkinterfacesCBX;
 	private JTextField ip_filter;
@@ -73,6 +71,7 @@ public class GeneralTab {
 	private LooksFrame looksFrame;
 	private JCheckBox singleInstance;
 	private CustomJButton installService;
+	private JLabel currentLanguage = new JLabel();
 
 	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -106,31 +105,23 @@ public class GeneralTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		ypos = 7; // we hardcode here (promise last time)
-		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-		final KeyedComboBoxModel<String, String> kcbm = new KeyedComboBoxModel<>(
-			Languages.getLanguageTags(PMS.getLocale()),
-			Languages.getLanguageNames(PMS.getLocale())
-		);
-		jLanguage = new JComboBox<String>(kcbm);
-		jLanguage.setEditable(false);
-
-		kcbm.setSelectedKey(Languages.toLanguageTag(PMS.getLocale()));
-
-		if (jLanguage.getSelectedIndex() == -1) {
-			jLanguage.setSelectedIndex(0);
-		}
-
-		jLanguage.addItemListener(new ItemListener() {
+		builder.addLabel(Messages.getString("GeneralTab.14"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
+		builder.add(currentLanguage, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+		CustomJButton selectLanguage = new CustomJButton(Messages.getString("LanguageSelection.1"));
+		selectLanguage.addActionListener(new ActionListener() {
 			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setLanguage(kcbm.getSelectedKey());
-					LOGGER.info("Setting language to \"{}\"", Messages.getRootString("Language." + kcbm.getSelectedKey()));
+			public void actionPerformed(ActionEvent e) {
+				LanguageSelection selectionDialog = new LanguageSelection(looksFrame, configuration.getLanguageLocale(), true);
+				if (selectionDialog != null) {
+					selectionDialog.show();
+					if (!selectionDialog.isAborted()) {
+						currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
+					}
 				}
 			}
 		});
-
-		builder.add(jLanguage, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+		builder.add(selectLanguage, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
