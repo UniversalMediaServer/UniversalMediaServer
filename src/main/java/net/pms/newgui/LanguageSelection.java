@@ -119,6 +119,7 @@ public class LanguageSelection {
 			dialog.setIconImage(LooksFrame.readImageIcon("icon-32.png").getImage());
 			setStrings();
 			dialog.pack();
+			dialog.setLocationRelativeTo(parentComponent);
 			dialog.setVisible(true);
 			dialog.dispose();
 
@@ -168,6 +169,7 @@ public class LanguageSelection {
 				locale = Languages.toLocale(keyedModel.getSelectedKey());
 				setStrings();
 				dialog.pack();
+				dialog.setLocationRelativeTo(parentComponent);
 				dialog.repaint();
 				applyButton.setEnabled(false);
 				rootPanel.getRootPane().setDefaultButton(selectButton);
@@ -331,7 +333,6 @@ public class LanguageSelection {
 
 		selectButton.setText(buildString("Dialog.Select"));
 		applyButton.setText(buildString("Dialog.Apply"));
-
 	}
 
 	private JComponent buildComponent() {
