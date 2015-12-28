@@ -109,7 +109,11 @@ public class GeneralTab {
 		builder.addLabel(Messages.getString("GeneralTab.14"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 		currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
 		builder.add(currentLanguage, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
-		CustomJButton selectLanguage = new CustomJButton(Messages.getString("LanguageSelection.1"));
+		CustomJButton selectLanguage = new CustomJButton(
+			Messages.getString("LanguageSelection.1").equals(Messages.getRootString("LanguageSelection.1")) ?
+				Messages.getString("LanguageSelection.1") :
+				String.format("%s (%s)", Messages.getString("LanguageSelection.1"), Messages.getRootString("LanguageSelection.1"))
+		);
 		selectLanguage.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
