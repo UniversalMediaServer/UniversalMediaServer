@@ -7,11 +7,14 @@
 		Improved logging
 		All changes from 5.4.0
 
-5.4.0 - 2015-12-??
+5.4.0 - 2015-12-29
 
 	General:
 		Added splash screen, disabled by default
 		Improved support for subtitles in FFmpeg
+		Improved headless support on Windows
+		Improved support for unrecognized filetypes
+		Improved speed and accuracy of the filename prettifying feature
 		Fixed support for 3D subtitles
 		Fixed the saving of window size
 	Renderers:
@@ -22,6 +25,7 @@
 	External Components:
 		Updated Cling to 2.1.0
 		Updated FFmpeg
+		Updated MediaInfo to 0.7.80
 
 6.0.0-a1 - 2015-11-23 - Changes since 5.3.1
 
