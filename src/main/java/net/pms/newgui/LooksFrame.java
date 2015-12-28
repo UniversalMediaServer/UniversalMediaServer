@@ -376,7 +376,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		PMS.get().getRegistry().addSystemTray(this);
 	}
 
-	protected static ImageIcon readImageIcon(String filename) {
+	public static ImageIcon readImageIcon(String filename) {
 		URL url = LooksFrame.class.getResource("/resources/images/" + filename);
 		return new ImageIcon(url);
 	}

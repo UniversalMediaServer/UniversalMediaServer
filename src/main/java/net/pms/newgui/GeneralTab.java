@@ -71,6 +71,7 @@ public class GeneralTab {
 	private LooksFrame looksFrame;
 	private JCheckBox singleInstance;
 	private CustomJButton installService;
+	private JCheckBox showSplashScreen;
 	private JLabel currentLanguage = new JLabel();
 
 	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
@@ -159,8 +160,19 @@ public class GeneralTab {
 					configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
 		}
+
+		showSplashScreen = new JCheckBox(Messages.getString("NetworkTab.74"), configuration.isShowSplashScreen());
+		showSplashScreen.setContentAreaFilled(false);
+		showSplashScreen.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setShowSplashScreen((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		builder.add(GuiUtil.getPreferredSizeComponent(showSplashScreen), FormLayoutUtil.flip(cc.xy(5, ypos), colSpec, orientation));
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {

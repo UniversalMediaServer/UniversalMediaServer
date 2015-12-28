@@ -114,6 +114,18 @@ public class StringUtil {
 	}
 
 	/**
+	 * Removes xml character representations.
+	 *
+	 * @param s String to be cleaned
+	 * @return Encoded String
+	 */
+	public static String unEncodeXML(String s) {
+		// Note: ampersand substitution must be first in order to undo double transformations
+		// TODO: support ' and " if/when required, see encodeXML() above
+		return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
+	}
+
+	/**
 	 * Converts a URL string to a more canonical form
 	 *
 	 * @param url String to be converted

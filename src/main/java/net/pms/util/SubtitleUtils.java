@@ -107,10 +107,10 @@ public class SubtitleUtils {
 		if (dlnaMediaSubtitle == null) {
 			throw new NullPointerException("dlnaMediaSubtitle can't be null.");
 		}
-		if (isBlank(dlnaMediaSubtitle.getExternalFileCharacterSet())) {
+		if (isBlank(dlnaMediaSubtitle.getSubCharacterSet())) {
 			return null;
 		}
-		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getExternalFileCharacterSet());
+		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getSubCharacterSet());
 	}
 
 	/**
@@ -200,7 +200,7 @@ public class SubtitleUtils {
 			// subs are already converted
 			if (applyFontConfig || isEmbeddedSource || is3D) {
 				params.sid.setType(SubtitleType.ASS);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+				params.sid.setSubCharacterSet(CHARSET_UTF_8);
 				if (is3D) {
 					try {
 						convertedSubs = convertASSToASS3D(convertedSubs, media, params);
@@ -246,9 +246,9 @@ public class SubtitleUtils {
 		if (!FileUtil.isFileUTF8(tempSubs)) {
 			try {
 				tempSubs = applyCodepageConversion(tempSubs, convertedSubs);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+				params.sid.setSubCharacterSet(CHARSET_UTF_8);
 			} catch (IOException ex) {
-				params.sid.setExternalFileCharacterSet(null);
+				params.sid.setSubCharacterSet(null);
 				LOGGER.warn("Exception during external file charset detection.", ex);
 			}
 		} else {
@@ -266,7 +266,7 @@ public class SubtitleUtils {
 		) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+				params.sid.setSubCharacterSet(CHARSET_UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
@@ -322,10 +322,10 @@ public class SubtitleUtils {
 					// Prefer the global user-specified encoding if we have one.
 					// Note: likely wrong if the file isn't supplied by the user.
 					configuration.getSubtitlesCodepage() :
-				params.sid.getExternalFileCharacterSet() != null ?
+				params.sid.getSubCharacterSet() != null ?
 					// Fall back on the actually detected encoding if we have it.
 					// Note: accuracy isn't 100% guaranteed.
-					params.sid.getExternalFileCharacterSet() :
+					params.sid.getSubCharacterSet() :
 				null; // Otherwise we're out of luck!
 			if (encoding != null) {
 				cmdList.add("-sub_charenc");
@@ -517,7 +517,7 @@ public class SubtitleUtils {
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
 			String fontScale = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
-			String primaryColour = convertColorToAssHexFormat(new Color(configuration.getSubsColor()));
+			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
 			String fontSize = Integer.toString((int) (16 * media.getHeight() / (double) 288));
@@ -626,19 +626,20 @@ public class SubtitleUtils {
 		return outputSubs;
 	}
 
-	public static String convertColorToAssHexFormat(Color color) {
-		String colour = Integer.toHexString(color.getRGB());
-		return "&H" + colour.substring(6, 8) + colour.substring(4, 6) + colour.substring(2, 4);
-	}
-
 	public static void deleteSubs() {
 		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
 	}
 
+	/**
+	 * Converts the standard Colour RGB integer presentation to the SSA/ASS string format which
+	 * is formatted as BGR (really stupid SSA/ASS implementation)
+	 * @param colour the RGB color in the integer format
+	 * @return Converted color string in the ASS format
+	 */
 	public static String convertColourToASSColourString(int colour) {
-		String primaryColour = Integer.toHexString(colour);
+		String colourString = Integer.toHexString(colour);
 		StringBuilder outputString = new StringBuilder();
-		outputString.append("&H").append(primaryColour.substring(6, 8)).append(primaryColour.substring(4, 6)).append(primaryColour.substring(2, 4));
+		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
 		return outputString.toString();
 	}
 }
