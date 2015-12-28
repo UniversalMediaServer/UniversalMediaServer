@@ -46,8 +46,10 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.StyleSheet;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.newgui.components.CustomHTMLEditorKit;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.Languages;
 import net.pms.util.ProcessUtil;
@@ -382,7 +384,12 @@ public class LanguageSelection {
 		infoText.setFocusable(false);
 		infoText.setBackground(warningText.getBackground());
 		infoText.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
-		infoText.setContentType("text/html");
+
+		// This exercise is to avoid using the default shared StyleSheet with padding
+		CustomHTMLEditorKit editorKit = new CustomHTMLEditorKit();
+		StyleSheet styleSheet = new StyleSheet();
+		editorKit.setStyleSheet(styleSheet);
+		infoText.setEditorKit(editorKit);
 		infoText.addHyperlinkListener(new HyperlinkListener() {
 
 			@Override
