@@ -18,14 +18,20 @@
  */
 package net.pms.configuration;
 
+import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
+import java.io.BufferedWriter;
+import java.awt.Frame;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -36,6 +42,8 @@ import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
+import net.pms.util.FilePermissions;
+import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
@@ -60,6 +68,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
 	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
 	protected static final int DEFAULT_SERVER_PORT = 5001;
+	// 90000 lines is approximately 10 MiB depending on locale and message length
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
+	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
@@ -142,6 +154,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
 	public    static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	protected static final String KEY_GUI_LOG_SEARCH_CASE_SENSITIVE = "gui_log_search_case_sensitive";
+	protected static final String KEY_GUI_LOG_SEARCH_MULTILINE = "gui_log_search_multiline";
+	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
@@ -162,6 +177,15 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
+	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
+	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
+	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
+	protected static final String KEY_LOGGING_FILTER_LOGS_TAB = "logging_filter_logs_tab";
+	protected static final String KEY_LOGGING_LOGS_TAB_LINEBUFFER = "logging_logs_tab_linebuffer";
+	protected static final String KEY_LOGGING_SYSLOG_FACILITY = "logging_syslog_facility";
+	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
+	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
+	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -193,7 +217,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
 	protected static final String KEY_MENCODER_YADIF = "mencoder_yadif";
 	protected static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
-	protected static final String KEY_MIN_PLAY_TIME = "min_playtime";
+	protected static final String KEY_MIN_PLAY_TIME = "minimum_watched_play_time";
 	protected static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
 	protected static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	protected static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
@@ -222,6 +246,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_RESUME_REWIND = "resume_rewind";
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
+	protected static final String KEY_SCREEN_SIZE = "screen_size";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
 	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
@@ -235,6 +260,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
+	protected static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
 	protected static final String KEY_SINGLE = "single_instance";
 	protected static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	protected static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
@@ -295,6 +321,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_THREADS = "web_threads";
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
+	protected static final String KEY_WINDOW_EXTENDED_STATE = "window_extended_state";
+	protected static final String KEY_WINDOW_GEOMETRY = "window_geometry";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// Deprecated settings
@@ -314,6 +342,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	protected static final char LIST_SEPARATOR = ',';
 	public final String ALL_RENDERERS = "All renderers";
+
+	// Path to default logfile directory
+	protected String defaultLogFileDir = null;
 
 	public TempFolder tempFolder;
 	public ProgramPaths programPaths;
@@ -371,7 +402,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		under multiple profiles without fiddling with environment variables, properties or
 		command-line arguments.
 
-		1) if UMS_PROFILE is not set, UMS.conf is located in: 
+		1) if UMS_PROFILE is not set, UMS.conf is located in:
 
 			Windows:             %ALLUSERSPROFILE%\$build
 			Mac OS X:            $HOME/Library/Application Support/$build
@@ -402,6 +433,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	protected static final String ENV_PROFILE_PATH = "UMS_PROFILE";
 	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
+	protected static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 
 	// Path to directory containing UMS config files
 	protected static final String PROFILE_DIRECTORY;
@@ -505,23 +537,22 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
 
-			if (pmsConfFile.isFile()) {
-				if (FileUtil.isFileReadable(pmsConfFile)) {
-					((PropertiesConfiguration)configuration).load(pmsConfFile);
-				} else {
-					LOGGER.warn("Can't load {}", PROFILE_PATH);
-				}
-			} else if (SKEL_PROFILE_PATH != null) {
-				File pmsSkelConfFile = new File(SKEL_PROFILE_PATH);
+			try {
+				((PropertiesConfiguration)configuration).load(pmsConfFile);
+			} catch (ConfigurationException e) {
+				if (Platform.isLinux() && SKEL_PROFILE_PATH != null) {
+					LOGGER.debug("Failed to load {} ({}) - attempting to load skel profile", PROFILE_PATH, e.getMessage());
+					File skelConfigFile = new File(SKEL_PROFILE_PATH);
 
-				if (pmsSkelConfFile.isFile()) {
-					if (FileUtil.isFileReadable(pmsSkelConfFile)) {
-						// Load defaults from skel file, save them later to PROFILE_PATH
-						((PropertiesConfiguration)configuration).load(pmsSkelConfFile);
-						LOGGER.info("Default configuration loaded from " + SKEL_PROFILE_PATH);
-					} else {
-						LOGGER.warn("Can't load {}", SKEL_PROFILE_PATH);
+					try {
+						// Load defaults from skel profile, save them later to PROFILE_PATH
+						((PropertiesConfiguration)configuration).load(skelConfigFile);
+						LOGGER.info("Default configuration loaded from {}", SKEL_PROFILE_PATH);
+					} catch (ConfigurationException ce) {
+						LOGGER.warn("Can't load neither {}: {} nor {}: {}", PROFILE_PATH, e.getMessage(), SKEL_PROFILE_PATH, ce.getMessage());
 					}
+				} else {
+					LOGGER.warn("Can't load {}: {}", PROFILE_PATH, e.getMessage());
 				}
 			}
 		}
@@ -531,7 +562,9 @@ public class PmsConfiguration extends RendererConfiguration {
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = createProgramPathsChain(configuration);
 		filter = new IpFilter();
-		Locale.setDefault(new Locale(getLanguage()));
+		PMS.setLocale(getLanguageLocale(true));
+		//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
+		Locale.setDefault(getLanguageLocale());
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
 		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
@@ -581,6 +614,106 @@ public class PmsConfiguration extends RendererConfiguration {
 				new PlatformSpecificDefaultPathsFactory().get()
 			)
 		);
+	}
+
+	private String verifyLogFolder(File folder, String fallbackTo) {
+		try {
+			FilePermissions permissions = FileUtil.getFilePermissions(folder);
+			if (LOGGER.isTraceEnabled()) {
+				if (!permissions.isFolder()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not a folder, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				} else if (!permissions.isBrowsable()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not browsable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				} else if (!permissions.isWritable()) {
+					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
+				}
+			}
+			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable()) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Default logfile folder set to: {}", folder.getAbsolutePath());
+				}
+				return folder.getAbsolutePath();
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.trace("getDefaultLogFileFolder: \"{}\" not found, falling back to {} for logging: {}", folder.getAbsolutePath(), fallbackTo, e.getMessage());
+		}
+		return null;
+	}
+
+	/**
+	 * @return first writable folder in the following order:
+	 * <p>
+	 *     1. (On Linux only) path to {@code /var/log/ums/%USERNAME%/}.
+	 * </p>
+	 * <p>
+	 *     2. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
+	 *     {@code ~/Library/Application Support/UMS/} on Mac).
+	 * </p>
+	 * <p>
+	 *     3. Path to user-defined temporary folder specified by {@code temp_directory} parameter in UMS.conf.
+	 * </p>
+	 * <p>
+	 *     4. Path to system temporary folder.
+	 * </p>
+	 * <p>
+	 *     5. Path to current working directory.
+	 * </p>
+	 */
+	public synchronized String getDefaultLogFileFolder() {
+
+		if (defaultLogFileDir == null) {
+			if (Platform.isLinux()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UMS/{}/\"", System.getProperty("user.name"));
+				}
+				final File logDirectory = new File("/var/log/UMS/" + System.getProperty("user.name") + "/");
+				if (!logDirectory.exists()) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
+					}
+					try {
+						FileUtils.forceMkdir(logDirectory);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("getDefaultLogFileFolder: \"{}\" created", logDirectory.getAbsolutePath());
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
+					}
+				}
+				defaultLogFileDir = verifyLogFolder(logDirectory, "profile folder");
+			}
+
+			if (defaultLogFileDir == null) {
+				// Log to profile directory if it is writable.
+				final File profileDirectory = new File(PROFILE_DIRECTORY);
+				defaultLogFileDir = verifyLogFolder(profileDirectory, "temporary folder");
+			}
+
+			if (defaultLogFileDir == null) {
+				// Try user-defined temporary folder or fall back to system temporary folder.
+				try {
+					defaultLogFileDir = verifyLogFolder(getTempFolder(), "working folder");
+				} catch (IOException e) {
+					LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
+					defaultLogFileDir = "";
+				}
+			}
+		}
+
+		return defaultLogFileDir;
+	}
+
+	public String getDefaultLogFileName() {
+		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
+		if (FileUtil.isValidFileName(s)) {
+			return s;
+		} else {
+			return "debug.log";
+		}
+	}
+
+	public String getDefaultLogFilePath() {
+		return FileUtil.appendPathSeparator(getDefaultLogFileFolder()) + getDefaultLogFileName();
 	}
 
 	public File getTempFolder() throws IOException {
@@ -716,18 +849,92 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Get the code of the preferred language for the PMS user interface. Default
-	 * is based on the locale.
-	 * @return The ISO 639 language code.
+	 * Get the {@link java.util.Locale} of the preferred language for the UMS
+	 * user interface. The default is based on the default (OS) locale.
+	 * @param log determines if any issues should be logged.
+	 * @return The {@link java.util.Locale}.
 	 */
-	public String getLanguage() {
-		String def = Locale.getDefault().getLanguage();
-
-		if (def == null) {
-			def = "en";
+	public Locale getLanguageLocale(boolean log) {
+		String languageCode = configuration.getString(KEY_LANGUAGE);
+		Locale locale = null;
+		if (languageCode != null && !languageCode.isEmpty()) {
+			locale = Languages.toLocale(Locale.forLanguageTag(languageCode));
+			if (log && locale == null) {
+				LOGGER.error("Invalid or unsupported language tag \"{}\", defaulting to OS language.", languageCode);
+			}
+		} else if (log) {
+			LOGGER.info("Language not specified, defaulting to OS language.");
 		}
 
-		return getString(KEY_LANGUAGE, def);
+		if (locale == null) {
+			locale = Languages.toLocale(Locale.getDefault());
+			if (log && locale == null) {
+				LOGGER.error("Unsupported language tag \"{}\", defaulting to US English.", Locale.getDefault().toLanguageTag());
+			}
+		}
+
+		if (locale == null) {
+			locale = Locale.forLanguageTag("en-US"); // Default
+		}
+		return locale;
+	}
+
+	/**
+	 * Get the {@link java.util.Locale} of the preferred language for the UMS
+	 * user interface. The default is based on the default (OS) locale. Doesn't
+	 * log potential issues.
+	 * @return The {@link java.util.Locale}.
+	 */
+	public Locale getLanguageLocale() {
+		return getLanguageLocale(false);
+	}
+
+	/**
+	 * Get the {@link java.util.Locale} compatible tag of the preferred
+	 * language for the UMS user interface. The default is based on the default (OS) locale.
+	 * @return The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
+	 */
+	public String getLanguageTag() {
+		return getLanguageLocale().toLanguageTag();
+	}
+
+	/**
+	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
+	 * @since 5.2.3
+	 */
+	public String getLanguage() {
+		return getLanguageTag();
+	}
+
+	/**
+	 * Set the preferred language for the UMS user interface.
+	 * @param value The {@link java.net.Locale}.
+	 */
+	public void setLanguage(Locale locale) {
+		if (locale != null) {
+			if (Languages.isValid(locale)) {
+				configuration.setProperty(KEY_LANGUAGE, Languages.toLanguageCode(locale));
+				PMS.setLocale(Languages.toLocale(locale));
+				//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
+				Locale.setDefault(Languages.toLocale(locale));
+			} else {
+				LOGGER.error("setLanguage() aborted because of unsupported language tag \"{}\"", locale.toLanguageTag());
+			}
+		} else {
+			LOGGER.error("setLanguage() aborted because the locale is null");
+		}
+	}
+
+	/**
+	 * Set the preferred language for the UMS user interface.
+	 * @param value The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
+	 */
+	public void setLanguage(String value) {
+		if (value != null && !value.isEmpty()) {
+			setLanguage(Locale.forLanguageTag(value));
+		} else {
+			LOGGER.error("setLanguage() aborted because language tag is empty");
+		}
 	}
 
 	/**
@@ -923,28 +1130,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set the preferred language for the PMS user interface.
-	 * @param value The ISO 639 language code.
-	 */
-	public void setLanguage(String value) {
-		configuration.setProperty(KEY_LANGUAGE, value);
-		Locale.setDefault(new Locale(getLanguage()));
-	}
-
-	/**
 	 * Returns the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
-	 * from. Default is 2 seconds.
+	 * from. Default is 4 seconds.
+	 *
 	 * @return The seek position in seconds.
 	 */
 	public int getThumbnailSeekPos() {
-		return getInt(KEY_THUMBNAIL_SEEK_POS, 2);
+		return getInt(KEY_THUMBNAIL_SEEK_POS, 4);
 	}
 
 	/**
 	 * Sets the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
 	 * from.
+	 *
 	 * @param value The seek position in seconds.
 	 */
 	public void setThumbnailSeekPos(int value) {
@@ -1050,7 +1250,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_FORCED_SUBTITLE_LANGUAGE,
-				getLanguage()
+				PMS.getLocale().getLanguage()
 		);
 	}
 
@@ -1466,7 +1666,17 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value The comma-separated list of selected renderers.
 	 */
 	public void setSelectedRenderers(String value) {
+		if (value.isEmpty()) {
+			value = "None";
+		}
 		configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+	}
+
+	/**
+	 * @param value a string list of renderers.
+	 */
+	public void setSelectedRenderers(List<String> value) {
+		setStringList(KEY_SELECTED_RENDERERS, value);
 	}
 
 	/**
@@ -1590,7 +1800,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					LOGGER.info("An error occurred while trying to make UMS start automatically with Windows");
 				}
 			} catch (IOException e) {
-				if (!isAdmin()) {
+				if (!FileUtil.isAdmin()) {
 					try {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
@@ -2324,7 +2534,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isMencoderMuxWhenCompatible() {
-		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, true);
+		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, false);
 	}
 
 	public void setMEncoderNormalizeVolume(boolean value) {
@@ -2340,7 +2550,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isFFmpegMuxWithTsMuxerWhenCompatible() {
-		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, true);
+		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
 	}
 
 	/**
@@ -2353,7 +2563,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles() 
+	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles()
 	 * @deprecated
 	 */
 	@Deprecated
@@ -2693,7 +2903,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getWebConfPath() {
 		// Initialise this here rather than in the constructor
 		// or statically so that custom settings are logged
-		// to the debug.log/Logs tab.
+		// to the logfile/Logs tab.
 		if (WEB_CONF_PATH == null) {
 			WEB_CONF_PATH = FileUtil.getFileLocation(
 				getString(KEY_WEB_CONF_PATH, null),
@@ -2821,37 +3031,51 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Finds out whether the program has admin rights.
-	 * It only checks on Windows and returns true if on a non-Windows OS.
-	 *
-	 * Note: Detection of Windows 8 depends on the user having a version of
-	 * JRE newer than 1.6.0_31 installed.
-	 *
-	 * TODO: We should make it check for rights on other operating systems.
+	 * Get the state of the GUI log tab "Case sensitive" check box
+	 * @return true if enabled, false if disabled
 	 */
-	public boolean isAdmin() {
-		if (
-			"Windows 8".equals(System.getProperty("os.name")) ||
-			"Windows 7".equals(System.getProperty("os.name")) ||
-			"Windows Vista".equals(System.getProperty("os.name"))
-		) {
-			try {
-				String command = "reg query \"HKU\\S-1-5-19\"";
-				Process p = Runtime.getRuntime().exec(command);
-				p.waitFor();
-				int exitValue = p.exitValue();
+	public boolean getGUILogSearchCaseSensitive() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, false);
+	}
 
-				if (0 == exitValue) {
-					return true;
-				}
+	/**
+	 * Set the state of the GUI log tab "Case sensitive" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchCaseSensitive(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_CASE_SENSITIVE, value);
+	}
 
-				return false;
-			} catch (IOException | InterruptedException e) {
-				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
-			}
-		}
+	/**
+	 * Get the state of the GUI log tab "Multiline" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchMultiLine() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_MULTILINE, false);
+	}
 
-		return true;
+	/**
+	 * Set the state of the GUI log tab "Multiline" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchMultiLine(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_MULTILINE, value);
+	}
+
+	/**
+	 * Get the state of the GUI log tab "RegEx" check box
+	 * @return true if enabled, false if disabled
+	 */
+	public boolean getGUILogSearchRegEx() {
+		return getBoolean(KEY_GUI_LOG_SEARCH_USE_REGEX, false);
+	}
+
+	/**
+	 * Set the state of the GUI log tab "RegEx" check box
+	 * @param value true if enabled, false if disabled
+	 */
+	public void setGUILogSearchRegEx(boolean value) {
+		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
 	}
 
 	/* Start without external netowrk (increase startup speed) */
@@ -2869,44 +3093,43 @@ public class PmsConfiguration extends RendererConfiguration {
 	public static final String KEY_CRED_PATH = "cred.path";
 
 	public void initCred() throws IOException {
-		String cp = getCredPath();
-		if (StringUtils.isEmpty(cp)) {
-			// need to make sure we got a cred path here
-			cp = new File(getProfileDirectory() + File.separator + "UMS.cred").getAbsolutePath();
-			configuration.setProperty(KEY_CRED_PATH, cp);
+		File credFile = getCredFile();
+
+		if (!credFile.exists()) {
+			// Create an empty file and save the path if needed
+			try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(credFile), StandardCharsets.UTF_8))) {
+				writer.write("# Add credentials to the file");
+				writer.newLine();
+				writer.write("# on the format tag=user,password");
+				writer.newLine();
+				writer.write("# For example:");
+				writer.newLine();
+				writer.write("# channels.xxx=name,secret");
+				writer.newLine();
+			}
+			// Save the path if we got here
+			configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 			try {
 				((PropertiesConfiguration)configuration).save();
 			} catch (ConfigurationException e) {
-			}
-		}
-
-		// Now we know cred path is set
-		File f = new File(cp);
-		if (!f.exists()) {
-			// Cred path is set but file isn't there
-			// Create empty file with some comments
-			try (FileOutputStream fos = new FileOutputStream(f)) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("# Add credentials to the file");
-				sb.append("\n");
-				sb.append("# on the format tag=user,pwd");
-				sb.append("\n");
-				sb.append("# For example:");
-				sb.append("\n");
-				sb.append("# channels.xxx=name,secret");
-				sb.append("\n");
-				fos.write(sb.toString().getBytes());
-				fos.flush();
+				LOGGER.warn("An error occurred while saving configuration: {}", e.getMessage());
 			}
 		}
 	}
 
+	/**
+	 * @deprecated Use {@link #getCredFile()} instead.
+	 */
 	public String getCredPath() {
-		return getString(KEY_CRED_PATH, "");
+		return getCredFile().getAbsolutePath();
 	}
 
 	public File getCredFile() {
-		return new File(getCredPath());
+		String path = getString(KEY_CRED_PATH, "");
+		if (path != null && !path.trim().isEmpty()) {
+			return new File(path);
+		}
+		return new File(getProfileDirectory(), DEFAULT_CREDENTIALS_FILENAME);
 	}
 
 	public int getATZLimit() {
@@ -2960,7 +3183,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public int liveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
 	}
-	
+
 	public boolean isLiveSubtitlesKeep() {
 		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
 	}
@@ -2971,6 +3194,88 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setLiveSubtitlesTimeout(int t) {
 		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
+	}
+
+	public boolean getLoggingBuffered() {
+		return getBoolean(KEY_LOGGING_BUFFERED, false);
+	}
+
+	public void setLoggingBuffered(boolean value) {
+		configuration.setProperty(KEY_LOGGING_BUFFERED, value);
+	}
+
+	public Level getLoggingFilterConsole() {
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"),Level.INFO);
+	}
+
+	public void setLoggingFilterConsole(Level value) {
+		configuration.setProperty(KEY_LOGGING_FILTER_CONSOLE, value.levelStr);
+	}
+
+	public Level getLoggingFilterLogsTab() {
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"),Level.INFO);
+	}
+
+	public void setLoggingFilterLogsTab(Level value) {
+		configuration.setProperty(KEY_LOGGING_FILTER_LOGS_TAB, value.levelStr);
+	}
+
+	public int getLoggingLogsTabLinebuffer() {
+		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+	}
+
+	public void setLoggingLogsTabLinebuffer(int value) {
+		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value);
+	}
+
+	public String getLoggingSyslogFacility() {
+		return getString(KEY_LOGGING_SYSLOG_FACILITY, "USER");
+	}
+
+	public void setLoggingSyslogFacility(String value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_FACILITY, value);
+	}
+
+	public void setLoggingSyslogFacilityDefault() {
+		setLoggingSyslogFacility("USER");
+	}
+
+	public String getLoggingSyslogHost() {
+		return getString(KEY_LOGGING_SYSLOG_HOST, "");
+	}
+
+	public void setLoggingSyslogHost(String value) {
+		configuration.setProperty(KEY_LOGGING_SYSLOG_HOST, value);
+	}
+
+	public int getLoggingSyslogPort() {
+		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
+		if (i < 1 || i > 65535) {
+			return 514;
+		} else {
+			return i;
+		}
+	}
+
+	public void setLoggingSyslogPort(int value) {
+		if (value < 1 || value > 65535) {
+			setLoggingSyslogPortDefault();
+		} else {
+			configuration.setProperty(KEY_LOGGING_SYSLOG_PORT, value);
+		}
+	}
+
+	public void setLoggingSyslogPortDefault() {
+		setLoggingSyslogPort(514);
+	}
+
+	public boolean getLoggingUseSyslog() {
+		return getBoolean(KEY_LOGGING_USE_SYSLOG, false);
+	}
+
+	public void setLoggingUseSyslog(boolean value) {
+		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
 	}
 
 	public boolean isVlcUseHardwareAccel() {
@@ -3037,16 +3342,25 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RESUME, value);
 	}
 
+	@Deprecated
 	public int getMinPlayTime() {
-		return getInt(KEY_MIN_PLAY_TIME, 10000);
+		return getMinimumWatchedPlayTime();
+	}
+
+	public int getMinimumWatchedPlayTime() {
+		return getInt(KEY_MIN_PLAY_TIME, 30000);
+	}
+
+	public int getMinimumWatchedPlayTimeSeconds() {
+		return getMinimumWatchedPlayTime() / 1000;
 	}
 
 	public int getMinPlayTimeWeb() {
-		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinPlayTime());
+		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinimumWatchedPlayTime());
 	}
 
 	public int getMinPlayTimeFile() {
-		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinPlayTime());
+		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinimumWatchedPlayTime());
 	}
 
 	public int getResumeRewind() {
@@ -3450,4 +3764,37 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setRootLogLevel(ch.qos.logback.classic.Level level) {
 		configuration.setProperty(KEY_ROOT_LOG_LEVEL, level.toString());
 	}
+
+	public void setWindowGeometry(String value) {
+		configuration.setProperty(KEY_WINDOW_GEOMETRY, value);
+	}
+
+	public String getWindowGeometry() {
+		return getString(KEY_WINDOW_GEOMETRY, "x=-1,y=-1,width=1000,height=750");
+	}
+
+	public void setScreenSize(String value) {
+		configuration.setProperty(KEY_SCREEN_SIZE, value);
+	}
+
+	public String getScreenSize() {
+		return getString(KEY_SCREEN_SIZE, "-1x-1");
+	}
+
+	public void setWindowExtendedState(int value) {
+		configuration.setProperty(KEY_WINDOW_EXTENDED_STATE, value);
+	}
+
+	public int getWindowExtendedState() {
+		return getInt(KEY_WINDOW_EXTENDED_STATE, Frame.NORMAL);
+	}
+
+	public boolean isShowSplashScreen() {
+		return getBoolean(KEY_SHOW_SPLASH_SCREEN, false);
+	}
+
+	public void setShowSplashScreen(boolean value) {
+		configuration.setProperty(KEY_SHOW_SPLASH_SCREEN, value);
+	}
+
 }

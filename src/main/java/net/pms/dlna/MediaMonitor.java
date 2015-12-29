@@ -15,15 +15,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
+	private Set<String> watchedEntries;
 	private File[] dirs;
-	private Set<String> oldEntries;
 	private PmsConfiguration config;
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
 		this.dirs = dirs;
-		oldEntries = new HashSet<>();
+		watchedEntries = new HashSet<>();
 		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
@@ -54,7 +54,7 @@ public class MediaMonitor extends VirtualFolder {
 						if (!new File(entry.trim()).exists()) {
 							continue;
 						}
-						oldEntries.add(entry.trim());
+						watchedEntries.add(entry.trim());
 					}
 				}
 			}
@@ -65,7 +65,7 @@ public class MediaMonitor extends VirtualFolder {
 
 	public void scanDir(File[] files, final DLNAResource res) {
 		final DLNAResource mm = this;
-		res.addChild(new VirtualVideoAction(Messages.getString("PMS.139"), true) {
+		res.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
 			@Override
 			public boolean enable() {
 				for (DLNAResource r : res.getChildren()) {
@@ -73,7 +73,7 @@ public class MediaMonitor extends VirtualFolder {
 						continue;
 					}
 					RealFile rf = (RealFile) r;
-					oldEntries.add(rf.getFile().getAbsolutePath());
+					watchedEntries.add(rf.getFile().getAbsolutePath());
 				}
 				mm.setDiscovered(false);
 				mm.getChildren().clear();
@@ -87,9 +87,7 @@ public class MediaMonitor extends VirtualFolder {
 
 		for (File f : files) {
 			if (f.isFile()) {
-				// regular file
-				LOGGER.debug("file " + f + " is old? " + old(f.getAbsolutePath()));
-				if (old(f.getAbsolutePath())) {
+				if (isWatched(f.getAbsolutePath())) {
 					continue;
 				}
 				res.addChild(new RealFile(f));
@@ -97,7 +95,7 @@ public class MediaMonitor extends VirtualFolder {
 			if (f.isDirectory()) {
 				boolean add = true;
 				if (config.isHideEmptyFolders()) {
-					add = FileUtil.isFolderRelevant(f, config, oldEntries);
+					add = FileUtil.isFolderRelevant(f, config, watchedEntries);
 				}
 				if (add) {
 					res.addChild(new MonitorEntry(f, this));
@@ -118,7 +116,7 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
-	private boolean monitorClass(DLNAResource res) {
+	private boolean isMonitorClass(DLNAResource res) {
 		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
 	}
 
@@ -126,14 +124,15 @@ public class MediaMonitor extends VirtualFolder {
 		if (!(res instanceof RealFile)) {
 			return;
 		}
+
 		RealFile rf = (RealFile) res;
 		DLNAResource tmp = res.getParent();
 		while (tmp != null) {
-			if (monitorClass(tmp)) {
-				if (old(rf.getFile().getAbsolutePath())) { // no duplicates!
+			if (isMonitorClass(tmp)) {
+				if (isWatched(rf.getFile().getAbsolutePath())) { // no duplicates!
 					return;
 				}
-				oldEntries.add(rf.getFile().getAbsolutePath());
+				watchedEntries.add(rf.getFile().getAbsolutePath());
 				setDiscovered(false);
 				getChildren().clear();
 				try {
@@ -146,10 +145,15 @@ public class MediaMonitor extends VirtualFolder {
 		}
 	}
 
-	private boolean old(String str) {
-		return oldEntries.contains(str);
+	private boolean isWatched(String str) {
+		return watchedEntries.contains(str);
 	}
 
+	/**
+	 * Populates UMS.mon with a list of completely watched videos.
+	 *
+	 * @throws IOException 
+	 */
 	private void dumpFile() throws IOException {
 		File f = monitorFile();
 		Date now = new Date();
@@ -162,10 +166,12 @@ public class MediaMonitor extends VirtualFolder {
 			sb.append("## Generated: ");
 			sb.append(now.toString());
 			sb.append("\n");
-			for (String str : oldEntries) {
-				sb.append("entry=");
-				sb.append(str);
-				sb.append("\n");
+			for (String str : watchedEntries) {
+				if (sb.indexOf(str) == -1) {
+					sb.append("entry=");
+					sb.append(str);
+					sb.append("\n");
+				}
 			}
 			out.write(sb.toString());
 			out.flush();

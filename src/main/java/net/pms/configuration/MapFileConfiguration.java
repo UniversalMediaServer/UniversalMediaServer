@@ -7,6 +7,7 @@ package net.pms.configuration;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -76,14 +77,15 @@ public class MapFileConfiguration {
 			File file = new File(configuration.getProfileDirectory(), conf);
 			conf = null;
 
-			if (FileUtil.isFileReadable(file)) {
-				try {
-					conf = FileUtils.readFileToString(file);
-				} catch (IOException ex) {
-					return null;
-				}
-			} else {
-				LOGGER.warn("Can't read file: {}", file.getAbsolutePath());
+			try {
+				conf = FileUtils.readFileToString(file);
+			} catch (FileNotFoundException ex) {
+				LOGGER.warn("Can't read file: {}", ex.getMessage());
+				return null;
+			} catch (IOException e) {
+				LOGGER.warn("Unexpected exeption while reading \"{}\": {}", file.getAbsolutePath(), e.getMessage());
+				LOGGER.debug("",e);
+				return null;
 			}
 
 			GsonBuilder gsonBuilder = new GsonBuilder();
@@ -129,7 +131,6 @@ public class MapFileConfiguration {
 
 			return out;
 		}
-
 		return null;
 	}
 }
@@ -146,11 +147,16 @@ class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 	public File deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		File file = new File(json.getAsJsonPrimitive().getAsString());
 
-		if (!FileUtil.isDirectoryReadable(file)) {
-			LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
+		try {
+			if (FileUtil.getFilePermissions(file).isBrowsable()) {
+				return file;
+			} else {
+				LOGGER.warn("Can't read folder: {}", file.getAbsolutePath());
+				return null;
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.warn("Folder not found: {}", e.getMessage());
 			return null;
-		} else {
-			return file;
 		}
 	}
 }

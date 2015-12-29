@@ -382,6 +382,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * Checks if is live subtitle folder available.
+	 *
+	 * @return true, if the live subtitle folder should be shown
+	 */
+	public boolean isLiveSubtitleFolderAvailable() {
+		return true;
+	}
+
+	/**
 	 * Any {@link DLNAResource} needs to represent the container or item with a String.
 	 *
 	 * @return String to be showed in the UPNP client.
@@ -549,8 +558,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				// Do not add unsupported media format to the list
-				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)){
+				// Do not add unsupported media formats to the list
+				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
 					LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
 					children.remove(child);
 					return;
@@ -752,7 +761,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public Player resolvePlayer(RendererConfiguration renderer) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
-		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
+		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		Player player = null;
 
 		if (media == null) {
@@ -899,7 +908,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public String setPreferredMimeType(RendererConfiguration renderer) {
 		String prev = media != null ? media.getMimeType() : null;
-		boolean parserV2 = media != null && renderer != null && renderer.isMediaParserV2();
+		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		if (parserV2) {
 			// See which MIME type the renderer prefers in case it supports the media
 			String preferred = renderer.getFormatConfiguration().match(media);
@@ -954,7 +963,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * (Re)sets the given DNLA resource as follows:
+	 * (Re)sets the given DLNA resource as follows:
 	 *    - if it's already one of our children, renew it
 	 *    - or if we have another child with the same name, replace it
 	 *    - otherwise add it as a new child.
@@ -980,7 +989,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Adds the supplied DNLA resource in the internal list of child nodes,
+	 * Adds the supplied DLNA resource in the internal list of child nodes,
 	 * and sets the parent to the current node. Avoids the side-effects
 	 * associated with the {@link #addChild(DLNAResource)} method.
 	 *
@@ -1201,13 +1210,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			discoverChildren(searchStr);
 			boolean ready;
 
-			if (renderer.isMediaParserV2() && renderer.isDLNATreeHack()) {
+			if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 				ready = analyzeChildren(count);
 			} else {
 				ready = analyzeChildren(-1);
 			}
 
-			if (!renderer.isMediaParserV2() || ready) {
+			if (!renderer.isUseMediaInfo() || ready) {
 				setDiscovered(true);
 			}
 
@@ -1222,7 +1231,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (forced) {
 				// This seems to follow the same code path as the else below in the case of MapFile, because
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded -> doRefreshChildren, which is what happens below
-				// (refreshChildren is not overridden in MapFile) 
+				// (refreshChildren is not overridden in MapFile)
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -1243,9 +1252,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Override
 	public void run() {
 		if (first == null) {
-			resolve();
+			syncResolve();
 			if (second != null) {
-				second.resolve();
+				second.syncResolve();
 			}
 		}
 	}
@@ -1417,7 +1426,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Hook to lazily initialise immutable resources e.g. ISOs, zip files &amp;c.
 	 *
 	 * @since 1.90.0
-	 * @see #resolve()
+	 * @see #syncResolve()
 	 */
 	protected void resolveOnce() { }
 
@@ -1439,7 +1448,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * removed from it (if supported). There are other mechanisms for that e.g.
 	 * {@link #doRefreshChildren()} (see {@link Feed} for an example).
 	 */
-	public synchronized void resolve() {
+	public synchronized final void syncResolve() {
+		resolve();
+	}
+
+	/**
+	 * @deprecated Use {@link #syncResolve()} instead
+	 */
+	public void resolve() {
 		if (!resolved) {
 			resolveOnce();
 			// if resolve() isn't overridden, this file/folder is immutable
@@ -1502,7 +1518,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		) {
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
 				RealFile rf = (RealFile) this;
-				displayName = FileUtil.getFileNameWithRewriting(displayName, rf.getFile());
+				displayName = FileUtil.getFileNamePrettified(displayName, rf.getFile());
 			} else {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
 			}
@@ -2353,7 +2369,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer);
 				wireshark.append(" ").append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
-				if (subsAreValidForStreaming && !mediaRenderer.useClosedCaption()) {
+				if (subsAreValidForStreaming && mediaRenderer.offerSubtitlesByProtocolInfo() && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", media_subtitle.getType().getExtension().toUpperCase());
 					wireshark.append(" pv:subtitleFileType=").append(media_subtitle.getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(media_subtitle));
@@ -2388,7 +2404,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());
 						}
-						
+
 					}
 
 					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
@@ -2469,13 +2485,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				endTag(sb);
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
-				if (player != null) {
-					if (mediaRenderer.isTranscodeToMPEGPSMPEG2AC3()) {
-						transcodedExtension = "_transcoded_to.mpg";
-					} else if (mediaRenderer.isTranscodeToMPEGTS()) {
-						transcodedExtension = "_transcoded_to.ts";
-					} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-						transcodedExtension = "_transcoded_to.wmv";
+				if (player != null && media != null) {
+					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
+					if (media.isVideo()) {
+						if (mediaRenderer.isTranscodeToMPEGTS()) {
+							transcodedExtension = "_transcoded_to.ts";
+						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
+							transcodedExtension = "_transcoded_to.wmv";
+						} else {
+							transcodedExtension = "_transcoded_to.mpg";
+						}
+					} else if (media.isAudio()) {
+						if (mediaRenderer.isTranscodeToMP3()) {
+							transcodedExtension = "_transcoded_to.mp3";
+						} else if (mediaRenderer.isTranscodeToWAV()) {
+							transcodedExtension = "_transcoded_to.wav";
+						} else {
+							transcodedExtension = "_transcoded_to.pcm";
+						}
 					}
 				}
 
@@ -2496,7 +2523,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				sb.append(subsURL);
 				closeTag(sb, "sec:CaptionInfoEx");
 				LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
-			} else {
+			} else if (mediaRenderer.offerSubtitlesAsResource()){
 				openTag(sb, "res");
 				String format = media_subtitle.getType().getExtension();
 				if (StringUtils.isBlank(format)) {
@@ -2770,6 +2797,52 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * The system time when the resource was last (re)started.
+	 */
+	private long lastStartSystemTime;
+
+	/**
+	 * Gets the system time when the resource was last (re)started.
+	 *
+	 * @return The system time when the resource was last (re)started
+	 */
+	public double getLastStartSystemTime() {
+		return lastStartSystemTime;
+	}
+
+	/**
+	 * Sets the system time when the resource was last (re)started.
+	 *
+	 * @param startTime the system time to set
+	 */
+	public void setLastStartSystemTime(long startTime) {
+		lastStartSystemTime = startTime;
+	}
+
+	/**
+	 * The most recently requested time offset in seconds.
+	 */
+	private double lastStartPosition;
+
+	/**
+	 * Gets the most recently requested time offset in seconds.
+	 *
+	 * @return The most recently requested time offset in seconds
+	 */
+	public double getLastStartPosition() {
+		return lastStartPosition;
+	}
+
+	/**
+	 * Sets the most recently requested time offset in seconds.
+	 *
+	 * @param startPosition the time offset in seconds
+	 */
+	public void setLastStartPosition(long startPosition) {
+		lastStartPosition = startPosition;
+	}
+
+	/**
 	 * Returns an InputStream of this DLNAResource that starts at a given time, if possible. Very useful if video chapters are being used.
 	 *
 	 * @param range
@@ -2777,8 +2850,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The inputstream
 	 * @throws IOException
 	 */
-	private long lastStart;
-
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
@@ -2812,6 +2883,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				timeseek_auto = true;
 			}
 		}
+
+		lastStartPosition = timeRange.getStartOrZero();
 
 		// Determine source of the stream
 		if (player == null && !isResume()) {
@@ -2879,7 +2952,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			if (System.currentTimeMillis() - lastStart < 500) {
+			if (System.currentTimeMillis() - lastStartSystemTime < 500) {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
@@ -2891,7 +2964,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				// First playback attempt => start new transcoding process
 				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
-				lastStart = System.currentTimeMillis();
+				lastStartSystemTime = System.currentTimeMillis();
 				externalProcess = player.launchTranscode(this, media, params);
 				if (params.waitbeforestart > 0) {
 					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
@@ -2920,7 +2993,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				};
 
 				new Thread(r, "External Process Stopper").start();
-				lastStart = System.currentTimeMillis();
+				lastStartSystemTime = System.currentTimeMillis();
 				ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
 				try {
 					Thread.sleep(1000);
@@ -3745,7 +3818,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			configuration.isDisableSubtitles() ||
 			!configuration.isAutoloadExternalSubtitles() ||
-			configuration.isHideLiveSubtitlesFolder()
+			configuration.isHideLiveSubtitlesFolder() ||
+			!isLiveSubtitleFolderAvailable()
 		) {
 			return null;
 		}
@@ -3866,7 +3940,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public int minPlayTime() {
-		return configuration.getMinPlayTime();
+		return configuration.getMinimumWatchedPlayTime();
 	}
 
 	private String resumeStr(String s) {
@@ -3981,7 +4055,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				setDefaultRenderer(r);
 				// Now add the item and resolve its rendering details
 				add(d);
-				d.resolve();
+				d.syncResolve();
 				// Restore our previous renderer
 				setDefaultRenderer(prev);
 			}

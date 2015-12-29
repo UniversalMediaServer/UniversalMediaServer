@@ -9,6 +9,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.FileUtil;
 import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -95,9 +96,9 @@ public class LibMediaInfoParser {
 				}
 
 				// set Video
-				int videos = MI.Count_Get(video);
-				if (videos > 0) {
-					for (int i = 0; i < videos; i++) {
+				media.setVideoTrackCount(MI.Count_Get(video));
+				if (media.getVideoTrackCount() > 0) {
+					for (int i = 0; i < media.getVideoTrackCount(); i++) {
 						// check for DXSA and DXSB subtitles (subs in video format)
 						if (MI.Get(video, i, "Title").startsWith("Subtitle")) {
 							currentSubTrack = new DLNAMediaSubtitle();
@@ -215,7 +216,8 @@ public class LibMediaInfoParser {
 				}
 
 				// set Image
-				if (MI.Count_Get(image) > 0) {
+				media.setImageCount(MI.Count_Get(image));
+				if (media.getImageCount() > 0) {
 					getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format").toLowerCase(), file);
 					media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 					media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
@@ -226,7 +228,7 @@ public class LibMediaInfoParser {
 				if (subTracks > 0) {
 					for (int i = 0; i < subTracks; i++) {
 						currentSubTrack = new DLNAMediaSubtitle();
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "Format")));
+						currentSubTrack.setSubCharacterSet(MI.Get(text, i, "Format"));
 						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "CodecID")));
 						currentSubTrack.setLang(getLang(MI.Get(text, i, "Language/String")));
 						currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
@@ -457,7 +459,7 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.MP3);
 				}
 			}
-		} else if (value.equals("ma")) {
+		} else if (value.equals("ma") || value.equals("ma / core") || value.equals("134")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;
 			}
@@ -544,6 +546,9 @@ public class LibMediaInfoParser {
 			} else if (streamType == StreamType.Audio) {
 				audio.setCodecA(format);
 			}
+		// format not found so set container type based on the file extension. It will be overwritten when the correct type will be found
+		} else if (streamType == StreamType.General && media.getContainer() == null) { 
+			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()));
 		}
 	}
 

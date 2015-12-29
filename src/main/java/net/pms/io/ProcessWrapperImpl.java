@@ -166,7 +166,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			if (stderrConsumer == null) {
 				stderrConsumer = keepStderr
 					? new OutputTextConsumer(process.getErrorStream(), true)
-					: new OutputTextLogger(process.getErrorStream(), this);
+					: new OutputTextLogger(process.getErrorStream());
 			} else {
 				stderrConsumer.setInputStream(process.getErrorStream());
 			}
@@ -188,11 +188,11 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					bo = stdoutConsumer.getBuffer();
 				}
 				bo.attachThread(this);
-				new OutputTextLogger(process.getInputStream(), this).start();
+				new OutputTextLogger(process.getInputStream()).start();
 			} else if (params.log) {
 				stdoutConsumer = keepStdout
 					? new OutputTextConsumer(process.getInputStream(), true)
-					: new OutputTextLogger(process.getInputStream(), this);
+					: new OutputTextLogger(process.getInputStream());
 			} else {
 				stdoutConsumer = new OutputBufferConsumer(process.getInputStream(), params);
 				bo = stdoutConsumer.getBuffer();
@@ -231,7 +231,10 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			} catch (InterruptedException e) { }
 		} catch (IOException e) {
-			LOGGER.error("Error initializing process: ", e);
+			LOGGER.error("Error initializing process: ", e.getMessage());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("", e);
+			}
 			stopProcess();
 		} finally {
 			try {

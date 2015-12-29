@@ -21,6 +21,7 @@ package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.util.*;
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration.SortedHeaderMap;
 import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByHeaders;
 import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
@@ -39,26 +40,24 @@ public class RendererConfigurationTest {
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset(); 
+		context.reset();
 
 		// Set locale to EN to ignore translations for renderers
 		Locale.setDefault(Locale.ENGLISH);
+		PMS.setLocale(Locale.ENGLISH);
 	}
 
 	/**
 	 * Test the RendererConfiguration class and the consistency of the renderer
 	 * .conf files it reads. This is done by feeding it known headers and
 	 * checking whether it recognizes the correct renderer.
+	 * @throws ConfigurationException
 	 */
 	@Test
-	public void testKnownHeaders() {
+	public void testKnownHeaders() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
-		try {
-			pmsConf = new PmsConfiguration(false);
-		} catch (ConfigurationException e) {
-			// This should be impossible since no configuration file will be loaded.
-		}
+		pmsConf = new PmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
 		loadRendererConfigurations(pmsConf);
@@ -74,6 +73,7 @@ public class RendererConfigurationTest {
 		// AirPlayer:
 		testHeaders("AirPlayer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
 		testHeaders("AirPlayer", "User-Agent: Lavf52.54.0");
+		testHeaders("AirPlayer", "User-Agent: VLC%20for%20iOS/22 CFNetwork/711.5.6 Darwin/14.0.0");
 
 		// BraviaEX:
 		testHeaders("Sony Bravia EX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";");
@@ -85,10 +85,10 @@ public class RendererConfigurationTest {
 		testHeaders("D-Link DSM-510", "User-Agent: DLNADOC/1.50 INTEL_NMPR/2.1");
 
 		// iPad-iPhone:
-		testHeaders("iPad / iPhone", "User-Agent: 8player lite 2.2.3 (iPad; iPhone OS 5.0.1; nl_NL)");
-		testHeaders("iPad / iPhone", "User-Agent: yxplayer2%20lite/1.2.7 CFNetwork/485.13.9 Darwin/11.0.0");
-		testHeaders("iPad / iPhone", "User-Agent: MPlayer 1.0rc4-4.2.1");
-		testHeaders("iPad / iPhone", "User-Agent: NSPlayer/4.1.0.3856");
+		testHeaders("Apple iPad / iPhone", "User-Agent: 8player lite 2.2.3 (iPad; iPhone OS 5.0.1; nl_NL)");
+		testHeaders("Apple iPad / iPhone", "User-Agent: yxplayer2%20lite/1.2.7 CFNetwork/485.13.9 Darwin/11.0.0");
+		testHeaders("Apple iPad / iPhone", "User-Agent: MPlayer 1.0rc4-4.2.1");
+		testHeaders("Apple iPad / iPhone", "User-Agent: NSPlayer/4.1.0.3856");
 
 		// Microsoft Xbox One:
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: Xbox-SystemOS");
@@ -164,61 +164,55 @@ public class RendererConfigurationTest {
 
 	/**
 	 * Test recognition with a forced default renderer configured.
+	 * @throws ConfigurationException
 	 */
 	@Test
-	public void testForcedDefault() {
+	public void testForcedDefault() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
-		try {
-			pmsConf = new PmsConfiguration(false);
+		pmsConf = new PmsConfiguration(false);
 
-			// Set default to PlayStation 3
-			pmsConf.setRendererDefault("PlayStation 3");
-			pmsConf.setRendererForceDefault(true);
+		// Set default to PlayStation 3
+		pmsConf.setRendererDefault("PlayStation 3");
+		pmsConf.setRendererForceDefault(true);
 
-			// Initialize the RendererConfiguration
-			loadRendererConfigurations(pmsConf);
+		// Initialize the RendererConfiguration
+		loadRendererConfigurations(pmsConf);
 
-			// Known and unknown renderers should always return default
-			testHeaders("PlayStation 3", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
-			testHeaders("PlayStation 3", "User-Agent: Unknown Renderer");
-			testHeaders("PlayStation 3", "X-Unknown-Header: Unknown Content");
-		} catch (ConfigurationException e) {
-			// This should be impossible since no configuration file will be loaded.
-		}
+		// Known and unknown renderers should always return default
+		testHeaders("PlayStation 3", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
+		testHeaders("PlayStation 3", "User-Agent: Unknown Renderer");
+		testHeaders("PlayStation 3", "X-Unknown-Header: Unknown Content");
 	}
 
 	/**
 	 * Test recognition with a forced bogus default renderer configured.
+	 * @throws ConfigurationException
 	 */
 	@Test
-	public void testBogusDefault() {
+	public void testBogusDefault() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
-		try {
-			pmsConf = new PmsConfiguration(false);
+		pmsConf = new PmsConfiguration(false);
 
-			// Set default to non existent renderer
-			pmsConf.setRendererDefault("Bogus Renderer");
-			pmsConf.setRendererForceDefault(true);
+		// Set default to non existent renderer
+		pmsConf.setRendererDefault("Bogus Renderer");
+		pmsConf.setRendererForceDefault(true);
 
-			// Initialize the RendererConfiguration
-			loadRendererConfigurations(pmsConf);
+		// Initialize the RendererConfiguration
+		loadRendererConfigurations(pmsConf);
 
-			// Known and unknown renderers should return "Unknown renderer"
-			testHeaders("Unknown renderer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
-			testHeaders("Unknown renderer", "User-Agent: Unknown Renderer");
-			testHeaders("Unknown renderer", "X-Unknown-Header: Unknown Content");
-		} catch (ConfigurationException e) {
-			// This should be impossible since no configuration file will be loaded.
-		}
+		// Known and unknown renderers should return "Unknown renderer"
+		testHeaders("Unknown renderer", "User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0");
+		testHeaders("Unknown renderer", "User-Agent: Unknown Renderer");
+		testHeaders("Unknown renderer", "X-Unknown-Header: Unknown Content");
 	}
 
 	/**
 	 * Test a particular set of headers to see if it returns the correct
 	 * renderer. Set the correct renderer name to <code>null</code> to require
 	 * that nothing matches at all.
-	 * 
+	 *
 	 * @param correctRendererName
 	 *            The name of the renderer.
 	 * @param headerLines

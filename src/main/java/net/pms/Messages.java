@@ -18,49 +18,126 @@
  */
 package net.pms;
 
-import org.apache.commons.lang3.StringUtils;
-
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Class Messages provides a mechanism to localize the text messages found in
- * PMS. It is based on {@link ResourceBundle}.
+ * UMS. It is based on {@link ResourceBundle}.
+ *
  */
 public class Messages {
 	private static final String BUNDLE_NAME = "resources.i18n.messages";
 
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
+	private static ReadWriteLock resourceBundleLock = new ReentrantReadWriteLock();
+	private static ResourceBundle resourceBundle;
+	private static final ResourceBundle ROOT_RESOURCE_BUNDLE;
+
+	static {
+		/*
+		 * This is called when the first call to any of the static class
+		 * methods are done. PMS.setLocale() will call setLocaleBundle() to
+		 * access the correct resource bundle, but we need something in the
+		 * mean time if this is invoked before PM.setLocale() has been called.
+		 * This can happen if any code calls getString() before configuration
+		 * has been loaded, in which case the default locale will be used.
+		 */
+		resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault());
+		ROOT_RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, Locale.ROOT, new ResourceBundle.Control() {
+	        @Override
+	        public List<Locale> getCandidateLocales(String name,
+	                                                Locale locale) {
+	            return Collections.singletonList(Locale.ROOT);
+	        }
+		});
+
+	}
 
 	private Messages() {
 	}
 
 	/**
+	 * Creates a resource bundle based on the given <code>Local</code> and
+	 * keeps this for use by any calls to {@link #getString(String)}. If
+	 * no matching <code>ResourceBundle</code> can be found, one is chosen
+	 * from a number of candidates according to
+	 * <a href="https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html#default_behavior">
+	 * ResourceBundle default behavior</a>.
+	 *
+	 * @param locale the <code>Locale</code> from which the
+	 * <code>ResourceBundle</code> is selected.
+	 */
+
+	public static void setLocaleBundle(Locale locale) {
+		if (locale == null) {
+			throw new IllegalArgumentException("locale cannot be null");
+		}
+		resourceBundleLock.writeLock().lock();
+		try {
+			if (isRootEnglish(locale)) {
+				resourceBundle = ROOT_RESOURCE_BUNDLE;
+			} else {
+				resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+			}
+		} finally {
+			resourceBundleLock.writeLock().unlock();
+		}
+	}
+
+	/**
 	 * Returns the locale-specific string associated with the key.
-	 * 
+	 *
 	 * @param key
-	 *            Keys in PMS follow the format "group.x". group states where
-	 *            this key is likely to be used. For example, NetworkTab refers
-	 *            to the network configuration tab in the PMS GUI. x is just a
-	 *            number.
+	 *            Keys in UMS follow the format "group.x". group states where
+	 *            this key is likely to be used. For example, StatusTab refers
+	 *            to the status tab in the UMS GUI. "x" can be anything.
 	 * @return Descriptive string if key is found or a copy of the key string if
 	 *         it is not.
 	 */
 	public static String getString(String key) {
-		return getString(key, RESOURCE_BUNDLE);
+		resourceBundleLock.readLock().lock();
+		try {
+			return getString(key, resourceBundle);
+		} finally {
+			resourceBundleLock.readLock().unlock();
+		}
 	}
 
-	public static String getString(String key, String lang) {
-		if (StringUtils.isEmpty(lang)) {
+	public static String getString(String key, Locale locale) {
+		if (locale == null) {
 			return getString(key);
 		}
-		Locale l = new Locale(lang);
-		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, l);
+		// Selecting base bundle (en-US) for all English variants but British
+		if (isRootEnglish(locale)) {
+			return getRootString(key);
+		}
+		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
 		if (rb == null) {
-			rb = RESOURCE_BUNDLE;
+			rb = ROOT_RESOURCE_BUNDLE;
 		}
 		return getString(key, rb);
+	}
+
+
+	/**
+	 * Returns the string from the root language file (messages.properties)
+	 * regardless of default <code>Locale</code>. Java will otherwise choose
+	 * a <code>Locale</code> for a "similar" language or the default
+	 * <code>Locale</code> if the requested locale can't be found. The root
+	 * <code>Locale</code> is only chosen as a last resort. See
+	 * <a href="https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html#default_behavior">
+	 * ResourceBundle default behavior</a> for more information about the
+	 * selection process.<br><br>
+	 *
+	 * For parameter and return value see {@link #getString(String)}
+	 */
+	public static String getRootString(String key) {
+		return getString(key, ROOT_RESOURCE_BUNDLE);
 	}
 
 	private static String getString(String key, ResourceBundle rb) {
@@ -69,5 +146,16 @@ public class Messages {
 		} catch (MissingResourceException e) {
 			return '!' + key + '!';
 		}
+	}
+
+	/**
+	 * Checks if the given <code>Locale</code> should use the root language
+	 * file (messages.properties) which is en-US. Currently that is all variants
+	 * of English but British English.
+	 * @param locale the <code>Locale</code> to check
+	 * @return The result
+	 */
+	private static boolean isRootEnglish(Locale locale) {
+		return locale.getLanguage().toLowerCase(Locale.ENGLISH).equals("en") && !locale.getCountry().equals("GB");
 	}
 }

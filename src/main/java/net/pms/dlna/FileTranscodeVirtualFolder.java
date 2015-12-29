@@ -179,7 +179,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	protected void resolveOnce() {
 		if (getChildren().size() == 1) { // OK
 			DLNAResource child = getChildren().get(0);
-			child.resolve();
+			child.syncResolve();
 
 			RendererConfiguration renderer = null;
 			if (this.getParent() != null) {

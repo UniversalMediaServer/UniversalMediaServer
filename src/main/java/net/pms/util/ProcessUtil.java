@@ -1,7 +1,7 @@
 /*
  * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012  UMS developers.
+ * Copyright (C) 2012 UMS developers.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,7 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
-import net.pms.io.Gob;
+import net.pms.io.StreamGobbler;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,11 +114,11 @@ public class ProcessUtil {
 		boolean killed = false;
 		LOGGER.warn("Sending kill -" + signal + " to the Unix process: " + pid);
 		try {
-			Process process = Runtime.getRuntime().exec("kill -" + signal + " " + pid);
-			// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
-			// consumer that reads and discards the stream
-			new Gob(process.getErrorStream()).start();
-			new Gob(process.getInputStream()).start();
+			ProcessBuilder processBuilder = new ProcessBuilder("kill", "-" + signal, Integer.toString(pid));
+			processBuilder.redirectErrorStream(true);
+			Process process = processBuilder.start();
+			// consume the error and output process streams
+			StreamGobbler.consume(process.getInputStream(), true);
 			int exit = waitFor(process);
 			if (exit == 0) {
 				killed = true;
@@ -149,7 +150,7 @@ public class ProcessUtil {
 							p.exitValue();
 						} catch (IllegalThreadStateException itse) { // still running: nuke it
 							// kill -14 (ALRM) works (for MEncoder) and is less dangerous than kill -9
-							// so try that first 
+							// so try that first
 							if (!kill(pid, 14)) {
 								try {
 									// This is a last resort, so let's not be too eager
@@ -176,7 +177,7 @@ public class ProcessUtil {
 	}
 
 	// Run cmd and return combined stdout/stderr
-	public static String run(String... cmd) {
+	public static String run(int[] expectedExitCodes, String... cmd) {
 		try {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 			pb.redirectErrorStream(true);
@@ -190,7 +191,16 @@ public class ProcessUtil {
 				}
 			}
 			p.waitFor();
-			if (p.exitValue() != 0) {
+			boolean expected = false;
+			if (expectedExitCodes != null) {
+				for (int expectedCode : expectedExitCodes) {
+					if (expectedCode == p.exitValue()) {
+						expected = true;
+						break;
+					}
+				}
+			}
+			if (!expected) {
 				LOGGER.debug("Warning: command {} returned {}", Arrays.toString(cmd), p.exitValue());
 			}
 			return output.toString();
@@ -198,6 +208,11 @@ public class ProcessUtil {
 			LOGGER.error("Error running command " + Arrays.toString(cmd), e);
 		}
 		return "";
+	}
+
+	public static String run(String... cmd) {
+		int[] zeroExpected = { 0 };
+		return run(zeroExpected, cmd);
 	}
 
 	// Whitewash any arguments not suitable to display in dbg messages
@@ -235,7 +250,7 @@ public class ProcessUtil {
 			// We're doing a straight reboot
 			cmd = reboot;
 		} else {
-			// We're running a script that will eventually restart UMS 
+			// We're running a script that will eventually restart UMS
 			if (env == null) {
 				env = new HashMap<>();
 			}
