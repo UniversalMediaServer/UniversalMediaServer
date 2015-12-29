@@ -328,7 +328,7 @@ public class LanguageSelection {
 
 		infoTextBorder.setTitle(buildString("LanguageSelection.4"));
 
-		infoText.setText(String.format(buildString("LanguageSelection.5", true, true), PMS.NAME, PMS.CROWDIN_LINK, PMS.NAME, PMS.CROWDIN_LINK));
+		infoText.setText(String.format(buildString("LanguageSelection.5", true, true), PMS.CROWDIN_LINK, PMS.CROWDIN_LINK));
 		infoText.setPreferredSize(SwingUtils.getWordWrappedTextDimension(infoText, textWidth, StringUtil.stripHTML(infoText.getText())));
 
 		selectButton.setText(buildString("Dialog.Select"));
