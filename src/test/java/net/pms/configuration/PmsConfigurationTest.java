@@ -102,4 +102,11 @@ public class PmsConfigurationTest {
 		configuration.setLanguage("en");
 		assertEquals("setLanguageEnglish", configuration.getLanguageLocale(), Locale.forLanguageTag("en-US"));
 	}
+
+	@Test
+	public void testDefaults() {
+		assertNull("getLanguageRawStringDefault", configuration.getLanguageRawString());
+		configuration.setLanguage((Locale) null);
+		assertEquals("setLanguage(null)SetsBlankString", configuration.getLanguageRawString(), "");
+	}
 }
