@@ -389,6 +389,7 @@ public class LanguageSelection {
 		// This exercise is to avoid using the default shared StyleSheet with padding
 		CustomHTMLEditorKit editorKit = new CustomHTMLEditorKit();
 		StyleSheet styleSheet = new StyleSheet();
+		styleSheet.addRule("a { color: #0000EE; text-decoration:underline; }");
 		editorKit.setStyleSheet(styleSheet);
 		infoText.setEditorKit(editorKit);
 		infoText.addHyperlinkListener(new HyperlinkListener() {
