@@ -158,6 +158,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	protected static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
+	protected static final String OFFER_SUBTITLES_BY_PROTOCOL_INFO = "OfferSubtitlesByProtocolInfo";
+	protected static final String OFFER_SUBTITLES_AS_SOURCE = "OfferSubtitlesAsSource";
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String PREPEND_TRACK_NUMBERS = "PrependTrackNumbers";
@@ -2283,6 +2285,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean useClosedCaption() {
 		return getBoolean(USE_CLOSED_CAPTION, false);
+	}
+
+	public boolean offerSubtitlesAsResource() {
+		return getBoolean(OFFER_SUBTITLES_AS_SOURCE, true);
+	}
+
+	public boolean offerSubtitlesByProtocolInfo() {
+		return getBoolean(OFFER_SUBTITLES_BY_PROTOCOL_INFO, true);
 	}
 
 	public boolean isSubtitlesStreamingSupported() {
