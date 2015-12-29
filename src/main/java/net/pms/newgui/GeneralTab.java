@@ -72,7 +72,7 @@ public class GeneralTab {
 	private JCheckBox singleInstance;
 	private CustomJButton installService;
 	private JCheckBox showSplashScreen;
-	private JLabel currentLanguage = new JLabel();
+	private JTextField currentLanguage = new JTextField();
 
 	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -107,13 +107,13 @@ public class GeneralTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		ypos = 7; // we hardcode here (promise last time)
 		builder.addLabel(Messages.getString("GeneralTab.14"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+
+		JPanel languagePanel = new JPanel();
+		languagePanel.setLayout(new BoxLayout(languagePanel,BoxLayout.LINE_AXIS));
+		currentLanguage.setEnabled(false);
 		currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
-		builder.add(currentLanguage, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
-		CustomJButton selectLanguage = new CustomJButton(
-			Messages.getString("LanguageSelection.1").equals(Messages.getRootString("LanguageSelection.1")) ?
-				Messages.getString("LanguageSelection.1") :
-				String.format("%s (%s)", Messages.getString("LanguageSelection.1"), Messages.getRootString("LanguageSelection.1"))
-		);
+		languagePanel.add(currentLanguage);
+		CustomJButton selectLanguage = new CustomJButton("    ...    ");
 		selectLanguage.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -126,7 +126,8 @@ public class GeneralTab {
 				}
 			}
 		});
-		builder.add(selectLanguage, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
+		languagePanel.add(selectLanguage);
+		builder.add(languagePanel, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
