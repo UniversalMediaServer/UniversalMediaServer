@@ -3,6 +3,15 @@
 	General:
 		
 
+6.0.0-b1 - 2015-12-29
+
+	General:
+		Added SquareAudioThumbnails and SquareImageThumbnails renderer configuration options
+		Improved support for thumbnail generation
+		Improved detection of the position of media while playing
+		Improved logging
+		All changes from 5.4.0
+
 5.4.0 - 2015-12-29
 
 	General:
