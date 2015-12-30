@@ -19,6 +19,7 @@
  */
 package net.pms.newgui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dialog.ModalityType;
@@ -42,6 +43,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkEvent;
@@ -336,6 +338,9 @@ public class LanguageSelection {
 	}
 
 	private JComponent buildComponent() {
+		// UIManager manages to get the background color wrong for text
+		// components on OS X, so we apply the color manually
+		Color backgroundColor = UIManager.getColor("Panel.background");
 		rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
 
 		// It needs to be something in the title text, or the size calculation for the border will be wrong.
@@ -349,6 +354,7 @@ public class LanguageSelection {
 		));
 		selectionPanel.setLayout(new BoxLayout(selectionPanel, BoxLayout.PAGE_AXIS));
 		descriptionText.setEditable(false);
+		descriptionText.setBackground(backgroundColor);
 		descriptionText.setFocusable(false);
 		descriptionText.setLineWrap(true);
 		descriptionText.setWrapStyleWord(true);
@@ -366,6 +372,7 @@ public class LanguageSelection {
 
 		warningText.setEditable(false);
 		warningText.setFocusable(false);
+		warningText.setBackground(backgroundColor);
 		warningText.setFont(warningText.getFont().deriveFont(Font.BOLD));
 		warningText.setLineWrap(true);
 		warningText.setWrapStyleWord(true);
@@ -383,7 +390,7 @@ public class LanguageSelection {
 		));
 		infoText.setEditable(false);
 		infoText.setFocusable(false);
-		infoText.setBackground(warningText.getBackground());
+		infoText.setBackground(backgroundColor);
 		infoText.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 
 		// This exercise is to avoid using the default shared StyleSheet with padding
