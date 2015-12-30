@@ -489,7 +489,7 @@ public class SubtitleUtils {
 			throw new NullPointerException("The 3D layout not recognized for the 3D video");
 		}
 
-		int depth3D = Integer.valueOf(configuration.getDepth3D());
+		int depth3D = configuration.getDepth3D();
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
 		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), subsFileCharset))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
@@ -514,7 +514,7 @@ public class SubtitleUtils {
 				fontScaleX = Double.toString((100 * Double.parseDouble(configuration.getAssScale())) / 2);
 				fontScaleY = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
 			}
-			
+
 			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
