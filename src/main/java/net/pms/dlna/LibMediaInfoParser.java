@@ -1,6 +1,7 @@
 package net.pms.dlna;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -737,7 +738,7 @@ public class LibMediaInfoParser {
 	public static byte[] getCover(String based64Value) {
 		try {
 			if (base64 != null) {
-				return base64.decode(based64Value.getBytes());
+				return base64.decode(based64Value.getBytes(StandardCharsets.US_ASCII));
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error in decoding thumbnail data", e);

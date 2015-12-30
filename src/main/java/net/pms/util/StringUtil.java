@@ -25,6 +25,11 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.JEditorPane;
+import javax.swing.JTextPane;
+import javax.swing.text.html.HTMLEditorKit;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
@@ -102,7 +107,7 @@ public class StringUtil {
 		 * s = s.replace("\"", "&quot;");
 		 * s = s.replace("'", "&apos;");
 		 */
-		
+
 		// The second encoding/escaping of & is not a bug, it's what effectively adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
 		return s;
@@ -280,7 +285,7 @@ public class StringUtil {
 	 * otherwise returns the string as is.
 	 *
 	 * @param arg The argument string
-	 * @return The string, optionally in quotes. 
+	 * @return The string, optionally in quotes.
 	 */
 	public static String quoteArg(String arg) {
 		if (arg != null && arg.indexOf(' ') > -1) {
@@ -290,4 +295,64 @@ public class StringUtil {
 		return arg;
 	}
 
+	/**
+	 * Fill a string in a unicode safe way.
+	 * @param subString The <code>String</code> to be filled with
+	 * @param count The number of times to repeat the <code>String</code>
+	 * @return The filled string
+	 */
+	public static String fillString(String subString, int count) {
+		StringBuilder sb = new StringBuilder(subString.length() * count);
+		for (int i = 0; i < count; i++) {
+			sb.append(subString);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Fill a string in a unicode safe way provided that the char array contains
+	 * a valid unicode sequence.
+	 * @param chars The <code>char[]</code> to be filled with
+	 * @param count The number of times to repeat the <code>char[]</code>
+	 * @return The filled string
+	 */
+	public static String fillString(char[] chars, int count) {
+		StringBuilder sb = new StringBuilder(chars.length * count);
+		for (int i = 0; i < count; i++) {
+			sb.append(chars);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Fill a string in a unicode safe way. 8 bit (&lt; 256) code points
+	 * equals ISO 8859-1 codes.
+	 * @param codePoint The unicode code point to be filled with
+	 * @param count The number of times to repeat the unicode code point
+	 * @return The filled string
+	 */
+	public static String fillString(int codePoint, int count) {
+		return fillString(Character.toChars(codePoint), count);
+	}
+
+	/**
+	 * Returns the <code>body</code> of a HTML {@link String} formatted by
+	 * {@link HTMLEditorKit} as typically used by {@link JEditorPane} and
+	 * {@link JTextPane} stripped for tags, newline, indentation and with
+	 * <code>&lt;br&gt;</code> tags converted to newline.<br>
+	 * <br>
+	 * <strong>Note: This is not a universal or sophisticated HTML stripping
+	 * method, but is purpose built for these circumstances.</strong>
+	 * @param html the HTML formatted text as described above
+	 * @return The "deHTMLified" text
+	 */
+	public static String stripHTML(String html) {
+		Pattern pattern = Pattern.compile("<body>(.*)</body>", Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
+		Matcher matcher = pattern.matcher(html);
+		if (matcher.find()) {
+			return matcher.group(1).replaceAll("\n    ", "").trim().replaceAll("(?i)<br>", "\n").replaceAll("<.*?>","");
+		} else {
+			throw new IllegalArgumentException("HTML text not as expected, must have <body> section");
+		}
+	}
 }

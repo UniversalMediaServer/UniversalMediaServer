@@ -80,6 +80,9 @@
 		<mediautil-version>1.0</mediautil-version>
 		<xmlwise-version>1.2.11</xmlwise-version>
 		<slf4j-version>1.7.12</slf4j-version>
+		<!-- This version works only with JDK 7 and above-->
+		<findbugs-version>3.0.3</findbugs-version>
+		<findbugs-annotations-version>3.0.1u2</findbugs-annotations-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
@@ -369,6 +372,11 @@
 			<artifactId>icu4j</artifactId>
 			<version>56.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>annotations</artifactId>
+			<version>${findbugs-annotations-version}</version>
+		</dependency>		
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
@@ -471,6 +479,26 @@
 					<version>2.19</version>
 				</plugin>
 
+				<!-- 
+					This plugin's configuration is used to run crowdin plugin from the command line,
+					it has no influence on the Maven build itself. 
+				-->
+				<plugin>
+					<groupId>com.universalmediaserver</groupId>
+					<artifactId>crowdin-maven-plugin</artifactId>
+					<version>0.3</version>
+					<configuration>
+						<project>${project}</project>
+						<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
+						<downloadFolder>${project.basedir}/extras/crowdin</downloadFolder>
+						<statusFile>${project.basedir}/src/main/resources/languages.properties</statusFile>
+						<crowdinServerId>crowdin-ums</crowdinServerId>
+						<pushFileName>messages.properties</pushFileName>
+						<pushFileTitle>Universal Media Server</pushFileTitle>
+						<projectName>Universal Media Server</projectName>
+					</configuration>
+				</plugin>
+
 				<!--
 					This plugin's configuration is used to store Eclipse m2e settings only.
 					It has no influence on the Maven build itself.
@@ -537,6 +565,27 @@
 											<goal>install</goal>
 											<goal>resolve</goal>
 											<goal>localinstall</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute></execute>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.universalmediaserver</groupId>
+										<artifactId>
+											crowdin-maven-plugin
+										</artifactId>
+										<versionRange>
+											[0.1,)
+										</versionRange>
+										<goals>
+											<goal>fetch</goal>
+											<goal>push</goal>
+											<goal>build</goal>
+											<goal>apply</goal>
+											<goal>pull</goal>
 										</goals>
 									</pluginExecutionFilter>
 									<action>
@@ -754,7 +803,7 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>3.0.1</version> <!-- This version works only with JDK 7-->
+							<version>${findbugs-version}</version>														
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
@@ -789,8 +838,8 @@
 							<version>1.0-alpha-2</version>
 							<configuration>
 								<locales>
+									<locale>af</locale>
 									<locale>ar</locale>
-									<locale>de</locale>
 									<locale>bg</locale>
 									<locale>ca</locale>
 									<locale>cs</locale>
@@ -799,8 +848,10 @@
 									<locale>el</locale>
 									<locale>en_GB</locale>
 									<locale>es</locale>
+									<locale>fa</locale>
 									<locale>fi</locale>
 									<locale>fr</locale>
+									<locale>hu</locale>
 									<locale>is</locale>
 									<locale>it</locale>
 									<locale>iw</locale>
@@ -813,9 +864,13 @@
 									<locale>pt_BR</locale>
 									<locale>ro</locale>
 									<locale>ru</locale>
+									<locale>sk</locale>
 									<locale>sl</locale>
+									<locale>sr</locale>
 									<locale>sv</locale>
 									<locale>tr</locale>
+									<locale>uk</locale>
+									<locale>vi</locale>
 									<locale>zh_Hans</locale>
 									<locale>zh_Hant</locale>
 								</locales>
@@ -1611,7 +1666,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.3.2</version>
+						<version>1.4.0</version>
 						<executions>
 							<execution>
 								<phase>test</phase>

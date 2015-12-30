@@ -3,9 +3,12 @@ package net.pms.dlna;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
@@ -15,7 +18,7 @@ public class ResumeObj {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
 	private static final int DAYS = 3600 * 24 * 1000;
-	
+
 	public static final String CLEAN_REG = "_hash_(\\d+)";
 
 	private File file;
@@ -32,7 +35,7 @@ public class ResumeObj {
 	private static File resumeFile(DLNAResource r) {
 		String wName = r.getName().replaceAll("[:\\[\\]\n\r]", "").trim();
 		String fName = wName + "_hash_" + r.resumeHash() + ".resume";
-		return new File(resumePath().getAbsolutePath() + File.separator + fName);
+		return new File(resumePath(), fName);
 	}
 
 	public static File[] resumeFiles() {
@@ -92,7 +95,7 @@ public class ResumeObj {
 	}
 
 	public void read() {
-		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 			String str;
 			while ((str = in.readLine()) != null) {
 				String[] tmp = str.split(",");
@@ -108,7 +111,7 @@ public class ResumeObj {
 
 	private static void write(long time, long duration, File f) {
 		try {
-			try (BufferedWriter out = new BufferedWriter(new FileWriter(f))) {
+			try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8))) {
 				out.write(time + "," + duration);
 				out.flush();
 				out.close();
