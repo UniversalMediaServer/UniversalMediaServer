@@ -26,7 +26,7 @@ import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.StringTokenizer;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -56,6 +56,14 @@ public class TranscodingTab {
 	private static final String LEFT_ROW_SPEC = "fill:10:grow, 3dlu, p, 3dlu, p, 3dlu, p";
 	private static final String MAIN_COL_SPEC = "left:pref, pref, 7dlu, pref, pref, fill:10:grow";
 	private static final String MAIN_ROW_SPEC = "fill:10:grow";
+
+	// Subtabs layout spacing
+	private static final String VIDEO_COL_SPEC = "left:pref, 3dlu, pref:grow"; // "left:pref, 2dlu, pref:grow"
+	private static final String VIDEO_ROW_SPEC = "$lgap, 2*(pref, 3dlu), 10dlu, 10dlu, 4*(pref, 3dlu), pref"; //"$lgap, 2*(pref, 2dlu), 10dlu, 10dlu, 3*(pref, 2dlu), pref";
+	private static final String AUDIO_COL_SPEC = "left:pref, 3dlu, pref:grow"; //"left:pref, 2dlu, pref:grow";
+	private static final String AUDIO_ROW_SPEC = "$lgap, pref, 3dlu, 5*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow"; //"$lgap, pref, 2dlu, 4*(pref, 2dlu), pref, 12dlu, 3*(pref, 2dlu), pref:grow";
+	private static final String SUBTITLE_COL_SPEC = "left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow,3dlu, p:grow, 3dlu, right:p:grow,3dlu, pref:grow"; //"left:pref, 3dlu, pref:grow, 3dlu, right:pref:grow, 3dlu, pref:grow, 3dlu, right:pref:grow, 3dlu, pref:grow, 3dlu, pref:grow";
+	private static final String SUBTITLE_ROW_SPEC = "$lgap, 33*(pref, 3dlu), pref"; //"$lgap, 13*(pref, 3dlu), pref";
 
 	private final PmsConfiguration configuration;
 	private ComponentOrientation orientation;
@@ -97,6 +105,8 @@ public class TranscodingTab {
 	private JButton folderSelectButton;
 	private JCheckBox autoloadExternalSubtitles;
 	private JTextField defaultaudiosubs;
+	private JComboBox priorityAudio;
+	private JComboBox prioritySubtitle;
 	private JComboBox subtitleCodePage;
 	private JTextField defaultfont;
 	private JButton fontselect;
@@ -499,8 +509,8 @@ public class TranscodingTab {
 	}
 
 	private JComponent buildVideoSetupPanel() {
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, 2*(pref, 3dlu), 10dlu, 10dlu, 4*(pref, 3dlu), pref");
+		String colSpec = FormLayoutUtil.getColSpec(VIDEO_COL_SPEC, orientation);
+		FormLayout layout = new FormLayout(colSpec, VIDEO_ROW_SPEC);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
@@ -626,8 +636,8 @@ public class TranscodingTab {
 	}
 
 	private JComponent buildAudioSetupPanel() {
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 5*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
+		String colSpec = FormLayoutUtil.getColSpec(AUDIO_COL_SPEC, orientation);
+		FormLayout layout = new FormLayout(colSpec, AUDIO_ROW_SPEC);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
@@ -729,8 +739,8 @@ public class TranscodingTab {
 	}
 
 	private JComponent buildSubtitlesSetupPanel() {
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow,3dlu, p:grow, 3dlu, right:p:grow,3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, 11*(pref, 3dlu), pref");
+		String colSpec = FormLayoutUtil.getColSpec(SUBTITLE_COL_SPEC, orientation);
+		FormLayout layout = new FormLayout(colSpec, SUBTITLE_ROW_SPEC);
 		final PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
@@ -1020,6 +1030,86 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 20), colSpec, orientation));
+
+		// The list of available audio languages/options
+		String[] AudioOptionsArray = {
+			"Anything",
+			"Undefined",
+			"English",
+			"French",
+			"Japanese",
+			"German"
+		};
+		String[] AudioOptionsArrayCodes = {
+			"*",
+			"und",
+			"eng",
+			"fre",
+			"jpn",
+			"ger"
+		};
+
+		// The list of available subtitle languages/options
+		String[] SubtitleOptionsArray = {
+			"Anything",
+			"Off",
+			"Undefined",
+			"English",
+			"French",
+			"Japanese",
+		};
+		String[] SubtitleOptionsArrayCodes = {
+			"*",
+			"off",
+			"und",
+			"eng",
+			"fre",
+			"jpn",
+		};
+
+		StringTokenizer st1 = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
+		int rowCounter = 22;
+		int mainLoopCounter = 1;
+		while (st1.hasMoreTokens()) {
+			String pair = st1.nextToken();
+			if (pair.contains(",")) {
+				String audio = pair.substring(0, pair.indexOf(","));
+				String sub = pair.substring(pair.indexOf(",") + 1);
+				audio = audio.trim();
+				sub = sub.trim();
+				LOGGER.trace("Got audio: '" + audio + "' and subtitle: '" + sub + "'");
+
+				// Create GUI elements
+				priorityAudio = new JComboBox(AudioOptionsArray);
+				priorityAudio.setEditable(false);
+
+				int i = 0;
+				for (String option : AudioOptionsArrayCodes) {
+					if (option.equals(audio)) {
+						priorityAudio.setSelectedIndex(i);
+					}
+					i++;
+				}
+				builder.addLabel(mainLoopCounter + ": " + Messages.getString("TrTab2.92"), FormLayoutUtil.flip(cc.xy(3, rowCounter), colSpec, orientation));
+				builder.add(priorityAudio, FormLayoutUtil.flip(cc.xy(5, rowCounter), colSpec, orientation));
+
+				prioritySubtitle = new JComboBox(SubtitleOptionsArray);
+				prioritySubtitle.setEditable(false);
+
+				i = 0;
+				for (String option : SubtitleOptionsArrayCodes) {
+					if (option.equals(sub)) {
+						prioritySubtitle.setSelectedIndex(i);
+					}
+					i++;
+				}
+				builder.addLabel(Messages.getString("TrTab2.93"), FormLayoutUtil.flip(cc.xyw(7, rowCounter, 3), colSpec, orientation));
+				builder.add(prioritySubtitle, FormLayoutUtil.flip(cc.xyw(11, rowCounter, 3), colSpec, orientation));
+
+				rowCounter = rowCounter + 2;
+				mainLoopCounter++;
+			}
+		}
 
 		final JPanel panel = builder.getPanel();
 
