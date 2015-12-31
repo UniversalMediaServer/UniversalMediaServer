@@ -66,8 +66,8 @@ public class NavigationShareTab {
 	private JCheckBox image_thumb;
 	private JCheckBox cacheenable;
 	private JCheckBox archive;
-	private JComboBox sortmethod;
-	private JComboBox audiothumbnail;
+	private JComboBox<String> sortmethod;
+	private JComboBox<String> audiothumbnail;
 	private JTextField defaultThumbFolder;
 	private JCheckBox iphoto;
 	private JCheckBox aperture;
@@ -346,23 +346,18 @@ public class NavigationShareTab {
 		});
 
 		// Audio thumbnails import
-		final KeyedComboBoxModel thumbKCBM = new KeyedComboBoxModel(new Object[]{"0", "1", "2"}, new Object[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
-		audiothumbnail = new JComboBox(thumbKCBM);
+		final KeyedComboBoxModel<Integer, String> thumbKCBM = new KeyedComboBoxModel<>(new Integer[]{0, 1, 2}, new String[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
+		audiothumbnail = new JComboBox<String>(thumbKCBM);
 		audiothumbnail.setEditable(false);
 
-		thumbKCBM.setSelectedKey("" + configuration.getAudioThumbnailMethod());
+		thumbKCBM.setSelectedKey(configuration.getAudioThumbnailMethod());
 
 		audiothumbnail.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-
-					try {
-						configuration.setAudioThumbnailMethod(Integer.parseInt((String) thumbKCBM.getSelectedKey()));
-					} catch (NumberFormatException nfe) {
-						LOGGER.debug("Could not parse audio thumbnail method from \"" + thumbKCBM.getSelectedKey() + "\"");
-					}
-
+					configuration.setAudioThumbnailMethod(thumbKCBM.getSelectedKey());
+					LOGGER.info("Setting {} {}", Messages.getRootString("FoldTab.26"), thumbKCBM.getSelectedValue());
 				}
 			}
 		});
@@ -543,17 +538,17 @@ public class NavigationShareTab {
 		});
 
 		// File order
-		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(
-			new Object[]{
-				String.valueOf(UMSUtils.SORT_LOC_SENS),  // alphabetical
-				String.valueOf(UMSUtils.SORT_LOC_NAT),   // natural sort
-				String.valueOf(UMSUtils.SORT_INS_ASCII), // ASCIIbetical
-				String.valueOf(UMSUtils.SORT_MOD_NEW),   // newest first
-				String.valueOf(UMSUtils.SORT_MOD_OLD),   // oldest first
-				String.valueOf(UMSUtils.SORT_RANDOM),    // random
-				String.valueOf(UMSUtils.SORT_NO_SORT)    // no sorting
+		final KeyedComboBoxModel<Integer, String> kcbm = new KeyedComboBoxModel<>(
+			new Integer[]{
+				UMSUtils.SORT_LOC_SENS,  // alphabetical
+				UMSUtils.SORT_LOC_NAT,   // natural sort
+				UMSUtils.SORT_INS_ASCII, // ASCIIbetical
+				UMSUtils.SORT_MOD_NEW,   // newest first
+				UMSUtils.SORT_MOD_OLD,   // oldest first
+				UMSUtils.SORT_RANDOM,    // random
+				UMSUtils.SORT_NO_SORT    // no sorting
 			},
-			new Object[]{
+			new String[]{
 				Messages.getString("FoldTab.15"),
 				Messages.getString("FoldTab.22"),
 				Messages.getString("FoldTab.20"),
@@ -563,19 +558,16 @@ public class NavigationShareTab {
 				Messages.getString("FoldTab.62")
 			}
 		);
-		sortmethod = new JComboBox(kcbm);
+		sortmethod = new JComboBox<>(kcbm);
 		sortmethod.setEditable(false);
-		kcbm.setSelectedKey("" + configuration.getSortMethod(null));
+		kcbm.setSelectedKey(configuration.getSortMethod(null));
 
 		sortmethod.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					try {
-						configuration.setSortMethod(Integer.parseInt((String) kcbm.getSelectedKey()));
-					} catch (NumberFormatException nfe) {
-						LOGGER.debug("Could not parse sort method from \"" + kcbm.getSelectedKey() + "\"");
-					}
+					configuration.setSortMethod(kcbm.getSelectedKey());
+					LOGGER.info("Setting {} {}", Messages.getRootString("FoldTab.18"), kcbm.getSelectedValue());
 				}
 			}
 		});

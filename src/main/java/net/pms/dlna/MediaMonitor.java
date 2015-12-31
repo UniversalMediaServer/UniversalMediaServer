@@ -3,6 +3,7 @@ package net.pms.dlna;
 import com.sun.jna.platform.FileUtils;
 import com.sun.jna.Platform;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +24,8 @@ public class MediaMonitor extends VirtualFolder {
 	private File[] dirs;
 	private PmsConfiguration config;
 	private static final FileUtils FILE_UTILS = FileUtils.getInstance();
+
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
 	public MediaMonitor(File[] dirs) {
@@ -33,6 +36,10 @@ public class MediaMonitor extends VirtualFolder {
 		parseMonitorFile();
 	}
 
+	/**
+	 * The UTF-8 encoded file containing watched entries.
+	 * @return The file
+	 */
 	private File monitorFile() {
 		return new File(config.getDataFile("UMS.mon"));
 	}
@@ -43,7 +50,7 @@ public class MediaMonitor extends VirtualFolder {
 			return;
 		}
 		try {
-			try (BufferedReader in = new BufferedReader(new FileReader(f))) {
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
 				String str;
 
 				while ((str = in.readLine()) != null) {
@@ -256,12 +263,12 @@ public class MediaMonitor extends VirtualFolder {
 	/**
 	 * Populates UMS.mon with a list of completely watched videos.
 	 *
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private void dumpFile() throws IOException {
 		File f = monitorFile();
 		Date now = new Date();
-		try (FileWriter out = new FileWriter(f)) {
+		try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("######\n");
 			sb.append("## NOTE!!!!!\n");
