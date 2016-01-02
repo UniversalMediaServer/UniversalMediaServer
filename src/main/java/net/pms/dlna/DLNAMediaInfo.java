@@ -807,7 +807,7 @@ public class DLNAMediaInfo implements Cloneable {
 							int thumbnailHeight = renderer.getThumbnailHeight();
 
 							// Make sure the image fits in the renderer's bounds
-							boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath());
+							boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isFullyPlayed(file.getAbsolutePath());
 							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isWatchedThumbnail);
 
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
@@ -944,7 +944,7 @@ public class DLNAMediaInfo implements Cloneable {
 						int thumbnailHeight = renderer.getThumbnailHeight();
 
 						// Make sure the image fits in the renderer's bounds
-						boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath());
+						boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isFullyPlayed(file.getAbsolutePath());
 						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isWatchedThumbnail);
 
 						BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
@@ -1092,7 +1092,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 						if (sz > 0 && !net.pms.PMS.isHeadless()) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
-							if (image != null && configuration.getFullyPlayedAction() == 1 && file != null && MediaMonitor.isWatched(file.getAbsolutePath())) {
+							if (image != null && configuration.getFullyPlayedAction() == 1 && file != null && MediaMonitor.isFullyPlayed(file.getAbsolutePath())) {
 								int thumbnailFontSize;
 								String thumbnailText;
 								int thumbnailTextHorizontalPosition;

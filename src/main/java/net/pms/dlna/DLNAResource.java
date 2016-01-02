@@ -567,8 +567,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					// Hide watched videos depending user preference
-					if (configuration.getFullyPlayedAction() == 2 && child.format.isVideo() && MediaMonitor.isWatched(child.getSystemName())) {
-						LOGGER.trace("Ignoring file \"{}\" because it has been watched", child.getName());
+					if (configuration.getFullyPlayedAction() == 2 && child.getMedia() != null && child.getMedia().isVideo() && MediaMonitor.isFullyPlayed(child.getSystemName())) {
+						LOGGER.trace("Ignoring video file \"{}\" because it has been watched", child.getName());
 						return;
 					}
 				}
@@ -1536,9 +1536,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				mediaRenderer != null &&
 				!mediaRenderer.isThumbnails() &&
 				configuration.getFullyPlayedAction() == 1 &&
-				MediaMonitor.isWatched(file.getAbsolutePath())
+				MediaMonitor.isFullyPlayed(file.getAbsolutePath())
 			) {
-				displayName = Messages.getString("DLNAResource.4") + ": " + displayName;
+				if (media != null) {
+					if (media.isVideo()) {
+						displayName = String.format("[%s]%s", Messages.getString("DLNAResource.4"), displayName);
+					} else if (media.isAudio()) {
+						displayName = String.format("[%s]%s", Messages.getString("DLNAResource.5"), displayName);
+					} else if (media.isImage()) {
+						displayName = String.format("[%s]%s", Messages.getString("DLNAResource.6"), displayName);
+					}
+				}
 			}
 		}
 
@@ -2690,8 +2698,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								renderer.setPlayingRes(self);
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
+							// Couldn't a "played" event for images be generated here?
 							if (!quietPlay()) {
-								if (format != null && format.isImage()) {
+								if (media != null && media.isImage()) {
 									LOGGER.info("Viewed " + getName() + " on your " + rendererName);
 								} else {
 									LOGGER.info("Started playing " + getName() + " on your " + rendererName);
@@ -3155,7 +3164,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				!media.isThumbready() ||
 				(
 					configuration.getFullyPlayedAction() == 1 &&
-					MediaMonitor.isWatched(inputFile.getFile().getAbsolutePath())
+					MediaMonitor.isFullyPlayed(inputFile.getFile().getAbsolutePath())
 				)
 			) &&
 			configuration.isThumbnailGenerationEnabled() &&
