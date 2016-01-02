@@ -3499,11 +3499,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
 	}
 
-	public String getDepth3D() {
-		return getString(KEY_3D_SUBTITLES_DEPTH, "0");
+	public int getDepth3D() {
+		return getInt(KEY_3D_SUBTITLES_DEPTH, 0);
 	}
 
-	public void setDepth3D(String value) {
+	public void setDepth3D(int value) {
 		configuration.setProperty(KEY_3D_SUBTITLES_DEPTH, value);
 	}
 
