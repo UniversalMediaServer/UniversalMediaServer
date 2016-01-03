@@ -300,7 +300,7 @@ public class PMS {
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: " + cwd);
 
-		LOGGER.info("Temp directory: " + configuration.getTempFolder());
+		LOGGER.info("Temporary directory: " + configuration.getTempFolder());
 
 		/**
 		 * Verify the java.io.tmpdir is writable; JNA requires it.
@@ -312,10 +312,10 @@ public class PMS {
 		if (!FileUtil.getFilePermissions(javaTmpdir).isWritable()) {
 			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
 			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
-			throw new IOException("Cannot write to Java temp directory");
+			throw new IOException("Cannot write to Java temp directory: " + javaTmpdir.getAbsolutePath());
 		}
 
-		LOGGER.info("Logging config file: " + LoggingConfig.getConfigFilePath());
+		LOGGER.info("Logging configuration file: " + LoggingConfig.getConfigFilePath());
 
 		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
