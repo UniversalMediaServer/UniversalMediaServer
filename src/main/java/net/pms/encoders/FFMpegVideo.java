@@ -169,6 +169,8 @@ public class FFMpegVideo extends Player {
 			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 
+		filterChain.addAll(scalePadFilterChain);
+
 		boolean override = true;
 		if (renderer instanceof RendererConfiguration.OutputOverride) {
 			RendererConfiguration.OutputOverride or = (RendererConfiguration.OutputOverride)renderer;
@@ -274,8 +276,6 @@ public class FFMpegVideo extends Player {
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 		if (StringUtils.isNotEmpty(overrideVF)) {
 			filterChain.add(overrideVF);
-		} else {
-			filterChain.addAll(scalePadFilterChain);
 		}
 
 		// Convert 3D video to the other output 3D format
