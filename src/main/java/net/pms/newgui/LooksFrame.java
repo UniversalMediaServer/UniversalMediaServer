@@ -351,7 +351,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		// Customize the colors used in tooltips
 		UIManager.put("ToolTip.background", new ColorUIResource(PMS.getConfiguration().getToolTipBackgroundColor()));
-		Border border = BorderFactory.createLineBorder(PMS.getConfiguration().getToolTipBackgroundColor(),4);
+		Border border = BorderFactory.createLineBorder(PMS.getConfiguration().getToolTipBackgroundColor(), 4);
 		UIManager.put("ToolTip.border", border);
 		UIManager.put("ToolTip.foreground", new ColorUIResource(PMS.getConfiguration().getToolTipForegroundColor()));
 
