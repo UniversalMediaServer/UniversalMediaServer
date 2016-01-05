@@ -41,6 +41,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.CustomJTextField;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,7 @@ public class TranscodingTab {
 	private JCheckBox forcePCM;
 	private JCheckBox encodedAudioPassthrough;
 	public static JCheckBox forceDTSinPCM;
-	private JComboBox<Object> channels;
+	private JComboBox<String> channels;
 	private JComboBox<String> vq;
 	private JComboBox<String> x264Quality;
 	private JCheckBox ac3remux;
@@ -530,29 +531,55 @@ public class TranscodingTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder.add(new JLabel(Messages.getString("TrTab2.32")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
-		String[] data = new String[] {
-			configuration.getMPEG2MainSettings(),                                                   /* Current setting */
-			String.format("Automatic (Wired)  /* %s */",          Messages.getString("TrTab2.71")), /* Recommended for wired networks */
-			String.format("Automatic (Wireless)  /* %s */",       Messages.getString("TrTab2.72")), /* Recommended for wireless networks */
-			String.format("keyint=5:vqscale=1:vqmin=2  /* %s */", Messages.getString("TrTab2.60")), /* Great */
-			String.format("keyint=5:vqscale=1:vqmin=1  /* %s */", Messages.getString("TrTab2.61")), /* Lossless */
-			String.format("keyint=5:vqscale=2:vqmin=3  /* %s */", Messages.getString("TrTab2.62")), /* Good (wired) */
-			String.format("keyint=25:vqmax=5:vqmin=2  /* %s */",  Messages.getString("TrTab2.63")), /* Good (wireless) */
-			String.format("keyint=25:vqmax=7:vqmin=2  /* %s */",  Messages.getString("TrTab2.64")), /* Medium (wireless) */
-			String.format("keyint=25:vqmax=8:vqmin=3  /* %s */",  Messages.getString("TrTab2.65"))  /* Low */
+		String[] keys = new String[] {
+			"Automatic (Wired)",
+			"Automatic (Wireless)",
+			"keyint=5:vqscale=1:vqmin=1",
+			"keyint=5:vqscale=1:vqmin=2",
+			"keyint=5:vqscale=2:vqmin=3",
+			"keyint=25:vqmax=5:vqmin=2",
+			"keyint=25:vqmax=7:vqmin=2",
+			"keyint=25:vqmax=8:vqmin=3"
 		};
+		//TODO Set ViewLevel.EXPERT when ViewLevel is fully implemented
+		String[] values = new String[] {
+			Messages.getString("TrTab2.92"), // Automatic (Wired)
+			Messages.getString("TrTab2.93"), // Automatic (Wireless)
+			String.format(
+				Messages.getString("TrTab2.61")+"%s", // Lossless
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=1:vqmin=1)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.60")+"%s", // Great
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=1:vqmin=2)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.62")+"%s", // Good (wired)
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=2:vqmin=3)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.63")+"%s", // Good (wireless)
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=5:vqmin=2)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.64")+"%s", // Medium (wireless)
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=7:vqmin=2)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.65")+"%s", // Low
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=8:vqmin=3)" : ""
+			)
+		};
+		final KeyedComboBoxModel<String, String> mPEG2MainModel = new KeyedComboBoxModel<>(keys, values);
 
-		vq = new JComboBox<>(data);
+		vq = new JComboBox<>(mPEG2MainModel);
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
+		mPEG2MainModel.setSelectedKey(configuration.getMPEG2MainSettings());
 		vq.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					if (s.contains("/*")) {
-						s = s.substring(0, s.indexOf("/*")).trim();
-					}
-					configuration.setMPEG2MainSettings(s);
+					configuration.setMPEG2MainSettings(mPEG2MainModel.getSelectedKey());
 				}
 			}
 		});
@@ -566,24 +593,30 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(vq), FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
 
 		builder.add(new JLabel(Messages.getString("TrTab2.79")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
-		String[] x264QualityOptions = new String[] {
-			configuration.getx264ConstantRateFactor(),                                        /* Current setting */
-			String.format("Automatic (Wired)  /* %s */", Messages.getString("TrTab2.71")),    /* Recommended for wired networks */
-			String.format("Automatic (Wireless)  /* %s */", Messages.getString("TrTab2.72")), /* Recommended for wireless networks */
-			String.format("16  /* %s */", Messages.getString("TrTab2.61"))                    /* Lossless */
+		keys = new String[] {
+			"Automatic (Wired)",
+			"Automatic (Wireless)",
+			"16"
 		};
+		//TODO Set ViewLevel.EXPERT when ViewLevel is fully implemented
+		values = new String[] {
+			Messages.getString("TrTab2.92"),
+			Messages.getString("TrTab2.93"),
+			String.format(
+				Messages.getString("TrTab2.61")+"%s", // Lossless
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (16)" : ""
+			)
+		};
+		final KeyedComboBoxModel<String, String> x264QualityModel = new KeyedComboBoxModel<String, String>(keys, values);
 
-		x264Quality = new JComboBox<>(x264QualityOptions);
+		x264Quality = new JComboBox<>(x264QualityModel);
 		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
+		x264QualityModel.setSelectedKey(configuration.getx264ConstantRateFactor());
 		x264Quality.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					if (s.contains("/*")) {
-						s = s.substring(0, s.indexOf("/*")).trim();
-					}
-					configuration.setx264ConstantRateFactor(s);
+					configuration.setx264ConstantRateFactor(x264QualityModel.getSelectedKey());
 				}
 			}
 		});
@@ -631,17 +664,20 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
-		channels = new JComboBox<Object>(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
+		Integer[] keys = new Integer[] {2, 6};
+		String[] values = new String[] {
+			Messages.getString("TrTab2.55"),
+			Messages.getString("TrTab2.56"), // 7.1 not supported by Mplayer
+		};
+
+		final KeyedComboBoxModel<Integer, String> audioChannelsModel = new KeyedComboBoxModel<>(keys, values);
+		channels = new JComboBox<>(audioChannelsModel);
 		channels.setEditable(false);
-		if (configuration.getAudioChannelCount() == 2) {
-			channels.setSelectedIndex(0);
-		} else {
-			channels.setSelectedIndex(1);
-		}
+		audioChannelsModel.setSelectedKey(configuration.getAudioChannelCount());
 		channels.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setAudioChannelCount(Integer.parseInt(e.getItem().toString().substring(0, 1)));
+				configuration.setAudioChannelCount(audioChannelsModel.getSelectedKey());
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(channels), FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
@@ -805,8 +841,15 @@ public class TranscodingTab {
 		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xy(15, 6), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
-		String[] data = new String[]{
-			configuration.getSubtitlesCodepage(),
+		String[] keys = new String[]{
+			"cp1250", "cp1251", "cp1252", "cp1253", "cp1254", "cp1255",
+			"cp1256", "cp1257", "cp1258", "ISO-8859-1", "ISO-8859-2",
+			"ISO-8859-3", "ISO-8859-4", "ISO-8859-5", "ISO-8859-6",
+			"ISO-8859-7", "ISO-8859-8", "ISO-8859-9", "ISO-8859-10",
+			"ISO-8859-11", "ISO-8859-13", "ISO-8859-14", "ISO-8859-15",
+			"ISO-8859-16", "cp932", "cp936", "cp949", "cp950", "UTF-8"
+		};
+		String[] values = new String[]{
 			Messages.getString("MEncoderVideo.96"),
 			Messages.getString("MEncoderVideo.97"),
 			Messages.getString("MEncoderVideo.98"),
@@ -838,19 +881,15 @@ public class TranscodingTab {
 			Messages.getString("MEncoderVideo.124")
 		};
 
-		subtitleCodePage = new JComboBox<>(data);
+		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
+		subtitleCodePage = new JComboBox<>(subtitleCodePageModel);
+		subtitleCodePage.setEditable(false);
+		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					int offset = s.indexOf("/*");
-
-					if (offset > -1) {
-						s = s.substring(0, offset).trim();
-					}
-
-					configuration.setSubtitlesCodepage(s);
+					configuration.setSubtitlesCodepage(subtitleCodePageModel.getSelectedKey());
 				}
 			}
 		});
@@ -862,7 +901,6 @@ public class TranscodingTab {
 			}
 		});
 
-		subtitleCodePage.setEditable(true);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
 
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());

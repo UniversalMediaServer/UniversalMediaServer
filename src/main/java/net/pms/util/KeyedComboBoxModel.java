@@ -171,7 +171,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	 */
 	public void setData(final K[] keys, final V[] values) {
 		if (values.length != keys.length) {
-			throw new IllegalArgumentException("Values and text must have the same length.");
+			throw new IllegalArgumentException("Keys and values must have the same length.");
 		}
 
 		data.clear();
