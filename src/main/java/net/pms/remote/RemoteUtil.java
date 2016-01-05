@@ -312,7 +312,7 @@ public class RemoteUtil {
 	public static String getFirstSupportedLanguage(HttpExchange t) {
 		LinkedHashSet<String> languages = getLangs(t);
 		for (String language : languages) {
-			String code = Languages.toLanguageCode(language);
+			String code = Languages.toLanguageTag(language);
 			if (code != null) {
 				return code;
 			}

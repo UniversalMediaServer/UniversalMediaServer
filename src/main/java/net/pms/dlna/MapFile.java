@@ -76,7 +76,7 @@ public class MapFile extends DLNAResource {
 		forcedName = null;
 	}
 
-	private void manageFile(File f, String str) {
+	private void manageFile(File f) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
 
@@ -89,8 +89,7 @@ public class MapFile extends DLNAResource {
 					addChild(new SevenZipFile(f));
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));
-				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") ||
-						lcFilename.endsWith(".pls") || lcFilename.endsWith(".cue") || lcFilename.endsWith(".ups")) {
+				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") || lcFilename.endsWith(".pls") || lcFilename.endsWith(".cue") || lcFilename.endsWith(".ups")) {
 					DLNAResource d = PlaylistFolder.getPlaylist(lcFilename, f.getAbsolutePath(), 0);
 					if (d != null) {
 						addChild(d);
@@ -118,10 +117,8 @@ public class MapFile extends DLNAResource {
 			}
 
 			// FIXME this causes folder thumbnails to take precedence over file thumbnails
-			if (f.isFile()) {
-				if (lcFilename.equals("folder.jpg") || lcFilename.equals("folder.png") || (lcFilename.contains("albumart") && lcFilename.endsWith(".jpg"))) {
-					potentialCover = f;
-				}
+			if (f.isFile() && (lcFilename.equals("folder.jpg") || lcFilename.equals("folder.png") || (lcFilename.contains("albumart") && lcFilename.endsWith(".jpg")))) {
+				potentialCover = f;
 			}
 		}
 	}
@@ -171,7 +168,7 @@ public class MapFile extends DLNAResource {
 				if (discoverable.isEmpty()) {
 					break;
 				}
-				manageFile(discoverable.remove(0), null);
+				manageFile(discoverable.remove(0));
 			}
 		}
 		if (fs != null) {
@@ -187,8 +184,6 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void discoverChildren(String str) {
-		//super.discoverChildren(str);
-
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
 		} else {
@@ -306,55 +301,6 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void doRefreshChildren(String str) {
-		/*List<File> files = getFileList();
-		List<File> addedFiles = new ArrayList<>();
-		List<DLNAResource> removedFiles = new ArrayList<>();
-
-		for (DLNAResource d : getChildren()) {
-			boolean isNeedMatching = !(d.getClass() == MapFile.class || (d instanceof VirtualFolder && !(d instanceof DVDISOFile)));
-			boolean found = foundInList(files, d);
-
-			if (isNeedMatching && !found) {
-				removedFiles.add(d);
-			}
-		}
-
-		for (File f : files) {
-			if (!f.isHidden() && (f.isDirectory() || FormatFactory.getAssociatedFormat(f.getName()) != null)) {
-				addedFiles.add(f);
-			}
-		}
-
-		for (DLNAResource f : removedFiles) {
-			LOGGER.debug("File automatically removed: " + f.getName());
-		}
-
-		for (File f : addedFiles) {
-			LOGGER.debug("File automatically added: " + f.getName());
-		}
-
-		// false: don't create the folder if it doesn't exist i.e. find the folder
-		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false, configuration);
-
-		for (DLNAResource f : removedFiles) {
-			getChildren().remove(f);
-
-			if (transcodeFolder != null) {
-				for (int j = transcodeFolder.getChildren().size() - 1; j >= 0; j--) {
-					if (transcodeFolder.getChildren().get(j).getName().equals(f.getName())) {
-						transcodeFolder.getChildren().remove(j);
-					}
-				}
-			}
-		}
-
-		for (File f : addedFiles) {
-			manageFile(f, str);
-		}
-
-		for (MapFileConfiguration f : this.getConf().getChildren()) {
-			addChild(new MapFile(f));
-		} */
 		getChildren().clear();
 		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
 		discoverable = null;

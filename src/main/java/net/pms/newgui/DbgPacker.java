@@ -286,7 +286,7 @@ public class DbgPacker implements ActionListener {
 		JOptionPane.showOptionDialog(
 			SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 			config(),
-			"Options",
+			Messages.getString("Dialog.Options"),
 			JOptionPane.CLOSED_OPTION,
 			JOptionPane.PLAIN_MESSAGE,
 			null,

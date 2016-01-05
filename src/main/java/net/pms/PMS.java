@@ -82,6 +82,8 @@ public class PMS {
 	private static final String PROFILES = "profiles";
 	private static final String PROFILE = "^(?i)profile(?::|=)([^\"*<>?]+)$";
 	private static final String TRACE = "trace";
+	public static final String NAME = "Universal Media Server";
+	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
 	/**
 	 * @deprecated The version has moved to the resources/project.properties file. Use {@link #getVersion()} instead.
@@ -298,7 +300,7 @@ public class PMS {
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: " + cwd);
 
-		LOGGER.info("Temp directory: " + configuration.getTempFolder());
+		LOGGER.info("Temporary directory: " + configuration.getTempFolder());
 
 		/**
 		 * Verify the java.io.tmpdir is writable; JNA requires it.
@@ -310,10 +312,10 @@ public class PMS {
 		if (!FileUtil.getFilePermissions(javaTmpdir).isWritable()) {
 			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
 			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
-			throw new IOException("Cannot write to Java temp directory");
+			throw new IOException("Cannot write to Java temp directory: " + javaTmpdir.getAbsolutePath());
 		}
 
-		LOGGER.info("Logging config file: " + LoggingConfig.getConfigFilePath());
+		LOGGER.info("Logging configuration file: " + LoggingConfig.getConfigFilePath());
 
 		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
@@ -396,13 +398,24 @@ public class PMS {
 	}
 
 	/**
-	 * Initialisation procedure for UMS.
+	 * Initialization procedure for UMS.
 	 *
-	 * @return true if the server has been initialized correctly. false if the server could
-	 *         not be set to listen on the UPnP port.
+	 * @return <code>true</code> if the server has been initialized correctly.
+	 *         <code>false</code> if initialization was aborted.
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+
+		// Show the language selection dialog before displayBanner();
+		if (configuration.getLanguageRawString() == null || !Languages.isValid(configuration.getLanguageRawString())) {
+			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
+			if (languageDialog != null) {
+				languageDialog.show();
+				if (languageDialog.isAborted()) {
+					return false;
+				}
+			}
+		}
 
 		// call this as early as possible
 		displayBanner();
@@ -530,10 +543,10 @@ public class PMS {
 
 		registry = createSystemUtils();
 
-		if (System.getProperty(CONSOLE) == null) {
+		if (!isHeadless()) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
-			LOGGER.info("GUI environment not available");
+			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
 			frame = new DummyFrame();
 		}
@@ -692,9 +705,9 @@ public class PMS {
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
 
-		// To make the cred stuff work cross plugins
-		// read cred file AFTER plugins are started
-		if (System.getProperty(CONSOLE) == null) {
+		// To make the credentials stuff work cross plugins read credentials
+		// file AFTER plugins are started
+		if (!isHeadless()) {
 			// but only if we got a GUI of course
 			((LooksFrame)frame).getPt().init();
 		}
@@ -704,7 +717,7 @@ public class PMS {
 		try {
 			binding = server.start();
 		} catch (BindException b) {
-			LOGGER.info("FATAL ERROR: Unable to bind on port: " + configuration.getServerPort() + ", because: " + b.getMessage());
+			LOGGER.error("FATAL ERROR: Unable to bind on port: " + configuration.getServerPort() + ", because: " + b.getMessage());
 			LOGGER.info("Maybe another process is running or the hostname is wrong.");
 		}
 
@@ -1049,17 +1062,15 @@ public class PMS {
 		assert instance == null; // this should only be called once
 		instance = new PMS();
 
-		// Temporary set system locale until configuration is loaded for tests
-		PMS.setLocale(Locale.getDefault());
-
 		try {
 			if (instance.init()) {
-				LOGGER.info("The server is now available for renderers to find");
+				LOGGER.info("{} is now available for renderers to find", PMS.NAME);
 			} else {
-				LOGGER.error("A serious error occurred during PMS init");
+				LOGGER.info("{} initialization was aborted", PMS.NAME);
 			}
 		} catch (Exception e) {
-			LOGGER.error("A serious error occurred during PMS init", e);
+			LOGGER.error("A serious error occurred during {} initialization: {}", PMS.NAME, e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
@@ -1077,8 +1088,17 @@ public class PMS {
 
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
+		boolean denyHeadless = false;
 		File profilePath = null;
 		CacheLogger.startCaching();
+
+		// Set headless options if given as a system property when launching the JVM
+		if (System.getProperty(CONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
+			forceHeadless();
+		}
+		if (System.getProperty(NOCONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
+			denyHeadless = true;
+		}
 
 		if (args.length > 0) {
 			Pattern pattern = Pattern.compile(PROFILE);
@@ -1086,7 +1106,7 @@ public class PMS {
 				switch (arg) {
 					case HEADLESS:
 					case CONSOLE:
-						System.setProperty(CONSOLE, Boolean.toString(true));
+						forceHeadless();
 						break;
 					case NATIVELOOK:
 						System.setProperty(NATIVELOOK, Boolean.toString(true));
@@ -1095,7 +1115,7 @@ public class PMS {
 						System.setProperty(SCROLLBARS, Boolean.toString(true));
 						break;
 					case NOCONSOLE:
-						System.setProperty(NOCONSOLE, Boolean.toString(true));
+						denyHeadless = true;
 						break;
 					case PROFILES:
 						displayProfileChooser = true;
@@ -1113,23 +1133,22 @@ public class PMS {
 			}
 		}
 
-		// Temporary set system locale until configuration is loaded
-		PMS.setLocale(Locale.getDefault());
-
 		try {
 			Toolkit.getDefaultToolkit();
-
-			if (isHeadless()) {
-				if (System.getProperty(NOCONSOLE) == null) {
-					System.setProperty(CONSOLE, Boolean.toString(true));
-				}
-			}
-		} catch (Throwable t) {
+		} catch (AWTError t) {
 			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
+			forceHeadless();
+		}
 
-			if (System.getProperty(NOCONSOLE) == null) {
-				System.setProperty(CONSOLE, Boolean.toString(true));
-			}
+		if (isHeadless() && denyHeadless) {
+			System.err.println(
+				"Either a graphics environment isn't available or headless " +
+			    "mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
+			    " can't start, exiting."
+			);
+			System.exit(1);
+		} else if (!isHeadless()) {
+			LooksFrame.initializeLookAndFeel();
 		}
 
 		if (profilePath != null) {
@@ -1487,7 +1506,7 @@ public class PMS {
 			} catch (IllegalAccessException e) {
 				// Impossible
 			}
- 		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
+		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
 			pb = new ProcessBuilder("kill", "-9", pid);
 		}
 
@@ -1543,7 +1562,7 @@ public class PMS {
 	private static Boolean headless = null;
 
 	/**
-	 * Check if UMS is running in headless (console) mode, since some Linux
+	 * Checks if UMS is running in headless (console) mode, since some Linux
 	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
 	 */
 	public static boolean isHeadless() {
@@ -1560,11 +1579,24 @@ public class PMS {
 		try {
 			JDialog d = new JDialog();
 			d.dispose();
-			headless = Boolean.FALSE;
+			headless = false;
 			return headless;
 		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-			headless = Boolean.TRUE;
+			headless = true;
 			return headless;
+		} finally {
+			headlessLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Forces UMS to run in headless (console) mode whether a graphics
+	 * environment is available or not.
+	 */
+	public static void forceHeadless() {
+		headlessLock.writeLock().lock();
+		try {
+			headless = true;
 		} finally {
 			headlessLock.writeLock().unlock();
 		}
@@ -1573,14 +1605,29 @@ public class PMS {
 	private static Locale locale = null;
 	private static ReadWriteLock localeLock = new ReentrantReadWriteLock();
 
+	/**
+	 * Gets UMS' current {@link Locale} to be used in any {@link Locale}
+	 * sensitive operations. If <code>null</code> the default {@link Locale}
+	 * is returned.
+	 */
+
 	public static Locale getLocale() {
 		localeLock.readLock().lock();
 		try {
-			return locale;
+			if (locale != null) {
+				return locale;
+			} else {
+				return Locale.getDefault();
+			}
 		} finally {
 			localeLock.readLock().unlock();
 		}
 	}
+
+	/**
+	 * Sets UMS' {@link Locale}.
+	 * @param aLocale the {@link Locale} to set
+	 */
 
 	public static void setLocale(Locale aLocale) {
 		localeLock.writeLock().lock();
@@ -1593,8 +1640,8 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS locale with the same parameters as the Locale class constructor.
-	 * <code>null</code> values are treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * class constructor. <code>null</code> values are treated as empty strings.
 	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
      * up to 8 characters in length.  See the <code>Locale</code> class description about
@@ -1620,8 +1667,8 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS locale with the same parameters as the Locale class constructor.
-	 * <code>null</code> values are treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * class constructor. <code>null</code> values are treated as empty strings.
 	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
      * up to 8 characters in length.  See the <code>Locale</code> class description about
@@ -1634,8 +1681,8 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS locale with the same parameters as the Locale class constructor.
-	 * <code>null</code> values are treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * class constructor. <code>null</code> values are treated as empty strings.
 	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
      * up to 8 characters in length.  See the <code>Locale</code> class description about

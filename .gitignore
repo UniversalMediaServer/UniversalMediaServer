@@ -11,11 +11,11 @@ MediaInfo-License.html
 pms.iml
 .project
 .settings
-target
 *.orig
-win32/
 *.sublime-*
-/web
-/plugins
-/extras
 Thumbs.db
+extras/
+plugins/
+target/
+web/
+win32/

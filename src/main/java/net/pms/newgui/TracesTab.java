@@ -620,7 +620,7 @@ public class TracesTab {
 			JComponent comp = PMS.get().dbgPack().config();
 			String[] cancelStr = {Messages.getString("Dialog.Close")};
 			JOptionPane.showOptionDialog(looksFrame,
-				comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
+				comp, Messages.getString("Dialog.Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 		});
 		pLogPackButtons.add(packDbg);
 		builder.add(pLogPackButtons, cc.xy(1, 4));

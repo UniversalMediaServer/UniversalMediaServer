@@ -24,24 +24,6 @@ public final class GuiUtil {
 		return pWrap;
 	}
 
-	public static class MyComboBoxModel extends DefaultComboBoxModel<Object> {
-		private static final long serialVersionUID = -9094365556516842551L;
-
-		public MyComboBoxModel() {
-			super();
-		}
-
-		public MyComboBoxModel(Object[] items) {
-			super(items);
-		}
-
-		@Override
-		public Object getElementAt(int index) {
-			String s = (String) super.getElementAt(index);
-			return s;
-		}
-	}
-
 	// A progress bar with smooth transitions
 	public static class SmoothProgressBar extends CustomUIProgressBar {
 		private static final long serialVersionUID = 4418306779403459913L;

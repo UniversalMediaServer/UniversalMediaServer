@@ -88,7 +88,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected Map<String, DLNAResource> renderCache;
 
 	// TextWrap parameters
-	protected int line_w, line_h, indent;
+	protected int lineWidth, lineHeight, indent;
 	protected String inset, dots;
 
 	// property values
@@ -157,6 +157,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	protected static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
+	protected static final String OFFER_SUBTITLES_BY_PROTOCOL_INFO = "OfferSubtitlesByProtocolInfo";
+	protected static final String OFFER_SUBTITLES_AS_SOURCE = "OfferSubtitlesAsSource";
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String PREPEND_TRACK_NUMBERS = "PrependTrackNumbers";
@@ -1014,14 +1016,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		String s = getString(TEXTWRAP, "").toLowerCase();
-		line_w = getIntAt(s, "width:", 0);
-		if (line_w > 0) {
-			line_h = getIntAt(s, "height:", 0);
+		lineWidth = getIntAt(s, "width:", 0);
+		if (lineWidth > 0) {
+			lineHeight = getIntAt(s, "height:", 0);
 			indent = getIntAt(s, "indent:", 0);
-			int ws = getIntAt(s, "whitespace:", 9);
-			int dotct = getIntAt(s, "dots:", 0);
-			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
-			dots = new String(new byte[dotct]).replaceAll(".", ".");
+			int whitespace = getIntAt(s, "whitespace:", 9);
+			int dotCount = getIntAt(s, "dots:", 0);
+			inset = StringUtil.fillString(whitespace, indent);
+			dots = StringUtil.fillString(".", dotCount);
 		}
 
 		charMap = new HashMap<>();
@@ -2212,21 +2214,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + tuncate
 		int len = 0;
-		if (line_w > 0 && (name.length() + suffix.length()) > line_w) {
+		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
-			if (line_h == 1) {
-				len = line_w - suffix_len;
+			if (lineHeight == 1) {
+				len = lineWidth - suffix_len;
 			} else {
 				// Wrap
 				int i = dlna.isFolder() ? 0 : indent;
 				String newline = "\n" + (dlna.isFolder() ? "" : inset);
 				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
-					+ WordUtils.wrap(name.substring(i) + suffix, line_w - i, newline, true);
-				len = line_w * line_h;
+					+ WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
+				len = lineWidth * lineHeight;
 				if (len != 0 && name.length() > len) {
-					len = name.substring(0, name.length() - line_w).lastIndexOf(newline) + newline.length();
-					name = name.substring(0, len) + name.substring(len, len + line_w).replace(newline, " ");
-					len += (line_w - suffix_len - i);
+					len = name.substring(0, name.length() - lineWidth).lastIndexOf(newline) + newline.length();
+					name = name.substring(0, len) + name.substring(len, len + lineWidth).replace(newline, " ");
+					len += (lineWidth - suffix_len - i);
 				} else {
 					len = -1; // done
 				}
@@ -2276,6 +2278,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean useClosedCaption() {
 		return getBoolean(USE_CLOSED_CAPTION, false);
+	}
+
+	public boolean offerSubtitlesAsResource() {
+		return getBoolean(OFFER_SUBTITLES_AS_SOURCE, true);
+	}
+
+	public boolean offerSubtitlesByProtocolInfo() {
+		return getBoolean(OFFER_SUBTITLES_BY_PROTOCOL_INFO, true);
 	}
 
 	public boolean isSubtitlesStreamingSupported() {
