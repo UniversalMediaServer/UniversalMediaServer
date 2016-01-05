@@ -773,7 +773,15 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+
+		/**
+		 * Hide the scan button in basic mode since it's better to let it be done in
+		 * realtime.
+		 */
+		if (!configuration.isHideAdvancedOptions()) {
+			builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+		}
+
 		but5.setEnabled(configuration.getUseCache());
 
 		File[] folders = PMS.get().getSharedFoldersArray(false);
