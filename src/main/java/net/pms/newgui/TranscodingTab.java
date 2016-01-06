@@ -40,6 +40,7 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.CustomJTextField;
+import net.pms.util.KeyedStringComboBoxModel;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.SubtitleUtils;
@@ -570,7 +571,7 @@ public class TranscodingTab {
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=8:vqmin=3)" : ""
 			)
 		};
-		final KeyedComboBoxModel<String, String> mPEG2MainModel = new KeyedComboBoxModel<>(keys, values);
+		final KeyedStringComboBoxModel mPEG2MainModel = new KeyedStringComboBoxModel(keys, values);
 
 		vq = new JComboBox<>(mPEG2MainModel);
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
@@ -581,12 +582,6 @@ public class TranscodingTab {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					configuration.setMPEG2MainSettings(mPEG2MainModel.getSelectedKey());
 				}
-			}
-		});
-		vq.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				vq.getItemListeners()[0].itemStateChanged(new ItemEvent(vq, 0, vq.getEditor().getItem(), ItemEvent.SELECTED));
 			}
 		});
 		vq.setEditable(true);
@@ -607,7 +602,7 @@ public class TranscodingTab {
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (16)" : ""
 			)
 		};
-		final KeyedComboBoxModel<String, String> x264QualityModel = new KeyedComboBoxModel<String, String>(keys, values);
+		final KeyedStringComboBoxModel x264QualityModel = new KeyedStringComboBoxModel(keys, values);
 
 		x264Quality = new JComboBox<>(x264QualityModel);
 		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
@@ -618,12 +613,6 @@ public class TranscodingTab {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					configuration.setx264ConstantRateFactor(x264QualityModel.getSelectedKey());
 				}
-			}
-		});
-		x264Quality.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				x264Quality.getItemListeners()[0].itemStateChanged(new ItemEvent(x264Quality, 0, x264Quality.getEditor().getItem(), ItemEvent.SELECTED));
 			}
 		});
 		x264Quality.setEditable(true);
@@ -881,26 +870,25 @@ public class TranscodingTab {
 			Messages.getString("MEncoderVideo.124")
 		};
 
-		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
+		final KeyedStringComboBoxModel subtitleCodePageModel = new KeyedStringComboBoxModel(keys, values);
 		subtitleCodePage = new JComboBox<>(subtitleCodePageModel);
-		subtitleCodePage.setEditable(false);
 		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setSubtitlesCodepage(subtitleCodePageModel.getSelectedKey());
+					configuration.setSubtitlesCodepage(subtitleCodePageModel.getSelectedKey()
+						.toLowerCase()
+						.replaceAll("codepage", "cp")
+						.replaceAll("windows", "")
+						.replaceAll("cp\\s*(?=\\d)", "cp")
+						.trim()
+					);
 				}
 			}
 		});
 
-		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
-			}
-		});
-
+		subtitleCodePage.setEditable(true);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
 
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());

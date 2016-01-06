@@ -120,10 +120,10 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	/**
 	 * The index of the selected item.
 	 */
-	private int selectedItemIndex;
+	protected int selectedItemIndex;
 
-	private K selectedItemKey;
-	private V selectedItemValue;
+	protected K selectedItemKey;
+	protected V selectedItemValue;
 
 	/**
 	 * The data (contains ComboBoxItemPairs).
@@ -143,7 +143,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	private boolean allowOtherValue;
 
 	/**
-	 * Creates a new keyed combobox model.
+	 * Creates a new keyed {@link ComboBoxModel}.
 	 */
 	public KeyedComboBoxModel() {
 		data = new ArrayList<>();
@@ -151,7 +151,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	}
 
 	/**
-	 * Creates a new keyed combobox model for the given keys and values. Keys
+	 * Creates a new keyed {@link ComboBoxModel} for the given keys and values. Keys
 	 * and values must have the same number of items.
 	 *
 	 * @param keys   the keys
@@ -189,15 +189,15 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	/**
 	 * Notifies all registered list data listener of the given event.
 	 *
-	 * @param evt the event.
+	 * @param event the event.
 	 */
-	protected synchronized void fireListDataEvent(final ListDataEvent evt) {
+	protected synchronized void fireListDataEvent(final ListDataEvent event) {
 		if (tempListeners == null) {
 			tempListeners = listdatalistener.toArray(new ListDataListener[listdatalistener.size()]);
 		}
-		for (ListDataListener l : tempListeners) {
-			if (l != null && evt != null) {
-				l.contentsChanged(evt);
+		for (ListDataListener listener : tempListeners) {
+			if (listener != null && event != null) {
+				listener.contentsChanged(event);
 			}
 		}
 	}
@@ -234,7 +234,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	}
 
 	/**
-	 * Defines the selected key. If the object is not in the list of values, no
+	 * Sets the selected key. If the object is not in the list of keys, no
 	 * item gets selected.
 	 *
 	 * @param aKey the new selected item.
@@ -276,14 +276,21 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 		setSelectedValue((V) anItem);
 	}
 
+	/**
+	 * Sets the selected value. If the object is not in the list of values, no
+	 * item gets selected.
+	 *
+	 * @param aValue the new selected item.
+	 */
+
 	public void setSelectedValue(final V aValue) {
 		if (aValue == null) {
 			selectedItemIndex = -1;
 			selectedItemKey = null;
 			selectedItemValue = null;
 		} else {
-			final int newSelectedItem = findValueIndex(aValue);
-			if (newSelectedItem == -1) {
+			int newSelectedIndex = findValueIndex(aValue);
+			if (newSelectedIndex == -1) {
 				if (isAllowOtherValue()) {
 					selectedItemIndex = -1;
 					selectedItemKey = null;
@@ -294,7 +301,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 					selectedItemValue = null;
 				}
 			} else {
-				selectedItemIndex = newSelectedItem;
+				selectedItemIndex = newSelectedIndex;
 				selectedItemKey = getKeyAt(selectedItemIndex);
 				selectedItemValue = getValueAt(selectedItemIndex);
 			}
@@ -314,11 +321,11 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	 * Adds a listener to the list that's notified each time a change to the data
 	 * model occurs.
 	 *
-	 * @param l the <code>ListDataListener</code> to be added
+	 * @param listener the <code>ListDataListener</code> to be added
 	 */
 	@Override
-	public synchronized void addListDataListener(final ListDataListener l) {
-		listdatalistener.add(l);
+	public synchronized void addListDataListener(final ListDataListener listener) {
+		listdatalistener.add(listener);
 		tempListeners = null;
 	}
 
@@ -413,7 +420,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	 * @param key the key for the element to be searched.
 	 * @return the index of the key, or -1 if not found.
 	 */
-	public int findKeyIndex(final K key) {
+	public int findKeyIndex(final Object key) {
 		if (key == null) {
 			throw new NullPointerException("Search key can not be null");
 		}
@@ -428,13 +435,13 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	}
 
 	/**
-	 * Tries to find the index of element with the given key. The key must not
-	 * be null.
+	 * Tries to find the index of element with the given value. The value must
+	 * not be null.
 	 *
-	 * @param key the key for the element to be searched.
-	 * @return the index of the key, or -1 if not found.
+	 * @param value the value for the element to be searched.
+	 * @return the index of the value, or -1 if not found.
 	 */
-	public int findValueIndex(final V value) {
+	public int findValueIndex(final Object value) {
 		if (value == null) {
 			throw new NullPointerException("Search value can not be null");
 		}
@@ -468,10 +475,10 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	 * Adds a new entry to the model.
 	 *
 	 * @param key    the key
-	 * @param cbitem the display value.
+	 * @param value the display value.
 	 */
-	public void add(final K key, final V cbitem) {
-		final ComboBoxItemPair con = new ComboBoxItemPair(key, cbitem);
+	public void add(final K key, final V value) {
+		final ComboBoxItemPair con = new ComboBoxItemPair(key, value);
 		data.add(con);
 		final ListDataEvent evt = new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, data.size() - 2, data.size() - 2);
 		fireListDataEvent(evt);
