@@ -1090,7 +1090,7 @@ public class DLNAMediaInfo implements Cloneable {
 							is.close();
 						}
 
-						if (sz > 0 && !net.pms.PMS.isHeadless()) {
+						if (sz > 0) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null && configuration.getFullyPlayedAction() == 1 && file != null && MediaMonitor.isFullyPlayed(file.getAbsolutePath())) {
 								int thumbnailFontSize;
