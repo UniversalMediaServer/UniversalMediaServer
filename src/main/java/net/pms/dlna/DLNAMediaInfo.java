@@ -40,6 +40,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
+import net.pms.util.FullyPlayedAction;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
@@ -807,7 +808,7 @@ public class DLNAMediaInfo implements Cloneable {
 							int thumbnailHeight = renderer.getThumbnailHeight();
 
 							// Make sure the image fits in the renderer's bounds
-							boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isFullyPlayed(file.getAbsolutePath());
+							boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == FullyPlayedAction.MARK && MediaMonitor.isFullyPlayed(file.getAbsolutePath());
 							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isWatchedThumbnail);
 
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
@@ -944,7 +945,7 @@ public class DLNAMediaInfo implements Cloneable {
 						int thumbnailHeight = renderer.getThumbnailHeight();
 
 						// Make sure the image fits in the renderer's bounds
-						boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isFullyPlayed(file.getAbsolutePath());
+						boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == FullyPlayedAction.MARK && MediaMonitor.isFullyPlayed(file.getAbsolutePath());
 						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isWatchedThumbnail);
 
 						BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
@@ -1092,7 +1093,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 						if (sz > 0) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
-							if (image != null && configuration.getFullyPlayedAction() == 1 && file != null && MediaMonitor.isFullyPlayed(file.getAbsolutePath())) {
+							if (image != null && configuration.getFullyPlayedAction() == FullyPlayedAction.MARK && file != null && MediaMonitor.isFullyPlayed(file.getAbsolutePath())) {
 								int thumbnailFontSize;
 								String thumbnailText;
 								int thumbnailTextHorizontalPosition;

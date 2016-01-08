@@ -626,7 +626,8 @@ public class UMSUtils {
 
 			return out.toByteArray();
 		} catch (IOException e) {
-			LOGGER.trace("Failed to resize image");
+			LOGGER.debug("Failed to resize image: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 
 		return null;

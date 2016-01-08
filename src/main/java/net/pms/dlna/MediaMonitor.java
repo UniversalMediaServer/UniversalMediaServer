@@ -14,6 +14,7 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
 import net.pms.util.FreedesktopTrash;
+import net.pms.util.FullyPlayedAction;
 import org.apache.commons.lang.StringUtils;
 import org.fest.util.Arrays;
 import org.slf4j.Logger;
@@ -152,9 +153,9 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed += res.getLastStartPosition();
 		}
 
-		int fullyPlayedAction = configuration.getFullyPlayedAction();
+		FullyPlayedAction fullyPlayedAction = configuration.getFullyPlayedAction();
 
-		if (fullyPlayedAction > 0) {
+		if (!fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION)) {
 			LOGGER.trace("Fully Played feature logging:");
 			LOGGER.trace("   duration: " + fileDuration);
 			LOGGER.trace("   getLastStartPosition: " + res.getLastStartPosition());
@@ -208,7 +209,7 @@ public class MediaMonitor extends VirtualFolder {
 
 					File playedFile = new File(rf.getFile().getAbsolutePath());
 
-					if (fullyPlayedAction == 3) {
+					if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER) {
 						// Move the video to a different folder
 						String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
 
@@ -231,7 +232,7 @@ public class MediaMonitor extends VirtualFolder {
 								Thread.currentThread().interrupt();
 							}
 						}
-					} else if (fullyPlayedAction == 4) {
+					} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
 						try {
 							if (Platform.isLinux()) {
 								FreedesktopTrash.moveToTrash(playedFile);
