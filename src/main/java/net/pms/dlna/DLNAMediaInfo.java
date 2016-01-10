@@ -812,16 +812,6 @@ public class DLNAMediaInfo implements Cloneable {
 
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null && isWatchedThumbnail) {
-								int thumbnailFontSize;
-								String thumbnailText;
-								int thumbnailTextHorizontalPosition;
-								int thumbnailTextVerticalPosition;
-
-								thumbnailFontSize = thumbnailFontSizeAudio;
-								thumbnailText = THUMBNAIL_TEXT_AUDIO;
-								thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionAudio;
-								thumbnailTextVerticalPosition = thumbnailTextVerticalPositionAudio;
-
 								Graphics2D g = image.createGraphics();
 								g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
 								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
@@ -830,35 +820,34 @@ public class DLNAMediaInfo implements Cloneable {
 								/**
 								 * TODO: Include and use a custom font
 								 */
-								if (thumbnailFontSize > 0) {
-									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
-									g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
+								if (thumbnailFontSizeAudio > 0) {
+									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeAudio));
+									g.drawString(THUMBNAIL_TEXT_AUDIO, thumbnailTextHorizontalPositionAudio, thumbnailTextVerticalPositionAudio);
 								} else {
-									thumbnailFontSize = thumbnailWidth / 6;
-									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
+									thumbnailFontSizeAudio = thumbnailWidth / 6;
+									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeAudio));
 									FontMetrics fm = g.getFontMetrics();
-									Rectangle2D textsize = fm.getStringBounds(thumbnailText, g);
+									Rectangle2D textsize = fm.getStringBounds(THUMBNAIL_TEXT_AUDIO, g);
 									int textWidth = (int) textsize.getWidth();
-									thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
+									thumbnailTextHorizontalPositionAudio = (thumbnailWidth - textWidth) / 2;
 
 									// Use a smaller font size if there isn't enough room
 									if (textWidth > thumbnailWidth) {
 										for (int divider = 7; divider < 99; divider++) {
-											thumbnailFontSize = thumbnailWidth / divider;
-											g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
+											thumbnailFontSizeAudio = thumbnailWidth / divider;
+											g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeAudio));
 											fm = g.getFontMetrics();
-											textsize = fm.getStringBounds(thumbnailText, g);
+											textsize = fm.getStringBounds(THUMBNAIL_TEXT_AUDIO, g);
 											textWidth = (int) textsize.getWidth();
 											if (textWidth <= (thumbnailWidth * 0.9)) {
-												thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
-												thumbnailFontSizeAudio = thumbnailFontSize;
+												thumbnailTextHorizontalPositionAudio = (thumbnailWidth - textWidth) / 2;
 												break;
 											}
 										}
 									}
 
-									thumbnailTextVerticalPosition = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
-									g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
+									thumbnailTextVerticalPositionAudio = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
+									g.drawString(THUMBNAIL_TEXT_AUDIO, thumbnailTextHorizontalPositionAudio, thumbnailTextVerticalPositionAudio);
 								}
 							}
 							ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -949,16 +938,6 @@ public class DLNAMediaInfo implements Cloneable {
 
 						BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 						if (image != null && isWatchedThumbnail) {
-							int thumbnailFontSize;
-							String thumbnailText;
-							int thumbnailTextHorizontalPosition;
-							int thumbnailTextVerticalPosition;
-
-							thumbnailFontSize = thumbnailFontSizeImage;
-							thumbnailText = THUMBNAIL_TEXT_IMAGE;
-							thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionImage;
-							thumbnailTextVerticalPosition = thumbnailTextVerticalPositionImage;
-
 							Graphics2D g = image.createGraphics();
 							g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
 							g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
@@ -967,35 +946,34 @@ public class DLNAMediaInfo implements Cloneable {
 							/**
 							 * TODO: Include and use a custom font
 							 */
-							if (thumbnailFontSize > 0) {
-								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
-								g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
+							if (thumbnailFontSizeImage > 0) {
+								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeImage));
+								g.drawString(THUMBNAIL_TEXT_IMAGE, thumbnailTextHorizontalPositionImage, thumbnailTextVerticalPositionImage);
 							} else {
-								thumbnailFontSize = thumbnailWidth / 6;
-								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
+								thumbnailFontSizeImage = thumbnailWidth / 6;
+								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeImage));
 								FontMetrics fm = g.getFontMetrics();
-								Rectangle2D textsize = fm.getStringBounds(thumbnailText, g);
+								Rectangle2D textsize = fm.getStringBounds(THUMBNAIL_TEXT_IMAGE, g);
 								int textWidth = (int) textsize.getWidth();
-								thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
+								thumbnailTextHorizontalPositionImage = (thumbnailWidth - textWidth) / 2;
 
 								// Use a smaller font size if there isn't enough room
 								if (textWidth > thumbnailWidth) {
 									for (int divider = 7; divider < 99; divider++) {
-										thumbnailFontSize = thumbnailWidth / divider;
-										g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
+										thumbnailFontSizeImage = thumbnailWidth / divider;
+										g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeImage));
 										fm = g.getFontMetrics();
-										textsize = fm.getStringBounds(thumbnailText, g);
+										textsize = fm.getStringBounds(THUMBNAIL_TEXT_IMAGE, g);
 										textWidth = (int) textsize.getWidth();
 										if (textWidth <= (thumbnailWidth * 0.9)) {
-											thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
-											thumbnailFontSizeImage = thumbnailFontSize;
+											thumbnailTextHorizontalPositionImage = (thumbnailWidth - textWidth) / 2;
 											break;
 										}
 									}
 								}
 
-								thumbnailTextVerticalPosition = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
-								g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
+								thumbnailTextVerticalPositionImage = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
+								g.drawString(THUMBNAIL_TEXT_IMAGE, thumbnailTextHorizontalPositionImage, thumbnailTextVerticalPositionImage);
 							}
 							ByteArrayOutputStream out = new ByteArrayOutputStream();
 							ImageIO.write(image, "jpeg", out);
@@ -1093,16 +1071,7 @@ public class DLNAMediaInfo implements Cloneable {
 						if (sz > 0 && !net.pms.PMS.isHeadless()) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null && configuration.getFullyPlayedAction() == 1 && file != null && MediaMonitor.isWatched(file.getAbsolutePath())) {
-								int thumbnailFontSize;
-								String thumbnailText;
-								int thumbnailTextHorizontalPosition;
-								int thumbnailTextVerticalPosition;
 								int thumbnailWidth = renderer.getThumbnailWidth();
-
-								thumbnailFontSize = thumbnailFontSizeVideo;
-								thumbnailText = THUMBNAIL_TEXT_VIDEO;
-								thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionVideo;
-								thumbnailTextVerticalPosition = thumbnailTextVerticalPositionVideo;
 
 								Graphics2D g = image.createGraphics();
 								g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
@@ -1112,35 +1081,34 @@ public class DLNAMediaInfo implements Cloneable {
 								/**
 								 * TODO: Include and use a custom font
 								 */
-								if (thumbnailFontSize > 0) {
-									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
-									g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
+								if (thumbnailFontSizeVideo > 0) {
+									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeVideo));
+									g.drawString(THUMBNAIL_TEXT_VIDEO, thumbnailTextHorizontalPositionVideo, thumbnailTextVerticalPositionVideo);
 								} else {
-									thumbnailFontSize = thumbnailWidth / 6;
-									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
+									thumbnailFontSizeVideo = thumbnailWidth / 6;
+									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeVideo));
 									FontMetrics fm = g.getFontMetrics();
-									Rectangle2D textsize = fm.getStringBounds(thumbnailText, g);
+									Rectangle2D textsize = fm.getStringBounds(THUMBNAIL_TEXT_VIDEO, g);
 									int textWidth = (int) textsize.getWidth();
-									thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
+									thumbnailTextHorizontalPositionVideo = (thumbnailWidth - textWidth) / 2;
 
 									// Use a smaller font size if there isn't enough room
 									if (textWidth > thumbnailWidth) {
 										for (int divider = 7; divider < 99; divider++) {
-											thumbnailFontSize = thumbnailWidth / divider;
-											g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSize));
+											thumbnailFontSizeVideo = thumbnailWidth / divider;
+											g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeVideo));
 											fm = g.getFontMetrics();
-											textsize = fm.getStringBounds(thumbnailText, g);
+											textsize = fm.getStringBounds(THUMBNAIL_TEXT_VIDEO, g);
 											textWidth = (int) textsize.getWidth();
 											if (textWidth <= (thumbnailWidth * 0.9)) {
-												thumbnailTextHorizontalPosition = (thumbnailWidth - textWidth) / 2;
-												thumbnailFontSizeVideo = thumbnailFontSize;
+												thumbnailTextHorizontalPositionVideo = (thumbnailWidth - textWidth) / 2;
 												break;
 											}
 										}
 									}
 
-									thumbnailTextVerticalPosition = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
-									g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
+									thumbnailTextVerticalPositionVideo = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
+									g.drawString(THUMBNAIL_TEXT_VIDEO, thumbnailTextHorizontalPositionVideo, thumbnailTextVerticalPositionVideo);
 								}
 							}
 							ByteArrayOutputStream out = new ByteArrayOutputStream();
