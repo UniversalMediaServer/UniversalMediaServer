@@ -307,7 +307,7 @@ public class NavigationShareTab {
 
 		// Audio thumbnails import
 		final KeyedComboBoxModel<Integer, String> thumbKCBM = new KeyedComboBoxModel<>(new Integer[]{0, 1, 2}, new String[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
-		audiothumbnail = new JComboBox<String>(thumbKCBM);
+		audiothumbnail = new JComboBox<>(thumbKCBM);
 		audiothumbnail.setEditable(false);
 
 		thumbKCBM.setSelectedKey(configuration.getAudioThumbnailMethod());
