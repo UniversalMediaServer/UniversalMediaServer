@@ -233,15 +233,12 @@ public class RootFolder extends DLNAResource {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
 					child.setDefaultRenderer(resource.getDefaultRenderer());
-					String trace = null;
 
+					// Display and log which folder is being scanned
+					String childName = child.getName();
 					if (child instanceof RealFile) {
-						trace = Messages.getString("DLNAMediaDatabase.4") + " " + child.getName();
-					}
-
-					if (trace != null) {
-						LOGGER.debug(trace);
-						PMS.get().getFrame().setStatusLine(trace);
+						LOGGER.debug("Scanning folder: " + childName);
+						PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName);
 					}
 
 					if (child.isDiscovered()) {

@@ -86,7 +86,7 @@ class TempFolder {
 			throw new IOException("Temporary folder isn't browsable: " + folder.getAbsolutePath());
 		}
 		if (!permission.isWritable()) {
-			throw new IOException("Temporary folder isn't writable:" + folder.getAbsolutePath());
+			throw new IOException("Temporary folder isn't writable: " + folder.getAbsolutePath());
 		}
 	}
 }

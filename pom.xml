@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>6.0.0-b1</version>
+	<version>6.0.0-b3</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -92,7 +92,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>37</binary-revision>
+		<binary-revision>38</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
@@ -308,11 +308,13 @@
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
-			<!-- use 3.0.0 for Java 8 projects -->
-			<version>2.2.0</version>
+			<!-- Use 3.x for Java 8 -->
+			<version>2.3.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<!-- 4.2.0 and 4.2.1 fails on some installations (probably 64 bit JVM). The next JNA release will probably be ok-->
+			<!-- See https://github.com/UniversalMediaServer/UniversalMediaServer/issues/714#issuecomment-168320852 -->
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
 			<version>4.1.0</version>

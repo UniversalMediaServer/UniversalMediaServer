@@ -300,7 +300,7 @@ public class PMS {
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: " + cwd);
 
-		LOGGER.info("Temp directory: " + configuration.getTempFolder());
+		LOGGER.info("Temporary directory: " + configuration.getTempFolder());
 
 		/**
 		 * Verify the java.io.tmpdir is writable; JNA requires it.
@@ -312,10 +312,10 @@ public class PMS {
 		if (!FileUtil.getFilePermissions(javaTmpdir).isWritable()) {
 			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
 			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
-			throw new IOException("Cannot write to Java temp directory");
+			throw new IOException("Cannot write to Java temp directory: " + javaTmpdir.getAbsolutePath());
 		}
 
-		LOGGER.info("Logging config file: " + LoggingConfig.getConfigFilePath());
+		LOGGER.info("Logging configuration file: " + LoggingConfig.getConfigFilePath());
 
 		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
@@ -543,10 +543,10 @@ public class PMS {
 
 		registry = createSystemUtils();
 
-		if (System.getProperty(CONSOLE) == null) {
+		if (!isHeadless()) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
-			LOGGER.info("GUI environment not available");
+			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
 			frame = new DummyFrame();
 		}
@@ -708,9 +708,9 @@ public class PMS {
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
 
-		// To make the cred stuff work cross plugins
-		// read cred file AFTER plugins are started
-		if (System.getProperty(CONSOLE) == null) {
+		// To make the credentials stuff work cross plugins read credentials
+		// file AFTER plugins are started
+		if (!isHeadless()) {
 			// but only if we got a GUI of course
 			((LooksFrame)frame).getPt().init();
 		}
@@ -1094,8 +1094,17 @@ public class PMS {
 
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
+		boolean denyHeadless = false;
 		File profilePath = null;
 		CacheLogger.startCaching();
+
+		// Set headless options if given as a system property when launching the JVM
+		if (System.getProperty(CONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
+			forceHeadless();
+		}
+		if (System.getProperty(NOCONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
+			denyHeadless = true;
+		}
 
 		if (args.length > 0) {
 			Pattern pattern = Pattern.compile(PROFILE);
@@ -1103,7 +1112,7 @@ public class PMS {
 				switch (arg) {
 					case HEADLESS:
 					case CONSOLE:
-						System.setProperty(CONSOLE, Boolean.toString(true));
+						forceHeadless();
 						break;
 					case NATIVELOOK:
 						System.setProperty(NATIVELOOK, Boolean.toString(true));
@@ -1112,7 +1121,7 @@ public class PMS {
 						System.setProperty(SCROLLBARS, Boolean.toString(true));
 						break;
 					case NOCONSOLE:
-						System.setProperty(NOCONSOLE, Boolean.toString(true));
+						denyHeadless = true;
 						break;
 					case PROFILES:
 						displayProfileChooser = true;
@@ -1132,21 +1141,19 @@ public class PMS {
 
 		try {
 			Toolkit.getDefaultToolkit();
-
-			if (isHeadless()) {
-				if (System.getProperty(NOCONSOLE) == null) {
-					System.setProperty(CONSOLE, Boolean.toString(true));
-				}
-			}
-		} catch (Throwable t) {
+		} catch (AWTError t) {
 			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
-
-			if (System.getProperty(NOCONSOLE) == null) {
-				System.setProperty(CONSOLE, Boolean.toString(true));
-			}
+			forceHeadless();
 		}
 
-		if (!isHeadless()) {
+		if (isHeadless() && denyHeadless) {
+			System.err.println(
+				"Either a graphics environment isn't available or headless " +
+			    "mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
+			    " can't start, exiting."
+			);
+			System.exit(1);
+		} else if (!isHeadless()) {
 			LooksFrame.initializeLookAndFeel();
 		}
 
@@ -1561,7 +1568,7 @@ public class PMS {
 	private static Boolean headless = null;
 
 	/**
-	 * Check if UMS is running in headless (console) mode, since some Linux
+	 * Checks if UMS is running in headless (console) mode, since some Linux
 	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
 	 */
 	public static boolean isHeadless() {
@@ -1578,11 +1585,24 @@ public class PMS {
 		try {
 			JDialog d = new JDialog();
 			d.dispose();
-			headless = Boolean.FALSE;
+			headless = false;
 			return headless;
 		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-			headless = Boolean.TRUE;
+			headless = true;
 			return headless;
+		} finally {
+			headlessLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Forces UMS to run in headless (console) mode whether a graphics
+	 * environment is available or not.
+	 */
+	public static void forceHeadless() {
+		headlessLock.writeLock().lock();
+		try {
+			headless = true;
 		} finally {
 			headlessLock.writeLock().unlock();
 		}

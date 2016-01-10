@@ -169,6 +169,8 @@ public class FFMpegVideo extends Player {
 			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 
+		filterChain.addAll(scalePadFilterChain);
+
 		boolean override = true;
 		if (renderer instanceof RendererConfiguration.OutputOverride) {
 			RendererConfiguration.OutputOverride or = (RendererConfiguration.OutputOverride)renderer;
@@ -176,12 +178,13 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (!isDisableSubtitles(params) && override) {
+			boolean isSubsASS = params.sid.getType() == SubtitleType.ASS;
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid != null && params.sid.getType().isText()) {
 				String originalSubsFilename = null;
 				String subsFilename;
 				// assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
-				if (is3D && params.sid.getType() != SubtitleType.ASS) {
+				if (is3D && !isSubsASS) {
 					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else if (params.sid.isExternal()) {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
@@ -230,21 +233,15 @@ public class FFMpegVideo extends Player {
 					}
 
 					// If the FFmpeg font config is enabled than we need to add settings to the filter. TODO there could be also changed the font type. See http://ffmpeg.org/ffmpeg-filters.html#subtitles-1
-					if (configuration.isFFmpegFontConfig() && !is3D) {
+					if (configuration.isFFmpegFontConfig() && !is3D && !isSubsASS) { // Do not force style for 3D videos and ASS subtitles
 						subsFilter.append(":force_style=");
 						subsFilter.append("'");
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-						if (!is3D) {
-							subsFilter.append("Fontsize=").append((int) 16 * Double.parseDouble(configuration.getAssScale()));
-						}
-							
+						subsFilter.append("Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
 						subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
-						if (!is3D) {
-							subsFilter.append(",MarginV=").append(configuration.getAssMargin());
-						};
-
+						subsFilter.append(",MarginV=").append(configuration.getAssMargin());
 						subsFilter.append("'");
 					}
 				}
@@ -274,8 +271,6 @@ public class FFMpegVideo extends Player {
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 		if (StringUtils.isNotEmpty(overrideVF)) {
 			filterChain.add(overrideVF);
-		} else {
-			filterChain.addAll(scalePadFilterChain);
 		}
 
 		// Convert 3D video to the other output 3D format
