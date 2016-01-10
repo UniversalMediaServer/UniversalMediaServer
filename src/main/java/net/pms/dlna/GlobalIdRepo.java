@@ -98,4 +98,10 @@ public class GlobalIdRepo {
 		LOGGER.debug("GlobalIdRepo: id not found: {}", id);
 		return -1;
 	}
+
+	public synchronized void clear() {
+		ids.clear();
+		globalId = 1;
+		deletions = 0;
+	}
 }
