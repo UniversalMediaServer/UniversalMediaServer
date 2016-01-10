@@ -20,8 +20,8 @@ public class DLNAList extends ArrayList<DLNAResource> {
 
 	@Override
 	public void clear() {
-		for (int i = 0; i < size(); i++) {
-			PMS.getGlobalRepo().remove(get(i));
+		for (DLNAResource my : this) {
+			PMS.getGlobalRepo().remove(my);
 		}
 		super.clear();
 	}

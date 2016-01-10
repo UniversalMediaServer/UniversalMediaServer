@@ -631,7 +631,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
-		channels = new JComboBox<Object>(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
+		channels = new JComboBox<>(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
 		channels.setEditable(false);
 		if (configuration.getAudioChannelCount() == 2) {
 			channels.setSelectedIndex(0);

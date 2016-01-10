@@ -1,3 +1,8 @@
+5.5.1 - 2016-01-??
+
+	General:
+		
+
 5.5.0 and 6.0.0-b2 - 2016-01-06
 
 	General:
@@ -17,6 +22,7 @@
 	Languages:
 		Added Afrikaans, Hungarian, Persian (Farsi), Serbian, Slovak, Ukrainian and Vietnamese
 		Allow the translation of language names
+		Synchronized translations with crowdin
 	External Components:
 		Updated Maven exec plugin to 1.4.0
 		Rolled back JNA to 4.1.0, which fixes a playback error
