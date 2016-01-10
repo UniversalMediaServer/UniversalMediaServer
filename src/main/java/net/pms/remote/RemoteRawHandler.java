@@ -51,7 +51,7 @@ public class RemoteRawHandler implements HttpHandler {
 			// For web resources actual length may be unknown until we open the stream
 			len = dlna.length();
 		}
-		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
+		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
 		Headers hdr = t.getResponseHeaders();
 		LOGGER.debug("dumping media " + mime + " " + dlna);
 		hdr.add("Content-Type", mime);

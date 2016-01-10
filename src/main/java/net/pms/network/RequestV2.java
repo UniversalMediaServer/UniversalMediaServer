@@ -423,7 +423,7 @@ public class RequestV2 extends HTTPResource {
 						startStopListenerDelegate.start(dlna);
 
 						// Try to determine the content type of the file
-						String rendererMimeType = getRendererMimeType(dlna.mimeType(), mediaRenderer);
+						String rendererMimeType = getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia());
 
 						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
@@ -975,8 +975,8 @@ public class RequestV2 extends HTTPResource {
 	 * Returns the string value that is enclosed by the left and right tag in a content string.
 	 * Only the first match of each tag is used to determine positions. If either of the tags
 	 * cannot be found, null is returned.
-	 * @param content The entire {@link String} that needs to be searched for the left and right tag. 
-	 * @param leftTag The {@link String} determining the match for the left tag. 
+	 * @param content The entire {@link String} that needs to be searched for the left and right tag.
+	 * @param leftTag The {@link String} determining the match for the left tag.
 	 * @param rightTag The {@link String} determining the match for the right tag.
 	 * @return The {@link String} that was enclosed by the left and right tag.
 	 */
