@@ -831,64 +831,72 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 		String[] keys = new String[]{
-			"cp1250", "cp1251", "cp1252", "cp1253", "cp1254", "cp1255",
-			"cp1256", "cp1257", "cp1258", "ISO-8859-1", "ISO-8859-2",
-			"ISO-8859-3", "ISO-8859-4", "ISO-8859-5", "ISO-8859-6",
-			"ISO-8859-7", "ISO-8859-8", "ISO-8859-9", "ISO-8859-10",
-			"ISO-8859-11", "ISO-8859-13", "ISO-8859-14", "ISO-8859-15",
-			"ISO-8859-16", "cp932", "cp936", "cp949", "cp950", "UTF-8"
+			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
+			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
+			"cp1257", "cp1258", "ISO-2022-CN", "ISO-2022-JP", "ISO-2022-KR",
+			"ISO-8859-1", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4",
+			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
+			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
+			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
+			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS"
 		};
 		String[] values = new String[]{
-			Messages.getString("MEncoderVideo.96"),
-			Messages.getString("MEncoderVideo.97"),
-			Messages.getString("MEncoderVideo.98"),
-			Messages.getString("MEncoderVideo.99"),
-			Messages.getString("MEncoderVideo.100"),
-			Messages.getString("MEncoderVideo.101"),
-			Messages.getString("MEncoderVideo.102"),
-			Messages.getString("MEncoderVideo.103"),
-			Messages.getString("MEncoderVideo.104"),
-			Messages.getString("MEncoderVideo.105"),
-			Messages.getString("MEncoderVideo.106"),
-			Messages.getString("MEncoderVideo.107"),
-			Messages.getString("MEncoderVideo.108"),
-			Messages.getString("MEncoderVideo.109"),
-			Messages.getString("MEncoderVideo.110"),
-			Messages.getString("MEncoderVideo.111"),
-			Messages.getString("MEncoderVideo.112"),
-			Messages.getString("MEncoderVideo.113"),
-			Messages.getString("MEncoderVideo.114"),
-			Messages.getString("MEncoderVideo.115"),
-			Messages.getString("MEncoderVideo.116"),
-			Messages.getString("MEncoderVideo.117"),
-			Messages.getString("MEncoderVideo.118"),
-			Messages.getString("MEncoderVideo.119"),
-			Messages.getString("MEncoderVideo.120"),
-			Messages.getString("MEncoderVideo.121"),
-			Messages.getString("MEncoderVideo.122"),
-			Messages.getString("MEncoderVideo.123"),
-			Messages.getString("MEncoderVideo.124")
+			Messages.getString("General.2"),
+			Messages.getString("CharacterSet.874"),
+			Messages.getString("CharacterSet.932"),
+			Messages.getString("CharacterSet.936"),
+			Messages.getString("CharacterSet.949"),
+			Messages.getString("CharacterSet.950"),
+			Messages.getString("CharacterSet.1250"),
+			Messages.getString("CharacterSet.1251"),
+			Messages.getString("CharacterSet.1252"),
+			Messages.getString("CharacterSet.1253"),
+			Messages.getString("CharacterSet.1254"),
+			Messages.getString("CharacterSet.1255"),
+			Messages.getString("CharacterSet.1256"),
+			Messages.getString("CharacterSet.1257"),
+			Messages.getString("CharacterSet.1258"),
+			Messages.getString("CharacterSet.2022-CN"),
+			Messages.getString("CharacterSet.2022-JP"),
+			Messages.getString("CharacterSet.2022-KR"),
+			Messages.getString("CharacterSet.8859-1"),
+			Messages.getString("CharacterSet.8859-2"),
+			Messages.getString("CharacterSet.8859-3"),
+			Messages.getString("CharacterSet.8859-4"),
+			Messages.getString("CharacterSet.8859-5"),
+			Messages.getString("CharacterSet.8859-6"),
+			Messages.getString("CharacterSet.8859-7"),
+			Messages.getString("CharacterSet.8859-8"),
+			Messages.getString("CharacterSet.8859-9"),
+			Messages.getString("CharacterSet.8859-10"),
+			Messages.getString("CharacterSet.8859-11"),
+			Messages.getString("CharacterSet.8859-13"),
+			Messages.getString("CharacterSet.8859-14"),
+			Messages.getString("CharacterSet.8859-15"),
+			Messages.getString("CharacterSet.8859-16"),
+			Messages.getString("CharacterSet.Big5"),
+			Messages.getString("CharacterSet.EUC-JP"),
+			Messages.getString("CharacterSet.EUC-KR"),
+			Messages.getString("CharacterSet.GB18030"),
+			Messages.getString("CharacterSet.IBM420"),
+			Messages.getString("CharacterSet.IBM424"),
+			Messages.getString("CharacterSet.KOI8-R"),
+			Messages.getString("CharacterSet.ShiftJIS")
 		};
 
-		final KeyedStringComboBoxModel subtitleCodePageModel = new KeyedStringComboBoxModel(keys, values);
+		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
 		subtitleCodePage = new JComboBox<>(subtitleCodePageModel);
 		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setSubtitlesCodepage(subtitleCodePageModel.getSelectedKey()
-						.toLowerCase()
-						.replaceAll("codepage", "cp")
-						.replaceAll("windows", "")
-						.replaceAll("cp\\s*(?=\\d)", "cp")
-						.trim()
-					);
+					configuration.setSubtitlesCodepage(subtitleCodePageModel.getSelectedKey());
 				}
 			}
 		});
 
-		subtitleCodePage.setEditable(true);
+		subtitleCodePage.setEditable(false);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
 
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
