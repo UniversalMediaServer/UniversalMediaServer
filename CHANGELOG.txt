@@ -1,7 +1,31 @@
-5.4.1 - 2016-01-??
+5.5.1 - 2016-01-??
 
 	General:
 		
+
+5.5.0 and 6.0.0-b2 - 2016-01-06
+
+	General:
+		Language selection is offered on first startup
+		Improved display on Retina screens
+		Improved language selection interface
+		Improved conversion of 3D subtitles
+		Fixed positioning of subtitles in FFmpeg
+		Fixed tooltip consistency
+		Fixed detection of file permissions on Windows
+		Fixed detection of headless state
+		Fixed many minor bugs
+	Renderers:
+		Updated images for Android, PS3 and PS4
+		Fixed AirPlayer support
+		Fixed VLC for iOS support
+	Languages:
+		Added Afrikaans, Hungarian, Persian (Farsi), Serbian, Slovak, Ukrainian and Vietnamese
+		Allow the translation of language names
+		Synchronized translations with crowdin
+	External Components:
+		Updated Maven exec plugin to 1.4.0
+		Rolled back JNA to 4.1.0, which fixes a playback error
 
 6.0.0-b1 - 2015-12-29
 

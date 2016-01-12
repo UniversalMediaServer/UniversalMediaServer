@@ -98,7 +98,9 @@ public class FileUtilTest {
 		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S12E03.720p.mkv", null)).isEqualTo("Universal Media Server - 1203");
 
 		// Video spanning two TV episodes
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02E03.720p.mkv", null)).isEqualTo("Universal Media Server - 102-103");
+		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02E03.720p.mkv", null)).isEqualTo("Universal Media Server - 102-03");
+		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02-E03.720p.mkv", null)).isEqualTo("Universal Media Server - 102-03");
+		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S12E03-E04.720p.mkv", null)).isEqualTo("Universal Media Server - 1203-04");
 
 		// Video of an extended TV episode
 		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.EXTENDED.720p.mkv", null)).isEqualTo("Universal Media Server - 102");

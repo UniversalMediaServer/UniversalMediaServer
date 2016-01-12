@@ -307,7 +307,7 @@ public class NavigationShareTab {
 
 		// Audio thumbnails import
 		final KeyedComboBoxModel<Integer, String> thumbKCBM = new KeyedComboBoxModel<>(new Integer[]{0, 1, 2}, new String[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
-		audiothumbnail = new JComboBox<String>(thumbKCBM);
+		audiothumbnail = new JComboBox<>(thumbKCBM);
 		audiothumbnail.setEditable(false);
 
 		thumbKCBM.setSelectedKey(configuration.getAudioThumbnailMethod());
@@ -773,7 +773,15 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+
+		/**
+		 * Hide the scan button in basic mode since it's better to let it be done in
+		 * realtime.
+		 */
+		if (!configuration.isHideAdvancedOptions()) {
+			builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+		}
+
 		but5.setEnabled(configuration.getUseCache());
 
 		File[] folders = PMS.get().getSharedFoldersArray(false);

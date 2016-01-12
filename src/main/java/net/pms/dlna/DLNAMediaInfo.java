@@ -1787,25 +1787,19 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		Object cloned = super.clone();
-
-		if (cloned instanceof DLNAMediaInfo) {
-			DLNAMediaInfo mediaCloned = ((DLNAMediaInfo) cloned);
-			mediaCloned.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
-
-			for (DLNAMediaAudio audio : audioTracks) {
-				mediaCloned.getAudioTracksList().add((DLNAMediaAudio) audio.clone());
-			}
-
-			mediaCloned.setSubtitleTracksList(new ArrayList<DLNAMediaSubtitle>());
-
-			for (DLNAMediaSubtitle sub : subtitleTracks) {
-				mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());
-			}
+	protected DLNAMediaInfo clone() throws CloneNotSupportedException {
+		DLNAMediaInfo mediaCloned = (DLNAMediaInfo) super.clone();
+		mediaCloned.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+		for (DLNAMediaAudio audio : audioTracks) {
+			mediaCloned.getAudioTracksList().add((DLNAMediaAudio) audio.clone());
 		}
 
-		return cloned;
+		mediaCloned.setSubtitleTracksList(new ArrayList<DLNAMediaSubtitle>());
+		for (DLNAMediaSubtitle sub : subtitleTracks) {
+			mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());
+		}
+
+		return mediaCloned;
 	}
 
 	/**
