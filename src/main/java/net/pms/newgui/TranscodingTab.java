@@ -886,6 +886,7 @@ public class TranscodingTab {
 
 		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
 		subtitleCodePage = new JComboBox<>(subtitleCodePageModel);
+		subtitleCodePage.setToolTipText(Messages.getString("TrTab2.94"));
 		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
