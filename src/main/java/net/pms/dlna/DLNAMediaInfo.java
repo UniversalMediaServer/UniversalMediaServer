@@ -1072,10 +1072,11 @@ public class DLNAMediaInfo implements Cloneable {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
 							if (image != null && configuration.getFullyPlayedAction() == 1 && file != null && MediaMonitor.isWatched(file.getAbsolutePath())) {
 								int thumbnailWidth = renderer.getThumbnailWidth();
+								int thumbnailHeight = renderer.getThumbnailHeight();
 
 								Graphics2D g = image.createGraphics();
 								g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
-								g.fillRect(0, 0, thumbnailWidth, thumbnailWidth);
+								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
 								g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
 
 								/**
@@ -1107,7 +1108,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									}
 
-									thumbnailTextVerticalPositionVideo = (int) (renderer.getThumbnailHeight() - textsize.getHeight()) / 2 + fm.getAscent();
+									thumbnailTextVerticalPositionVideo = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
 									g.drawString(THUMBNAIL_TEXT_VIDEO, thumbnailTextHorizontalPositionVideo, thumbnailTextVerticalPositionVideo);
 								}
 							}
