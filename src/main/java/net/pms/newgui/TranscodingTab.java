@@ -39,6 +39,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJComboBox;
 import net.pms.newgui.components.CustomJTextField;
 import net.pms.util.KeyedStringComboBoxModel;
 import net.pms.util.FormLayoutUtil;
@@ -885,7 +886,7 @@ public class TranscodingTab {
 		};
 
 		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
-		subtitleCodePage = new JComboBox<>(subtitleCodePageModel);
+		subtitleCodePage = new CustomJComboBox<>(subtitleCodePageModel);
 		subtitleCodePage.setToolTipText(Messages.getString("TrTab2.94"));
 		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener(new ItemListener() {
