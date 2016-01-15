@@ -830,7 +830,7 @@ public class TranscodingTab {
 		});
 		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xy(15, 6), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.95"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 		String[] keys = new String[]{
 			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
 			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
