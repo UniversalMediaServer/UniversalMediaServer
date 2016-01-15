@@ -166,6 +166,11 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public Logical getPlayer(String uuid) {
 		Logical player = players.get(uuid);
+		if (player != null && player.getState() == null) {
+			// Player was disabled
+			players.remove(uuid);
+			player = null;
+		}
 		if (player == null) {
 			try {
 				RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);

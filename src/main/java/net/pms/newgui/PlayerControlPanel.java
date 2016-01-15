@@ -318,6 +318,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	public void refresh(BasicPlayer.State state) {
+		if (state == null) {
+			return;
+		}
 		if (playControl) {
 			playing = state.playback != BasicPlayer.STOPPED;
 			// update playback status

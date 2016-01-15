@@ -709,7 +709,7 @@ public class UPNPHelper extends UPNPControl {
 	protected void rendererReady(String uuid) {
 		RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);
 		if(r != null) {
-			r.getPlayer();
+			r.resetPlayer();
 		}
 	}
 
@@ -807,6 +807,10 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		public void refresh() {
+			if (state == null) {
+				// We've been disabled
+				return;
+			}
 			String s = data.get("TransportState");
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
