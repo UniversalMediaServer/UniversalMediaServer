@@ -133,7 +133,7 @@ public class DLNAMediaDatabase implements Runnable {
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE);
 					}
-					LOGGER.debug("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
+					LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
 					configuration.setUseCache(false);
 					return;
 				}

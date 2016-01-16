@@ -1,3 +1,78 @@
+6.0.0 - 2016-01-??
+
+	General:
+		
+
+5.5.0 and 6.0.0-b2 - 2016-01-06
+
+	General:
+		Language selection is offered on first startup
+		Improved display on Retina screens
+		Improved language selection interface
+		Improved conversion of 3D subtitles
+		Fixed positioning of subtitles in FFmpeg
+		Fixed tooltip consistency
+		Fixed detection of file permissions on Windows
+		Fixed detection of headless state
+		Fixed many minor bugs
+	Renderers:
+		Updated images for Android, PS3 and PS4
+		Fixed AirPlayer support
+		Fixed VLC for iOS support
+	Languages:
+		Added Afrikaans, Hungarian, Persian (Farsi), Serbian, Slovak, Ukrainian and Vietnamese
+		Allow the translation of language names
+		Synchronized translations with crowdin
+	External Components:
+		Updated Maven exec plugin to 1.4.0
+		Rolled back JNA to 4.1.0, which fixes a playback error
+
+6.0.0-b1 - 2015-12-29
+
+	General:
+		Added SquareAudioThumbnails and SquareImageThumbnails renderer configuration options
+		Improved support for thumbnail generation
+		Improved detection of the position of media while playing
+		Improved logging
+		All changes from 5.4.0
+
+5.4.0 - 2015-12-29
+
+	General:
+		Added splash screen, disabled by default
+		Improved support for subtitles in FFmpeg
+		Improved headless support on Windows
+		Improved support for unrecognized filetypes
+		Improved speed and accuracy of the filename prettifying feature
+		Fixed support for 3D subtitles
+		Fixed the saving of window size
+	Renderers:
+		Added support for AnyCast
+		Added support for Miracast M806
+		Added support for Sony Bravia NX800 TVs
+		Improved playback support for several renderers
+	External Components:
+		Updated Cling to 2.1.0
+		Updated FFmpeg
+		Updated MediaInfo to 0.7.80
+
+6.0.0-a1 - 2015-11-23 - Changes since 5.3.1
+
+	General:
+		Added "Fully played action" setting to control what UMS does with media that has been fully played. The options are:
+			Do nothing
+			Add an overlay to the thumbnail (default)
+			Hide the file
+			Move the file to a different folder
+			Move the file to the recycle/trash bin
+		Added "Thumbnails" renderer config option, to specify whether the renderer can display thumbnails
+		The Status tab updates when media is fast-forwarded or rewound
+		Audio and image thumbnails are output at consistent dimensions
+	Renderers:
+		Improved Status tab display for Panasonic TVs
+	Languages:
+		Synchronized translations with Crowdin
+
 5.3.1 - 2015-11-23
 
 	General:

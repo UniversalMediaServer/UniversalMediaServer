@@ -119,15 +119,16 @@ public class RootFolder extends DLNAResource {
 			addChild(last);
 		}
 
-		if (!configuration.isHideNewMediaFolder()) {
-			String m = configuration.getFoldersMonitored();
-			if (!StringUtils.isEmpty(m)) {
-				String[] tmp = m.split(",");
-				File[] dirs = new File[tmp.length];
-				for (int i = 0; i < tmp.length; i++) {
-					dirs[i] = new File(tmp[i]);
-				}
-				mon = new MediaMonitor(dirs);
+		String m = configuration.getFoldersMonitored();
+		if (!StringUtils.isEmpty(m)) {
+			String[] tmp = m.split(",");
+			File[] dirs = new File[tmp.length];
+			for (int i = 0; i < tmp.length; i++) {
+				dirs[i] = new File(tmp[i]);
+			}
+			mon = new MediaMonitor(dirs);
+
+			if (!configuration.isHideNewMediaFolder()) {
 				addChild(mon);
 			}
 		}
@@ -232,15 +233,12 @@ public class RootFolder extends DLNAResource {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
 					child.setDefaultRenderer(resource.getDefaultRenderer());
-					String trace = null;
 
+					// Display and log which folder is being scanned
+					String childName = child.getName();
 					if (child instanceof RealFile) {
-						trace = Messages.getString("DLNAMediaDatabase.4") + " " + child.getName();
-					}
-
-					if (trace != null) {
-						LOGGER.debug(trace);
-						PMS.get().getFrame().setStatusLine(trace);
+						LOGGER.debug("Scanning folder: " + childName);
+						PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName);
 					}
 
 					if (child.isDiscovered()) {
@@ -595,7 +593,6 @@ public class RootFolder extends DLNAResource {
 						// If the result code is not read by parent. The process might turn into a zombie (they are real!)
 						process.waitFor();
 					} catch (InterruptedException e) {
-						// Can this thread be interrupted? Don't think so, or, and even when, what will happen?
 						LOGGER.warn("Interrupted while waiting for stream for process" + e.getMessage());
 					}
 
@@ -753,6 +750,7 @@ public class RootFolder extends DLNAResource {
 		} else if (Platform.isWindows()) {
 			Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
 			String location;
+			//TODO The encoding of the output from reg query is unclear, this must be investigated further
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 				location = null;
 				while ((line = in.readLine()) != null) {
@@ -1098,32 +1096,34 @@ public class RootFolder extends DLNAResource {
 					@Override
 					public void discoverChildren() {
 						File[] files = scriptDir.listFiles();
-						for (File file : files) {
-							String name = file.getName().replaceAll("_", " ");
-							int pos = name.lastIndexOf('.');
+						if (files != null) {
+							for (File file : files) {
+								String name = file.getName().replaceAll("_", " ");
+								int pos = name.lastIndexOf('.');
 
-							if (pos != -1) {
-								name = name.substring(0, pos);
-							}
-
-							final File f = file;
-
-							addChild(new VirtualVideoAction(name, true) {
-								@Override
-								public boolean enable() {
-									try {
-										ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
-										pb.redirectErrorStream(true);
-										Process pid = pb.start();
-										// consume the error and output process streams
-										StreamGobbler.consume(pid.getInputStream());
-										pid.waitFor();
-									} catch (IOException | InterruptedException e) {
-									}
-
-									return true;
+								if (pos != -1) {
+									name = name.substring(0, pos);
 								}
-							});
+
+								final File f = file;
+
+								addChild(new VirtualVideoAction(name, true) {
+									@Override
+									public boolean enable() {
+										try {
+											ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
+											pb.redirectErrorStream(true);
+											Process pid = pb.start();
+											// consume the error and output process streams
+											StreamGobbler.consume(pid.getInputStream());
+											pid.waitFor();
+										} catch (IOException | InterruptedException e) {
+										}
+
+										return true;
+									}
+								});
+							}
 						}
 					}
 				});

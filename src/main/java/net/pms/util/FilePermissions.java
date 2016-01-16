@@ -21,8 +21,15 @@ package net.pms.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AccessMode;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
 
 /**
@@ -42,6 +49,8 @@ public class FilePermissions {
 	private Boolean write = null;
 	private Boolean execute = null;
 	private final boolean folder;
+	private String lastCause = null;
+	private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissions.class);
 
 	public FilePermissions(File file) throws FileNotFoundException {
 		if (file == null) {
@@ -76,13 +85,74 @@ public class FilePermissions {
 	private void checkPermissions(boolean checkRead, boolean checkWrite, boolean checkExecute) {
 
 		if (read == null && checkRead) {
-			read = Boolean.valueOf(Files.isReadable(path));
+			try {
+				path.getFileSystem().provider().checkAccess(path, AccessMode.READ);
+				read = true;
+			} catch (AccessDeniedException e) {
+				if (path.toString().equals(e.getMessage())) {
+					lastCause = "Insufficient permission to read permissions";
+				} else if ("Permissions does not allow requested access".equals(e.getMessage())) {
+					lastCause = "Permissions don't allow read access";
+				} else {
+					lastCause = e.getMessage();
+				}
+				read = false;
+			} catch (IOException e) {
+				lastCause = e.getMessage();
+				read = false;
+			}
 		}
 		if (write == null && checkWrite) {
-			write = Boolean.valueOf(Files.isWritable(path));
+			try {
+				path.getFileSystem().provider().checkAccess(path, AccessMode.WRITE);
+				write = true;
+			} catch (AccessDeniedException e) {
+				if (e.getMessage().endsWith("Permissions does not allow requested access")) {
+					lastCause = "Permissions don't allow write access";
+				} else {
+					lastCause = e.getMessage();
+				}
+				write = false;
+			} catch (FileSystemException e) {
+				// A workaround for https://bugs.openjdk.java.net/browse/JDK-8034057
+				// and similar bugs, if we can't determine it the nio way, fall
+				// back to actually testing it.
+				LOGGER.trace(
+					"Couldn't determine write permissions for \"{}\", falling back to write testing. The error was: {}",
+					path.toString(),
+					e.getMessage()
+				);
+				if (folder) {
+					write = testFolderWritable();
+				} else {
+					write = testFileWritable(file);
+				}
+			} catch (IOException e) {
+				lastCause = e.getMessage();
+				write = false;
+			}
 		}
 		if (execute == null && checkExecute) {
-			execute = Boolean.valueOf(Files.isExecutable(path) || (Platform.isLinux() && FileUtil.isAdmin()));
+			// To conform to the fact that on Linux root always implicit
+			// execute permission regardless of explicit permissions
+			if (Platform.isLinux() && FileUtil.isAdmin()) {
+				execute = true;
+			} else {
+				try {
+					path.getFileSystem().provider().checkAccess(path, AccessMode.EXECUTE);
+					execute = true;
+				} catch (AccessDeniedException e) {
+					if (e.getMessage().endsWith("Permissions does not allow requested access")) {
+						lastCause = "Permissions don't allow execute access";
+					} else {
+						lastCause = e.getMessage();
+					}
+					execute = false;
+				} catch (IOException e) {
+					lastCause = e.getMessage();
+					execute = false;
+				}
+			}
 		}
 	}
 
@@ -99,7 +169,7 @@ public class FilePermissions {
 	 */
 	public synchronized boolean isReadable() {
 		checkPermissions(true, false, false);
-		return read.booleanValue();
+		return read;
 	}
 
 	/**
@@ -107,7 +177,7 @@ public class FilePermissions {
 	 */
 	public synchronized boolean isWritable() {
 		checkPermissions(false, true, false);
-		return write.booleanValue();
+		return write;
 	}
 
 	/**
@@ -116,7 +186,7 @@ public class FilePermissions {
 	 */
 	public synchronized boolean isExecutable() {
 		checkPermissions(false, false, true);
-		return execute.booleanValue();
+		return execute;
 	}
 
 	/**
@@ -126,7 +196,7 @@ public class FilePermissions {
 	 */
 	public synchronized boolean isBrowsable() {
 		checkPermissions(true, false, true);
-		return folder && read.booleanValue() && execute.booleanValue();
+		return folder && read && execute;
 	}
 
 	/**
@@ -152,6 +222,11 @@ public class FilePermissions {
 		read = null;
 		write = null;
 		execute = null;
+		lastCause = null;
+	}
+
+	public synchronized String getLastCause() {
+		return lastCause;
 	}
 
 	@Override
@@ -162,18 +237,87 @@ public class FilePermissions {
 		if (read == null) {
 			sb.append("?");
 		} else {
-			sb.append(read.booleanValue() ? "r" : "-");
+			sb.append(read ? "r" : "-");
 		}
 		if (write == null) {
 			sb.append("?");
 		} else {
-			sb.append(write.booleanValue() ? "w" : "-");
+			sb.append(write ? "w" : "-");
 		}
 		if (execute == null) {
 			sb.append("?");
 		} else {
-			sb.append(execute.booleanValue() ? "x" : "-");
+			sb.append(execute ? "x" : "-");
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Must always be called in a synchronized context
+	 */
+	private boolean testFolderWritable() {
+		if (!folder) {
+			throw new IllegalStateException("Can only be called on a folder");
+		}
+		boolean isWritable = false;
+
+		File file = new File(
+			this.file,
+			String.format(
+				"UMS_folder_write_test_%d_%d.tmp",
+				System.currentTimeMillis(),
+				Thread.currentThread().getId()
+			)
+		);
+
+		try {
+			if (file.createNewFile()) {
+				if (testFileWritable(file)) {
+					isWritable = true;
+				}
+
+				if (!file.delete()) {
+					LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
+				}
+			}
+		} catch (IOException e) {
+			lastCause = e.getMessage();
+		}
+
+		return isWritable;
+	}
+
+	/**
+	 * Must always be called in a synchronized context
+	 */
+	private boolean testFileWritable(File file) {
+		file = file.getAbsoluteFile();
+		if (file.isDirectory()) {
+			throw new IllegalStateException("Can't be called on a folder");
+		}
+
+		boolean isWritable = false;
+		boolean fileAlreadyExists = file.isFile(); // i.e. exists and is a File
+
+		if (fileAlreadyExists || !file.exists()) {
+			try {
+				// fileAlreadyExists: open for append: make sure the open
+				// doesn't clobber the file
+				new FileOutputStream(file, true).close();
+				isWritable = true;
+
+				if (!fileAlreadyExists) { // a new file has been "touched"; try to remove it
+					if (!file.delete()) {
+						LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
+					}
+				}
+			} catch (IOException e) {
+				lastCause = e.getMessage();
+			}
+		} else {
+			lastCause = file.getAbsolutePath() + " isn't a file";
+		}
+
+		return isWritable;
 	}
 }

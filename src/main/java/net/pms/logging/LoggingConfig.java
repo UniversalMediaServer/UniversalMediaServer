@@ -140,14 +140,13 @@ public class LoggingConfig {
 	 * config file are dumped only to <code>stdout</code>.
 	 */
 	public static synchronized void loadFile() {
-		boolean headless = !(System.getProperty("console") == null);
 		File file = null;
 
 		if (!setContextAndRoot()) {
 			return;
 		}
 
-		if (headless) {
+		if (PMS.isHeadless()) {
 			file = getFile(PropertiesUtil.getProjectProperties().get("project.logback.headless").split(","));
 		}
 
@@ -158,7 +157,7 @@ public class LoggingConfig {
 		if (file == null) {
 			// Unpredictable: Any logback.xml found in the Classpath is loaded, if that fails defaulting to BasicConfigurator
 			// See http://logback.qos.ch/xref/ch/qos/logback/classic/BasicConfigurator.html
-			LOGGER.warn("Could not load LogBack configuration file from " + (headless ?
+			LOGGER.warn("Could not load LogBack configuration file from " + (PMS.isHeadless() ?
 					PropertiesUtil.getProjectProperties().get("project.logback.headless") + ", " : "") +
 					PropertiesUtil.getProjectProperties().get("project.logback"));
 			LOGGER.warn("Falling back to somewhat unpredictable defaults, probably only logging to console.");

@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
@@ -164,11 +165,11 @@ public class HTTPResource {
 	 */
 	protected static byte[] downloadAndSendBinary(String u, boolean saveOnDisk, File f) throws IOException {
 		URL url = new URL(u);
-		
+
 		// The URL may contain user authentication information
 		Authenticator.setDefault(new HTTPResourceAuthenticator());
 		HTTPResourceAuthenticator.addURL(url);
-		
+
 		LOGGER.debug("Retrieving " + url.toString());
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		URLConnection conn = url.openConnection();
@@ -206,8 +207,8 @@ public class HTTPResource {
 	 * @param renderer media renderer to customize the MIME type for.
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(String mimetype, RendererConfiguration renderer) {
-		return renderer.getMimeType(mimetype);
+	public String getRendererMimeType(String mimetype, RendererConfiguration renderer, DLNAMediaInfo media) {
+		return renderer.getMimeType(mimetype, media);
 	}
 
 	public int getDLNALocalesCount() {
