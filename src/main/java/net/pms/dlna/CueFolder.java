@@ -128,6 +128,10 @@ public class CueFolder extends DLNAResource {
 						realFile.resolve();
 						if (i == 0) {
 							originalMedia = realFile.getMedia();
+							if (originalMedia == null) {
+								LOGGER.trace("Couldn't resolve media \"{}\" for cue file \"{}\" - aborting", realFile.getName(), playlistfile.getAbsolutePath());
+								return;
+							}
 						}
 						realFile.getSplitRange().setStart(getTime(start));
 						realFile.setSplitTrack(i + 1);

@@ -1259,11 +1259,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	@Override
 	public void run() {
-		if (first == null) {
-			syncResolve();
-			if (second != null) {
-				second.syncResolve();
+		try {
+			if (first == null) {
+				syncResolve();
+				if (second != null) {
+					second.syncResolve();
+				}
 			}
+		} catch (Exception e) {
+			LOGGER.warn("Unhandled expection while resolving {}: {}", getDisplayName(), e.getMessage());
+			LOGGER.debug("", e);
 		}
 	}
 
