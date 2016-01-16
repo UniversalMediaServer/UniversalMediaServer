@@ -41,6 +41,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.FullyPlayedAction;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
@@ -134,7 +135,7 @@ public class NavigationShareTab {
 	}
 
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
-	private static final String PANEL_ROW_SPEC = 
+	private static final String PANEL_ROW_SPEC =
 		//                                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		"p,"                              // Thumbnails
 		+ "3dlu,"                         //
@@ -661,16 +662,16 @@ public class NavigationShareTab {
 			}
 		});
 
-		// Watched video action
-		final KeyedComboBoxModel fullyPlayedActionDropdown = new KeyedComboBoxModel(
-			new Object[]{
-				0,
-				1,
-				2,
-				3,
-				4
+		// Fully played media action
+		final KeyedComboBoxModel<FullyPlayedAction, String> fullyPlayedActionModel = new KeyedComboBoxModel<>(
+			new FullyPlayedAction[]{
+				FullyPlayedAction.NO_ACTION,
+				FullyPlayedAction.MARK,
+				FullyPlayedAction.HIDE_VIDEO,
+				FullyPlayedAction.MOVE_FOLDER,
+				FullyPlayedAction.MOVE_TRASH
 			},
-			new Object[]{
+			new String[]{
 				Messages.getString("FoldTab.67"),
 				Messages.getString("FoldTab.68"),
 				Messages.getString("FoldTab.69"),
@@ -678,21 +679,16 @@ public class NavigationShareTab {
 				Messages.getString("FoldTab.71")
 			}
 		);
-		fullyPlayedAction = new JComboBox(fullyPlayedActionDropdown);
+		fullyPlayedAction = new JComboBox<String>(fullyPlayedActionModel);
 		fullyPlayedAction.setEditable(false);
-		fullyPlayedActionDropdown.setSelectedKey(configuration.getFullyPlayedAction());
+		fullyPlayedActionModel.setSelectedKey(configuration.getFullyPlayedAction());
 		fullyPlayedAction.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					try {
-						int selectedKey = (int) fullyPlayedActionDropdown.getSelectedKey();
-						configuration.setFullyPlayedAction(selectedKey);
-						fullyPlayedOutputDirectory.setEnabled(selectedKey == 3);
-						selectFullyPlayedOutputDirectory.setEnabled(selectedKey == 3);
-					} catch (NumberFormatException nfe) {
-						LOGGER.debug("Could not parse watched video action from \"" + fullyPlayedActionDropdown.getSelectedKey() + "\"");
-					}
+					configuration.setFullyPlayedAction(fullyPlayedActionModel.getSelectedKey());
+					fullyPlayedOutputDirectory.setEnabled(fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.MOVE_FOLDER);
+					selectFullyPlayedOutputDirectory.setEnabled(fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.MOVE_FOLDER);
 				}
 			}
 		});
@@ -705,7 +701,7 @@ public class NavigationShareTab {
 				configuration.setFullyPlayedOutputDirectory(fullyPlayedOutputDirectory.getText());
 			}
 		});
-		fullyPlayedOutputDirectory.setEnabled(configuration.getFullyPlayedAction() == 3);
+		fullyPlayedOutputDirectory.setEnabled(configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER);
 
 		// Watched video output directory selection button
 		selectFullyPlayedOutputDirectory = new CustomJButton("...");
@@ -726,7 +722,7 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		selectFullyPlayedOutputDirectory.setEnabled(configuration.getFullyPlayedAction() == 3);
+		selectFullyPlayedOutputDirectory.setEnabled(configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER);
 	}
 
 	private PanelBuilder initSharedFoldersGuiComponents(CellConstraints cc) {

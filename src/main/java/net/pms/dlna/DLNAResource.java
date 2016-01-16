@@ -567,8 +567,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					// Hide watched videos depending user preference
-					if (configuration.getFullyPlayedAction() == 2 && child.format.isVideo() && MediaMonitor.isWatched(child.getSystemName())) {
-						LOGGER.trace("Ignoring file \"{}\" because it has been watched", child.getName());
+					if (FullyPlayed.isHideFullyPlayed(child)) {
+						LOGGER.trace("Ignoring video file \"{}\" because it has been watched", child.getName());
 						return;
 					}
 				}
@@ -1516,30 +1516,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
 		boolean subsAreValidForStreaming = media_subtitle != null && media_subtitle.isStreamable() && player == null;
-		if (
-			this instanceof RealFile &&
-			(
-				configuration.isHideExtensions() ||
-				configuration.isPrettifyFilenames()
-			) &&
-			!isFolder()
-		) {
+		if (this instanceof RealFile && !isFolder()) {
 			RealFile rf = (RealFile) this;
-			File file = rf.getFile();
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
-				displayName = FileUtil.getFileNamePrettified(displayName, file);
-			} else {
+				displayName = FileUtil.getFileNamePrettified(displayName, rf.getFile());
+			} else if (configuration.isHideExtensions()) {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
 			}
-
-			if (
-				mediaRenderer != null &&
-				!mediaRenderer.isThumbnails() &&
-				configuration.getFullyPlayedAction() == 1 &&
-				MediaMonitor.isWatched(file.getAbsolutePath())
-			) {
-				displayName = Messages.getString("DLNAResource.4") + ": " + displayName;
-			}
+			displayName = FullyPlayed.prefixDisplayName(displayName, rf, mediaRenderer);
 		}
 
 		if (player != null) {
@@ -2691,11 +2675,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
 							if (!quietPlay()) {
-								if (format != null && format.isImage()) {
-									LOGGER.info("Viewed " + getName() + " on your " + rendererName);
-								} else {
-									LOGGER.info("Started playing " + getName() + " on your " + rendererName);
-								}
+								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
 								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 							}
 						} catch (UnknownHostException ex) {
@@ -2781,9 +2761,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									} catch (NullPointerException e) { }
 
 									if (!quietPlay()) {
-										if (!(format != null && format.isImage())) {
-											LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
-										}
+										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
 										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 									}
 								} catch (UnknownHostException ex) {
@@ -3153,10 +3131,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			media != null &&
 			(
 				!media.isThumbready() ||
-				(
-					configuration.getFullyPlayedAction() == 1 &&
-					MediaMonitor.isWatched(inputFile.getFile().getAbsolutePath())
-				)
+				FullyPlayed.isFullyPlayedThumbnail(inputFile.getFile())
 			) &&
 			configuration.isThumbnailGenerationEnabled() &&
 			renderer.isThumbnails()

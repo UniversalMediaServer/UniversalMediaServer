@@ -43,6 +43,7 @@ import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FilePermissions;
+import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
@@ -1901,42 +1902,35 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns what to do with a file after it has been fully played.
-	 * The following options are available:
+	 * Gets the {@link FullyPlayedAction}.
 	 *
-	 *   0 = Do nothing
-	 *   1 = Add an overlay to the thumbnail
-	 *   2 = Hide the file
-	 *   3 = Move the file to a different folder
-	 *   4 = Move the file to the recycle/trash bin
-	 *
-	 * @return what to do with a file after it has been fully played
+	 * @return What to do with a file after it has been fully played
 	 */
-	public int getFullyPlayedAction() {
-		return getInt(KEY_FULLY_PLAYED_ACTION, 1);
+	public FullyPlayedAction getFullyPlayedAction() {
+		return FullyPlayedAction.toFullyPlayedAction(getInt(KEY_FULLY_PLAYED_ACTION, 1));
 	}
 
 	/**
-	 * Sets what to do with a file after it has been fully played.
+	 * Sets the {@link FullyPlayedAction}.
 	 *
 	 * @param value what to do with a file after it has been fully played
 	 */
-	public void setFullyPlayedAction(int value) {
-		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, value);
+	public void setFullyPlayedAction(FullyPlayedAction action) {
+		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.toInt());
 	}
 
 	/**
-	 * Returns the folder to move fully played files to in mode 3.
+	 * Returns the folder to move fully played files to.
 	 *
 	 * @see #getFullyPlayedAction()
-	 * @return the folder to move fully played files to
+	 * @return The folder to move fully played files to
 	 */
 	public String getFullyPlayedOutputDirectory() {
 		return getString(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, "");
 	}
 
 	/**
-	 * Sets the folder to move fully played files to in mode 3.
+	 * Sets the folder to move fully played files to.
 	 *
 	 * @see #getFullyPlayedAction()
 	 * @param value the folder to move fully played files to

@@ -19,15 +19,9 @@
 package net.pms.dlna;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
-import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -40,6 +34,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
+import net.pms.util.FullyPlayed;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
@@ -296,21 +291,6 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private int videoTrackCount = 0;
 	private int imageCount = 0;
-
-	private static int thumbnailFontSizeVideo;
-	private static int thumbnailTextHorizontalPositionVideo;
-	private static int thumbnailTextVerticalPositionVideo;
-	private static int thumbnailFontSizeAudio;
-	private static int thumbnailTextHorizontalPositionAudio;
-	private static int thumbnailTextVerticalPositionAudio;
-	private static int thumbnailFontSizeImage;
-	private static int thumbnailTextHorizontalPositionImage;
-	private static int thumbnailTextVerticalPositionImage;
-	private static final String THUMBNAIL_TEXT_VIDEO = Messages.getString("DLNAResource.4");
-	private static final String THUMBNAIL_TEXT_AUDIO = Messages.getString("DLNAResource.5");
-	private static final String THUMBNAIL_TEXT_IMAGE = Messages.getString("DLNAResource.6");
-	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.6f);
-	private static final Color THUMBNAIL_OVERLAY_TEXT_COLOR = new Color(0.9f, 0.9f, 0.9f, 1.0f);
 
 	public int getVideoTrackCount() {
 		return videoTrackCount;
@@ -807,52 +787,12 @@ public class DLNAMediaInfo implements Cloneable {
 							int thumbnailHeight = renderer.getThumbnailHeight();
 
 							// Make sure the image fits in the renderer's bounds
-							boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath());
-							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isWatchedThumbnail);
+							boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
+							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail);
 
-							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
-							if (image != null && isWatchedThumbnail) {
-								Graphics2D g = image.createGraphics();
-								g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
-								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
-								g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
-
-								/**
-								 * TODO: Include and use a custom font
-								 */
-								if (thumbnailFontSizeAudio > 0) {
-									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeAudio));
-									g.drawString(THUMBNAIL_TEXT_AUDIO, thumbnailTextHorizontalPositionAudio, thumbnailTextVerticalPositionAudio);
-								} else {
-									thumbnailFontSizeAudio = thumbnailWidth / 6;
-									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeAudio));
-									FontMetrics fm = g.getFontMetrics();
-									Rectangle2D textsize = fm.getStringBounds(THUMBNAIL_TEXT_AUDIO, g);
-									int textWidth = (int) textsize.getWidth();
-									thumbnailTextHorizontalPositionAudio = (thumbnailWidth - textWidth) / 2;
-
-									// Use a smaller font size if there isn't enough room
-									if (textWidth > thumbnailWidth) {
-										for (int divider = 7; divider < 99; divider++) {
-											thumbnailFontSizeAudio = thumbnailWidth / divider;
-											g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeAudio));
-											fm = g.getFontMetrics();
-											textsize = fm.getStringBounds(THUMBNAIL_TEXT_AUDIO, g);
-											textWidth = (int) textsize.getWidth();
-											if (textWidth <= (thumbnailWidth * 0.9)) {
-												thumbnailTextHorizontalPositionAudio = (thumbnailWidth - textWidth) / 2;
-												break;
-											}
-										}
-									}
-
-									thumbnailTextVerticalPositionAudio = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
-									g.drawString(THUMBNAIL_TEXT_AUDIO, thumbnailTextHorizontalPositionAudio, thumbnailTextVerticalPositionAudio);
-								}
+							if (isFullyPlayedThumbnail) {
+								thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.AUDIO);
 							}
-							ByteArrayOutputStream out = new ByteArrayOutputStream();
-							ImageIO.write(image, "jpeg", out);
-							thumb = out.toByteArray();
 						}
 					} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
 						LOGGER.debug("Error parsing audio file: {} - {}", e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
@@ -933,55 +873,15 @@ public class DLNAMediaInfo implements Cloneable {
 						int thumbnailHeight = renderer.getThumbnailHeight();
 
 						// Make sure the image fits in the renderer's bounds
-						boolean isWatchedThumbnail = configuration.getFullyPlayedAction() == 1 && MediaMonitor.isWatched(file.getAbsolutePath());
-						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isWatchedThumbnail);
+						boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
+						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail);
 
-						BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
-						if (image != null && isWatchedThumbnail) {
-							Graphics2D g = image.createGraphics();
-							g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
-							g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
-							g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
-
-							/**
-							 * TODO: Include and use a custom font
-							 */
-							if (thumbnailFontSizeImage > 0) {
-								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeImage));
-								g.drawString(THUMBNAIL_TEXT_IMAGE, thumbnailTextHorizontalPositionImage, thumbnailTextVerticalPositionImage);
-							} else {
-								thumbnailFontSizeImage = thumbnailWidth / 6;
-								g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeImage));
-								FontMetrics fm = g.getFontMetrics();
-								Rectangle2D textsize = fm.getStringBounds(THUMBNAIL_TEXT_IMAGE, g);
-								int textWidth = (int) textsize.getWidth();
-								thumbnailTextHorizontalPositionImage = (thumbnailWidth - textWidth) / 2;
-
-								// Use a smaller font size if there isn't enough room
-								if (textWidth > thumbnailWidth) {
-									for (int divider = 7; divider < 99; divider++) {
-										thumbnailFontSizeImage = thumbnailWidth / divider;
-										g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeImage));
-										fm = g.getFontMetrics();
-										textsize = fm.getStringBounds(THUMBNAIL_TEXT_IMAGE, g);
-										textWidth = (int) textsize.getWidth();
-										if (textWidth <= (thumbnailWidth * 0.9)) {
-											thumbnailTextHorizontalPositionImage = (thumbnailWidth - textWidth) / 2;
-											break;
-										}
-									}
-								}
-
-								thumbnailTextVerticalPositionImage = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
-								g.drawString(THUMBNAIL_TEXT_IMAGE, thumbnailTextHorizontalPositionImage, thumbnailTextVerticalPositionImage);
-							}
-							ByteArrayOutputStream out = new ByteArrayOutputStream();
-							ImageIO.write(image, "jpeg", out);
-							thumb = out.toByteArray();
+						if (isFullyPlayedThumbnail) {
+							thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.IMAGE);
 						}
-					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
-						LOGGER.debug("Error generating thumbnail for: " + file.getName());
-						LOGGER.debug("The full error was: " + e);
+					} catch (IOException e) {
+						LOGGER.debug("Error generating thumbnail for \"{}\": {}", file.getName(), e.getMessage());
+						LOGGER.trace("", e);
 					}
 				}
 			}
@@ -1056,68 +956,33 @@ public class DLNAMediaInfo implements Cloneable {
 
 				if (type == Format.VIDEO && pw != null && thumb == null) {
 					InputStream is;
+					int sz = 0;
 					try {
-						int sz = 0;
 						is = pw.getInputStream(0);
-						if (is != null) {
-							sz = is.available();
-							if (sz > 0) {
-								thumb = new byte[sz];
-								is.read(thumb);
-							}
-							is.close();
-						}
-
-						if (sz > 0 && !net.pms.PMS.isHeadless()) {
-							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
-							if (image != null && configuration.getFullyPlayedAction() == 1 && file != null && MediaMonitor.isWatched(file.getAbsolutePath())) {
-								int thumbnailWidth = renderer.getThumbnailWidth();
-								int thumbnailHeight = renderer.getThumbnailHeight();
-
-								Graphics2D g = image.createGraphics();
-								g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
-								g.fillRect(0, 0, thumbnailWidth, thumbnailHeight);
-								g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
-
-								/**
-								 * TODO: Include and use a custom font
-								 */
-								if (thumbnailFontSizeVideo > 0) {
-									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeVideo));
-									g.drawString(THUMBNAIL_TEXT_VIDEO, thumbnailTextHorizontalPositionVideo, thumbnailTextVerticalPositionVideo);
-								} else {
-									thumbnailFontSizeVideo = thumbnailWidth / 6;
-									g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeVideo));
-									FontMetrics fm = g.getFontMetrics();
-									Rectangle2D textsize = fm.getStringBounds(THUMBNAIL_TEXT_VIDEO, g);
-									int textWidth = (int) textsize.getWidth();
-									thumbnailTextHorizontalPositionVideo = (thumbnailWidth - textWidth) / 2;
-
-									// Use a smaller font size if there isn't enough room
-									if (textWidth > thumbnailWidth) {
-										for (int divider = 7; divider < 99; divider++) {
-											thumbnailFontSizeVideo = thumbnailWidth / divider;
-											g.setFont(new Font("Arial", Font.PLAIN, thumbnailFontSizeVideo));
-											fm = g.getFontMetrics();
-											textsize = fm.getStringBounds(THUMBNAIL_TEXT_VIDEO, g);
-											textWidth = (int) textsize.getWidth();
-											if (textWidth <= (thumbnailWidth * 0.9)) {
-												thumbnailTextHorizontalPositionVideo = (thumbnailWidth - textWidth) / 2;
-												break;
-											}
-										}
-									}
-
-									thumbnailTextVerticalPositionVideo = (int) (thumbnailHeight - textsize.getHeight()) / 2 + fm.getAscent();
-									g.drawString(THUMBNAIL_TEXT_VIDEO, thumbnailTextHorizontalPositionVideo, thumbnailTextVerticalPositionVideo);
+						try {
+							if (is != null) {
+								sz = is.available();
+								if (sz > 0) {
+									thumb = new byte[sz];
+									is.read(thumb);
 								}
 							}
-							ByteArrayOutputStream out = new ByteArrayOutputStream();
-							ImageIO.write(image, "jpeg", out);
-							thumb = out.toByteArray();
+						} finally {
+							if (is != null) {
+								is.close();
+							}
 						}
 					} catch (IOException e) {
 						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
+						LOGGER.trace("", e);
+					}
+
+					// Make sure the image fits in the renderer's bounds
+					boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
+					thumb = UMSUtils.scaleImage(thumb, renderer.getThumbnailWidth(), renderer.getThumbnailHeight(), isFullyPlayedThumbnail);
+
+					if (isFullyPlayedThumbnail) {
+						thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.VIDEO);
 					}
 				}
 			}

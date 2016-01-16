@@ -602,19 +602,20 @@ public class UMSUtils {
 	 * @return the scaled image
 	 */
 	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank) {
-		ByteArrayInputStream in;
-		if (image == null) {
-			if (outputBlank) {
-				in = new ByteArrayInputStream(new byte[0]);
-			} else {
-				return null;
-			}
-		} else {
+		ByteArrayInputStream in = null;
+		if (image == null && !outputBlank) {
+			return null;
+		} else if (image != null) {
 			in = new ByteArrayInputStream(image);
 		}
 
 		try {
-			BufferedImage img = ImageIO.read(in);
+			BufferedImage img;
+			if (in != null) {
+				img = ImageIO.read(in);
+			} else {
+				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			}
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 			Thumbnails.of(img)
@@ -626,7 +627,8 @@ public class UMSUtils {
 
 			return out.toByteArray();
 		} catch (IOException e) {
-			LOGGER.trace("Failed to resize image");
+			LOGGER.debug("Failed to resize image: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 
 		return null;
