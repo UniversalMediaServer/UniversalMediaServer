@@ -43,6 +43,7 @@ import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FilePermissions;
+import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
@@ -296,6 +297,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
 	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
+	protected static final String KEY_FULLY_PLAYED_ACTION = "fully_played_action";
+	protected static final String KEY_FULLY_PLAYED_OUTPUT_DIRECTORY = "fully_played_output_directory";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
@@ -1896,6 +1899,44 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setHideVideoSettings(boolean value) {
 		configuration.setProperty(KEY_HIDE_VIDEO_SETTINGS, value);
+	}
+
+	/**
+	 * Gets the {@link FullyPlayedAction}.
+	 *
+	 * @return What to do with a file after it has been fully played
+	 */
+	public FullyPlayedAction getFullyPlayedAction() {
+		return FullyPlayedAction.toFullyPlayedAction(getInt(KEY_FULLY_PLAYED_ACTION, 1));
+	}
+
+	/**
+	 * Sets the {@link FullyPlayedAction}.
+	 *
+	 * @param value what to do with a file after it has been fully played
+	 */
+	public void setFullyPlayedAction(FullyPlayedAction action) {
+		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.toInt());
+	}
+
+	/**
+	 * Returns the folder to move fully played files to.
+	 *
+	 * @see #getFullyPlayedAction()
+	 * @return The folder to move fully played files to
+	 */
+	public String getFullyPlayedOutputDirectory() {
+		return getString(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, "");
+	}
+
+	/**
+	 * Sets the folder to move fully played files to.
+	 *
+	 * @see #getFullyPlayedAction()
+	 * @param value the folder to move fully played files to
+	 */
+	public void setFullyPlayedOutputDirectory(String value) {
+		configuration.setProperty(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, value);
 	}
 
 	/**

@@ -835,7 +835,7 @@ public class UPNPHelper extends UPNPControl {
 			state.name = d.getDisplayName();
 			if (d.getMedia() != null) {
 				String duration = d.getMedia().getDurationString();
-				ignoreUpnpDuration = ! StringUtil.isZeroTime(duration);
+				ignoreUpnpDuration = !StringUtil.isZeroTime(duration);
 				if (ignoreUpnpDuration) {
 					state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
 				}
