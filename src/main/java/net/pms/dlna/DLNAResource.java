@@ -567,7 +567,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					// Hide watched videos depending user preference
-					if (configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_VIDEO && child.getMedia() != null && child.getMedia().isVideo() && MediaMonitor.isFullyPlayed(child.getSystemName())) {
+					if (FullyPlayed.isHideFullyPlayed(child)) {
 						LOGGER.trace("Ignoring video file \"{}\" because it has been watched", child.getName());
 						return;
 					}
@@ -1516,38 +1516,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
 		boolean subsAreValidForStreaming = media_subtitle != null && media_subtitle.isStreamable() && player == null;
-		if (
-			this instanceof RealFile &&
-			(
-				configuration.isHideExtensions() ||
-				configuration.isPrettifyFilenames()
-			) &&
-			!isFolder()
-		) {
+		if (this instanceof RealFile && !isFolder()) {
 			RealFile rf = (RealFile) this;
-			File file = rf.getFile();
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
-				displayName = FileUtil.getFileNamePrettified(displayName, file);
-			} else {
+				displayName = FileUtil.getFileNamePrettified(displayName, rf.getFile());
+			} else if (configuration.isHideExtensions()) {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
 			}
-
-			if (
-				mediaRenderer != null &&
-				!mediaRenderer.isThumbnails() &&
-				configuration.getFullyPlayedAction() == FullyPlayedAction.MARK &&
-				MediaMonitor.isFullyPlayed(file.getAbsolutePath())
-			) {
-				if (media != null) {
-					if (media.isVideo()) {
-						displayName = String.format("[%s]%s", Messages.getString("DLNAResource.4"), displayName);
-					} else if (media.isAudio()) {
-						displayName = String.format("[%s]%s", Messages.getString("DLNAResource.5"), displayName);
-					} else if (media.isImage()) {
-						displayName = String.format("[%s]%s", Messages.getString("DLNAResource.6"), displayName);
-					}
-				}
-			}
+			displayName = FullyPlayed.prefixDisplayName(displayName, rf, mediaRenderer);
 		}
 
 		if (player != null) {
@@ -2698,13 +2674,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								renderer.setPlayingRes(self);
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
-							// Couldn't a "played" event for images be generated here?
 							if (!quietPlay()) {
-								if (media != null && media.isImage()) {
-									LOGGER.info("Viewed " + getName() + " on your " + rendererName);
-								} else {
-									LOGGER.info("Started playing " + getName() + " on your " + rendererName);
-								}
+								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
 								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 							}
 						} catch (UnknownHostException ex) {
@@ -2790,9 +2761,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									} catch (NullPointerException e) { }
 
 									if (!quietPlay()) {
-										if (!(format != null && format.isImage())) {
-											LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
-										}
+										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
 										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 									}
 								} catch (UnknownHostException ex) {
@@ -3162,10 +3131,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			media != null &&
 			(
 				!media.isThumbready() ||
-				(
-					configuration.getFullyPlayedAction() == FullyPlayedAction.MARK &&
-					MediaMonitor.isFullyPlayed(inputFile.getFile().getAbsolutePath())
-				)
+				FullyPlayed.isFullyPlayedThumbnail(inputFile.getFile())
 			) &&
 			configuration.isThumbnailGenerationEnabled() &&
 			renderer.isThumbnails()
