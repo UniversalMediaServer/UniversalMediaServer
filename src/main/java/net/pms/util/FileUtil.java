@@ -294,7 +294,7 @@ public class FileUtil {
 	 *
 	 * @param fileNameWithoutExtension
 	 */
-	private static void removeGroupNameFromBeginnig(String fileNameWithoutExtension) {
+	private static void removeGroupNameFromBeginning(String fileNameWithoutExtension) {
 		if (!"".equals(formattedName)) {
 			if (formattedName.substring(0, 1).matches("\\[")) {
 				int closingBracketIndex = formattedName.indexOf(']');
@@ -519,7 +519,7 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
-			removeGroupNameFromBeginnig(fileNameWithoutExtension);
+			removeGroupNameFromBeginning(fileNameWithoutExtension);
 
 			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
 				isEpisodeToLookup = true;
@@ -535,7 +535,7 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*\\[h264.*", "");
-			removeGroupNameFromBeginnig(fileNameWithoutExtension);
+			removeGroupNameFromBeginning(fileNameWithoutExtension);
 
 			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
 				isEpisodeToLookup = true;
