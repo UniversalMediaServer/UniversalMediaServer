@@ -553,8 +553,14 @@ public class FileUtil {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
 				PMS.get().infoDbAdd(file, searchFormattedName);
-			} else if (isEpisodeToLookup && StringUtils.isNotEmpty(info.ep_name)) {
-				formattedName += " - " + info.ep_name;
+			} else if (isEpisodeToLookup) {
+				int i = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
+				if (StringUtils.isNotEmpty(info.title) && i != -1) {
+					formattedName = info.title + formattedName.substring(i);
+				}
+				if (StringUtils.isNotEmpty(info.ep_name)) {
+					formattedName += " - " + info.ep_name;
+				}
 			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.year)) {
 				formattedName += " (" + info.year + ")";
 			}
@@ -613,6 +619,11 @@ public class FileUtil {
 		}
 
 		return convertedValue;
+	}
+	
+	public static int indexOf(Pattern pattern, String s) {
+		Matcher matcher = pattern.matcher(s);
+		return matcher.find() ? matcher.start() : -1;
 	}
 
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
