@@ -73,7 +73,8 @@ public class CoverArtArchiveUtil extends CoverUtil {
 	protected CoverArtArchiveUtil() {
 	}
 
-	public byte[] doGetThumbnail(Tag tag) {
+	@Override
+	protected byte[] doGetThumbnail(Tag tag) {
 		String mbId = getMBId(tag);
 		if (mbId != null) {
 			DefaultCoverArtArchiveClient client = new DefaultCoverArtArchiveClient();

@@ -15,7 +15,7 @@ import org.w3c.dom.NodeList;
 public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
-	private static final String encoding = StandardCharsets.UTF_8.name();
+	protected static final String encoding = StandardCharsets.UTF_8.name();
 	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 
@@ -25,8 +25,15 @@ public abstract class CoverUtil {
 	protected CoverUtil() {
 	}
 
+	/**
+	 * Factory method that gets an instance of correct type according to
+	 * configuration, or <code>null</code> if no cover utility is configured.
+	 *
+	 * @return The {@link CoverUtil} instance.
+	 */
+
 	public static CoverUtil get() {
-		CoverSupplier supplier = CoverSupplier.COVER_ART_ARCHIVE ; //TODO Temp hardcode
+		CoverSupplier supplier = PMS.getConfiguration().getAudioThumbnailMethod();
 		synchronized (instanceLock) {
 			switch (supplier.toInt()) {
 				case CoverSupplier.COVER_ART_ARCHIVE_INT:
@@ -42,6 +49,14 @@ public abstract class CoverUtil {
 		}
 	}
 
+	/**
+	 * Convenience method to find the first child {@link Element} of the given
+	 * name.
+	 *
+	 * @param element the {@link Element} to search
+	 * @param name the name of the child {@link Element}
+	 * @return The found {@link Element} or null if not found
+	 */
 	protected Element getChildElement(Element element, String name) {
 		NodeList list = element.getElementsByTagName(name);
 		for (int i = 0; i < list.getLength(); i++) {
@@ -53,6 +68,12 @@ public abstract class CoverUtil {
 		return null;
 	}
 
+	/**
+	 * Convenience method to URL encode a string with {@link #encoding} without
+	 * handling the hypothetical {@link UnsupportedEncodingException}
+	 * @param url {@link String} to encode
+	 * @return The encoded {@link String}
+	 */
 	protected String urlEncode(String url) {
 		try {
 			return URLEncoder.encode(url, encoding);
@@ -62,10 +83,21 @@ public abstract class CoverUtil {
 		}
 	}
 
+	/**
+	 * Convenience method to check if a {@link String} is not <code>null</code>
+	 * and contains anything other than whitespace.
+	 * @param s the {@link String} to evaluate
+	 * @return The verdict
+	 */
 	protected boolean hasValue(String s) {
 		return s != null && !s.trim().isEmpty();
 	}
 
+	/**
+	 * Gets a thumbnail from the configured cover utility based on a {@link Tag}
+	 * @param tag the {@link tag} to use while searching for a cover
+	 * @return The thumbnail or <code>null</code> if none was found
+	 */
 	public final byte[] getThumbnail(Tag tag) {
 		if (!PMS.getConfiguration().getExternalNetwork()) {
 			LOGGER.trace("Can't download cover since external network is disabled");
@@ -74,6 +106,6 @@ public abstract class CoverUtil {
 		return doGetThumbnail(tag);
 	}
 
-	abstract public byte[] doGetThumbnail(Tag tag);
+	abstract protected byte[] doGetThumbnail(Tag tag);
 
 }

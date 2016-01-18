@@ -32,6 +32,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
@@ -754,7 +755,7 @@ public class DLNAMediaInfo implements Cloneable {
 							if (t.getArtworkList().size() > 0) {
 								thumb = t.getArtworkList().get(0).getBinaryData();
 							} else {
-								if (configuration.getAudioThumbnailMethod() > 0) {
+								if (!configuration.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
 									thumb = CoverUtil.get().getThumbnail(t);
 								}
 							}
