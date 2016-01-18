@@ -36,6 +36,7 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.MpegUtil;
+import net.pms.util.CoverArtArchiveUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
@@ -754,13 +755,7 @@ public class DLNAMediaInfo implements Cloneable {
 								thumb = t.getArtworkList().get(0).getBinaryData();
 							} else {
 								if (configuration.getAudioThumbnailMethod() > 0) {
-									thumb =
-										CoverUtil.get().getThumbnailFromArtistAlbum(
-											configuration.getAudioThumbnailMethod() == 1 ?
-												CoverUtil.AUDIO_AMAZON :
-												CoverUtil.AUDIO_DISCOGS,
-											audio.getArtist(), audio.getAlbum()
-										);
+									thumb = CoverUtil.get().getThumbnail(t);
 								}
 							}
 
