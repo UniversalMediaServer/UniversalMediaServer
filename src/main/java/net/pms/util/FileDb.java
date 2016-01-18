@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import net.pms.PMS;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class FileDb {
@@ -129,7 +130,7 @@ public class FileDb {
 					data += "\n";
 				} else {
 					String[] data1 = handler.format(obj);
-					data = key + sep + StringUtils.join(data1, sep) + "\n";
+					data = key + sep + StringEscapeUtils.escapeCsv(StringUtils.join(data1, sep)) + "\n";
 				}
 				out.write(data.getBytes(), 0, data.length());
 			}
@@ -139,6 +140,6 @@ public class FileDb {
 	}
 
 	public static String safeGetArg(String[] args, int i) {
-		return (i >= args.length ? "" : args[i]);
+		return (i >= args.length ? "" : StringEscapeUtils.unescapeCsv(args[i]));
 	}
 }
