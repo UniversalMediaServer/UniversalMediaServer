@@ -620,7 +620,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		episodeTitles = new JCheckBox(Messages.getString("FoldTab.63"), configuration.isUseInfoFromIMDB());
+		episodeTitles = new JCheckBox(Messages.getString("FoldTab.63"), configuration.isUseInfoFromIMDb());
 		episodeTitles.setToolTipText(Messages.getString("FoldTab.64"));
 		episodeTitles.setContentAreaFilled(false);
 		if (!configuration.isPrettifyFilenames()) {
@@ -629,7 +629,7 @@ public class NavigationShareTab {
 		episodeTitles.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setUseInfoFromIMDB((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
