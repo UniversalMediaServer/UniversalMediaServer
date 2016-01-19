@@ -556,7 +556,11 @@ public class FileUtil {
 			} else if (isEpisodeToLookup) {
 				int i = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
 				if (StringUtils.isNotEmpty(info.title) && i != -1) {
-					formattedName = info.title + formattedName.substring(i);
+					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName.substring(0, i), info.title);
+					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName.substring(0, i) + "' is " + similarity);
+					if (similarity > 0.9) {
+						formattedName = info.title + formattedName.substring(i);
+					}
 				}
 				if (StringUtils.isNotEmpty(info.ep_name)) {
 					formattedName += " - " + info.ep_name;
