@@ -554,13 +554,16 @@ public class FileUtil {
 			if (info == null) {
 				PMS.get().infoDbAdd(file, searchFormattedName);
 			} else if (isEpisodeToLookup) {
-				int i = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
-				if (StringUtils.isNotEmpty(info.title) && i != -1) {
-					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName.substring(0, i), info.title);
-					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName.substring(0, i) + "' is " + similarity);
+				int index = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
+				if (StringUtils.isNotEmpty(info.title) && index != -1) {
+					String titleFromFilename = formattedName.substring(0, index);
+
+					// The following line can run over 100 times in under 1ms
+					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
 					if (similarity > 0.9) {
-						formattedName = info.title + formattedName.substring(i);
+						formattedName = info.title + formattedName.substring(index);
 					}
+					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
 				}
 				if (StringUtils.isNotEmpty(info.ep_name)) {
 					formattedName += " - " + info.ep_name;
