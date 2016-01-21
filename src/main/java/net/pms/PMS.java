@@ -414,6 +414,9 @@ public class PMS {
 		// call this as early as possible
 		displayBanner();
 
+		// initialize database
+		Tables.checkTables();
+
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
 			// Ask the user if they want to run the wizard
