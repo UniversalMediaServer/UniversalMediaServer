@@ -1,9 +1,29 @@
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
+import net.pms.dlna.DLNAMediaDatabase;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +31,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+/**
+ * This class is the superclass of all cover utility implementations.
+ * Cover utilities are responsible for getting media covers based
+ * on information given by the caller.
+ *
+ * @author Nadahar
+ */
 
 public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
 	protected static final String encoding = StandardCharsets.UTF_8.name();
+	protected static final DLNAMediaDatabase database = PMS.get().getDatabase();
 	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 
@@ -84,28 +112,15 @@ public abstract class CoverUtil {
 	}
 
 	/**
-	 * Convenience method to check if a {@link String} is not <code>null</code>
-	 * and contains anything other than whitespace.
-	 * @param s the {@link String} to evaluate
-	 * @return The verdict
-	 */
-	protected boolean hasValue(String s) {
-		return s != null && !s.trim().isEmpty();
-	}
-
-	/**
 	 * Gets a thumbnail from the configured cover utility based on a {@link Tag}
 	 * @param tag the {@link tag} to use while searching for a cover
 	 * @return The thumbnail or <code>null</code> if none was found
 	 */
 	public final byte[] getThumbnail(Tag tag) {
-		if (!PMS.getConfiguration().getExternalNetwork()) {
-			LOGGER.trace("Can't download cover since external network is disabled");
-			return null;
-		}
-		return doGetThumbnail(tag);
+		boolean externalNetwork = PMS.getConfiguration().getExternalNetwork();
+		return doGetThumbnail(tag, externalNetwork);
 	}
 
-	abstract protected byte[] doGetThumbnail(Tag tag);
+	abstract protected byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
 
 }
