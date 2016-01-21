@@ -44,6 +44,7 @@ import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.Tables;
 import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
@@ -257,28 +258,21 @@ public class PMS {
 	 * @see net.pms.dlna.DLNAMediaDatabase
 	 */
 	private DLNAMediaDatabase database;
-
-	private synchronized void initializeDatabase() {
-		database = new DLNAMediaDatabase("medias"); // TODO: rename "medias" -> "cache"
-		database.init(false);
-	}
+	private Object databaseLock = new Object();
 
 	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
 	 * for its queries.
-	 * @return (DLNAMediaDatabase) a reference to the database instance or <b>null</b> if one isn't defined
-	 * (e.g. if the cache is disabled).
+	 * @return (DLNAMediaDatabase) a reference to the database.
 	 */
-	public synchronized DLNAMediaDatabase getDatabase() {
-		if (configuration.getUseCache()) {
+	public DLNAMediaDatabase getDatabase() {
+		synchronized (databaseLock) {
 			if (database == null) {
-				initializeDatabase();
+				database = new DLNAMediaDatabase("medias");
+				database.init(false);
 			}
-
 			return database;
 		}
-
-		return null;
 	}
 
 	private void displayBanner() throws IOException {
@@ -750,7 +744,6 @@ public class PMS {
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
-			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
 			mediaLibrary = new MediaLibrary();
 			LOGGER.info("A tiny cache admin interface is available at: http://" + server.getHost() + ":" + server.getPort() + "/console/home");
 		}
