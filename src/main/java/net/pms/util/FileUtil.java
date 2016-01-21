@@ -363,6 +363,7 @@ public class FileUtil {
 		boolean isEpisodeToLookup  = false;
 		boolean isTVSeriesToLookup = false;
 		boolean isMovieToLookup    = false;
+		boolean isMovieWithoutYear = false;
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
@@ -483,6 +484,7 @@ public class FileUtil {
 			convertFormattedNameToTitleCase(loopedOnce);
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
 			// This matches scene and most p2p movies
+			isMovieToLookup = true;
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
@@ -495,6 +497,7 @@ public class FileUtil {
 			convertFormattedNameToTitleCase();
 		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
+			isMovieToLookup = true;
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
@@ -505,11 +508,13 @@ public class FileUtil {
 			convertFormattedNameToTitleCase();
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
+			isMovieToLookup = true;
 			removeFilenameEndMetadata();
 			convertFormattedNameToTitleCase();
 		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
 			// This is probably a movie that doesn't specify a year
 			isMovieToLookup = true;
+			isMovieWithoutYear = true;
 			removeFilenameEndMetadata();
 			removeAndSaveEditionToBeAddedLater();
 
@@ -556,7 +561,16 @@ public class FileUtil {
 		// Remove extra spaces
 		formattedName = formattedName.replaceAll("  ", " ");
 
-		// Add episode name (if not there)
+		/**
+		 * Add info from IMDb
+		 *
+		 * We use the Jaro Winkler similarity algorithm to make sure that changes to
+		 * movie or TV show names are only made when the difference between the
+		 * original and replacement names is less than 10%.
+		 *
+		 * This means we get proper case and special characters without worrying about
+		 * incorrect results being used.
+		 */
 		if (file != null && (isTVSeriesToLookup || isMovieToLookup)) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
@@ -579,8 +593,22 @@ public class FileUtil {
 						}
 					}
 				}
-			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.year)) {
-				formattedName += " (" + info.year + ")";
+			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.title) && StringUtils.isNotEmpty(info.year)) {
+				if (isMovieWithoutYear) {
+					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, info.title);
+					if (similarity > 0.9) {
+						formattedName = info.title + " (" + info.year + ")";
+					}
+					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName + "' is " + similarity);
+				} else {
+					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d\\d\\d\\d\\)"), formattedName);
+					String titleFromFilename = formattedName.substring(0, yearIndex);
+					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
+					if (similarity > 0.9) {
+						formattedName = info.title + " (" + info.year + ")";
+					}
+					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
+				}
 			}
 		}
 
