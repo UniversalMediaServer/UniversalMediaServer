@@ -26,6 +26,7 @@ public class LibMediaInfoParser {
 	private static final Pattern yearPattern = Pattern.compile(YEAR_REGEX);
 
 	private static MediaInfo MI;
+	private static Base64 base64 = new Base64();
 
 	static {
 		MI = new MediaInfo();
@@ -82,7 +83,7 @@ public class LibMediaInfoParser {
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (isNotBlank(value)) {
-					media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
+					media.setThumb(base64.decode(value.getBytes(StandardCharsets.US_ASCII)));
 				}
 				value = MI.Get(general, 0, "Title");
 				if (isNotBlank(value)) {
