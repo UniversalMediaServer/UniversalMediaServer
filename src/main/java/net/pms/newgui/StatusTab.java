@@ -328,7 +328,6 @@ public class StatusTab {
 	}
 
 	public void addRenderer(final RendererConfiguration renderer) {
-
 		final RendererItem r = new RendererItem(renderer);
 		r.addTo(renderers);
 		renderer.setGuiComponents(r);
@@ -361,7 +360,6 @@ public class StatusTab {
 				});
 			}
 		});
-
 	}
 
 	public static void updateRenderer(final RendererConfiguration renderer) {

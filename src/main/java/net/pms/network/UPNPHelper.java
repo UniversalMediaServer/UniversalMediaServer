@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Helper class to handle the UPnP traffic that makes PMS discoverable by
+ * Helper class to handle the UPnP traffic that makes UMS discoverable by
  * other clients.
  * See http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.0.pdf
  * and http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.1-AnnexA.pdf
@@ -412,9 +412,10 @@ public class UPNPHelper extends UPNPControl {
 							 */
 							if (ni != null) {
 								multicastSocket.setNetworkInterface(ni);
+								LOGGER.trace("Setting multicast network interface: {}", ni);
 							} else if (PMS.get().getServer().getNetworkInterface() != null) {
 								multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
-								LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
+								LOGGER.trace("Setting multicast network interface: {}", PMS.get().getServer().getNetworkInterface());
 							}
 						} catch (SocketException e) {
 							// Not setting the network interface will work just fine on Mac OS X.
@@ -470,8 +471,8 @@ public class UPNPHelper extends UPNPControl {
 									}
 								}
 							// Don't log redundant notify messages
-							} else if (packetType == NOTIFY && !redundant) {
-								LOGGER.trace("Receiving a NOTIFY from [" + address.getHostAddress() + ":" + receivePacket.getPort() + "]");
+							} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
 							}
 							lastAddress = address;
 							lastPacketType = packetType;
@@ -482,13 +483,14 @@ public class UPNPHelper extends UPNPControl {
 							+ ", which means that PMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
-							+ "PMS will keep trying to bind to it...[" + e.getMessage() + "]");
+							+ "UMS will keep trying to bind to it...[" + e.getMessage() + "]");
 						}
 
 						bindErrorReported = true;
 						sleep(5000);
 					} catch (IOException e) {
-						LOGGER.error("UPNP network exception", e);
+						LOGGER.error("UPNP network exception: ", e.getMessage());
+						LOGGER.trace("", e);
 						sleep(1000);
 					} finally {
 						if (multicastSocket != null) {
@@ -809,15 +811,16 @@ public class UPNPHelper extends UPNPControl {
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
 				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
-			state.mute = "0".equals(data.get("Mute")) ? false : true;
+			state.mute = !"0".equals(data.get("Mute"));
 			s = data.get("Volume");
 			state.volume = s == null ? 0 : (Integer.valueOf(s) * 100 / maxVol);
 			state.position = data.get("RelTime");
-			if (! ignoreUpnpDuration) {
+			if (!ignoreUpnpDuration) {
 				state.duration = data.get("CurrentMediaDuration");
 			}
 			state.uri = data.get("AVTransportURI");
 			state.metadata = data.get("AVTransportURIMetaData");
+
 			// update playlist only if uri has changed
 			if (!StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi)) {
 				playlist.set(state.uri, null, state.metadata);
@@ -826,14 +829,13 @@ public class UPNPHelper extends UPNPControl {
 			alert();
 		}
 
-
 		@Override
 		public void start() {
 			DLNAResource d = renderer.getPlayingRes();
 			state.name = d.getDisplayName();
 			if (d.getMedia() != null) {
 				String duration = d.getMedia().getDurationString();
-				ignoreUpnpDuration = ! StringUtil.isZeroTime(duration);
+				ignoreUpnpDuration = !StringUtil.isZeroTime(duration);
 				if (ignoreUpnpDuration) {
 					state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
 				}

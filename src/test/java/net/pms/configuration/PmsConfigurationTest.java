@@ -72,10 +72,10 @@ public class PmsConfigurationTest {
 		assertEquals("LoggingSyslogPortDefault", configuration.getLoggingSyslogPort(), 514);
 		assertFalse("LoggingUseSyslogDefault", configuration.getLoggingUseSyslog());
 		assertEquals("getLanguageLocaleDefault", configuration.getLanguageLocale(), Languages.toLocale(Locale.getDefault()));
-		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageCode(Locale.getDefault()) );
+		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageTag(Locale.getDefault()) );
 		configuration.getConfiguration().setProperty("language", "");
 		assertEquals("getLanguageLocaleDefault", configuration.getLanguageLocale(), Languages.toLocale(Locale.getDefault()));
-		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageCode(Locale.getDefault()) );
+		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageTag(Locale.getDefault()) );
 		configuration.getConfiguration().setProperty("language", "en-GB");
 		assertEquals("getLanguageLocaleBritishEnglish", configuration.getLanguageLocale(), Locale.forLanguageTag("en-GB"));
 		assertEquals("getLanguageTagBritishEnglish", configuration.getLanguageTag(), "en-GB");
@@ -101,5 +101,12 @@ public class PmsConfigurationTest {
 		assertEquals("setLanguageEmpty", configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"));
 		configuration.setLanguage("en");
 		assertEquals("setLanguageEnglish", configuration.getLanguageLocale(), Locale.forLanguageTag("en-US"));
+	}
+
+	@Test
+	public void testDefaults() {
+		assertNull("getLanguageRawStringDefault", configuration.getLanguageRawString());
+		configuration.setLanguage((Locale) null);
+		assertEquals("setLanguage(null)SetsBlankString", configuration.getLanguageRawString(), "");
 	}
 }

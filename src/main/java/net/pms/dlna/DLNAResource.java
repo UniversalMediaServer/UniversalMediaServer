@@ -558,11 +558,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				// Do not add unsupported media formats to the list
-				if (child.format != null && defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
-					LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
-					children.remove(child);
-					return;
+				if (child.format != null) {
+					// Do not add unsupported media formats to the list
+					if (defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
+						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
+						children.remove(child);
+						return;
+					}
+
+					// Hide watched videos depending user preference
+					if (FullyPlayed.isHideFullyPlayed(child)) {
+						LOGGER.trace("Ignoring video file \"{}\" because it has been watched", child.getName());
+						return;
+					}
 				}
 
 				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
@@ -886,7 +894,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// 2) transcoding is preferred and not prevented by configuration
 			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), renderer != null ? renderer.getMimeType(mimeType(player)) : media.getMimeType());
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), renderer != null ? renderer.getMimeType(mimeType(player), media) : media.getMimeType());
 				} else {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\"", getName(), player.toString());
 				}
@@ -1251,11 +1259,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	@Override
 	public void run() {
-		if (first == null) {
-			syncResolve();
-			if (second != null) {
-				second.syncResolve();
+		try {
+			if (first == null) {
+				syncResolve();
+				if (second != null) {
+					second.syncResolve();
+				}
 			}
+		} catch (Exception e) {
+			LOGGER.warn("Unhandled expection while resolving {}: {}", getDisplayName(), e.getMessage());
+			LOGGER.debug("", e);
 		}
 	}
 
@@ -1508,20 +1521,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
 		boolean subsAreValidForStreaming = media_subtitle != null && media_subtitle.isStreamable() && player == null;
-		if (
-			this instanceof RealFile &&
-			(
-				configuration.isHideExtensions() ||
-				configuration.isPrettifyFilenames()
-			) &&
-			!isFolder()
-		) {
+		if (this instanceof RealFile && !isFolder()) {
+			RealFile rf = (RealFile) this;
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
-				RealFile rf = (RealFile) this;
-				displayName = FileUtil.getFileNameWithRewriting(displayName, rf.getFile());
-			} else {
+				displayName = FileUtil.getFileNamePrettified(displayName, rf.getFile());
+			} else if (configuration.isHideExtensions()) {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
 			}
+			displayName = FullyPlayed.prefixDisplayName(displayName, rf, mediaRenderer);
 		}
 
 		if (player != null) {
@@ -2223,7 +2230,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// is determined for the default renderer. This renderer may rewrite the
 		// mime type based on its configuration. Looking up that mime type is
 		// not guaranteed to return a match for another renderer.
-		String mime = mediaRenderer.getMimeType(mimeType());
+		String mime = mediaRenderer.getMimeType(mimeType(), media);
 
 		// Use our best guess if we have no valid mime type
 		if (mime == null || mime.contains("/transcode")) {
@@ -2369,7 +2376,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer);
 				wireshark.append(" ").append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
-				if (subsAreValidForStreaming && !mediaRenderer.useClosedCaption()) {
+				if (subsAreValidForStreaming && mediaRenderer.offerSubtitlesByProtocolInfo() && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", media_subtitle.getType().getExtension().toUpperCase());
 					wireshark.append(" pv:subtitleFileType=").append(media_subtitle.getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(media_subtitle));
@@ -2523,7 +2530,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				sb.append(subsURL);
 				closeTag(sb, "sec:CaptionInfoEx");
 				LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
-			} else {
+			} else if (mediaRenderer.offerSubtitlesAsResource()){
 				openTag(sb, "res");
 				String format = media_subtitle.getType().getExtension();
 				if (StringUtils.isBlank(format)) {
@@ -2850,7 +2857,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The inputstream
 	 * @throws IOException
 	 */
-
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
@@ -2885,7 +2891,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		lastStartPosition = timeRange.getStartOrZero();
+		if (low > 0 && media.getBitrate() > 0) {
+			lastStartPosition = (low * 8) / media.getBitrate();
+			LOGGER.trace("Estimating seek position from byte range:");
+			LOGGER.trace("   media.getBitrate: " + media.getBitrate());
+			LOGGER.trace("   low: " + low);
+			LOGGER.trace("   lastStartPosition: " + lastStartPosition);
+		} else {
+			lastStartPosition = timeRange.getStartOrZero();
+			LOGGER.trace("Setting lastStartPosition from time-seeking: " + lastStartPosition);
+		}
 
 		// Determine source of the stream
 		if (player == null && !isResume()) {
@@ -2900,6 +2915,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
 
+				lastStartSystemTime = System.currentTimeMillis();
 				return wrap(fis, high, low);
 			}
 
@@ -2926,6 +2942,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
+			lastStartSystemTime = System.currentTimeMillis();
 			return fis;
 		} else {
 			// Pipe transcoding result
@@ -3115,7 +3132,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
-		if (media != null && !media.isThumbready() && configuration.isThumbnailGenerationEnabled()) {
+		if (
+			media != null &&
+			(
+				!media.isThumbready() ||
+				FullyPlayed.isFullyPlayedThumbnail(inputFile.getFile())
+			) &&
+			configuration.isThumbnailGenerationEnabled() &&
+			renderer.isThumbnails()
+		) {
 			Double seekPosition = (double) configuration.getThumbnailSeekPos();
 			if (isResume()) {
 				Double resumePosition = (double) (resume.getTimeOffset() / 1000);

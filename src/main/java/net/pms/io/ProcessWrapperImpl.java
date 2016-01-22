@@ -231,7 +231,10 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			} catch (InterruptedException e) { }
 		} catch (IOException e) {
-			LOGGER.error("Error initializing process: ", e);
+			LOGGER.error("Error initializing process: ", e.getMessage());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("", e);
+			}
 			stopProcess();
 		} finally {
 			try {
