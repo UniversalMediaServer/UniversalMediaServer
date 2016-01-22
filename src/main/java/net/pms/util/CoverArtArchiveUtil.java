@@ -33,6 +33,8 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import net.pms.database.TableCoverArtArchive;
+import net.pms.database.TableCoverArtArchive.CoverArtArchiveResult;
 import net.pms.database.TableMusicBrainzReleases;
 import net.pms.database.TableMusicBrainzReleases.MusicBrainzReleasesResult;
 import org.apache.commons.io.IOUtils;
@@ -102,7 +104,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 	 * This class is a container to hold information used by
 	 * {@link CoverArtArchiveUtil} to look up covers.
 	 */
-	public static class CoverArtArchiveInfo {
+	public static class CoverArtArchiveTagInfo {
 		final String album;
 		final String artist;
 		final String title;
@@ -131,10 +133,10 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			if (obj == null) {
 				return false;
 			}
-			if (!(obj instanceof CoverArtArchiveInfo)) {
+			if (!(obj instanceof CoverArtArchiveTagInfo)) {
 				return false;
 			}
-			CoverArtArchiveInfo other = (CoverArtArchiveInfo) obj;
+			CoverArtArchiveTagInfo other = (CoverArtArchiveTagInfo) obj;
 			if (album == null) {
 				if (other.album != null) {
 					return false;
@@ -180,7 +182,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			return true;
 		}
 
-		public CoverArtArchiveInfo(Tag tag) {
+		public CoverArtArchiveTagInfo(Tag tag) {
 			album = tag.getFirst(FieldKey.ALBUM);
 			artist = tag.getFirst(FieldKey.ARTIST);
 			title = tag.getFirst(FieldKey.TITLE);
@@ -190,12 +192,21 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		}
 	}
 
-	private static class CoverArtArchiveLatch {
-		final CoverArtArchiveInfo info;
+	private static class CoverArtArchiveTagLatch {
+		final CoverArtArchiveTagInfo info;
 		final CountDownLatch latch = new CountDownLatch(1);
 
-		public CoverArtArchiveLatch(CoverArtArchiveInfo info) {
+		public CoverArtArchiveTagLatch(CoverArtArchiveTagInfo info) {
 			this.info = info;
+		}
+	}
+
+	private static class CoverArtArchiveCoverLatch {
+		final String mBID;
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		public CoverArtArchiveCoverLatch(String mBID) {
+			this.mBID = mBID;
 		}
 	}
 
@@ -206,18 +217,18 @@ public class CoverArtArchiveUtil extends CoverUtil {
 	}
 
 	private static final Object tagLatchListLock = new Object();
-	private static final List<CoverArtArchiveLatch> tagLatchList = new ArrayList<>();
+	private static final List<CoverArtArchiveTagLatch> tagLatchList = new ArrayList<>();
 
 	/**
 	 * Used to serialize search on a per {@link Tag} basis. Every thread doing
-	 * a search much hold a {@link CoverArtArchiveLatch} and release it when
-	 * the search are done and the results are written. Any other threads
+	 * a search much hold a {@link CoverArtArchiveTagLatch} and release it when
+	 * the search is done and the result is written. Any other threads
 	 * attempting to search for the same {@link Tag} will wait for the existing
-	 * {@link CoverArtArchiveLatch} to be released, and can then use the
+	 * {@link CoverArtArchiveTagLatch} to be released, and can then use the
 	 * results from the previous thread instead of conducting it's own search.
 	 */
-	private static CoverArtArchiveLatch reserveTagLatch(final CoverArtArchiveInfo tagInfo) {
-		CoverArtArchiveLatch tagLatch = null;
+	private static CoverArtArchiveTagLatch reserveTagLatch(final CoverArtArchiveTagInfo tagInfo) {
+		CoverArtArchiveTagLatch tagLatch = null;
 
 		boolean owner = false;
 		long startTime = System.currentTimeMillis();
@@ -226,7 +237,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 			// Find if any other tread is currently searching the same tag
 			synchronized (tagLatchListLock) {
-				for (CoverArtArchiveLatch latch : tagLatchList) {
+				for (CoverArtArchiveTagLatch latch : tagLatchList) {
 					if (latch.info.equals(tagInfo)) {
 						tagLatch = latch;
 						break;
@@ -234,7 +245,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				}
 				// None found, our turn
 				if (tagLatch == null) {
-					tagLatch = new CoverArtArchiveLatch(tagInfo);
+					tagLatch = new CoverArtArchiveTagLatch(tagInfo);
 					tagLatchList.add(tagLatch);
 					owner = true;
 				}
@@ -243,7 +254,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			// Check for timeout here instead of in the while loop make logging
 			// it easier.
 			if (System.currentTimeMillis() - startTime > WAIT_TIMEOUT_MS) {
-				LOGGER.debug("A Cover Art Achive search times out while waiting it's turn");
+				LOGGER.debug("A MusicBrainz search timed out while waiting it's turn");
 				return null;
 			}
 
@@ -251,7 +262,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				try {
 					tagLatch.latch.await();
 				} catch (InterruptedException e) {
-					LOGGER.debug("A Cover Art Archive search was interrupted while waiting it's turn");
+					LOGGER.debug("A MusicBrainz search was interrupted while waiting it's turn");
 					Thread.currentThread().interrupt();
 					return null;
 				} finally {
@@ -263,7 +274,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		return tagLatch;
 	}
 
-	private static void releaseTagLatch(CoverArtArchiveLatch tagLatch) {
+	private static void releaseTagLatch(CoverArtArchiveTagLatch tagLatch) {
 		synchronized (tagLatchListLock) {
 			if (!tagLatchList.remove(tagLatch)) {
 				LOGGER.error("Concurrency error: Held tagLatch not found in latchList");
@@ -272,41 +283,132 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		tagLatch.latch.countDown();
 	}
 
+	private static final Object coverLatchListLock = new Object();
+	private static final List<CoverArtArchiveCoverLatch> coverLatchList = new ArrayList<>();
+
+	/**
+	 * Used to serialize search on a per MBID basis. Every thread doing
+	 * a search much hold a {@link CoverArtArchiveCoverLatch} and release it
+	 * when the search is done and the result is written. Any other threads
+	 * attempting to search for the same MBID will wait for the existing
+	 * {@link CoverArtArchiveCoverLatch} to be released, and can then use the
+	 * results from the previous thread instead of conducting it's own search.
+	 */
+	private static CoverArtArchiveCoverLatch reserveCoverLatch(final String mBID) {
+		CoverArtArchiveCoverLatch coverLatch = null;
+
+		boolean owner = false;
+		long startTime = System.currentTimeMillis();
+
+		while (!owner && !Thread.currentThread().isInterrupted()) {
+
+			// Find if any other tread is currently searching the same MBID
+			synchronized (coverLatchListLock) {
+				for (CoverArtArchiveCoverLatch latch : coverLatchList) {
+					if (latch.mBID.equals(mBID)) {
+						coverLatch = latch;
+						break;
+					}
+				}
+				// None found, our turn
+				if (coverLatch == null) {
+					coverLatch = new CoverArtArchiveCoverLatch(mBID);
+					coverLatchList.add(coverLatch);
+					owner = true;
+				}
+			}
+
+			// Check for timeout here instead of in the while loop make logging
+			// it easier.
+			if (System.currentTimeMillis() - startTime > WAIT_TIMEOUT_MS) {
+				LOGGER.debug("A Cover Art Achive search timed out while waiting it's turn");
+				return null;
+			}
+
+			if (!owner) {
+				try {
+					coverLatch.latch.await();
+				} catch (InterruptedException e) {
+					LOGGER.debug("A Cover Art Archive search was interrupted while waiting it's turn");
+					Thread.currentThread().interrupt();
+					return null;
+				} finally {
+					coverLatch = null;
+				}
+			}
+		}
+
+		return coverLatch;
+	}
+
+	private static void releaseCoverLatch(CoverArtArchiveCoverLatch coverLatch) {
+		synchronized (coverLatchListLock) {
+			if (!coverLatchList.remove(coverLatch)) {
+				LOGGER.error("Concurrency error: Held coverLatch not found in latchList");
+			}
+		}
+		coverLatch.latch.countDown();
+	}
+
 	@Override
 	protected byte[] doGetThumbnail(Tag tag, boolean externalNetwork) {
 		String mBID = getMBID(tag, externalNetwork);
 		if (mBID != null) {
-			// TODO: Check cache
-			if (!externalNetwork) {
-				LOGGER.warn("Can't download cover from Cover Art Archive since external network is disabled");
-				LOGGER.info("Either enable external network or disable cover download");
+			// Secure exclusive access to search for this tag
+			CoverArtArchiveCoverLatch latch = reserveCoverLatch(mBID);
+			if (latch == null) {
+				// Couldn't reserve exclusive access, giving up
 				return null;
 			}
-
-			DefaultCoverArtArchiveClient client = new DefaultCoverArtArchiveClient();
-
-			CoverArt coverArt;
 			try {
-				coverArt = client.getByMbid(UUID.fromString(mBID));
-			} catch (CoverArtException e) {
-				LOGGER.debug("Could not get cover with MBID \"{}\": {}", mBID, e.getMessage());
-				LOGGER.trace("", e);
-				return null;
-			}
-			if (coverArt == null || coverArt.getImages().isEmpty()) {
-				LOGGER.debug("MBID \"{}\" has no cover at CoverArtArchive", mBID);
-				return null;
-			}
-			CoverArtImage image = coverArt.getFrontImage();
-			if (image == null) {
-				image = coverArt.getImages().get(0);
-			}
-			try (InputStream is = image.getLargeThumbnail()) {
-				return IOUtils.toByteArray(is);
-			} catch (IOException e) {
-				LOGGER.error("An error occurred while downloading cover for MBID \"{}\": {}", mBID, e.getMessage());
-				LOGGER.trace("", e);
-				return null;
+				// Check if it's cached first
+				CoverArtArchiveResult result = TableCoverArtArchive.findMBID(mBID);
+				if (result.found) {
+					if (result.cover != null) {
+						return result.cover;
+					} else if (System.currentTimeMillis() - result.modified.getTime() < expireTime) {
+						// If a lookup has been done within expireTime and no result,
+						// return null. Do another lookup after expireTime has passed
+						return null;
+					}
+				}
+
+				if (!externalNetwork) {
+					LOGGER.warn("Can't download cover from Cover Art Archive since external network is disabled");
+					LOGGER.info("Either enable external network or disable cover download");
+					return null;
+				}
+
+				DefaultCoverArtArchiveClient client = new DefaultCoverArtArchiveClient();
+
+				CoverArt coverArt;
+				try {
+					coverArt = client.getByMbid(UUID.fromString(mBID));
+				} catch (CoverArtException e) {
+					LOGGER.debug("Could not get cover with MBID \"{}\": {}", mBID, e.getMessage());
+					LOGGER.trace("", e);
+					return null;
+				}
+				if (coverArt == null || coverArt.getImages().isEmpty()) {
+					LOGGER.debug("MBID \"{}\" has no cover at CoverArtArchive", mBID);
+					TableCoverArtArchive.writeMBID(mBID, null);
+					return null;
+				}
+				CoverArtImage image = coverArt.getFrontImage();
+				if (image == null) {
+					image = coverArt.getImages().get(0);
+				}
+				try (InputStream is = image.getLargeThumbnail()) {
+					byte[] cover = IOUtils.toByteArray(is);
+					TableCoverArtArchive.writeMBID(mBID, cover);
+					return cover;
+				} catch (IOException e) {
+					LOGGER.error("An error occurred while downloading cover for MBID \"{}\": {}", mBID, e.getMessage());
+					LOGGER.trace("", e);
+					return null;
+				}
+			} finally {
+				releaseCoverLatch(latch);
 			}
 		}
 		return null;
@@ -323,12 +425,15 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			return mBID;
 		}
 
-		final CoverArtArchiveInfo tagInfo = new CoverArtArchiveInfo(tag);
+		final CoverArtArchiveTagInfo tagInfo = new CoverArtArchiveTagInfo(tag);
 
 		// Secure exclusive access to search for this tag
-		CoverArtArchiveLatch latch = reserveTagLatch(tagInfo);
+		CoverArtArchiveTagLatch latch = reserveTagLatch(tagInfo);
+		if (latch == null) {
+			// Couldn't reserve exclusive access, giving up
+			return null;
+		}
 		try {
-
 			// Check if it's cached first
 			MusicBrainzReleasesResult result = TableMusicBrainzReleases.findMBID(tag);
 			if (result.found) {

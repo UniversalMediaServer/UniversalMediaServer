@@ -26,15 +26,12 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import net.pms.util.StringUtil;
-import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
- * This class is responsible for managing the MusicBrainz releases table. It
+ * This class is responsible for managing the Cover Art Archive table. It
  * does everything from creating, checking and upgrading the table to
  * performing lookups, updates and inserts. All operations involving this table
  * shall be done with this class.
@@ -42,7 +39,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * @author Nadahar
  */
 
-public final class TableMusicBrainzReleases extends Tables{
+public final class TableCoverArtArchive extends Tables{
 
 	/**
 	 * tableLock is used to synchronize database access on table level.
@@ -52,8 +49,8 @@ public final class TableMusicBrainzReleases extends Tables{
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock tableLock = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableMusicBrainzReleases.class);
-	private static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASES";
+	private static final Logger LOGGER = LoggerFactory.getLogger(TableCoverArtArchive.class);
+	private static final String TABLE_NAME = "COVER_ART_ARCHIVE";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -63,65 +60,45 @@ public final class TableMusicBrainzReleases extends Tables{
 	private static final int TABLE_VERSION = 1;
 
 	// No instantiation
-	private TableMusicBrainzReleases() {
+	private TableCoverArtArchive() {
 	}
 
 	/**
-	 * A type class for returning results from MusicBrainzReleases database
+	 * A type class for returning results from Cover Art Archive database
 	 * lookup.
 	 */
 	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-	public static class MusicBrainzReleasesResult {
+	public static class CoverArtArchiveResult {
 
 		public boolean found = false;
 		public Timestamp modified = null;
-		public String mBID = null;
-
-		public MusicBrainzReleasesResult() {
-		}
+		public byte[] cover = null;
 
 		@SuppressFBWarnings("EI_EXPOSE_REP2")
-		public MusicBrainzReleasesResult(final boolean found, final Timestamp modified, final String mBID) {
+		public CoverArtArchiveResult(final boolean found, final Timestamp modified, final byte[] cover) {
 			this.found = found;
 			this.modified = modified;
-			this.mBID = mBID;
+			this.cover = cover;
 		}
 	}
 
-	private static String contructTagWhere(final Tag tag, final boolean includeAll) {
-		StringBuilder where = new StringBuilder();
-
-		where.append(" WHERE ")
-			 .append("ARTIST").append(nullIfBlank(tag.getFirst(FieldKey.ARTIST))).append("AND ");
-		if (includeAll || StringUtil.hasValue(tag.getFirst(FieldKey.MUSICBRAINZ_ARTISTID))) {
-			where
-			 .append("ARTIST_ID").append(nullIfBlank(tag.getFirst(FieldKey.MUSICBRAINZ_ARTISTID))).append("AND ");
-		}
-		where.append("ALBUM").append(nullIfBlank(tag.getFirst(FieldKey.ALBUM))).append("AND ")
-			 .append("TITLE").append(nullIfBlank(tag.getFirst(FieldKey.TITLE))).append("AND ");
-		if (includeAll || StringUtil.hasValue(tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID))) {
-			where
-			 .append("TRACK_ID").append(nullIfBlank(tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID))).append("AND ");
-		}
-		where.append("YEAR").append(nullIfBlank(tag.getFirst(FieldKey.YEAR)));
-
-		return where.toString();
+	private static String contructMBIDWhere(final String mBID) {
+		return " WHERE MBID" + nullIfBlank(mBID);
 	}
 
 	/**
-	 * Stores the MBID with information from this {@link Tag} in the database
+	 * Stores the cover {@link Blob} with the given mBID in the database
 	 *
 	 * @param mBID the MBID to store
-	 * @param tag the {@link Tag} who's information should be associated with
-	 *        the given MBID
+	 * @param cover the cover as a {@link Blob}
 	 */
-	public static void writeMBID(final String mBID, final Tag tag) {
+	public static void writeMBID(final String mBID, final byte[] cover) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + contructTagWhere(tag, true);
+			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID);
 			if (trace) {
-				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
+				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
 			}
 
 			tableLock.writeLock().lock();
@@ -129,62 +106,30 @@ public final class TableMusicBrainzReleases extends Tables{
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)){
 					if (result.next()) {
-						if (StringUtil.hasValue(mBID) || !StringUtil.hasValue(result.getString("MBID"))) {
+						if (cover != null || result.getBlob("COVER") == null) {
 							if (trace) {
-								LOGGER.trace("Updating row {} to MBID \"{}\"", result.getInt("ID"), mBID);
+								LOGGER.trace("Updating cover for MBID \"{}\"", mBID);
 							}
 							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-							if (StringUtil.hasValue(mBID)) {
-								result.updateString("MBID", mBID);
+							if (cover != null) {
+								result.updateString("COVER", mBID);
 							} else {
-								result.updateNull("MBID");
+								result.updateNull("COVER");
 							}
 							result.updateRow();
 						} else if (trace) {
 							LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
 						}
 					} else {
-						final String album = tag.getFirst(FieldKey.ALBUM);
-						final String artist = tag.getFirst(FieldKey.ARTIST);
-						final String title = tag.getFirst(FieldKey.TITLE);
-						final String year = tag.getFirst(FieldKey.YEAR);
-						final String artistId = tag.getFirst(FieldKey.MUSICBRAINZ_ARTISTID);
-						final String trackId = tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
 						if (trace) {
-							LOGGER.trace(
-								"Inserting new row for MBID \"{}\":\n" +
-								"     Artist    \"{}\"\n" +
-								"     Album     \"{}\"\n" +
-								"     Title     \"{}\"\n" +
-								"     Year      \"{}\"\n" +
-								"     Artist ID \"{}\"\n" +
-								"     Track ID  \"{}\"\n",
-								mBID, artist, album, title, year, artistId, trackId
-							);
+							LOGGER.trace("Inserting new cover for MBID \"{}\"", mBID);
 						}
 
 						result.moveToInsertRow();
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						if (StringUtil.hasValue(mBID)) {
-							result.updateString("MBID", mBID);
-						}
-						if (StringUtil.hasValue(album)) {
-							result.updateString("ALBUM", album);
-						}
-						if (StringUtil.hasValue(artist)) {
-							result.updateString("ARTIST", artist);
-						}
-						if (StringUtil.hasValue(title)) {
-							result.updateString("TITLE", title);
-						}
-						if (StringUtil.hasValue(year)) {
-							result.updateString("YEAR", year);
-						}
-						if (StringUtil.hasValue(artistId)) {
-							result.updateString("ARTIST_ID", artistId);
-						}
-						if (StringUtil.hasValue(trackId)) {
-							result.updateString("TRACK_ID", trackId);
+						result.updateString("MBID", mBID);
+						if (cover != null) {
+							result.updateBytes("COVER", cover);
 						}
 						result.insertRow();
 					}
@@ -195,43 +140,37 @@ public final class TableMusicBrainzReleases extends Tables{
 				tableLock.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing Music Brainz ID \"{}\" for {} - {}: {}",
-				mBID,
-				tag.getFirst(FieldKey.ARTIST),
-				tag.getFirst(FieldKey.TITLE),
-				e.getMessage()
-			);
+			LOGGER.error("Database error while writing Cover Art Archive cover for MBID \"{}\": {}", mBID, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
 
 	/**
-	 * Looks up MBID in the table based on the given {@link Tag}. Never returns
+	 * Looks up cover in the table based on the given MBID. Never returns
 	 * <code>null</code>
 	 *
-	 * @param tag the {@link Tag} for whose values should be used in the search
+	 * @param mBID the MBID {@link String} to search with
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
-	public static MusicBrainzReleasesResult findMBID(final Tag tag) {
+	public static CoverArtArchiveResult findMBID(final String mBID) {
 		boolean trace = LOGGER.isTraceEnabled();
-		MusicBrainzReleasesResult result;
+		CoverArtArchiveResult result;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + contructTagWhere(tag, false);
+			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID);
 
 			if (trace) {
-				LOGGER.trace("Searching for release MBID with \"{}\"", query);
+				LOGGER.trace("Searching for cover with \"{}\"", query);
 			}
 
 			tableLock.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
-						result = new MusicBrainzReleasesResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getString("MBID"));
+						result = new CoverArtArchiveResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getBytes("COVER"));
 					} else {
-						result = new MusicBrainzReleasesResult(false, null, null);
+						result = new CoverArtArchiveResult(false, null, null);
 					}
 				}
 			} finally {
@@ -239,13 +178,12 @@ public final class TableMusicBrainzReleases extends Tables{
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while looking up Music Brainz ID for {} - {}: {}",
-				tag.getFirst(FieldKey.ARTIST),
-				tag.getFirst(FieldKey.TITLE),
+				"Database error while looking up Cover Art Archive cover for MBID \"{}\": {}",
+				mBID,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
-			result = new MusicBrainzReleasesResult();
+			result = new CoverArtArchiveResult(false, null, null);
 		}
 
 		return result;
@@ -277,11 +215,11 @@ public final class TableMusicBrainzReleases extends Tables{
 				} else {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
-					createMusicBrainzReleasesTable(connection);
+					createCoverArtArchiveTable(connection);
 					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
-				createMusicBrainzReleasesTable(connection);
+				createCoverArtArchiveTable(connection);
 				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
@@ -323,7 +261,7 @@ public final class TableMusicBrainzReleases extends Tables{
 	/**
 	 * Must be called in inside a table lock
 	 */
-	private static void createMusicBrainzReleasesTable(final Connection connection) throws SQLException {
+	private static void createCoverArtArchiveTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
 		try (Statement statement = connection.createStatement()) {
 			statement.execute(
@@ -331,15 +269,9 @@ public final class TableMusicBrainzReleases extends Tables{
 					"ID IDENTITY PRIMARY KEY, " +
 					"MODIFIED DATETIME, " +
 					"MBID VARCHAR(36), " +
-					"ARTIST VARCHAR(100), " +
-					"ALBUM VARCHAR(100), " +
-					"TITLE VARCHAR(100), " +
-					"YEAR VARCHAR(4), " +
-					"ARTIST_ID VARCHAR(36), " +
-					"TRACK_ID VARCHAR(36)" +
+					"COVER BLOB, " +
 				")");
-			statement.execute("CREATE INDEX ARTIST_IDX ON " + TABLE_NAME + "(ARTIST)");
-			statement.execute("CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)");
+			statement.execute("CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
 		}
 	}
 }

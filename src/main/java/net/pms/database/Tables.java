@@ -67,6 +67,7 @@ public class Tables {
 					}
 
 					TableMusicBrainzReleases.checkTable(connection);
+					TableCoverArtArchive.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
