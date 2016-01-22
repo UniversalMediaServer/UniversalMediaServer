@@ -26,7 +26,6 @@ public class LibMediaInfoParser {
 	private static final Pattern yearPattern = Pattern.compile(YEAR_REGEX);
 
 	private static MediaInfo MI;
-	private static Base64 base64;
 
 	static {
 		MI = new MediaInfo();
@@ -40,8 +39,6 @@ public class LibMediaInfoParser {
 			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
 //			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
 		}
-
-		base64 = new Base64();
 	}
 
 	public static boolean isValid() {
@@ -85,7 +82,7 @@ public class LibMediaInfoParser {
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (isNotBlank(value)) {
-					media.setThumb(getCover(value));
+					media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
 				}
 				value = MI.Get(general, 0, "Title");
 				if (isNotBlank(value)) {
@@ -733,17 +730,5 @@ public class LibMediaInfoParser {
 		}
 
 		return (h * 3600) + (m * 60) + s;
-	}
-
-	public static byte[] getCover(String based64Value) {
-		try {
-			if (base64 != null) {
-				return base64.decode(based64Value.getBytes(StandardCharsets.US_ASCII));
-			}
-		} catch (Exception e) {
-			LOGGER.error("Error in decoding thumbnail data", e);
-		}
-
-		return null;
 	}
 }
