@@ -79,10 +79,12 @@ public class RemoteWeb {
 			} catch (IOException e) {
 				LOGGER.error("Failed to start WEB interface on HTTPS: {}", e.getMessage());
 				LOGGER.trace("", e);
+				if (e.getMessage().contains("UMS.jks")) {
+					LOGGER.info("To enable HTTPS please generate a self-signed keystore file called \"UMS.jks\" using the java 'keytool' commandline utility.");
+				}
 			} catch (GeneralSecurityException e) {
 				LOGGER.error("Failed to start WEB interface on HTTPS due to a security error: {}", e.getMessage());
 				LOGGER.trace("", e);
-				LOGGER.info("To enable HTTPS please generate a self-signed keystore file called 'UMS.jks' using the java 'keytool' commandline utility.");
 			}
 		} else {
 			server = HttpServer.create(address, 0);
