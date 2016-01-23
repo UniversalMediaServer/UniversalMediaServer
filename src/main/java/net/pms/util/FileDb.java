@@ -127,8 +127,10 @@ public class FileDb {
 					String[] data1 = handler.format(obj);
 
 					// Make sure values containing commas are wrapped with quotation marks
-					data1[1] = StringEscapeUtils.escapeCsv(data1[1]);
-					data1[2] = StringEscapeUtils.escapeCsv(data1[2]);
+					if (data1.length > minCnt) {
+						data1[1] = StringEscapeUtils.escapeCsv(data1[1]);
+						data1[2] = StringEscapeUtils.escapeCsv(data1[2]);
+					}
 
 					data = key + sep + StringUtils.join(data1, sep) + "\n";
 				}
