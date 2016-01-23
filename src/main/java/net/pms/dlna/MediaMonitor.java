@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static Set<String> fullyPlayedEntries;
+	private static Set<String> fullyPlayedEntries = new HashSet<>();
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -29,8 +29,11 @@ public class MediaMonitor extends VirtualFolder {
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
-		this.dirs = dirs;
-		fullyPlayedEntries = new HashSet<>();
+		if (dirs == null) {
+			this.dirs = null;
+		} else {
+			System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
+		}
 		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
@@ -75,26 +78,6 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public void scanDir(File[] files, final DLNAResource res) {
-		final DLNAResource mm = this;
-		res.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
-			@Override
-			public boolean enable() {
-				for (DLNAResource r : res.getChildren()) {
-					if (!(r instanceof RealFile)) {
-						continue;
-					}
-					RealFile rf = (RealFile) r;
-					fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
-				}
-				mm.setDiscovered(false);
-				mm.getChildren().clear();
-				try {
-					dumpFile();
-				} catch (IOException e) {
-				}
-				return true;
-			}
-		});
 
 		for (File f : files) {
 			if (f.isFile()) {
@@ -118,8 +101,38 @@ public class MediaMonitor extends VirtualFolder {
 	@Override
 	public void discoverChildren() {
 		for (File f : dirs) {
-			scanDir(f.listFiles(), this);
+			File[] files = f.listFiles();
+			if (files != null) {
+				scanDir(files, this);
+			}
 		}
+		final MediaMonitor mediaMonitor = this;
+		mediaMonitor.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
+			@Override
+			public boolean enable() {
+				try {
+				for (DLNAResource r : mediaMonitor.getChildren()) {
+					if (!(r instanceof RealFile)) {
+						continue;
+					}
+					RealFile rf = (RealFile) r;
+					fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+				}
+				mediaMonitor.setDiscovered(false);
+				mediaMonitor.getChildren().clear();
+				try {
+					dumpFile();
+				} catch (IOException e) {
+					LOGGER.error("DELETE ALL IOERROR: ", e);
+				}
+				return true;
+				} catch (Exception e) {
+					LOGGER.error("DELETE ALL ERROR: ", e);
+					return false;
+				}
+			}
+		});
+
 	}
 
 	@Override
@@ -145,7 +158,7 @@ public class MediaMonitor extends VirtualFolder {
 		 * This is not a great way to get this value because if the
 		 * video is paused, it will no longer be accurate.
 		 */
-		double elapsed;
+		long elapsed;
 		if (res.getLastStartPosition() == 0) {
 			elapsed = (System.currentTimeMillis() - res.getStartTime()) / 1000;
 		} else {
