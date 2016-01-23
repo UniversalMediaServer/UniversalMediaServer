@@ -71,7 +71,7 @@ public class RemoteWeb {
 				} catch (Exception e) {
 					LOGGER.warn("Error: Failed to start WEB interface on HTTPS: " + e);
 					LOGGER.info("To enable HTTPS please generate a self-signed keystore file called 'UMS.jks' using the java 'keytool' commandline utility.");
-					server = null;
+					throw new IOException(); // skip following code
 				}
 			} else {
 				server = HttpServer.create(address, 0);
@@ -95,8 +95,10 @@ public class RemoteWeb {
 			addCtx("/poll", new RemotePollHandler(this));
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
-		} catch (Exception e) {
-			LOGGER.debug("Couldn't start RemoteWEB " + e);
+		} catch (IOException e) {
+			if (e.getMessage() != null) { // do not log the exception catched during HTTPS server initialization
+				LOGGER.debug("Couldn't start RemoteWEB: " + e);
+			}
 		}
 	}
 

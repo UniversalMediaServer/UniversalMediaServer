@@ -546,7 +546,7 @@ public class SubtitleUtils {
 				}
 
 				outputString.setLength(0);
-				if (line.startsWith("Dialogue:") && line.contains("Default")) { // TODO: For now convert only Default style. For other styles must be position and font size recalculated
+				if (line != null && line.startsWith("Dialogue:") && line.contains("Default")) { // TODO: For now convert only Default style. For other styles must be position and font size recalculated
 					String[] dialogPattern = line.split(",");
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
