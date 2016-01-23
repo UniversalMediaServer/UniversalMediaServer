@@ -4,9 +4,12 @@ import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.AccessController;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class RemoteWeb {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteWeb.class);
 	private KeyStore ks;
@@ -39,44 +43,52 @@ public class RemoteWeb {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final int defaultPort = configuration.getWebPort();
 
-	public RemoteWeb() {
+	public RemoteWeb() throws IOException {
 		this(defaultPort);
 	}
 
-	public RemoteWeb(int port) {
+	public RemoteWeb(int port) throws IOException {
 		if (port <= 0) {
 			port = defaultPort;
 		}
 
 		users = new HashMap<>();
 		tags = new HashMap<>();
-		roots = Collections.synchronizedMap(new HashMap<String, RootFolder>());
+		roots = new HashMap<String, RootFolder>();
 		// Add "classpaths" for resolving web resources
-		resources = new RemoteUtil.ResourceManager(
-			"file:" + configuration.getProfileDirectory() + "/web/",
-			"jar:file:" + configuration.getProfileDirectory() + "/web.zip!/",
-			"file:" + configuration.getWebPath() + "/"
-		);
+		resources = AccessController.doPrivileged(new PrivilegedAction<RemoteUtil.ResourceManager>() {
 
-		try {
-			readCred();
-
-			// Setup the socket address
-			InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
-
-			// initialise the HTTP(S) server
-			if (configuration.getWebHttps()) {
-				try {
-					server = httpsServer(address);
-				} catch (Exception e) {
-					LOGGER.warn("Error: Failed to start WEB interface on HTTPS: " + e);
-					LOGGER.info("To enable HTTPS please generate a self-signed keystore file called 'UMS.jks' using the java 'keytool' commandline utility.");
-					throw new IOException(); // skip following code
-				}
-			} else {
-				server = HttpServer.create(address, 0);
+			public RemoteUtil.ResourceManager run() {
+				return new RemoteUtil.ResourceManager(
+					"file:" + configuration.getProfileDirectory() + "/web/",
+					"jar:file:" + configuration.getProfileDirectory() + "/web.zip!/",
+					"file:" + configuration.getWebPath() + "/"
+				);
 			}
+		});
 
+		readCred();
+
+		// Setup the socket address
+		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
+
+		// Initialize the HTTP(S) server
+		if (configuration.getWebHttps()) {
+			try {
+				server = httpsServer(address);
+			} catch (IOException e) {
+				LOGGER.error("Failed to start WEB interface on HTTPS: {}", e.getMessage());
+				LOGGER.trace("", e);
+			} catch (GeneralSecurityException e) {
+				LOGGER.error("Failed to start WEB interface on HTTPS due to a security error: {}", e.getMessage());
+				LOGGER.trace("", e);
+				LOGGER.info("To enable HTTPS please generate a self-signed keystore file called 'UMS.jks' using the java 'keytool' commandline utility.");
+			}
+		} else {
+			server = HttpServer.create(address, 0);
+		}
+
+		if (server != null) {
 			int threads = configuration.getWebThreads();
 
 			// Add context handlers
@@ -95,19 +107,16 @@ public class RemoteWeb {
 			addCtx("/poll", new RemotePollHandler(this));
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
-		} catch (IOException e) {
-			if (e.getMessage() != null) { // do not log the exception catched during HTTPS server initialization
-				LOGGER.debug("Couldn't start RemoteWEB: " + e);
-			}
 		}
 	}
 
-	private HttpServer httpsServer(InetSocketAddress address) throws Exception {
+	private HttpServer httpsServer(InetSocketAddress address) throws IOException, GeneralSecurityException {
 		// Initialize the keystore
 		char[] password = "umsums".toCharArray();
 		ks = KeyStore.getInstance("JKS");
-		FileInputStream fis = new FileInputStream("UMS.jks");
-		ks.load(fis, password);
+		try (FileInputStream fis = new FileInputStream("UMS.jks")) {
+			ks.load(fis, password);
+		}
 
 		// Setup the key manager factory
 		kmf = KeyManagerFactory.getInstance("SunX509");
@@ -162,31 +171,34 @@ public class RemoteWeb {
 	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
 		String groupTag = getTag(user);
 		String cookie = RemoteUtil.getCookie("UMS", t);
-		RootFolder root = roots.get(cookie);
-		if (root == null) {
-			// Double-check for cookie errors
-			WebRender valid = RemoteUtil.matchRenderer(user, t);
-			if (valid != null) {
-				// A browser of the same type and user is already connected at
-				// this ip but for some reason we didn't get a cookie match.
-				RootFolder validRoot = valid.getRootFolder();
-				// Do a reverse lookup to see if it's been registered
-				for (String c : roots.keySet()) {
-					if (roots.get(c) == validRoot) {
-						// Found
-						root = validRoot;
-						cookie = c;
-						LOGGER.debug("Allowing browser connection without cookie match: {}: {}", valid.getRendererName(), t.getRemoteAddress().getAddress());
-						break;
+		RootFolder root;
+		synchronized (roots) {
+			root = roots.get(cookie);
+			if (root == null) {
+				// Double-check for cookie errors
+				WebRender valid = RemoteUtil.matchRenderer(user, t);
+				if (valid != null) {
+					// A browser of the same type and user is already connected at
+					// this ip but for some reason we didn't get a cookie match.
+					RootFolder validRoot = valid.getRootFolder();
+					// Do a reverse lookup to see if it's been registered
+					for (Map.Entry<String, RootFolder> entry : roots.entrySet()) {
+						if (entry.getValue() == validRoot) {
+							// Found
+							root = validRoot;
+							cookie = entry.getKey();
+							LOGGER.debug("Allowing browser connection without cookie match: {}: {}", valid.getRendererName(), t.getRemoteAddress().getAddress());
+							break;
+						}
 					}
 				}
 			}
-		}
-		if (!create || (root != null)) {
-			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
-			return root;
-		}
-		synchronized (roots) {
+
+			if (!create || (root != null)) {
+				t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+				return root;
+			}
+
 			ArrayList<String> tag = new ArrayList<>();
 			tag.add(user);
 			if (!groupTag.equals(user)) {
@@ -220,10 +232,9 @@ public class RemoteWeb {
 		return root;
 	}
 
-	public void associate(HttpExchange t, RendererConfiguration r) {
-		WebRender wr = (WebRender) r;
-		wr.associateIP(t.getRemoteAddress().getAddress());
-		wr.associatePort(t.getRemoteAddress().getPort());
+	public void associate(HttpExchange t, WebRender webRenderer) {
+		webRenderer.associateIP(t.getRemoteAddress().getAddress());
+		webRenderer.associatePort(t.getRemoteAddress().getPort());
 	}
 
 	private void addCtx(String path, HttpHandler h) {
@@ -249,34 +260,33 @@ public class RemoteWeb {
 		if (!f.exists()) {
 			return;
 		}
-		BufferedReader in;
-		in = new BufferedReader(new FileReader(f));
-		String str;
-		while ((str = in.readLine()) != null) {
-			str = str.trim();
-			if (StringUtils.isEmpty(str) || str.startsWith("#")) {
-				continue;
-			}
-			String[] s = str.split("\\s*=\\s*", 2);
-			if (s.length < 2) {
-				continue;
-			}
-			if (!s[0].startsWith("web")) {
-				continue;
-			}
-			String[] s1 = s[0].split("\\.", 2);
-			String[] s2 = s[1].split(",", 2);
-			if (s2.length < 2) {
-				continue;
-			}
-			// s2[0] == usr s2[1] == pwd s1[1] == tag
-			users.put(s2[0], s2[1]);
-			if (s1.length > 1) {
-				// there is a tag here
-				tags.put(s2[0], s1[1]);
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
+			String str;
+			while ((str = in.readLine()) != null) {
+				str = str.trim();
+				if (StringUtils.isEmpty(str) || str.startsWith("#")) {
+					continue;
+				}
+				String[] s = str.split("\\s*=\\s*", 2);
+				if (s.length < 2) {
+					continue;
+				}
+				if (!s[0].startsWith("web")) {
+					continue;
+				}
+				String[] s1 = s[0].split("\\.", 2);
+				String[] s2 = s[1].split(",", 2);
+				if (s2.length < 2) {
+					continue;
+				}
+				// s2[0] == usr s2[1] == pwd s1[1] == tag
+				users.put(s2[0], s2[1]);
+				if (s1.length > 1) {
+					// there is a tag here
+					tags.put(s2[0], s1[1]);
+				}
 			}
 		}
-		in.close();
 	}
 
 	public HttpServer getServer() {
@@ -513,8 +523,6 @@ public class RemoteWeb {
 			if (RemoteUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
-			@SuppressWarnings("unused")
-			String p = t.getRequestURI().getPath();
 			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			String json = renderer.getPushData();
