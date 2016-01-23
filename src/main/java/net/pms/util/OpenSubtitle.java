@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -376,8 +377,8 @@ public class OpenSubtitle {
 
 			return new String[]{
 				ImdbUtil.ensureTT(m.group(1).trim()),
-				eptit,
-				name,
+				StringEscapeUtils.unescapeHtml4(eptit),
+				StringEscapeUtils.unescapeHtml4(name),
 				m.group(3).trim(), // Season number
 				m.group(4).trim(), // Episode number
 				m.group(5).trim()  // Year

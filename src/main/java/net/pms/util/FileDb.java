@@ -126,13 +126,10 @@ public class FileDb {
 				} else {
 					String[] data1 = handler.format(obj);
 
-					for (int i = 0; i < data1.length; i++) {
-						// Make sure values containing commas are wrapped with quotation marks
-						data1[i] = StringEscapeUtils.escapeCsv(data1[i]);
+					// Make sure values containing commas are wrapped with quotation marks
+					data1[1] = StringEscapeUtils.escapeCsv(data1[1]);
+					data1[2] = StringEscapeUtils.escapeCsv(data1[2]);
 
-						// Convert HTML characters to Unicode characters
-						data1[i] = StringEscapeUtils.unescapeHtml4(data1[i]);
-					}
 					data = key + sep + StringUtils.join(data1, sep) + "\n";
 				}
 				out.write(data.getBytes(), 0, data.length());
@@ -143,6 +140,6 @@ public class FileDb {
 	}
 
 	public static String safeGetArg(String[] args, int i) {
-		return (i >= args.length ? "" : StringEscapeUtils.unescapeCsv(args[i]));
+		return (i >= args.length ? "" : args[i]);
 	}
 }
