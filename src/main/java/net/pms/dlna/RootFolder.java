@@ -124,7 +124,7 @@ public class RootFolder extends DLNAResource {
 			String[] tmp = m.split(",");
 			File[] dirs = new File[tmp.length];
 			for (int i = 0; i < tmp.length; i++) {
-				dirs[i] = new File(tmp[i]);
+				dirs[i] = new File(tmp[i].replaceAll("&comma;", ","));
 			}
 			mon = new MediaMonitor(dirs);
 

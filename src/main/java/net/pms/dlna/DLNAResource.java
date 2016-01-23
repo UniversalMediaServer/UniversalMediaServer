@@ -828,7 +828,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
 					if (params.sid != null) {
 						if (params.sid.isExternal()) {
-							if (renderer.isExternalSubtitlesFormatSupported(params.sid)) {
+							if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid)) {
 								media_subtitle = params.sid;
 								media_subtitle.setSubsStreamable(true);
 								LOGGER.trace("This video has external subtitles that should be streamed");
@@ -838,7 +838,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								LOGGER.trace("This video has external subtitles that should be transcoded");
 							}
 						} else if (params.sid.isEmbedded()) {
-							if (renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
+							if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
 								LOGGER.trace("This video has embedded subtitles that should be streamed");
 							} else {
 								forceTranscode = true;
