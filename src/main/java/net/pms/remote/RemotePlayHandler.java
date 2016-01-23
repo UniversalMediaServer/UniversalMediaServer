@@ -94,9 +94,9 @@ public class RemotePlayHandler implements HttpHandler {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
 			if (((VirtualVideoAction) r).enable()) {
-				renderer.notify(renderer.OK, r.getName() + " done");
+				renderer.notify(renderer.INFO, r.getName() + " enabled");
 			} else {
-				renderer.notify(renderer.ERR, r.getName() + " failed");
+				renderer.notify(renderer.INFO, r.getName() + " disabled");
 			}
 			return returnPage();
 		}
