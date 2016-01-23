@@ -384,6 +384,11 @@
 			<artifactId>annotations</artifactId>
 			<version>${findbugs-annotations-version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>3.6</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>

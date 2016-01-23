@@ -1,5 +1,6 @@
 package net.pms.util;
 
+import com.opencsv.CSVReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -63,21 +64,14 @@ public class FileDb {
 			return;
 		}
 		try {
-			BufferedReader in;
-			in = new BufferedReader(new FileReader(file));
-			String str;
-			while ((str = in.readLine()) != null) {
-				str = str.trim();
-				if (StringUtils.isEmpty(str) || str.startsWith("#")) {
+			CSVReader reader = new CSVReader(new FileReader(file));
+			String[] nextLine;
+			while ((nextLine = reader.readNext()) != null) {
+				if (nextLine.length < minCnt || nextLine[0].startsWith("#")) {
 					continue;
 				}
-				String tmp[] = str.split(sep);
-				if (tmp.length < minCnt) {
-					continue;
-				}
-				db.put(tmp[0], handler.create(tmp));
+				db.put(nextLine[0], handler.create(nextLine));
 			}
-			in.close();
 		} catch (Exception e) {
 		}
 	}
@@ -130,7 +124,12 @@ public class FileDb {
 					data += "\n";
 				} else {
 					String[] data1 = handler.format(obj);
-					data = key + sep + StringEscapeUtils.escapeCsv(StringUtils.join(data1, sep)) + "\n";
+
+					// Make sure commas are escaped
+					for (int i = 0; i < data1.length; i++) {
+						data1[i] = StringEscapeUtils.escapeCsv(data1[i]);
+					}
+					data = key + sep + StringUtils.join(data1, sep) + "\n";
 				}
 				out.write(data.getBytes(), 0, data.length());
 			}
