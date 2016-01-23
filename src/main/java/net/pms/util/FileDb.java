@@ -125,9 +125,12 @@ public class FileDb {
 				} else {
 					String[] data1 = handler.format(obj);
 
-					// Make sure commas are escaped
 					for (int i = 0; i < data1.length; i++) {
+						// Make sure values containing commas are wrapped with quotation marks
 						data1[i] = StringEscapeUtils.escapeCsv(data1[i]);
+
+						// Convert HTML characters to Unicode characters
+						data1[i] = StringEscapeUtils.unescapeHtml4(data1[i]);
 					}
 					data = key + sep + StringUtils.join(data1, sep) + "\n";
 				}
