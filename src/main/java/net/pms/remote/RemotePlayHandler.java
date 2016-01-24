@@ -70,7 +70,7 @@ public class RemotePlayHandler implements HttpHandler {
 
 	private String mkPage(String id, HttpExchange t) throws IOException {
 		HashMap<String, Object> vars = new HashMap<>();
-		vars.put("serverName", configuration.getServerName());
+		vars.put("serverName", configuration.getServerDisplayName());
 
 		LOGGER.debug("make play page " + id);
 		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
