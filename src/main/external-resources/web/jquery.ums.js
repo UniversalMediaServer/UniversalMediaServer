@@ -4,7 +4,7 @@ function changeMargins() {
 		aspect = new Array(cells.length),
 		images_w = 0, row_h = 180, row_start = 0, spaces = 1;
 
-	for(var i=0; i < cells.length; i++) {
+	for (var i = 0; i < cells.length; i++) {
 		var thumb = $(cells[i]).find('.thumb')[0];
 		aspect[i] = thumb.naturalWidth / thumb.naturalHeight;
 		images_w += (180 * aspect[i]);
@@ -15,9 +15,9 @@ function changeMargins() {
 				row_h = avail_w / images_w * 180;
 			}
 			// Normalize cell heights for current row
-			for(var c=row_start; c <= i; c++) {
+			for (var c = row_start; c <= i; c++) {
 				var cell_w = row_h * aspect[c],
-					caption_w = cell_w - 48;
+					caption_w = cell_w - 33;
 				$(cells[c]).find('.caption').css({
 					width : caption_w + 'px',
 					maxWidth : caption_w + 'px',

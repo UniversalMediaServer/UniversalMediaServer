@@ -138,9 +138,10 @@ ul#Media li {
 }
 
 ul#Media .thumb {
-	max-width: 253px;
-	max-height: 142px;
-	height: 142px;
+	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
+	max-width: 308px;
+	max-height: 173px;
+	height: 173px;
 	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
 	width: auto;
 	float: left;
@@ -150,7 +151,7 @@ ul#Media .thumb {
 
 ul#Media .caption {
 	display: block;
-	max-width: 205px;
+	max-width: 273px;
 	height: 16px;
 	overflow: hidden;
 	float: left;
@@ -159,6 +160,7 @@ ul#Media .caption {
 	margin: 0;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	line-height: 16px;
 }
 
 .playlist_add {
@@ -169,8 +171,20 @@ ul#Media .caption {
 	background: url('/files/bump/skin/remove16.png') no-repeat;
 }
 
+.playlist_add,
+.playlist_del,
+.bumpIcon {
+	opacity: 0.7;
+}
+
+.playlist_add:hover,
+.playlist_del:hover,
+.bumpIcon:hover {
+	opacity: 1.0;
+}
+
 .playlist_add, .playlist_del {
-	width: 16px;
+	width: 13px;
 	height: 16px;
 	display: block;
 	float: right;
@@ -186,16 +200,14 @@ ul#Media .caption:hover {
 }
 
 .bumpIcon {
-	background: url('/files/bump/bump16-2.png') no-repeat;
-	width: 28px;
+	width: 16px;
 	height: 16px;
 	display: block;
 	float: right;
 	clear: left;
-}
-
-.bumpIcon:hover {
-	background-position: 0 -16px;
+	background-image: url('/files/bump/skin/bump16.png');
+	background-position: 2px;
+	background-repeat: no-repeat;
 }
 
 .floatRight {
