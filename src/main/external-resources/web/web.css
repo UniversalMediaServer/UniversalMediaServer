@@ -145,7 +145,7 @@ ul#Media .thumb {
 	width: auto;
 	float: left;
 	display:block;
-	margin : 0;	
+	margin: 0;
 }
 
 ul#Media .caption {
@@ -156,7 +156,9 @@ ul#Media .caption {
 	float: left;
 	font-size: 12px;
 	color: #444;
-	margin : 0;
+	margin: 0;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 .playlist_add {
