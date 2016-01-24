@@ -1300,6 +1300,11 @@ public class DLNAMediaInfo implements Cloneable {
 		this.durationSec = d;
 	}
 
+	/**
+	 * This is the object {@link Double} and might return <code>null</code>.
+	 * To get <code>0</code> instead of <code>null</code>, use
+	 * {@link #getDurationInSeconds()}
+	 */
 	public Double getDuration() {
 		return durationSec;
 	}

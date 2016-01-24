@@ -371,4 +371,40 @@ public class StringUtil {
 		return s != null && !s.trim().isEmpty();
 	}
 
+	/**
+	 * Escapes {@link org.apache.lucene} special characters with backslash
+	 */
+	public static String luceneEscape(final String s) {
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0;i < s.length(); i++) {
+			String c = s.substring(i, i+1);
+			switch (c) {
+				case "+":
+				case "-":
+				case "&":
+				case "|":
+				case "!":
+				case "(":
+				case ")":
+				case "{":
+				case "}":
+				case "[":
+				case "]":
+				case "^":
+				case "\"":
+				case "~":
+				case "*":
+				case "?":
+				case ":":
+				case "\\":
+				case "/":
+					sb.append("\\").append(c);
+					break;
+				default:
+					sb.append(c);
+			}
+		}
+		return sb.toString();
+	}
 }

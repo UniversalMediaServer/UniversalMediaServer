@@ -137,7 +137,7 @@ public class MediaMonitor extends VirtualFolder {
 		// The total video duration in seconds
 		double fileDuration = 0;
 		if (res.getMedia() != null && (res.getMedia().isAudio() || res.getMedia().isVideo())) {
-			fileDuration = res.getMedia().getDuration();
+			fileDuration = res.getMedia().getDurationInSeconds();
 		}
 
 		/**

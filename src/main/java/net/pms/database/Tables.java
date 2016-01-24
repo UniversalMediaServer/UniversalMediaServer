@@ -234,7 +234,7 @@ public class Tables {
 		if (s == null || s.trim().isEmpty()) {
 			return " IS NULL ";
 		} else {
-			return " = '" + s + "' ";
+			return " = '" + s.replaceAll("'", "''") + "' ";
 		}
 	}
 }

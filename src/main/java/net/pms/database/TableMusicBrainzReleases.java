@@ -26,8 +26,8 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.pms.util.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
 import net.pms.util.StringUtil;
-import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,22 +88,72 @@ public final class TableMusicBrainzReleases extends Tables{
 		}
 	}
 
-	private static String contructTagWhere(final Tag tag, final boolean includeAll) {
-		StringBuilder where = new StringBuilder();
+	private static String constructTagWhere(final CoverArtArchiveTagInfo tagInfo, final boolean includeAll) {
+		StringBuilder where = new StringBuilder(" WHERE ");
+		final String AND = "AND ";
+		boolean added = false;
 
-		where.append(" WHERE ")
-			 .append("ARTIST").append(nullIfBlank(tag.getFirst(FieldKey.ARTIST))).append("AND ");
-		if (includeAll || StringUtil.hasValue(tag.getFirst(FieldKey.MUSICBRAINZ_ARTISTID))) {
-			where
-			 .append("ARTIST_ID").append(nullIfBlank(tag.getFirst(FieldKey.MUSICBRAINZ_ARTISTID))).append("AND ");
+		if (includeAll || StringUtil.hasValue(tagInfo.album)) {
+			where.append("ALBUM").append(nullIfBlank(tagInfo.album));
+			added = true;
 		}
-		where.append("ALBUM").append(nullIfBlank(tag.getFirst(FieldKey.ALBUM))).append("AND ")
-			 .append("TITLE").append(nullIfBlank(tag.getFirst(FieldKey.TITLE))).append("AND ");
-		if (includeAll || StringUtil.hasValue(tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID))) {
-			where
-			 .append("TRACK_ID").append(nullIfBlank(tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID))).append("AND ");
+		if (includeAll || StringUtil.hasValue(tagInfo.artistId)) {
+			if (added) {
+				where.append(AND);
+			}
+			where.append("ARTIST_ID").append(nullIfBlank(tagInfo.artistId));
+			added = true;
 		}
-		where.append("YEAR").append(nullIfBlank(tag.getFirst(FieldKey.YEAR)));
+		if (includeAll || (!StringUtil.hasValue(tagInfo.artistId) && StringUtil.hasValue(tagInfo.artist))) {
+			if (added) {
+				where.append(AND);
+			}
+			where.append("ARTIST").append(nullIfBlank(tagInfo.artist));
+			added = true;
+		}
+
+		if (
+			includeAll || (
+				StringUtil.hasValue(tagInfo.trackId) && (
+					!StringUtil.hasValue(tagInfo.album) || !(
+						StringUtil.hasValue(tagInfo.artist) ||
+						StringUtil.hasValue(tagInfo.artistId)
+					)
+				)
+			)
+		) {
+			if (added) {
+				where.append(AND);
+			}
+			 where.append("TRACK_ID").append(nullIfBlank(tagInfo.trackId));
+			 added = true;
+		}
+		if (
+			includeAll || (
+				!StringUtil.hasValue(tagInfo.trackId) && (
+					StringUtil.hasValue(tagInfo.title) && (
+						!StringUtil.hasValue(tagInfo.album) || !(
+							StringUtil.hasValue(tagInfo.artist) ||
+							StringUtil.hasValue(tagInfo.artistId)
+						)
+					)
+				)
+			)
+		) {
+			if (added) {
+				where.append(AND);
+			}
+			where.append("TITLE").append(nullIfBlank(tagInfo.title));
+			added = true;
+		}
+
+		if (StringUtil.hasValue(tagInfo.year)) {
+			if (added) {
+				where.append(AND);
+			}
+			where.append("YEAR").append(nullIfBlank(tagInfo.year));
+			added = true;
+		}
 
 		return where.toString();
 	}
@@ -115,11 +165,11 @@ public final class TableMusicBrainzReleases extends Tables{
 	 * @param tag the {@link Tag} who's information should be associated with
 	 *        the given MBID
 	 */
-	public static void writeMBID(final String mBID, final Tag tag) {
+	public static void writeMBID(final String mBID, final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + contructTagWhere(tag, true);
+			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true);
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
 			}
@@ -144,12 +194,6 @@ public final class TableMusicBrainzReleases extends Tables{
 							LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
 						}
 					} else {
-						final String album = tag.getFirst(FieldKey.ALBUM);
-						final String artist = tag.getFirst(FieldKey.ARTIST);
-						final String title = tag.getFirst(FieldKey.TITLE);
-						final String year = tag.getFirst(FieldKey.YEAR);
-						final String artistId = tag.getFirst(FieldKey.MUSICBRAINZ_ARTISTID);
-						final String trackId = tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
 						if (trace) {
 							LOGGER.trace(
 								"Inserting new row for MBID \"{}\":\n" +
@@ -159,7 +203,9 @@ public final class TableMusicBrainzReleases extends Tables{
 								"     Year      \"{}\"\n" +
 								"     Artist ID \"{}\"\n" +
 								"     Track ID  \"{}\"\n",
-								mBID, artist, album, title, year, artistId, trackId
+								mBID, tagInfo.artist, tagInfo.album,
+								tagInfo.title, tagInfo.year,
+								tagInfo.artistId, tagInfo.trackId
 							);
 						}
 
@@ -168,23 +214,23 @@ public final class TableMusicBrainzReleases extends Tables{
 						if (StringUtil.hasValue(mBID)) {
 							result.updateString("MBID", mBID);
 						}
-						if (StringUtil.hasValue(album)) {
-							result.updateString("ALBUM", album);
+						if (StringUtil.hasValue(tagInfo.album)) {
+							result.updateString("ALBUM", tagInfo.album);
 						}
-						if (StringUtil.hasValue(artist)) {
-							result.updateString("ARTIST", artist);
+						if (StringUtil.hasValue(tagInfo.artist)) {
+							result.updateString("ARTIST", tagInfo.artist);
 						}
-						if (StringUtil.hasValue(title)) {
-							result.updateString("TITLE", title);
+						if (StringUtil.hasValue(tagInfo.title)) {
+							result.updateString("TITLE", tagInfo.title);
 						}
-						if (StringUtil.hasValue(year)) {
-							result.updateString("YEAR", year);
+						if (StringUtil.hasValue(tagInfo.year)) {
+							result.updateString("YEAR", tagInfo.year);
 						}
-						if (StringUtil.hasValue(artistId)) {
-							result.updateString("ARTIST_ID", artistId);
+						if (StringUtil.hasValue(tagInfo.artistId)) {
+							result.updateString("ARTIST_ID", tagInfo.artistId);
 						}
-						if (StringUtil.hasValue(trackId)) {
-							result.updateString("TRACK_ID", trackId);
+						if (StringUtil.hasValue(tagInfo.trackId)) {
+							result.updateString("TRACK_ID", tagInfo.trackId);
 						}
 						result.insertRow();
 					}
@@ -196,10 +242,9 @@ public final class TableMusicBrainzReleases extends Tables{
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while writing Music Brainz ID \"{}\" for {} - {}: {}",
+				"Database error while writing Music Brainz ID \"{}\" for \"{}\": {}",
 				mBID,
-				tag.getFirst(FieldKey.ARTIST),
-				tag.getFirst(FieldKey.TITLE),
+				tagInfo,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
@@ -214,12 +259,12 @@ public final class TableMusicBrainzReleases extends Tables{
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
-	public static MusicBrainzReleasesResult findMBID(final Tag tag) {
+	public static MusicBrainzReleasesResult findMBID(final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 		MusicBrainzReleasesResult result;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + contructTagWhere(tag, false);
+			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false);
 
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\"", query);
@@ -238,12 +283,7 @@ public final class TableMusicBrainzReleases extends Tables{
 				tableLock.readLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while looking up Music Brainz ID for {} - {}: {}",
-				tag.getFirst(FieldKey.ARTIST),
-				tag.getFirst(FieldKey.TITLE),
-				e.getMessage()
-			);
+			LOGGER.error("Database error while looking up Music Brainz ID for \"{}\": {}", tagInfo, e.getMessage());
 			LOGGER.trace("", e);
 			result = new MusicBrainzReleasesResult();
 		}
