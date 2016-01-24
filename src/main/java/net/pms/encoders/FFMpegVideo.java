@@ -770,7 +770,14 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 2500;
 		}
 
-		setAudioAndSubs(filename, media, params);
+		if (params.aid == null) { //TODO this is a workaround and it should be set during the parsing for the user preference setting
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null) { //TODO this is a workaround and it should be set during the parsing for the user preference setting
+			setSubtitleOutputParameters(filename, media, params);
+		}
+
 		cmdList.add(executable());
 
 		// Prevent FFmpeg timeout

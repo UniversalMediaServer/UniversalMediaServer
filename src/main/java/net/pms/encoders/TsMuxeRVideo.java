@@ -117,7 +117,13 @@ public class TsMuxeRVideo extends Player {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params);
+		if (params.aid == null) { //TODO this is a workaround and it should be set during the parsing for the user preference setting
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null) { //TODO this is a workaround and it should be set during the parsing for the user preference setting
+			setSubtitleOutputParameters(filename, media, params);
+		}
 
 		PipeIPCProcess ffVideoPipe;
 		ProcessWrapperImpl ffVideo;
