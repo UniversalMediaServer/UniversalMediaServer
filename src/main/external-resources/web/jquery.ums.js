@@ -1,23 +1,32 @@
 function changeMargins() {
 	var total_w = $('#Media').width();
-	var cells = $('#Media li'),
-		aspect = new Array(cells.length),
-		images_w = 0, row_h = 180, row_start = 0, spaces = 1;
+	var cells = $('#Media li');
+	var aspect = 16 / 9;
+	var images_w = 0;
+	var row_h = 180;
+	var row_start = 0;
+	var spaces = 1;
 
 	for (var i = 0; i < cells.length; i++) {
 		var thumb = $(cells[i]).find('.thumb')[0];
-		aspect[i] = thumb.naturalWidth / thumb.naturalHeight;
-		images_w += (180 * aspect[i]);
+		
+		// Each thumbnail is constrained to the same aspect ratio as the first thumbnail
+		if (i === 0) {
+			aspect = thumb.naturalWidth / thumb.naturalHeight;
+		}
+
+		images_w += (180 * aspect);
 		var avail_w = total_w - ++spaces * 20;
 		var wrap = images_w > avail_w;
-		if (wrap || i == cells.length - 1) {
+		if (wrap || i === cells.length - 1) {
 			if (wrap) {
 				row_h = avail_w / images_w * 180;
 			}
+			var cell_w = row_h * aspect;
+
 			// Normalize cell heights for current row
 			for (var c = row_start; c <= i; c++) {
-				var cell_w = row_h * aspect[c],
-					caption_w = cell_w - 33;
+				var caption_w = cell_w - 33;
 				$(cells[c]).find('.caption').css({
 					width : caption_w + 'px',
 					maxWidth : caption_w + 'px',
@@ -27,6 +36,10 @@ function changeMargins() {
 					height : row_h + 'px',
 					maxWidth : cell_w + 'px',
 					maxHeight : row_h + 'px',
+				});
+				$(cells[c]).find('a:first-child').css({
+					height : row_h + 'px',
+					width : cell_w + 'px',
 				});
 			}
 			images_w = 0;
@@ -95,10 +108,10 @@ function poll() {
 		$.ajax({ url: '/poll',
 			success: function(json){
 				refused = 0;
-				if(json) {
+				if (json) {
 					//console.log('json: '+json)
 					var ops = JSON.parse(json), i;
-					for (i=0; i < ops.length; i++) {
+					for (i = 0; i < ops.length; i++) {
 						var args = ops[i];
 						switch (args[0]) {
 							case 'seturl':
@@ -116,7 +129,7 @@ function poll() {
 					}
 				}
 			},
-			error: function(){
+			error: function() {
 				if (++refused > 10) {
 					clearInterval(polling);
 				}

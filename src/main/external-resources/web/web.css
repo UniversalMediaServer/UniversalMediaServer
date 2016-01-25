@@ -137,6 +137,14 @@ ul#Media li {
 	margin-bottom: 20px;
 }
 
+ul#Media li a:first-child {
+	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
+	width: 308px;
+	height: 173px;
+	background-color: #000;
+	display: block;
+}
+
 ul#Media .thumb {
 	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
 	max-width: 308px;
@@ -144,9 +152,8 @@ ul#Media .thumb {
 	height: 173px;
 	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
 	width: auto;
-	float: left;
-	display:block;
-	margin: 0;
+	display: block;
+	margin: 0 auto;
 }
 
 ul#Media .caption {
