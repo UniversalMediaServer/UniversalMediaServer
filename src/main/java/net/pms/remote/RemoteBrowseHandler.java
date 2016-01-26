@@ -159,7 +159,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 					sb.append("");
 				}
 
-				item.put("bump", sb.toString());
+				sb.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
+					.append(RemoteUtil.getMsgString("Web.10", t)).append("\"></a>");
+
+				item.put("actions", sb.toString());
 				sb.setLength(0);
 
 				if (WebRender.supports(r) || r.isResume()) {

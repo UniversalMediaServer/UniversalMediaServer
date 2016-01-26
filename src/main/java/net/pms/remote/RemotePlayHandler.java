@@ -10,8 +10,10 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -262,6 +264,20 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 			}
 			RemoteUtil.respond(t, returnPage(), 200, "text/html");
+		}  else if (p.contains("/m3u8/")) {
+			String id = StringUtils.substringBefore(StringUtils.substringAfter(p, "/m3u8/"), ".m3u8");
+			DLNAResource dlna = PMS.getGlobalRepo().get(id);
+			int duration = (int)(dlna.getMedia() != null ? dlna.getMedia().getDuration() : 0);
+			boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
+			String response = new StringBuilder()
+				.append("#EXTM3U\n#EXTINF:")
+				.append(duration == 0 ? -1 : duration).append(",")
+				.append(dlna.resumeName()).append("\n")
+				// If the resource is not a transcode folder item, tag its url for forced streaming
+				.append(dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true))
+				.toString();
+			LOGGER.debug("sending m3u:\n" + response);
+			RemoteUtil.respond(t, response, 200, null);
 		}
 	}
 }
