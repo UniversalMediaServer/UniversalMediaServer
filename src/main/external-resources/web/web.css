@@ -167,7 +167,11 @@ ul#Media .caption {
 	background: url('/files/bump/skin/remove16.png') no-repeat;
 }
 
-.playlist_add, .playlist_del {
+.download {
+	background: url('/files/down16.png') no-repeat;
+}
+
+.playlist_add, .playlist_del, .download {
 	width: 16px;
 	height: 16px;
 	display: block;
