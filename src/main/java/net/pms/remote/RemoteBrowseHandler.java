@@ -106,7 +106,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						.append("<span class=\"caption\">").append(name).append("</span>")
 						.append("</a>");
 				item.put("caption", sb.toString());
-				item.put("bump", "<span class=\"floatRight\"></span>");
+				item.put("actions", "<span class=\"floatRight\"></span>");
 				media.add(item);
 				hasFile = true;
 				continue;
@@ -164,7 +164,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 					sb.append("");
 				}
 
-				item.put("bump", sb.toString());
+				sb.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
+					.append(RemoteUtil.getMsgString("Web.11", t)).append("\"></a>");
+
+				item.put("actions", sb.toString());
 				sb.setLength(0);
 
 				if (WebRender.supports(r) || r.isResume()) {

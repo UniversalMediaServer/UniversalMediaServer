@@ -193,9 +193,14 @@ ul#Media .caption {
 	background: url('/files/bump/skin/remove16.png') no-repeat;
 }
 
+.download {
+	background: url('/files/down16.png') no-repeat;
+}
+
 .playlist_add,
 .playlist_del,
 .bumpIcon,
+.download,
 #ViewGrid,
 #ViewDynamic,
 #DocButton {
@@ -205,6 +210,7 @@ ul#Media .caption {
 .playlist_add:hover,
 .playlist_del:hover,
 .bumpIcon:hover,
+.download:hover,
 #ViewGrid:hover,
 #ViewDynamic:hover,
 #ViewGrid.active,
@@ -213,7 +219,7 @@ ul#Media .caption {
 	opacity: 1.0;
 }
 
-.playlist_add, .playlist_del {
+.playlist_add, .playlist_del, .download {
 	width: 13px;
 	height: 16px;
 	display: block;
