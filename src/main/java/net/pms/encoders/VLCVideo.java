@@ -436,13 +436,7 @@ public class VLCVideo extends Player {
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		boolean isWindows = Platform.isWindows();
-		if (params.aid == null) { //TODO this is a workaround and it should be set during the parsing for the user preference setting
-			setAudioOutputParameters(media, params);
-		}
-
-		if (params.sid == null) { //TODO this is a workaround and it should be set during the parsing for the user preference setting
-			setSubtitleOutputParameters(filename, media, params);
-		}
+		setAudioAndSubs(filename, media, params);
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.mediaRenderer);
