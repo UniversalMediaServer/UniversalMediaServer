@@ -29,6 +29,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,9 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
+
+	PmsConfiguration prevConf;
+
 	@Before
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
@@ -45,6 +49,12 @@ public class RendererConfigurationTest {
 		// Set locale to EN to ignore translations for renderers
 		Locale.setDefault(Locale.ENGLISH);
 		PMS.setLocale(Locale.ENGLISH);
+		prevConf = PMS.getConfiguration();
+	}
+
+	@After
+	public void tearDown() {
+		PMS.setConfiguration(prevConf);
 	}
 
 	/**
@@ -60,6 +70,7 @@ public class RendererConfigurationTest {
 		pmsConf = new PmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
+		PMS.setConfiguration(pmsConf);
 		loadRendererConfigurations(pmsConf);
 
 		// Known headers
@@ -177,6 +188,7 @@ public class RendererConfigurationTest {
 		pmsConf.setRendererForceDefault(true);
 
 		// Initialize the RendererConfiguration
+		PMS.setConfiguration(pmsConf);
 		loadRendererConfigurations(pmsConf);
 
 		// Known and unknown renderers should always return default
@@ -200,6 +212,7 @@ public class RendererConfigurationTest {
 		pmsConf.setRendererForceDefault(true);
 
 		// Initialize the RendererConfiguration
+		PMS.setConfiguration(pmsConf);
 		loadRendererConfigurations(pmsConf);
 
 		// Known and unknown renderers should return "Unknown renderer"
