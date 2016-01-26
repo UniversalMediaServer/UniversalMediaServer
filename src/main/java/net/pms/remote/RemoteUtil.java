@@ -10,7 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -44,7 +44,7 @@ public class RemoteUtil {
 
 	public static void respond(HttpExchange t, String response, int status, String mime) {
 		if (response != null) {
-			respond(t, response.getBytes(), status, mime);
+			respond(t, response.getBytes(StandardCharsets.UTF_8), status, mime);
 		}
 	}
 
@@ -120,7 +120,7 @@ public class RemoteUtil {
 
 	public static String read(File f) {
 		try {
-			return FileUtils.readFileToString(f, Charset.forName("UTF-8"));
+			return FileUtils.readFileToString(f, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			LOGGER.debug("Error reading file: " + e);
 		}
