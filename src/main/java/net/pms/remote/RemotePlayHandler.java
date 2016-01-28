@@ -18,9 +18,12 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Player;
+import net.pms.external.ExternalFactory;
+import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
+import net.pms.util.FileUtil;
 import net.pms.util.SubtitleUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -208,6 +211,42 @@ public class RemotePlayHandler implements HttpHandler {
 		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(vars);
 	}
 
+	private String mkM3u8(String id) {
+		DLNAResource dlna = PMS.getGlobalRepo().get(id);
+		if (dlna != null) {
+			double duration = dlna.getMedia() != null ? dlna.getMedia().getDurationInSeconds() : 0;
+			String url = null;
+
+			if (! FileUtil.isUrl(dlna.getSystemName())) {
+				// Get the resource url
+				boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
+				// If the resource is not a transcode folder item, tag its url for forced streaming
+				url = dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false);
+
+			} else {
+				// It's a WEB.conf item or plugin-provided url, make sure it's resolved
+				url = dlna.getSystemName();
+				if (!dlna.isURLResolved()) {
+					URLResult r = ExternalFactory.resolveURL(url);
+					if (r != null && StringUtils.isNotEmpty(r.url)) {
+						url = r.url;
+					}
+				}
+			}
+
+			if (url != null) {
+				return new StringBuilder()
+					.append("#EXTM3U\n#EXTINF:")
+					.append(duration).append(",").append(dlna.resumeName())
+					// This is required per https://tools.ietf.org/id/draft-pantos-http-live-streaming-18.txt
+					.append("\n#EXT-X-TARGETDURATION:").append(duration + 1).append("\n")
+					.append(url)
+					.toString();
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		if (RemoteUtil.deny(t)) {
@@ -259,19 +298,14 @@ public class RemotePlayHandler implements HttpHandler {
 			RemoteUtil.respond(t, returnPage(), 200, "text/html");
 		}  else if (p.contains("/m3u8/")) {
 			String id = StringUtils.substringBefore(StringUtils.substringAfter(p, "/m3u8/"), ".m3u8");
-			DLNAResource dlna = PMS.getGlobalRepo().get(id);
-			int duration = (int)(dlna.getMedia() != null ? dlna.getMedia().getDuration() : 0);
-			boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
-			String response = new StringBuilder()
-				.append("#EXTM3U\n#EXTINF:")
-				.append(duration == 0 ? -1 : duration).append(",").append(dlna.resumeName())
-				// this is required (per https://tools.ietf.org/id/draft-pantos-http-live-streaming-18.txt)
-				.append("\n#EXT-X-TARGETDURATION:").append(duration + 1).append("\n")
-				// If the resource is not a transcode folder item, tag its url for forced streaming
-				.append(dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false))
-				.toString();
-			LOGGER.debug("sending m3u8:\n" + response);
-			RemoteUtil.respond(t, response, 200, "application/x-mpegURL");
+			String response = mkM3u8(id);
+			if (response != null) {
+				LOGGER.debug("sending m3u8:\n" + response);
+				RemoteUtil.respond(t, response, 200, "application/x-mpegURL");
+			} else {
+				RemoteUtil.respond(t, "<html><body>404 - File Not Found: " + p + "</body></html>", 404, "text/html");
+			}
+
 		}
 	}
 }
