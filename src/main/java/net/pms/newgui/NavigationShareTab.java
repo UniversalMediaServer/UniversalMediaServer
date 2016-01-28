@@ -40,6 +40,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.util.CoverSupplier;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.KeyedComboBoxModel;
@@ -347,7 +348,10 @@ public class NavigationShareTab {
 		});
 
 		// Audio thumbnails import
-		final KeyedComboBoxModel<Integer, String> thumbKCBM = new KeyedComboBoxModel<>(new Integer[]{0, 1, 2}, new String[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
+		final KeyedComboBoxModel<CoverSupplier, String> thumbKCBM = new KeyedComboBoxModel<>(
+			new CoverSupplier[]{CoverSupplier.NONE, CoverSupplier.COVER_ART_ARCHIVE},
+			new String[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.73")}
+		);
 		audiothumbnail = new JComboBox<>(thumbKCBM);
 		audiothumbnail.setEditable(false);
 

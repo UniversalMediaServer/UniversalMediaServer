@@ -40,6 +40,7 @@ import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
+import net.pms.util.CoverSupplier;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FilePermissions;
@@ -2539,12 +2540,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SORT_METHOD, value);
 	}
 
-	public int getAudioThumbnailMethod() {
-		return getInt(KEY_AUDIO_THUMBNAILS_METHOD, 0);
+	public CoverSupplier getAudioThumbnailMethod() {
+		return CoverSupplier.toCoverSupplier(getInt(KEY_AUDIO_THUMBNAILS_METHOD, 1));
 	}
 
-	public void setAudioThumbnailMethod(int value) {
-		configuration.setProperty(KEY_AUDIO_THUMBNAILS_METHOD, value);
+	public void setAudioThumbnailMethod(CoverSupplier value) {
+		configuration.setProperty(KEY_AUDIO_THUMBNAILS_METHOD, value.toInt());
 	}
 
 	public String getAlternateThumbFolder() {

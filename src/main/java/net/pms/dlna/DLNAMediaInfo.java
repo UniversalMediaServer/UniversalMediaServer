@@ -32,10 +32,12 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.MpegUtil;
+import net.pms.util.CoverArtArchiveUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
@@ -753,14 +755,8 @@ public class DLNAMediaInfo implements Cloneable {
 							if (t.getArtworkList().size() > 0) {
 								thumb = t.getArtworkList().get(0).getBinaryData();
 							} else {
-								if (configuration.getAudioThumbnailMethod() > 0) {
-									thumb =
-										CoverUtil.get().getThumbnailFromArtistAlbum(
-											configuration.getAudioThumbnailMethod() == 1 ?
-												CoverUtil.AUDIO_AMAZON :
-												CoverUtil.AUDIO_DISCOGS,
-											audio.getArtist(), audio.getAlbum()
-										);
+								if (!configuration.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
+									thumb = CoverUtil.get().getThumbnail(t);
 								}
 							}
 
@@ -1304,6 +1300,11 @@ public class DLNAMediaInfo implements Cloneable {
 		this.durationSec = d;
 	}
 
+	/**
+	 * This is the object {@link Double} and might return <code>null</code>.
+	 * To get <code>0</code> instead of <code>null</code>, use
+	 * {@link #getDurationInSeconds()}
+	 */
 	public Double getDuration() {
 		return durationSec;
 	}

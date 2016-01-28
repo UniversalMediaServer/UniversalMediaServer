@@ -41,7 +41,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
-import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
+import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
@@ -2198,7 +2198,7 @@ public class MEncoderVideo extends Player {
 				cmdList.add(pipe.getInputPipe());
 
 				if (pcm && !channels_filter_present && params.aid != null) {
-					String mixer = getLPCMChannelMappingForMencoder(params.aid);
+					String mixer = AudioUtils.getLPCMChannelMappingForMencoder(params.aid);
 					if (isNotBlank(mixer)) {
 						cmdList.add("-af");
 						cmdList.add(mixer);

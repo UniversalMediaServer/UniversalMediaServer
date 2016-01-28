@@ -88,7 +88,7 @@ public class DLNAMediaDatabase implements Runnable {
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
 		dbDir = new File(Platform.isWindows() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
-		url = Constants.START_URL + dbDir + "/" + dbName;
+		url = Constants.START_URL + dbDir + File.separator + dbName;
 		LOGGER.debug("Using database URL: " + url);
 		LOGGER.info("Using database located at: " + dbDir);
 
@@ -105,7 +105,29 @@ public class DLNAMediaDatabase implements Runnable {
 		cp = JdbcConnectionPool.create(ds);
 	}
 
-	private Connection getConnection() throws SQLException {
+	/**
+	 * Gets the name of the database file
+	 *
+	 * @return The filename
+	 */
+	public String getDatabaseFilename() {
+		if (dbName == null || dbDir == null) {
+			return null;
+		} else {
+			return dbDir + File.separator + dbName;
+		}
+	}
+
+	/**
+	 * Gets a new connection from the connection pool if one is available. If
+	 * not waits for a free slot until timeout.<br>
+	 * <br>
+	 * <strong>Important: Every connection must be closed after use</strong>
+	 *
+	 * @return the new connection
+	 * @throws SQLException
+	 */
+	public Connection getConnection() throws SQLException {
 		return cp.getConnection();
 	}
 
@@ -124,7 +146,7 @@ public class DLNAMediaDatabase implements Runnable {
 			if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
 				FileUtils.deleteQuietly(dbDirectory);
 				if (!dbDirectory.exists()) {
-					LOGGER.debug("The cache has been deleted because it was corrupt or had the wrong version");
+					LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
 				} else {
 					if (!net.pms.PMS.isHeadless()) {
 						JOptionPane.showMessageDialog(
@@ -139,7 +161,8 @@ public class DLNAMediaDatabase implements Runnable {
 					return;
 				}
 			} else {
-				LOGGER.error("Cache connection error: " + se.getMessage());
+				LOGGER.error("Database connection error: " + se.getMessage());
+				LOGGER.trace("", se);
 				PMS.get().getRootFolder(null).stopScan();
 				configuration.setUseCache(false);
 				return;
