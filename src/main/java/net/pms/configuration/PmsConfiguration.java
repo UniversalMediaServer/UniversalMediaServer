@@ -2841,11 +2841,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
-	public boolean isUseInfoFromIMDB() {
+	public boolean isUseInfoFromIMDb() {
 		return getBoolean(KEY_USE_IMDB_INFO, false) && isPrettifyFilenames();
 	}
 
-	public void setUseInfoFromIMDB(boolean value) {
+	public void setUseInfoFromIMDb(boolean value) {
 		configuration.setProperty(KEY_USE_IMDB_INFO, value);
 	}
 

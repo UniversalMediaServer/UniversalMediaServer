@@ -624,7 +624,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		episodeTitles = new JCheckBox(Messages.getString("FoldTab.63"), configuration.isUseInfoFromIMDB());
+		episodeTitles = new JCheckBox(Messages.getString("FoldTab.63"), configuration.isUseInfoFromIMDb());
 		episodeTitles.setToolTipText(Messages.getString("FoldTab.64"));
 		episodeTitles.setContentAreaFilled(false);
 		if (!configuration.isPrettifyFilenames()) {
@@ -633,7 +633,7 @@ public class NavigationShareTab {
 		episodeTitles.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setUseInfoFromIMDB((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
@@ -666,7 +666,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// Fully played media action
+		// Fully played action
 		final KeyedComboBoxModel<FullyPlayedAction, String> fullyPlayedActionModel = new KeyedComboBoxModel<>(
 			new FullyPlayedAction[]{
 				FullyPlayedAction.NO_ACTION,
@@ -683,7 +683,7 @@ public class NavigationShareTab {
 				Messages.getString("FoldTab.71")
 			}
 		);
-		fullyPlayedAction = new JComboBox<String>(fullyPlayedActionModel);
+		fullyPlayedAction = new JComboBox<>(fullyPlayedActionModel);
 		fullyPlayedAction.setEditable(false);
 		fullyPlayedActionModel.setSelectedKey(configuration.getFullyPlayedAction());
 		fullyPlayedAction.addItemListener(new ItemListener() {
@@ -693,6 +693,10 @@ public class NavigationShareTab {
 					configuration.setFullyPlayedAction(fullyPlayedActionModel.getSelectedKey());
 					fullyPlayedOutputDirectory.setEnabled(fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.MOVE_FOLDER);
 					selectFullyPlayedOutputDirectory.setEnabled(fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.MOVE_FOLDER);
+
+					if (configuration.getUseCache() && fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.NO_ACTION) {
+						PMS.get().getDatabase().init(true);
+					}
 				}
 			}
 		});

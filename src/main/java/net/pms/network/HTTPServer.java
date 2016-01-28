@@ -220,6 +220,7 @@ public class HTTPServer implements Runnable {
 	public void run() {
 		LOGGER.info("Starting DLNA Server on host {} and port {}...", hostname, port);
 
+		int count = 0;
 		while (!stop) {
 			try {
 				Socket socket = serverSocket.accept();
@@ -237,8 +238,14 @@ public class HTTPServer implements Runnable {
 				}
 
 				if (!ignore) {
+					if (count == Integer.MAX_VALUE) {
+						count = 1;
+					} else
+					{
+						count++;
+					}
 					RequestHandler request = new RequestHandler(socket);
-					Thread thread = new Thread(request, "Request Handler");
+					Thread thread = new Thread(request, "Request Handler " + count);
 					thread.start();
 				}
 			} catch (ClosedByInterruptException e) {

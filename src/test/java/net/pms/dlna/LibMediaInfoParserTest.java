@@ -106,14 +106,4 @@ public class LibMediaInfoParserTest {
 		assertThat(LibMediaInfoParser.getLang("ptBR (Brazil)")).isEqualTo("ptBR");
 		assertThat(LibMediaInfoParser.getLang("enUS/GB")).isEqualTo("enUS");
 	}
-	
-	@Test
-	public void testGetCover() throws Exception {
-		assertThat(LibMediaInfoParser.getCover("SGVsbG8gV29ybGQ=")).isEqualTo(Base64.decode("SGVsbG8gV29ybGQ=".getBytes()));
-	}
-	
-	@Test
-	public void testGetCoverInvalidInput() throws Exception {
-		assertThat(LibMediaInfoParser.getCover(null)).isNull();
-	}
 }

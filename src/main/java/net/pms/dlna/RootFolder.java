@@ -124,7 +124,7 @@ public class RootFolder extends DLNAResource {
 			String[] tmp = m.split(",");
 			File[] dirs = new File[tmp.length];
 			for (int i = 0; i < tmp.length; i++) {
-				dirs[i] = new File(tmp[i]);
+				dirs[i] = new File(tmp[i].replaceAll("&comma;", ","));
 			}
 			mon = new MediaMonitor(dirs);
 
@@ -202,6 +202,9 @@ public class RootFolder extends DLNAResource {
 	}
 
 	public void scan() {
+		if (!configuration.getUseCache()) {
+			throw new IllegalStateException("Can't scan when cache is disabled");
+		}
 		running = true;
 
 		if (!isDiscovered()) {
@@ -209,10 +212,15 @@ public class RootFolder extends DLNAResource {
 		}
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		LOGGER.trace("Starting scan of: {}", this.getName());
 		scan(this);
 		IFrame frame = PMS.get().getFrame();
-		frame.setScanLibraryEnabled(true);
-		PMS.get().getDatabase().cleanup();
+
+		// Running might have been set false during scan
+		if (running) {
+			frame.setScanLibraryEnabled(true);
+			PMS.get().getDatabase().cleanup();
+		}
 		frame.setStatusLine(null);
 	}
 

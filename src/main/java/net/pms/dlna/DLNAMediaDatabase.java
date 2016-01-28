@@ -156,12 +156,14 @@ public class DLNAMediaDatabase implements Runnable {
 							JOptionPane.ERROR_MESSAGE);
 					}
 					LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
+					PMS.get().getRootFolder(null).stopScan();
 					configuration.setUseCache(false);
 					return;
 				}
 			} else {
 				LOGGER.error("Database connection error: " + se.getMessage());
 				LOGGER.trace("", se);
+				PMS.get().getRootFolder(null).stopScan();
 				configuration.setUseCache(false);
 				return;
 			}
@@ -805,6 +807,11 @@ public class DLNAMediaDatabase implements Runnable {
 
 	@Override
 	public void run() {
-		PMS.get().getRootFolder(null).scan();
+		try {
+			PMS.get().getRootFolder(null).scan();
+		} catch (Exception e) {
+			LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
 	}
 }
