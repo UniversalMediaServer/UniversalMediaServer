@@ -65,7 +65,7 @@ public class InfoDb implements DbHandler {
 		data.imdb = FileDb.safeGetArg(args, off);
 
 		/**
-		 * Sometimes if IMDB doesn't have an episode title they call it
+		 * Sometimes if IMDb doesn't have an episode title they call it
 		 * something like "Episode #1.4", so discard that.
 		 */
 		data.ep_name = FileDb.safeGetArg(args, off + 1);

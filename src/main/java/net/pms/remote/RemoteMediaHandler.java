@@ -71,7 +71,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			throw new IOException("Bad code");
 		}
 		DLNAMediaSubtitle sid = null;
-		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
+		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
 		//DLNAResource dlna = res.get(0);
 		WebRender render = (WebRender) r;
 		DLNAMediaInfo m = dlna.getMedia();

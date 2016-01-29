@@ -24,9 +24,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
 		this.database = PMS.get().getDatabase();
-		// double check the database has been initialized (via PMS.init -> PMS.initializeDatabase)
-		// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=11474
-		assert this.database != null;
 	}
 
 	@Override

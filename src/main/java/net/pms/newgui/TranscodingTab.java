@@ -28,6 +28,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -38,8 +39,11 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJComboBox;
 import net.pms.newgui.components.CustomJTextField;
+import net.pms.util.KeyedStringComboBoxModel;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +83,7 @@ public class TranscodingTab {
 	private JCheckBox forcePCM;
 	private JCheckBox encodedAudioPassthrough;
 	public static JCheckBox forceDTSinPCM;
-	private JComboBox<Object> channels;
+	private JComboBox<String> channels;
 	private JComboBox<String> vq;
 	private JComboBox<String> x264Quality;
 	private JCheckBox ac3remux;
@@ -502,61 +506,81 @@ public class TranscodingTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder.add(new JLabel(Messages.getString("TrTab2.32")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
-		String[] data = new String[] {
-			configuration.getMPEG2MainSettings(),                                                   /* Current setting */
-			String.format("Automatic (Wired)  /* %s */",          Messages.getString("TrTab2.71")), /* Recommended for wired networks */
-			String.format("Automatic (Wireless)  /* %s */",       Messages.getString("TrTab2.72")), /* Recommended for wireless networks */
-			String.format("keyint=5:vqscale=1:vqmin=2  /* %s */", Messages.getString("TrTab2.60")), /* Great */
-			String.format("keyint=5:vqscale=1:vqmin=1  /* %s */", Messages.getString("TrTab2.61")), /* Lossless */
-			String.format("keyint=5:vqscale=2:vqmin=3  /* %s */", Messages.getString("TrTab2.62")), /* Good (wired) */
-			String.format("keyint=25:vqmax=5:vqmin=2  /* %s */",  Messages.getString("TrTab2.63")), /* Good (wireless) */
-			String.format("keyint=25:vqmax=7:vqmin=2  /* %s */",  Messages.getString("TrTab2.64")), /* Medium (wireless) */
-			String.format("keyint=25:vqmax=8:vqmin=3  /* %s */",  Messages.getString("TrTab2.65"))  /* Low */
+		String[] keys = new String[] {
+			"Automatic (Wired)",
+			"Automatic (Wireless)",
+			"keyint=5:vqscale=1:vqmin=1",
+			"keyint=5:vqscale=1:vqmin=2",
+			"keyint=5:vqscale=2:vqmin=3",
+			"keyint=25:vqmax=5:vqmin=2",
+			"keyint=25:vqmax=7:vqmin=2",
+			"keyint=25:vqmax=8:vqmin=3"
 		};
+		//TODO Set ViewLevel.EXPERT when ViewLevel is fully implemented
+		String[] values = new String[] {
+			Messages.getString("TrTab2.92"), // Automatic (Wired)
+			Messages.getString("TrTab2.93"), // Automatic (Wireless)
+			String.format(
+				Messages.getString("TrTab2.61")+"%s", // Lossless
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=1:vqmin=1)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.60")+"%s", // Great
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=1:vqmin=2)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.62")+"%s", // Good (wired)
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=2:vqmin=3)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.63")+"%s", // Good (wireless)
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=5:vqmin=2)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.64")+"%s", // Medium (wireless)
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=7:vqmin=2)" : ""
+			),
+			String.format(
+				Messages.getString("TrTab2.65")+"%s", // Low
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=8:vqmin=3)" : ""
+			)
+		};
+		final KeyedStringComboBoxModel mPEG2MainModel = new KeyedStringComboBoxModel(keys, values);
 
-		vq = new JComboBox<>(data);
+		vq = new JComboBox<>(mPEG2MainModel);
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
+		mPEG2MainModel.setSelectedKey(configuration.getMPEG2MainSettings());
 		vq.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				String s = (String) e.getItem();
-				if (s.contains("/*")) {
-					s = s.substring(0, s.indexOf("/*")).trim();
-				}
-				configuration.setMPEG2MainSettings(s);
-			}
-		});
-		vq.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				vq.getItemListeners()[0].itemStateChanged(new ItemEvent(vq, 0, vq.getEditor().getItem(), ItemEvent.SELECTED));
+				configuration.setMPEG2MainSettings(mPEG2MainModel.getSelectedKey());
 			}
 		});
 		vq.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(vq), FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
 
 		builder.add(new JLabel(Messages.getString("TrTab2.79")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
-		String[] x264QualityOptions = new String[] {
-			configuration.getx264ConstantRateFactor(),                                        /* Current setting */
-			String.format("Automatic (Wired)  /* %s */", Messages.getString("TrTab2.71")),    /* Recommended for wired networks */
-			String.format("Automatic (Wireless)  /* %s */", Messages.getString("TrTab2.72")), /* Recommended for wireless networks */
-			String.format("16  /* %s */", Messages.getString("TrTab2.61"))                    /* Lossless */
+		keys = new String[] {
+			"Automatic (Wired)",
+			"Automatic (Wireless)",
+			"16"
 		};
+		//TODO Set ViewLevel.EXPERT when ViewLevel is fully implemented
+		values = new String[] {
+			Messages.getString("TrTab2.92"),
+			Messages.getString("TrTab2.93"),
+			String.format(
+				Messages.getString("TrTab2.61")+"%s", // Lossless
+				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (16)" : ""
+			)
+		};
+		final KeyedStringComboBoxModel x264QualityModel = new KeyedStringComboBoxModel(keys, values);
 
-		x264Quality = new JComboBox<>(x264QualityOptions);
+		x264Quality = new JComboBox<>(x264QualityModel);
 		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
+		x264QualityModel.setSelectedKey(configuration.getx264ConstantRateFactor());
 		x264Quality.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				String s = (String) e.getItem();
-				if (s.contains("/*")) {
-					s = s.substring(0, s.indexOf("/*")).trim();
-				}
-				configuration.setx264ConstantRateFactor(s);
-			}
-		});
-		x264Quality.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				x264Quality.getItemListeners()[0].itemStateChanged(new ItemEvent(x264Quality, 0, x264Quality.getEditor().getItem(), ItemEvent.SELECTED));
+				configuration.setx264ConstantRateFactor(x264QualityModel.getSelectedKey());
 			}
 		});
 		x264Quality.setEditable(true);
@@ -597,15 +621,18 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
-		channels = new JComboBox<Object>(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
+		Integer[] keys = new Integer[] {2, 6};
+		String[] values = new String[] {
+			Messages.getString("TrTab2.55"),
+			Messages.getString("TrTab2.56"), // 7.1 not supported by Mplayer
+		};
+
+		final KeyedComboBoxModel<Integer, String> audioChannelsModel = new KeyedComboBoxModel<>(keys, values);
+		channels = new JComboBox<>(audioChannelsModel);
 		channels.setEditable(false);
-		if (configuration.getAudioChannelCount() == 2) {
-			channels.setSelectedIndex(0);
-		} else {
-			channels.setSelectedIndex(1);
-		}
+		audioChannelsModel.setSelectedKey(configuration.getAudioChannelCount());
 		channels.addItemListener((ItemEvent e) -> {
-			configuration.setAudioChannelCount(Integer.parseInt(e.getItem().toString().substring(0, 1)));
+			configuration.setAudioChannelCount(audioChannelsModel.getSelectedKey());
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(channels), FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
@@ -752,62 +779,72 @@ public class TranscodingTab {
 		});
 		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xy(15, 6), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
-		String[] data = new String[]{
-			configuration.getSubtitlesCodepage(),
-			Messages.getString("MEncoderVideo.96"),
-			Messages.getString("MEncoderVideo.97"),
-			Messages.getString("MEncoderVideo.98"),
-			Messages.getString("MEncoderVideo.99"),
-			Messages.getString("MEncoderVideo.100"),
-			Messages.getString("MEncoderVideo.101"),
-			Messages.getString("MEncoderVideo.102"),
-			Messages.getString("MEncoderVideo.103"),
-			Messages.getString("MEncoderVideo.104"),
-			Messages.getString("MEncoderVideo.105"),
-			Messages.getString("MEncoderVideo.106"),
-			Messages.getString("MEncoderVideo.107"),
-			Messages.getString("MEncoderVideo.108"),
-			Messages.getString("MEncoderVideo.109"),
-			Messages.getString("MEncoderVideo.110"),
-			Messages.getString("MEncoderVideo.111"),
-			Messages.getString("MEncoderVideo.112"),
-			Messages.getString("MEncoderVideo.113"),
-			Messages.getString("MEncoderVideo.114"),
-			Messages.getString("MEncoderVideo.115"),
-			Messages.getString("MEncoderVideo.116"),
-			Messages.getString("MEncoderVideo.117"),
-			Messages.getString("MEncoderVideo.118"),
-			Messages.getString("MEncoderVideo.119"),
-			Messages.getString("MEncoderVideo.120"),
-			Messages.getString("MEncoderVideo.121"),
-			Messages.getString("MEncoderVideo.122"),
-			Messages.getString("MEncoderVideo.123"),
-			Messages.getString("MEncoderVideo.124")
+		builder.addLabel(Messages.getString("TrTab2.95"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+		String[] keys = new String[]{
+			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
+			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
+			"cp1257", "cp1258", "ISO-2022-CN", "ISO-2022-JP", "ISO-2022-KR",
+			"ISO-8859-1", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4",
+			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
+			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
+			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
+			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS"
+		};
+		String[] values = new String[]{
+			Messages.getString("General.2"),
+			Messages.getString("CharacterSet.874"),
+			Messages.getString("CharacterSet.932"),
+			Messages.getString("CharacterSet.936"),
+			Messages.getString("CharacterSet.949"),
+			Messages.getString("CharacterSet.950"),
+			Messages.getString("CharacterSet.1250"),
+			Messages.getString("CharacterSet.1251"),
+			Messages.getString("CharacterSet.1252"),
+			Messages.getString("CharacterSet.1253"),
+			Messages.getString("CharacterSet.1254"),
+			Messages.getString("CharacterSet.1255"),
+			Messages.getString("CharacterSet.1256"),
+			Messages.getString("CharacterSet.1257"),
+			Messages.getString("CharacterSet.1258"),
+			Messages.getString("CharacterSet.2022-CN"),
+			Messages.getString("CharacterSet.2022-JP"),
+			Messages.getString("CharacterSet.2022-KR"),
+			Messages.getString("CharacterSet.8859-1"),
+			Messages.getString("CharacterSet.8859-2"),
+			Messages.getString("CharacterSet.8859-3"),
+			Messages.getString("CharacterSet.8859-4"),
+			Messages.getString("CharacterSet.8859-5"),
+			Messages.getString("CharacterSet.8859-6"),
+			Messages.getString("CharacterSet.8859-7"),
+			Messages.getString("CharacterSet.8859-8"),
+			Messages.getString("CharacterSet.8859-9"),
+			Messages.getString("CharacterSet.8859-10"),
+			Messages.getString("CharacterSet.8859-11"),
+			Messages.getString("CharacterSet.8859-13"),
+			Messages.getString("CharacterSet.8859-14"),
+			Messages.getString("CharacterSet.8859-15"),
+			Messages.getString("CharacterSet.8859-16"),
+			Messages.getString("CharacterSet.Big5"),
+			Messages.getString("CharacterSet.EUC-JP"),
+			Messages.getString("CharacterSet.EUC-KR"),
+			Messages.getString("CharacterSet.GB18030"),
+			Messages.getString("CharacterSet.IBM420"),
+			Messages.getString("CharacterSet.IBM424"),
+			Messages.getString("CharacterSet.KOI8-R"),
+			Messages.getString("CharacterSet.ShiftJIS")
 		};
 
-		subtitleCodePage = new JComboBox<>(data);
+		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
+		subtitleCodePage = new CustomJComboBox<>(subtitleCodePageModel);
+		subtitleCodePage.setToolTipText(Messages.getString("TrTab2.94"));
+		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				String s = (String) e.getItem();
-				int offset = s.indexOf("/*");
-
-				if (offset > -1) {
-					s = s.substring(0, offset).trim();
-				}
-
-				configuration.setSubtitlesCodepage(s);
+				configuration.setSubtitlesCodepage(subtitleCodePageModel.getSelectedKey());
 			}
 		});
 
-		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
-			}
-		});
-
-		subtitleCodePage.setEditable(true);
+		subtitleCodePage.setEditable(false);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
 
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
@@ -904,7 +941,7 @@ public class TranscodingTab {
 				Messages.getString("MEncoderVideo.125"),
 				subColor.getBackground()
 			);
-
+			
 			if (newColor != null) {
 				subColor.setBackground(newColor);
 				configuration.setSubsColor(newColor.getRGB());
@@ -918,6 +955,9 @@ public class TranscodingTab {
 		forceExternalSubtitles.setContentAreaFilled(false);
 		forceExternalSubtitles.addItemListener((ItemEvent e) -> {
 			configuration.setForceExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
+			if (configuration.isForceExternalSubtitles()) {
+				autoloadExternalSubtitles.setSelected(true);
+			}
 			autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(forceExternalSubtitles), FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
@@ -950,8 +990,8 @@ public class TranscodingTab {
 		}
 
 		disableSubs.addItemListener((ItemEvent e) -> {
-			boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
 			// If "Disable Subtitles" is not selected, subtitles are enabled
+			boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
 			for (Component component : panel.getComponents()) {
 				component.setEnabled(enabled);
 			}

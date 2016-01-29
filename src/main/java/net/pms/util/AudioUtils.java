@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2012  I. Sokolov
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -16,11 +17,38 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.formats.v2;
+package net.pms.util;
 
 import net.pms.dlna.DLNAMediaAudio;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
+
+/**
+ * This is a utility class for audio related methods
+ */
 
 public class AudioUtils {
+
+	// No instantiation
+	private AudioUtils() {
+	}
+
+	/**
+	 * Checks if a given {@link Tag} supports a given {@link FieldKey}
+	 *
+	 * @param tag the {@link Tag} to check for support
+	 * @param key the {@link FieldKey} to check for support for
+	 *
+	 * @return The result
+	 */
+	public static boolean tagSupportsFieldKey(Tag tag, FieldKey key) {
+		try {
+			tag.getFirst(key);
+			return true;
+		} catch (UnsupportedOperationException e) {
+			return false;
+		}
+	}
 
 	/**
 	 * Due to mencoder/ffmpeg bug we need to manually remap audio channels for LPCM

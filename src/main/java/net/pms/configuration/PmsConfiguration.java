@@ -40,9 +40,11 @@ import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
+import net.pms.util.CoverSupplier;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FilePermissions;
+import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
@@ -296,6 +298,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
 	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
+	protected static final String KEY_FULLY_PLAYED_ACTION = "fully_played_action";
+	protected static final String KEY_FULLY_PLAYED_OUTPUT_DIRECTORY = "fully_played_output_directory";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
@@ -1899,6 +1903,44 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * Gets the {@link FullyPlayedAction}.
+	 *
+	 * @return What to do with a file after it has been fully played
+	 */
+	public FullyPlayedAction getFullyPlayedAction() {
+		return FullyPlayedAction.toFullyPlayedAction(getInt(KEY_FULLY_PLAYED_ACTION, 1));
+	}
+
+	/**
+	 * Sets the {@link FullyPlayedAction}.
+	 *
+	 * @param value what to do with a file after it has been fully played
+	 */
+	public void setFullyPlayedAction(FullyPlayedAction action) {
+		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.toInt());
+	}
+
+	/**
+	 * Returns the folder to move fully played files to.
+	 *
+	 * @see #getFullyPlayedAction()
+	 * @return The folder to move fully played files to
+	 */
+	public String getFullyPlayedOutputDirectory() {
+		return getString(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, "");
+	}
+
+	/**
+	 * Sets the folder to move fully played files to.
+	 *
+	 * @see #getFullyPlayedAction()
+	 * @param value the folder to move fully played files to
+	 */
+	public void setFullyPlayedOutputDirectory(String value) {
+		configuration.setProperty(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, value);
+	}
+
+	/**
 	 * Returns true if PMS should cache scanned media in its internal database,
 	 * speeding up later retrieval. When false is returned, PMS will not use
 	 * cache and media will have to be rescanned.
@@ -2498,12 +2540,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SORT_METHOD, value);
 	}
 
-	public int getAudioThumbnailMethod() {
-		return getInt(KEY_AUDIO_THUMBNAILS_METHOD, 0);
+	public CoverSupplier getAudioThumbnailMethod() {
+		return CoverSupplier.toCoverSupplier(getInt(KEY_AUDIO_THUMBNAILS_METHOD, 1));
 	}
 
-	public void setAudioThumbnailMethod(int value) {
-		configuration.setProperty(KEY_AUDIO_THUMBNAILS_METHOD, value);
+	public void setAudioThumbnailMethod(CoverSupplier value) {
+		configuration.setProperty(KEY_AUDIO_THUMBNAILS_METHOD, value.toInt());
 	}
 
 	public String getAlternateThumbFolder() {
@@ -2799,11 +2841,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
-	public boolean isUseInfoFromIMDB() {
+	public boolean isUseInfoFromIMDb() {
 		return getBoolean(KEY_USE_IMDB_INFO, false) && isPrettifyFilenames();
 	}
 
-	public void setUseInfoFromIMDB(boolean value) {
+	public void setUseInfoFromIMDb(boolean value) {
 		configuration.setProperty(KEY_USE_IMDB_INFO, value);
 	}
 

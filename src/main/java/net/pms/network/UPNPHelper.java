@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Helper class to handle the UPnP traffic that makes PMS discoverable by
+ * Helper class to handle the UPnP traffic that makes UMS discoverable by
  * other clients.
  * See http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.0.pdf
  * and http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.1-AnnexA.pdf
@@ -359,23 +359,23 @@ public class UPNPHelper extends UPNPControl {
 	public static void listen() throws IOException {
 		Runnable rAlive = () -> {
 			int delay = 10000;
-
+			
 			while (true) {
 				sleep(delay);
 				sendAlive();
-
+				
 				// The first delay for sending an ALIVE message is 10 seconds,
 				// the second delay is for 20 seconds. From then on, all other
 				// delays are for 180 seconds.
 				switch (delay) {
-						case 10000:
-							delay = 20000;
-							break;
-						case 20000:
-							delay = 180000;
-							break;
-						default:
-							break;
+					case 10000:
+						delay = 20000;
+						break;
+					case 20000:
+						delay = 180000;
+						break;
+					default:
+						break;
 				}
 			}
 		};
@@ -385,91 +385,92 @@ public class UPNPHelper extends UPNPControl {
 
 		Runnable r = () -> {
 			boolean bindErrorReported = false;
-
+			
 			while (true) {
 				MulticastSocket multicastSocket = null;
-
+				
 				try {
 					// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
 					multicastSocket = new MulticastSocket(configuration.getUpnpPort());
-
+					
 					if (bindErrorReported) {
 						LOGGER.warn("Finally, acquiring port " + configuration.getUpnpPort() + " was successful!");
 					}
-
+					
 					NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-
-						try {
-							/**
-							 * Setting the network interface will throw a SocketException on Mac OS X
-							 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
-							 * configurations will not listen at all.
-							 */
-							if (ni != null) {
-								multicastSocket.setNetworkInterface(ni);
-							} else if (PMS.get().getServer().getNetworkInterface() != null) {
-								multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
-								LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
-							}
-						} catch (SocketException e) {
-							// Not setting the network interface will work just fine on Mac OS X.
+					
+					try {
+						/**
+						 * Setting the network interface will throw a SocketException on Mac OS X
+						 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
+						 * configurations will not listen at all.
+						 */
+						if (ni != null) {
+							multicastSocket.setNetworkInterface(ni);
+							LOGGER.trace("Setting multicast network interface: {}", ni);
+						} else if (PMS.get().getServer().getNetworkInterface() != null) {
+							multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+							LOGGER.trace("Setting multicast network interface: {}", PMS.get().getServer().getNetworkInterface());
 						}
-
-						multicastSocket.setTimeToLive(4);
-						multicastSocket.setReuseAddress(true);
-						InetAddress upnpAddress = getUPNPAddress();
-						multicastSocket.joinGroup(upnpAddress);
-
-						int M_SEARCH = 1, NOTIFY = 2;
-						InetAddress lastAddress = null;
-						int lastPacketType = 0;
-
-						while (true) {
-							byte[] buf = new byte[1024];
-							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
-							multicastSocket.receive(receivePacket);
-
-							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
-
+					} catch (SocketException e) {
+						// Not setting the network interface will work just fine on Mac OS X.
+					}
+					
+					multicastSocket.setTimeToLive(4);
+					multicastSocket.setReuseAddress(true);
+					InetAddress upnpAddress = getUPNPAddress();
+					multicastSocket.joinGroup(upnpAddress);
+					
+					int M_SEARCH = 1, NOTIFY = 2;
+					InetAddress lastAddress = null;
+					int lastPacketType = 0;
+					
+					while (true) {
+						byte[] buf = new byte[1024];
+						DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
+						multicastSocket.receive(receivePacket);
+						
+						String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
+						
 						InetAddress address = receivePacket.getAddress();
-							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
-
-							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
-
-							if (packetType == M_SEARCH) {
-								if (configuration.getIpFiltering().allowed(address)) {
-									String remoteAddr = address.getHostAddress();
-									int remotePort = receivePacket.getPort();
-									if (!redundant) {
-										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
-									}
-
+						int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
+						
+						boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+						
+						if (packetType == M_SEARCH) {
+							if (configuration.getIpFiltering().allowed(address)) {
+								String remoteAddr = address.getHostAddress();
+								int remotePort = receivePacket.getPort();
+								if (!redundant) {
+									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+								}
+								
 								if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
 									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
 								}
-
+								
 								if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
 									sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
 								}
-
+								
 								if (StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0) {
 									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
 								}
-
+								
 								if (StringUtils.indexOf(s, "ssdp:all") > 0) {
 									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
 								}
-
+								
 								if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
 									sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 								}
-							// Don't log redundant notify messages
-							} else if (packetType == NOTIFY && !redundant) {
-								LOGGER.trace("Receiving a NOTIFY from [" + address.getHostAddress() + ":" + receivePacket.getPort() + "]");
 							}
-							lastAddress = address;
-							lastPacketType = packetType;
+							// Don't log redundant notify messages
+						} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
 						}
+						lastAddress = address;
+						lastPacketType = packetType;
 					}
 				} catch (BindException e) {
 					if (!bindErrorReported) {
@@ -477,13 +478,14 @@ public class UPNPHelper extends UPNPControl {
 							+ ", which means that PMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
-							+ "PMS will keep trying to bind to it...[" + e.getMessage() + "]");
+							+ "UMS will keep trying to bind to it...[" + e.getMessage() + "]");
 					}
-
+					
 					bindErrorReported = true;
 					sleep(5000);
 				} catch (IOException e) {
-					LOGGER.error("UPNP network exception", e);
+					LOGGER.error("UPNP network exception: ", e.getMessage());
+					LOGGER.trace("", e);
 					sleep(1000);
 				} finally {
 					if (multicastSocket != null) {
@@ -493,7 +495,7 @@ public class UPNPHelper extends UPNPControl {
 							multicastSocket.leaveGroup(upnpAddress);
 						} catch (IOException e) {
 						}
-
+						
 						multicastSocket.disconnect();
 						multicastSocket.close();
 					}
@@ -827,7 +829,7 @@ public class UPNPHelper extends UPNPControl {
 			state.name = d.getDisplayName();
 			if (d.getMedia() != null) {
 				String duration = d.getMedia().getDurationString();
-				ignoreUpnpDuration = ! StringUtil.isZeroTime(duration);
+				ignoreUpnpDuration = !StringUtil.isZeroTime(duration);
 				if (ignoreUpnpDuration) {
 					state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
 				}

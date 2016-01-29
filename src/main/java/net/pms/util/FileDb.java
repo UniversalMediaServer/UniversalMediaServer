@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -134,7 +135,7 @@ public class FileDb {
 				out.write(data.getBytes(), 0, data.length());
 			}
 			out.flush();
-		} catch (Exception e) {
+		} catch (IOException e) {
 		}
 	}
 

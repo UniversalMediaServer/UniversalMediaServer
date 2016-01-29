@@ -94,9 +94,9 @@ public class RemotePlayHandler implements HttpHandler {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
 			if (((VirtualVideoAction) r).enable()) {
-				renderer.notify(renderer.OK, r.getName() + " done");
+				renderer.notify(renderer.INFO, r.getName() + " enabled");
 			} else {
-				renderer.notify(renderer.ERR, r.getName() + " failed");
+				renderer.notify(renderer.INFO, r.getName() + " disabled");
 			}
 			return returnPage();
 		}
@@ -114,7 +114,7 @@ public class RemotePlayHandler implements HttpHandler {
 		root.getDefaultRenderer().setRootFolder(root);
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
+		String mime = root.getDefaultRenderer().getMimeType(r.mimeType(), r.getMedia());
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
 		String auto = "autoplay";
 		@SuppressWarnings("unused")

@@ -16,6 +16,7 @@ import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
+import net.pms.formats.v2.AudioProperties;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
@@ -171,6 +172,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
+	protected static final String SQUARE_AUDIO_THUMBNAILS = "SquareAudioThumbnails";
+	protected static final String SQUARE_IMAGE_THUMBNAILS = "SquareImageThumbnails";
 	protected static final String STREAM_EXT = "StreamExtensions";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	protected static final String SUPPORTED = "Supported";
@@ -181,6 +184,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
 	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
+	protected static final String THUMBNAILS = "Thumbnails";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
 	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	protected static final String TRANSCODE_EXT = "TranscodeExtensions";
@@ -1252,7 +1256,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 *            configured for this renderer.
 	 * @return The mime type.
 	 */
-	public String getMimeType(String mimeType) {
+	public String getMimeType(String mimeType, DLNAMediaInfo media) {
 		if (mimeType == null) {
 			return null;
 		}
@@ -1288,10 +1292,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
 
 					if (matchedMimeType != null) {
-						if (isTranscodeAudioTo441()) {
-							matchedMimeType += ";rate=44100;channels=2";
-						} else {
-							matchedMimeType += ";rate=48000;channels=2";
+						if (pmsConfiguration.isAudioResample()) {
+							if (isTranscodeAudioTo441()) {
+								matchedMimeType += ";rate=44100;channels=2";
+							} else {
+								matchedMimeType += ";rate=48000;channels=2";
+							}
+						} else if (media != null) {
+							AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+							if (audio.getSampleFrequency() > 0) {
+								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+							}
+							if (audio.getNumberOfChannels() > 0) {
+								matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
+							}
 						}
 					}
 				}
@@ -1316,10 +1330,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
 
-					if (isTranscodeAudioTo441()) {
-						matchedMimeType += ";rate=44100;channels=2";
-					} else {
-						matchedMimeType += ";rate=48000;channels=2";
+					if (pmsConfiguration.isAudioResample()) {
+						if (isTranscodeAudioTo441()) {
+							matchedMimeType += ";rate=44100;channels=2";
+						} else {
+							matchedMimeType += ";rate=48000;channels=2";
+						}
+					} else if (media != null) {
+						AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+						if (audio.getSampleFrequency() > 0) {
+							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+						}
+						if (audio.getNumberOfChannels() > 0) {
+							matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
+						}
 					}
 				}
 			}
@@ -2561,12 +2585,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			Runnable r = () -> {
 					state.playback = PLAYING;
 					while (res == renderer.getPlayingRes()) {
-						long elapsed = System.currentTimeMillis() - res.getStartTime();
-						state.position = (duration == 0 || elapsed < duration + 500) ?
+						long elapsed;
+						if ((long) res.getLastStartPosition() == 0) {
+							elapsed = System.currentTimeMillis() - (long) res.getStartTime();
+						} else {
+							elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
+							elapsed += (long) (res.getLastStartPosition() * 1000);
+						}
+
+						if (duration == 0 || elapsed < duration + 500) {
 							// Position is valid as far as we can tell
-							DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss") :
+							state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
+						} else {
 							// Position is invalid, blink instead
-							("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
+							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
+						}
 						alert();
 						try {
 							Thread.sleep(1000);
@@ -2688,5 +2721,32 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			LOGGER.debug("Purging renderer {} as invalid", r);
 			r.delete(0);
 		}
+	}
+
+	/**
+	 * Whether the renderer can display thumbnails.
+	 *
+	 * @return whether the renderer can display thumbnails
+	 */
+	public boolean isThumbnails() {
+		return getBoolean(THUMBNAILS, true);
+	}
+
+	/**
+	 * Whether to use ThumbnailHeight as ThumbnailWidth for audio thumbnails.
+	 *
+	 * @return whether to use ThumbnailHeight as ThumbnailWidth for audio thumbnails
+	 */
+	public boolean isSquareAudioThumbnails() {
+		return getBoolean(SQUARE_AUDIO_THUMBNAILS, false);
+	}
+
+	/**
+	 * Whether to use ThumbnailHeight as ThumbnailWidth for image thumbnails.
+	 *
+	 * @return whether to use ThumbnailHeight as ThumbnailWidth for image thumbnails
+	 */
+	public boolean isSquareImageThumbnails() {
+		return getBoolean(SQUARE_IMAGE_THUMBNAILS, false);
 	}
 }

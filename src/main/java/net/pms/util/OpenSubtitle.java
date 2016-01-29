@@ -61,7 +61,6 @@ public class OpenSubtitle {
 	}
 
 	public static String computeHash(InputStream stream, long length) throws IOException {
-
 		int chunkSizeForFile = (int) Math.min(HASH_CHUNK_SIZE, length);
 
 		// Buffer that will contain the head and the tail chunk, chunks will overlap if length is smaller than two chunks
@@ -88,7 +87,6 @@ public class OpenSubtitle {
 	}
 
 	private static long computeHashForChunk(ByteBuffer buffer) {
-
 		LongBuffer longBuffer = buffer.order(ByteOrder.LITTLE_ENDIAN).asLongBuffer();
 		long hash = 0;
 
@@ -293,7 +291,6 @@ public class OpenSubtitle {
 	 * @return
 	 * @throws IOException
 	 */
-
 	public static String[] getInfo(File f, String formattedName) throws IOException {
 		return getInfo(f, formattedName, null);
 	}
@@ -315,25 +312,21 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Attempt to return information from IMDB about the file based on information
-	 * from the filename; either the hash, the IMDB ID or the filename itself.
+	 * Attempt to return information from IMDb about the file based on information
+	 * from the filename; either the hash, the IMDb ID or the filename itself.
 	 *
-	 * It's only called for TV shows right now, but it will also find information
-	 * about films if used for that.
-	 *
-	 * @param hash  the movie hash
+	 * @param hash  the video hash
 	 * @param size  the bytesize to be used with the hash
-	 * @param imdb  the IMDB ID
-	 * @param query the string to search IMDB for
+	 * @param imdb  the IMDb ID
+	 * @param query the string to search IMDb for
 	 *
-	 * @return a string array including the IMDB ID, episode title, season number,
+	 * @return a string array including the IMDb ID, episode title, season number,
 	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it on IMDB.
+	 *         if we couldn't find it on IMDb.
 	 *
 	 * @throws IOException
 	 */
-	private static String[] getInfo(String hash, long size, String imdb,
-									String query, RendererConfiguration r) throws IOException {
+	private static String[] getInfo(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
 		login();
 		if (token == null) {
 			return null;

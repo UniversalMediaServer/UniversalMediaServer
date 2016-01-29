@@ -19,13 +19,10 @@
 package net.pms.dlna;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
-import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.Thumbnails;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -35,11 +32,15 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
+import net.pms.util.FullyPlayed;
 import net.pms.util.MpegUtil;
+import net.pms.util.CoverArtArchiveUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
+import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.sanselan.ImageInfo;
@@ -564,7 +565,7 @@ public class DLNAMediaInfo implements Cloneable {
 		args[13] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled
-		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
+		if (!configuration.isThumbnailGenerationEnabled() || !renderer.isThumbnails() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
 			args[2] = "0";
 			for (int i = 5; i <= 13; i++) {
 				args[i] = "-an";
@@ -748,14 +749,8 @@ public class DLNAMediaInfo implements Cloneable {
 							if (t.getArtworkList().size() > 0) {
 								thumb = t.getArtworkList().get(0).getBinaryData();
 							} else {
-								if (configuration.getAudioThumbnailMethod() > 0) {
-									thumb =
-										CoverUtil.get().getThumbnailFromArtistAlbum(
-											configuration.getAudioThumbnailMethod() == 1 ?
-												CoverUtil.AUDIO_AMAZON :
-												CoverUtil.AUDIO_DISCOGS,
-											audio.getArtist(), audio.getAlbum()
-										);
+								if (!configuration.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
+									thumb = CoverUtil.get().getThumbnail(t);
 								}
 							}
 
@@ -776,6 +771,17 @@ public class DLNAMediaInfo implements Cloneable {
 								} catch (NumberFormatException | KeyNotFoundException e) {
 									LOGGER.debug("Error parsing unimportant metadata: " + e.getMessage());
 								}
+							}
+
+							int thumbnailWidth = renderer.isSquareAudioThumbnails() ? renderer.getThumbnailHeight() : renderer.getThumbnailWidth();
+							int thumbnailHeight = renderer.getThumbnailHeight();
+
+							// Make sure the image fits in the renderer's bounds
+							boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
+							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail);
+
+							if (isFullyPlayedThumbnail) {
+								thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.AUDIO);
 							}
 						}
 					} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
@@ -853,17 +859,19 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Create the thumbnail image using the Thumbnailator library
 					try {
-						ByteArrayOutputStream out = new ByteArrayOutputStream();
-						Thumbnails.of(file)
-								.size(320, 180)
-								.outputFormat("JPEG")
-								.outputQuality(1.0f)
-								.toOutputStream(out);
+						int thumbnailWidth = renderer.isSquareImageThumbnails() ? renderer.getThumbnailHeight() : renderer.getThumbnailWidth();
+						int thumbnailHeight = renderer.getThumbnailHeight();
 
-						thumb = out.toByteArray();
-					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
-						LOGGER.debug("Error generating thumbnail for: " + file.getName());
-						LOGGER.debug("The full error was: " + e);
+						// Make sure the image fits in the renderer's bounds
+						boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
+						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail);
+
+						if (isFullyPlayedThumbnail) {
+							thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.IMAGE);
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Error generating thumbnail for \"{}\": {}", file.getName(), e.getMessage());
+						LOGGER.trace("", e);
 					}
 				}
 			}
@@ -938,39 +946,33 @@ public class DLNAMediaInfo implements Cloneable {
 
 				if (type == Format.VIDEO && pw != null && thumb == null) {
 					InputStream is;
+					int sz = 0;
 					try {
-						int sz = 0;
 						is = pw.getInputStream(0);
-						if (is != null) {
-							sz = is.available();
-							if (sz > 0) {
-								thumb = new byte[sz];
-								is.read(thumb);
-							}
-							is.close();
-						}
-
-						if (sz > 0 && !net.pms.PMS.isHeadless()) {
-							BufferedImage image = ImageIO.read(new ByteArrayInputStream(thumb));
-							if (image != null) {
-								Graphics g = image.getGraphics();
-								g.setColor(Color.WHITE);
-								g.setFont(new Font("Arial", Font.PLAIN, 14));
-								int low = 0;
-								if (width > 0) {
-									if (width == 1920 || width == 1440) {
-										g.drawString("1080p", 0, low += 18);
-									} else if (width == 1280) {
-										g.drawString("720p", 0, low += 18);
-									}
+						try {
+							if (is != null) {
+								sz = is.available();
+								if (sz > 0) {
+									thumb = new byte[sz];
+									is.read(thumb);
 								}
-								ByteArrayOutputStream out = new ByteArrayOutputStream();
-								ImageIO.write(image, "jpeg", out);
-								thumb = out.toByteArray();
+							}
+						} finally {
+							if (is != null) {
+								is.close();
 							}
 						}
 					} catch (IOException e) {
 						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
+						LOGGER.trace("", e);
+					}
+
+					// Make sure the image fits in the renderer's bounds
+					boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
+					thumb = UMSUtils.scaleImage(thumb, renderer.getThumbnailWidth(), renderer.getThumbnailHeight(), isFullyPlayedThumbnail);
+
+					if (isFullyPlayedThumbnail) {
+						thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.VIDEO);
 					}
 				}
 			}
@@ -1292,6 +1294,11 @@ public class DLNAMediaInfo implements Cloneable {
 		this.durationSec = d;
 	}
 
+	/**
+	 * This is the object {@link Double} and might return <code>null</code>.
+	 * To get <code>0</code> instead of <code>null</code>, use
+	 * {@link #getDurationInSeconds()}
+	 */
 	public Double getDuration() {
 		return durationSec;
 	}
@@ -1778,25 +1785,19 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		Object cloned = super.clone();
-
-		if (cloned instanceof DLNAMediaInfo) {
-			DLNAMediaInfo mediaCloned = ((DLNAMediaInfo) cloned);
-			mediaCloned.setAudioTracksList(new ArrayList<>());
-
-			for (DLNAMediaAudio audio : audioTracks) {
-				mediaCloned.getAudioTracksList().add((DLNAMediaAudio) audio.clone());
-			}
-
-			mediaCloned.setSubtitleTracksList(new ArrayList<>());
-
-			for (DLNAMediaSubtitle sub : subtitleTracks) {
-				mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());
-			}
+	protected DLNAMediaInfo clone() throws CloneNotSupportedException {
+		DLNAMediaInfo mediaCloned = (DLNAMediaInfo) super.clone();
+		mediaCloned.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+		for (DLNAMediaAudio audio : audioTracks) {
+			mediaCloned.getAudioTracksList().add((DLNAMediaAudio) audio.clone());
 		}
 
-		return cloned;
+		mediaCloned.setSubtitleTracksList(new ArrayList<DLNAMediaSubtitle>());
+		for (DLNAMediaSubtitle sub : subtitleTracks) {
+			mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());
+		}
+
+		return mediaCloned;
 	}
 
 	/**

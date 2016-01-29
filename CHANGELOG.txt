@@ -1,3 +1,60 @@
+6.0.0 - 2016-01-30 - Changes since 5.5.0
+
+	General:
+		Added "Fully played action" setting to control what UMS does with media that has been fully played. The options are:
+			Do nothing
+			Add an overlay to the thumbnail (default)
+			Hide the file
+			Move the file to a different folder
+			Move the file to the recycle/trash bin
+		Added "Thumbnails" renderer config option, to specify whether the renderer can display thumbnails
+		The Status tab updates when media is fast-forwarded or rewound
+		Audio and image thumbnails are output at consistent dimensions
+		Added SquareAudioThumbnails and SquareImageThumbnails renderer configuration options
+		Improved support for thumbnail generation
+		Improved detection of the position of media while playing
+		Improved logging
+		Improved headless support
+		Fixed font size of subtitles
+		Improved filename prettifying
+		Fixed transcoding to LPCM
+		Added and updated tooltips
+		Stability improvements
+		Fixed and improved automatic cover downloading
+		Fixed OS X version
+	Renderers:
+		Improved Status tab display for Panasonic TVs
+		Improved VLC for iOS support
+		Improved Panasonic VT60 support
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated Google gson to 2.5
+		Updated h2database to 1.4.191
+		Updated MediaInfo to 0.7.81
+
+6.0.0 - 2016-01-30 - Changes since 6.0.0-b2
+
+	General:
+		Improved headless support
+		Fixed font size of subtitles
+		Improved performance
+		Stability improvements
+		Improved filename prettifying
+		Fixed transcoding to LPCM
+		Added and updated tooltips
+		Fixed and improved automatic cover downloading
+		Fixed OS X version
+	Renderers:
+		Improved VLC for iOS support
+		Improved Panasonic VT60 support
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated Google gson to 2.5
+		Updated h2database to 1.4.191
+		Updated MediaInfo to 0.7.81
+
 5.5.0 and 6.0.0-b2 - 2016-01-06
 
 	General:
@@ -17,6 +74,7 @@
 	Languages:
 		Added Afrikaans, Hungarian, Persian (Farsi), Serbian, Slovak, Ukrainian and Vietnamese
 		Allow the translation of language names
+		Synchronized translations with crowdin
 	External Components:
 		Updated Maven exec plugin to 1.4.0
 		Rolled back JNA to 4.1.0, which fixes a playback error
