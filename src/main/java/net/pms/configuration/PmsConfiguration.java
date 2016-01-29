@@ -289,6 +289,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	protected static final String KEY_UUID = "uuid";
 	protected static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
+	protected static final String KEY_VIDEOTRANSCODE_FORCE_EXACT_ASPECT_RATIO = "force_exact_aspect_ratio"; 
 	protected static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
 	protected static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
 	protected static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
@@ -2815,6 +2816,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setVideoTranscodeStartDelay(int value) {
 		configuration.setProperty(KEY_VIDEOTRANSCODE_START_DELAY, value);
+	}
+
+	public boolean isVideoTranscodeForceExactAR() {
+		return getBoolean(KEY_VIDEOTRANSCODE_FORCE_EXACT_ASPECT_RATIO, true);
+	}
+
+	public void setVideoTranscodeForceExactAR(boolean value) {
+		configuration.setProperty(KEY_VIDEOTRANSCODE_FORCE_EXACT_ASPECT_RATIO, value);
 	}
 
 	public boolean isAudioResample() {

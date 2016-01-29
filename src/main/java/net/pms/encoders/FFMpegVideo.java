@@ -909,8 +909,12 @@ public class FFMpegVideo extends Player {
 				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 			}
 			if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
-				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+				if ("1.85:1".equals(media.getAspectRatioContainer()) && !configuration.isVideoTranscodeForceExactAR()) {
+					LOGGER.trace("Muxing the video stream with tsMuxeR via FFmpeg is still not abandoned because the minimal distortion of aspect ratio 1.85:1 is allowed.");
+				} else {
+					deferToTsmuxer = false;
+					LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+				}
 			}
 			if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				deferToTsmuxer = false;
