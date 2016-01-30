@@ -5,7 +5,10 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -211,38 +214,54 @@ public class RemotePlayHandler implements HttpHandler {
 		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(vars);
 	}
 
-	private String mkM3u8(String id) {
-		DLNAResource dlna = PMS.getGlobalRepo().get(id);
+	private String mkM3u8(DLNAResource dlna) {
 		if (dlna != null) {
-			double duration = dlna.getMedia() != null ? dlna.getMedia().getDurationInSeconds() : 0;
-			String url = null;
+			return makeM3u8(dlna.isFolder() ? dlna.getChildren() : Arrays.asList(new DLNAResource[]{dlna}));
+		}
+		return null;
+	}
 
-			if (! FileUtil.isUrl(dlna.getSystemName())) {
-				// Get the resource url
-				boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
-				// If the resource is not a transcode folder item, tag its url for forced streaming
-				url = dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false);
+	private String makeM3u8(List<DLNAResource> resources) {
+		ArrayList<Map<String, Object>> items = new ArrayList<>();
+		double targetDuration = 1;
+		for (DLNAResource dlna : resources) {
+			if (dlna != null && !dlna.isFolder() && !dlna.isResume() && !(dlna instanceof VirtualVideoAction)) {
+				double duration = dlna.getMedia() != null ? dlna.getMedia().getDurationInSeconds() : -1;
+				if (duration > targetDuration) {
+					targetDuration = duration + 1;
+				}
+				String url = null;
 
-			} else {
-				// It's a WEB.conf item or plugin-provided url, make sure it's resolved
-				url = dlna.getSystemName();
-				if (!dlna.isURLResolved()) {
-					URLResult r = ExternalFactory.resolveURL(url);
-					if (r != null && StringUtils.isNotEmpty(r.url)) {
-						url = r.url;
+				if (! FileUtil.isUrl(dlna.getSystemName())) {
+					// Get the resource url
+					boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
+					// If the resource is not a transcode folder item, tag its url for forced streaming
+					url = dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false);
+
+				} else {
+					// It's a WEB.conf item or plugin-provided url, make sure it's resolved
+					url = dlna.getSystemName();
+					if (!dlna.isURLResolved()) {
+						URLResult r = ExternalFactory.resolveURL(url);
+						if (r != null && StringUtils.isNotEmpty(r.url)) {
+							url = r.url;
+						}
 					}
 				}
-			}
 
-			if (url != null) {
-				return new StringBuilder()
-					.append("#EXTM3U\n#EXTINF:")
-					.append(duration).append(",").append(dlna.resumeName())
-					// This is required per https://tools.ietf.org/id/draft-pantos-http-live-streaming-18.txt
-					.append("\n#EXT-X-TARGETDURATION:").append(duration + 1).append("\n")
-					.append(url)
-					.toString();
+				Map<String, Object> item = new HashMap<>();
+				item.put("duration", duration != 0 ? duration : -1);
+				item.put("title", dlna.resumeName());
+				item.put("url", url);
+				items.add(item);
 			}
+		}
+
+		if (!items.isEmpty()) {
+			HashMap<String, Object> vars = new HashMap<>();
+			vars.put("targetDuration", targetDuration != 0 ? targetDuration : -1);
+			vars.put("items", items);
+			return parent.getResources().getTemplate("play.m3u8").execute(vars);
 		}
 		return null;
 	}
@@ -298,7 +317,7 @@ public class RemotePlayHandler implements HttpHandler {
 			RemoteUtil.respond(t, returnPage(), 200, "text/html");
 		}  else if (p.contains("/m3u8/")) {
 			String id = StringUtils.substringBefore(StringUtils.substringAfter(p, "/m3u8/"), ".m3u8");
-			String response = mkM3u8(id);
+			String response = mkM3u8(PMS.getGlobalRepo().get(id));
 			if (response != null) {
 				LOGGER.debug("sending m3u8:\n" + response);
 				RemoteUtil.respond(t, response, 200, "application/x-mpegURL");
