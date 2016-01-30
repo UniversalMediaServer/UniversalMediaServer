@@ -1079,18 +1079,18 @@ public class TranscodingTab {
     /**
      * Enable or disable all components at the JPanel
      *
-     * @param      panel   the panel where components should be enabled/disabled.
-     * @param      enable  boolean to set enabled/disabled. 
+     * @param      panel   the panel where components will be enabled/disabled.
+     * @param      enable  true to enable, false to disable components. 
      */
 	private void enableAllComponents(JPanel panel, boolean enable) {
-		
 		for (Component component : panel.getComponents()) {
 			if (component instanceof JPanel) {
 				for (Component comp : ((Container) component).getComponents()) {
 					comp.setEnabled(enable);
 				}	
+			} else {
+				component.setEnabled(enable);
 			}
-			component.setEnabled(enable);
 		}
 	}
 }
