@@ -1060,23 +1060,37 @@ public class TranscodingTab {
 		final JPanel panel = builder.getPanel();
 
 		boolean enable = !configuration.isDisableSubtitles();
-		for (Component component : panel.getComponents()) {
-			component.setEnabled(enable);
-		}
+		enableAllComponents(panel, enable);
 
 		disableSubs.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// If "Disable Subtitles" is not selected, subtitles are enabled
 				boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
-				for (Component component : panel.getComponents()) {
-					component.setEnabled(enabled);
-				}
+				enableAllComponents(panel, enabled);
 			}
 		});
 
 		panel.applyComponentOrientation(orientation);
 
 		return panel;
+	}
+
+    /**
+     * Enable or disable all components at the JPanel
+     *
+     * @param      panel   the panel where components should be enabled/disabled.
+     * @param      enable  boolean to set enabled/disabled. 
+     */
+	private void enableAllComponents(JPanel panel, boolean enable) {
+		
+		for (Component component : panel.getComponents()) {
+			if (component instanceof JPanel) {
+				for (Component comp : ((Container) component).getComponents()) {
+					comp.setEnabled(enable);
+				}	
+			}
+			component.setEnabled(enable);
+		}
 	}
 }
