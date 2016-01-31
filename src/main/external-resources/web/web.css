@@ -201,6 +201,7 @@ ul#Media .caption {
 .playlist_del,
 .bumpIcon,
 .download,
+#M3uFolder,
 #ViewGrid,
 #ViewDynamic,
 #DocButton {
@@ -211,6 +212,7 @@ ul#Media .caption {
 .playlist_del:hover,
 .bumpIcon:hover,
 .download:hover,
+#M3uFolder:hover,
 #ViewGrid:hover,
 #ViewDynamic:hover,
 #ViewGrid.active,
@@ -225,6 +227,24 @@ ul#Media .caption {
 	display: block;
 	float: right;
 	margin-right:1px;
+}
+
+#MediaContainer {
+	position: relative;
+}
+
+#M3uFolder {
+	background: url('/files/folderdown16.png') no-repeat;
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	display: block;
+	top: -20px;
+	left: 1px;
+}
+
+ul#Media {
+	margin: 0;
 }
 
 ul#Media li:hover .caption {

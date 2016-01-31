@@ -11,9 +11,15 @@ ul#Folders {
 	z-index: 1;
 }
 
-ul#Media {
-	margin: 0 -20px 0 240px;
-	padding: 115px 0 20px 20px;
+#MediaContainer {
+	margin: 115px -20px 0 240px;
+	padding: 0px 0 20px 20px;
+	position: relative;
+	float: left;
+}
+
+#MediaContainer.noFolders {
+	margin: 115px -20px 0 0 !important;
 }
 
 #ContentPage #Menu {

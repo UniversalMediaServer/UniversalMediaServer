@@ -90,17 +90,17 @@ function scrollActions() {
 			$("#Menu").animate({height: 95}, 200);
 			$("#ContentPage #Menu #HomeButton").animate({height: 93}, 200);
 			$("ul#Folders").animate({top: 94}, 200);
-			$("ul#Media").animate({paddingTop: 115}, 200);
+//			$("ul#Media").animate({paddingTop: 115}, 200);
 		} else {
 			$("#Menu").animate({height: 53}, 200);
 			$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
 			$("ul#Folders").animate({top: 52}, 200);
-			$("ul#Media").animate({paddingTop: 73}, 200);
+//			$("ul#Media").animate({paddingTop: 73}, 200);
 		}
 	} else {
 		$("#Menu").animate({height: 53}, 200);
 		$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
-		$("ul#Media").animate({paddingTop: 20}, 200);
+//		$("ul#Media").animate({paddingTop: 20}, 200);
 	}
 }
 

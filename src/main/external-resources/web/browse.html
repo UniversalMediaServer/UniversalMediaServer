@@ -56,15 +56,18 @@
 				</ul>
 			</div>
 {{#hasFile}}
-			<ul id="Media">
+			<div id="MediaContainer">
+				<a href="/m3u8/{{folderId}}.m3u8" id="M3uFolder" title="{{downloadFolderTooltip}}"></a>
+				<ul id="Media">
 {{#media}}
-				<li>
-					{{thumb}}
-					{{actions}}
-					{{caption}}
-				</li>
+					<li>
+						{{thumb}}
+						{{actions}}
+						{{caption}}
+					</li>
 {{/media}}
-			</ul>
+				</ul>
+			</div>
 {{/hasFile}}
 		</div>
 	</body>
