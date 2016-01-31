@@ -53,12 +53,8 @@ public class RealFile extends MapFile {
 	public boolean isValid() {
 		File file = this.getFile();
 		resolveFormat();
-		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
-			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
-		}
-
+		boolean checkSubs = getType() == Format.VIDEO && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4; // TODO why should be file name longer than 4 chars?
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
-
 		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
 			run();
@@ -83,6 +79,12 @@ public class RealFile extends MapFile {
 			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
 				checkThumbnail();
 			}
+
+			if (checkSubs) {
+				setHasExternalSubtitles(getMedia() != null && getMedia().hasExternalSubs());
+			}
+		} else if (checkSubs && valid && getParent().getDefaultRenderer() != null && !getParent().getDefaultRenderer().isUseMediaInfo()) {
+			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null)); // TODO it is still parsing subs twice when FFmpeg is used for parsing the file
 		}
 
 		return valid;
