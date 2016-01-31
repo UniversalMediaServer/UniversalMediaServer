@@ -171,12 +171,30 @@ ul#Media .caption {
 	background: url('/files/down16.png') no-repeat;
 }
 
+#MediaContainer {
+	position: relative;
+}
+
+#M3uFolder {
+	background: url('/files/folderdown16.png') no-repeat;
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	display: block;
+	top: -20px;
+	left: 1px;
+}
+
 .playlist_add, .playlist_del, .download {
 	width: 16px;
 	height: 16px;
 	display: block;
 	float: right;
 	margin-right:1px;
+}
+
+ul#Media {
+	margin: 0;
 }
 
 ul#Media li:hover .caption {

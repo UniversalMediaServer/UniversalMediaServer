@@ -204,6 +204,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 		if (configuration.useWebControl()) {
 			vars.put("push", true);
 		}
+		if (hasFile) {
+			vars.put("folderId", id);
+			vars.put("downloadFolderTooltip", RemoteUtil.getMsgString("Web.11", t));
+		}
 
 		return parent.getResources().getTemplate("browse.html").execute(vars);
 	}

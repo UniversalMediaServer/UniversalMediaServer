@@ -6,9 +6,13 @@ ul#Folders {
 	z-index: 1;
 }
 
-ul#Media {
+#MediaContainer {
 	margin: 0 -20px 0 0;
 	padding: 20px 0 20px 20px;
+}
+
+#M3uFolder {
+	top: 0;
 }
 
 #ContentPage #Menu {
