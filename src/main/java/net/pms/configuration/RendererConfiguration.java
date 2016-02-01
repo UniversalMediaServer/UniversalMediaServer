@@ -240,7 +240,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			defaultConf = new RendererConfiguration();
 			streamingConf = new DeviceConfiguration();
 			streamingConf.inherit(defaultConf);
-			streamingConf.setDisableSubtitles(true);
 		} catch (ConfigurationException e) {
 			LOGGER.debug("Caught exception", e);
 		}
