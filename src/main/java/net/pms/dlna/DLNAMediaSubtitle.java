@@ -188,6 +188,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", match.getName(), lang, externalFile.getAbsolutePath());
 				} else {
 					subsCharacterSet = null;
+					LOGGER.debug("No charset detected for {}", externalFile.getAbsolutePath());
 				}
 
 			} catch (IOException ex) {
