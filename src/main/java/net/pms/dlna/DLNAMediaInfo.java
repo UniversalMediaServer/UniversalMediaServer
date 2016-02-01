@@ -1408,7 +1408,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private boolean hasExternalSubs;
 
 	/**
-	 * @return true when there are external subtitle tracks for the video file.
+	 * @return true when there is an external subtitle file matching the renderer subtitles setting for the video file.
 	 */
 	public boolean hasExternalSubs() {
 		return hasExternalSubs;
