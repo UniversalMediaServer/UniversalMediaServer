@@ -16,12 +16,11 @@ import net.pms.util.FileUtil;
 import net.pms.util.FreedesktopTrash;
 import net.pms.util.FullyPlayedAction;
 import org.apache.commons.lang.StringUtils;
-import org.fest.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static Set<String> fullyPlayedEntries;
+	private static Set<String> fullyPlayedEntries = new HashSet<>();
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -29,8 +28,12 @@ public class MediaMonitor extends VirtualFolder {
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
-		this.dirs = dirs;
-		fullyPlayedEntries = new HashSet<>();
+		if (dirs == null) {
+			this.dirs = null;
+		} else {
+			this.dirs = new File[dirs.length];
+			System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
+		}
 		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
@@ -74,35 +77,41 @@ public class MediaMonitor extends VirtualFolder {
 		}
 	}
 
-	public void scanDir(File[] files, final DLNAResource res) {
+	public void scanDir(File[] files, final DLNAResource resource) {
 		if (files != null) {
-			final DLNAResource mm = this;
-			res.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
-				@Override
-				public boolean enable() {
-					for (DLNAResource r : res.getChildren()) {
-						if (!(r instanceof RealFile)) {
-							continue;
+			if (resource.getChildren().isEmpty()) {
+				// Only add "Mark all as played" it there are no children here
+				// already to prevent one entry per monitored folder
+				final MediaMonitor mediaMonitor = this;
+				mediaMonitor.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
+					@Override
+					public boolean enable() {
+						for (DLNAResource r : resource.getChildren()) {
+							if (!(r instanceof RealFile)) {
+								continue;
+							}
+							RealFile rf = (RealFile) r;
+							fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
 						}
-						RealFile rf = (RealFile) r;
-						fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+						mediaMonitor.setDiscovered(false);
+						mediaMonitor.getChildren().clear();
+						try {
+							dumpFile();
+						} catch (IOException e) {
+							LOGGER.error("Error dumping media monitor: {}", e.getMessage());
+							LOGGER.trace("", e);
+						}
+						return true;
 					}
-					mm.setDiscovered(false);
-					mm.getChildren().clear();
-					try {
-						dumpFile();
-					} catch (IOException e) {
-					}
-					return true;
-				}
-			});
+				});
+			}
 
 			for (File f : files) {
 				if (f.isFile()) {
 					if (isFullyPlayed(f.getAbsolutePath())) {
 						continue;
 					}
-					res.addChild(new RealFile(f));
+					resource.addChild(new RealFile(f));
 				}
 				if (f.isDirectory()) {
 					boolean add = true;
@@ -110,7 +119,7 @@ public class MediaMonitor extends VirtualFolder {
 						add = FileUtil.isFolderRelevant(f, config, fullyPlayedEntries);
 					}
 					if (add) {
-						res.addChild(new MonitorEntry(f, this));
+						resource.addChild(new MonitorEntry(f, this));
 					}
 				}
 			}
@@ -149,7 +158,7 @@ public class MediaMonitor extends VirtualFolder {
 		 * This is not a great way to get this value because if the
 		 * video is paused, it will no longer be accurate.
 		 */
-		double elapsed;
+		long elapsed;
 		if (res.getLastStartPosition() == 0) {
 			elapsed = (System.currentTimeMillis() - res.getStartTime()) / 1000;
 		} else {
@@ -241,7 +250,7 @@ public class MediaMonitor extends VirtualFolder {
 							if (Platform.isLinux()) {
 								FreedesktopTrash.moveToTrash(playedFile);
 							} else {
-								FileUtils.getInstance().moveToTrash(Arrays.array(playedFile));
+								FileUtils.getInstance().moveToTrash(new File[] {playedFile});
 							}
 						} catch (IOException | FileUtil.InvalidFileSystemException e) {
 							LOGGER.warn("Failed to move file \"{}\" to recycler/trash after it has been fully played: {}", playedFile.getAbsoluteFile(), e.getMessage());
