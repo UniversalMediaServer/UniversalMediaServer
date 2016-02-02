@@ -53,7 +53,7 @@ public class RealFile extends MapFile {
 	public boolean isValid() {
 		File file = this.getFile();
 		resolveFormat();
-		boolean checkSubs = getType() == Format.VIDEO && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4; // TODO why should be file name longer than 4 chars?
+		boolean checkSubs = getType() == Format.VIDEO && configuration.isAutoloadExternalSubtitles();
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
 		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
