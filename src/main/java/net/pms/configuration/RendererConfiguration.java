@@ -164,6 +164,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String PREPEND_TRACK_NUMBERS = "PrependTrackNumbers";
+	protected static final String PUSH_METADATA = "PushMetadata";
 	protected static final String RENDERER_ICON = "RendererIcon";
 	protected static final String RENDERER_NAME = "RendererName";
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -1761,6 +1762,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		return isPS3();
+	}
+
+	/**
+	 * Returns whether or not to include metadata when pushing uris.
+	 * This is meant as a stopgap workaround for any renderer that
+	 * chokes on our metadata.
+	 *
+	 * @return whether to include metadata.
+	 */
+	public boolean isPushMetadata() {
+		return getBoolean(PUSH_METADATA, true);
 	}
 
 	/**
