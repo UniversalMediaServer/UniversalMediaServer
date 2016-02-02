@@ -2813,7 +2813,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @return The system time when the resource was last (re)started
 	 */
-	public double getLastStartSystemTime() {
+	public long getLastStartSystemTime() {
 		return lastStartSystemTime;
 	}
 
