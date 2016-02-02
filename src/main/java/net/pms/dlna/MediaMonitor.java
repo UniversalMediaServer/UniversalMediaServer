@@ -75,41 +75,43 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public void scanDir(File[] files, final DLNAResource res) {
-		final DLNAResource mm = this;
-		res.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
-			@Override
-			public boolean enable() {
-				for (DLNAResource r : res.getChildren()) {
-					if (!(r instanceof RealFile)) {
+		if (files != null) {
+			final DLNAResource mm = this;
+			res.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
+				@Override
+				public boolean enable() {
+					for (DLNAResource r : res.getChildren()) {
+						if (!(r instanceof RealFile)) {
+							continue;
+						}
+						RealFile rf = (RealFile) r;
+						fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+					}
+					mm.setDiscovered(false);
+					mm.getChildren().clear();
+					try {
+						dumpFile();
+					} catch (IOException e) {
+					}
+					return true;
+				}
+			});
+
+			for (File f : files) {
+				if (f.isFile()) {
+					if (isFullyPlayed(f.getAbsolutePath())) {
 						continue;
 					}
-					RealFile rf = (RealFile) r;
-					fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+					res.addChild(new RealFile(f));
 				}
-				mm.setDiscovered(false);
-				mm.getChildren().clear();
-				try {
-					dumpFile();
-				} catch (IOException e) {
-				}
-				return true;
-			}
-		});
-
-		for (File f : files) {
-			if (f.isFile()) {
-				if (isFullyPlayed(f.getAbsolutePath())) {
-					continue;
-				}
-				res.addChild(new RealFile(f));
-			}
-			if (f.isDirectory()) {
-				boolean add = true;
-				if (config.isHideEmptyFolders()) {
-					add = FileUtil.isFolderRelevant(f, config, fullyPlayedEntries);
-				}
-				if (add) {
-					res.addChild(new MonitorEntry(f, this));
+				if (f.isDirectory()) {
+					boolean add = true;
+					if (config.isHideEmptyFolders()) {
+						add = FileUtil.isFolderRelevant(f, config, fullyPlayedEntries);
+					}
+					if (add) {
+						res.addChild(new MonitorEntry(f, this));
+					}
 				}
 			}
 		}
@@ -117,8 +119,10 @@ public class MediaMonitor extends VirtualFolder {
 
 	@Override
 	public void discoverChildren() {
-		for (File f : dirs) {
-			scanDir(f.listFiles(), this);
+		if (dirs != null) {
+			for (File f : dirs) {
+				scanDir(f.listFiles(), this);
+			}
 		}
 	}
 
