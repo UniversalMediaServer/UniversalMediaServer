@@ -186,6 +186,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
 	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
+	protected static final String THUMBNAIL_PADDING = "ThumbnailPadding";
 	protected static final String THUMBNAILS = "Thumbnails";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
 	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
@@ -2760,6 +2761,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isThumbnails() {
 		return getBoolean(THUMBNAILS, true);
+	}
+
+	/**
+	 * Whether we should add black padding to thumbnails so they are always
+	 * at the same resolution, or just scale to within the limits.
+	 *
+	 * @return whether to add padding to thumbnails
+	 */
+	public boolean isThumbnailPadding() {
+		return getBoolean(THUMBNAIL_PADDING, false);
 	}
 
 	/**
