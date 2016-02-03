@@ -1093,6 +1093,8 @@ public class PMS {
 		boolean denyHeadless = false;
 		File profilePath = null;
 		CacheLogger.startCaching();
+		// Make sure that no other versions of JNA found on the system is used
+		System.setProperty("jna.nosys", "true");
 
 		// Set headless options if given as a system property when launching the JVM
 		if (System.getProperty(CONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
