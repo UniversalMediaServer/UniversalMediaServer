@@ -52,8 +52,14 @@ public class RealFile extends MapFile {
 	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse
 	public boolean isValid() {
 		File file = this.getFile();
-		resolveFormat();
-		boolean checkSubs = getType() == Format.VIDEO && configuration.isAutoloadExternalSubtitles();
+		if (!file.isDirectory()) {
+			resolveFormat();
+		}
+		
+		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
+			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
+		}
+
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
 		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
@@ -79,12 +85,6 @@ public class RealFile extends MapFile {
 			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
 				checkThumbnail();
 			}
-
-			if (checkSubs) {
-				setHasExternalSubtitles(getMedia() != null && getMedia().hasExternalSubs());
-			}
-		} else if (checkSubs && valid && getParent().getDefaultRenderer() != null && !getParent().getDefaultRenderer().isUseMediaInfo()) {
-			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null)); // TODO it is still parsing subs twice when FFmpeg is used for parsing the file
 		}
 
 		return valid;
