@@ -2,12 +2,13 @@ function changeMargins() {
 	var total_w = $('#Media').width();
 	var cells = $('#Media li');
 	var aspect = 16 / 9;
-	var images_w = 320;
+	var images_w = 0;
 	var row_h = 180;
 	var row_start = 0;
 	var spaces = 1;
 
 	for (var i = 0; i < cells.length; i++) {
+		images_w += (180 * aspect);
 		var avail_w = total_w - ++spaces * 20;
 		var wrap = images_w > avail_w;
 		if (wrap || i === cells.length - 1) {
