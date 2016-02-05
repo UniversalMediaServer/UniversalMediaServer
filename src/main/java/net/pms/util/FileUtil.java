@@ -1238,13 +1238,16 @@ public class FileUtil {
 				}
 			}
 
-			// Replace periods with spaces
-			filename = filename.replaceAll("\\.", " ");
+			// Replace periods and underscores with spaces
+			filename = filename.replaceAll("\\.|_", " ");
 		}
 
 		if (PMS.getConfiguration().isIgnoreTheWordThe()) {
-			// Remove "The" from the beginning of files
-			filename = filename.replaceAll("^(?i)The[ .]", "");
+			// Remove "the" from filename
+			filename = filename.replaceAll("(?i)\\bThe\\b", "");
+
+			// Replace multiple whitespaces with space
+			filename = filename.replaceAll("\\s{2,}"," ");
 		}
 
 		return filename;
