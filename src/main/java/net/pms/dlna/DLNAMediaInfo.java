@@ -328,9 +328,8 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the number of subtitle tracks embedded in the media file.
+	 * @return true when there are subtitle tracks embedded in the media file.
 	 */
-
 	public boolean hasSubtitles() {
 		return subtitleTracks.size() > 0;
 	}
@@ -1442,8 +1441,17 @@ public class DLNAMediaInfo implements Cloneable {
 
 		// Check for external subs here
 		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles()) {
-			FileUtil.isSubtitlesExists(f.getFile(), this);
+			hasExternalSubs = FileUtil.isSubtitlesExists(f.getFile(), this);
 		}
+	}
+
+	private boolean hasExternalSubs;
+
+	/**
+	 * @return true when there is an external subtitle file matching the renderer subtitles setting for the video file.
+	 */
+	public boolean hasExternalSubs() {
+		return hasExternalSubs;
 	}
 
 	/**
