@@ -338,7 +338,7 @@ public class FileUtil {
 	 */
 	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|IMAX[\\s\\.]Edition|Uncensored|Directors[\\s\\.]Cut|Uncut)(?!\\))";
 	private static final Pattern COMMON_FILE_EDITIONS_PATTERN = Pattern.compile(COMMON_FILE_EDITIONS);
-	
+
 	/**
 	 * Returns the filename after being "prettified", which involves
 	 * attempting to strip away certain things like information about the
@@ -696,11 +696,12 @@ public class FileUtil {
 			File subFolder = new File(alternate);
 
 			if (!subFolder.isAbsolute()) {
-				subFolder = new File(file.getParent() + "/" + alternate);
+				subFolder = new File(file.getParent(), alternate);
 				try {
 					subFolder = subFolder.getCanonicalFile();
 				} catch (IOException e) {
-					LOGGER.debug("Caught exception", e);
+					LOGGER.warn("Could not resolve alternative subtitles folder: {}", e.getMessage());
+					LOGGER.trace("", e);
 				}
 			}
 
@@ -778,7 +779,8 @@ public class FileUtil {
 										try {
 											sub.setExternalFile(f);
 										} catch (FileNotFoundException ex) {
-											LOGGER.warn("Exception during external subtitles scan.", ex);
+											LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
+											LOGGER.trace("", ex);
 										}
 
 										exists = true;
@@ -811,7 +813,8 @@ public class FileUtil {
 								try {
 									sub.setExternalFile(f);
 								} catch (FileNotFoundException ex) {
-									LOGGER.warn("Exception during external subtitles scan.", ex);
+									LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
+									LOGGER.trace("", ex);
 								}
 
 								found = true;

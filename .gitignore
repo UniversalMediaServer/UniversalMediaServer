@@ -1,6 +1,6 @@
 .classpath
 contrib/ffmpeg/build
-database
+/database
 debug.log
 .DS_Store
 .idea/
