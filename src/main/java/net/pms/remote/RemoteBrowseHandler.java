@@ -71,12 +71,17 @@ public class RemoteBrowseHandler implements HttpHandler {
 			UMSUtils.postSearch(res, search);
 		}
 
-		boolean showFolders = false;
-		boolean hasFile     = false;
+		boolean hasFile = false;
 
 		ArrayList<String> folders = new ArrayList<>();
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();
 		StringBuilder sb = new StringBuilder();
+
+		sb.setLength(0);
+		sb.append("<a href=\"javascript:history.back()\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
+		sb.append("<span>").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
+		sb.append("</a>");
+		folders.add(sb.toString());
 
 		// Generate innerHtml snippets for folders and media items
 		for (DLNAResource r : res) {
@@ -129,7 +134,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("<span>").append(name).append("</span>");
 				sb.append("</a>");
 				folders.add(sb.toString());
-				showFolders = true;
 			} else {
 				// The resource is a media file
 				sb.setLength(0);
@@ -178,7 +182,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					// Include it as a web-disabled item so it can be thrown via upnp
 					sb.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
 						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
-						.append(" title=\"").append(name).append(" " + RemoteUtil.getMsgString("Web.7", t) + "\">")
+						.append(" title=\"").append(name).append(" ").append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());
@@ -195,7 +199,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		vars.put("name", id.equals("0") ? configuration.getServerName() :
 			StringEscapeUtils.escapeHtml(root.getDLNAResource(id, null).getDisplayName()));
 		vars.put("hasFile", hasFile);
-		vars.put("noFoldersCSS", showFolders ? "" : " class=\"noFolders\"");
 		vars.put("folders", folders);
 		vars.put("media", media);
 		if (configuration.useWebControl()) {
