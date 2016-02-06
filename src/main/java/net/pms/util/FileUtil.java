@@ -30,14 +30,16 @@ import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
-	private static Map<File, File[]> cache;
-	private static int S_ISVTX = 512; // Unix sticky bit mask
+	private static final ReentrantLock subtitleCacheLock = new ReentrantLock();
+	private static final Map<File, File[]> subtitleCache = new HashMap<>();
+	private static final int S_ISVTX = 512; // Unix sticky bit mask
 
 	// Signal an invalid parameter in getFileLocation() without raising an exception or returning null
 	private static final String DEFAULT_BASENAME = "NO_DEFAULT_BASENAME_SUPPLIED.conf";
@@ -244,13 +246,21 @@ public class FileUtil {
 		return f.substring(0, point);
 	}
 
-	private static String edition;
-	private static String formattedName;
+	private static final class FormattedNameAndEdition {
+		public String formattedName;
+		public String edition;
+
+		public FormattedNameAndEdition(String formattedName, String edition) {
+			this.formattedName = formattedName;
+			this.edition = edition;
+		}
+	}
 
 	/**
 	 * Remove and save edition information to be added later
 	 */
-	private static void removeAndSaveEditionToBeAddedLater() {
+	private static FormattedNameAndEdition removeAndSaveEditionToBeAddedLater(String formattedName) {
+		String edition = null;
 		Matcher m = COMMON_FILE_EDITIONS_PATTERN.matcher(formattedName);
 		if (m.find()) {
 			edition = m.group().replaceAll("\\.", " ");
@@ -258,35 +268,35 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll(" - " + COMMON_FILE_EDITIONS, "");
 			formattedName = formattedName.replaceAll(COMMON_FILE_EDITIONS, "");
 		}
+		return new FormattedNameAndEdition(formattedName, edition);
 	}
 
 	/**
 	 * Capitalize the first letter of each word if the string contains no capital letters
 	 *
-	 * @param loopedOnce
 	 */
-	private static void convertFormattedNameToTitleCase(boolean loopedOnce) {
+	private static String convertFormattedNameToTitleCaseParts(String formattedName) {
 		if (formattedName.equals(formattedName.toLowerCase())) {
-			String formattedNameTemp = "";
+			StringBuilder formattedNameBuilder = new StringBuilder();
 			for (String part : formattedName.split(" - ")) {
-				if (loopedOnce) {
-					formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
-				} else {
-					formattedNameTemp += convertLowerCaseStringToTitleCase(part);
+				if (formattedNameBuilder.length() > 0) {
+					formattedNameBuilder.append(" - ");
 				}
-				loopedOnce = true;
+				formattedNameBuilder.append(convertLowerCaseStringToTitleCase(part));
 			}
-			formattedName = formattedNameTemp;
+			formattedName = formattedNameBuilder.toString();
 		}
+		return formattedName;
 	}
 
 	/**
 	 * Capitalize the first letter of each word if the string contains no capital letters
 	 */
-	private static void convertFormattedNameToTitleCase() {
+	private static String convertFormattedNameToTitleCase(String formattedName) {
 		if (formattedName.equals(formattedName.toLowerCase())) {
 			formattedName = convertLowerCaseStringToTitleCase(formattedName);
 		}
+		return formattedName;
 	}
 
 	/**
@@ -294,7 +304,7 @@ public class FileUtil {
 	 *
 	 * @param fileNameWithoutExtension
 	 */
-	private static void removeGroupNameFromBeginning(String fileNameWithoutExtension) {
+	private static String removeGroupNameFromBeginning(String formattedName, String fileNameWithoutExtension) {
 		if (!"".equals(formattedName)) {
 			if (formattedName.substring(0, 1).matches("\\[")) {
 				int closingBracketIndex = formattedName.indexOf(']');
@@ -309,14 +319,16 @@ public class FileUtil {
 		} else {
 			formattedName = fileNameWithoutExtension;
 		}
+		return formattedName;
 	}
 
 	/**
 	 * Remove stuff at the end of the filename like release group, quality, source, etc.
 	 */
-	private static void removeFilenameEndMetadata() {
+	private static String removeFilenameEndMetadata(String formattedName) {
 		formattedName = formattedName.replaceAll(COMMON_FILE_ENDS_CASE_SENSITIVE, "");
 		formattedName = formattedName.replaceAll("(?i)" + COMMON_FILE_ENDS, "");
+		return formattedName;
 	}
 
 	/**
@@ -353,11 +365,10 @@ public class FileUtil {
 	 */
 	public static String getFileNamePrettified(String f, File file) {
 		String fileNameWithoutExtension;
-		formattedName = "";
+		String formattedName = "";
 		String formattedNameTemp;
 		String searchFormattedName;
-		edition = "";
-		boolean loopedOnce = false;
+		String edition = "";
 
 		// These are false unless we recognize that we could use some info on the video from IMDb
 		boolean isEpisodeToLookup = false;
@@ -375,7 +386,11 @@ public class FileUtil {
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3-$5$6");
 			formattedName = formattedName.replaceAll("[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3-$5$6");
-			removeAndSaveEditionToBeAddedLater();
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)[\\s\\.]", " - $1$2$3-$5$6 - ");
@@ -384,19 +399,23 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeFilenameEndMetadata();
+			formattedName = removeFilenameEndMetadata(formattedName);
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			convertFormattedNameToTitleCase(loopedOnce);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons that are more than one episode
 
 			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3-$5$6");
 			formattedName = formattedName.replaceAll("[\\s\\.]S([1-9]\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3-$5$6");
-			removeAndSaveEditionToBeAddedLater();
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)[\\s\\.]", " - $1$2$3-$5$6 - ");
@@ -405,15 +424,19 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeFilenameEndMetadata();
+			formattedName = removeFilenameEndMetadata(formattedName);
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			convertFormattedNameToTitleCase(loopedOnce);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
-			removeAndSaveEditionToBeAddedLater();
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -427,19 +450,23 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeFilenameEndMetadata();
+			formattedName = removeFilenameEndMetadata(formattedName);
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			convertFormattedNameToTitleCase(loopedOnce);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons
 
 			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3");
 			formattedName = formattedName.replaceAll("[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3");
-			removeAndSaveEditionToBeAddedLater();
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
@@ -448,19 +475,23 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeFilenameEndMetadata();
+			formattedName = removeFilenameEndMetadata(formattedName);
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			convertFormattedNameToTitleCase(loopedOnce);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 
 			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2/$3/$4");
 			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2/$3/$4");
-			removeAndSaveEditionToBeAddedLater();
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]", " - $1$2/$3/$4 - ");
@@ -469,24 +500,28 @@ public class FileUtil {
 			}
 
 			formattedName = formattedNameTemp;
-			removeFilenameEndMetadata();
+			formattedName = removeFilenameEndMetadata(formattedName);
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			convertFormattedNameToTitleCase(loopedOnce);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
-			removeFilenameEndMetadata();
-			removeAndSaveEditionToBeAddedLater();
+			formattedName = removeFilenameEndMetadata(formattedName);
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			convertFormattedNameToTitleCase();
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
 
@@ -496,21 +531,25 @@ public class FileUtil {
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			convertFormattedNameToTitleCase();
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
-			removeFilenameEndMetadata();
-			convertFormattedNameToTitleCase();
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
 			// This is probably a movie that doesn't specify a year
 			isMovieToLookup = true;
-			removeFilenameEndMetadata();
-			removeAndSaveEditionToBeAddedLater();
+			formattedName = removeFilenameEndMetadata(formattedName);
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
 
-			convertFormattedNameToTitleCase();
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
 			// This matches anime with a hash at the end of the name
 
@@ -519,14 +558,14 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
-			removeGroupNameFromBeginning(fileNameWithoutExtension);
+			formattedName = removeGroupNameFromBeginning(formattedName, fileNameWithoutExtension);
 
 			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
 				isEpisodeToLookup = true;
 				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
 			}
 
-			convertFormattedNameToTitleCase();
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
 
@@ -535,14 +574,14 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*\\[h264.*", "");
-			removeGroupNameFromBeginning(fileNameWithoutExtension);
+			formattedName = removeGroupNameFromBeginning(formattedName, fileNameWithoutExtension);
 
 			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
 				isEpisodeToLookup = true;
 				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
 			}
 
-			convertFormattedNameToTitleCase();
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		}
 
 		// Remove extra spaces
@@ -713,39 +752,42 @@ public class FileUtil {
 		return found;
 	}
 
-	private synchronized static boolean browseFolderForSubtitles(File subFolder, File file, DLNAMediaInfo media, boolean usecache) {
+	private static boolean browseFolderForSubtitles(File subFolder, File file, DLNAMediaInfo media, final boolean useCache) {
 		boolean found = false;
-
-		if (!usecache) {
-			cache = null;
-		}
-
-		if (cache == null) {
-			cache = new HashMap<>();
-		}
-
 		final Set<String> supported = SubtitleType.getSupportedFileExtensions();
 
-		File[] allSubs = cache.get(subFolder);
-		if (allSubs == null) {
-			allSubs = subFolder.listFiles(
-				new FilenameFilter() {
-					@Override
-					public boolean accept(File dir, String name) {
-						String ext = FilenameUtils.getExtension(name).toLowerCase();
-						if ("sub".equals(ext)) {
-							// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
-							// they'll come in unambiguously as vobsub via the idx file anyway
-							return isFileExists(new File(dir, name), "idx") == null;
-						}
-						return supported.contains(ext);
-					}
-				}
-			);
-
-			if (allSubs != null) {
-				cache.put(subFolder, allSubs);
+		File[] allSubs = null;
+		// TODO This caching scheme is very restrictive locking the whole cache
+		// while populating a single folder. A more effective solution should
+		// be implemented.
+		subtitleCacheLock.lock();
+		try {
+			if (useCache) {
+				allSubs = subtitleCache.get(subFolder);
 			}
+
+			if (allSubs == null) {
+				allSubs = subFolder.listFiles(
+					new FilenameFilter() {
+						@Override
+						public boolean accept(File dir, String name) {
+							String ext = FilenameUtils.getExtension(name).toLowerCase();
+							if ("sub".equals(ext)) {
+								// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
+								// they'll come in unambiguously as vobsub via the idx file anyway
+								return isFileExists(new File(dir, name), "idx") == null;
+							}
+							return supported.contains(ext);
+						}
+					}
+				);
+
+				if (allSubs != null) {
+					subtitleCache.put(subFolder, allSubs);
+				}
+			}
+		} finally {
+			subtitleCacheLock.unlock();
 		}
 
 		String fileName = getFileNameWithoutExtension(file.getName()).toLowerCase();
@@ -1178,26 +1220,31 @@ public class FileUtil {
 
 	public static String renameForSorting(String filename) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
-			// This chunk makes anime sort properly
-			int squareBracketIndex;
-			if (filename.substring(0, 1).matches("\\[")) {
-				filename = filename.replaceAll("_", " ");
-				squareBracketIndex = filename.indexOf(']');
-				if (squareBracketIndex != -1) {
-					filename = filename.substring(squareBracketIndex + 1);
-					if (filename.substring(0, 1).matches("\\s")) {
-						filename = filename.substring(1);
+			// This makes anime sort properly
+			if (filename.startsWith("[")) {
+				Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
+				Matcher matcher = pattern.matcher(filename);
+				if (matcher.find()) {
+					filename = matcher.group(1);
+				} else if (filename.endsWith("]")) {
+					pattern = Pattern.compile("^\\[([^\\[\\]]+)\\]\\s*$");
+					matcher = pattern.matcher(filename);
+					if (matcher.find()) {
+						filename = matcher.group(1);
 					}
 				}
 			}
 
-			// Replace periods with spaces
-			filename = filename.replaceAll("\\.", " ");
+			// Replace periods and underscores with spaces
+			filename = filename.replaceAll("\\.|_", " ");
 		}
 
 		if (PMS.getConfiguration().isIgnoreTheWordThe()) {
-			// Remove "The" from the beginning of files
-			filename = filename.replaceAll("^(?i)The[ .]", "");
+			// Remove "the" from filename
+			filename = filename.replaceAll("(?i)\\bThe\\b", "");
+
+			// Replace multiple whitespaces with space
+			filename = filename.replaceAll("\\s{2,}"," ");
 		}
 
 		return filename;
@@ -1256,7 +1303,7 @@ public class FileUtil {
 		return path;
 	}
 
-	private static Boolean admin = null;
+	private static Boolean isAdmin = null;
 	private static Object isAdminLock = new Object();
 
 	/**
@@ -1264,8 +1311,8 @@ public class FileUtil {
 	 */
 	public static boolean isAdmin() {
 		synchronized(isAdminLock) {
-			if (admin != null) {
-				return admin;
+			if (isAdmin != null) {
+				return isAdmin;
 			}
 			if (Platform.isWindows()) {
 				Float ver = null;
@@ -1276,7 +1323,7 @@ public class FileUtil {
 						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
 						System.getProperty("os.version"), e.getMessage()
 					);
-					admin = false;
+					isAdmin = false;
 					return false;
 				}
 				if (ver >= 5.1) {
@@ -1287,16 +1334,16 @@ public class FileUtil {
 						int exitValue = p.exitValue();
 
 						if (0 == exitValue) {
-							admin = true;
+							isAdmin = true;
 							return true;
 						}
-						admin = false;
+						isAdmin = false;
 						return false;
 					} catch (IOException | InterruptedException e) {
 						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
 					}
 				} else {
-					admin = true;
+					isAdmin = true;
 					return true;
 				}
 			} else if (Platform.isLinux() || Platform.isMac()) {
@@ -1306,13 +1353,16 @@ public class FileUtil {
 					Process p = Runtime.getRuntime().exec(command);
 					InputStream is = p.getInputStream();
 					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
-					BufferedReader br = new BufferedReader(isr);
-					p.waitFor();
-					int exitValue = p.exitValue();
-					String exitLine = br.readLine();
+					int exitValue;
+					String exitLine;
+					try (BufferedReader br = new BufferedReader(isr)) {
+						p.waitFor();
+						exitValue = p.exitValue();
+						exitLine = br.readLine();
+					}
 					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
 						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
-						admin = false;
+						isAdmin = false;
 						return false;
 					}
 					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
@@ -1321,17 +1371,17 @@ public class FileUtil {
 						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
 					{
 						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
-						admin = true;
+						isAdmin = true;
 						return true;
 					}
 					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
-					admin = false;
+					isAdmin = false;
 					return false;
 				} catch (IOException | InterruptedException e) {
 					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
 				}
 			}
-			admin = false;
+			isAdmin = false;
 			return false;
 		}
 	}
