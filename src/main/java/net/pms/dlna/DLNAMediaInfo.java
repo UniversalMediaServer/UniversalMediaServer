@@ -328,9 +328,8 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the number of subtitle tracks embedded in the media file.
+	 * @return true when there are subtitle tracks embedded in the media file.
 	 */
-
 	public boolean hasSubtitles() {
 		return subtitleTracks.size() > 0;
 	}

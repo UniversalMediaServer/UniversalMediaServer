@@ -16,10 +16,6 @@ ul#Media {
 	padding: 115px 0 20px 20px;
 }
 
-ul#Media.noFolders {
-	margin: 0 -20px 0 0 !important;
-}
-
 #ContentPage #Menu {
 	background: url('/files/menu-background-content.png');
 	background-repeat: repeat-x;

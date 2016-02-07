@@ -236,8 +236,9 @@ public class FFMpegVideo extends Player {
 					if (configuration.isFFmpegFontConfig() && !is3D && !isSubsASS) { // Do not force style for 3D videos and ASS subtitles
 						subsFilter.append(":force_style=");
 						subsFilter.append("'");
+						subsFilter.append("Fontname=").append(configuration.getFont());
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-						subsFilter.append("Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
+						subsFilter.append(",Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
 						subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
