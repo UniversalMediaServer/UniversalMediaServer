@@ -62,21 +62,6 @@ function scrollActions() {
 	}
 }
 
-$(document).ready(function() {
-	if ($('#Media').length) {
-		$(window).bind('load resize', changeMargins);
-	}
-	if ($('#Folders').length) {
-		$('#Folders li').bind('contextmenu', function(){
-			return false;
-		});
-	}
-	if ($('#Menu').length) {
-		$(window).bind('load resize scroll', scrollActions);
-	}
-	poll();
-});
-
 function searchFun(url, txt) {
 	var str = prompt(txt);
 	if (str !== null) {
@@ -140,3 +125,20 @@ function notify(icon, msg) {
 	}, 5000);
 }
 
+$(document).ready(function() {
+	if ($('#Media').length) {
+		$(window).bind('load resize', changeMargins);
+	}
+
+	if ($('#Folders').length) {
+		$('#Folders li').bind('contextmenu', function(){
+			return false;
+		});
+	}
+
+	if ($('#Menu').length) {
+		$(window).bind('load resize scroll', scrollActions);
+	}
+
+	poll();
+});
