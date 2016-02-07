@@ -180,13 +180,19 @@ ul#Media .caption {
 
 .playlist_add,
 .playlist_del,
-.bumpIcon {
+.bumpIcon,
+#ViewGrid,
+#ViewDynamic,
+#DocButton {
 	opacity: 0.7;
 }
 
 .playlist_add:hover,
 .playlist_del:hover,
-.bumpIcon:hover {
+.bumpIcon:hover,
+#ViewGrid:hover,
+#ViewDynamic:hover,
+#DocButton:hover {
 	opacity: 1.0;
 }
 
@@ -200,6 +206,21 @@ ul#Media .caption {
 
 ul#Media li:hover .caption {
 	color: #000 !important;
+}
+
+#ViewGrid,
+#ViewDynamic {
+	width: 31px;
+	height: 22px;
+	margin-top: 6px;
+}
+
+#ViewGrid {
+	background-image: url('/files/view-grid.png');
+}
+
+#ViewDynamic {
+	background-image: url('/files/view-dynamic.png');
 }
 
 ul#Media .caption:hover {
@@ -238,18 +259,25 @@ ul#Media .caption:hover {
 	margin-bottom: 12px;
 }
 
+#OptionsMenu {
+	float: right;
+	margin: 10px 10px 0 0;
+}
+
+#OptionsMenu > form,
+#OptionsMenu > a {
+	display: inline-block;
+	vertical-align: text-top;
+}
+
 #DocButton {
 	background: url('/files/settings32.png') no-repeat;
-	position: absolute;
-	top: 10px;
-	right: 10px;
+	margin: 0 20px 0 0;
 }
 
 form#SearchForm {
 	z-index: 3;
-	position: absolute;
-	top: 10px;
-	right: 50px;
+	position: relative;
 }
 
 #SearchInput {
@@ -278,7 +306,7 @@ form#SearchForm {
 	display: block;
 }
 
-#SearchSubmit:hover, #DocButton:hover {
+#SearchSubmit:hover {
 	background-position: 0 -32px;
 }
 
@@ -397,7 +425,7 @@ form#SearchForm {
 	position: fixed;
 	bottom: 0;
 	z-index: 2147483647;
-	width:50%;
+	width: 50%;
 	margin: 0;
 	left: 45%;
 }

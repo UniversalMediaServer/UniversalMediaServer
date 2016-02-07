@@ -1,3 +1,5 @@
+var viewType = Cookies.get('view') || 'grid';
+
 function changeMargins() {
 	var total_w = $('#Media').width();
 	var cells = $('#Media li');
@@ -7,37 +9,73 @@ function changeMargins() {
 	var row_start = 0;
 	var spaces = 1;
 
-	for (var i = 0; i < cells.length; i++) {
-		images_w += (180 * aspect);
-		var avail_w = total_w - ++spaces * 20;
-		var wrap = images_w > avail_w;
-		if (wrap || i === cells.length - 1) {
-			if (wrap) {
-				row_h = avail_w / images_w * 180;
-			}
-			var cell_w = row_h * aspect;
+	if (viewType === 'grid') {
+		for (var i = 0; i < cells.length; i++) {
+			images_w += (180 * aspect);
+			var avail_w = total_w - ++spaces * 20;
+			var wrap = images_w > avail_w;
+			if (wrap || i === cells.length - 1) {
+				if (wrap) {
+					row_h = avail_w / images_w * 180;
+				}
+				var cell_w = row_h * aspect;
 
-			// Normalize cell heights for current row
-			for (var c = row_start; c <= i; c++) {
-				var caption_w = cell_w - 33;
-				$(cells[c]).find('.caption').css({
-					width : caption_w + 'px',
-					maxWidth : caption_w + 'px',
-				});
-				$(cells[c]).find('.thumb').css({
-					width : 'auto',
-					height : row_h + 'px',
-					maxWidth : cell_w + 'px',
-					maxHeight : row_h + 'px',
-				});
-				$(cells[c]).find('a:first-child').css({
-					height : row_h + 'px',
-					width : cell_w + 'px',
-				});
+				// Normalize cell heights for current row
+				for (var c = row_start; c <= i; c++) {
+					var caption_w = cell_w - 33;
+					$(cells[c]).find('.caption').css({
+						width : caption_w + 'px',
+						maxWidth : caption_w + 'px',
+					});
+					$(cells[c]).find('.thumb').css({
+						width : 'auto',
+						height : row_h + 'px',
+						maxWidth : cell_w + 'px',
+						maxHeight : row_h + 'px',
+					});
+					$(cells[c]).find('a:first-child').css({
+						height : row_h + 'px',
+						width : cell_w + 'px',
+					});
+				}
+				images_w = 0;
+				row_start = i + 1;
+				spaces = 1;
 			}
-			images_w = 0;
-			row_start = i + 1;
-			spaces = 1;
+		}
+	} else if (viewType === 'dynamic') {
+		$('ul#Media li a:first-child').width('inherit').height('inherit');
+		aspect = new Array(cells.length);
+
+		for (var i = 0; i < cells.length; i++) {
+			var thumb = $(cells[i]).find('.thumb')[0];
+			aspect[i] = thumb.naturalWidth / thumb.naturalHeight;
+			images_w += (180 * aspect[i]);
+			var avail_w = total_w - ++spaces * 20;
+			var wrap = images_w > avail_w;
+			if (wrap || i === cells.length - 1) {
+				if (wrap) {
+					row_h = avail_w / images_w * 180;
+				}
+				// Normalize cell heights for current row
+				for (var c = row_start; c <= i; c++) {
+					var cell_w = row_h * aspect[c];
+					var caption_w = cell_w - 48;
+					$(cells[c]).find('.caption').css({
+						width : caption_w + 'px',
+						maxWidth : caption_w + 'px',
+					});
+					$(cells[c]).find('.thumb').css({
+						width : 'auto',
+						height : row_h + 'px',
+						maxWidth : cell_w + 'px',
+						maxHeight : row_h + 'px',
+					});
+				}
+				images_w = 0;
+				row_start = i + 1;
+				spaces = 1;
+			}
 		}
 	}
 }
@@ -123,6 +161,12 @@ function notify(icon, msg) {
 	setTimeout(function() {
 		notice.fadeOut('slow', function(){notice.remove();});
 	}, 5000);
+}
+
+function chooseView(view) {
+	Cookies.remove('view');
+	Cookies.set('view', view, { expires: 365, path: '/' });
+	viewType = view;
 }
 
 $(document).ready(function() {
