@@ -259,13 +259,13 @@ public class FFMpegVideo extends Player {
 					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
 				}
 			}
-			if (isNotBlank(subsFilter) && isSubsManualTiming) {
-				if (params.timeseek > 0) {
+			if (isNotBlank(subsFilter)) {
+				if (params.timeseek > 0 && isSubsManualTiming) {
 					filterChain.add("setpts=PTS+" + params.timeseek + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 
 				filterChain.add(subsFilter.toString());
-				if (params.timeseek > 0) {
+				if (params.timeseek > 0 && isSubsManualTiming) {
 					filterChain.add("setpts=PTS-STARTPTS"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 			}
