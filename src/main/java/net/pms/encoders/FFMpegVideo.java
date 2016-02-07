@@ -250,7 +250,7 @@ public class FFMpegVideo extends Player {
 			} else if (params.sid.getType().isPicture()) {
 				if (params.sid.getId() < 100) {
 					// Embedded
-					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay[v]");
+					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
 					isSubsManualTiming = false;
 				} else {
 					// External
