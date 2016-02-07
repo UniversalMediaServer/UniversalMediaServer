@@ -326,7 +326,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					startStopListenerDelegate.stop();
 				}
 			} else if (!cause.getClass().equals(ClosedChannelException.class)) {
-				LOGGER.debug("Caught exception: " + cause);
+				LOGGER.debug("Caught exception: {}", cause.getMessage());
+				LOGGER.trace("", cause);
 			}
 		}
 		if (ch.isConnected()) {

@@ -164,6 +164,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String PREPEND_TRACK_NUMBERS = "PrependTrackNumbers";
+	protected static final String PUSH_METADATA = "PushMetadata";
 	protected static final String RENDERER_ICON = "RendererIcon";
 	protected static final String RENDERER_NAME = "RendererName";
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -185,6 +186,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
 	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
+	protected static final String THUMBNAIL_PADDING = "ThumbnailPadding";
 	protected static final String THUMBNAILS = "Thumbnails";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
 	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
@@ -1764,6 +1766,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * Returns whether or not to include metadata when pushing uris.
+	 * This is meant as a stopgap workaround for any renderer that
+	 * chokes on our metadata.
+	 *
+	 * @return whether to include metadata.
+	 */
+	public boolean isPushMetadata() {
+		return getBoolean(PUSH_METADATA, true);
+	}
+
+	/**
 	 * Returns the codec to use for video transcoding for this renderer as
 	 * defined in the renderer configuration. Default value is "MPEGPSMPEG2AC3".
 	 *
@@ -2748,6 +2761,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isThumbnails() {
 		return getBoolean(THUMBNAILS, true);
+	}
+
+	/**
+	 * Whether we should add black padding to thumbnails so they are always
+	 * at the same resolution, or just scale to within the limits.
+	 *
+	 * @return whether to add padding to thumbnails
+	 */
+	public boolean isThumbnailPadding() {
+		return getBoolean(THUMBNAIL_PADDING, false);
 	}
 
 	/**

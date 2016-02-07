@@ -179,6 +179,7 @@ public class FFMpegVideo extends Player {
 
 		if (!isDisableSubtitles(params) && override) {
 			boolean isSubsASS = params.sid.getType() == SubtitleType.ASS;
+			boolean isSubsManualTiming = true;
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid != null && params.sid.getType().isText()) {
 				String originalSubsFilename = null;
@@ -236,8 +237,9 @@ public class FFMpegVideo extends Player {
 					if (configuration.isFFmpegFontConfig() && !is3D && !isSubsASS) { // Do not force style for 3D videos and ASS subtitles
 						subsFilter.append(":force_style=");
 						subsFilter.append("'");
+						subsFilter.append("Fontname=").append(configuration.getFont());
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-						subsFilter.append("Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
+						subsFilter.append(",Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
 						subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
@@ -249,6 +251,7 @@ public class FFMpegVideo extends Player {
 				if (params.sid.getId() < 100) {
 					// Embedded
 					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
+					isSubsManualTiming = false;
 				} else {
 					// External
 					videoFilterOptions.add("-i");
@@ -257,12 +260,12 @@ public class FFMpegVideo extends Player {
 				}
 			}
 			if (isNotBlank(subsFilter)) {
-				if (params.timeseek > 0) {
+				if (params.timeseek > 0 && isSubsManualTiming) {
 					filterChain.add("setpts=PTS+" + params.timeseek + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 
 				filterChain.add(subsFilter.toString());
-				if (params.timeseek > 0) {
+				if (params.timeseek > 0 && isSubsManualTiming) {
 					filterChain.add("setpts=PTS-STARTPTS"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 			}
@@ -850,7 +853,7 @@ public class FFMpegVideo extends Player {
 			)
 		) {
 			boolean deferToMencoder = false;
-			if (configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() && params.sid.isEmbedded()) {
+			if (configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() && params.sid.isEmbedded() && params.sid.getType().isText()) {
 				deferToMencoder = true;
 				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
 			} else if (media.isEmbeddedFontExists()) {

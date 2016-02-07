@@ -297,6 +297,7 @@ public class StringUtil {
 
 	/**
 	 * Fill a string in a unicode safe way.
+	 *
 	 * @param subString The <code>String</code> to be filled with
 	 * @param count The number of times to repeat the <code>String</code>
 	 * @return The filled string
@@ -312,6 +313,7 @@ public class StringUtil {
 	/**
 	 * Fill a string in a unicode safe way provided that the char array contains
 	 * a valid unicode sequence.
+	 *
 	 * @param chars The <code>char[]</code> to be filled with
 	 * @param count The number of times to repeat the <code>char[]</code>
 	 * @return The filled string
@@ -327,6 +329,7 @@ public class StringUtil {
 	/**
 	 * Fill a string in a unicode safe way. 8 bit (&lt; 256) code points
 	 * equals ISO 8859-1 codes.
+	 *
 	 * @param codePoint The unicode code point to be filled with
 	 * @param count The number of times to repeat the unicode code point
 	 * @return The filled string
@@ -343,6 +346,7 @@ public class StringUtil {
 	 * <br>
 	 * <strong>Note: This is not a universal or sophisticated HTML stripping
 	 * method, but is purpose built for these circumstances.</strong>
+	 *
 	 * @param html the HTML formatted text as described above
 	 * @return The "deHTMLified" text
 	 */
@@ -354,5 +358,53 @@ public class StringUtil {
 		} else {
 			throw new IllegalArgumentException("HTML text not as expected, must have <body> section");
 		}
+	}
+
+	/**
+	 * Convenience method to check if a {@link String} is not <code>null</code>
+	 * and contains anything other than whitespace.
+	 *
+	 * @param s the {@link String} to evaluate
+	 * @return The verdict
+	 */
+	public static boolean hasValue(String s) {
+		return s != null && !s.trim().isEmpty();
+	}
+
+	/**
+	 * Escapes {@link org.apache.lucene} special characters with backslash
+	 */
+	public static String luceneEscape(final String s) {
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0;i < s.length(); i++) {
+			String c = s.substring(i, i+1);
+			switch (c) {
+				case "+":
+				case "-":
+				case "&":
+				case "|":
+				case "!":
+				case "(":
+				case ")":
+				case "{":
+				case "}":
+				case "[":
+				case "]":
+				case "^":
+				case "\"":
+				case "~":
+				case "*":
+				case "?":
+				case ":":
+				case "\\":
+				case "/":
+					sb.append("\\").append(c);
+					break;
+				default:
+					sb.append(c);
+			}
+		}
+		return sb.toString();
 	}
 }

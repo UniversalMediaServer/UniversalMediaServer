@@ -33,12 +33,15 @@ import ch.qos.logback.core.status.ErrorStatus;
  */
 public class CacheAppender<E> extends AppenderBase<E> {
 
+	private final Object eventListLock = new Object();
 	private LinkedList<E> eventList = new LinkedList<>();
 
 	@Override
 	protected void append(E eventObject) {
 		try {
-			eventList.add(eventObject);
+			synchronized (eventListLock) {
+				eventList.add(eventObject);
+			}
 		} catch (Exception e) {
 			addStatus(new ErrorStatus(
 						getName() + " failed to append event: " + e.getLocalizedMessage(), this, e)
@@ -47,8 +50,10 @@ public class CacheAppender<E> extends AppenderBase<E> {
 	}
 
 	public void flush(Logger rootLogger) {
-		while (!eventList.isEmpty()) {
-			rootLogger.callAppenders((ILoggingEvent) eventList.poll());
+		synchronized (eventListLock) {
+			while (!eventList.isEmpty()) {
+				rootLogger.callAppenders((ILoggingEvent) eventList.poll());
+			}
 		}
 	}
 }

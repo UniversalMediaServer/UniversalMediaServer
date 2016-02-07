@@ -51,17 +51,25 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingTest {
 
-	class TestAppender<E> extends AppenderBase<E> {
+	private static class TestAppender<E> extends AppenderBase<E> {
 
-		public E lastEvent = null;
+		private final Object lastEventLock = new Object();
+		private E lastEvent = null;
 
+		public E getLastEvent() {
+			synchronized (lastEventLock) {
+				return lastEvent;
+			}
+		}
 		@Override
 		protected void append(E eventObject) {
-			lastEvent = eventObject;
+			synchronized (lastEventLock) {
+				lastEvent = eventObject;
+			}
 		}
 	}
 
-	class TestFileAppender<E> extends FileAppender<E> {
+	private static class TestFileAppender<E> extends FileAppender<E> {
 
 		@Override
 		protected void append(E eventObject) {
@@ -121,7 +129,7 @@ public class LoggingTest {
 		rootLogger.error(testMessage);
 		assertTrue("CacheLoggerActive", CacheLogger.isActive());
 		CacheLogger.stopAndFlush();
-		assertEquals("LoggedMessage", testAppender.lastEvent.getMessage(), testMessage);
+		assertEquals("LoggedMessage", testAppender.getLastEvent().getMessage(), testMessage);
 		assertFalse("CacheLoggerInactive", CacheLogger.isActive());
 		rootLogger.setLevel(Level.OFF);
 
