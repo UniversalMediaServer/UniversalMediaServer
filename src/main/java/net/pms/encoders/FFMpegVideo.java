@@ -722,7 +722,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	public synchronized ProcessWrapper launchTranscode(
+	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
