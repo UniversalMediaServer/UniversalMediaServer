@@ -389,7 +389,6 @@
 			<artifactId>coverartarchive-api</artifactId>
 			<version>2.1.0</version>
 		</dependency>
-		</dependency>
 		<dependency>
 			<groupId>com.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
