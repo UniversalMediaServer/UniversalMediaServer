@@ -137,12 +137,23 @@ ul#Media li {
 	margin-bottom: 20px;
 }
 
-ul#Media li a:first-child {
+ul#Media li {
 	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
 	width: 308px;
 	height: 173px;
-	background-color: #000;
 	display: block;
+}
+
+.PadBlack {
+	background-color: rgba(0, 0, 0, 1);
+}
+
+.PadGrey {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.PadNone {
+	background-color: none;
 }
 
 ul#Media .thumb {
@@ -264,17 +275,47 @@ ul#Media .caption:hover {
 #OptionsMenu {
 	float: right;
 	margin: 10px 10px 0 0;
+	z-index: 99999;
 }
 
 #OptionsMenu > form,
 #OptionsMenu > a {
+	float: left;
 	display: inline-block;
 	vertical-align: text-top;
 }
 
 #DocButton {
 	background: url('/files/settings32.png') no-repeat;
-	margin: 0 20px 0 0;
+}
+
+#Docs {
+	background: url('/files/info24.png') no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#Pad {
+	background: url('/files/pad32.png') no-repeat;
+	width: 32px;
+	height: 18px;
+}
+
+#SettingsMenu {
+	display: none;
+	z-index: 99999;
+	background-color: #000;
+	overflow: visible;
+	padding: 5px 0;
+	border: 1px;
+	border-style: solid;
+	border-color: #fff;
+}
+
+#SettingsMenu li a {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 form#SearchForm {
@@ -431,3 +472,4 @@ form#SearchForm {
 	margin: 0;
 	left: 45%;
 }
+

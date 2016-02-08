@@ -34,9 +34,17 @@
 						<input type="submit" id="SearchSubmit" title="Search" value="&nbsp;">
 					</form>
 {{/hasFile}}
-					<a href="/doc" id="DocButton" title="Documentation"></a>
-					<a href="javascript:chooseView('grid')" id="ViewGrid" title="Switch to grid view"></a>
-					<a href="javascript:chooseView('dynamic')" id="ViewDynamic" title="Switch to dynamic view"></a>
+					<ul class="HoverMenu" title="Settings">
+						<a id="DocButton" title="Settings"></a>
+						<ul id="SettingsMenu">
+							<li><a href="/doc" id="Docs" title="Documentation"></a></li>
+							<li><a href="javascript:setPadColor(1)" id="Pad" title="Change padding color"></a></li>
+							<li>
+								<a href="javascript:chooseView('grid')" id="ViewGrid" title="Switch to grid view"></a>
+								<a href="javascript:chooseView('dynamic')" id="ViewDynamic" title="Switch to dynamic view"></a>
+							</li>
+						</ul>
+					</ul>
 				</div>
 				<a href="/browse/0" id="HomeButton"></a>
 			</div>

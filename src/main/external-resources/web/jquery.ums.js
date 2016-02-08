@@ -10,8 +10,6 @@ function changeMargins() {
 	var spaces = 1;
 
 	if (viewType === 'grid') {
-		$('ul#Media li a:first-child').css({backgroundColor: ''});
-
 		for (var i = 0; i < cells.length; i++) {
 			images_w += (180 * aspect);
 			var avail_w = total_w - ++spaces * 20;
@@ -35,9 +33,9 @@ function changeMargins() {
 						maxWidth : cell_w + 'px',
 						maxHeight : row_h + 'px',
 					});
-					$(cells[c]).find('a:first-child').css({
+					$(cells[c]).css({
 						height : row_h + 'px',
-						width : cell_w + 'px',
+						width : 'auto',
 					});
 				}
 				images_w = 0;
@@ -46,7 +44,7 @@ function changeMargins() {
 			}
 		}
 	} else if (viewType === 'dynamic') {
-		$('ul#Media li a:first-child').css({width: 'inherit', height: 'inherit', backgroundColor: 'inherit'});
+		$('ul#Media li a:first-child').css({width: 'inherit', height: 'inherit'});
 		aspect = new Array(cells.length);
 
 		for (var i = 0; i < cells.length; i++) {
@@ -72,6 +70,10 @@ function changeMargins() {
 						height : row_h + 'px',
 						maxWidth : cell_w + 'px',
 						maxHeight : row_h + 'px',
+					});
+					$(cells[c]).css({
+						height : row_h + 'px',
+						width : 'auto',
 					});
 				}
 				images_w = 0;
@@ -180,9 +182,28 @@ function chooseView(view) {
 	}
 }
 
+function setPadColor(cycle) {
+	var pad = Cookies.get('pad') || 'PadGrey';
+	if (cycle) {
+		pad = pad === 'PadBlack' ? 'PadGrey' : pad === 'PadGrey' ? 'PadNone' : 'PadBlack';
+	}
+	//console.log('pad='+pad);
+	$('#Media li').removeClass('PadBlack PadGrey PadNone').addClass(pad);
+	Cookies.set('pad', pad, { expires: 365, path: '/' });
+}
+
+function initSettings() {
+	$(".HoverMenu").hover(
+		function () { $('#SettingsMenu').slideDown('fast'); }, 
+		function () { $('#SettingsMenu').slideUp('fast'); }
+	);
+}
+
 $(document).ready(function() {
+	initSettings();
 	viewType = Cookies.get('view') || 'grid';
 	chooseView(viewType);
+	setPadColor();
 
 	if ($('#Media').length) {
 		$(window).bind('load resize', changeMargins);
