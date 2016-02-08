@@ -192,6 +192,8 @@ ul#Media .caption {
 .bumpIcon:hover,
 #ViewGrid:hover,
 #ViewDynamic:hover,
+#ViewGrid.active,
+#ViewDynamic.active,
 #DocButton:hover {
 	opacity: 1.0;
 }

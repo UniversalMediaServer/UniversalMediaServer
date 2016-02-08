@@ -1,4 +1,4 @@
-var viewType = Cookies.get('view') || 'grid';
+var viewType = 'grid';
 
 function changeMargins() {
 	var total_w = $('#Media').width();
@@ -167,9 +167,21 @@ function chooseView(view) {
 	Cookies.remove('view');
 	Cookies.set('view', view, { expires: 365, path: '/' });
 	viewType = view;
+	changeMargins();
+
+	if (view === 'grid') {
+		$('#ViewGrid').addClass('active');
+		$('#ViewDynamic').removeClass('active');
+	} else if (view === 'dynamic') {
+		$('#ViewGrid').removeClass('active');
+		$('#ViewDynamic').addClass('active');
+	}
 }
 
 $(document).ready(function() {
+	viewType = Cookies.get('view') || 'grid';
+	chooseView(viewType);
+
 	if ($('#Media').length) {
 		$(window).bind('load resize', changeMargins);
 	}
