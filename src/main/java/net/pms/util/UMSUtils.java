@@ -620,7 +620,7 @@ public class UMSUtils {
 
 			Thumbnails.of(img)
 				.size(width, height)
-				.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
+//				.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
 				.outputFormat("JPEG")
 				.outputQuality(1.0f)
 				.toOutputStream(out);
