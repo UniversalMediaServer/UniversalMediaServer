@@ -44,7 +44,7 @@ function changeMargins() {
 			}
 		}
 	} else if (viewType === 'dynamic') {
-		$('ul#Media li a:first-child').width('inherit').height('inherit');
+		$('ul#Media li a:first-child').width('inherit').height('inherit').css('background-color', '');
 		aspect = new Array(cells.length);
 
 		for (var i = 0; i < cells.length; i++) {
