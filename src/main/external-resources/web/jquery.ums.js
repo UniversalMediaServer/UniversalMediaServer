@@ -10,6 +10,8 @@ function changeMargins() {
 	var spaces = 1;
 
 	if (viewType === 'grid') {
+		$('ul#Media li a:first-child').css({backgroundColor: ''});
+
 		for (var i = 0; i < cells.length; i++) {
 			images_w += (180 * aspect);
 			var avail_w = total_w - ++spaces * 20;
@@ -44,7 +46,7 @@ function changeMargins() {
 			}
 		}
 	} else if (viewType === 'dynamic') {
-		$('ul#Media li a:first-child').width('inherit').height('inherit').css('background-color', '');
+		$('ul#Media li a:first-child').css({width: 'inherit', height: 'inherit', backgroundColor: 'inherit'});
 		aspect = new Array(cells.length);
 
 		for (var i = 0; i < cells.length; i++) {
