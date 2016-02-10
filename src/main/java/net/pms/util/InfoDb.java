@@ -3,7 +3,7 @@ package net.pms.util;
 import java.io.File;
 
 public class InfoDb implements DbHandler {
-	public class InfoDbData {
+	public static class InfoDbData {
 		public String imdb;
 		public String ep_name;
 		public String year;
