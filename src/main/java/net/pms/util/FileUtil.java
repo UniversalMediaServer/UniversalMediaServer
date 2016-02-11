@@ -606,9 +606,10 @@ public class FileUtil {
 		 * We use the Jaro Winkler similarity algorithm to make sure that changes to
 		 * movie or TV show names are only made when the difference between the
 		 * original and replacement names is less than 10%.
-		 *
 		 * This means we get proper case and special characters without worrying about
 		 * incorrect results being used.
+		 *
+		 * TODO: Make the following logic only happen once.
 		 */
 		if (file != null && (isTVSeriesToLookup || isMovieToLookup)) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
@@ -623,14 +624,14 @@ public class FileUtil {
 					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
 					if (similarity > 0.9) {
 						formattedName = info.title + formattedName.substring(showNameIndex);
-					}
-					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
 
-					if (isEpisodeToLookup) {
-						if (StringUtils.isNotEmpty(info.ep_name)) {
-							formattedName += " - " + info.ep_name;
+						if (isEpisodeToLookup) {
+							if (StringUtils.isNotEmpty(info.ep_name)) {
+								formattedName += " - " + info.ep_name;
+							}
 						}
 					}
+					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
 				}
 			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.title) && StringUtils.isNotEmpty(info.year)) {
 				if (isMovieWithoutYear) {
