@@ -33,6 +33,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 	}
 
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
+		LOGGER.debug("Make browse page " + id);
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
@@ -216,7 +217,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String id = RemoteUtil.getId("browse/", t);
 		LOGGER.debug("Got a browse request found id " + id);
 		String response = mkBrowsePage(id, t);
-		LOGGER.debug("Write page " + response);
+		LOGGER.trace("Browse page " + response);
 		RemoteUtil.respond(t, response, 200, "text/html");
 	}
 }
