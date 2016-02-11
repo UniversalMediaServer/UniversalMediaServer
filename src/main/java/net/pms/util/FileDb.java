@@ -88,9 +88,9 @@ public class FileDb {
 					continue;
 				}
 				// Substitute the encoded separator with the separator
-				for (String element : entry) {
-					if (element != null) {
-						element = Pattern.compile(encodedSeparator, Pattern.LITERAL).matcher(element).replaceAll(Matcher.quoteReplacement(separator));
+				for (int i = 0; i < entry.length; i++) {
+					if (entry[i] != null) {
+						entry[i] = Pattern.compile(encodedSeparator, Pattern.LITERAL | Pattern.CASE_INSENSITIVE).matcher(entry[i]).replaceAll(Matcher.quoteReplacement(separator));
 					}
 				}
 				db.put(entry[0], handler.create(entry));
@@ -152,11 +152,12 @@ public class FileDb {
 					String[] data1 = handler.format(obj);
 
 					// Substitute the separator with the encoded separator
-					for (String element : data1) {
-						element = Pattern.compile(separator, Pattern.LITERAL).matcher(element).replaceAll(Matcher.quoteReplacement(encodedSeparator));
+					for (int i = 0; i < data1.length; i++) {
+						data1[i] = Pattern.compile(separator, Pattern.LITERAL).matcher(data1[i]).replaceAll(Matcher.quoteReplacement(encodedSeparator));
 					}
 
-					data = new StringBuilder(entry.getKey()).append(separator).append(StringUtils.join(data1, separator)).append("\n");
+					data = new StringBuilder(Pattern.compile(separator, Pattern.LITERAL).matcher(entry.getKey()).replaceAll(Matcher.quoteReplacement(encodedSeparator)));
+					data.append(separator).append(StringUtils.join(data1, separator)).append("\n");
 				}
 				out.write(data.toString().getBytes(StandardCharsets.UTF_8));
 			}
