@@ -371,8 +371,10 @@ public class FileUtil {
 		String edition = "";
 
 		// These are false unless we recognize that we could use some info on the video from IMDb
-		boolean isEpisodeToLookup = false;
-		boolean isMovieToLookup   = false;
+		boolean isEpisodeToLookup  = false;
+		boolean isTVSeriesToLookup = false;
+		boolean isMovieToLookup    = false;
+		boolean isMovieWithoutYear = false;
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
@@ -381,6 +383,7 @@ public class FileUtil {
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
+			isTVSeriesToLookup = true;
 
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -407,6 +410,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons that are more than one episode
+			isTVSeriesToLookup = true;
 
 			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3-$5$6");
@@ -432,6 +436,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
+			isTVSeriesToLookup = true;
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
@@ -458,6 +463,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons
+			isTVSeriesToLookup = true;
 
 			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3");
@@ -483,6 +489,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
+			isTVSeriesToLookup = true;
 
 			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2/$3/$4");
@@ -508,6 +515,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
 			// This matches scene and most p2p movies
+			isMovieToLookup = true;
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
@@ -524,6 +532,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
+			isMovieToLookup = true;
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
@@ -534,11 +543,13 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
+			isMovieToLookup = true;
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
 			// This is probably a movie that doesn't specify a year
 			isMovieToLookup = true;
+			isMovieWithoutYear = true;
 			formattedName = removeFilenameEndMetadata(formattedName);
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
@@ -552,6 +563,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
 			// This matches anime with a hash at the end of the name
+			isTVSeriesToLookup = true;
 
 			// Remove underscores
 			formattedName = formattedName.replaceAll("_", " ");
@@ -568,6 +580,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
+			isTVSeriesToLookup = true;
 
 			// Remove underscores
 			formattedName = formattedName.replaceAll("_", " ");
@@ -587,15 +600,55 @@ public class FileUtil {
 		// Remove extra spaces
 		formattedName = formattedName.replaceAll("  ", " ");
 
-		// Add episode name (if not there)
-		if (file != null && (isEpisodeToLookup || isMovieToLookup)) {
+		/**
+		 * Add info from IMDb
+		 *
+		 * We use the Jaro Winkler similarity algorithm to make sure that changes to
+		 * movie or TV show names are only made when the difference between the
+		 * original and replacement names is less than 10%.
+		 * This means we get proper case and special characters without worrying about
+		 * incorrect results being used.
+		 *
+		 * TODO: Make the following logic only happen once.
+		 */
+		if (file != null && (isTVSeriesToLookup || isMovieToLookup)) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
 				PMS.get().infoDbAdd(file, searchFormattedName);
-			} else if (isEpisodeToLookup && StringUtils.isNotEmpty(info.ep_name)) {
-				formattedName += " - " + info.ep_name;
-			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.year)) {
-				formattedName += " (" + info.year + ")";
+			} else if (isTVSeriesToLookup) {
+				int showNameIndex = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
+				if (StringUtils.isNotEmpty(info.title) && showNameIndex != -1) {
+					String titleFromFilename = formattedName.substring(0, showNameIndex);
+
+					// The following line can run over 100 times in under 1ms
+					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
+					if (similarity > 0.9) {
+						formattedName = info.title + formattedName.substring(showNameIndex);
+
+						if (isEpisodeToLookup) {
+							if (StringUtils.isNotEmpty(info.ep_name)) {
+								formattedName += " - " + info.ep_name;
+							}
+						}
+					}
+					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
+				}
+			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.title) && StringUtils.isNotEmpty(info.year)) {
+				if (isMovieWithoutYear) {
+					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, info.title);
+					if (similarity > 0.9) {
+						formattedName = info.title + " (" + info.year + ")";
+					}
+					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName + "' is " + similarity);
+				} else {
+					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d\\d\\d\\d\\)"), formattedName);
+					String titleFromFilename = formattedName.substring(0, yearIndex);
+					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
+					if (similarity > 0.9) {
+						formattedName = info.title + " (" + info.year + ")";
+					}
+					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
+				}
 			}
 		}
 
@@ -652,6 +705,11 @@ public class FileUtil {
 		}
 
 		return convertedValue;
+	}
+	
+	public static int indexOf(Pattern pattern, String s) {
+		Matcher matcher = pattern.matcher(s);
+		return matcher.find() ? matcher.start() : -1;
 	}
 
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {

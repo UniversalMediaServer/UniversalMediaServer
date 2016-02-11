@@ -3,7 +3,7 @@ package net.pms.util;
 import java.io.File;
 
 public class InfoDb implements DbHandler {
-	public class InfoDbData {
+	public static class InfoDbData {
 		public String imdb;
 		public String ep_name;
 		public String year;
@@ -76,10 +76,10 @@ public class InfoDb implements DbHandler {
 			data.ep_name = "";
 		}
 
-		data.year = FileDb.safeGetArg(args, off + 2);
-		data.episode = FileDb.safeGetArg(args, off + 3);
-		data.title = FileDb.safeGetArg(args, off + 4);
-		data.season = FileDb.safeGetArg(args, off + 5);
+		data.title = FileDb.safeGetArg(args, off + 2);
+		data.season = FileDb.safeGetArg(args, off + 3);
+		data.episode = FileDb.safeGetArg(args, off + 4);
+		data.year = FileDb.safeGetArg(args, off + 5);
 
 		return data;
 	}
@@ -90,9 +90,9 @@ public class InfoDb implements DbHandler {
 		return new String[]{
 			data.imdb,
 			data.ep_name,
+			data.title,
 			data.season,
 			data.episode,
-			data.title,
 			data.year
 		};
 	}
