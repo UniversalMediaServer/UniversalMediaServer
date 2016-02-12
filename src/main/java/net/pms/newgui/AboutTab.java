@@ -50,7 +50,7 @@ public class AboutTab {
 	public JComponent build() {
 		FormLayout layout = new FormLayout(
 			"0:grow, pref, 0:grow",
-			"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -126,6 +126,11 @@ public class AboutTab {
 		JLabel lSVPLink = builder.addLabel(svpLink.getLabel(), cc.xy(2, 25, "center, fill"));
 		lSVPLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSVPLink.addMouseListener(svpLink);
+
+		final LinkMouseListener openSubtitlesLink = new LinkMouseListener("OpenSubtitles.org", "http://www.opensubtitles.org/");
+		JLabel lOpenSubtitlesLink = builder.addLabel(openSubtitlesLink.getLabel(), cc.xy(2, 27, "center, fill"));
+		lOpenSubtitlesLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lOpenSubtitlesLink.addMouseListener(openSubtitlesLink);
 
 		JScrollPane scrollPane = new JScrollPane(builder.getPanel());
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
