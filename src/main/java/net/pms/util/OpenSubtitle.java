@@ -29,6 +29,7 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -52,6 +53,7 @@ public class OpenSubtitle {
 	private static final int HASH_CHUNK_SIZE = 64 * 1024;
 
 	private static final String OPENSUBS_URL = "http://api.opensubtitles.org/xml-rpc";
+	private static final ReentrantReadWriteLock tokenLock = new ReentrantReadWriteLock();
 	private static String token = null;
 	private static long tokenAge;
 
@@ -75,10 +77,10 @@ public class OpenSubtitle {
 			long position = chunkSizeForFile;
 			long tailChunkPosition = length - chunkSizeForFile;
 
-			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks 
+			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks
 			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
 
-			// Second chunk, or the rest of the data if length is smaller than two chunks 
+			// Second chunk, or the rest of the data if length is smaller than two chunks
 			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
 
 			head = computeHashForChunk(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile));
@@ -128,27 +130,36 @@ public class OpenSubtitle {
 		return page.toString();
 	}
 
+	/*
+	 * This MUST be called with a lock on tokenLock
+	 */
 	private static boolean tokenIsYoung() {
 		long now = System.currentTimeMillis();
 		return ((now - tokenAge) < TOKEN_AGE_TIME);
 	}
 
-	private static synchronized void login() throws IOException {
-		if ((token != null) && tokenIsYoung()) {
-			return;
-		}
-		URL url = new URL(OPENSUBS_URL);
-		String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n<param>\n<value><string/></value>\n</param>\n" +
-			"<param>\n" +
-			"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n" +
-			"</param>\n<param>\n<value><string>" + UA + "</string></value>\n</param>\n" +
-			"</params>\n" +
-			"</methodCall>\n";
-		Pattern re = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);
-		Matcher m = re.matcher(postPage(url.openConnection(), req));
-		if (m.find()) {
-			token = m.group(1);
-			tokenAge = System.currentTimeMillis();
+	private static boolean login() throws IOException {
+		tokenLock.writeLock().lock();
+		try {
+			if (token != null && tokenIsYoung()) {
+				return true;
+			}
+			URL url = new URL(OPENSUBS_URL);
+			String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n<param>\n<value><string/></value>\n</param>\n" +
+				"<param>\n" +
+				"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n" +
+				"</param>\n<param>\n<value><string>" + UA + "</string></value>\n</param>\n" +
+				"</params>\n" +
+				"</methodCall>\n";
+			Pattern re = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);
+			Matcher m = re.matcher(postPage(url.openConnection(), req));
+			if (m.find()) {
+				token = m.group(1);
+				tokenAge = System.currentTimeMillis();
+			}
+			return token != null;
+		} finally {
+			tokenLock.writeLock().unlock();
 		}
 	}
 
@@ -169,16 +180,21 @@ public class OpenSubtitle {
 	}
 
 	private static String checkMovieHash(String hash) throws IOException {
-		login();
-		if (token == null) {
+		if (!login()) {
 			return "";
 		}
 		URL url = new URL(OPENSUBS_URL);
-		String req = "<methodCall>\n<methodName>CheckMovieHash</methodName>\n" +
-				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-				"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
-				"</data>\n</array>\n</value>\n</param>" +
-				"</params>\n</methodCall>\n";
+		tokenLock.readLock().lock();
+		String req = null;
+		try {
+		req = "<methodCall>\n<methodName>CheckMovieHash</methodName>\n" +
+			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+			"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
+			"</data>\n</array>\n</value>\n</param>" +
+			"</params>\n</methodCall>\n";
+		} finally {
+			tokenLock.readLock().unlock();
+		}
 		LOGGER.debug("req " + req);
 		return postPage(url.openConnection(), req);
 	}
@@ -240,9 +256,8 @@ public class OpenSubtitle {
 
 	public static Map<String, Object> findSubs(String hash, long size, String imdb,
 											   String query, RendererConfiguration r) throws IOException {
-		login();
 		TreeMap<String, Object> res = new TreeMap<>();
-		if (token == null) {
+		if (!login()) {
 			return res;
 		}
 		String lang = UMSUtils.getLangList(r, true);
@@ -260,13 +275,19 @@ public class OpenSubtitle {
 		} else {
 			return res;
 		}
-		String req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
-			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-			"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
-			"</name><value><string>" + lang + "</string></value></member>" +
-			hashStr + imdbStr + qStr + "\n" +
-			"</struct></value></data>\n</array>\n</value>\n</param>" +
-			"</params>\n</methodCall>\n";
+		String req = null;
+		tokenLock.readLock().lock();
+		try {
+			req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
+				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+				"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
+				"</name><value><string>" + lang + "</string></value></member>" +
+				hashStr + imdbStr + qStr + "\n" +
+				"</struct></value></data>\n</array>\n</value>\n</param>" +
+				"</params>\n</methodCall>\n";
+		} finally {
+			tokenLock.readLock().unlock();
+		}
 		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		String page = postPage(url.openConnection(), req);
 		Matcher m = re.matcher(page);
@@ -300,7 +321,9 @@ public class OpenSubtitle {
 		String[] res = getInfo(getHash(f), f.length(), null, null, r);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdb(f);
-			res = getInfo(null, 0, imdb, null, r);
+			if (StringUtil.hasValue(imdb)) {
+				res = getInfo(null, 0, imdb, null, r);
+			}
 		}
 		if (res == null || res.length == 0) { // final try, use the name
 			if (StringUtils.isNotEmpty(formattedName)) {
@@ -328,8 +351,7 @@ public class OpenSubtitle {
 	 * @throws IOException
 	 */
 	private static String[] getInfo(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
-		login();
-		if (token == null) {
+		if (!login()) {
 			return null;
 		}
 		String lang = UMSUtils.getLangList(r, true);
@@ -347,13 +369,19 @@ public class OpenSubtitle {
 		} else {
 			return null;
 		}
-		String req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
+		String req = null;
+		tokenLock.readLock().lock();
+		try {
+			req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
 				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
 				"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
 				"</name><value><string>" + lang + "</string></value></member>" +
 				hashStr + imdbStr + qStr + "\n" +
 				"</struct></value></data>\n</array>\n</value>\n</param>" +
 				"</params>\n</methodCall>\n";
+		} finally {
+			tokenLock.readLock().unlock();
+		}
 		Pattern re = Pattern.compile(
 				".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" + "" +
 				"MovieName</name>.*?<string>([^<]+)</string>.*?" +
@@ -401,8 +429,7 @@ public class OpenSubtitle {
 	}
 
 	public static String fetchSubs(String url, String outName) throws FileNotFoundException, IOException {
-		login();
-		if (token == null) {
+		if (!login()) {
 			return "";
 		}
 		if (StringUtils.isEmpty(outName)) {

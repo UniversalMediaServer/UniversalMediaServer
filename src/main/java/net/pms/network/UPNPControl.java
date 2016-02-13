@@ -379,7 +379,7 @@ public class UPNPControl {
 	}
 
 	public static String getFriendlyName(Device d) {
-		return d.getDetails().getFriendlyName();
+		return d != null ? d.getDetails().getFriendlyName() : null;
 	}
 
 	public static String getUUID(Device d) {

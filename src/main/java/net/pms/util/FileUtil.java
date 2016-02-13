@@ -536,6 +536,7 @@ public class FileUtil {
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
+			formattedName = removeFilenameEndMetadata(formattedName);
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
@@ -545,6 +546,10 @@ public class FileUtil {
 			// This matches rarer types of movies
 			isMovieToLookup = true;
 			formattedName = removeFilenameEndMetadata(formattedName);
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
 			// This is probably a movie that doesn't specify a year
@@ -598,7 +603,7 @@ public class FileUtil {
 		}
 
 		// Remove extra spaces
-		formattedName = formattedName.replaceAll("  ", " ");
+		formattedName = formattedName.replaceAll("\\s+", " ");
 
 		/**
 		 * Add info from IMDb
@@ -614,7 +619,7 @@ public class FileUtil {
 		if (file != null && (isTVSeriesToLookup || isMovieToLookup)) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
-				PMS.get().infoDbAdd(file, searchFormattedName);
+				PMS.get().infoDbAdd(file, StringUtil.hasValue(searchFormattedName) ?  searchFormattedName : formattedName);
 			} else if (isTVSeriesToLookup) {
 				int showNameIndex = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
 				if (StringUtils.isNotEmpty(info.title) && showNameIndex != -1) {
@@ -641,7 +646,7 @@ public class FileUtil {
 					}
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName + "' is " + similarity);
 				} else {
-					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d\\d\\d\\d\\)"), formattedName);
+					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d{4}\\)"), formattedName);
 					String titleFromFilename = formattedName.substring(0, yearIndex);
 					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
 					if (similarity > 0.9) {
@@ -706,7 +711,7 @@ public class FileUtil {
 
 		return convertedValue;
 	}
-	
+
 	public static int indexOf(Pattern pattern, String s) {
 		Matcher matcher = pattern.matcher(s);
 		return matcher.find() ? matcher.start() : -1;
