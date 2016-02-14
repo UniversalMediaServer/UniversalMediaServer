@@ -28,11 +28,6 @@ public class RAWThumbnailer extends Player {
 	}
 
 	@Override
-	public String[] args() {
-		return getDefaultArgs();
-	}
-
-	@Override
 	public JComponent config() {
 		return null;
 	}
@@ -53,9 +48,8 @@ public class RAWThumbnailer extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		PmsConfiguration prev = configuration;
-		// Use device-specific pms conf
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		// Use device-specific PmsConfiguration
+		//final DeviceConfiguration deviceConfiguration = (DeviceConfiguration) params.mediaRenderer;
 		params.waitbeforestart = 1;
 		params.minBufferSize = 1;
 		params.maxBufferSize = 6;
@@ -74,7 +68,6 @@ public class RAWThumbnailer extends Player {
 		}
 
 		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
-		configuration = prev;
 		return pw;
 	}
 

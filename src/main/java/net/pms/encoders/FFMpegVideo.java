@@ -122,12 +122,12 @@ public class FFMpegVideo extends Player {
 
 		int scaleWidth = 0;
 		int scaleHeight = 0;
-		if (media.getWidth() > 0 && media.getHeight() > 0) {
+		if (media != null && media.getWidth() > 0 && media.getHeight() > 0) {
 			scaleWidth = media.getWidth();
 			scaleHeight = media.getHeight();
 		}
 
-		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+		boolean is3D = media != null && media.is3d() && !media.stereoscopyIsAnaglyph();
 
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
 		boolean keepAR = renderer.isKeepAspectRatio() &&
@@ -178,7 +178,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (!isDisableSubtitles(params) && override) {
-			boolean isSubsASS = params.sid.getType() == SubtitleType.ASS;
+			boolean isSubsASS = params.sid != null && params.sid.getType() == SubtitleType.ASS;
 			boolean isSubsManualTiming = true;
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid != null && params.sid.getType().isText()) {
@@ -247,7 +247,7 @@ public class FFMpegVideo extends Player {
 						subsFilter.append("'");
 					}
 				}
-			} else if (params.sid.getType().isPicture()) {
+			} else if (params.sid != null && params.sid.getType().isPicture()) {
 				if (params.sid.getId() < 100) {
 					// Embedded
 					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
@@ -309,7 +309,6 @@ public class FFMpegVideo extends Player {
 	 */
 	public synchronized List<String> getVideoTranscodeOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> transcodeOptions = new ArrayList<>();
-		final String filename = dlna.getSystemName();
 		final RendererConfiguration renderer = params.mediaRenderer;
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
@@ -343,7 +342,7 @@ public class FFMpegVideo extends Player {
 				params.aid.isDTS() &&
 				!avisynth() &&
 				renderer.isDTSPlayable();
-			
+
 			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.timeseek > 0;
 
 			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
@@ -370,13 +369,6 @@ public class FFMpegVideo extends Player {
 						transcodeOptions.add("ac3");
 					}
 				}
-			}
-
-			InputFile newInput = null;
-			if (filename != null) {
-				newInput = new InputFile();
-				newInput.setFilename(filename);
-				newInput.setPush(params.stdin);
 			}
 
 			// Output video codec
@@ -701,12 +693,6 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	@Deprecated
-	public String[] args() {
-		return getDefaultArgs(); // unused; return this array for for backwards compatibility
-	}
-
-	@Override
 	public String mimeType() {
 		return HTTPResource.VIDEO_TRANSCODE;
 	}
@@ -731,9 +717,8 @@ public class FFMpegVideo extends Player {
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
-		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
+		// Use device-specific PmsConfiguration
+		final DeviceConfiguration deviceConfiguration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 
 		/*
@@ -755,11 +740,11 @@ public class FFMpegVideo extends Player {
 		 * specify how many cores to use.
 		 */
 		int nThreads = 1;
-		if (configuration.isFfmpegMultithreading()) {
-			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+		if (deviceConfiguration.isFfmpegMultithreading()) {
+			if (Runtime.getRuntime().availableProcessors() == deviceConfiguration.getNumberOfCpuCores()) {
 				nThreads = 0;
 			} else {
-				nThreads = configuration.getNumberOfCpuCores();
+				nThreads = deviceConfiguration.getNumberOfCpuCores();
 			}
 		}
 
@@ -769,7 +754,7 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 1;
 		} else if (renderer.isTranscodeFastStart()){
 			params.manageFastStart();
-		} else {	
+		} else {
 			params.waitbeforestart = 2500;
 		}
 
@@ -797,27 +782,27 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(nThreads));
 		}
 
-		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+		final boolean isTsMuxeRVideoEngineEnabled = deviceConfiguration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		ac3Remux = false;
 		dtsRemux = false;
 
 		if (
-			configuration.isAudioRemuxAC3() &&
+			deviceConfiguration.isAudioRemuxAC3() &&
 			params.aid != null &&
 			params.aid.isAC3() &&
 			!avisynth() &&
 			renderer.isTranscodeToAC3() &&
 			!isXboxOneWebVideo &&
-			params.aid.getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
+			params.aid.getAudioProperties().getNumberOfChannels() <= deviceConfiguration.getAudioChannelCount()
 		) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
 			// Now check for DTS remux and LPCM streaming
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isAudioEmbedDtsInPcm() &&
+				deviceConfiguration.isAudioEmbedDtsInPcm() &&
 				params.aid != null &&
 				params.aid.isDTS() &&
 				!avisynth() &&
@@ -830,7 +815,7 @@ public class FFMpegVideo extends Player {
 		// Input filename
 		cmdList.add("-i");
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, configuration);
+			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, deviceConfiguration);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			cmdList.add(filename);
@@ -847,13 +832,13 @@ public class FFMpegVideo extends Player {
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
 			params.sid != null &&
 			!(
-				!configuration.getHideTranscodeEnabled() &&
+				!deviceConfiguration.getHideTranscodeEnabled() &&
 				dlna.isNoName() &&
 				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
 			)
 		) {
 			boolean deferToMencoder = false;
-			if (configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() && params.sid.isEmbedded() && params.sid.getType().isText()) {
+			if (deviceConfiguration.isFFmpegDeferToMEncoderForProblematicSubtitles() && params.sid.isEmbedded() && params.sid.getType().isText()) {
 				deferToMencoder = true;
 				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
 			} else if (media.isEmbeddedFontExists()) {
@@ -867,11 +852,11 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
-		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
+		if (!(renderer instanceof RendererConfiguration.OutputOverride) && deviceConfiguration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			boolean deferToTsmuxer = true;
 			prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			if (deferToTsmuxer == true && !deviceConfiguration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
 			}
@@ -993,8 +978,8 @@ public class FFMpegVideo extends Player {
 					)
 				) {
 					channels = 2;
-				} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
-					channels = configuration.getAudioChannelCount();
+				} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > deviceConfiguration.getAudioChannelCount()) {
+					channels = deviceConfiguration.getAudioChannelCount();
 				}
 
 				if (!customFFmpegOptions.contains("-ac ") && channels > 0) {
@@ -1005,9 +990,9 @@ public class FFMpegVideo extends Player {
 				if (!customFFmpegOptions.contains("-ab ")) {
 					cmdList.add("-ab");
 					if (renderer.isTranscodeToAAC()) {
-						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
+						cmdList.add(Math.min(deviceConfiguration.getAudioBitrate(), 320) + "k");
 					} else {
-						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
+						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(deviceConfiguration, params.aid)) + "k");
 					}
 				}
 			}
@@ -1024,7 +1009,7 @@ public class FFMpegVideo extends Player {
 
 		// Set up the process
 		PipeProcess pipe = null;
-		
+
 		if (!dtsRemux) {
 //			cmdList.add("pipe:");
 
@@ -1081,7 +1066,7 @@ public class FFMpegVideo extends Player {
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = new TsMuxeRVideo();
-			File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
+			File f = new File(deviceConfiguration.getTempFolder(), "pms-tsmuxer.meta");
 			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);
 
@@ -1089,7 +1074,7 @@ public class FFMpegVideo extends Player {
 
 			cmdList.add(ffVideoPipe.getInputPipe());
 
-			OutputParams ffparams = new OutputParams(configuration);
+			OutputParams ffparams = new OutputParams(deviceConfiguration);
 			ffparams.maxBufferSize = 1;
 			ffparams.stdin = params.stdin;
 
@@ -1165,7 +1150,7 @@ public class FFMpegVideo extends Player {
 				ffAudioPipe.setModifier(sm);
 			}
 
-			OutputParams ffaudioparams = new OutputParams(configuration);
+			OutputParams ffaudioparams = new OutputParams(deviceConfiguration);
 			ffaudioparams.maxBufferSize = 1;
 			ffaudioparams.stdin = params.stdin;
 			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(cmdArrayDTS, ffaudioparams);
@@ -1238,7 +1223,6 @@ public class FFMpegVideo extends Player {
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
-		configuration = prev;
 		return pw;
 	}
 
@@ -1413,7 +1397,7 @@ public class FFMpegVideo extends Player {
 		}
 	}
 
-	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
+	/*private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
 		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
 		String line;
 		boolean resolved = false;
@@ -1429,7 +1413,7 @@ public class FFMpegVideo extends Player {
 					} else {
 						resolved = true;
 						break;
-					}	
+					}
 				}
 			}
 			if (resolved) {
@@ -1437,5 +1421,5 @@ public class FFMpegVideo extends Player {
 				break;
 			}
 		}
-	}
+	}*/
 }

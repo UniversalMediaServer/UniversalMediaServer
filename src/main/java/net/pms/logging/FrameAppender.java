@@ -25,7 +25,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.newgui.IFrame;
+import java.util.concurrent.locks.ReentrantLock;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.LooksFrame.LooksFrameUpdater;
 
 /**
  * Special Logback appender to 'print' log messages on the PMS GUI.
@@ -33,11 +35,11 @@ import net.pms.newgui.IFrame;
  * @author thomas@innot.de
  */
 public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
-	static private IFrame frame;
 	private Encoder<E> encoder;
 	private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream(256);
-	private final Object lock = new Object();
+	private static final ReentrantLock lock = new ReentrantLock();
 	private final List<String> buffer = new ArrayList<>();
+	private static boolean looksFrameInitialized = false;
 
 	/**
 	 * Checks that the required parameters are set and if everything is in
@@ -47,39 +49,70 @@ public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
 	public void start() {
 		boolean error = true;
 
-		if (this.encoder == null) {
-			addStatus(
-				new ErrorStatus(
-					"No encoder set for the appender named [" + name + "].",
-					this
-				)
-			);
-		} else {
-			try {
-				encoder.init(outputStream);
-				error = false;
-			} catch (IOException ioe) {
+		lock.lock();
+		try {
+			if (this.encoder == null) {
 				addStatus(
 					new ErrorStatus(
-						"Failed to initialize encoder for appender named [" + name + "].",
-						this,
-						ioe
+						"No encoder set for the appender named [" + name + "].",
+						this
 					)
 				);
+			} else {
+				try {
+					encoder.init(outputStream);
+					error = false;
+				} catch (IOException ioe) {
+					addStatus(
+						new ErrorStatus(
+							"Failed to initialize encoder for appender named [" + name + "].",
+							this,
+							ioe
+						)
+					);
+				}
 			}
-		}
 
-		if (!error) {
-			super.start();
+			if (!error) {
+				super.start();
+			}
+		} finally {
+			lock.unlock();
 		}
 	}
 
-	// Callback called by UMS when the GUI (or dummy GUI) has been initialised.
-	// everywhere else in the codebase accesses the frame via PMS.get().getFrame(),
-	// but we can't do that here as UMS is in the process of constructing
-	// the instance that PMS.get() returns when this class is instantiated.
-	public static void setFrame(IFrame iframe) {
-		frame = iframe;
+	// Callback called by LooksFrame when the GUI has been initialized.
+	public static void setFrameInitialized() {
+		lock.lock();
+		try {
+			looksFrameInitialized = true;
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * Queues the message for appending by the event dispatching thread
+	 * @param msg the {@link String} to append
+	 */
+	private void doAppend(final String msg) {
+		LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+			@Override
+			protected Class<?> getLoggerClass() {
+				return FrameAppender.class;
+			}
+
+			@Override
+			protected String getCallerName() {
+				return "doAppend";
+			}
+
+			@Override
+			protected void doRun() {
+				LooksFrame.get().append(msg);
+			}
+		});
 	}
 
 	/* (non-Javadoc)
@@ -87,30 +120,30 @@ public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
 	 */
 	@Override
 	protected void append(E eventObject) {
+		lock.lock();
 		try {
 			// if the frame hasn't been initialized yet,
 			// buffer the messages until it's available
-			synchronized (lock) {
-				this.encoder.doEncode(eventObject);
-				String msg = outputStream.toString("UTF-8");
-				outputStream.reset();
+			encoder.doEncode(eventObject);
+			String msg = outputStream.toString("UTF-8");
+			outputStream.reset();
 
-				if (frame == null) {
-					buffer.add(msg);
-				} else {
-					if (!buffer.isEmpty()) {
-						for (String buffered : buffer) { // drain the buffer
-							frame.append(buffered);
-						}
-
-						buffer.clear();
+			if (!looksFrameInitialized) {
+				buffer.add(msg);
+			} else {
+				if (!buffer.isEmpty()) {
+					for (String buffered : buffer) { // drain the buffer
+						doAppend(buffered);
 					}
-
-					frame.append(msg);
+					buffer.clear();
 				}
+
+				doAppend(msg);
 			}
 		} catch (IOException ioe) {
 			addStatus(new ErrorStatus("IO failure in appender", this, ioe));
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -119,7 +152,12 @@ public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
 	 *         if no encoder has been set.
 	 */
 	public Encoder<E> getEncoder() {
-		return encoder;
+		lock.lock();
+		try {
+			return encoder;
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -131,6 +169,11 @@ public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
 	 * @param encoder
 	 */
 	public void setEncoder(Encoder<E> encoder) {
-		this.encoder = encoder;
+		lock.lock();
+		try {
+			this.encoder = encoder;
+		} finally {
+			lock.unlock();
+		}
 	}
 }

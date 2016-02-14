@@ -43,6 +43,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.URLResolver.URLResult;
 import net.pms.newgui.LooksFrame;
+import net.pms.newgui.LooksFrame.LooksFrameUpdater;
 import net.pms.util.FilePermissions;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -273,8 +274,26 @@ public class ExternalFactory {
 		if (remove != null) {
 			externalListeners.remove(remove);
 			remove.shutdown();
-			LooksFrame frame = (LooksFrame) PMS.get().getFrame();
-			frame.getPt().removePlugin(remove);
+			if (!PMS.isHeadless()) {
+				final ExternalListener tmpRemove = remove;
+				LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+					@Override
+					protected Class<?> getLoggerClass() {
+						return ExternalFactory.class;
+					}
+
+					@Override
+					protected String getCallerName() {
+						return "purgeCode";
+					}
+
+					@Override
+					protected void doRun() {
+						LooksFrame.get().getPt().removePlugin(tmpRemove);
+					}
+				});
+			}
 		}
 
 		for (int i = 0; i < 3; i++) {
@@ -494,7 +513,7 @@ public class ExternalFactory {
 	public static void instantiateDownloaded(JLabel update) {
 		// These are found in the downloadedListenerClasses list
 		for (Class<?> clazz: downloadedListenerClasses) {
-			ExternalListener instance;
+			final ExternalListener instance;
 
 			try {
 				doUpdate(update, Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
@@ -504,12 +523,26 @@ public class ExternalFactory {
 				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
 				registerListener(instance);
 
-				if (PMS.get().getFrame() instanceof LooksFrame) {
-					LooksFrame frame = (LooksFrame) PMS.get().getFrame();
+				if (!PMS.isHeadless()) {
+					LooksFrame.updateGUI(new LooksFrameUpdater() {
 
-					if (!frame.getPt().appendPlugin(instance)) {
-						LOGGER.warn("Plugin limit of 30 has been reached");
-					}
+						@Override
+						protected Class<?> getLoggerClass() {
+							return ExternalFactory.class;
+						}
+
+						@Override
+						protected String getCallerName() {
+							return "instantiateDownloaded";
+						}
+
+						@Override
+						protected void doRun() {
+							if (!LooksFrame.get().getPt().appendPlugin(instance)) {
+								LOGGER.warn("Plugin limit of 30 has been reached");
+							}
+						}
+					});
 				}
 			} catch (InstantiationException | IllegalAccessException e) {
 				LOGGER.error("Error instantiating plugin", e);

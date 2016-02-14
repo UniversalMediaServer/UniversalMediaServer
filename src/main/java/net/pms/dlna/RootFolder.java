@@ -42,7 +42,8 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.io.StreamGobbler;
-import net.pms.newgui.IFrame;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.LooksFrame.LooksFrameUpdater;
 import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
@@ -214,14 +215,50 @@ public class RootFolder extends DLNAResource {
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		LOGGER.trace("Starting scan of: {}", this.getName());
 		scan(this);
-		IFrame frame = PMS.get().getFrame();
 
 		// Running might have been set false during scan
 		if (running) {
-			frame.setScanLibraryEnabled(true);
+			if (!PMS.isHeadless()) {
+				LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+					@Override
+					protected Class<?> getLoggerClass() {
+						return RootFolder.class;
+					}
+
+					@Override
+					protected String getCallerName() {
+						return "scan";
+					}
+
+					@Override
+					protected void doRun() {
+						LooksFrame.get().setScanLibraryEnabled(true);
+					}
+				});
+			}
 			PMS.get().getDatabase().cleanup();
 		}
-		frame.setStatusLine(null);
+		if (!PMS.isHeadless()) {
+			LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+				@Override
+				protected Class<?> getLoggerClass() {
+					return RootFolder.class;
+				}
+
+				@Override
+				protected String getCallerName() {
+					return "scan";
+				}
+
+				@Override
+				protected void doRun() {
+					LooksFrame.get().setStatusLine(null);
+				}
+			});
+		}
+
 	}
 
 	/*
@@ -243,10 +280,28 @@ public class RootFolder extends DLNAResource {
 					child.setDefaultRenderer(resource.getDefaultRenderer());
 
 					// Display and log which folder is being scanned
-					String childName = child.getName();
+					final String childName = child.getName();
 					if (child instanceof RealFile) {
 						LOGGER.debug("Scanning folder: " + childName);
-						PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName);
+						if (!PMS.isHeadless()) {
+							LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+								@Override
+								protected Class<?> getLoggerClass() {
+									return RootFolder.class;
+								}
+
+								@Override
+								protected String getCallerName() {
+									return "scan";
+								}
+
+								@Override
+								protected void doRun() {
+									LooksFrame.get().setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName);
+								}
+							});
+						}
 					}
 
 					if (child.isDiscovered()) {

@@ -44,7 +44,7 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	public VideoLanVideoStreaming() {
-	}	
+	}
 
 	@Override
 	public int purpose() {
@@ -54,11 +54,6 @@ public class VideoLanVideoStreaming extends Player {
 	@Override
 	public String id() {
 		return ID;
-	}
-
-	@Override
-	public String[] args() {
-		return new String[]{};
 	}
 
 	@Override
@@ -110,9 +105,8 @@ public class VideoLanVideoStreaming extends Player {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
-		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
+		// Use device-specific PmsConfiguration
+		//final DeviceConfiguration deviceConfiguration = (DeviceConfiguration) params.mediaRenderer;
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getSystemName();
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
@@ -190,7 +184,6 @@ public class VideoLanVideoStreaming extends Player {
 		}
 
 		pw.runInNewThread();
-		configuration = prev;
 		return pw;
 	}
 

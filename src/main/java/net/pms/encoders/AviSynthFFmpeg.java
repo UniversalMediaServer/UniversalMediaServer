@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,6 +45,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.newgui.GuiUtil;
+import net.pms.newgui.LooksFrame;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
@@ -54,7 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
- * This class handles the Windows-specific AviSynth/FFmpeg player combination. 
+ * This class handles the Windows-specific AviSynth/FFmpeg player combination.
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
@@ -95,7 +95,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(filename, subTrack, -1, -1, null, null, _configuration);
+		return getAVSScript(filename, subTrack, -1, -1, null, null, configuration);
 	}
 
 	/*
@@ -270,7 +270,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				configuration.setFfmpegAvisynthInterFrame(interframe.isSelected());
 				if (configuration.getFfmpegAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
-						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+						SwingUtilities.getWindowAncestor(LooksFrame.get()),
 						Messages.getString("AviSynthMEncoder.16"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE

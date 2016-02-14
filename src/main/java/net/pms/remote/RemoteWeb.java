@@ -23,6 +23,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
+import net.pms.newgui.LooksFrame;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -371,8 +372,9 @@ public class RemoteWeb {
 
 			} else if (path.startsWith("/files/log/")) {
 				String filename = path.substring(11);
-				if (filename.equals("info")) {
-					String log = PMS.get().getFrame().getLog();
+				//XXX Not sure this is correct in headless mode, but DummyFrame doesn't exist anymore
+				if (filename.equals("info") && !PMS.isHeadless()) {
+					String log = LooksFrame.get().getLog();
 					log = log.replaceAll("\n", "<br>");
 					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
 					String x = fullLink + log;

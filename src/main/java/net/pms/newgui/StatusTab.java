@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -42,7 +41,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
@@ -94,7 +92,7 @@ public class StatusTab {
 			BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
 			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
-			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
+			rendererProgressBar.setValue((int) (100 * state.buffer / PMS.getConfiguration().getMaxMemoryBufferSize()));
 			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
 			if (!name.equals(n)) {
 				name = n;
@@ -112,18 +110,15 @@ public class StatusTab {
 		}
 
 		public void delete() {
-			try {
-				// Delete the popup if open
-				if (frame != null) {
-					frame.dispose();
-					frame = null;
-				}
-				Container parent = _panel.getParent();
-				parent.remove(_panel);
-				parent.revalidate();
-				parent.repaint();
-			} catch (Exception e) {
+			// Delete the popup if open
+			if (frame != null) {
+				frame.dispose();
+				frame = null;
 			}
+			Container parent = _panel.getParent();
+			parent.remove(_panel);
+			parent.revalidate();
+			parent.repaint();
 		}
 
 		public JPanel getPanel() {
@@ -157,12 +152,7 @@ public class StatusTab {
 	private JLabel peakBitrateLabel;
 	private long rc = 0;
 	private long peak;
-	private static DecimalFormat formatter = new DecimalFormat("#,###");
-	private static int bufferSize;
-
-	StatusTab(PmsConfiguration configuration) {
-		bufferSize = configuration.getMaxMemoryBufferSize();
-	}
+	private static final DecimalFormat formatter = new DecimalFormat("#,###");
 
 	public void updateCurrentBitrate() {
 		long total = 0;
@@ -230,7 +220,7 @@ public class StatusTab {
 
 		builder.add(rsp, cc.xyw(1, 3, 5));
 
-		cmp = builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
+		builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
 
 		// Connected
 		jl = new JLabel(Messages.getString("StatusTab.3"));
@@ -340,7 +330,7 @@ public class StatusTab {
 					@Override
 					public void run() {
 						if (r.frame == null) {
-							JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+							JFrame top = (JFrame) SwingUtilities.getWindowAncestor(LooksFrame.get());
 							// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
 							// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
 							// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
@@ -349,7 +339,7 @@ public class StatusTab {
 							r.frame.add(r.panel);
 							r.panel.update();
 							r.frame.setResizable(false);
-							r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+							r.frame.setIconImage(LooksFrame.get().getIconImage());
 							r.frame.setLocationRelativeTo(top);
 							r.frame.setVisible(true);
 						} else {
@@ -479,13 +469,21 @@ public class StatusTab {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				for(;;) {
-					updateMemoryUsage();
-					try {
-						Thread.sleep(2000);
-					} catch (Exception e) {
-						return;
+				try {
+					for(;;) {
+						updateMemoryUsage();
+						try {
+							Thread.sleep(2000);
+						} catch (InterruptedException e) {
+							return;
+						}
 					}
+				} catch (Exception e) {
+					// Nothing should get here, this is only here to protect
+					// the event dispatching thread from unwinding
+					Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
+					LOGGER.error("An unexpected error occurred during updateMemoryUsage: {}", e.getMessage());
+					LOGGER.trace("", e);
 				}
 			}
 		};

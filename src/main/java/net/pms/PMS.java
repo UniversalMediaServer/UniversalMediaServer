@@ -39,7 +39,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
-import net.pms.configuration.Build;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.DeviceConfiguration;
@@ -55,15 +54,13 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
-import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
-import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.*;
+import net.pms.newgui.LooksFrame.LooksFrameUpdater;
 import net.pms.remote.RemoteWeb;
-import net.pms.update.AutoUpdater;
 import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
@@ -74,6 +71,7 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
 	private static final String NATIVELOOK = "nativelook";
@@ -122,14 +120,6 @@ public class PMS {
 	private JmDNS jmDNS;
 
 	/**
-	 * Returns a pointer to the PMS GUI's main window.
-	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
-	 */
-	public IFrame getFrame() {
-		return frame;
-	}
-
-	/**
 	 * Returns the root folder for a given renderer. There could be the case
 	 * where a given media renderer needs a different root structure.
 	 *
@@ -150,24 +140,21 @@ public class PMS {
 	/**
 	 * Pointer to a running PMS server.
 	 */
-	private static PMS instance = null;
+	private static volatile PMS instance = null;
 
 	/**
 	 * Array of {@link net.pms.configuration.RendererConfiguration} that have
 	 * been found by UMS.<br><br>
 	 *
-	 * Important! If iteration is done on this list it's not thread safe unless
-	 * the iteration loop is enclosed by a <code>synchronized</code> block on
-	 * the <code>List itself</code>.
+	 * Important! All access to this list must be enclosed in a
+	 * <code>synchronized</code> block on the <code>List itself</code>.
 	 */
-	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<RendererConfiguration>());
+	private final List<RendererConfiguration> foundRenderers = new ArrayList<RendererConfiguration>();
 
 	/**
-	 * The returned <code>List</code> itself is thread safe, but the objects
-	 * it's holding is not. Any looping/iterating of this <code>List</code>
-	 * MUST be enclosed in:
-	 * S<pre><code>
-	 * synchronized(getFoundRenderers()) {
+	 * Any access to this {@link List} <strong>MUST</strong> be enclosed in:
+	 * <pre><code>
+	 * synchronized(&LT;the list object&gt;) {
 	 *      ..code..
 	 * }
 	 * </code></pre>
@@ -193,18 +180,56 @@ public class PMS {
 	 * @param renderer {@link net.pms.configuration.RendererConfiguration}
 	 * @since 1.82.0
 	 */
-	public void setRendererFound(RendererConfiguration renderer) {
-		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
-			LOGGER.debug("Adding status button for " + renderer.getRendererName());
-			foundRenderers.add(renderer);
-			frame.addRenderer(renderer);
-			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+	public void setRendererFound(final RendererConfiguration renderer) {
+		synchronized (foundRenderers) {
+			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+				foundRenderers.add(renderer);
+				if (!isHeadless()) {
+					LOGGER.debug("Adding status button for " + renderer.getRendererName());
+					LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+						@Override
+						protected Class<?> getLoggerClass() {
+							return PMS.class;
+						}
+
+						@Override
+						protected String getCallerName() {
+							return "setRendererFound";
+						}
+
+						@Override
+						protected void doRun() {
+							LooksFrame.get().addRenderer(renderer);
+							LooksFrame.get().setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+						}
+					});
+				}
+			}
 		}
 	}
 
-	public void updateRenderer(RendererConfiguration renderer) {
-		LOGGER.debug("Updating status button for " + renderer.getRendererName());
-		frame.updateRenderer(renderer);
+	public void updateRenderer(final RendererConfiguration renderer) {
+		if (!isHeadless()) {
+			LOGGER.debug("Updating status button for " + renderer.getRendererName());
+			LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+				@Override
+				protected Class<?> getLoggerClass() {
+					return PMS.class;
+				}
+
+				@Override
+				protected String getCallerName() {
+					return "updateRenderer";
+				}
+
+				@Override
+				protected void doRun() {
+					LooksFrame.get().updateRenderer(renderer);
+				}
+			});
+		}
 	}
 
 	/**
@@ -217,22 +242,10 @@ public class PMS {
 	 */
 	private String serverName;
 
-	// FIXME unused
-	private ProxyServer proxyServer;
-
-	public ProxyServer getProxy() {
-		return proxyServer;
-	}
-
 	public ArrayList<Process> currentProcesses = new ArrayList<>();
 
 	private PMS() {
 	}
-
-	/**
-	 * {@link net.pms.newgui.IFrame} object that represents the PMS GUI.
-	 */
-	private IFrame frame;
 
 	/**
 	 * Interface to Windows-specific functions, like Windows Registry. registry is set by {@link #init()}.
@@ -532,54 +545,45 @@ public class PMS {
 
 		globalRepo = new GlobalIdRepo();
 
-		AutoUpdater autoUpdater = null;
-		if (Build.isUpdatable()) {
-			String serverURL = Build.getUpdateServerURL();
-			autoUpdater = new AutoUpdater(serverURL, getVersion());
-		}
-
 		registry = createSystemUtils();
 
 		if (!isHeadless()) {
-			frame = new LooksFrame(autoUpdater, configuration);
+			LooksFrame.get();
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
-			frame = new DummyFrame();
 		}
 
 		if (splash != null) {
 			splash.dispose();
 		}
 
-		/*
-		 * we're here:
-		 *
-		 *     main() -> createInstance() -> init()
-		 *
-		 * which means we haven't created the instance returned by get()
-		 * yet, so the frame appender can't access the frame in the
-		 * standard way i.e. PMS.get().getFrame(). we solve it by
-		 * inverting control ("don't call us; we'll call you") i.e.
-		 * we notify the appender when the frame is ready rather than
-		 * e.g. making getFrame() static and requiring the frame
-		 * appender to poll it.
-		 *
-		 * XXX an event bus (e.g. MBassador or Guava EventBus
-		 * (if they fix the memory-leak issue)) notification
-		 * would be cleaner and could support other lifecycle
-		 * notifications (see above).
-		 */
-		FrameAppender.setFrame(frame);
+		if (!isHeadless()) {
+			configuration.addConfigurationListener(new ConfigurationListener() {
+				@Override
+				public void configurationChanged(ConfigurationEvent event) {
+					if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+						LooksFrame.updateGUI(new LooksFrameUpdater() {
 
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
+							@Override
+							protected Class<?> getLoggerClass() {
+								return PMS.class;
+							}
+
+							@Override
+							protected String getCallerName() {
+								return "configuration change event";
+							}
+
+							@Override
+							protected void doRun() {
+								LooksFrame.get().setReloadable(true);
+							}
+						});
+					}
 				}
-			}
-		});
+			});
+		}
 
 		// Web stuff
 		if (configuration.useWebInterface()) {
@@ -625,7 +629,25 @@ public class PMS {
 			}
 		}
 
-		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
+		if (!isHeadless()) {
+			LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+				@Override
+				protected Class<?> getLoggerClass() {
+					return PMS.class;
+				}
+
+				@Override
+				protected String getCallerName() {
+					return "set status connecting";
+				}
+
+				@Override
+				protected void doRun() {
+					LooksFrame.get().setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
+				}
+			});
+		}
 
 		// Check the existence of VSFilter / DirectVobSub
 		if (registry.isAvis() && registry.getAvsPluginsDir() != null) {
@@ -703,13 +725,31 @@ public class PMS {
 		Player.initializeFinalizeTranscoderArgsListeners();
 
 		// Any plugin-defined players are now registered, create the gui view.
-		frame.addEngines();
+		if (!isHeadless()) {
+			LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+				@Override
+				protected Class<?> getLoggerClass() {
+					return PMS.class;
+				}
+
+				@Override
+				protected String getCallerName() {
+					return "addEngines";
+				}
+
+				@Override
+				protected void doRun() {
+					LooksFrame.get().addEngines();
+				}
+			});
+		}
 
 		// To make the credentials stuff work cross plugins read credentials
 		// file AFTER plugins are started
 		if (!isHeadless()) {
 			// but only if we got a GUI of course
-			((LooksFrame)frame).getPt().init();
+			LooksFrame.get().getPt().init();
 		}
 
 		boolean binding = false;
@@ -721,21 +761,43 @@ public class PMS {
 			LOGGER.info("Maybe another process is running or the hostname is wrong.");
 		}
 
-		new Thread("Connection Checker") {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(7000);
-				} catch (InterruptedException e) {
-				}
+		if (!isHeadless()) {
+			new Thread("Connection Checker") {
+				@Override
+				public void run() {
+					try {
+						Thread.sleep(7000);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						return;
+					}
 
-				if (foundRenderers.isEmpty()) {
-					frame.setStatusCode(0, Messages.getString("PMS.0"), "icon-status-notconnected.png");
-				} else {
-					frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+					LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+						@Override
+						protected Class<?> getLoggerClass() {
+							return PMS.class;
+						}
+
+						@Override
+						protected String getCallerName() {
+							return "Connection checker";
+						}
+
+						@Override
+						protected void doRun() {
+							synchronized (foundRenderers) {
+								if (foundRenderers.isEmpty()) {
+									LooksFrame.get().setStatusCode(0, Messages.getString("PMS.0"), "icon-status-notconnected.png");
+								} else {
+									LooksFrame.get().setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+								}
+							}
+						}
+					});
 				}
-			}
-		}.start();
+			}.start();
+		}
 
 		if (!binding) {
 			return false;
@@ -756,7 +818,25 @@ public class PMS {
 		//     b) *after* mediaLibrary is initialized, if enabled (above)
 		getRootFolder(RendererConfiguration.getDefaultConf());
 
-		frame.serverReady();
+		if (!isHeadless()) {
+			LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+				@Override
+				protected Class<?> getLoggerClass() {
+					return PMS.class;
+				}
+
+				@Override
+				protected String getCallerName() {
+					return "serverReady";
+				}
+
+				@Override
+				protected void doRun() {
+					LooksFrame.get().serverReady();
+				}
+			});
+		}
 
 		ready = true;
 
@@ -916,7 +996,7 @@ public class PMS {
 	 * Restarts the server. The trigger is either a button on the main PMS window or via
 	 * an action item.
 	 */
-	// XXX: don't try to optimize this by reusing the same server instance.
+	// Don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
 	public void reset() {
 		TaskRunner.getInstance().submitNamed("restart", true, new Runnable() {
@@ -938,9 +1018,28 @@ public class PMS {
 					server = new HTTPServer(configuration.getServerPort());
 					server.start();
 					UPNPHelper.sendAlive();
-					frame.setReloadable(false);
+					if (!isHeadless()) {
+						LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+							@Override
+							protected Class<?> getLoggerClass() {
+								return PMS.class;
+							}
+
+							@Override
+							protected String getCallerName() {
+								return "restart";
+							}
+
+							@Override
+							protected void doRun() {
+								LooksFrame.get().setReloadable(false);
+							}
+						});
+					}
 				} catch (IOException e) {
-					LOGGER.error("error during restart :" +e.getMessage(), e);
+					LOGGER.error("error during restart: {}", e.getMessage());
+					LOGGER.trace("", e);
 				}
 			}
 		});
@@ -998,7 +1097,7 @@ public class PMS {
 	 * renderers treat multiple servers with the same UUID as the same server).
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
-	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles:
+	// Don't use the MAC address to seed the UUID as it breaks multiple profiles:
 	// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&p=75542#p75542
 	public synchronized String usn() {
 		if (uuid == null) {
@@ -1045,35 +1144,20 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the PMS instance.
-	 * @return {@link net.pms.PMS}
+	 * Creates or gets the singleton {@link PMS} instance with double checked
+	 * locking.
+	 *
+	 * @return The singleton instance of {@link PMS}
 	 */
 	public static PMS get() {
-		// XXX when PMS is run as an application, the instance is initialized via the createInstance call in main().
-		// However, plugin tests may need access to a PMS instance without going
-		// to the trouble of launching the PMS application, so we provide a fallback
-		// initialization here. Either way, createInstance() should only be called once (see below)
 		if (instance == null) {
-			createInstance();
-		}
-
-		return instance;
-	}
-
-	private synchronized static void createInstance() {
-		assert instance == null; // this should only be called once
-		instance = new PMS();
-
-		try {
-			if (instance.init()) {
-				LOGGER.info("{} is now available for renderers to find", PMS.NAME);
-			} else {
-				LOGGER.info("{} initialization was aborted", PMS.NAME);
+			synchronized (PMS.class) {
+				if (instance == null) {
+					instance = new PMS();
+				}
 			}
-		} catch (Exception e) {
-			LOGGER.error("A serious error occurred during {} initialization: {}", PMS.NAME, e.getMessage());
-			LOGGER.trace("", e);
 		}
+		return instance;
 	}
 
 	/**
@@ -1224,8 +1308,17 @@ public class PMS {
 				killOld();
 			}
 
-			// Create the PMS instance returned by get()
-			createInstance(); // Calls new() then init()
+			try {
+				if (PMS.get().init()) {
+					LOGGER.info("{} is now available for renderers to find", PMS.NAME);
+				} else {
+					LOGGER.info("{} initialization was aborted", PMS.NAME);
+				}
+			} catch (Exception e) {
+				LOGGER.error("A serious error occurred during {} initialization: {}", PMS.NAME, e.getMessage());
+				LOGGER.trace("", e);
+			}
+
 		} catch (ConfigurationException t) {
 			String errorMessage = String.format(
 				"Configuration error: %s: %s",
@@ -1237,7 +1330,7 @@ public class PMS {
 
 			if (!isHeadless() && instance != null) {
 				JOptionPane.showMessageDialog(
-					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
+					null,
 					errorMessage,
 					Messages.getString("PMS.42"),
 					JOptionPane.ERROR_MESSAGE

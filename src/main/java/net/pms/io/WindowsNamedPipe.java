@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WindowsNamedPipe extends Thread implements ProcessWrapper {
+public final class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsNamedPipe.class);
 	private String path;
 	private boolean in;

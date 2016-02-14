@@ -61,16 +61,9 @@ public abstract class Player {
 	public abstract String id();
 	public abstract String name();
 	public abstract int type();
-
-	// FIXME this is an implementation detail (and not a very good one).
-	// it's entirely up to engines how they construct their command lines.
-	// need to get rid of this
-	public abstract String[] args();
-
 	public abstract String mimeType();
 	public abstract String executable();
-	protected static final PmsConfiguration _configuration = PMS.getConfiguration();
-	protected PmsConfiguration configuration = _configuration;
+	protected static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners = new ArrayList<>();
 
 	public static void initializeFinalizeTranscoderArgsListeners() {
@@ -536,5 +529,13 @@ public abstract class Player {
 		}
 		Player otherPlayer = (Player) other;
 		return (otherPlayer.name().equals(this.name()) && otherPlayer.id().equals(this.id()));
+	}
+
+	public int hashCode() {
+		final int prime = 73;
+		int result = 1;
+		result = prime * result + ((name() == null) ? 0 : name().hashCode());
+		result = prime * result + ((id() == null) ? 0 : id().hashCode());
+		return result;
 	}
 }

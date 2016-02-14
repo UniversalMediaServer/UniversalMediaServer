@@ -19,7 +19,7 @@
 package net.pms.dlna;
 
 import com.sun.jna.Platform;
-import java.awt.Component;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
@@ -31,6 +31,8 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.LooksFrame.LooksFrameUpdater;
 import org.apache.commons.io.FileUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.h2.engine.Constants;
@@ -131,6 +133,7 @@ public class DLNAMediaDatabase implements Runnable {
 		return cp.getConnection();
 	}
 
+	@SuppressFBWarnings("SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE")
 	public void init(boolean force) {
 		dbCount = -1;
 		String version = null;
@@ -148,9 +151,9 @@ public class DLNAMediaDatabase implements Runnable {
 				if (!dbDirectory.exists()) {
 					LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
 				} else {
-					if (!net.pms.PMS.isHeadless()) {
+					if (!PMS.isHeadless()) {
 						JOptionPane.showMessageDialog(
-							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+							SwingUtilities.getWindowAncestor(LooksFrame.get()),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE);
@@ -697,7 +700,23 @@ public class DLNAMediaDatabase implements Runnable {
 
 			rs.close();
 			ps.close();
-			PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.2") + " 0%");
+			LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+				@Override
+				protected Class<?> getLoggerClass() {
+					return DLNAMediaDatabase.class;
+				}
+
+				@Override
+				protected String getCallerName() {
+					return "DLNAMediaDatabase.cleanup";
+				}
+
+				@Override
+				protected void doRun() {
+					LooksFrame.get().setStatusLine(Messages.getString("DLNAMediaDatabase.2") + " 0%");
+				}
+			});
 			int i = 0;
 			int oldpercent = 0;
 
@@ -714,7 +733,24 @@ public class DLNAMediaDatabase implements Runnable {
 					i++;
 					int newpercent = i * 100 / dbCount;
 					if (newpercent > oldpercent) {
-						PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.2") + newpercent + "%");
+						final int tempPercent = newpercent;
+						LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+							@Override
+							protected Class<?> getLoggerClass() {
+								return DLNAMediaDatabase.class;
+							}
+
+							@Override
+							protected String getCallerName() {
+								return "DLNAMediaDatabase.cleanup";
+							}
+
+							@Override
+							protected void doRun() {
+								LooksFrame.get().setStatusLine(Messages.getString("DLNAMediaDatabase.2") + tempPercent + "%");
+							}
+						});
 						oldpercent = newpercent;
 					}
 				}

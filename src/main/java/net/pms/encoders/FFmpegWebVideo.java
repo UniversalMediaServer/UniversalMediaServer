@@ -51,12 +51,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	private static List<String> protocols;
 	public static final PatternMap<Object> excludes = new PatternMap<>();
 
-	public static final PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
+	public static final PatternMap<ArrayList<String>> autoOptions = new PatternMap<ArrayList<String>>() {
 		private static final long serialVersionUID = 5225786297932747007L;
 
 		@Override
-		public ArrayList add(String key, Object value) {
-			return put(key, (ArrayList) parseOptions((String) value));
+		public ArrayList<String> add(String key, Object value) {
+			return put(key, (ArrayList<String>) parseOptions((String) value));
 		}
 	};
 
@@ -113,9 +113,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	) throws IOException {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
-		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
+		// Use device-specific PmsConfiguration
+		final DeviceConfiguration deviceConfiguration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 		String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
@@ -204,11 +203,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		 * specify how many cores to use.
 		 */
 		int nThreads = 1;
-		if (configuration.isFfmpegMultithreading()) {
-			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+		if (deviceConfiguration.isFfmpegMultithreading()) {
+			if (Runtime.getRuntime().availableProcessors() == deviceConfiguration.getNumberOfCpuCores()) {
 				nThreads = 0;
 			} else {
-				nThreads = configuration.getNumberOfCpuCores();
+				nThreads = deviceConfiguration.getNumberOfCpuCores();
 			}
 		}
 
@@ -323,21 +322,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
-
-		configuration = prev;
 		return pw;
 	}
 
 	@Override
 	public String name() {
 		return "FFmpeg Web Video";
-	}
-
-	// TODO remove this when it's removed from Player
-	@Deprecated
-	@Override
-	public String[] args() {
-		return null;
 	}
 
 	/**
@@ -354,7 +344,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	public boolean readWebFilters(String filename) {
-		PatternMap filter = null;
+		PatternMap<?> filter = null;
 		String line;
 		try {
 			LineIterator it = FileUtils.lineIterator(new File(filename));
