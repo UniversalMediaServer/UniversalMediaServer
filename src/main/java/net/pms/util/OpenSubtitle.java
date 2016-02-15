@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
-	private static final String UA = "universal media server";
+	private static final String UA = "Universal Media Server v1";
 	private static final long TOKEN_AGE_TIME = 10 * 60 * 1000; // 10 mins
 	//private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
 
