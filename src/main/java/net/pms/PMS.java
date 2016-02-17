@@ -120,6 +120,15 @@ public class PMS {
 	private JmDNS jmDNS;
 
 	/**
+	 * Returns a pointer to the PMS GUI's main window.
+	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
+	 * @deprecated use {@link LooksFrame.get()} instead
+	*/
+	public IFrame getFrame() {
+		 return (IFrame) LooksFrame.get();
+	}
+
+	/**
 	 * Returns the root folder for a given renderer. There could be the case
 	 * where a given media renderer needs a different root structure.
 	 *
