@@ -719,7 +719,7 @@ public class UPNPHelper extends UPNPControl {
 		if (d1 != null) {
 			Device dev = getDevice(r.getUUID());
 			String id = r.getInstanceID();
-			setAVTransportURI(dev, id, d1.getURL(""), d1.getDidlString(r));
+			setAVTransportURI(dev, id, d1.getURL(""), r.isPushMetadata() ? d1.getDidlString(r) : null);
 			play(dev, id);
 		}
 	}
@@ -752,7 +752,7 @@ public class UPNPHelper extends UPNPControl {
 				if (item.name != null) {
 					state.name = item.name;
 				}
-				UPNPControl.setAVTransportURI(dev, instanceID, item.uri, item.metadata);
+				UPNPControl.setAVTransportURI(dev, instanceID, item.uri, renderer.isPushMetadata() ? item.metadata : null);
 			}
 		}
 

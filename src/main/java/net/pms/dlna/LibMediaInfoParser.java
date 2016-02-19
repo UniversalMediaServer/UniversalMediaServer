@@ -31,6 +31,7 @@ public class LibMediaInfoParser {
 		MI = new MediaInfo();
 
 		if (MI.isValid()) {
+			MI.Option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
 			MI.Option("File_TestContinuousFileNames", "0");
@@ -545,7 +546,7 @@ public class LibMediaInfoParser {
 				audio.setCodecA(format);
 			}
 		// format not found so set container type based on the file extension. It will be overwritten when the correct type will be found
-		} else if (streamType == StreamType.General && media.getContainer() == null) { 
+		} else if (streamType == StreamType.General && media.getContainer() == null) {
 			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()));
 		}
 	}
@@ -621,9 +622,7 @@ public class LibMediaInfoParser {
 		try {
 			return Integer.parseInt(value);
 		} catch (NumberFormatException e) {
-			LOGGER.trace("Could not parse bitrate from: " + value);
-			LOGGER.trace("The full error was: " + e);
-
+			LOGGER.trace("Could not parse bitrate \"{}\": ", value, e.getMessage());
 			return 0;
 		}
 	}

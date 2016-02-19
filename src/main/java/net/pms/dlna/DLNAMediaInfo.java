@@ -18,11 +18,10 @@
  */
 package net.pms.dlna;
 
-import java.awt.Color;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
-import net.pms.Messages;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -37,7 +36,6 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.MpegUtil;
-import net.pms.util.CoverArtArchiveUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
@@ -86,7 +84,8 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public static final long TRANS_SIZE = Long.MAX_VALUE - Integer.MAX_VALUE - 1;
 
-	private boolean h264_parsed;
+	private final Object videoWithinH264LevelLimitsLock = new Object();
+	private Boolean videoWithinH264LevelLimits = null;
 
 	// Stored in database
 	private Double durationSec;
@@ -139,11 +138,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioContainer;
 	public String aspectRatioVideoTrack;
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public byte thumb[];
+	private byte thumb[];
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -157,8 +152,13 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public int bitsPerPixel;
 
+	private final ReentrantReadWriteLock referenceFrameCountLock = new ReentrantReadWriteLock();
 	private byte referenceFrameCount = -1;
+
+	private final ReentrantReadWriteLock avcLevelLock = new ReentrantReadWriteLock();
 	private String avcLevel = null;
+
+	private final Object h264ProfileLock = new Object();
 	private String h264Profile = null;
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
@@ -206,11 +206,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String container;
 
-	/**
-	 * @deprecated Use {@link #getH264AnnexB()} and {@link #setH264AnnexB(byte[])} to access this variable.
-	 */
-	@Deprecated
-	public byte[] h264_annexB;
+	private final Object h264_annexBLock = new Object();
+	private byte[] h264_annexB;
 
 	/**
 	 * Not stored in database.
@@ -242,13 +239,13 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public boolean secondaryFormatValid = true;
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public boolean parsing = false;
+	private final Object parsingLock = new Object();
+	private boolean parsing = false;
 
-	private boolean ffmpeg_failure;
+	private final Object ffmpeg_failureLock = new Object();
+	private boolean ffmpeg_failure = false;
+
+	private final Object ffmpeg_annexb_failureLock = new Object();
 	private boolean ffmpeg_annexb_failure;
 	private boolean muxable;
 	private Map<String, String> extras;
@@ -331,9 +328,8 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the number of subtitle tracks embedded in the media file.
+	 * @return true when there are subtitle tracks embedded in the media file.
 	 */
-
 	public boolean hasSubtitles() {
 		return subtitleTracks.size() > 0;
 	}
@@ -550,14 +546,22 @@ public class DLNAMediaInfo implements Cloneable {
 		int thumbnailWidth  = 320;
 		int thumbnailHeight = 180;
 		double thumbnailRatio  = 1.78;
+		boolean isThumbnailPadding = true;
 		if (renderer != null) {
-			thumbnailWidth  = renderer.getThumbnailWidth();
-			thumbnailHeight = renderer.getThumbnailHeight();
-			thumbnailRatio  = renderer.getThumbnailRatio();
+			thumbnailWidth     = renderer.getThumbnailWidth();
+			thumbnailHeight    = renderer.getThumbnailHeight();
+			thumbnailRatio     = renderer.getThumbnailRatio();
+			isThumbnailPadding = renderer.isThumbnailPadding();
 		}
 
-		args[7] = "-vf";
-		args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")', pad=" + thumbnailWidth + ":" + thumbnailHeight + ":(" + thumbnailWidth + "-iw)/2:(" + thumbnailHeight + "-ih)/2";
+		if (isThumbnailPadding) {
+			args[7] = "-vf";
+			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")', pad=" + thumbnailWidth + ":" + thumbnailHeight + ":(" + thumbnailWidth + "-iw)/2:(" + thumbnailHeight + "-ih)/2";
+		} else {
+			args[7] = "-vf";
+			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")'";
+		}
+
 		args[9] = "-vframes";
 		args[10] = "1";
 		args[11] = "-f";
@@ -581,25 +585,33 @@ public class DLNAMediaInfo implements Cloneable {
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, params, false, true);
 
 		// FAILSAFE
-		parsing = true;
+		synchronized (parsingLock) {
+			parsing = true;
+		}
 		Runnable r = () -> {
 			try {
 				Thread.sleep(10000);
-				ffmpeg_failure = true;
+				synchronized (ffmpeg_failureLock) {
+					ffmpeg_failure = true;
+				}
 			} catch (InterruptedException e) { }
 			
 			pw.stopProcess();
-			parsing = false;
+			synchronized (parsingLock) {
+				parsing = false;
+			}
 		};
 
 		Thread failsafe = new Thread(r, "FFmpeg Thumbnail Failsafe");
 		failsafe.start();
 		pw.runInSameThread();
-		parsing = false;;
+		synchronized (parsingLock) {
+			parsing = false;
+		}
 		return pw;
 	}
 
-	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume) throws IOException {
+	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume, RendererConfiguration renderer) throws IOException {
 		File file = media.getFile();
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
@@ -620,8 +632,23 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args[5] = "-msglevel";
 		args[6] = "all=4";
-		args[7] = "-vf";
-		args[8] = "scale=320:-2,expand=:180";
+
+		int thumbnailWidth  = 320;
+		int thumbnailHeight = 180;
+		boolean isThumbnailPadding = true;
+		if (renderer != null) {
+			thumbnailWidth     = renderer.getThumbnailWidth();
+			thumbnailHeight    = renderer.getThumbnailHeight();
+			isThumbnailPadding = renderer.isThumbnailPadding();
+		}
+		if (isThumbnailPadding) {
+			args[7] = "-vf";
+			args[8] = "scale=" + thumbnailWidth + ":-2,expand=:" + thumbnailHeight;
+		} else {
+			args[7] = "-vf";
+			args[8] = "scale=" + thumbnailWidth + ":-2";
+		}
+
 		args[9] = "-frames";
 		args[10] = "1";
 		args[11] = "-vo";
@@ -639,20 +666,26 @@ public class DLNAMediaInfo implements Cloneable {
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, params);
 
 		// FAILSAFE
-		parsing = true;
+		synchronized (parsingLock) {
+			parsing = true;
+		}
 		Runnable r = () -> {
 			try {
 				Thread.sleep(3000);
 			} catch (InterruptedException e) { }
 			
 			pw.stopProcess();
-			parsing = false;
+			synchronized (parsingLock) {
+				parsing = false;
+			}
 		};
 
 		Thread failsafe = new Thread(r, "MPlayer Thumbnail Failsafe");
 		failsafe.start();
 		pw.runInSameThread();
-		parsing = false;
+		synchronized (parsingLock) {
+			parsing = false;
+		}
 		return pw;
 	}
 
@@ -733,7 +766,11 @@ public class DLNAMediaInfo implements Cloneable {
 							} else if (ah.getChannels() != null && ah.getChannels().toLowerCase().contains("stereo")) {
 								audio.getAudioProperties().setNumberOfChannels(2);
 							} else if (ah.getChannels() != null) {
-								audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));
+								try {
+									audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));
+								} catch (NumberFormatException e) {
+									LOGGER.debug("Could not parse number of audio channels from \"{}\"", ah.getChannels());
+								}
 							}
 
 							audio.setCodecA(ah.getEncodingType().toLowerCase());
@@ -889,8 +926,10 @@ public class DLNAMediaInfo implements Cloneable {
 					dvrms = file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 				}
 
-				if (pw != null && !ffmpeg_failure && !thumbOnly) {
-					parseFFmpegInfo(pw.getResults(), input);
+				synchronized (ffmpeg_failureLock) {
+					if (pw != null && !ffmpeg_failure && !thumbOnly) {
+						parseFFmpegInfo(pw.getResults(), input);
+					}
 				}
 
 				if (
@@ -914,7 +953,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
 					try {
-						getMplayerThumbnail(inputFile, resume);
+						getMplayerThumbnail(inputFile, resume, renderer);
 						String frameName = "" + inputFile.hashCode();
 						frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
 						frameName = frameName.replace(',', '_');
@@ -1404,86 +1443,112 @@ public class DLNAMediaInfo implements Cloneable {
 	 * Checks whether the video has too many reference frames per pixels for the renderer
 	 * TODO move to PlayerUtil
 	 */
-	public synchronized boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
-		if (!h264_parsed) {
-			if (isH264()) {
-				if (
-					container != null &&
-					(
-						container.equals("matroska") ||
-						container.equals("mkv") ||
-						container.equals("mov") ||
-						container.equals("mp4")
-					)
-				) { // Containers without h264_annexB
-					byte headers[][] = getAnnexBFrameHeader(f);
-					if (ffmpeg_annexb_failure) {
-						LOGGER.info("Error parsing information from the file: " + f.getFilename());
-					}
-
-					if (headers != null) {
-						h264_annexB = headers[1];
-						if (h264_annexB != null) {
-							int skip = 5;
-							if (h264_annexB[2] == 1) {
-								skip = 4;
+	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
+		synchronized (videoWithinH264LevelLimitsLock) {
+			if (videoWithinH264LevelLimits == null) {
+				if (isH264()) {
+					videoWithinH264LevelLimits = true;
+					if (
+						container != null &&
+						(
+							container.equals("matroska") ||
+							container.equals("mkv") ||
+							container.equals("mov") ||
+							container.equals("mp4")
+						)
+					) { // Containers without h264_annexB
+						byte headers[][] = getAnnexBFrameHeader(f);
+						synchronized (ffmpeg_annexb_failureLock) {
+							if (ffmpeg_annexb_failure) {
+								LOGGER.info("Error parsing information from the file: " + f.getFilename());
 							}
-							byte header[] = new byte[h264_annexB.length - skip];
-							System.arraycopy(h264_annexB, skip, header, 0, header.length);
+						}
 
-							if (
-								referenceFrameCount > -1 &&
-								(
-									"4.1".equals(avcLevel) ||
-									"4.2".equals(avcLevel) ||
-									"5".equals(avcLevel) ||
-									"5.0".equals(avcLevel) ||
-									"5.1".equals(avcLevel) ||
-									"5.2".equals(avcLevel)
-								) &&
-								width > 0 &&
-								height > 0
-							) {
-								int maxref;
-								if (mediaRenderer == null || mediaRenderer.isPS3()) {
-									/**
-									 * 2013-01-25: Confirmed maximum reference frames on PS3:
-									 *    - 4 for 1920x1080
-									 *    - 11 for 1280x720
-									 * Meaning this math is correct
-									 */
-									maxref = (int) Math.floor(10252743 / (double) (width * height));
+						if (headers != null) {
+							synchronized (h264_annexBLock) {
+								h264_annexB = headers[1];
+								if (h264_annexB != null) {
+									int skip = 5;
+									if (h264_annexB[2] == 1) {
+										skip = 4;
+									}
+									byte header[] = new byte[h264_annexB.length - skip];
+									System.arraycopy(h264_annexB, skip, header, 0, header.length);
+
+									avcLevelLock.readLock().lock();
+									referenceFrameCountLock.readLock().lock();
+									try {
+										if (
+											referenceFrameCount > -1 &&
+											(
+												"4.1".equals(avcLevel) ||
+												"4.2".equals(avcLevel) ||
+												"5".equals(avcLevel) ||
+												"5.0".equals(avcLevel) ||
+												"5.1".equals(avcLevel) ||
+												"5.2".equals(avcLevel)
+											) &&
+											width > 0 &&
+											height > 0
+										) {
+											int maxref;
+											if (mediaRenderer == null || mediaRenderer.isPS3()) {
+												/**
+												 * 2013-01-25: Confirmed maximum reference frames on PS3:
+												 *    - 4 for 1920x1080
+												 *    - 11 for 1280x720
+												 * Meaning this math is correct
+												 */
+												maxref = (int) Math.floor(10252743 / (double) (width * height));
+											} else {
+												/**
+												 * This is the math for level 4.1, which results in:
+												 *    - 4 for 1920x1080
+												 *    - 9 for 1280x720
+												 */
+												maxref = (int) Math.floor(8388608 / (double) (width * height));
+											}
+
+											if (referenceFrameCount > maxref) {
+												LOGGER.debug(
+													"The file \"{}\" is not compatible with this renderer because it " +
+													"can only take {} reference frames at this resolution while this " +
+													"file has {} reference frames",
+													f.getFilename(),
+													maxref, referenceFrameCount
+												);
+												videoWithinH264LevelLimits = false;
+											} else if (referenceFrameCount == -1) {
+												LOGGER.debug(
+													"The file \"{}\" may not be compatible with this renderer because " +
+													"we can't get its number of reference frames",
+													f.getFilename()
+												);
+												videoWithinH264LevelLimits = false;
+											}
+										}
+									} finally {
+										referenceFrameCountLock.readLock().unlock();
+										avcLevelLock.readLock().unlock();
+									}
 								} else {
-									/**
-									 * This is the math for level 4.1, which results in:
-									 *    - 4 for 1920x1080
-									 *    - 9 for 1280x720
-									 */
-									maxref = (int) Math.floor(8388608 / (double) (width * height));
-								}
-
-								if (referenceFrameCount > maxref) {
-									LOGGER.debug("The file " + f.getFilename() + " is not compatible with this renderer because it can only take " + maxref + " reference frames at this resolution while this file has " + referenceFrameCount + " reference frames");
-									return false;
-								} else if (referenceFrameCount == -1) {
-									LOGGER.debug("The file " + f.getFilename() + " may not be compatible with this renderer because we can't get its number of reference frames");
-									return false;
+									LOGGER.debug(
+										"The H.264 stream inside the file \"{}\" is not compatible with this renderer",
+										f.getFilename()
+									);
+									videoWithinH264LevelLimits = false;
 								}
 							}
 						} else {
-							LOGGER.debug("The H.264 stream inside the following file is not compatible with this renderer: " + f.getFilename());
-							return false;
+							videoWithinH264LevelLimits = false;
 						}
-					} else {
-						return false;
 					}
+				} else {
+					videoWithinH264LevelLimits = false;
 				}
 			}
-
-			h264_parsed = true;
+			return videoWithinH264LevelLimits.booleanValue();
 		}
-
-		return true;
 	}
 
 	public boolean isMuxable(String filename, String codecA) {
@@ -1721,7 +1786,9 @@ public class DLNAMediaInfo implements Cloneable {
 		Runnable r = () -> {
 			try {
 				Thread.sleep(3000);
-				ffmpeg_annexb_failure = true;
+				synchronized (ffmpeg_annexb_failureLock) {
+					ffmpeg_annexb_failure = true;
+				}
 			} catch (InterruptedException e) { }
 			pw.stopProcess();
 		};
@@ -1730,8 +1797,10 @@ public class DLNAMediaInfo implements Cloneable {
 		failsafe.start();
 		pw.runInSameThread();
 
-		if (ffmpeg_annexb_failure) {
-			return null;
+		synchronized (ffmpeg_annexb_failureLock) {
+			if (ffmpeg_annexb_failure) {
+				return null;
+			}
 		}
 
 		InputStream is;
@@ -2023,7 +2092,12 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public byte[] getThumb() {
-		return thumb;
+		if (thumb == null) {
+			return null;
+		}
+		byte[] result = new byte[thumb.length];
+		System.arraycopy(thumb, 0, result, 0, thumb.length);
+		return result;
 	}
 
 	/**
@@ -2031,7 +2105,12 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public void setThumb(byte[] thumb) {
-		this.thumb = thumb;
+		if (thumb == null) {
+			this.thumb = null;
+		} else {
+			this.thumb = new byte[thumb.length];
+			System.arraycopy(thumb, 0, this.thumb, 0, thumb.length);
+		}
 	}
 
 	/**
@@ -2109,8 +2188,13 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * @return reference frame count for video stream or {@code -1} if not parsed.
 	 */
-	public synchronized byte getReferenceFrameCount() {
-		return referenceFrameCount;
+	public byte getReferenceFrameCount() {
+		referenceFrameCountLock.readLock().lock();
+		try {
+			return referenceFrameCount;
+		} finally {
+			referenceFrameCountLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -2118,18 +2202,28 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @param referenceFrameCount reference frame count.
 	 */
-	public synchronized void setReferenceFrameCount(byte referenceFrameCount) {
+	public void setReferenceFrameCount(byte referenceFrameCount) {
 		if (referenceFrameCount < -1) {
-			throw new IllegalArgumentException("referenceFrameCount should be >= -1.");
+			throw new IllegalArgumentException("referenceFrameCount must be >= -1.");
 		}
-		this.referenceFrameCount = referenceFrameCount;
+		referenceFrameCountLock.writeLock().lock();
+		try {
+			this.referenceFrameCount = referenceFrameCount;
+		} finally {
+			referenceFrameCountLock.writeLock().unlock();
+		}
 	}
 
 	/**
 	 * @return AVC level for video stream or {@code null} if not parsed.
 	 */
-	public synchronized String getAvcLevel() {
-		return avcLevel;
+	public String getAvcLevel() {
+		avcLevelLock.readLock().lock();
+		try {
+			return avcLevel;
+		} finally {
+			avcLevelLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -2137,11 +2231,16 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @param avcLevel AVC level.
 	 */
-	public synchronized void setAvcLevel(String avcLevel) {
-		this.avcLevel = avcLevel;
+	public void setAvcLevel(String avcLevel) {
+		avcLevelLock.writeLock().lock();
+		try {
+			this.avcLevel = avcLevel;
+		} finally {
+			avcLevelLock.writeLock().unlock();
+		}
 	}
 
-	public synchronized int getAvcAsInt() {
+	public int getAvcAsInt() {
 		try {
 			return Integer.parseInt(getAvcLevel().replaceAll("\\.", ""));
 		} catch (Exception e) {
@@ -2149,9 +2248,17 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public synchronized String getH264Profile() { return h264Profile; }
+	public String getH264Profile() {
+		synchronized (h264ProfileLock) {
+			return h264Profile;
+		}
+	}
 
-	public synchronized void setH264Profile(String s) { h264Profile = s; }
+	public void setH264Profile(String s) {
+		synchronized (h264ProfileLock) {
+			h264Profile = s;
+		}
+	}
 
 	/**
 	 * @return the audioTracks
@@ -2350,7 +2457,14 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public byte[] getH264AnnexB() {
-		return h264_annexB;
+		synchronized (h264_annexBLock) {
+			if (h264_annexB == null) {
+				return null;
+			}
+			byte[] result = new byte[h264_annexB.length];
+			System.arraycopy(h264_annexB, 0, result, 0, h264_annexB.length);
+			return result;
+		}
 	}
 
 	/**
@@ -2358,7 +2472,14 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public void setH264AnnexB(byte[] h264AnnexB) {
-		this.h264_annexB = h264AnnexB;
+		synchronized (h264_annexBLock) {
+			if (h264AnnexB == null) {
+				this.h264_annexB = null;
+			} else {
+				this.h264_annexB = new byte[h264AnnexB.length];
+				System.arraycopy(h264AnnexB, 0, this.h264_annexB, 0, h264AnnexB.length);
+			}
+		}
 	}
 
 	/**
@@ -2434,7 +2555,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public boolean isParsing() {
-		return parsing;
+		synchronized (parsingLock) {
+			return parsing;
+		}
 	}
 
 	/**
@@ -2442,7 +2565,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public void setParsing(boolean parsing) {
-		this.parsing = parsing;
+		synchronized (parsingLock) {
+			this.parsing = parsing;
+		}
 	}
 
 	/**

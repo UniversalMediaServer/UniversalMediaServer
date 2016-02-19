@@ -199,6 +199,7 @@ public class MediaInfo {
 			LOGGER.info("Loaded " + Option_Static("Info_Version"));
 		} catch (Throwable e) {
 			LOGGER.error("Error loading MediaInfo library: " + e.getMessage());
+			LOGGER.trace("", e);
 			if (!Platform.isWindows() && !Platform.isMac()) {
 				LOGGER.info("Make sure you have libmediainfo and libzen installed");
 			}

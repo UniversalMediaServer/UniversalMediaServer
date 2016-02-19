@@ -983,18 +983,10 @@ public class TranscodingTab {
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 20), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
-
-		boolean enable = !configuration.isDisableSubtitles();
-		for (Component component : panel.getComponents()) {
-			component.setEnabled(enable);
-		}
-
+		GuiUtil.enableContainer(panel, !configuration.isDisableSubtitles());
 		disableSubs.addItemListener((ItemEvent e) -> {
 			// If "Disable Subtitles" is not selected, subtitles are enabled
-			boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
-			for (Component component : panel.getComponents()) {
-				component.setEnabled(enabled);
-			}
+			GuiUtil.enableContainer(panel, e.getStateChange() != ItemEvent.SELECTED);
 		});
 
 		panel.applyComponentOrientation(orientation);

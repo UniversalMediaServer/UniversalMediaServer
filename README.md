@@ -1,5 +1,5 @@
 # Universal Media Server
-[![Build Status](http://universalmediaserver-ci.hopto.org:9999/job/ums%20trunk/badge/icon)](http://universalmediaserver-ci.hopto.org:9999/job/ums%20trunk/)
+[![Build Status](https://travis-ci.org/UniversalMediaServer/UniversalMediaServer.svg?branch=master)](https://travis-ci.org/UniversalMediaServer/UniversalMediaServer)
 
 [<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA-compliant UPnP Media Server.
 It is capable of sharing video, audio and images between most modern devices.
@@ -9,7 +9,7 @@ To see a comparison of popular media servers, [click here][2]
 
 Universal Media Server supports all major operating systems, with versions for Windows, Linux and Mac OS X.
 The program streams or transcodes many different media formats with little or no configuration.
-It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, which combine to offer support for a wide range of media formats.
+It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC, [OpenSubtitles.org][25] and more, which combine to offer support for a wide range of media formats.
 
 ## Current Project Developers
 
@@ -97,3 +97,4 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
   [22]: https://crowdin.com/profile/OnarEngincan
   [23]: https://github.com/K4r0lSz
   [24]: https://github.com/prescott66
+  [25]: http://www.opensubtitles.org/

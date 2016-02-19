@@ -360,11 +360,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @since 1.50
 	 */
 	public void setSampleFrequency(String sampleFrequency) {
-		this.sampleFrequency = sampleFrequency;
-		try {
-			audioProperties.setSampleFrequency(Integer.parseInt(sampleFrequency));
-		} catch (NumberFormatException e) {
-			LOGGER.warn("Audio sample frequency \"{}\" cannot be parsed, using (probably wrong) default", sampleFrequency);
+		if (isNotBlank(sampleFrequency)) {
+			this.sampleFrequency = sampleFrequency;
+			try {
+				audioProperties.setSampleFrequency(Integer.parseInt(sampleFrequency));
+			} catch (NumberFormatException e) {
+				LOGGER.warn("Audio sample frequency \"{}\" cannot be parsed, using (probably wrong) default", sampleFrequency);
+			}
 		}
 	}
 

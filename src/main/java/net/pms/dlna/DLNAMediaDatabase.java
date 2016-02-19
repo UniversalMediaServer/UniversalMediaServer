@@ -163,7 +163,10 @@ public class DLNAMediaDatabase implements Runnable {
 			} else {
 				LOGGER.error("Database connection error: " + se.getMessage());
 				LOGGER.trace("", se);
-				PMS.get().getRootFolder(null).stopScan();
+				RootFolder rootFolder = PMS.get().getRootFolder(null);
+				if (rootFolder != null) {
+					rootFolder.stopScan();
+				}
 				configuration.setUseCache(false);
 				return;
 			}

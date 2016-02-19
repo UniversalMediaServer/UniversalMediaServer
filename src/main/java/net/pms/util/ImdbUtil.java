@@ -19,8 +19,9 @@ public class ImdbUtil {
 
 	public static String extractImdb(File file) {
 		String ret = extract(file, IMDB_REG);
-		if (!StringUtils.isEmpty(ret) && !ret.startsWith("tt")) {
-			ret = "tt" + ret;
+		// Opensubtitles requires IMDb ID to be a number only
+		if (!StringUtils.isEmpty(ret) && ret.startsWith("tt") && ret.length() > 2) {
+			ret = ret.substring(2);
 		}
 		return ret;
 	}

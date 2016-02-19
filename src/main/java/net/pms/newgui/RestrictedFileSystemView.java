@@ -12,6 +12,7 @@ import javax.swing.filechooser.FileView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO This bug was fixed in Java 6u18 and is no longer relevant. It also only applied for Windows XP. This class can be deleted.
 /**
  * Fallback implementation of a FileSystemView.
  * <p>
@@ -20,7 +21,7 @@ import org.slf4j.LoggerFactory;
  * href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6544857">http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6544857</a>
  * <p>
  * Example:
- * 
+ *
  * <pre>
  *   File currentDir = ...;
  *   JFrame parentFrame = ...;
@@ -32,12 +33,12 @@ import org.slf4j.LoggerFactory;
  *   }
  *   int returnValue = chooser.showOpenDialog(parentFrame);
  * </pre>
- * 
+ *
  * This FileSystemView only provides basic functionality (and probably a poor look & feel), but it can be a life saver
  * if otherwise no dialog pops up in your application.
  * <p>
  * The implementation does <strong>not</strong> use <code>sun.awt.shell.*</code> classes.
- * 
+ *
  */
 public class RestrictedFileSystemView extends FileSystemView {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RestrictedFileSystemView.class);
@@ -54,7 +55,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Determines if the given file is a root in the navigatable tree(s).
-	 *  
+	 *
 	 * @param f a <code>File</code> object representing a directory
 	 * @return <code>true</code> if <code>f</code> is a root in the navigatable tree.
 	 * @see #isFileSystemRoot
@@ -76,7 +77,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Returns true if the file (directory) can be visited. Returns false if the directory cannot be traversed.
-	 * 
+	 *
 	 * @param f the <code>File</code>
 	 * @return <code>true</code> if the file/directory can be traversed, otherwise <code>false</code>
 	 * @see JFileChooser#isTraversable
@@ -89,7 +90,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Name of a file, directory, or folder as it would be displayed in a system file browser
-	 *  
+	 *
 	 * @param f a <code>File</code> object
 	 * @return the file name as it would be displayed by a native file chooser
 	 * @see JFileChooser#getName
@@ -109,7 +110,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Type description for a file, directory, or folder as it would be displayed in a system file browser.
-	 * 
+	 *
 	 * @param f a <code>File</code> object
 	 * @return the file type description as it would be displayed by a native file chooser or null if no native
 	 * information is available.
@@ -122,7 +123,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Icon for a file, directory, or folder as it would be displayed in a system file browser.
-	 * 
+	 *
 	 * @param f a <code>File</code> object
 	 * @return an icon as it would be displayed by a native file chooser, null if not available
 	 * @see JFileChooser#getIcon
@@ -165,7 +166,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 	/**
 	 * Checks if <code>f</code> represents a real directory or file as opposed to a special folder such as
 	 * <code>"Desktop"</code>. Used by UI classes to decide if a folder is selectable when doing directory choosing.
-	 * 
+	 *
 	 * @param f a <code>File</code> object
 	 * @return <code>true</code> if <code>f</code> is a real file or directory.
 	 */
@@ -184,7 +185,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Is dir the root of a tree in the file system, such as a drive or partition.
-	 * 
+	 *
 	 * @param dir a <code>File</code> object representing a directory
 	 * @return <code>true</code> if <code>f</code> is a root of a filesystem
 	 * @see #isRoot
@@ -196,9 +197,9 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Used by UI classes to decide whether to display a special icon for drives or partitions, e.g. a "hard disk" icon.
-	 * 
+	 *
 	 * The default implementation has no way of knowing, so always returns false.
-	 * 
+	 *
 	 * @param dir a directory
 	 * @return <code>false</code> always
 	 */
@@ -209,9 +210,9 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Used by UI classes to decide whether to display a special icon for a floppy disk. Implies isDrive(dir).
-	 * 
+	 *
 	 * The default implementation has no way of knowing, so always returns false.
-	 * 
+	 *
 	 * @param dir a directory
 	 * @return <code>false</code> always
 	 */
@@ -223,9 +224,9 @@ public class RestrictedFileSystemView extends FileSystemView {
 	/**
 	 * Used by UI classes to decide whether to display a special icon for a computer node, e.g. "My Computer" or a
 	 * network server.
-	 * 
+	 *
 	 * The default implementation has no way of knowing, so always returns false.
-	 * 
+	 *
 	 * @param dir a directory
 	 * @return <code>false</code> always
 	 */
@@ -254,7 +255,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Return the user's default starting directory for the file chooser.
-	 * 
+	 *
 	 * @return a <code>File</code> object representing the default starting folder
 	 */
 	@Override
@@ -323,7 +324,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 	/**
 	 * Returns the parent directory of <code>dir</code>.
-	 * 
+	 *
 	 * @param dir the <code>File</code> being queried
 	 * @return the parent directory of <code>dir</code>, or <code>null</code> if <code>dir</code> is
 	 * <code>null</code>
@@ -355,7 +356,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 	/**
 	 * Creates a new <code>File</code> object for <code>f</code> with correct behavior for a file system root
 	 * directory.
-	 * 
+	 *
 	 * @param f a <code>File</code> object representing a file system root directory, for example "/" on Unix or "C:\"
 	 * on Windows.
 	 * @return a new <code>File</code> object
