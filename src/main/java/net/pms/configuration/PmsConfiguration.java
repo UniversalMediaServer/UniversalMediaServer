@@ -21,7 +21,6 @@ package net.pms.configuration;
 import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
-import java.awt.Component;
 import java.io.BufferedWriter;
 import java.awt.Frame;
 import java.io.File;
@@ -40,6 +39,7 @@ import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
+import net.pms.newgui.LooksFrame;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
@@ -1816,7 +1816,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				if (!FileUtil.isAdmin()) {
 					try {
 						JOptionPane.showMessageDialog(
-							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+							SwingUtilities.getWindowAncestor(LooksFrame.get()),
 							Messages.getString("NetworkTab.58"),
 							Messages.getString("Dialog.PermissionsError"),
 							JOptionPane.ERROR_MESSAGE

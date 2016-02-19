@@ -90,20 +90,19 @@ public class MEncoderWebVideo extends Player {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
-		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
+		// Use device-specific PmsConfiguration
+		//final DeviceConfiguration deviceConfiguration = (DeviceConfiguration) params.mediaRenderer;
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 
 		PipeProcess pipe = new PipeProcess("mencoder" + System.currentTimeMillis());
 		params.input_pipes[0] = pipe;
 
-		String cmdArray[] = new String[args().length + 4];
+		String cmdArray[] = new String[getDefaultArgs().length + 4];
 		cmdArray[0] = executable();
 		final String filename = dlna.getSystemName();
 		cmdArray[1] = filename;
-		System.arraycopy(args(), 0, cmdArray, 2, args().length);
+		System.arraycopy(getDefaultArgs(), 0, cmdArray, 2, getDefaultArgs().length);
 		cmdArray[cmdArray.length - 2] = "-o";
 		cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 
@@ -136,7 +135,6 @@ public class MEncoderWebVideo extends Player {
 			Thread.sleep(50);
 		} catch (InterruptedException e) {
 		}
-		configuration = prev;
 		return pw;
 	}
 
@@ -148,11 +146,6 @@ public class MEncoderWebVideo extends Player {
 	@Override
 	public String name() {
 		return "MEncoder Web";
-	}
-
-	@Override
-	public String[] args() {
-		return getDefaultArgs();
 	}
 
 	@Override

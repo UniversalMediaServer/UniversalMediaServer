@@ -284,7 +284,7 @@ public class DbgPacker implements ActionListener {
 		LOGGER.debug("Reloading...");
 		((Window) c.getTopLevelAncestor()).dispose();
 		JOptionPane.showOptionDialog(
-			SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+			SwingUtilities.getWindowAncestor(LooksFrame.get()),
 			config(),
 			Messages.getString("Dialog.Options"),
 			JOptionPane.CLOSED_OPTION,

@@ -27,9 +27,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.LooksFrame.LooksFrameUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,15 +76,18 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private byte buffer[];
 	private boolean forcefirst;
 	private ArrayList<WaitBufferedInputStream> inputStreams;
+	private final ReentrantReadWriteLock attachedThreadLock = new ReentrantReadWriteLock();
 	private ProcessWrapper attachedThread;
 	private int secondread_minsize;
+	private final ReentrantReadWriteLock timerLock = new ReentrantReadWriteLock();
 	private Timer timer;
 	private boolean hidebuffer;
 	private boolean cleanup;
 	private boolean shiftScr;
 	private FileOutputStream debugOutput = null;
+	private final ReentrantLock bufferedLock = new ReentrantLock();
 	private boolean buffered = false;
-	private DecimalFormat formatter = new DecimalFormat("#,###");
+	private final DecimalFormat formatter = new DecimalFormat("#,###");
 	private double timeseek;
 	private double timeend;
 	private long packetpos = 0;
@@ -188,7 +195,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		// FIXME: Better to relate margin directly to maxMemorySize instead of using arbitrary fixed values
 
 		int margin = MARGIN_LARGE; // Issue 220: extends to 20Mb : readCount is wrongly set cause of the ps3's
-		// 2nd request with a range like 44-xxx, causing the end of buffer margin to be first sent 
+		// 2nd request with a range like 44-xxx, causing the end of buffer margin to be first sent
 		if (this.maxMemorySize < margin) {// for thumbnails / small buffer usage
 			margin = MARGIN_MEDIUM; // margin must be superior to the buffer size of OutputBufferConsumer or direct buffer size from WindowsNamedPipe class
 			if (this.maxMemorySize < margin) {
@@ -251,8 +258,13 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 	@Override
 	public InputStream getInputStream(long newReadPosition) {
-		if (attachedThread != null) {
-			attachedThread.setReadyToStop(false);
+		attachedThreadLock.readLock().lock();
+		try {
+			if (attachedThread != null) {
+				attachedThread.setReadyToStop(false);
+			}
+		} finally {
+			attachedThreadLock.readLock().unlock();
 		}
 
 		WaitBufferedInputStream atominputStream;
@@ -331,7 +343,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			} else {
 				System.arraycopy(b, off, buffer, mb, (len - off));
 				if ((len - off) > 0) {
+					bufferedLock.lock();
 					buffered = true;
+					bufferedLock.unlock();
 				}
 			}
 
@@ -413,7 +427,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		int mb = (int) (writeCount++ % maxMemorySize);
 		if (buffer != null) {
 			buffer[mb] = (byte) b;
+			bufferedLock.lock();
 			buffered = true;
+			bufferedLock.unlock();
 			if (writeCount == INITIAL_BUFFER_SIZE) {
 				buffer = growBuffer(buffer, maxMemorySize);
 			}
@@ -686,16 +702,26 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 		}
 
-		if (attachedThread != null) {
-			attachedThread.setReadyToStop(false);
+		attachedThreadLock.readLock().lock();
+		try {
+			if (attachedThread != null) {
+				attachedThread.setReadyToStop(false);
+			}
+		} finally {
+			attachedThreadLock.readLock().unlock();
 		}
 
 		if (c > 0) {
 			LOGGER.trace("Resume Read: readCount=" + readCount + " / writeCount=" + writeCount);
 		}
 
-		if (buffer == null || !buffered) {
-			return -1;
+		bufferedLock.lock();
+		try {
+			if (buffer == null || !buffered) {
+				return -1;
+			}
+		} finally {
+			bufferedLock.unlock();
 		}
 
 		int mb = (int) (readCount % maxMemorySize);
@@ -759,16 +785,26 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 		}
 
-		if (attachedThread != null) {
-			attachedThread.setReadyToStop(false);
+		attachedThreadLock.readLock().lock();
+		try {
+			if (attachedThread != null) {
+				attachedThread.setReadyToStop(false);
+			}
+		} finally {
+			attachedThreadLock.readLock().unlock();
 		}
 
 		if (c > 0) {
 			LOGGER.trace("Resume Read: readCount=" + readCount + " / writeCount=" + writeCount);
 		}
 
-		if (buffer == null || !buffered) {
-			return -1;
+		bufferedLock.lock();
+		try {
+			if (buffer == null || !buffered) {
+				return -1;
+			}
+		} finally {
+			bufferedLock.unlock();
 		}
 
 		try {
@@ -783,39 +819,83 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 	@Override
 	public synchronized void attachThread(ProcessWrapper thread) {
-		if (attachedThread != null) {
-			throw new RuntimeException("BufferedOutputFile is already attached to a Thread: " + attachedThread);
-		}
+		attachedThreadLock.writeLock().lock();
+		try {
+			if (attachedThread != null) {
+				throw new RuntimeException("BufferedOutputFile is already attached to a Thread: " + attachedThread);
+			}
 
-		LOGGER.debug("Attaching thread: " + thread);
-		attachedThread = thread;
-		startTimer();
+			LOGGER.debug("Attaching thread: " + thread);
+			attachedThread = thread;
+			startTimer();
+		} finally {
+			attachedThreadLock.writeLock().unlock();
+		}
 	}
 
 	private void startTimer() {
 		if (!hidebuffer && maxMemorySize > (15 * 1048576)) {
-			timer = new Timer(attachedThread + "-Timer");
-			timer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					long rc = 0;
+			timerLock.writeLock().lock();
+			try {
+				timer = new Timer(attachedThread + "-Timer");
+				timer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						final long rc;
 
-					if (getCurrentInputStream() != null) {
-						rc = getCurrentInputStream().getReadCount();
-						PMS.get().getFrame().setReadValue(rc, "");
+						if (getCurrentInputStream() != null) {
+							rc = getCurrentInputStream().getReadCount();
+							LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+								@Override
+								protected Class<?> getLoggerClass() {
+									return BufferedOutputFileImpl.class;
+								}
+
+								@Override
+								protected String getCallerName() {
+									return "startTimer";
+								}
+
+								@Override
+								protected void doRun() {
+									LooksFrame.get().setReadValue(rc, "");
+								}
+							});
+						} else {
+							rc = 0;
+						}
+
+						long space = (writeCount - rc);
+						LOGGER.trace("buffered: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
+
+						// There are 1048576 bytes in a megabyte
+						long bufferInMBs = space / 1048576;
+						if (renderer != null) {
+							renderer.setBuffer(bufferInMBs);
+						}
+						LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+							@Override
+							protected Class<?> getLoggerClass() {
+								return BufferedOutputFileImpl.class;
+							}
+
+							@Override
+							protected String getCallerName() {
+								return "startTimer updateBuffer";
+							}
+
+							@Override
+							protected void doRun() {
+								LooksFrame.get().updateBuffer();
+							}
+						});
 					}
-
-					long space = (writeCount - rc);
-					LOGGER.trace("buffered: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
-
-					// There are 1048576 bytes in a megabyte
-					long bufferInMBs = space / 1048576;
-					if (renderer != null) {
-						renderer.setBuffer(bufferInMBs);
-					}
-					PMS.get().getFrame().updateBuffer();
-				}
-			}, 0, 2000);
+				}, 0, 2000);
+			} finally {
+				timerLock.writeLock().unlock();
+			}
 		}
 	}
 
@@ -827,11 +907,32 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	@Override
 	public void detachInputStream() {
 		if (!hidebuffer) {
-			PMS.get().getFrame().setReadValue(0, "");
+			LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+				@Override
+				protected Class<?> getLoggerClass() {
+					return BufferedOutputFileImpl.class;
+				}
+
+				@Override
+				protected String getCallerName() {
+					return "detachInputStream";
+				}
+
+				@Override
+				protected void doRun() {
+					LooksFrame.get().setReadValue(0, "");
+				}
+			});
 		}
 
-		if (attachedThread != null) {
-			attachedThread.setReadyToStop(true);
+		attachedThreadLock.readLock().lock();
+		try {
+			if (attachedThread != null) {
+				attachedThread.setReadyToStop(true);
+			}
+		} finally {
+			attachedThreadLock.readLock().unlock();
 		}
 
 		Runnable checkEnd = new Runnable() {
@@ -843,16 +944,26 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					LOGGER.error(null, e);
 				}
 
-				if (attachedThread != null && attachedThread.isReadyToStop()) {
-					if (!attachedThread.isDestroyed()) {
-						attachedThread.stopProcess();
-					}
+				attachedThreadLock.readLock().lock();
+				try {
+					if (attachedThread != null && attachedThread.isReadyToStop()) {
+						if (!attachedThread.isDestroyed()) {
+							attachedThread.stopProcess();
+						}
 
-					reset();
+						reset();
+					}
+				} finally {
+					attachedThreadLock.readLock().unlock();
 				}
 			}
 		};
-		new Thread(checkEnd, attachedThread + "-Cleanup").start();
+		attachedThreadLock.readLock().lock();
+		try {
+			new Thread(checkEnd, attachedThread + "-Cleanup").start();
+		} finally {
+			attachedThreadLock.readLock().unlock();
+		}
 	}
 
 	@Override
@@ -865,8 +976,13 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 		}
 
-		if (timer != null) {
-			timer.cancel();
+		timerLock.readLock().lock();
+		try {
+			if (timer != null) {
+				timer.cancel();
+			}
+		} finally {
+			timerLock.readLock().unlock();
 		}
 
 		if (buffer != null) {
@@ -874,13 +990,31 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			buffer = null;
 		}
 
+		bufferedLock.lock();
 		buffered = false;
+		bufferedLock.unlock();
 
 		if (renderer != null) {
 			renderer.setBuffer(0);
 		}
 		if (!hidebuffer && maxMemorySize != 1048576) {
-			PMS.get().getFrame().updateBuffer();
+			LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+				@Override
+				protected Class<?> getLoggerClass() {
+					return BufferedOutputFileImpl.class;
+				}
+
+				@Override
+				protected String getCallerName() {
+					return "reset";
+				}
+
+				@Override
+				protected void doRun() {
+					LooksFrame.get().updateBuffer();
+				}
+			});
 		}
 	}
 }

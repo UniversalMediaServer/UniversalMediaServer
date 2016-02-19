@@ -120,13 +120,6 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	@Deprecated
-	public String[] args() {
-		// unused: kept for backwards compatibility
-		return new String[] {"-f", "s16be", "-ar", "48000"};
-	}
-
-	@Override
 	public String mimeType() {
 		return HTTPResource.AUDIO_TRANSCODE;
 	}
@@ -137,11 +130,10 @@ public class FFmpegAudio extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		PmsConfiguration prev = configuration;
-		// Use device-specific pms conf
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		// Use device-specific PmsConfiguration
+		final DeviceConfiguration deviceConfiguration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getSystemName();
-		params.maxBufferSize = configuration.getMaxAudioBuffer();
+		params.maxBufferSize = deviceConfiguration.getMaxAudioBuffer();
 		params.waitbeforestart = 2000;
 		params.manageFastStart();
 
@@ -152,11 +144,11 @@ public class FFmpegAudio extends FFMpegVideo {
 		 * specify how many cores to use.
 		 */
 		int nThreads = 1;
-		if (configuration.isFfmpegMultithreading()) {
-			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+		if (deviceConfiguration.isFfmpegMultithreading()) {
+			if (Runtime.getRuntime().availableProcessors() == deviceConfiguration.getNumberOfCpuCores()) {
 				nThreads = 0;
 			} else {
-				nThreads = configuration.getNumberOfCpuCores();
+				nThreads = deviceConfiguration.getNumberOfCpuCores();
 			}
 		}
 
@@ -213,7 +205,7 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("s16be"); // same as -f wav, but without a WAV header
 		}
 
-		if (configuration.isAudioResample()) {
+		if (deviceConfiguration.isAudioResample()) {
 			if (params.mediaRenderer.isTranscodeAudioTo441()) {
 				cmdList.add("-ar");
 				cmdList.add("44100");
@@ -239,7 +231,6 @@ public class FFmpegAudio extends FFMpegVideo {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 
-		configuration = prev;
 		return pw;
 	}
 

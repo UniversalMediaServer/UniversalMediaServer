@@ -23,7 +23,6 @@ package net.pms.newgui;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
@@ -134,7 +133,7 @@ public class SelectRenderers extends JPanel {
 		}
 
 		int selectRenderers = JOptionPane.showOptionDialog(
-			(Component) PMS.get().getFrame(),
+			LooksFrame.get(),
 			this,
 			Messages.getString("GeneralTab.5"),
 			JOptionPane.OK_CANCEL_OPTION,

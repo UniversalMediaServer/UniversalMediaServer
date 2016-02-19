@@ -18,6 +18,9 @@
  */
 package net.pms.newgui;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.windows.WindowsLookAndFeel;
@@ -27,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
 import javax.imageio.ImageIO;
@@ -40,17 +44,20 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.io.WindowsNamedPipe;
+import net.pms.logging.FrameAppender;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LooksFrame extends JFrame implements IFrame, Observer {
+public class LooksFrame extends JFrame implements Observer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LooksFrame.class);
 
 	private final AutoUpdater autoUpdater;
@@ -70,7 +77,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * tabs. The value <code>null</code> means "don't care", activating the
 	 * tab will not change the help page.
 	 */
-	protected static final String[] HELP_PAGES = {
+	private static final String[] HELP_PAGES = {
 		"index.html",
 		null,
 		"general_configuration.html",
@@ -81,6 +88,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		null
 	};
 
+	private static volatile LooksFrame instance;
 	private NavigationShareTab nt;
 	private StatusTab st;
 	private TracesTab tt;
@@ -93,6 +101,76 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private static Object lookAndFeelInitializedLock = new Object();
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
+
+	public static abstract class LooksFrameUpdater implements Runnable {
+
+		@Override
+		public void run() {
+			try {
+				doRun();
+			} catch (Exception e) {
+				// Nothing should get here, this is only here to protect
+				// the event dispatching thread from unwinding
+				Logger LOGGER = LoggerFactory.getLogger(getLoggerClass());
+				LOGGER.error("An unexpected error occurred during {}: {}", getCallerName(), e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+
+		/**
+		 * Put the code to run here
+		 */
+		protected abstract void doRun();
+
+		/**
+		 * Define the class to get the logger for here
+		 */
+		protected abstract Class<?> getLoggerClass();
+
+		/**
+		 * Define the name of the caller to be logged here
+		 */
+		protected abstract String getCallerName();
+
+	}
+
+	/**
+	 * This is a convenience wrapper for updates to the GUI from other threads
+	 * than the event dispatching thread. It will call
+	 * {@link SwingUtilities#invokeLater(Runnable)} with the
+	 * {@link LooksFrameUpdater} subclass sent as an argument. It will make
+	 * sure any {@link Exception} is caught instead of unwinding the event
+	 * dispatching thread.<br>
+	 * <br>
+	 * <strong>Please note</strong>: Do not use this catch block to handle
+	 * {@link Exceptions} thrown during execution of {@link #doRun()}. It is
+	 * only there as a last line of defense to avoid crashing the event
+	 * dispatching thread from an unexpected {@link Exception} and will log
+	 * anything thrown in a non-informative way with log level
+	 * <code>ERROR</code>
+	 */
+	public static void updateGUI(LooksFrameUpdater updater) {
+		SwingUtilities.invokeLater(updater);
+	}
+
+	/**
+	 * Creates or gets the singleton {@link LooksFrame} instance with double
+	 * checked locking.
+	 *
+	 * @return The singleton instance or <code>null</code> if in headless mode.
+	 */
+	public static LooksFrame get() {
+		if (instance == null && !PMS.isHeadless()) {
+			synchronized (LooksFrame.class) {
+				if (instance == null) {
+					instance = new LooksFrame();
+					// Inform the FrameAppender(s) that the GUI is ready
+					FrameAppender.setFrameInitialized();
+				}
+			}
+		}
+		return instance;
+	}
 
 	public ViewLevel getViewLevel() {
 		return viewLevel;
@@ -193,10 +271,22 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	/**
 	 * Constructs a <code>DemoFrame</code>, configures the UI,
 	 * and builds the content.
+	 *
+	 * This is a singleton, keep it private
 	 */
-	public LooksFrame(AutoUpdater autoUpdater, PmsConfiguration configuration) {
-		this.autoUpdater = autoUpdater;
-		this.configuration = configuration;
+	private LooksFrame() {
+		if (PMS.isHeadless()) {
+			throw new IllegalStateException("LooksFrame cannot be instantiated in headless mode");
+		}
+
+		if (Build.isUpdatable()) {
+			String serverURL = Build.getUpdateServerURL();
+			autoUpdater = new AutoUpdater(serverURL, PMS.getVersion());
+		} else {
+			autoUpdater = null;
+		}
+
+		configuration = PMS.getConfiguration();
 		assert this.configuration != null;
 		Options.setDefaultIconSize(new Dimension(18, 18));
 		Options.setUseNarrowButtons(true);
@@ -435,7 +525,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		tabbedPane.setUI(new CustomTabbedPaneUI());
 
-		st = new StatusTab(configuration);
+		st = new StatusTab();
 		tt = new TracesTab(configuration, this);
 		gt = new GeneralTab(configuration, this);
 		pt = new PluginTab(configuration, this);
@@ -509,6 +599,24 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			LOGGER.warn("Failed to save window geometry and size: {}", e.getMessage());
 			LOGGER.debug("", e);
 		}
+
+		ILoggerFactory iLoggerFactory = LoggerFactory.getILoggerFactory();
+		if (iLoggerFactory instanceof LoggerContext) {
+			// Using LogBack
+			LoggerContext loggerContext = (LoggerContext) iLoggerFactory;
+			ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+
+			Iterator<Appender<ILoggingEvent>> it = rootLogger.iteratorForAppenders();
+			while (it.hasNext()) {
+				Appender<ILoggingEvent> appender = it.next();
+				if (appender instanceof FrameAppender) {
+					LOGGER.debug("Stopping FrameAppender");
+					appender.stop();
+					rootLogger.detachAppender(appender);
+				}
+			}
+		}
+
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -518,17 +626,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		System.exit(0);
 	}
 
-	@Override
 	public void append(final String msg) {
 		tt.append(msg);
 	}
 
-	@Override
 	public void setReadValue(long v, String msg) {
 		st.setReadValue(v, msg);
 	}
 
-	@Override
 	public void setStatusCode(int code, String msg, String icon) {
 		st.getJl().setText(msg);
 
@@ -539,7 +644,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 	}
 
-	@Override
 	public void updateBuffer() {
 		st.updateCurrentBitrate();
 	}
@@ -554,7 +658,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 *
 	 * @param bool true if the server has to be restarted, false otherwise
 	 */
-	@Override
 	public void setReloadable(boolean bool) {
 		if (bool) {
 			reload.setIcon(readImageIcon("button-restart-required.png"));
@@ -565,7 +668,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 	}
 
-	@Override
 	public void addEngines() {
 		tr.addEngines();
 	}
@@ -593,7 +695,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 	}
 
-	@Override
 	public void setStatusLine(String line) {
 		if (line == null || "".equals(line)) {
 			line = "";
@@ -605,24 +706,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		status.setText(line);
 	}
 
-	@Override
 	public void addRenderer(RendererConfiguration renderer) {
 		st.addRenderer(renderer);
 	}
 
-	@Override
 	public void updateRenderer(RendererConfiguration renderer) {
 		StatusTab.updateRenderer(renderer);
 	}
 
-	@Override
 	public void serverReady() {
 		st.updateMemoryUsage();
 		gt.addRenderers();
 		pt.addPlugins();
 	}
 
-	@Override
 	public void setScanLibraryEnabled(boolean flag) {
 		getNt().setScanLibraryEnabled(flag);
 	}

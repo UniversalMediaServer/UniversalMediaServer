@@ -107,11 +107,6 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public String[] args() {
-		return new String[]{};
-	}
-
-	@Override
 	public String name() {
 		return "VLC";
 	}
@@ -431,9 +426,8 @@ public class VLCVideo extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
-		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
+		// Use device-specific PmsConfiguration
+		final DeviceConfiguration deviceConfiguration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		boolean isWindows = Platform.isWindows();
 		setAudioAndSubs(filename, media, params);
@@ -469,11 +463,11 @@ public class VLCVideo extends Player {
 			Version requiredVersion = new Version("2.1.4");
 
 			if (currentVersion.compareTo(requiredVersion) > 0) {
-				if (!configuration.isGPUAcceleration()) {
+				if (!deviceConfiguration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
 				}
-			} else if (!configuration.isGPUAcceleration()) {
+			} else if (!deviceConfiguration.isGPUAcceleration()) {
 				LOGGER.trace("Version " + vlcVersion + " of VLC is too low to handle the way we disable hardware acceleration.");
 			}
 		}
@@ -505,7 +499,7 @@ public class VLCVideo extends Player {
 		} else {
 			// Not specified, use language from GUI
 			// FIXME: VLC does not understand "loc" or "und".
-			cmdList.add("--audio-language=" + configuration.getAudioLanguages());
+			cmdList.add("--audio-language=" + deviceConfiguration.getAudioLanguages());
 		}
 
 		// Handle subtitle language
@@ -517,7 +511,7 @@ public class VLCVideo extends Player {
 				if (params.sid.isExternalFileUtf16()) {
 					try {
 						// Convert UTF-16 -> UTF-8
-						File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
+						File convertedSubtitles = new File(deviceConfiguration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
 						FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
 						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
 					} catch (IOException e) {
@@ -607,7 +601,6 @@ public class VLCVideo extends Player {
 		}
 
 		pw.runInNewThread();
-		configuration = prev;
 		return pw;
 	}
 

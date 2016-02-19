@@ -26,6 +26,8 @@ import java.util.concurrent.Executors;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.LooksFrame.LooksFrameUpdater;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -131,7 +133,25 @@ public class HTTPServer implements Runnable {
 				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
 				LOGGER.trace("The error was: " + e);
-				PMS.get().getFrame().setStatusCode(0, Messages.getString("PMS.141"), "icon-status-warning.png");
+				if (!PMS.isHeadless()) {
+					LooksFrame.updateGUI(new LooksFrameUpdater() {
+
+						@Override
+						protected Class<?> getLoggerClass() {
+							return HTTPServer.class;
+						}
+
+						@Override
+						protected String getCallerName() {
+							return "bind";
+						}
+
+						@Override
+						protected void doRun() {
+							LooksFrame.get().setStatusCode(0, Messages.getString("PMS.141"), "icon-status-warning.png");
+						}
+					});
+				}
 			}
 
 			if (hostname == null && iafinal != null) {

@@ -78,7 +78,6 @@ public class FFmpegDVRMSRemux extends Player {
 		return Format.VIDEO;
 	}
 
-	@Deprecated
 	protected String[] getDefaultArgs() {
 		return new String[] {
 			"-c:v", "copy",
@@ -90,13 +89,6 @@ public class FFmpegDVRMSRemux extends Player {
 			"-f", "vob",
 			"-copyts"
 		};
-	}
-
-	@Override
-	@Deprecated
-	public String[] args() {
-		return getDefaultArgs();
-
 	}
 
 	@Override
@@ -125,10 +117,9 @@ public class FFmpegDVRMSRemux extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) {
-		PmsConfiguration prev = configuration;
-		// Use device-specific pms conf
-		configuration = (DeviceConfiguration)params.mediaRenderer;
-		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
+		// Use device-specific PmsConfiguration
+		final DeviceConfiguration deviceConfiguration = (DeviceConfiguration) params.mediaRenderer;
+		String ffmpegAlternativePath = deviceConfiguration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<>();
 		final String filename = dlna.getSystemName();
 
@@ -145,9 +136,9 @@ public class FFmpegDVRMSRemux extends Player {
 
 		cmdList.add("-i");
 		cmdList.add(filename);
-		cmdList.addAll(Arrays.asList(args()));
+		cmdList.addAll(Arrays.asList(getDefaultArgs()));
 
-		String customSettingsString = configuration.getMPEG2MainSettingsFFmpeg();
+		String customSettingsString = deviceConfiguration.getMPEG2MainSettingsFFmpeg();
 		if (StringUtils.isNotBlank(customSettingsString)) {
 			String[] customSettingsArray = StringUtils.split(customSettingsString);
 
@@ -171,7 +162,6 @@ public class FFmpegDVRMSRemux extends Player {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 
-		configuration = prev;
 		return pw;
 	}
 
