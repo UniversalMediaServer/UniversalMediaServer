@@ -1,4 +1,4 @@
-6.1.0 - 2016-02-??
+6.1.0 - 2016-02-20
 
 	General:
 		Added a back link to the web interface
