@@ -590,6 +590,14 @@ public class UMSUtils {
 	}
 
 	/**
+	 * @see #scaleImage(byte[], int, int, boolean)
+	 * @deprecated
+	 */
+	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank) {
+		return scaleImage(image, width, height, outputBlank, null);
+	}
+
+	/**
 	 * Creates a black background with the exact dimensions specified, then
 	 * centers the image on the background, preserving the aspect ratio.
 	 *
@@ -598,10 +606,11 @@ public class UMSUtils {
 	 * @param height
 	 * @param outputBlank whether to return null or a black image when the
 	 *                    image parameter is null
+	 * @param renderer
 	 *
 	 * @return the scaled image
 	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank) {
+	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
 		ByteArrayInputStream in = null;
 		if (image == null && !outputBlank) {
 			return null;
@@ -618,12 +627,20 @@ public class UMSUtils {
 			}
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-			Thumbnails.of(img)
-				.size(width, height)
-//				.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
-				.outputFormat("JPEG")
-				.outputQuality(1.0f)
-				.toOutputStream(out);
+			if (renderer != null && renderer.isThumbnailPadding()) {
+				Thumbnails.of(img)
+					.size(width, height)
+					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
+					.outputFormat("JPEG")
+					.outputQuality(1.0f)
+					.toOutputStream(out);
+			} else {
+				Thumbnails.of(img)
+					.size(width, height)
+					.outputFormat("JPEG")
+					.outputQuality(1.0f)
+					.toOutputStream(out);
+			}
 
 			return out.toByteArray();
 		} catch (IOException e) {
