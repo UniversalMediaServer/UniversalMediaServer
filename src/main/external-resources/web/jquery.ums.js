@@ -35,7 +35,7 @@ function changeMargins() {
 					});
 					$(cells[c]).css({
 						height : row_h + 'px',
-						width : 'auto',
+						width : cell_w + 'px',
 					});
 				}
 				images_w = 0;
