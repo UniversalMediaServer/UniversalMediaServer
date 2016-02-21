@@ -27,6 +27,8 @@ import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -34,6 +36,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +44,7 @@ import org.slf4j.LoggerFactory;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
-	private static final String UA = "OSTestUserAgent";
+	private static final String UA = "Universal Media Server v1";
 	private static final long TOKEN_AGE_TIME = 10 * 60 * 1000; // 10 mins
 	//private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
 
@@ -137,9 +140,20 @@ public class OpenSubtitle {
 			return;
 		}
 		URL url = new URL(OPENSUBS_URL);
-		String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n<param>\n<value><string/></value>\n</param>\n" +
+		CredMgr.Cred cred = PMS.getCred("opensubtitles");
+		String pwd = "";
+		String usr = "";
+		if(cred != null) {
+			// if we got credentials use them
+			if (!StringUtils.isEmpty(cred.password)) {
+				pwd = DigestUtils.md5Hex(cred.password);
+			}
+			usr = cred.username;
+		}
+		String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n"+
+			"<param>\n<value><string>"+usr+"</string></value>\n</param>\n" +
 			"<param>\n" +
-			"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n" +
+			"<value><string>"+pwd+"</string></value>\n</param>\n<param>\n<value><string/></value>\n" +
 			"</param>\n<param>\n<value><string>" + UA + "</string></value>\n</param>\n" +
 			"</params>\n" +
 			"</methodCall>\n";
