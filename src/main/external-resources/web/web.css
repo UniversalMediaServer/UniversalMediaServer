@@ -1,5 +1,9 @@
 /* General */
 
+* {
+	z-index: 1;
+}
+
 html {
 	height: 100%;
 }
@@ -153,7 +157,7 @@ ul#Media li {
 }
 
 .PadNone {
-	background-color: none;
+	background-color: transparent;
 }
 
 ul#Media .thumb {
@@ -222,10 +226,10 @@ ul#Media li:hover .caption {
 }
 
 #ViewGrid,
-#ViewDynamic {
-	width: 31px;
-	height: 22px;
-	margin-top: 6px;
+#ViewDynamic,
+#ViewPadColor {
+	width: 29px;
+	height: 20px;
 }
 
 #ViewGrid {
@@ -234,6 +238,11 @@ ul#Media li:hover .caption {
 
 #ViewDynamic {
 	background-image: url('/files/view-dynamic.png');
+	margin-left: 5px;
+}
+
+#ViewPadColor {
+	background-image: url('/files/view-padcolor.png');
 }
 
 ul#Media .caption:hover {
@@ -275,7 +284,7 @@ ul#Media .caption:hover {
 #OptionsMenu {
 	float: right;
 	margin: 10px 10px 0 0;
-	z-index: 99999;
+	z-index: 2;
 }
 
 #OptionsMenu > form,
@@ -290,9 +299,9 @@ ul#Media .caption:hover {
 }
 
 #Docs {
-	background: url('/files/info24.png') no-repeat;
-	width: 24px;
-	height: 24px;
+	background: url('/files/view-info.png') no-repeat;
+	width: 20px;
+	height: 20px;
 }
 
 #Pad {
@@ -303,23 +312,33 @@ ul#Media .caption:hover {
 
 #SettingsMenu {
 	display: none;
-	z-index: 99999;
-	background-color: #000;
+	z-index: 2;
+	background: url('/files/menu-background-content.png');
 	overflow: visible;
-	padding: 5px 0;
+	padding: 7px 0 5px 0;
 	border: 1px;
 	border-style: solid;
-	border-color: #fff;
+	border-color: #777;
+	position: fixed;
+	right: 10px;
+}
+
+#SettingsMenu li {
+	padding: 0 8px;
+	display: inline-block;
+}
+
+#SettingsMenu li:nth-child(2) span {
+	background: url('/files/background.jpg');
+	display: inline-block;
 }
 
 #SettingsMenu li a {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
+	float: left;
 }
 
 form#SearchForm {
-	z-index: 3;
+	z-index: 2;
 	position: relative;
 }
 
@@ -384,7 +403,7 @@ form#SearchForm {
 
 #notices {
 	position: fixed;
-	z-index: 99999;
+	z-index: 2;
 	top: 100px;
 	right: 12px;
 }
@@ -467,7 +486,7 @@ form#SearchForm {
 	display: block;
 	position: fixed;
 	bottom: 0;
-	z-index: 2147483647;
+	z-index: 2;
 	width: 50%;
 	margin: 0;
 	left: 45%;

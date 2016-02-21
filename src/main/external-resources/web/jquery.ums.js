@@ -188,7 +188,7 @@ function setPadColor(cycle) {
 		pad = pad === 'PadBlack' ? 'PadGrey' : pad === 'PadGrey' ? 'PadNone' : 'PadBlack';
 	}
 	//console.log('pad='+pad);
-	$('#Media li').removeClass('PadBlack PadGrey PadNone').addClass(pad);
+	$('#Media li, #ViewPadColor').removeClass('PadBlack PadGrey PadNone').addClass(pad);
 	Cookies.set('pad', pad, { expires: 365, path: '/' });
 }
 
