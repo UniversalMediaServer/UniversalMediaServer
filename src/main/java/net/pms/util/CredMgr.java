@@ -46,6 +46,10 @@ public class CredMgr {
 	};
 
 	private void readFile() throws IOException{
+		// clear all data first, if file is gone so are all creds
+		credentials.clear();
+		tags.clear();
+
 		if(!credFile.exists())
 			return;
 
