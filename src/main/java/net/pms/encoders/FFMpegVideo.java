@@ -178,13 +178,14 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (!isDisableSubtitles(params) && override) {
-			boolean isSubsASS = params.sid.getType() == SubtitleType.ASS;
 			boolean isSubsManualTiming = true;
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid != null && params.sid.getType().isText()) {
+				boolean isSubsASS = params.sid.getType() == SubtitleType.ASS;
 				String originalSubsFilename = null;
 				String subsFilename;
-				// assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
+
+				// Assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
 				if (is3D && !isSubsASS) {
 					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else if (params.sid.isExternal()) {
