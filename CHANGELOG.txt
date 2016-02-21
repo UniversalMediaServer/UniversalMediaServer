@@ -23,6 +23,8 @@
 		Improved Panasonic VT60 support
 		Improved Panasonic CX700 support
 		Improved Samsung PL51E490 support
+	Languages:
+		Synchronized translations with crowdin
 	External Components:
 		Updated FFmpeg
 		Updated MediaInfo to 0.7.82
