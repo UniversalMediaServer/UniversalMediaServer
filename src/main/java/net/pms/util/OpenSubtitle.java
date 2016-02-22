@@ -36,6 +36,7 @@ import java.util.zip.GZIPInputStream;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,12 +146,23 @@ public class OpenSubtitle {
 				return true;
 			}
 			URL url = new URL(OPENSUBS_URL);
-			String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n<param>\n<value><string/></value>\n</param>\n" +
-				"<param>\n" +
-				"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n" +
-				"</param>\n<param>\n<value><string>" + UA + "</string></value>\n</param>\n" +
-				"</params>\n" +
-				"</methodCall>\n";
+			CredMgr.Cred cred = PMS.getCred("opensubtitles");
+			String pwd = "";
+			String usr = "";
+			if(cred != null) {
+				// if we got credentials use them
+				if (!StringUtils.isEmpty(cred.password)) {
+					pwd = DigestUtils.md5Hex(cred.password);
+				}
+				usr = cred.username;
+			}
+			String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n"+
+					"<param>\n<value><string>"+usr+"</string></value>\n</param>\n" +
+					"<param>\n" +
+					"<value><string>"+pwd+"</string></value>\n</param>\n<param>\n<value><string/></value>\n" +
+					"</param>\n<param>\n<value><string>" + UA + "</string></value>\n</param>\n" +
+					"</params>\n" +
+					"</methodCall>\n";
 			Pattern re = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);
 			Matcher m = re.matcher(postPage(url.openConnection(), req));
 			if (m.find()) {
