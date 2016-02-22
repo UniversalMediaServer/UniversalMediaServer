@@ -29,7 +29,7 @@ var img = bump.setImages({
 
 // Layout: rearrange/retag/extend the html below but preserve existing classes+ids.
 
-$('body').append([
+$('#Media').prepend([
 	'<div class="bumpcontainer"><table class="bumppanel"><tr>',
 	'<td id="bumpsettings">',
 		'<select id="bplaylist"/>',
@@ -61,10 +61,8 @@ bump.addButton('clear', '#bplaylistctrl', 'Clear playlist');
 // css: go crazy. Modify/add/remove blocks as appropriate using jquery selector syntax 
 
 $('.bumpcontainer').css({
-	position:'fixed',    /* Do not scroll out of view on this or other websites */
 	zIndex:'2147483647', /* MAX_INT, i.e. hopefully topmost when invoked as bookmarklet on other websites */
-	right:'22px',
-	top:'55px',
+	marginBottom:'20px',
 });
 
 $('* .bumppanel').css({
