@@ -590,6 +590,9 @@ public class PMS {
 		codes = new CodeDb();
 		masterCode = null;
 
+		// init Credentials
+		credMgr = new CredMgr(configuration.getCredFile());
+
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
 		UPNPHelper.getInstance().init();
@@ -1858,5 +1861,23 @@ public class PMS {
 	 */
 	public static int getTraceMode() {
 		return traceMode;
+	}
+
+	private CredMgr credMgr;
+
+	public static CredMgr.Cred getCred(String owner) {
+		return instance.credMgr.getCred(owner);
+	}
+
+	public static CredMgr.Cred getCred(String owner, String tag) {
+		return instance.credMgr.getCred(owner, tag);
+	}
+
+	public static String getCredTag(String owner, String username) {
+		return instance.credMgr.getTag(owner, username);
+	}
+
+	public static boolean verifyCred(String owner,String tag, String user, String pwd) {
+		return instance.credMgr.verify(owner, tag, user, pwd);
 	}
 }

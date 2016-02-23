@@ -31,6 +31,7 @@ public class LibMediaInfoParser {
 		MI = new MediaInfo();
 
 		if (MI.isValid()) {
+			MI.Option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
 			MI.Option("File_TestContinuousFileNames", "0");

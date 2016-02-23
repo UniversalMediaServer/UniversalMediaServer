@@ -1,7 +1,33 @@
-6.0.1 - 2016-02-??
+6.1.1 - 2016-??-??
 
 	General:
 		
+
+6.1.0 - 2016-02-20
+
+	General:
+		Added a back link to the web interface
+		Improved logging
+		Squashed lots of bugs
+		Stopped systems from using installed versions of JNA
+		Thumbnails are unpadded by default
+		Improved speed of parsing subtitles
+		Improved filename prettifying speed and stability
+		Filename prettifying uses more information from Open Subtitles
+		Fixed FFmpeg not using custom fonts (thanks, Tiago!)
+		Fixed seeking with FFmpeg when embedded picture-based subtitles
+		Use FFmpeg by default to transcode embedded picture-based subtitles
+		Stop MediaInfo from using the network
+	Renderers:
+		Added ThumbnailPadding option
+		Improved Panasonic VT60 support
+		Improved Panasonic CX700 support
+		Improved Samsung PL51E490 support
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated FFmpeg
+		Updated MediaInfo to 0.7.82
 
 6.0.0 - 2016-01-30 - Changes since 5.5.0
 
