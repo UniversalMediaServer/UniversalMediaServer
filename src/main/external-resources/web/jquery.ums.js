@@ -194,8 +194,14 @@ function setPadColor(cycle) {
 
 function initSettings() {
 	$(".HoverMenu").hover(
-		function () { $('#SettingsMenu').slideDown('fast'); }, 
-		function () { $('#SettingsMenu').slideUp('fast'); }
+		function () {
+			$('#SettingsMenu').slideDown('fast');
+			$(".bumpcontainer").animate({ top: '92px' }, 'fast');
+		}, 
+		function () {
+			$('#SettingsMenu').slideUp('fast');
+			$(".bumpcontainer").animate({ top: '55px' }, 'fast');
+		}
 	);
 }
 
