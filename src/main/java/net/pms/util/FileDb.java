@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class FileDb {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileDb.class);
+	private static final String NULLOBJ_STR = "@@@NULLOBJ@@@";
 	private Map<String, Object> db;
 	private int minCnt;
 	private String separator;
@@ -29,6 +30,8 @@ public class FileDb {
 	private DbHandler handler;
 	private boolean autoSync;
 	private boolean overwrite;
+	private boolean useNullObj;
+	private Object nullObj;
 
 	public FileDb(DbHandler h) {
 		this(PMS.getConfiguration().getDataFile(h.name()), h);
@@ -45,7 +48,9 @@ public class FileDb {
 		encodedSeparator = "&comma;";
 		autoSync = true;
 		overwrite = false;
+		useNullObj = false;
 		db = new HashMap<>();
+		nullObj = new Object();
 	}
 
 	public void setSep(String separator, String encodedSeparator) {
@@ -68,8 +73,19 @@ public class FileDb {
 		overwrite = b;
 	}
 
+	public void setUseNullObj(boolean b) { useNullObj = b; }
+
+	public Object nullObj() { return nullObj; }
+
+	public boolean isNull(Object obj) { return ((obj == null) || (obj == nullObj)); }
+
 	public Set<String> keys() {
 		return db.keySet();
+	}
+
+	private String recode(String str) {
+		return Pattern.compile(encodedSeparator, Pattern.LITERAL | Pattern.CASE_INSENSITIVE).
+				matcher(str).replaceAll(Matcher.quoteReplacement(separator));
 	}
 
 	public void init() {
@@ -83,6 +99,16 @@ public class FileDb {
 				if (StringUtils.isEmpty(line) || line.startsWith("#")) {
 					continue;
 				}
+				if(useNullObj) {
+					String re = ".*" + separator + NULLOBJ_STR + "$";
+					if(line.matches(re)) {
+						// we got a line which is key, NULL
+						// translate to nullobj
+						String[] key = Pattern.compile(separator, Pattern.LITERAL).split(line);
+						db.put(recode(key[0]), nullObj);
+						continue;
+					}
+				}
 				String[] entry = Pattern.compile(separator, Pattern.LITERAL).split(line);
 				if (entry.length < minCnt) {
 					continue;
@@ -90,7 +116,7 @@ public class FileDb {
 				// Substitute the encoded separator with the separator
 				for (int i = 0; i < entry.length; i++) {
 					if (entry[i] != null) {
-						entry[i] = Pattern.compile(encodedSeparator, Pattern.LITERAL | Pattern.CASE_INSENSITIVE).matcher(entry[i]).replaceAll(Matcher.quoteReplacement(separator));
+						entry[i] = recode(entry[i]);
 					}
 				}
 				db.put(entry[0], handler.create(entry));
@@ -142,10 +168,16 @@ public class FileDb {
 			out.write(data.toString().getBytes(StandardCharsets.UTF_8));
 			for (Entry<String, Object> entry : db.entrySet()) {
 				Object obj = entry.getValue();
-				if (obj == null) {
+				if (isNull(obj)) {
 					data = new StringBuilder(entry.getKey());
-					for (int i = 1; i < minCnt; i++) {
+					if(useNullObj) {
 						data.append(separator);
+						data.append(NULLOBJ_STR);
+					}
+					else {
+						for (int i = 1; i < minCnt; i++) {
+							data.append(separator);
+						}
 					}
 					data.append("\n");
 				} else {

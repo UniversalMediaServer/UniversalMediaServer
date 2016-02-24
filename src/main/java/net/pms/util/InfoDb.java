@@ -1,5 +1,7 @@
 package net.pms.util;
 
+import net.pms.PMS;
+
 import java.io.File;
 
 public class InfoDb implements DbHandler {
@@ -12,16 +14,22 @@ public class InfoDb implements DbHandler {
 		public String title;
 	}
 
+	private static final long REDO_PERIOD = 7 * 24 * 60 * 60 * 1000; // one week
+	private static final String LAST_INFO_REREAD_KEY = "lastInfoReread";
+
 	private FileDb db;
 
 	public InfoDb() {
 		db = new FileDb(this);
 		db.setMinCnt(6);
+		db.setUseNullObj(true);
 		db.init();
 	}
 
 	public void backgroundAdd(final File f, final String formattedName) {
-		if (get(f) != null) {
+		if (db.get(f.getAbsolutePath()) != null) {
+			// we need to use the raw get to see so it's
+			// truly null
 			return;
 		}
 		Runnable r = new Runnable() {
@@ -32,7 +40,7 @@ public class InfoDb implements DbHandler {
 					if (tmp != null) {
 						db.add(f.getAbsolutePath(), create(tmp, 0));
 					} else {
-						db.add(f.getAbsolutePath(), null);
+						db.add(f.getAbsolutePath(), db.nullObj());
 					}
 				} catch (Exception e) {
 				}
@@ -55,7 +63,8 @@ public class InfoDb implements DbHandler {
 	}
 
 	public InfoDbData get(String f) {
-		return (InfoDbData) db.get(f);
+		Object obj = db.get(f);
+		return (InfoDbData) (db.isNull(obj) ? null : obj);
 	}
 
 	@Override
@@ -100,5 +109,16 @@ public class InfoDb implements DbHandler {
 	@Override
 	public String name() {
 		return "InfoDb.db";
+	}
+
+	private boolean redo() {
+
+		long now = System.currentTimeMillis();
+		long last = now;
+		try {
+			last = Long.parseLong(PMS.getKey(LAST_INFO_REREAD_KEY));
+		} catch (NumberFormatException e) {
+		}
+		return (now - last) > REDO_PERIOD;
 	}
 }

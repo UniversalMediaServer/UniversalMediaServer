@@ -586,9 +586,11 @@ public class PMS {
 			web = new RemoteWeb(configuration.getWebPort());
 		}
 
+		// init dbs
 		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
+		keysDb = new UmsKeysDb();
 
 		// init Credentials
 		credMgr = new CredMgr(configuration.getCredFile());
@@ -1879,5 +1881,15 @@ public class PMS {
 
 	public static boolean verifyCred(String owner,String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
+	}
+
+	private UmsKeysDb keysDb;
+
+	public static String getKey(String key) {
+		 return instance.keysDb.get(key);
+	}
+
+	public static void setKey(String key, String val) {
+		instance.keysDb.set(key, val);
 	}
 }
