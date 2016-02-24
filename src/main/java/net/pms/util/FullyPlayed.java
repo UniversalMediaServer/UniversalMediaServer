@@ -22,6 +22,7 @@ package net.pms.util;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,20 +50,13 @@ public class FullyPlayed {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FullyPlayed.class);
 	private static PmsConfiguration configuration = PMS.getConfiguration();
-	private static int thumbnailFontSizeVideo;
-	private static int thumbnailTextHorizontalPositionVideo;
-	private static int thumbnailTextVerticalPositionVideo;
-	private static int thumbnailFontSizeAudio;
-	private static int thumbnailTextHorizontalPositionAudio;
-	private static int thumbnailTextVerticalPositionAudio;
-	private static int thumbnailFontSizeImage;
-	private static int thumbnailTextHorizontalPositionImage;
-	private static int thumbnailTextVerticalPositionImage;
-	private static final String THUMBNAIL_TEXT_VIDEO = Messages.getString("DLNAResource.4");
-	private static final String THUMBNAIL_TEXT_AUDIO = Messages.getString("DLNAResource.5");
-	private static final String THUMBNAIL_TEXT_IMAGE = Messages.getString("DLNAResource.6");
+	private static int thumbnailOverlayHorizontalPositionVideo;
+	private static int thumbnailOverlayVerticalPositionVideo;
+	private static int thumbnailOverlayHorizontalPositionAudio;
+	private static int thumbnailOverlayVerticalPositionAudio;
+	private static int thumbnailOverlayHorizontalPositionImage;
+	private static int thumbnailOverlayVerticalPositionImage;
 	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.6f);
-	private static final Color THUMBNAIL_OVERLAY_TEXT_COLOR = new Color(0.9f, 0.9f, 0.9f, 1.0f);
 
 	/**
 	 * This lock is responsible for all audio class variables.
@@ -113,7 +108,7 @@ public class FullyPlayed {
 			MediaMonitor.isFullyPlayed(resource.getSystemName());
 	}
 
-	private static void initializeThumbnails(BufferedImage image, MediaType mediaType, String fontName, int fontStyle) {
+	private static void initializeThumbnails(BufferedImage image, MediaType mediaType) {
 		switch (mediaType.toInt()) {
 			case MediaType.AUDIO_INT:
 				audioThumbnailsLock.readLock().lock();
@@ -150,51 +145,16 @@ public class FullyPlayed {
 		}
 
 		// Calculate thumbnail text size and position
-		Graphics2D graphics = image.createGraphics();
-		int thumbnailFontSize = image.getWidth() / 6;
-		FontMetrics metrics = graphics.getFontMetrics(new Font(fontName, fontStyle, thumbnailFontSize));
-		final String thumbnailText;
-		switch (mediaType.toInt()) {
-			case MediaType.AUDIO_INT:
-				thumbnailText = THUMBNAIL_TEXT_AUDIO;
-				break;
-			case MediaType.IMAGE_INT:
-				thumbnailText = THUMBNAIL_TEXT_IMAGE;
-				break;
-			case MediaType.VIDEO_INT:
-				thumbnailText = THUMBNAIL_TEXT_VIDEO;
-				break;
-			default:
-				throw new IllegalStateException("Should not get here");
-		}
-		Rectangle2D textSize = metrics.getStringBounds(thumbnailText, graphics);
-		int textWidth = (int) textSize.getWidth();
-		int thumbnailTextHorizontalPosition = (image.getWidth() - textWidth) / 2;
-		int maxTextWidth = (int) Math.round(image.getWidth() * 0.9);
-
-		// Use a smaller font size if there isn't enough room
-		if (textWidth > maxTextWidth) {
-			for (int divider = 7; divider < 99; divider++) {
-				thumbnailFontSize = image.getWidth() / divider;
-				metrics = graphics.getFontMetrics(new Font(fontName, fontStyle, thumbnailFontSize));
-				textSize = metrics.getStringBounds(thumbnailText, graphics);
-				textWidth = (int) textSize.getWidth();
-				if (textWidth <= maxTextWidth) {
-					thumbnailTextHorizontalPosition = (image.getWidth() - textWidth) / 2;
-					break;
-				}
-			}
-		}
-		int thumbnailTextVerticalPosition = (int) (image.getHeight() - textSize.getHeight()) / 2 + metrics.getAscent();
+		int thumbnailOverlayHorizontalPosition = (image.getWidth() - 48) / 2;
+		int thumbnailOverlayVerticalPosition = (int) (image.getHeight() - 48) / 2;
 
 		// Store the results
 		switch (mediaType.toInt()) {
 			case MediaType.AUDIO_INT:
 				audioThumbnailsLock.writeLock().lock();
 				try{
-					thumbnailFontSizeAudio = thumbnailFontSize;
-					thumbnailTextHorizontalPositionAudio = thumbnailTextHorizontalPosition;
-					thumbnailTextVerticalPositionAudio = thumbnailTextVerticalPosition;
+					thumbnailOverlayHorizontalPositionAudio = thumbnailOverlayHorizontalPosition;
+					thumbnailOverlayVerticalPositionAudio = thumbnailOverlayVerticalPosition;
 					audioThumbnailsInitialized = true;
 				} finally {
 					audioThumbnailsLock.writeLock().unlock();
@@ -203,9 +163,8 @@ public class FullyPlayed {
 			case MediaType.IMAGE_INT:
 				imageThumbnailsLock.writeLock().lock();
 				try{
-					thumbnailFontSizeImage = thumbnailFontSize;
-					thumbnailTextHorizontalPositionImage = thumbnailTextHorizontalPosition;
-					thumbnailTextVerticalPositionImage = thumbnailTextVerticalPosition;
+					thumbnailOverlayHorizontalPositionImage = thumbnailOverlayHorizontalPosition;
+					thumbnailOverlayVerticalPositionImage = thumbnailOverlayVerticalPosition;
 					imageThumbnailsInitialized = true;
 				} finally {
 					imageThumbnailsLock.writeLock().unlock();
@@ -214,9 +173,8 @@ public class FullyPlayed {
 			case MediaType.VIDEO_INT:
 				videoThumbnailsLock.writeLock().lock();
 				try{
-					thumbnailFontSizeVideo = thumbnailFontSize;
-					thumbnailTextHorizontalPositionVideo = thumbnailTextHorizontalPosition;
-					thumbnailTextVerticalPositionVideo = thumbnailTextVerticalPosition;
+					thumbnailOverlayHorizontalPositionVideo = thumbnailOverlayHorizontalPosition;
+					thumbnailOverlayVerticalPositionVideo = thumbnailOverlayVerticalPosition;
 					videoThumbnailsInitialized = true;
 				} finally {
 					videoThumbnailsLock.writeLock().unlock();
@@ -251,70 +209,62 @@ public class FullyPlayed {
 			image = null;
 		}
 		if (image != null) {
-			/*
-			 * TODO: Include and use a custom font
-			 */
-			String fontName = "Arial";
-			int fontStyle = Font.PLAIN;
+			initializeThumbnails(image, mediaType);
 
-			initializeThumbnails(image, mediaType, fontName, fontStyle);
-
-			final int thumbnailFontSize;
-			final int thumbnailTextHorizontalPosition;
-			final int thumbnailTextVerticalPosition;
-			final String thumbnailText;
+			final int thumbnailOverlayHorizontalPosition;
+			final int thumbnailOverlayVerticalPosition;
 			switch (mediaType.toInt()) {
 				case MediaType.AUDIO_INT:
 					audioThumbnailsLock.readLock().lock();
 					try {
-						thumbnailFontSize = thumbnailFontSizeAudio;
-						thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionAudio;
-						thumbnailTextVerticalPosition = thumbnailTextVerticalPositionAudio;
+						thumbnailOverlayHorizontalPosition = thumbnailOverlayHorizontalPositionAudio;
+						thumbnailOverlayVerticalPosition = thumbnailOverlayVerticalPositionAudio;
 					} finally {
 						audioThumbnailsLock.readLock().unlock();
 					}
-					thumbnailText = THUMBNAIL_TEXT_AUDIO;
 					break;
 				case MediaType.IMAGE_INT:
 					imageThumbnailsLock.readLock().lock();
 					try {
-						thumbnailFontSize = thumbnailFontSizeImage;
-						thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionImage;
-						thumbnailTextVerticalPosition = thumbnailTextVerticalPositionImage;
+						thumbnailOverlayHorizontalPosition = thumbnailOverlayHorizontalPositionImage;
+						thumbnailOverlayVerticalPosition = thumbnailOverlayVerticalPositionImage;
 					} finally {
 						imageThumbnailsLock.readLock().unlock();
 					}
-					thumbnailText = THUMBNAIL_TEXT_IMAGE;
 					break;
 				case MediaType.VIDEO_INT:
 					videoThumbnailsLock.readLock().lock();
 					try {
-						thumbnailFontSize = thumbnailFontSizeVideo;
-						thumbnailTextHorizontalPosition = thumbnailTextHorizontalPositionVideo;
-						thumbnailTextVerticalPosition = thumbnailTextVerticalPositionVideo;
+						thumbnailOverlayHorizontalPosition = thumbnailOverlayHorizontalPositionVideo;
+						thumbnailOverlayVerticalPosition = thumbnailOverlayVerticalPositionVideo;
 					} finally {
 						videoThumbnailsLock.readLock().unlock();
 					}
-					thumbnailText = THUMBNAIL_TEXT_VIDEO;
 					break;
 				default:
 					throw new IllegalStateException("Should not get here");
 			}
 
-			Graphics2D g = image.createGraphics();
-			g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
-			g.fillRect(0, 0, image.getWidth(), image.getHeight());
-			g.setColor(THUMBNAIL_OVERLAY_TEXT_COLOR);
-			g.setFont(new Font(fontName, fontStyle, thumbnailFontSize));
-			g.drawString(thumbnailText, thumbnailTextHorizontalPosition, thumbnailTextVerticalPosition);
-
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			BufferedImage overlay;
 			try {
-				ImageIO.write(image, "jpeg", out);
-				thumb = out.toByteArray();
-			} catch (IOException e) {
-				LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
-				LOGGER.trace("",e);
+				overlay = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
+
+				Graphics2D g = image.createGraphics();
+				g.drawImage(image, 0, 0, null);
+				g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
+				g.fillRect(0, 0, image.getWidth(), image.getHeight());
+				g.drawImage(overlay, thumbnailOverlayHorizontalPosition, thumbnailOverlayVerticalPosition, null);
+
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				try {
+					ImageIO.write(image, "jpeg", out);
+					thumb = out.toByteArray();
+				} catch (IOException e) {
+					LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
+					LOGGER.trace("",e);
+				}
+			} catch (IOException ex) {
+				java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
 		return thumb;
