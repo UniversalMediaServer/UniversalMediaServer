@@ -266,8 +266,7 @@ public class OpenSubtitle {
 		return findSubs(null, 0, null, query, r);
 	}
 
-	public static Map<String, Object> findSubs(String hash, long size, String imdb,
-											   String query, RendererConfiguration r) throws IOException {
+	public static Map<String, Object> findSubs(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
 		TreeMap<String, Object> res = new TreeMap<>();
 		if (!login()) {
 			return res;
