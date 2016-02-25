@@ -144,9 +144,9 @@ public class FullyPlayed {
 				throw new IllegalArgumentException("mediaType cannot be of type unknown");
 		}
 
-		// Calculate thumbnail text size and position
-		int thumbnailOverlayHorizontalPosition = (image.getWidth() - 48) / 2;
-		int thumbnailOverlayVerticalPosition = (int) (image.getHeight() - 48) / 2;
+		// Calculate the overlay position
+		int thumbnailOverlayHorizontalPosition = (image.getWidth() - 100) / 2;
+		int thumbnailOverlayVerticalPosition = (int) (image.getHeight() - 56) / 2;
 
 		// Store the results
 		switch (mediaType.toInt()) {
@@ -247,7 +247,7 @@ public class FullyPlayed {
 
 			BufferedImage overlay;
 			try {
-				overlay = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
+				overlay = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-status-connected@2x.png"));
 
 				Graphics2D g = image.createGraphics();
 				g.drawImage(image, 0, 0, null);
