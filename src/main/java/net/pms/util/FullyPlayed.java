@@ -54,6 +54,8 @@ public class FullyPlayed {
 	private static int thumbnailOverlayVerticalPositionImage;
 	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.5f);
 
+	private static BufferedImage thumbnailOverlayImage;
+
 	/**
 	 * This lock is responsible for all audio class variables.
 	 */
@@ -245,15 +247,16 @@ public class FullyPlayed {
 					throw new IllegalStateException("Should not get here");
 			}
 
-			BufferedImage overlay;
 			try {
-				overlay = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
+				if (thumbnailOverlayImage == null) {
+					thumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
+				}
 
 				Graphics2D g = image.createGraphics();
 				g.drawImage(image, 0, 0, null);
 				g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
 				g.fillRect(0, 0, image.getWidth(), image.getHeight());
-				g.drawImage(overlay, thumbnailOverlayHorizontalPosition, thumbnailOverlayVerticalPosition, thumbnailOverlayResolution, thumbnailOverlayResolution, null);
+				g.drawImage(thumbnailOverlayImage, thumbnailOverlayHorizontalPosition, thumbnailOverlayVerticalPosition, thumbnailOverlayResolution, thumbnailOverlayResolution, null);
 
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				try {
@@ -261,7 +264,7 @@ public class FullyPlayed {
 					thumb = out.toByteArray();
 				} catch (IOException e) {
 					LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
-					LOGGER.trace("",e);
+					LOGGER.trace("", e);
 				}
 			} catch (IOException ex) {
 				java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(Level.SEVERE, null, ex);
