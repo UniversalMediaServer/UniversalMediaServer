@@ -823,13 +823,20 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SERVER_HOSTNAME, value);
 	}
 
+	public String getServerDisplayName() {
+		if (isAppendProfileName()) {
+			return String.format("%s [%s]", getString(KEY_SERVER_NAME, PMS.NAME), getProfileName());
+		} else {
+			return getString(KEY_SERVER_NAME, PMS.NAME);
+		}
+	}
 	/**
 	 * The name of the server.
 	 *
 	 * @return The name of the server.
 	 */
 	public String getServerName() {
-		return getString(KEY_SERVER_NAME, "Universal Media Server");
+		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
 
 	/**
