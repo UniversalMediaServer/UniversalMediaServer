@@ -587,10 +587,10 @@ public class PMS {
 		}
 
 		// init dbs
+		keysDb = new UmsKeysDb();
 		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
-		keysDb = new UmsKeysDb();
 
 		// init Credentials
 		credMgr = new CredMgr(configuration.getCredFile());

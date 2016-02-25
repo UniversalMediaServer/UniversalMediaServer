@@ -1,6 +1,7 @@
 package net.pms.util;
 
 import net.pms.PMS;
+import net.pms.network.RequestHandler;
 
 import java.io.File;
 
@@ -24,26 +25,35 @@ public class InfoDb implements DbHandler {
 		db.setMinCnt(6);
 		db.setUseNullObj(true);
 		db.init();
+		if(PMS.getKey(LAST_INFO_REREAD_KEY) == null)
+			PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
+		redoNulls();
+	}
+
+	private void askAndInsert(File f, String formattedName) {
+		try {
+			String[] tmp = OpenSubtitle.getInfo(f, formattedName);
+			if (tmp != null) {
+				db.add(f.getAbsolutePath(), create(tmp, 0));
+			} else {
+				db.add(f.getAbsolutePath(), db.nullObj());
+			}
+		} catch (Exception e) {
+		}
 	}
 
 	public void backgroundAdd(final File f, final String formattedName) {
 		if (db.get(f.getAbsolutePath()) != null) {
 			// we need to use the raw get to see so it's
 			// truly null
+			// also see if we should redo
+			redoNulls();
 			return;
 		}
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				try {
-					String[] tmp = OpenSubtitle.getInfo(f, formattedName);
-					if (tmp != null) {
-						db.add(f.getAbsolutePath(), create(tmp, 0));
-					} else {
-						db.add(f.getAbsolutePath(), db.nullObj());
-					}
-				} catch (Exception e) {
-				}
+				askAndInsert(f, formattedName);
 			}
 		};
 		new Thread(r).start();
@@ -112,7 +122,6 @@ public class InfoDb implements DbHandler {
 	}
 
 	private boolean redo() {
-
 		long now = System.currentTimeMillis();
 		long last = now;
 		try {
@@ -120,5 +129,27 @@ public class InfoDb implements DbHandler {
 		} catch (NumberFormatException e) {
 		}
 		return (now - last) > REDO_PERIOD;
+	}
+
+	private void redoNulls() {
+		if(!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
+			// no redo
+			return;
+		}
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				for(String key : db.keys()) {
+					if(!db.isNull(db.get(key))) // nonNull -> no need to ask again
+						continue;
+					File f = new File(key);
+					String name = f.getName();
+					askAndInsert(f, name);
+				}
+				PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
+			}
+		};
+		new Thread(r).start();
+
 	}
 }
