@@ -20,11 +20,7 @@
 package net.pms.util;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,16 +43,16 @@ import net.pms.dlna.MediaType;
 import net.pms.dlna.RealFile;
 
 public class FullyPlayed {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(FullyPlayed.class);
 	private static PmsConfiguration configuration = PMS.getConfiguration();
+	private static int thumbnailOverlayResolution = 108;
 	private static int thumbnailOverlayHorizontalPositionVideo;
 	private static int thumbnailOverlayVerticalPositionVideo;
 	private static int thumbnailOverlayHorizontalPositionAudio;
 	private static int thumbnailOverlayVerticalPositionAudio;
 	private static int thumbnailOverlayHorizontalPositionImage;
 	private static int thumbnailOverlayVerticalPositionImage;
-	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.6f);
+	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.5f);
 
 	/**
 	 * This lock is responsible for all audio class variables.
@@ -144,9 +140,13 @@ public class FullyPlayed {
 				throw new IllegalArgumentException("mediaType cannot be of type unknown");
 		}
 
-		// Calculate the overlay position
-		int thumbnailOverlayHorizontalPosition = (image.getWidth() - 100) / 2;
-		int thumbnailOverlayVerticalPosition = (int) (image.getHeight() - 56) / 2;
+		// Calculate the overlay resolution and position
+		double maximumOverlayResolution = (Math.min(image.getWidth(), image.getHeight())) * 0.6;
+		if (thumbnailOverlayResolution > maximumOverlayResolution) {
+			thumbnailOverlayResolution = (int) maximumOverlayResolution;
+		}
+		int thumbnailOverlayHorizontalPosition = (image.getWidth() - thumbnailOverlayResolution) / 2;
+		int thumbnailOverlayVerticalPosition = (int) (image.getHeight() - thumbnailOverlayResolution) / 2;
 
 		// Store the results
 		switch (mediaType.toInt()) {
@@ -247,13 +247,13 @@ public class FullyPlayed {
 
 			BufferedImage overlay;
 			try {
-				overlay = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-status-connected@2x.png"));
+				overlay = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
 
 				Graphics2D g = image.createGraphics();
 				g.drawImage(image, 0, 0, null);
 				g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
 				g.fillRect(0, 0, image.getWidth(), image.getHeight());
-				g.drawImage(overlay, thumbnailOverlayHorizontalPosition, thumbnailOverlayVerticalPosition, null);
+				g.drawImage(overlay, thumbnailOverlayHorizontalPosition, thumbnailOverlayVerticalPosition, thumbnailOverlayResolution, thumbnailOverlayResolution, null);
 
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				try {
