@@ -99,9 +99,9 @@ public class FileDb {
 				if (StringUtils.isEmpty(line) || line.startsWith("#")) {
 					continue;
 				}
-				if(useNullObj) {
+				if (useNullObj) {
 					String re = ".*" + separator + NULLOBJ_STR + "$";
-					if(line.matches(re)) {
+					if (line.matches(re)) {
 						// we got a line which is key, NULL
 						// translate to nullobj
 						String[] key = Pattern.compile(separator, Pattern.LITERAL).split(line);
@@ -169,12 +169,11 @@ public class FileDb {
 			for (Entry<String, Object> entry : db.entrySet()) {
 				Object obj = entry.getValue();
 				if (isNull(obj)) {
-					data = new StringBuilder(entry.getKey());
-					if(useNullObj) {
+					data = new StringBuilder(Pattern.compile(separator, Pattern.LITERAL).matcher(entry.getKey()).replaceAll(Matcher.quoteReplacement(encodedSeparator)));
+					if (useNullObj) {
 						data.append(separator);
 						data.append(NULLOBJ_STR);
-					}
-					else {
+					} else {
 						for (int i = 1; i < minCnt; i++) {
 							data.append(separator);
 						}
