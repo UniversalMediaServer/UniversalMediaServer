@@ -1,12 +1,6 @@
 package net.pms.util;
 
-
-import net.pms.PMS;
-
-import java.io.File;
-
 public class UmsKeysDb implements DbHandler {
-
 	private FileDb db;
 
 	public UmsKeysDb() {
@@ -19,7 +13,9 @@ public class UmsKeysDb implements DbHandler {
 		db.add(key, val);
 	}
 
-	public String get(String key) { return (String) db.get(key); }
+	public String get(String key) {
+		return (String) db.get(key);
+	}
 
 	@Override
 	public Object create(String[] args) {

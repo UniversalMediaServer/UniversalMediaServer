@@ -1,9 +1,7 @@
 package net.pms.util;
 
-import net.pms.PMS;
-import net.pms.network.RequestHandler;
-
 import java.io.File;
+import net.pms.PMS;
 
 public class InfoDb implements DbHandler {
 	public static class InfoDbData {
@@ -25,8 +23,9 @@ public class InfoDb implements DbHandler {
 		db.setMinCnt(6);
 		db.setUseNullObj(true);
 		db.init();
-		if(PMS.getKey(LAST_INFO_REREAD_KEY) == null)
+		if (PMS.getKey(LAST_INFO_REREAD_KEY) == null) {
 			PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
+		}
 		redoNulls();
 	}
 
@@ -132,15 +131,15 @@ public class InfoDb implements DbHandler {
 	}
 
 	private void redoNulls() {
-		if(!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
+		if (!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
 			// no redo
 			return;
 		}
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				for(String key : db.keys()) {
-					if(!db.isNull(db.get(key))) // nonNull -> no need to ask again
+				for (String key : db.keys()) {
+					if (!db.isNull(db.get(key))) // nonNull -> no need to ask again
 						continue;
 					File f = new File(key);
 					String name = f.getName();

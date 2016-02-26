@@ -3849,6 +3849,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SHOW_SPLASH_SCREEN, value);
 	}
 
-	public boolean isInfoDbRetry() { return getBoolean(KEY_INFO_DB_RETRY, false); }
-
+	public boolean isInfoDbRetry() {
+		return getBoolean(KEY_INFO_DB_RETRY, false);
+	}
 }
