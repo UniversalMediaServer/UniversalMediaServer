@@ -168,8 +168,10 @@ public class FileDb {
 			out.write(data.toString().getBytes(StandardCharsets.UTF_8));
 			for (Entry<String, Object> entry : db.entrySet()) {
 				Object obj = entry.getValue();
+				data = new StringBuilder(Pattern.compile(separator, Pattern.LITERAL).
+										 matcher(entry.getKey()).
+										 replaceAll(Matcher.quoteReplacement(encodedSeparator)));
 				if (isNull(obj)) {
-					data = new StringBuilder(Pattern.compile(separator, Pattern.LITERAL).matcher(entry.getKey()).replaceAll(Matcher.quoteReplacement(encodedSeparator)));
 					if (useNullObj) {
 						data.append(separator);
 						data.append(NULLOBJ_STR);
@@ -186,8 +188,6 @@ public class FileDb {
 					for (int i = 0; i < data1.length; i++) {
 						data1[i] = Pattern.compile(separator, Pattern.LITERAL).matcher(data1[i]).replaceAll(Matcher.quoteReplacement(encodedSeparator));
 					}
-
-					data = new StringBuilder(Pattern.compile(separator, Pattern.LITERAL).matcher(entry.getKey()).replaceAll(Matcher.quoteReplacement(encodedSeparator)));
 					data.append(separator).append(StringUtils.join(data1, separator)).append("\n");
 				}
 				out.write(data.toString().getBytes(StandardCharsets.UTF_8));
