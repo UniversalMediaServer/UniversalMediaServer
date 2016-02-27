@@ -1,12 +1,12 @@
 package net.pms.util;
 
 import net.pms.PMS;
-import net.pms.network.RequestHandler;
+
+import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.rmi.server.ExportException;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -31,8 +31,9 @@ public class InfoDb implements DbHandler {
 		db.setMinCnt(6);
 		db.setUseNullObj(true);
 		db.init();
-		if(PMS.getKey(LAST_INFO_REREAD_KEY) == null)
+		if (PMS.getKey(LAST_INFO_REREAD_KEY) == null) {
 			PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
+		}
 		redoNulls();
 	}
 
@@ -140,7 +141,7 @@ public class InfoDb implements DbHandler {
 	}
 
 	private void redoNulls() {
-		if(!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
+		if (!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
 			// no redo
 			return;
 		}
