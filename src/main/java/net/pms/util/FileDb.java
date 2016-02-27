@@ -7,11 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
@@ -83,6 +80,10 @@ public class FileDb {
 		return db.keySet();
 	}
 
+	public Iterator iterator() {
+		return db.entrySet().iterator();
+	}
+
 	private String recode(String str) {
 		return Pattern.compile(encodedSeparator, Pattern.LITERAL | Pattern.CASE_INSENSITIVE).
 				matcher(str).replaceAll(Matcher.quoteReplacement(separator));
@@ -127,6 +128,7 @@ public class FileDb {
 		}
 	}
 
+
 	public void addNoSync(String key, Object obj) {
 		if (!overwrite) {
 			if (get(key) != null) {
@@ -157,6 +159,7 @@ public class FileDb {
 	public Object get(String key) {
 		return db.get(key);
 	}
+
 
 	public void sync() {
 		try (FileOutputStream out = new FileOutputStream(file)) {

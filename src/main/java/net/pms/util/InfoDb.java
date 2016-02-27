@@ -2,8 +2,13 @@ package net.pms.util;
 
 import net.pms.PMS;
 import net.pms.network.RequestHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.rmi.server.ExportException;
+import java.util.Iterator;
+import java.util.Map;
 
 public class InfoDb implements DbHandler {
 	public static class InfoDbData {
@@ -15,6 +20,7 @@ public class InfoDb implements DbHandler {
 		public String title;
 	}
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(InfoDb.class);
 	private static final long REDO_PERIOD = 7 * 24 * 60 * 60 * 1000; // one week
 	private static final String LAST_INFO_REREAD_KEY = "lastInfoReread";
 
@@ -30,15 +36,17 @@ public class InfoDb implements DbHandler {
 		redoNulls();
 	}
 
+
 	private void askAndInsert(File f, String formattedName) {
 		try {
 			String[] tmp = OpenSubtitle.getInfo(f, formattedName);
+			Object obj = db.nullObj();
 			if (tmp != null) {
-				db.add(f.getAbsolutePath(), create(tmp, 0));
-			} else {
-				db.add(f.getAbsolutePath(), db.nullObj());
+				obj = create(tmp, 0);
 			}
+			db.add(f.getAbsolutePath(), obj);
 		} catch (Exception e) {
+			LOGGER.debug("info db ex "+e.toString());
 		}
 	}
 
@@ -139,13 +147,33 @@ public class InfoDb implements DbHandler {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				for(String key : db.keys()) {
-					if(!db.isNull(db.get(key))) // nonNull -> no need to ask again
+				// this whole iterator stuff is to avoid
+				// CMEs
+				Iterator it = db.iterator();
+				boolean sync = false;
+				while(it.hasNext()) {
+					Map.Entry kv = (Map.Entry) it.next();
+					String key = (String) kv.getKey();
+					if(!db.isNull(kv.getValue())) // nonNull -> no need to ask again
 						continue;
 					File f = new File(key);
 					String name = f.getName();
-					askAndInsert(f, name);
+					try {
+						String[] tmp = OpenSubtitle.getInfo(f, name);
+						// if we still get nothing from opensubs
+						// we don't fiddle with the db
+						if (tmp != null) {
+							kv.setValue(create(tmp, 0));
+							sync = true;
+						}
+					} catch (Exception e) {
+					}
 				}
+				if (sync) {
+					// we need a manual sync here
+					db.sync();
+				}
+				// always update this even if nothing was new
 				PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
 			}
 		};

@@ -586,14 +586,14 @@ public class PMS {
 			web = new RemoteWeb(configuration.getWebPort());
 		}
 
+		// init Credentials
+		credMgr = new CredMgr(configuration.getCredFile());
+
 		// init dbs
 		keysDb = new UmsKeysDb();
 		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
-
-		// init Credentials
-		credMgr = new CredMgr(configuration.getCredFile());
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
