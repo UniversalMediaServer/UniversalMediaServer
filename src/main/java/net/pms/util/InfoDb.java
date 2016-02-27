@@ -145,6 +145,8 @@ public class InfoDb implements DbHandler {
 			// no redo
 			return;
 		}
+		// update this first to make redo() return false for other
+		PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -174,8 +176,6 @@ public class InfoDb implements DbHandler {
 					// we need a manual sync here
 					db.sync();
 				}
-				// always update this even if nothing was new
-				PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
 			}
 		};
 		new Thread(r).start();
