@@ -141,6 +141,8 @@ public class InfoDb implements DbHandler {
 	}
 
 	private void redoNulls() {
+		if(!db.hasNulls()) // no nulls in db skip this
+			return;
 		if (!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
 			// no redo
 			return;

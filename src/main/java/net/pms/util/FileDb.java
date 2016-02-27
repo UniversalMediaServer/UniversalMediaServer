@@ -29,6 +29,7 @@ public class FileDb {
 	private boolean overwrite;
 	private boolean useNullObj;
 	private Object nullObj;
+	private boolean hasNulls;
 
 	public FileDb(DbHandler h) {
 		this(PMS.getConfiguration().getDataFile(h.name()), h);
@@ -48,6 +49,7 @@ public class FileDb {
 		useNullObj = false;
 		db = new HashMap<>();
 		nullObj = new Object();
+		hasNulls = false;
 	}
 
 	public void setSep(String separator, String encodedSeparator) {
@@ -76,6 +78,8 @@ public class FileDb {
 
 	public boolean isNull(Object obj) { return ((obj == null) || (obj == nullObj)); }
 
+	public boolean hasNulls() { return hasNulls; }
+
 	public Set<String> keys() {
 		return db.keySet();
 	}
@@ -93,6 +97,7 @@ public class FileDb {
 		if (!file.exists()) {
 			return;
 		}
+		hasNulls = false;
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 			String line;
 			while ((line = in.readLine()) != null) {
@@ -105,6 +110,7 @@ public class FileDb {
 					if (line.matches(re)) {
 						// we got a line which is key, NULL
 						// translate to nullobj
+						hasNulls = true;
 						String[] key = Pattern.compile(separator, Pattern.LITERAL).split(line);
 						db.put(recode(key[0]), nullObj);
 						continue;
@@ -136,6 +142,7 @@ public class FileDb {
 			}
 		}
 		db.put(key, obj);
+		hasNulls |= isNull(obj);
 	}
 
 	public void removeNoSync(String key) {
@@ -169,12 +176,14 @@ public class FileDb {
 			data.append("#########################\n#### Db file generated ").append(now.toString()).append("\n")
 				.append("#### Edit with care\n#########################\n");
 			out.write(data.toString().getBytes(StandardCharsets.UTF_8));
+			hasNulls = false;
 			for (Entry<String, Object> entry : db.entrySet()) {
 				Object obj = entry.getValue();
 				data = new StringBuilder(Pattern.compile(separator, Pattern.LITERAL).
 										 matcher(entry.getKey()).
 										 replaceAll(Matcher.quoteReplacement(encodedSeparator)));
 				if (isNull(obj)) {
+					hasNulls = true;
 					if (useNullObj) {
 						data.append(separator);
 						data.append(NULLOBJ_STR);
