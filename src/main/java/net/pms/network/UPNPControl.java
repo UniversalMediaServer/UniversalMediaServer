@@ -9,6 +9,7 @@ import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.util.StringUtil;
 import net.pms.util.BasicPlayer;
 import org.apache.commons.lang.StringUtils;
@@ -49,6 +50,8 @@ public class UPNPControl {
 		new UDADeviceType("Basic", 1)
 	};
 
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	
 	private static UpnpService upnpService;
 	private static UpnpHeaders UMSHeaders;
 	private static DocumentBuilder db;
@@ -279,7 +282,8 @@ public class UPNPControl {
 			UMSHeaders = new UpnpHeaders();
 			UMSHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
 
-			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration() {
+			int port = configuration.getServerPort() + 1;
+			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration(port) {
 				@Override
 				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
 					return UMSHeaders;

@@ -796,7 +796,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The port number.
 	 */
 	public int getServerPort() {
-		return getInt(KEY_SERVER_PORT, DEFAULT_SERVER_PORT);
+		int port = getInt (KEY_SERVER_PORT, DEFAULT_SERVER_PORT);
+		if (( port >= 1024) && (port < 65535))
+				return port;	/* Valid Port Range 1024 - 65534 */
+		else {
+			LOGGER.error("Invalid UMS port specified, defaulting to port 5001.");
+			return DEFAULT_SERVER_PORT;  /* Use UMS Default Port 5001 */
+		}
 	}
 
 	/**
@@ -804,7 +810,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value The TCP/IP port number.
 	 */
 	public void setServerPort(int value) {
-		configuration.setProperty(KEY_SERVER_PORT, value);
+		if (( value >= 1024) && (value < 65535))
+			configuration.setProperty(KEY_SERVER_PORT, value);	/* Valid Port Range 1024 - 65534 */
+		else
+			LOGGER.error("Invalid UMS port specified, ignoring change request.");
 	}
 
 	/**

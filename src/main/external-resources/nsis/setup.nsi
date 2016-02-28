@@ -31,12 +31,12 @@ SetCompressorDictSize 32
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomeLeave
 
-!define MUI_FINISHPAGE_SHOWREADME ""
-!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
-!define MUI_FINISHPAGE_SHOWREADME_TEXT "Create Desktop Shortcut"
-!define MUI_FINISHPAGE_SHOWREADME_FUNCTION CreateDesktopShortcut
+;!define MUI_FINISHPAGE_SHOWREADME "ReadMe Text"
+;!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
+;!define MUI_FINISHPAGE_SHOWREADME "${...}"
 
 !insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 Page Custom LockedListShow LockedListLeave
 Page Custom AdvancedSettings AdvancedSettingsAfterwards ; Custom page
@@ -48,28 +48,6 @@ Page Custom AdvancedSettings AdvancedSettingsAfterwards ; Custom page
 
 ShowUninstDetails show
 
-; Offer to install AviSynth 2.6 MT unless installer is in silent mode
-Section -Prerequisites
-
-	IfSilent jump_if_silent jump_if_not_silent
-
-	jump_if_not_silent:
-		SetRegView 32
-		ReadRegStr $0 HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\AviSynth DisplayVersion
-
-		${If} $0 != "2.6.0 MT"
-			SetOutPath $INSTDIR\win32\avisynth
-			MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
-			File "..\..\..\..\target\bin\win32\avisynth\avisynth.exe"
-			ExecWait "$INSTDIR\win32\avisynth\avisynth.exe"
-		${EndIf}
-
-	jump_if_silent:
-
-	endAviSynthInstall:
-
-SectionEnd
-
 Function WelcomeLeave
 	StrCpy $R1 0
 FunctionEnd
@@ -79,11 +57,15 @@ Function LockedListShow
 		Abort
 	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it.`
 
-	${If} ${RunningX64}
+	; This is required for 32-bit and 64-bit Windows when ONLY 32-bit Java is installed
+	File /oname=$PLUGINSDIR\LockedList.dll `${NSISDIR}\Plugins\LockedList.dll`
+	LockedList::AddModule "$INSTDIR\MediaInfo.dll"
+
+	; WARNING: Unless you verify that the 64-bit .dll runs on 32-bit Windows system,
+	; do NOT remove the next Conditional Check!
+	${If} ${RunningX64}	
 		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\LockedList64.dll`
 		LockedList::AddModule "$INSTDIR\MediaInfo64.dll"
-	${Else}
-		LockedList::AddModule "$INSTDIR\MediaInfo.dll"
 	${EndIf}
 
 	LockedList::Dialog /autonext /autoclosesilent
@@ -183,11 +165,10 @@ Function RunUMS
 	Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
 FunctionEnd 
 
-Function CreateDesktopShortcut
-	CreateShortCut "$DESKTOP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe"
-FunctionEnd
+Section "UMS Base" UMSBase
 
-Section "Program Files"
+    SectionIn RO
+
 	SetOutPath "$INSTDIR"
 	SetOverwrite on
 	
@@ -315,26 +296,104 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 SectionEnd
 
-Section "Start Menu Shortcuts"
-	SetShellVarContext all
-	CreateDirectory "$SMPROGRAMS\${PROJECT_NAME}"
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
+Section "Firewall Rules" FirewallRules
 
-	; Only start UMS with Windows when it is a new install
-	IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
-		goto end_of_startup_section
-	shortcut_file_not_found:
-		CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-	end_of_startup_section:
+    SectionIn RO
 
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+	${If} ${SectionIsSelected} ${FirewallRules}
+
+ 		nsExec::Exec 'netsh advfirewall firewall delete rule name="UMS TCP Ports"'
+		nsExec::Exec 'netsh advfirewall firewall delete rule name="UMS UDP Ports"'
+
+		nsExec::Exec 'netsh advfirewall firewall add rule name="UMS TCP Ports" \
+			protocol=tcp localport=5001,5002,9001 dir=in action=allow profile=private'
+		nsExec::Exec 'netsh advfirewall firewall add rule name="UMS UDP Ports" \
+			protocol=udp localport=1900 dir=in action=allow profile=private'
+
+	${EndIf}
+
+SectionEnd
+Section "AviSynth 2.6 MT" AviSynth
+
+  ${If} ${SectionIsSelected} ${AviSynth}
+
+	SetRegView 32
+	ReadRegStr $0 HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\AviSynth DisplayVersion
+
+	${If} $0 != "2.6.0 MT"
+		SetOutPath $INSTDIR\win32\avisynth
+		File "..\..\..\..\target\bin\win32\avisynth\avisynth.exe"
+		ExecWait "$INSTDIR\win32\avisynth\avisynth.exe"
+	${EndIf}
+	
+  ${EndIf}
+  
 SectionEnd
 
-Section "Uninstall"
-	SetShellVarContext all
+Section "Start Menu" StartMenu
 
+    RMDir /r "$SMPROGRAMS\${PROJECT_NAME}" ; Cleanup Prior UMS Shortcuts
+    
+	${If} ${SectionIsSelected} ${StartMenu}
+
+		SetShellVarContext all
+		CreateDirectory "$SMPROGRAMS\${PROJECT_NAME}"
+
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\UMS.lnk" \
+			"$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\UMS (Select Profile).lnk" \
+			"$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\UMS Uninstall.lnk" \
+			"$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
+	
+	${EndIf}
+	
+SectionEnd
+
+Section "Documentation" Documentation
+
+		${If} ${SectionIsSelected} ${Documentation}
+			CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\UMS Documentation.lnk" \
+				"$INSTDIR\Documentation\index.html" "" "$INSTDIR\Documentation\index.html" 0
+		${EndIf}
+			
+SectionEnd
+
+Section /o "Desktop Icon" DesktopIcon
+
+	${If} ${SectionIsSelected} ${DesktopIcon}
+	
+		CreateShortCut "$DESKTOP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe"
+	
+	${EndIf}
+	
+SectionEnd
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+
+	!insertmacro MUI_DESCRIPTION_TEXT ${UMSBase} \
+		"Required - UMS Base"
+	!insertmacro MUI_DESCRIPTION_TEXT ${AviSynth} \
+		"Recommended - Checks for AviSynth 2.6 MT and Installs"
+	!insertmacro MUI_DESCRIPTION_TEXT ${FirewallRules} \
+		"Required - Required to run UMS as a Windows Service"
+	!insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} \
+		"Recommended - Creates UMS Shortcuts in the Windows Start Menu"
+	!insertmacro MUI_DESCRIPTION_TEXT ${DesktopIcon} \
+		"Optional - Creates a UMS Start Shortcut on the Desktop"
+	!insertmacro MUI_DESCRIPTION_TEXT ${Documentation} \
+		"Optional - Adds Documentation Shortcut to the UMS Start Menu"
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+Section "Uninstall"
+
+	SetShellVarContext all
+	  
+    ; Remove Firewall Rules
+ 	nsExec::Exec 'netsh advfirewall firewall delete rule name="UMS TCP Ports"'
+	nsExec::Exec 'netsh advfirewall firewall delete rule name="UMS UDP Ports"'
+	
 	Delete /REBOOTOK "$INSTDIR\uninst.exe"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
@@ -552,15 +611,10 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\VirtualFolders.conf"
 	RMDir /REBOOTOK "$INSTDIR"
 
-	Delete /REBOOTOK "$DESKTOP\${PROJECT_NAME}.lnk"
-	RMDir /REBOOTOK "$SMPROGRAMS\${PROJECT_NAME}"
-	Delete /REBOOTOK "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk"
-	Delete /REBOOTOK "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk"
-	Delete /REBOOTOK "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk"
-
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 
 	nsSCM::Stop "${PROJECT_NAME}"
 	nsSCM::Remove "${PROJECT_NAME}"
+
 SectionEnd
