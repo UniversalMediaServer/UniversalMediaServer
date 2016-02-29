@@ -2325,7 +2325,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * List of the renderer supported embedded subtitles formats.
 	 * 
-	 * @return A comma-separated list of supported text-based embedded subtitles formats.
+	 * @return A comma-separated list of supported embedded subtitles formats.
 	 */
 	public String getSupportedEmbeddedSubtitles() {
 		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS, "");
