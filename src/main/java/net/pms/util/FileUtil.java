@@ -306,19 +306,23 @@ public class FileUtil {
 	 */
 	private static String removeGroupNameFromBeginning(String formattedName, String fileNameWithoutExtension) {
 		if (!"".equals(formattedName)) {
-			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf(']');
-				if (closingBracketIndex != -1) {
-					formattedName = formattedName.substring(closingBracketIndex + 1);
-				}
-
-				if (formattedName.substring(0, 1).matches("\\s")) {
-					formattedName = formattedName.substring(1);
+			if (formattedName.startsWith("[")) {
+				Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
+				Matcher matcher = pattern.matcher(formattedName);
+				if (matcher.find()) {
+					formattedName = matcher.group(1);
+				} else if (formattedName.endsWith("]")) {
+					pattern = Pattern.compile("^\\[([^\\[\\]]+)\\]\\s*$");
+					matcher = pattern.matcher(formattedName);
+					if (matcher.find()) {
+						formattedName = matcher.group(1);
+					}
 				}
 			}
 		} else {
 			formattedName = fileNameWithoutExtension;
 		}
+
 		return formattedName;
 	}
 
@@ -1284,19 +1288,7 @@ public class FileUtil {
 	public static String renameForSorting(String filename) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
 			// This makes anime sort properly
-			if (filename.startsWith("[")) {
-				Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
-				Matcher matcher = pattern.matcher(filename);
-				if (matcher.find()) {
-					filename = matcher.group(1);
-				} else if (filename.endsWith("]")) {
-					pattern = Pattern.compile("^\\[([^\\[\\]]+)\\]\\s*$");
-					matcher = pattern.matcher(filename);
-					if (matcher.find()) {
-						filename = matcher.group(1);
-					}
-				}
-			}
+			filename = removeGroupNameFromBeginning(filename, "");
 
 			// Replace periods and underscores with spaces
 			filename = filename.replaceAll("\\.|_", " ");
