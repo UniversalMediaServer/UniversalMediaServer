@@ -396,8 +396,7 @@ public class RemoteWeb {
 			}
 
 			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("serverName", configuration.getServerName());
-			vars.put("profileName", configuration.getProfileName());
+			vars.put("serverName", configuration.getServerDisplayName());
 
 			String response = parent.getResources().getTemplate("start.html").execute(vars);
 			RemoteUtil.respond(t, response, 200, "text/html");

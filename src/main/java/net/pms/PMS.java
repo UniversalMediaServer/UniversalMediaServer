@@ -24,6 +24,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
@@ -120,6 +122,8 @@ public class PMS {
 	private NameFilter filter;
 
 	private JmDNS jmDNS;
+
+	public static BufferedImage thumbnailOverlayImage;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -399,7 +403,6 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
-
 		// Show the language selection dialog before displayBanner();
 		if (configuration.getLanguageRawString() == null || !Languages.isValid(configuration.getLanguageRawString())) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
@@ -466,24 +469,30 @@ public class PMS {
 					options,
 					options[1]
 				);
-				if (networkType == JOptionPane.YES_OPTION) {
-					// Wired (Gigabit)
-					configuration.setMaximumBitrate("0");
-					configuration.setMPEG2MainSettings("Automatic (Wired)");
-					configuration.setx264ConstantRateFactor("Automatic (Wired)");
-					save();
-				} else if (networkType == JOptionPane.NO_OPTION) {
-					// Wired (100 Megabit)
-					configuration.setMaximumBitrate("90");
-					configuration.setMPEG2MainSettings("Automatic (Wired)");
-					configuration.setx264ConstantRateFactor("Automatic (Wired)");
-					save();
-				} else if (networkType == JOptionPane.CANCEL_OPTION) {
-					// Wireless
-					configuration.setMaximumBitrate("30");
-					configuration.setMPEG2MainSettings("Automatic (Wireless)");
-					configuration.setx264ConstantRateFactor("Automatic (Wireless)");
-					save();
+				switch (networkType) {
+					case JOptionPane.YES_OPTION:
+						// Wired (Gigabit)
+						configuration.setMaximumBitrate("0");
+						configuration.setMPEG2MainSettings("Automatic (Wired)");
+						configuration.setx264ConstantRateFactor("Automatic (Wired)");
+						save();
+						break;
+					case JOptionPane.NO_OPTION:
+						// Wired (100 Megabit)
+						configuration.setMaximumBitrate("90");
+						configuration.setMPEG2MainSettings("Automatic (Wired)");
+						configuration.setx264ConstantRateFactor("Automatic (Wired)");
+						save();
+						break;
+					case JOptionPane.CANCEL_OPTION:
+						// Wireless
+						configuration.setMaximumBitrate("30");
+						configuration.setMPEG2MainSettings("Automatic (Wireless)");
+						configuration.setx264ConstantRateFactor("Automatic (Wireless)");
+						save();
+						break;
+					default:
+						break;
 				}
 
 				// Ask if they want to hide advanced options
@@ -793,9 +802,10 @@ public class PMS {
 					LOGGER.debug("Caught exception", e);
 				}
 				LOGGER.info("Stopping " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-				/* Stopping logging gracefully (flushing logs)
-				* No logging is available after this point
-				*/
+				/**
+				 * Stopping logging gracefully (flushing logs)
+				 * No logging is available after this point
+				 */
 				ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
 				if (iLoggerContext instanceof LoggerContext) {
 					((LoggerContext) iLoggerContext).stop();
@@ -811,6 +821,13 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
+
+		// Load the fully played overlay image, in case it's needed later
+		try {
+			thumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
+		} catch (IOException ex) {
+			java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+		}
 
 		return true;
 	}
@@ -1649,16 +1666,19 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
-	 * class constructor. <code>null</code> values are treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the
+	 * {@link Locale} class constructor. <code>null</code> values are
+	 * treated as empty strings.
 	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
-     * up to 8 characters in length.  See the <code>Locale</code> class description about
-     * valid language values.
-     * @param country An ISO 3166 alpha-2 country code or a UN M.49 numeric-3 area code.
-     * See the <code>Locale</code> class description about valid country values.
-     * @param variant Any arbitrary value used to indicate a variation of a <code>Locale</code>.
-     * See the <code>Locale</code> class description for the details.
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
+	 * language subtag up to 8 characters in length. See the
+	 * <code>Locale</code> class description about valid language values.
+	 * @param country An ISO 3166 alpha-2 country code or a UN M.49
+	 * numeric-3 area code. See the <code>Locale</code> class description
+	 * about valid country values.
+	 * @param variant Any arbitrary value used to indicate a variation of a
+	 * <code>Locale</code>. See the <code>Locale</code> class description
+	 * for the details.
 	 */
 	public static void setLocale(String language, String country, String variant) {
 		if (country == null) {
@@ -1676,14 +1696,16 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
-	 * class constructor. <code>null</code> values are treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the
+	 * {@link Locale} class constructor. <code>null</code> values are
+	 * treated as empty strings.
 	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
-     * up to 8 characters in length.  See the <code>Locale</code> class description about
-     * valid language values.
-     * @param country An ISO 3166 alpha-2 country code or a UN M.49 numeric-3 area code.
-     * See the <code>Locale</code> class description about valid country values.
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
+	 * language subtag up to 8 characters in length. See the
+	 * <code>Locale</code> class description about valid language values.
+	 * @param country An ISO 3166 alpha-2 country code or a UN M.49
+	 * numeric-3 area code. See the <code>Locale</code> class description
+	 * about valid country values.
 	 */
 	public static void setLocale(String language, String country) {
 		setLocale(language, country, "");
@@ -1691,11 +1713,12 @@ public class PMS {
 
 	/**
 	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
-	 * class constructor. <code>null</code> values are treated as empty strings.
+	 * class constructor. <code>null</code> values are
+	 * treated as empty strings.
 	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language subtag
-     * up to 8 characters in length.  See the <code>Locale</code> class description about
-     * valid language values.
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
+	 * language subtag up to 8 characters in length. See the
+	 * <code>Locale</code> class description about valid language values.
 	 */
 	public static void setLocale(String language) {
 		setLocale(language, "", "");

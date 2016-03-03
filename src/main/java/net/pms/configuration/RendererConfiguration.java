@@ -2053,7 +2053,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Some devices (e.g. Samsung) recognize a custom HTTP header for retrieving
 	 * the contents of a subtitles file. This method will return the name of that
-	 * custom HTTP header, or "" if no such header exists. Default value is "".
+	 * custom HTTP header, or "" if no such header exists. The supported external
+	 * subtitles must be set by {@link #SupportedExternalSubtitlesFormats()}. 
+	 * 
+	 * Default value is "".
 	 *
 	 * @return The name of the custom HTTP header.
 	 */
@@ -2309,10 +2312,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
+	/**
+	 * List of the renderer supported external subtitles formats
+	 * for streaming together with streaming (not transcoded) video.
+	 * 
+	 * @return A comma-separated list of supported text-based external subtitles formats.
+	 */
 	public String getSupportedExternalSubtitles() {
 		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS, "");
 	}
 
+	/**
+	 * List of the renderer supported embedded subtitles formats.
+	 * 
+	 * @return A comma-separated list of supported embedded subtitles formats.
+	 */
 	public String getSupportedEmbeddedSubtitles() {
 		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS, "");
 	}

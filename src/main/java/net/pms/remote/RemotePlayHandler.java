@@ -70,9 +70,9 @@ public class RemotePlayHandler implements HttpHandler {
 
 	private String mkPage(String id, HttpExchange t) throws IOException {
 		HashMap<String, Object> vars = new HashMap<>();
-		vars.put("serverName", configuration.getServerName());
+		vars.put("serverName", configuration.getServerDisplayName());
 
-		LOGGER.debug("make play page " + id);
+		LOGGER.debug("Make play page " + id);
 		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 		if (root == null) {
 			LOGGER.debug("root not found");
@@ -216,7 +216,7 @@ public class RemotePlayHandler implements HttpHandler {
 			LOGGER.debug("got a play request " + t.getRequestURI());
 			String id = RemoteUtil.getId("play/", t);
 			String response = mkPage(id, t);
-			LOGGER.debug("play page " + response);
+			LOGGER.trace("play page " + response);
 			RemoteUtil.respond(t, response, 200, "text/html");
 		} else if (p.contains("/playerstatus/")) {
 			String json = IOUtils.toString(t.getRequestBody(), "UTF-8");
