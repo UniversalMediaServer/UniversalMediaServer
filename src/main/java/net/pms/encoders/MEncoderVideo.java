@@ -785,7 +785,7 @@ public class MEncoderVideo extends Player {
 	 *     3) avisynth()
 	 */
 	private boolean isDisableSubtitles(OutputParams params) {
-		return configuration.isDisableSubtitles() || (params.sid == null) || avisynth();
+		return configuration.isDisableSubtitles() || (params.sid == null)|| avisynth();
 	}
 
 	@Override
@@ -1666,7 +1666,7 @@ public class MEncoderVideo extends Player {
 					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
 					cmdList.add("-slang");
 					cmdList.add("" + params.sid.getLang());
-				} else {
+				} else if (!params.sid.isStreamable()) { //when subs are streamable do not transcode them
 					cmdList.add("-sub");
 					DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 					if (media.is3d()) {
