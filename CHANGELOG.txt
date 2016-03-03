@@ -1,7 +1,18 @@
 6.2.0 - 2016-03-??
 
 	General:
-		
+		Use image instead of text in thumbnail overlays
+		Improved the web interface
+		Added support for using Open Subtitles credentials
+		Improved filename prettifying
+	Renderers:
+		Improved Panasonic VT60 support
+		Fixed duplicate subtitles on Samsung TVs
+	External Components:
+		Updated l10n Maven plugin to 1.4
+		Updated logback to 1.1.5
+		Updated Maven Project Info Reports plugin to 2.8.1
+		Updated slf4j to 1.7.16
 
 6.1.0 - 2016-02-20
 
