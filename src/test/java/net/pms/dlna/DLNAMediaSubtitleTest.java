@@ -19,27 +19,42 @@
 package net.pms.dlna;
 
 import ch.qos.logback.classic.LoggerContext;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.encoders.Player;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import static net.pms.formats.v2.SubtitleType.*;
 import static net.pms.util.Constants.*;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.*;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 public class DLNAMediaSubtitleTest {
 	private final Class<?> CLASS = DLNAMediaSubtitleTest.class;
+	private DLNAResource video;
 
 	/**
 	 * Set up testing conditions before running the tests.
+	 * @throws ConfigurationException 
 	 */
 	@Before
-	public final void setUp() {
+	public final void setUp() throws ConfigurationException {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
+
+		PMS.get();
+		PMS.setConfiguration(new PmsConfiguration(false));
+		video = new RealFile(new File("Test.mpg"));
+		video.isValid();
 	}
 
 	@Test
@@ -207,5 +222,22 @@ public class DLNAMediaSubtitleTest {
 		sub2.setType(SUBRIP);
 		assertThat(sub2.isEmbedded()).isTrue();
 		assertThat(sub2.isExternal()).isFalse();
+	}
+
+	@Test
+	public void testSubsParsing() throws Exception {
+		File testConf = FileUtils.toFile(CLASS.getResource("../util/Test.conf"));
+		RendererConfiguration renderer = new RendererConfiguration(testConf);
+		DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+		sub.setId(100);
+		sub.setType(SUBRIP);
+		sub.setExternalFile(FileUtils.toFile(CLASS.getResource("../util/Test.srt")));
+		video.setDefaultRenderer(renderer);
+		video.setMedia(new DLNAMediaInfo());
+		video.getMedia().setContainer("mpegps");
+		video.getMedia().getSubtitleTracksList().add(sub);
+		video.syncResolve();
+		video.resolvePlayer(video.getDefaultRenderer());
+		assertNull(video.getPlayer()); //TODO this always return null
 	}
 }
