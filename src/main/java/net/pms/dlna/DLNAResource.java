@@ -894,10 +894,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// 1) transcoding is forced by configuration, or
 			// 2) transcoding is preferred and not prevented by configuration
 			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
-				if (media_subtitle != null) {
-					media_subtitle.setSubsStreamable(false); // prevent to stream subtitles when video is transcoded.
-				}
-
 				if (parserV2) {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), renderer != null ? renderer.getMimeType(mimeType(player), media) : media.getMimeType());
 				} else {
