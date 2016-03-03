@@ -189,7 +189,12 @@ public class FFMpegVideo extends Player {
 				if (is3D && !isSubsASS) {
 					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else if (params.sid.isExternal()) {
-					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
+					if (params.sid.isStreamable()) {
+						originalSubsFilename = null; // when subs are streamable do not transcode them
+					} else {
+						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
+					}
+					
 				} else if (params.sid.isEmbedded()) {
 					originalSubsFilename = dlna.getSystemName();
 				}

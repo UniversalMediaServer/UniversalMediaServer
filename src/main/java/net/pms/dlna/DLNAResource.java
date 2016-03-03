@@ -2272,7 +2272,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (format != null && format.isVideo()) {
 				if (
 					!configuration.isDisableSubtitles() &&
-					player == null &&
+//					player == null &&
 					media_subtitle != null &&
 					media_subtitle.isStreamable()
 				) {
