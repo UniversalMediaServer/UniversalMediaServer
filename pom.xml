@@ -838,11 +838,11 @@
 							<groupId>com.github.jrh3k5</groupId>
 							<artifactId>l10n-maven-plugin</artifactId>
 							<version>1.4</version>
-       						<configuration>
-                				<failBuild>true</failBuild>
-                				<messagesFile>${project.basedir}/src/main/resources/i18n/messages.properties</messagesFile>
-                				<translatedMessagesPattern>src/main/resources/i18n/messages*.properties</translatedMessagesPattern>
-            				</configuration>
+							<configuration>
+								<failBuild>true</failBuild>
+								<messagesFile>${project.basedir}/src/main/resources/i18n/messages.properties</messagesFile>
+								<translatedMessagesPattern>src/main/resources/i18n/messages*.properties</translatedMessagesPattern>
+							</configuration>
 						</plugin>
 					</reportPlugins>
 				</configuration>
