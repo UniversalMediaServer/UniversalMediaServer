@@ -228,16 +228,21 @@ public class DLNAMediaSubtitleTest {
 	public void testSubsParsing() throws Exception {
 		File testConf = FileUtils.toFile(CLASS.getResource("../util/Test.conf"));
 		RendererConfiguration renderer = new RendererConfiguration(testConf);
+		DLNAMediaAudio audio = new DLNAMediaAudio();
+		audio.setId(0);
+		audio.setCodecA("ac3");
 		DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+		sub.setExternalFile(FileUtils.toFile(CLASS.getResource("../util/Test.srt")));
 		sub.setId(100);
 		sub.setType(SUBRIP);
-		sub.setExternalFile(FileUtils.toFile(CLASS.getResource("../util/Test.srt")));
 		video.setDefaultRenderer(renderer);
 		video.setMedia(new DLNAMediaInfo());
-		video.getMedia().setContainer("mpegps");
+		video.getMedia().getAudioTracksList().add(audio);
 		video.getMedia().getSubtitleTracksList().add(sub);
+		video.getMedia().setContainer("mpegps");
+		video.getMedia().setCodecV("mpeg1");
 		video.syncResolve();
-		video.resolvePlayer(video.getDefaultRenderer());
-		assertNull(video.getPlayer()); //TODO this always return null
+		video.resolvePlayer(video.getDefaultRenderer());//XXX this always return null
+		assertNotNull(video.getPlayer()); 
 	}
 }
