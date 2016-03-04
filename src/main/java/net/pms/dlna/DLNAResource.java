@@ -2064,7 +2064,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
 											LOGGER.trace("Disabled the subtitles: " + matchedSub);
 										} else {
-											if (mediaRenderer.isExternalSubtitlesFormatSupported(matchedSub)) {
+											if (mediaRenderer.isExternalSubtitlesFormatSupported(matchedSub, media)) {
 												matchedSub.setSubsStreamable(true);	
 											}
 											params.sid = matchedSub;
@@ -2101,7 +2101,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 																LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
 															}
 															
-															if (mediaRenderer.isExternalSubtitlesFormatSupported(sub)) {
+															if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
 																sub.setSubsStreamable(true);	
 															}
 															params.sid = sub;
@@ -2118,7 +2118,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 													LOGGER.trace("Found subtitles track: " + sub);
 													if (sub.getExternalFile() != null) {
 														LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
-														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub)) {
+														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
 															sub.setSubsStreamable(true);	
 														}
 														params.sid = sub;
@@ -2151,7 +2151,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															sub.getExternalFile() != null
 														)
 													) {
-														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub)) {
+														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
 															sub.setSubsStreamable(true);	
 														}
 														params.sid = sub;

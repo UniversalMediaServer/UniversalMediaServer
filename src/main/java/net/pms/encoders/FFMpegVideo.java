@@ -192,8 +192,8 @@ public class FFMpegVideo extends Player {
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
 				} else if (params.sid.isExternal()) {
-					if (params.sid.isStreamable() && renderer.streamSubsForTranscodedVideo()) {
-						originalSubsFilename = null; // when subs are streamable do not transcode them
+					if (params.sid.isStreamable() && renderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
+						originalSubsFilename = null; 
 					} else {
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
