@@ -12,6 +12,7 @@
 		Updated l10n Maven plugin to 1.4
 		Updated logback to 1.1.5
 		Updated Maven Project Info Reports plugin to 2.8.1
+		Updated MediaInfo to 0.7.83
 		Updated slf4j to 1.7.16
 
 6.1.0 - 2016-02-20
