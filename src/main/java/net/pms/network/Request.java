@@ -38,8 +38,6 @@ import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

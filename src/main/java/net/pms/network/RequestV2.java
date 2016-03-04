@@ -37,8 +37,6 @@ import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
