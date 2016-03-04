@@ -177,6 +177,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SQUARE_AUDIO_THUMBNAILS = "SquareAudioThumbnails";
 	protected static final String SQUARE_IMAGE_THUMBNAILS = "SquareImageThumbnails";
 	protected static final String STREAM_EXT = "StreamExtensions";
+	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	protected static final String SUPPORTED = "Supported";
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
@@ -2803,5 +2804,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isSquareImageThumbnails() {
 		return getBoolean(SQUARE_IMAGE_THUMBNAILS, false);
+	}
+
+	public boolean streamSubsForTranscodedVideo() {
+		return getBoolean(STREAM_SUBS_FOR_TRANSCODED_VIDEO, false);
 	}
 }
