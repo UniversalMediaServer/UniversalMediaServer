@@ -49,6 +49,8 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1519,7 +1521,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 //			return withSuffix ? (displayName + nameSuffix) : displayName;
 //		}
 
-		displayName = getName();
+		// this unescape trick is to solve the problem of a name containing
+		// unicode stuff like \u005e
+		// if it's done here it will fix this for all objects
+		displayName = StringEscapeUtils.unescapeJava(getName());
 		nameSuffix = "";
 		String subtitleFormat;
 		String subtitleLanguage;
