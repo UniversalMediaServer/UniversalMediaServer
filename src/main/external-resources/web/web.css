@@ -135,6 +135,10 @@ ul#Folders li span {
 	margin-bottom: 5px;
 }
 
+ul#Media {
+	overflow-y: auto;
+}
+
 ul#Media li {
 	float: left;
 	margin-right: 20px;
