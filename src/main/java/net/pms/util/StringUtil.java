@@ -27,10 +27,13 @@ import java.util.Formatter;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -406,5 +409,18 @@ public class StringUtil {
 			}
 		}
 		return sb.toString();
+	}
+
+	public static boolean safeMatch(String str, String re) {
+		if(StringUtils.isEmpty(str))
+			return false;
+		try {
+			Pattern p = Pattern.compile(re,Pattern.CASE_INSENSITIVE);
+			Matcher m = p.matcher(str);
+			return m.find();
+		} catch (PatternSyntaxException e) {
+			LOGGER.debug("Bad regexp found in "+ re);
+		}
+		return false;
 	}
 }

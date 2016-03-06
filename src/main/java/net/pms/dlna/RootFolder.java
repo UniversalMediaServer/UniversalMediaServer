@@ -29,6 +29,10 @@ import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
@@ -43,10 +47,7 @@ import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.io.StreamGobbler;
 import net.pms.newgui.IFrame;
-import net.pms.util.CodeDb;
-import net.pms.util.FileUtil;
-import net.pms.util.FileWatcher;
-import net.pms.util.ProcessUtil;
+import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -1396,9 +1397,25 @@ public class RootFolder extends DLNAResource {
 		if (mon != null) {
 			mon.stopped(res);
 		}
-		if (last != null) {
+		if (last != null && addLast(res)) {
 			last.add(res);
 		}
+	}
+
+
+	private boolean addLast(DLNAResource res) {
+		String[] regexps = PMS.getConfiguration().getIgnoreLast();
+		if(regexps == null || regexps.length  == 0) // nothing to use as filter
+			return true;
+		for(String re : regexps) {
+			if(StringUtil.safeMatch(res.getDisplayName(), re))
+				return false;
+			if(StringUtil.safeMatch(res.getName(), re))
+				return false;
+			if(StringUtil.safeMatch(res.getSystemName(), re))
+				return false;
+		}
+		return true;
 	}
 
 	private boolean illegalPlugin(String[] plugs, String name) {

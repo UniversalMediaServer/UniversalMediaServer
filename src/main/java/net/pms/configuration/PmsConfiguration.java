@@ -176,6 +176,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_IP_FILTER = "ip_filter";
 	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	protected static final String KEY_LANGUAGE = "language";
+	protected static final String KEY_LAST_SKIP = "skip_adding_to_last";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
@@ -3853,6 +3854,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setShowSplashScreen(boolean value) {
 		configuration.setProperty(KEY_SHOW_SPLASH_SCREEN, value);
+	}
+
+	public String[] getIgnoreLast() {
+		return getString(KEY_LAST_SKIP, "").split(",");
 	}
 
 }
