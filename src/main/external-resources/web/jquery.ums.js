@@ -22,7 +22,7 @@ function changeMargins() {
 
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
-					var caption_w = cell_w - 33;
+					var caption_w = cell_w - 43;
 					$(cells[c]).find('.caption').css({
 						width : caption_w + 'px',
 						maxWidth : caption_w + 'px',
