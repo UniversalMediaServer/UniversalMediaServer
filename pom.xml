@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>6.1.1-SNAPSHOT</version>
+	<version>6.2.0-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -68,7 +68,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>6.1.1</project.version.short>
+		<project.version.short>6.2.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -92,7 +92,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>42</binary-revision>
+		<binary-revision>43</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
@@ -140,7 +140,7 @@
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
-			<version>3.2.1</version>
+			<version>3.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -838,11 +838,11 @@
 							<groupId>com.github.jrh3k5</groupId>
 							<artifactId>l10n-maven-plugin</artifactId>
 							<version>1.4</version>
-       						<configuration>
-                				<failBuild>true</failBuild>
-                				<messagesFile>${project.basedir}/src/main/resources/i18n/messages.properties</messagesFile>
-                				<translatedMessagesPattern>src/main/resources/i18n/messages*.properties</translatedMessagesPattern>
-            				</configuration>
+							<configuration>
+								<failBuild>true</failBuild>
+								<messagesFile>${project.basedir}/src/main/resources/i18n/messages.properties</messagesFile>
+								<translatedMessagesPattern>src/main/resources/i18n/messages*.properties</translatedMessagesPattern>
+							</configuration>
 						</plugin>
 					</reportPlugins>
 				</configuration>
