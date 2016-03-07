@@ -1,6 +1,14 @@
 package net.pms.util;
 
+import net.pms.PMS;
+
+import net.pms.PMS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
+import java.util.Iterator;
+import java.util.Map;
 
 public class InfoDb implements DbHandler {
 	public static class InfoDbData {
@@ -12,30 +20,49 @@ public class InfoDb implements DbHandler {
 		public String title;
 	}
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(InfoDb.class);
+	private static final long REDO_PERIOD = 7 * 24 * 60 * 60 * 1000; // one week
+	private static final String LAST_INFO_REREAD_KEY = "lastInfoReread";
+
 	private FileDb db;
 
 	public InfoDb() {
 		db = new FileDb(this);
 		db.setMinCnt(6);
+		db.setUseNullObj(true);
 		db.init();
+		if (PMS.getKey(LAST_INFO_REREAD_KEY) == null) {
+			PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
+		}
+		redoNulls();
+	}
+
+
+	private void askAndInsert(File f, String formattedName) {
+		try {
+			String[] tmp = OpenSubtitle.getInfo(f, formattedName);
+			Object obj = db.nullObj();
+			if (tmp != null) {
+				obj = create(tmp, 0);
+			}
+			db.add(f.getAbsolutePath(), obj);
+		} catch (Exception e) {
+			LOGGER.debug("info db ex "+e.toString());
+		}
 	}
 
 	public void backgroundAdd(final File f, final String formattedName) {
-		if (get(f) != null) {
+		if (db.get(f.getAbsolutePath()) != null) {
+			// we need to use the raw get to see so it's
+			// truly null
+			// also see if we should redo
+			redoNulls();
 			return;
 		}
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				try {
-					String[] tmp = OpenSubtitle.getInfo(f, formattedName);
-					if (tmp != null) {
-						db.add(f.getAbsolutePath(), create(tmp, 0));
-					} else {
-						db.add(f.getAbsolutePath(), null);
-					}
-				} catch (Exception e) {
-				}
+				askAndInsert(f, formattedName);
 			}
 		};
 		new Thread(r).start();
@@ -55,7 +82,8 @@ public class InfoDb implements DbHandler {
 	}
 
 	public InfoDbData get(String f) {
-		return (InfoDbData) db.get(f);
+		Object obj = db.get(f);
+		return (InfoDbData) (db.isNull(obj) ? null : obj);
 	}
 
 	@Override
@@ -100,5 +128,59 @@ public class InfoDb implements DbHandler {
 	@Override
 	public String name() {
 		return "InfoDb.db";
+	}
+
+	private boolean redo() {
+		long now = System.currentTimeMillis();
+		long last = now;
+		try {
+			last = Long.parseLong(PMS.getKey(LAST_INFO_REREAD_KEY));
+		} catch (NumberFormatException e) {
+		}
+		return (now - last) > REDO_PERIOD;
+	}
+
+	private void redoNulls() {
+		if(!db.hasNulls()) // no nulls in db skip this
+			return;
+		if (!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
+			// no redo
+			return;
+		}
+		// update this first to make redo() return false for other
+		PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				// this whole iterator stuff is to avoid
+				// CMEs
+				Iterator it = db.iterator();
+				boolean sync = false;
+				while(it.hasNext()) {
+					Map.Entry kv = (Map.Entry) it.next();
+					String key = (String) kv.getKey();
+					if(!db.isNull(kv.getValue())) // nonNull -> no need to ask again
+						continue;
+					File f = new File(key);
+					String name = f.getName();
+					try {
+						String[] tmp = OpenSubtitle.getInfo(f, name);
+						// if we still get nothing from opensubs
+						// we don't fiddle with the db
+						if (tmp != null) {
+							kv.setValue(create(tmp, 0));
+							sync = true;
+						}
+					} catch (Exception e) {
+					}
+				}
+				if (sync) {
+					// we need a manual sync here
+					db.sync();
+				}
+			}
+		};
+		new Thread(r).start();
+
 	}
 }

@@ -173,6 +173,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
+	protected static final String KEY_INFO_DB_RETRY = "infodb_retry";
 	protected static final String KEY_IP_FILTER = "ip_filter";
 	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	protected static final String KEY_LANGUAGE = "language";
@@ -3855,4 +3856,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SHOW_SPLASH_SCREEN, value);
 	}
 
+	public boolean isInfoDbRetry() {
+		return getBoolean(KEY_INFO_DB_RETRY, false);
+	}
 }
