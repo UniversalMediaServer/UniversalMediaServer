@@ -183,7 +183,7 @@ function chooseView(view) {
 }
 
 function setPadColor(cycle) {
-	var pad = Cookies.get('pad') || 'PadGrey';
+	var pad = Cookies.get('pad') || 'PadBlack';
 	if (cycle) {
 		pad = pad === 'PadBlack' ? 'PadGrey' : pad === 'PadGrey' ? 'PadNone' : 'PadBlack';
 	}
