@@ -49,6 +49,8 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -893,6 +895,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// 1) transcoding is forced by configuration, or
 			// 2) transcoding is preferred and not prevented by configuration
 			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
+				if (media_subtitle != null) {
+					media_subtitle.setSubsStreamable(false); // prevent to stream subtitles when video is transcoded.
+				}
+
 				if (parserV2) {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), renderer != null ? renderer.getMimeType(mimeType(player), media) : media.getMimeType());
 				} else {
@@ -1515,7 +1521,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 //			return withSuffix ? (displayName + nameSuffix) : displayName;
 //		}
 
-		displayName = getName();
+		// this unescape trick is to solve the problem of a name containing
+		// unicode stuff like \u005e
+		// if it's done here it will fix this for all objects
+		displayName = StringEscapeUtils.unescapeJava(getName());
 		nameSuffix = "";
 		String subtitleFormat;
 		String subtitleLanguage;

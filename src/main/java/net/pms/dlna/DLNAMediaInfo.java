@@ -815,7 +815,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 							// Make sure the image fits in the renderer's bounds
 							boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail);
+							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
 
 							if (isFullyPlayedThumbnail) {
 								thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.AUDIO);
@@ -901,7 +901,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 						// Make sure the image fits in the renderer's bounds
 						boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail);
+						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
 
 						if (isFullyPlayedThumbnail) {
 							thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.IMAGE);
@@ -1008,7 +1008,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Make sure the image fits in the renderer's bounds
 					boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-					thumb = UMSUtils.scaleImage(thumb, renderer.getThumbnailWidth(), renderer.getThumbnailHeight(), isFullyPlayedThumbnail);
+					thumb = UMSUtils.scaleImage(thumb, renderer.getThumbnailWidth(), renderer.getThumbnailHeight(), isFullyPlayedThumbnail, renderer);
 
 					if (isFullyPlayedThumbnail) {
 						thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.VIDEO);
@@ -1028,13 +1028,12 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param input The FFmpeg input (-i) argument used
 	 */
 	public void parseFFmpegInfo(List<String> lines, String input) {
-
 		if (lines != null) {
 			if ("-".equals(input)) {
 				input = "pipe:";
 			}
 
-			boolean matchs = false;
+			boolean matches = false;
 			int langId = 0;
 			int subId = 0;
 			ListIterator<String> FFmpegMetaData = lines.listIterator();
@@ -1043,10 +1042,10 @@ public class DLNAMediaInfo implements Cloneable {
 				FFmpegMetaData.next();
 				line = line.trim();
 				if (line.startsWith("Output")) {
-					matchs = false;
+					matches = false;
 				} else if (line.startsWith("Input")) {
 					if (line.contains(input)) {
-						matchs = true;
+						matches = true;
 						container = line.substring(10, line.indexOf(',', 11)).trim();
 
 						/**
@@ -1062,9 +1061,9 @@ public class DLNAMediaInfo implements Cloneable {
 							LOGGER.trace("Setting container to " + container + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
 						}
 					} else {
-						matchs = false;
+						matches = false;
 					}
-				} else if (matchs) {
+				} else if (matches) {
 					if (line.contains("Duration")) {
 						StringTokenizer st = new StringTokenizer(line, ",");
 						while (st.hasMoreTokens()) {
@@ -1441,6 +1440,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	/**
 	 * Checks whether the video has too many reference frames per pixels for the renderer
+	 *
 	 * TODO move to PlayerUtil
 	 */
 	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {

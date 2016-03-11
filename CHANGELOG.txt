@@ -1,3 +1,25 @@
+6.2.0 - 2016-03-12
+
+	General:
+		Use image instead of text in thumbnail overlays
+		Improved the web interface
+		Added support for using Open Subtitles credentials
+		Improved filename prettifying
+		Fixed bump support on mobile devices
+	Renderers:
+		Improved Panasonic VT60 support
+		Improved Samsung J55xx support
+		Fixed duplicate subtitles on Samsung TVs
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated Apache Commons Collections to 3.2.2
+		Updated l10n Maven plugin to 1.4
+		Updated logback to 1.1.5
+		Updated Maven Project Info Reports plugin to 2.8.1
+		Updated MediaInfo to 0.7.83
+		Updated slf4j to 1.7.16
+
 6.1.0 - 2016-02-20
 
 	General:
@@ -18,6 +40,8 @@
 		Improved Panasonic VT60 support
 		Improved Panasonic CX700 support
 		Improved Samsung PL51E490 support
+	Languages:
+		Synchronized translations with crowdin
 	External Components:
 		Updated FFmpeg
 		Updated MediaInfo to 0.7.82
