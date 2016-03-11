@@ -304,23 +304,19 @@ public class FileUtil {
 	 *
 	 * @param fileNameWithoutExtension
 	 */
-	private static String removeGroupNameFromBeginning(String formattedName, String fileNameWithoutExtension) {
-		if (!"".equals(formattedName)) {
-			if (formattedName.startsWith("[")) {
-				Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
-				Matcher matcher = pattern.matcher(formattedName);
+	private static String removeGroupNameFromBeginning(String formattedName) {
+		if (!"".equals(formattedName) && formattedName.startsWith("[")) {
+			Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
+			Matcher matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				formattedName = matcher.group(1);
+			} else if (formattedName.endsWith("]")) {
+				pattern = Pattern.compile("^\\[([^\\[\\]]+)\\]\\s*$");
+				matcher = pattern.matcher(formattedName);
 				if (matcher.find()) {
 					formattedName = matcher.group(1);
-				} else if (formattedName.endsWith("]")) {
-					pattern = Pattern.compile("^\\[([^\\[\\]]+)\\]\\s*$");
-					matcher = pattern.matcher(formattedName);
-					if (matcher.find()) {
-						formattedName = matcher.group(1);
-					}
 				}
 			}
-		} else {
-			formattedName = fileNameWithoutExtension;
 		}
 
 		return formattedName;
@@ -382,7 +378,7 @@ public class FileUtil {
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
-		formattedName = removeGroupNameFromBeginning(fileNameWithoutExtension, null);
+		formattedName = removeGroupNameFromBeginning(fileNameWithoutExtension);
 		searchFormattedName = "";
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
@@ -1286,7 +1282,7 @@ public class FileUtil {
 	public static String renameForSorting(String filename) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
 			// This makes anime sort properly
-			filename = removeGroupNameFromBeginning(filename, "");
+			filename = removeGroupNameFromBeginning(filename);
 
 			// Replace periods and underscores with spaces
 			filename = filename.replaceAll("\\.|_", " ");
