@@ -658,10 +658,10 @@ public class FileUtil {
 				}
 			}
 		}
+		formattedName = formattedName.trim();
 
 		// Add the edition information if it exists
 		if (!edition.isEmpty()) {
-			formattedName = formattedName.trim();
 			String substr = formattedName.substring(Math.max(0, formattedName.length() - 2));
 			if (" -".equals(substr)) {
 				formattedName = formattedName.substring(0, formattedName.length() - 2);
