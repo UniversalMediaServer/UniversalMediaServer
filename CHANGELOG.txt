@@ -5,10 +5,13 @@
 		Improved the web interface
 		Added support for using Open Subtitles credentials
 		Improved filename prettifying
+		Fixed bump support on mobile devices
 	Renderers:
 		Improved Panasonic VT60 support
+		Improved Samsung J55xx support
 		Fixed duplicate subtitles on Samsung TVs
 	External Components:
+		Updated Apache Commons Collections to 3.2.2
 		Updated l10n Maven plugin to 1.4
 		Updated logback to 1.1.5
 		Updated Maven Project Info Reports plugin to 2.8.1
