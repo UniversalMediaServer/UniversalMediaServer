@@ -259,8 +259,7 @@ public class UMSUtils {
 		String res;
 		if (r != null) {
 			res = r.getSubLanguage();
-		}
-		else {
+		} else {
 			res = PMS.getConfiguration().getSubtitlesLanguages();
 		}
 		if (three) {
@@ -288,7 +287,7 @@ public class UMSUtils {
 
 		public IOList(String uri, int mode) {
 			this.mode = mode;
-			if (! StringUtils.isBlank(uri)) {
+			if (!StringUtils.isBlank(uri)) {
 				file = new File(uri);
 				load(file);
 			} else {
@@ -318,7 +317,7 @@ public class UMSUtils {
 			return (mode & m) == m;
 		}
 
-		public File getFile()  {
+		public File getFile() {
 			return file;
 		}
 
@@ -390,8 +389,7 @@ public class UMSUtils {
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null
-									&& sub.getId() != -1) {
+							if (sub.getLang() != null && sub.getId() != -1) {
 								sb.append("sub");
 								sb.append(sub.getLang());
 								sb.append(",");
