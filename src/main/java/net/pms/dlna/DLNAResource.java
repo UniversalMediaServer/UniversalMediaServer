@@ -49,7 +49,6 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

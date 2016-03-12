@@ -20,10 +20,10 @@ package net.pms.configuration;
 
 import java.io.File;
 import java.util.*;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConversionException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
