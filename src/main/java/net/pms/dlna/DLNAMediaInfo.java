@@ -1553,7 +1553,7 @@ public class DLNAMediaInfo implements Cloneable {
 					videoWithinH264LevelLimits = false;
 				}
 			}
-			return videoWithinH264LevelLimits.booleanValue();
+			return videoWithinH264LevelLimits;
 		}
 	}
 

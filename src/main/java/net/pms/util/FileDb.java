@@ -134,7 +134,6 @@ public class FileDb {
 		}
 	}
 
-
 	public void addNoSync(String key, Object obj) {
 		if (!overwrite) {
 			if (get(key) != null) {
@@ -166,7 +165,6 @@ public class FileDb {
 	public Object get(String key) {
 		return db.get(key);
 	}
-
 
 	public void sync() {
 		try (FileOutputStream out = new FileOutputStream(file)) {

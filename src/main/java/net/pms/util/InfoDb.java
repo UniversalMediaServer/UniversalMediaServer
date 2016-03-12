@@ -1,14 +1,11 @@
 package net.pms.util;
 
-import net.pms.PMS;
-
-import net.pms.PMS;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
+import net.pms.PMS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InfoDb implements DbHandler {
 	public static class InfoDbData {
@@ -141,8 +138,10 @@ public class InfoDb implements DbHandler {
 	}
 
 	private void redoNulls() {
-		if(!db.hasNulls()) // no nulls in db skip this
+		// no nulls in db skip this
+		if (!db.hasNulls()) {
 			return;
+		}
 		if (!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
 			// no redo
 			return;
@@ -156,11 +155,14 @@ public class InfoDb implements DbHandler {
 				// CMEs
 				Iterator it = db.iterator();
 				boolean sync = false;
-				while(it.hasNext()) {
+				while (it.hasNext()) {
 					Map.Entry kv = (Map.Entry) it.next();
 					String key = (String) kv.getKey();
-					if(!db.isNull(kv.getValue())) // nonNull -> no need to ask again
+
+					// nonNull -> no need to ask again
+					if (!db.isNull(kv.getValue())) {
 						continue;
+					}
 					File f = new File(key);
 					String name = f.getName();
 					try {
@@ -181,6 +183,5 @@ public class InfoDb implements DbHandler {
 			}
 		};
 		new Thread(r).start();
-
 	}
 }

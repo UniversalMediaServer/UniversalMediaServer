@@ -51,7 +51,7 @@ public class RemoteWeb {
 			port = defaultPort;
 		}
 
-		roots = new HashMap<String, RootFolder>();
+		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
 		resources = AccessController.doPrivileged(new PrivilegedAction<RemoteUtil.ResourceManager>() {
 
