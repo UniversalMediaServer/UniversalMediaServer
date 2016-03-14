@@ -32,7 +32,6 @@ public class Search extends VirtualFolder {
 		return getName();
 	}
 
-	@Override
 	public synchronized void resolve() {
 		setDiscovered(false);
 	}

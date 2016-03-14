@@ -156,7 +156,6 @@ public class RealFile extends MapFile {
 		return ProcessUtil.getShortFileNameIfWideChars(getFile().getAbsolutePath());
 	}
 
-	@Override
 	public synchronized void resolve() {
 		File file = getFile();
 		if (file.isFile() && (getMedia() == null || !getMedia().isMediaparsed())) {

@@ -160,7 +160,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 		new Thread(r, "7Zip Extractor").start();
 	}
 
-	@Override
 	public synchronized void resolve() {
 		if (getFormat() == null || !getFormat().isVideo()) {
 			return;
