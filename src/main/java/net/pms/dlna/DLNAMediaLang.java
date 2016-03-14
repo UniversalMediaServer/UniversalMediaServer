@@ -32,18 +32,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DLNAMediaLang {
 	public static final String UND = "und";
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int id;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String lang;
+	private int id;
+	private String lang;
 
 	/**
 	 * Returns the full language name for an audio or subtitle track based on a

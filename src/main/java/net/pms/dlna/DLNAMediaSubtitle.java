@@ -95,13 +95,6 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		return result.toString();
 	}
 
-	/**
-	 * @deprecated charset is autodetected for text subtitles after setExternalFile()
-	 */
-	@Deprecated
-	public void checkUnicode() {
-	}
-
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		return super.clone();
@@ -124,35 +117,12 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		this.type = type;
 	}
 
-	/**
-	 * @deprecated use getSubtitlesTrackTitleFromMetadata()
-	 */
-	@Deprecated
-	public String getFlavor() {
-		return getSubtitlesTrackTitleFromMetadata();
-	}
-
-	/**
-	 * @deprecated use setSubtitlesTrackTitleFromMetadata()
-	 */
-	@Deprecated
-	public void setFlavor(String value) {
-		setSubtitlesTrackTitleFromMetadata(value);
-	}
-
 	public String getSubtitlesTrackTitleFromMetadata() {
 		return subtitlesTrackTitleFromMetadata;
 	}
 
 	public void setSubtitlesTrackTitleFromMetadata(String value) {
 		this.subtitlesTrackTitleFromMetadata = value;
-	}
-
-	/**
-	 * @deprecated use {@link #FileUtil.convertFileFromUtf16ToUtf8()} for UTF-16 -> UTF-8 conversion.
-	 */
-	public File getPlayableExternalFile() {
-		return getExternalFile();
 	}
 
 	/**
@@ -184,8 +154,8 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
 					subsCharacterSet = match.getName().toUpperCase(PMS.getLocale());
-					lang = match.getLanguage();
-					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", match.getName(), lang, externalFile.getAbsolutePath());
+					setLang(match.getLanguage());
+					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", match.getName(), getLang(), externalFile.getAbsolutePath());
 				} else {
 					subsCharacterSet = null;
 					LOGGER.debug("No charset detected for {}", externalFile.getAbsolutePath());
@@ -197,23 +167,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 			}
 		}
 	}
-
-	/**
-	 * @deprecated use {@link #setSubCharacterSet(String)}
-	 */
-	public void setExternalFileCharacterSet(String charSet) {
-		setSubCharacterSet(charSet);
-	}
 	
 	public void setSubCharacterSet(String charSet) {
 		subsCharacterSet = charSet;
-	}
-
-	/**
-	 * @deprecated use {@link #getSubCharacterSet()}
-	 */
-	public String getExternalFileCharacterSet() {
-		return getSubCharacterSet();
 	}
 
 	public String getSubCharacterSet() {
