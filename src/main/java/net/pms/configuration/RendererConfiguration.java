@@ -2806,6 +2806,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(SQUARE_IMAGE_THUMBNAILS, false);
 	}
 
+	/**
+	 * Whether to stream subtitles even if the video is transcoded. It may work on some renderers.
+	 *
+	 * @return whether to stream subtitles for transcoded video
+	 */
 	public boolean streamSubsForTranscodedVideo() {
 		return getBoolean(STREAM_SUBS_FOR_TRANSCODED_VIDEO, false);
 	}
