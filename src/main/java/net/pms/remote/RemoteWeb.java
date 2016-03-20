@@ -4,7 +4,6 @@ import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -23,7 +22,6 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
-import net.pms.util.CredMgr;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -51,7 +49,7 @@ public class RemoteWeb {
 			port = defaultPort;
 		}
 
-		roots = new HashMap<String, RootFolder>();
+		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
 		resources = AccessController.doPrivileged(new PrivilegedAction<RemoteUtil.ResourceManager>() {
 

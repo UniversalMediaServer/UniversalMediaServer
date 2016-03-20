@@ -325,15 +325,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public void setStringList(String key, List<String> value) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		for (String element : value) {
-			if (!result.isEmpty()) {
-				result += ", ";
+			if (!result.toString().equals("")) {
+				result.append(", ");
 			}
-			result += element;
+			result.append(element);
 		}
-		if (result.isEmpty()) {
-			result = "None";
+		if (result.toString().equals("")) {
+			result.append("None");
 		}
 		configuration.setProperty(key, result);
 	}
@@ -2055,7 +2055,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Some devices (e.g. Samsung) recognize a custom HTTP header for retrieving
 	 * the contents of a subtitles file. This method will return the name of that
 	 * custom HTTP header, or "" if no such header exists. The supported external
-	 * subtitles must be set by {@link #SupportedExternalSubtitlesFormats()}. 
+	 * subtitles must be set by {@link #getSupportedExternalSubtitles()}. 
 	 * 
 	 * Default value is "".
 	 *

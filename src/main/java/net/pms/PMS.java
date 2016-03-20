@@ -42,9 +42,9 @@ import javax.imageio.ImageIO;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
 import net.pms.dlna.*;
@@ -595,12 +595,14 @@ public class PMS {
 			web = new RemoteWeb(configuration.getWebPort());
 		}
 
+		// init Credentials
+		credMgr = new CredMgr(configuration.getCredFile());
+
+		// init dbs
+		keysDb = new UmsKeysDb();
 		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
-
-		// init Credentials
-		credMgr = new CredMgr(configuration.getCredFile());
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
@@ -1902,5 +1904,15 @@ public class PMS {
 
 	public static boolean verifyCred(String owner,String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
+	}
+
+	private UmsKeysDb keysDb;
+
+	public static String getKey(String key) {
+		 return instance.keysDb.get(key);
+	}
+
+	public static void setKey(String key, String val) {
+		instance.keysDb.set(key, val);
 	}
 }

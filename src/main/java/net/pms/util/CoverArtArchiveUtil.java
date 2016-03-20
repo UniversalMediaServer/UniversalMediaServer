@@ -19,6 +19,10 @@
  */
 package net.pms.util;
 
+import fm.last.musicbrainz.coverart.CoverArt;
+import fm.last.musicbrainz.coverart.CoverArtException;
+import fm.last.musicbrainz.coverart.CoverArtImage;
+import fm.last.musicbrainz.coverart.impl.DefaultCoverArtArchiveClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -48,10 +52,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import fm.last.musicbrainz.coverart.CoverArt;
-import fm.last.musicbrainz.coverart.CoverArtException;
-import fm.last.musicbrainz.coverart.CoverArtImage;
-import fm.last.musicbrainz.coverart.impl.DefaultCoverArtArchiveClient;
 
 /**
  * This class is responsible for fetching music covers from Cover Art Archive.

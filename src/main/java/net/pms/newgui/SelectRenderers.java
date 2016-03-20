@@ -23,14 +23,11 @@ package net.pms.newgui;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -38,6 +35,8 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.newgui.components.IllegalChildException;
 import net.pms.newgui.components.SearchableMutableTreeNode;
 import net.pms.util.tree.CheckTreeManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);

@@ -39,8 +39,8 @@ import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -1553,7 +1553,7 @@ public class DLNAMediaInfo implements Cloneable {
 					videoWithinH264LevelLimits = false;
 				}
 			}
-			return videoWithinH264LevelLimits.booleanValue();
+			return videoWithinH264LevelLimits;
 		}
 	}
 

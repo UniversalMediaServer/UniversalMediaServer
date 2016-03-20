@@ -21,9 +21,9 @@
 package net.pms.util;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
@@ -35,8 +35,8 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,20 +1,26 @@
 package net.pms.util;
 
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
+import com.sun.jna.Platform;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.charset.IllegalCharsetNameException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -23,17 +29,11 @@ import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import com.ibm.icu.text.CharsetDetector;
-import com.ibm.icu.text.CharsetMatch;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.apache.commons.lang.WordUtils;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
@@ -304,23 +304,19 @@ public class FileUtil {
 	 *
 	 * @param fileNameWithoutExtension
 	 */
-	private static String removeGroupNameFromBeginning(String formattedName, String fileNameWithoutExtension) {
-		if (!"".equals(formattedName)) {
-			if (formattedName.startsWith("[")) {
-				Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
-				Matcher matcher = pattern.matcher(formattedName);
+	private static String removeGroupNameFromBeginning(String formattedName) {
+		if (!"".equals(formattedName) && formattedName.startsWith("[")) {
+			Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
+			Matcher matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				formattedName = matcher.group(1);
+			} else if (formattedName.endsWith("]")) {
+				pattern = Pattern.compile("^\\[([^\\[\\]]+)\\]\\s*$");
+				matcher = pattern.matcher(formattedName);
 				if (matcher.find()) {
 					formattedName = matcher.group(1);
-				} else if (formattedName.endsWith("]")) {
-					pattern = Pattern.compile("^\\[([^\\[\\]]+)\\]\\s*$");
-					matcher = pattern.matcher(formattedName);
-					if (matcher.find()) {
-						formattedName = matcher.group(1);
-					}
 				}
 			}
-		} else {
-			formattedName = fileNameWithoutExtension;
 		}
 
 		return formattedName;
@@ -382,7 +378,7 @@ public class FileUtil {
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
-		formattedName = fileNameWithoutExtension;
+		formattedName = removeGroupNameFromBeginning(fileNameWithoutExtension);
 		searchFormattedName = "";
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
@@ -555,21 +551,6 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\.", " ");
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
-			// This is probably a movie that doesn't specify a year
-			isMovieToLookup = true;
-			isMovieWithoutYear = true;
-			formattedName = removeFilenameEndMetadata(formattedName);
-			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
-			}
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
 			// This matches anime with a hash at the end of the name
 			isTVSeriesToLookup = true;
@@ -579,7 +560,6 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
-			formattedName = removeGroupNameFromBeginning(formattedName, fileNameWithoutExtension);
 
 			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
 				isEpisodeToLookup = true;
@@ -596,12 +576,26 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*|\\[h264.*", "");
-			formattedName = removeGroupNameFromBeginning(formattedName, fileNameWithoutExtension);
 
 			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
 				isEpisodeToLookup = true;
 				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
 			}
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
+			// This is probably a movie that doesn't specify a year
+			isMovieToLookup = true;
+			isMovieWithoutYear = true;
+			formattedName = removeFilenameEndMetadata(formattedName);
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		}
@@ -660,10 +654,10 @@ public class FileUtil {
 				}
 			}
 		}
+		formattedName = formattedName.trim();
 
 		// Add the edition information if it exists
 		if (!edition.isEmpty()) {
-			formattedName = formattedName.trim();
 			String substr = formattedName.substring(Math.max(0, formattedName.length() - 2));
 			if (" -".equals(substr)) {
 				formattedName = formattedName.substring(0, formattedName.length() - 2);
@@ -1288,7 +1282,7 @@ public class FileUtil {
 	public static String renameForSorting(String filename) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
 			// This makes anime sort properly
-			filename = removeGroupNameFromBeginning(filename, "");
+			filename = removeGroupNameFromBeginning(filename);
 
 			// Replace periods and underscores with spaces
 			filename = filename.replaceAll("\\.|_", " ");

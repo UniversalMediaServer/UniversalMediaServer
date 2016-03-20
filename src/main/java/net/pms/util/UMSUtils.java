@@ -30,9 +30,10 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.filters.Canvas;
 import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.filters.Canvas;
 import net.coobird.thumbnailator.geometry.Positions;
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
@@ -41,7 +42,6 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -259,8 +259,7 @@ public class UMSUtils {
 		String res;
 		if (r != null) {
 			res = r.getSubLanguage();
-		}
-		else {
+		} else {
 			res = PMS.getConfiguration().getSubtitlesLanguages();
 		}
 		if (three) {
@@ -288,7 +287,7 @@ public class UMSUtils {
 
 		public IOList(String uri, int mode) {
 			this.mode = mode;
-			if (! StringUtils.isBlank(uri)) {
+			if (!StringUtils.isBlank(uri)) {
 				file = new File(uri);
 				load(file);
 			} else {
@@ -318,7 +317,7 @@ public class UMSUtils {
 			return (mode & m) == m;
 		}
 
-		public File getFile()  {
+		public File getFile() {
 			return file;
 		}
 
@@ -390,8 +389,7 @@ public class UMSUtils {
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null
-									&& sub.getId() != -1) {
+							if (sub.getLang() != null && sub.getId() != -1) {
 								sb.append("sub");
 								sb.append(sub.getLang());
 								sb.append(",");

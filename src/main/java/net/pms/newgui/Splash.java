@@ -27,11 +27,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import net.pms.Messages;
+import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.Messages;
-import net.pms.configuration.PmsConfiguration;
 
 public class Splash extends JFrame implements MouseListener {
 	private static final long serialVersionUID = 2357524127613134620L;

@@ -19,6 +19,7 @@
  */
 package net.pms.dlna;
 
+import com.ibm.icu.text.CharsetMatch;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.icu.text.CharsetMatch;
 
 /**
  * This class keeps track of the subtitle information for media.
