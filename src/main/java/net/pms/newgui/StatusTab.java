@@ -397,7 +397,7 @@ public class StatusTab {
 				if (bi != null) {
 					return bi;
 				} else {
-					LOGGER.debug("Unable to read icon url \"{}\", using '{}' instead.", RendererConfiguration.UNKNOWN_ICON);
+					LOGGER.debug("Unable to read icon url \"{}\", using \"{}\" instead.", RendererConfiguration.UNKNOWN_ICON);
 					icon = RendererConfiguration.UNKNOWN_ICON;
 				}
 			}
@@ -439,7 +439,7 @@ public class StatusTab {
 				}
 
 				if (is == null) {
-					LOGGER.debug("Unable to read icon \"{}\", using '{}' instead.", icon, RendererConfiguration.UNKNOWN_ICON);
+					LOGGER.debug("Unable to read icon \"{}\", using \"{}\" instead.", icon, RendererConfiguration.UNKNOWN_ICON);
 					is = LooksFrame.class.getResourceAsStream("/resources/images/clients/" + RendererConfiguration.UNKNOWN_ICON);
 				}
 
