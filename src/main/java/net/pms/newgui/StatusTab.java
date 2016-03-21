@@ -391,7 +391,7 @@ public class StatusTab {
 			if (icon.matches(".*\\S+://.*")) {
 				try {
 					bi = ImageIO.read(new URL(icon));
-				} catch (Exception e) {
+				} catch (IOException e) {
 					LOGGER.debug("Error reading icon url: " + e);
 				}
 				if (bi != null) {
@@ -438,9 +438,15 @@ public class StatusTab {
 					is = LooksFrame.class.getResourceAsStream("/renderers/" + icon);
 				}
 
+				if (is == null) {
+					LOGGER.debug("Unable to read icon \"{}\", using '{}' instead.", icon, RendererConfiguration.UNKNOWN_ICON);
+					is = LooksFrame.class.getResourceAsStream("/resources/images/clients/" + RendererConfiguration.UNKNOWN_ICON);
+				}
+
 				if (is != null) {
 					bi = ImageIO.read(is);
 				}
+
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			}
