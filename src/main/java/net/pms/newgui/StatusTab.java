@@ -489,7 +489,7 @@ public class StatusTab {
 					updateMemoryUsage();
 					try {
 						Thread.sleep(2000);
-					} catch (Exception e) {
+					} catch (InterruptedException e) {
 						return;
 					}
 				}

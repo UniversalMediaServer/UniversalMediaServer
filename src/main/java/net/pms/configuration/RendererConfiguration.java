@@ -2647,7 +2647,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						alert();
 						try {
 							Thread.sleep(1000);
-						} catch (Exception e) {
+						} catch (InterruptedException e) {
 						}
 					}
 					// Reset only if another item hasn't already begun playing
