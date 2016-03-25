@@ -76,13 +76,8 @@
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
-		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
-		<xmlwise-version>1.2.11</xmlwise-version>
 		<slf4j-version>1.7.16</slf4j-version>
-		<!-- This version works only with JDK 7 and above-->
-		<findbugs-version>3.0.3</findbugs-version>
-		<findbugs-annotations-version>3.0.1u2</findbugs-annotations-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
@@ -257,7 +252,7 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
-			<version>${junrar-version}</version>
+			<version>0.7</version>
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
@@ -277,7 +272,7 @@
 		<dependency>
 			<groupId>xmlwise</groupId>
 			<artifactId>xmlwise</artifactId>
-			<version>${xmlwise-version}</version>
+			<version>1.2.11</version>
 		</dependency>
 		<dependency>
 			<groupId>sevenzip</groupId>
@@ -370,7 +365,7 @@
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>annotations</artifactId>
-			<version>${findbugs-annotations-version}</version>
+			<version>3.0.1u2</version>
 		</dependency>
 		<dependency>
 			<groupId>fm.last</groupId>
@@ -803,7 +798,7 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>${findbugs-version}</version>														
+							<version>3.0.3</version>														
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
