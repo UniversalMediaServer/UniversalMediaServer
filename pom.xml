@@ -308,16 +308,14 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<!-- 4.2.0 and 4.2.1 fails on some installations (probably 64 bit JVM). The next JNA release will probably be ok-->
-			<!-- See https://github.com/UniversalMediaServer/UniversalMediaServer/issues/714#issuecomment-168320852 -->
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
-			<version>4.1.0</version>
+			<version>4.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna-platform</artifactId>
-			<version>4.1.0</version>
+			<version>4.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jdom</groupId>
