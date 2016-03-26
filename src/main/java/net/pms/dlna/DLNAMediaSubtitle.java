@@ -85,14 +85,11 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		result.append(", lang: ");
 		result.append(getLang());
 
-		if (subsCharacterSet != null) {
-			result.append(", character set: ");
-			result.append(subsCharacterSet);
-		}
-
 		if (externalFile != null) {
 			result.append(", externalFile: ");
 			result.append(externalFile.toString());
+			result.append(", external file character set: ");
+			result.append(subsCharacterSet);
 		}
 
 		return result.toString();
@@ -209,14 +206,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	public void setSubCharacterSet(String charSet) {
-		/**
-		 * This exception is to workaround our setting the character encoding from
-		 * the MediaInfo "format", which only really works for SRT subtitles.
-		 * A more comprehensive filter may be needed.
-		 */
-		if (!"ASS".equals(charSet)) {
-			subsCharacterSet = charSet;
-		}
+		subsCharacterSet = charSet;
 	}
 
 	/**

@@ -227,7 +227,7 @@ public class LibMediaInfoParser {
 				if (subTracks > 0) {
 					for (int i = 0; i < subTracks; i++) {
 						currentSubTrack = new DLNAMediaSubtitle();
-						currentSubTrack.setSubCharacterSet(MI.Get(text, i, "Format"));
+						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "Format")));
 						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "CodecID")));
 						currentSubTrack.setLang(getLang(MI.Get(text, i, "Language/String")));
 						currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
