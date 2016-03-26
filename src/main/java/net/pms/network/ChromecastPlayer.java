@@ -141,7 +141,7 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 							state.mute = status.volume.muted;
 						}
 						alert();
-					} catch (Exception e) {
+					} catch (InterruptedException | IOException e) {
 						LOGGER.debug("Bad chromecast mediastate " + e);
 					}
 				}
