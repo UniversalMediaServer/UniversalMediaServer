@@ -621,6 +621,7 @@ public class TranscodingTab {
 
 		builder.add(new JLabel(Messages.getString("TrTab2.8")), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		notranscode = new JTextField(configuration.getDisableTranscodeForExtensions());
+		notranscode.setToolTipText(Messages.getString("TrTab2.96"));
 		notranscode.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -631,6 +632,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("TrTab2.9"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 		forcetranscode = new JTextField(configuration.getForceTranscodeForExtensions());
+		forcetranscode.setToolTipText(Messages.getString("TrTab2.96"));
 		forcetranscode.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
