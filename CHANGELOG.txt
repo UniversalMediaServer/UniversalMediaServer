@@ -1,12 +1,15 @@
 6.2.1 - 2016-03-??
 
 	General:
+		Added more tooltips
 		Fixed DTS-HD being detected as DTS
 		Fixed support for embedded ASS subtitles in FFmpeg
 		Fixed minor bugs
 	Renderers:
 		Improved support for Panasonic ST60 TVs
 		Improved support for Samsung J6200 TVs
+	Languages:
+		Synchronized translations with crowdin
 	External Components:
 		Updated chromecast-java-api-v2 to 0.9.1
 		Updated FFmpeg
