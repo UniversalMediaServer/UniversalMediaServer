@@ -21,8 +21,8 @@ package net.pms.newgui.components;
 
 import java.util.Vector;
 import javax.swing.ComboBoxModel;
-import javax.swing.JToolTip;
 import javax.swing.JComboBox;
+import javax.swing.JToolTip;
 
 /**
  * A subclass of {@link javax.swing.JComboBox} with a custom <code>ToolTip</code> handler

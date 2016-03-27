@@ -2,6 +2,12 @@ package net.pms.network;
 
 
 import ch.qos.logback.classic.Level;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceListener;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -11,13 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import su.litvak.chromecast.api.v2.ChromeCast;
-
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceEvent;
-import javax.jmdns.ServiceListener;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.ArrayList;
 
 public class ChromecastMgr implements ServiceListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastMgr.class);

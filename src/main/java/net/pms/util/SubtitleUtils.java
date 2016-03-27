@@ -18,7 +18,6 @@
  */
 package net.pms.util;
 
-import java.awt.Color;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -31,14 +30,13 @@ import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import static net.pms.util.Constants.*;
-import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -518,7 +516,6 @@ public class SubtitleUtils {
 			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
-//			String fontSize = Integer.toString((int) (16 * media.getHeight() / (double) 288));
 			outputString.append("Style: Default,Arial,").append("15").append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(",").append(fontScaleY).append(",0,0,1,").append(outline).append(",").append(shadow);
 			if (isOU) {
 				outputString.append(",2,15,15,15,0\n\n");
@@ -607,6 +604,7 @@ public class SubtitleUtils {
 	/**
 	 * Converts the standard Colour RGB integer presentation to the SSA/ASS string format which
 	 * is formatted as BGR (really stupid SSA/ASS implementation)
+	 *
 	 * @param colour the RGB color in the integer format
 	 * @return Converted color string in the ASS format
 	 */

@@ -19,13 +19,13 @@
 
 package net.pms.test;
 
-import static org.junit.Assert.*;
+import ch.qos.logback.classic.LoggerContext;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.util.Iso639;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
-import ch.qos.logback.classic.LoggerContext;
 
 
 /**

@@ -19,6 +19,7 @@
  */
 package net.pms.util;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -36,7 +37,6 @@ import javax.swing.JComboBox;
 import net.pms.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is a utility class for translation between {@link java.util.Locale}'s

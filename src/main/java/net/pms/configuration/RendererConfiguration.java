@@ -323,15 +323,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public void setStringList(String key, List<String> value) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		for (String element : value) {
-			if (!result.isEmpty()) {
-				result += ", ";
+			if (!result.toString().equals("")) {
+				result.append(", ");
 			}
-			result += element;
+			result.append(element);
 		}
-		if (result.isEmpty()) {
-			result = "None";
+		if (result.toString().equals("")) {
+			result.append("None");
 		}
 		configuration.setProperty(key, result);
 	}
@@ -2630,7 +2630,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						alert();
 						try {
 							Thread.sleep(1000);
-						} catch (Exception e) {
+						} catch (InterruptedException e) {
 						}
 					}
 				// Reset only if another item hasn't already begun playing

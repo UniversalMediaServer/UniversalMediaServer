@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.imageio.ImageIO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -40,6 +38,8 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.MediaMonitor;
 import net.pms.dlna.MediaType;
 import net.pms.dlna.RealFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FullyPlayed {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FullyPlayed.class);

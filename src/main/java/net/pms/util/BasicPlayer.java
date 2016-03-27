@@ -2,9 +2,15 @@ package net.pms.util;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingUtilities;
+import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
@@ -13,12 +19,6 @@ import static net.pms.network.UPNPHelper.unescape;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.regex.Matcher;
-import net.pms.PMS;
-import javax.swing.SwingUtilities;
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.util.regex.Pattern;
 
 public interface BasicPlayer extends ActionListener {
 	public class State {

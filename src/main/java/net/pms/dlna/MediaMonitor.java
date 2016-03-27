@@ -1,7 +1,7 @@
 package net.pms.dlna;
 
-import com.sun.jna.platform.FileUtils;
 import com.sun.jna.Platform;
+import com.sun.jna.platform.FileUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
