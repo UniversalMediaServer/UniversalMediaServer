@@ -1407,7 +1407,20 @@ public class RootFolder extends DLNAResource {
 		String[] regexps = PMS.getConfiguration().getIgnoreLast();
 		if(regexps == null || regexps.length  == 0) // nothing to use as filter
 			return true;
+		Format f = res.getFormat();
 		for(String re : regexps) {
+			if(re.startsWith("@")) {
+				if(f == null) {
+					continue;
+				}
+				if(re.equalsIgnoreCase("@video") && f.isVideo()) {
+					return false;
+				}
+				if(re.equalsIgnoreCase("@audio") && f.isAudio()) {
+					return false;
+				}
+				continue;
+			}
 			if(StringUtil.safeMatch(res.getDisplayName(), re))
 				return false;
 			if(StringUtil.safeMatch(res.getName(), re))
