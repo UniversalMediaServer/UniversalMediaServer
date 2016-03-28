@@ -23,6 +23,8 @@ package net.pms.util;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -373,38 +375,72 @@ public class StringUtil {
 
 	/**
 	 * Escapes {@link org.apache.lucene} special characters with backslash
+	 * 
+	 * @param s the {@link String} to evaluate
+	 * @return The converted String
 	 */
 	public static String luceneEscape(final String s) {
 		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0;i < s.length(); i++) {
-			String c = s.substring(i, i+1);
-			switch (c) {
-				case "+":
-				case "-":
-				case "&":
-				case "|":
-				case "!":
-				case "(":
-				case ")":
-				case "{":
-				case "}":
-				case "[":
-				case "]":
-				case "^":
-				case "\"":
-				case "~":
-				case "*":
-				case "?":
-				case ":":
-				case "\\":
-				case "/":
-					sb.append("\\").append(c);
-					break;
+		for (int i = 0; i < s.length(); i++) {
+			char ch = s.charAt(i);
+			switch (ch) {
+				case '+':
+				case '-':
+				case '&':
+				case '|':
+				case '!':
+				case '(':
+				case ')':
+				case '{':
+				case '}':
+				case '[':
+				case ']':
+				case '^':
+				case '\"':
+				case '~':
+				case '*':
+				case '?':
+				case ':':
+				case '\\':
+				case '/':
+					sb.append("\\");
 				default:
-					sb.append(c);
+					sb.append(ch);
 			}
 		}
+
+		return sb.toString();
+	}
+
+	/**
+	 * Escapes special characters with backslashes for FFmpeg subtitles
+	 * 
+	 * @param s the {@link String} to evaluate
+	 * @return The converted String
+	 */
+	public static String ffmpegEscape(String s) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < s.length(); i++) {
+			char ch = s.charAt(i);
+			switch (ch) {
+				case '\'':
+					sb.append("\\\\\\'");
+					break;
+				case ':':
+					sb.append("\\\\:");
+					break;
+				case '\\':
+					sb.append("/");
+					break;
+				case ']':
+				case '[':
+				case ',':
+					sb.append("\\");
+				default:
+					sb.append(ch);
+			}
+		}
+
 		return sb.toString();
 	}
 }
