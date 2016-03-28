@@ -590,6 +590,9 @@ public class FFMpegVideo extends Player {
 		audioBitrateOptions.add("-q:a");
 		audioBitrateOptions.add(DEFAULT_QSCALE);
 
+		audioBitrateOptions.add("-ar");
+		audioBitrateOptions.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
+
 		return audioBitrateOptions;
 	}
 
@@ -982,6 +985,11 @@ public class FFMpegVideo extends Player {
 					} else {
 						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
 					}
+				}
+
+				if (!customFFmpegOptions.contains("-ar ")) {
+					cmdList.add("-ar");
+					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
 				}
 			}
 
