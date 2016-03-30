@@ -2629,12 +2629,12 @@ public class DLNAMediaInfo implements Cloneable {
 			return false;
 		}
 
-		switch (stereoscopy) {
+		switch (stereoscopy.toLowerCase()) {
 			case "overunderrt":
-			case "OULF":
-			case "OURF":
-			case "SBSLF":
-			case "SBSRF":
+			case "oulf":
+			case "ourf":
+			case "sbslf":
+			case "sbsrf":
 			case "top-bottom (left eye first)":
 			case "top-bottom (right eye first)":
 			case "side by side (left eye first)":
