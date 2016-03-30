@@ -2699,21 +2699,21 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		isAnaglyph = true;
-		switch (stereoscopy) {
+		switch (stereoscopy.toLowerCase()) {
 			case "overunderrt":
-			case "OULF":
+			case "oulf":
 			case "top-bottom (left eye first)":
 				isAnaglyph = false;
 				return Mode3D.OUL;
-			case "OURF":
+			case "ourf":
 			case "top-bottom (right eye first)":
 				isAnaglyph = false;
 				return Mode3D.OUR;
-			case "SBSLF":
+			case "sbslf":
 			case "side by side (left eye first)":
 				isAnaglyph = false;
 				return Mode3D.SBSL;
-			case "SBSRF":
+			case "sbsrf":
 			case "side by side (right eye first)":
 				isAnaglyph = false;
 				return Mode3D.SBSR;
@@ -2723,29 +2723,29 @@ public class DLNAMediaInfo implements Cloneable {
 			case "half side by side (left eye first)":
 				isAnaglyph = false;
 				return Mode3D.HSBSL;
-			case "ARCG":
+			case "arcg":
 				return Mode3D.ARCG;
-			case "ARCH":
+			case "arch":
 				return Mode3D.ARCH;
-			case "ARCC":
+			case "arcc":
 				return Mode3D.ARCC;
-			case "ARCD":
+			case "arcd":
 				return Mode3D.ARCD;
-			case "AGMG":
+			case "agmg":
 				return Mode3D.AGMG;
-			case "AGMH":
+			case "agmh":
 				return Mode3D.AGMH;
-			case "AGMC":
+			case "agmc":
 				return Mode3D.AGMC;
-			case "AGMD":
+			case "agmd":
 				return Mode3D.AGMD;
-			case "AYBG":
+			case "aybg":
 				return Mode3D.AYBG;
-			case "AYBH":
+			case "aybh":
 				return Mode3D.AYBH;
-			case "AYBC":
+			case "aybc":
 				return Mode3D.AYBC;
-			case "AYBD":
+			case "aybd":
 				return Mode3D.AYBD;
 		}
 
