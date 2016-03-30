@@ -23,6 +23,8 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.*;
@@ -210,7 +212,26 @@ public class FFMpegVideo extends Player {
 					if (configuration.isFFmpegFontConfig() && !is3D && !isSubsASS) { // Do not force style for 3D videos and ASS subtitles
 						subsFilter.append(":force_style=");
 						subsFilter.append("'");
-						subsFilter.append("Fontname=").append(configuration.getFont());
+						String fontName = configuration.getFont();
+						if (StringUtils.isNotBlank(fontName)) {
+							File fontFile = new File(fontName);
+							if (fontFile.exists()) { // Test if the font is specified by the file. The font must be registered in the OS. In windows use right click and choose Install.
+								try {
+									Font customFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+									subsFilter.append("Fontname=").append(customFont.getName());
+								} catch (FontFormatException e) {
+									LOGGER.debug("Exception when implementing the custom font: ", e.getMessage());
+								}
+							} else { // The font is specified by the name and UMS checks if it is registered in OS
+								String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+								for ( int i = 0; i < fonts.length; i++ ) {
+									if (fonts[i].equals(configuration.getFont())) {
+										subsFilter.append("Fontname=").append(fontName);
+									}	
+								}
+							}
+						}
+
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
 						subsFilter.append(",Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
 						subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
