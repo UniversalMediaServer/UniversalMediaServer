@@ -222,13 +222,16 @@ public class FFMpegVideo extends Player {
 								} catch (FontFormatException e) {
 									LOGGER.debug("Exception when implementing the custom font: ", e.getMessage());
 								}
-							} else { // The font is specified by the name and UMS checks if it is registered in OS
+							} else { // The font is specified by the name and UMS checks if it is registered in the OS
 								String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
 								for ( int i = 0; i < fonts.length; i++ ) {
 									if (fonts[i].equals(configuration.getFont())) {
 										subsFilter.append("Fontname=").append(fontName);
+										continue;
 									}	
 								}
+
+								LOGGER.debug("Fontname not found. You have to install the font to the OS");
 							}
 						}
 
