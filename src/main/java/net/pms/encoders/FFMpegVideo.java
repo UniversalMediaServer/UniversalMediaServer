@@ -231,7 +231,7 @@ public class FFMpegVideo extends Player {
 									}	
 								}
 
-								LOGGER.debug("Fontname not found. You have to install the font to the OS");
+								LOGGER.debug("Font name not found. You have to install the font to the OS");
 							}
 						}
 
