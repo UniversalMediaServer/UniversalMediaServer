@@ -1290,7 +1290,7 @@ public class FileUtil {
 
 		if (PMS.getConfiguration().isIgnoreTheWordThe()) {
 			// Remove "the" from filename
-			filename = filename.replaceAll("(?i)\\bThe\\b", "");
+			filename = filename.replaceAll("^(?i)The[ .]", "");
 
 			// Replace multiple whitespaces with space
 			filename = filename.replaceAll("\\s{2,}"," ");
