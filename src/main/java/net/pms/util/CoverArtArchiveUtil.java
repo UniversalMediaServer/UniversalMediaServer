@@ -738,7 +738,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 						connection.setRequestProperty("Accept-Charset", StandardCharsets.UTF_8.name());
 						int status = connection.getResponseCode();
 						if (status != 200) {
-							LOGGER.error("Could not lookup audio cover for \"{}\": musicbrainz.com replied with status code {}", tagInfo.title, status);
+							LOGGER.error("Could not lookup audio cover for \"{}\": musicbrainz.org replied with status code {}", tagInfo.title, status);
 							return null;
 						}
 
