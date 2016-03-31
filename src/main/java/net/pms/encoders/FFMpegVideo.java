@@ -23,8 +23,6 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.GraphicsEnvironment;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.*;
@@ -213,25 +211,10 @@ public class FFMpegVideo extends Player {
 						subsFilter.append(":force_style=");
 						subsFilter.append("'");
 						String fontName = configuration.getFont();
-						if (StringUtils.isNotBlank(fontName)) {
-							File fontFile = new File(fontName);
-							if (fontFile.exists()) { // Test if the font is specified by the file. The font must be registered in the OS. In windows use right click and choose Install.
-								try {
-									Font customFont = Font.createFont(Font.TRUETYPE_FONT, fontFile);
-									subsFilter.append("Fontname=").append(customFont.getName());
-								} catch (FontFormatException e) {
-									LOGGER.debug("Exception when implementing the custom font: ", e.getMessage());
-								}
-							} else { // The font is specified by the name and UMS checks if it is registered in the OS
-								String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-								for ( int i = 0; i < fonts.length; i++ ) {
-									if (fonts[i].equals(configuration.getFont())) {
-										subsFilter.append("Fontname=").append(fontName);
-										continue;
-									}	
-								}
-
-								LOGGER.debug("Font name not found. You have to install the font to the OS");
+						if (isNotBlank(fontName)) {
+							String font = CodecUtil.checkFontName(fontName);
+							if (font != null) {
+								subsFilter.append("Fontname=").append(font);
 							}
 						}
 
