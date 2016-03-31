@@ -160,8 +160,7 @@ public class CodecUtil {
 			File fontFile = new File(fontName);
 			if (fontFile.exists()) { // Test if the font is specified by the file.
 				try {
-					Font font = Font.createFont(Font.TRUETYPE_FONT, fontFile);
-					fontName = font.getFontName();
+					fontName = Font.createFont(Font.TRUETYPE_FONT, fontFile).getFontName();
 				} catch (FontFormatException | IOException e) {
 					LOGGER.debug("Exception when implementing the custom font: ", e.getMessage());
 				}
