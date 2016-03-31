@@ -20,9 +20,7 @@
 package net.pms.util;
 
 import com.sun.jna.Platform;
-
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
