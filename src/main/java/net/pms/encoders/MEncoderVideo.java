@@ -1419,7 +1419,7 @@ public class MEncoderVideo extends Player {
 						 * https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156
 						 */
 						sb.append(" -font ").append(quoteArg(configuration.getFont())).append(" ");
-						String font = CodecUtil.checkFontName(configuration.getFont());
+						String font = CodecUtil.isFontRegisteredInOS(configuration.getFont());
 						if (font != null) {
 							sb.append(" -ass-force-style FontName=").append(quoteArg(font)).append(",");
 						}
@@ -1428,7 +1428,7 @@ public class MEncoderVideo extends Player {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
 							sb.append(" -font ").append(quoteArg(font)).append(" ");
-							String fontName = CodecUtil.checkFontName(font);
+							String fontName = CodecUtil.isFontRegisteredInOS(font);
 							if (fontName != null) {
 								sb.append(" -ass-force-style FontName=").append(quoteArg(fontName)).append(",");
 							}

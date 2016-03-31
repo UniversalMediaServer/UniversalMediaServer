@@ -155,7 +155,7 @@ public class CodecUtil {
 	 *
 	 * @return the registered font name or null when not found
 	 */
-	public static String checkFontName(String fontName) {
+	public static String isFontRegisteredInOS(String fontName) {
 		if (isNotBlank(fontName)) {
 			File fontFile = new File(fontName);
 			if (fontFile.exists()) { // Test if the font is specified by the file.

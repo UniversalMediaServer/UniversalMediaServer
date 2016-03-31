@@ -212,7 +212,7 @@ public class FFMpegVideo extends Player {
 						subsFilter.append("'");
 						String fontName = configuration.getFont();
 						if (isNotBlank(fontName)) {
-							String font = CodecUtil.checkFontName(fontName);
+							String font = CodecUtil.isFontRegisteredInOS(fontName);
 							if (font != null) {
 								subsFilter.append("Fontname=").append(font);
 							}
