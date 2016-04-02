@@ -916,6 +916,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getFont());
+		defaultfont.setToolTipText(Messages.getString("TrTab2.97"));
 		defaultfont.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
