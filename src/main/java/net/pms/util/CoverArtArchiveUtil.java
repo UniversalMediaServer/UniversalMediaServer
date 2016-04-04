@@ -131,7 +131,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			}
 			if (StringUtil.hasValue(artistId)) {
 				if (result.length() > 0) {
-					result.append(" (").append(artistId).append(")");
+					result.append(" (").append(artistId).append(')');
 				} else {
 					result.append(artistId);
 				}
@@ -156,14 +156,14 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			if (StringUtil.hasValue(title)) {
 				result.append(title);
 				if (StringUtil.hasValue(trackId)) {
-					result.append(" (").append(trackId).append(")");
+					result.append(" (").append(trackId).append(')');
 				}
 			} else if (StringUtil.hasValue(trackId)) {
 				result.append(trackId);
 			}
 			if (StringUtil.hasValue(year)) {
 				if (result.length() > 0) {
-					result.append(" (").append(year).append(")");
+					result.append(" (").append(year).append(')');
 				} else {
 					result.append(year);
 				}
@@ -516,7 +516,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		for (String word : words) {
 			sb.append(StringUtil.luceneEscape(word)).append("~ ");
 		}
-		sb.append(")");
+		sb.append(')');
 		return sb.toString();
 	}
 
@@ -590,7 +590,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			if (added) {
 				query.append(AND);
 			}
-			query.append("date:").append(urlEncode(tagInfo.year)).append("*");
+			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
 			added = true;
 		}
 		return query.toString();
@@ -640,7 +640,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			if (added) {
 				query.append(AND);
 			}
-			query.append("date:").append(urlEncode(tagInfo.year)).append("*");
+			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
 			added = true;
 		}
 		return query.toString();

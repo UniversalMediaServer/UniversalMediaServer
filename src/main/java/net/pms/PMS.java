@@ -1055,9 +1055,9 @@ public class PMS {
 		if (serverName == null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(System.getProperty("os.name").replace(" ", "_"));
-			sb.append("-");
+			sb.append('-');
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
-			sb.append("-");
+			sb.append('-');
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
 			sb.append(", UPnP/1.0, UMS/").append(getVersion());
 			serverName = sb.toString();

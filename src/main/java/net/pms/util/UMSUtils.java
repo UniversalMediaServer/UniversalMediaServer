@@ -378,21 +378,21 @@ public class UMSUtils {
 							id = "internal:" + r.getClass().getName();
 						}
 
-						sb.append("master:").append(id).append(";");
+						sb.append("master:").append(id).append(';');
 						if (r.getPlayer() != null) {
-							sb.append("player:").append(r.getPlayer().toString()).append(";");
+							sb.append("player:").append(r.getPlayer().toString()).append(';');
 						}
 						if (r.isResume()) {
 							sb.append("resume");
 							sb.append(r.getResume().getResumeFile().getAbsolutePath());
-							sb.append(";");
+							sb.append(';');
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
 							if (sub.getLang() != null && sub.getId() != -1) {
 								sb.append("sub");
 								sb.append(sub.getLang());
-								sb.append(",");
+								sb.append(',');
 								if (sub.isExternal()) {
 									sb.append("file:");
 									sb.append(sub.getExternalFile().getAbsolutePath());
@@ -400,7 +400,7 @@ public class UMSUtils {
 									sb.append("id:");
 									sb.append("").append(sub.getId());
 								}
-								sb.append(";");
+								sb.append(';');
 							}
 						}
 						sb.append(data);

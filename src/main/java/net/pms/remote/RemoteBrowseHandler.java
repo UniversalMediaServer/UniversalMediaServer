@@ -183,7 +183,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					// Include it as a web-disabled item so it can be thrown via upnp
 					sb.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
 						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
-						.append(" title=\"").append(name).append(" ").append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
+						.append(" title=\"").append(name).append(' ').append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());

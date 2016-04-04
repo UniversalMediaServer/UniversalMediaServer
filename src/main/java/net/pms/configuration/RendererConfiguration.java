@@ -1894,16 +1894,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			pairArray = pair.split("=");
 			switch (pairArray[0]) {
 				case "keyint":
-					returnString.append("-g ").append(pairArray[1]).append(" ");
+					returnString.append("-g ").append(pairArray[1]).append(' ');
 					break;
 				case "vqscale":
-					returnString.append("-q:v ").append(pairArray[1]).append(" ");
+					returnString.append("-q:v ").append(pairArray[1]).append(' ');
 					break;
 				case "vqmin":
-					returnString.append("-qmin ").append(pairArray[1]).append(" ");
+					returnString.append("-qmin ").append(pairArray[1]).append(' ');
 					break;
 				case "vqmax":
-					returnString.append("-qmax ").append(pairArray[1]).append(" ");
+					returnString.append("-qmax ").append(pairArray[1]).append(' ');
 					break;
 				default:
 					break;

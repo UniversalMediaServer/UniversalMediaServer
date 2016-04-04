@@ -143,7 +143,7 @@ public class UPNPHelper extends UPNPControl {
 		discovery.append("HTTP/1.1 200 OK").append(CRLF);
 		discovery.append("CACHE-CONTROL: max-age=1200").append(CRLF);
 		discovery.append("DATE: ").append(sdf.format(new Date(System.currentTimeMillis()))).append(" GMT").append(CRLF);
-		discovery.append("LOCATION: http://").append(serverHost).append(":").append(serverPort).append("/description/fetch").append(CRLF);
+		discovery.append("LOCATION: http://").append(serverHost).append(':').append(serverPort).append("/description/fetch").append(CRLF);
 		discovery.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		discovery.append("ST: ").append(st).append(CRLF);
 		discovery.append("EXT: ").append(CRLF);
@@ -537,12 +537,12 @@ public class UPNPHelper extends UPNPControl {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("NOTIFY * HTTP/1.1").append(CRLF);
-		sb.append("HOST: ").append(IPV4_UPNP_HOST).append(":").append(UPNP_PORT).append(CRLF);
+		sb.append("HOST: ").append(IPV4_UPNP_HOST).append(':').append(UPNP_PORT).append(CRLF);
 		sb.append("NT: ").append(nt).append(CRLF);
 		sb.append("NTS: ").append(message).append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("LOCATION: http://").append(PMS.get().getServer().getHost()).append(":").append(PMS.get().getServer().getPort()).append("/description/fetch").append(CRLF);
+			sb.append("LOCATION: http://").append(PMS.get().getServer().getHost()).append(':').append(PMS.get().getServer().getPort()).append("/description/fetch").append(CRLF);
 		}
 
 		sb.append("USN: ").append(PMS.get().usn());

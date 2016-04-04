@@ -704,7 +704,7 @@ public class Request extends HTTPResource {
 				if (parentFolder != null) {
 					response.append(parentFolder.getUpdateId());
 				} else {
-					response.append("1");
+					response.append('1');
 				}
 
 				response.append("</UpdateID>");

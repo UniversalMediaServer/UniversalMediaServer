@@ -75,7 +75,7 @@ public class StringUtil {
 	}
 
 	public static void addAttribute(StringBuilder sb, String attribute, Object value) {
-		sb.append(" ");
+		sb.append(' ');
 		sb.append(attribute);
 		sb.append("=\"");
 		sb.append(value);

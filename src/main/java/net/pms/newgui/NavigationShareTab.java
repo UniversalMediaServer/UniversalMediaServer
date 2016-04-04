@@ -110,7 +110,7 @@ public class NavigationShareTab {
 			int i2 = 0;
 			for (int i = 0; i < folderTableModel.getRowCount(); i++) {
 				if (i > 0) {
-					folders.append(",");
+					folders.append(',');
 				}
 
 				String directory = (String) folderTableModel.getValueAt(i, 0);
@@ -122,7 +122,7 @@ public class NavigationShareTab {
 				folders.append(directory.replace(",", "&comma;"));
 				if (monitored) {
 					if (i2 > 0) {
-						foldersMonitored.append(",");
+						foldersMonitored.append(',');
 					}
 					i2++;
 

@@ -462,9 +462,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 		for (Map.Entry<String, String> entry : extras.entrySet()) {
 			sb.append(entry.getKey());
-			sb.append("|");
+			sb.append('|');
 			sb.append(entry.getValue());
-			sb.append("|");
+			sb.append('|');
 		}
 
 		return sb.toString();
