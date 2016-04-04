@@ -41,20 +41,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FreedesktopTrash {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(FreedesktopTrash.class);
 	private static Path homeFolder = null;
 	private static Object homeFolderLock = new Object();
 	private static final String INFO = "info";
 	private static final String FILES = "files";
-    private static final SecureRandom random = new SecureRandom();
+	private static final SecureRandom random = new SecureRandom();
 
-    private static String generateRandomFileName(String fileName) {
-    	if (fileName.contains("/") || fileName.contains("\\")) {
-            throw new IllegalArgumentException("Invalid file name");
-    	}
+	private static String generateRandomFileName(String fileName) {
+		if (fileName.contains("/") || fileName.contains("\\")) {
+			throw new IllegalArgumentException("Invalid file name");
+		}
 
-    	String prefix;
+		String prefix;
 		String suffix;
 		if (fileName.contains(".")) {
 			int i = fileName.lastIndexOf('.');
@@ -65,11 +64,11 @@ public class FreedesktopTrash {
 			suffix = "";
 		}
 
-        long n = random.nextLong();
-        n = (n == Long.MIN_VALUE) ? 0 : Math.abs(n);
-        String newName = prefix + Long.toString(n) + suffix;
-        return newName;
-    }
+		long n = random.nextLong();
+		n = (n == Long.MIN_VALUE) ? 0 : Math.abs(n);
+		String newName = prefix + Long.toString(n) + suffix;
+		return newName;
+	}
 
 	private static Path getVerifiedPath(String location) {
 		if (location != null && !location.trim().isEmpty()) {
@@ -206,7 +205,7 @@ public class FreedesktopTrash {
 		try {
 			trashFolder = Paths.get(pathMountPoint.folder, ".Trash-" + FileUtil.getUnixUID());
 		} catch (IOException e) {
-			throw new IOException ("Could not determine user id while resolving trash folder: " + e.getMessage(), e);
+			throw new IOException("Could not determine user id while resolving trash folder: " + e.getMessage(), e);
 		}
 		if (verifyTrashFolder(trashFolder, true)) {
 			return trashFolder;
@@ -285,19 +284,19 @@ public class FreedesktopTrash {
 	}
 
 	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is applicable
-	 * for the given {@link Path}. Support can vary between partitions on the same
-	 * computer. Please note that this check will look for or try to create
-	 * the necessary folder structure, so this can be an expensive operation.
+	 * Tries to determine if FreeDesktop.org Trash specification is
+	 * applicable for the given {@link Path}. Support can vary between
+	 * partitions on the same computer. Please note that this check will
+	 * look for or try to create the necessary folder structure, so this can
+	 * be an expensive operation.
 	 *
 	 * The check could be used to evaluate a systems general ability, but a
 	 * better strategy is to attempt {@link #moveToTrash(Path)} and handle
-	 * a the {@link Exception} if it fails.
+	 * the {@link Exception} if it fails.
 	 *
 	 * @param path the path for which to evaluate trash bin support
 	 * @return The evaluation result
 	 */
-
 	public static boolean hasTrash(Path path) {
 		try {
 			return verifyTrashStructure(getTrashFolder(path));
@@ -309,14 +308,15 @@ public class FreedesktopTrash {
 	}
 
 	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is applicable
-	 * for the given {@link File}. Support can vary between partitions on the same
-	 * computer. Please note that this check will look for or try to create
-	 * the necessary folder structure, so this can be an expensive operation.
+	 * Tries to determine if FreeDesktop.org Trash specification is
+	 * applicable for the given {@link File}. Support can vary between
+	 * partitions on the same computer. Please note that this check will
+	 * look for or try to create the necessary folder structure, so this can
+	 * be an expensive operation.
 	 *
 	 * The check could be used to evaluate a systems general ability, but a
 	 * better strategy is to attempt {@link #moveToTrash(File)} and handle
-	 * a the {@link Exception} if it fails.
+	 * the {@link Exception} if it fails.
 	 *
 	 * @param path the path for which to evaluate trash bin support
 	 * @return The evaluation result
@@ -326,14 +326,15 @@ public class FreedesktopTrash {
 	}
 
 	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is applicable
-	 * for the system root. Support can vary between partitions on the same
-	 * computer. Please note that this check will look for or try to create
-	 * the necessary folder structure, so this can be an expensive operation.
+	 * Tries to determine if FreeDesktop.org Trash specification is
+	 * applicable for the system root. Support can vary between partitions
+	 * on the same computer. Please note that this check will look for or
+	 * try to create the necessary folder structure, so this can be an
+	 * expensive operation.
 	 *
 	 * The check could be used to evaluate a systems general ability, but a
 	 * better strategy is to attempt {@link #moveToTrash(File)} and handle
-	 * a the {@link Exception} if it fails.
+	 * the {@link Exception} if it fails.
 	 *
 	 * @param path the path for which to evaluate trash bin support
 	 * @return The evaluation result
