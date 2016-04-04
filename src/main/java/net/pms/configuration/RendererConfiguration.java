@@ -256,8 +256,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						String rendererName = r.getConfName();
 						allRenderersNames.add(rendererName);
 						String renderersGroup = null;
-						if (rendererName.indexOf(" ") > 0) {
-							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
+						if (rendererName.indexOf(' ') > 0) {
+							renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 						}
 
 						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {

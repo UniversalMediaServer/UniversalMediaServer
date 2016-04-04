@@ -205,7 +205,7 @@ public class StringUtil {
 			if (t.startsWith("NOT_IMPLEMENTED")) {
 				return t.length() > 15 ? t.substring(15) : " ";
 			}
-			int i = t.indexOf(".");
+			int i = t.indexOf('.');
 			// Throw out the decimal portion, if any
 			if (i > -1) {
 				t = t.substring(0, i);

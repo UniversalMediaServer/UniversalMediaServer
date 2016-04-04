@@ -57,7 +57,7 @@ public class FreedesktopTrash {
     	String prefix;
 		String suffix;
 		if (fileName.contains(".")) {
-			int i = fileName.lastIndexOf(".");
+			int i = fileName.lastIndexOf('.');
 			prefix = fileName.substring(0, i);
 			suffix = fileName.substring(i);
 		} else {

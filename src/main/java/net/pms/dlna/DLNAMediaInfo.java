@@ -1063,7 +1063,7 @@ public class DLNAMediaInfo implements Cloneable {
 						 * prevent using this method by using MediaInfo=true in renderer configs.
 						 */
 						if ("mov".equals(container)) {
-							container = line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf("'")).trim();
+							container = line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim();
 							LOGGER.trace("Setting container to " + container + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
 						}
 					} else {
