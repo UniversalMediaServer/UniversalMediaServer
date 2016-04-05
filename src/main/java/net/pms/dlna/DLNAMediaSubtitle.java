@@ -164,8 +164,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 	/**
 	 * @param externalFile the externalFile to set
+	 * @param langForced 
 	 */
-	public void setExternalFile(File externalFile) throws FileNotFoundException {
+	public void setExternalFile(File externalFile, String forcedLang) throws FileNotFoundException {
 		if (externalFile == null) {
 			throw new FileNotFoundException("Can't read file: no file supplied");
 		} else if (!FileUtil.getFilePermissions(externalFile).isReadable()) {
@@ -173,10 +174,10 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		}
 
 		this.externalFile = externalFile;
-		setFileSubsCharacterSet();
+		setFileSubsCharacterSet(forcedLang);
 	}
 
-	private void setFileSubsCharacterSet() {
+	private void setFileSubsCharacterSet(String forcedLang) {
 		if (type.isPicture()) {
 			subsCharacterSet = null;
 		} else {
@@ -184,7 +185,10 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
 					subsCharacterSet = match.getName().toUpperCase(PMS.getLocale());
-					lang = match.getLanguage();
+					if (forcedLang == null) {
+						lang = match.getLanguage();
+					}
+					
 					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", match.getName(), lang, externalFile.getAbsolutePath());
 				} else {
 					subsCharacterSet = null;

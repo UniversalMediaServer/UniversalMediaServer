@@ -1959,7 +1959,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										matchedSub = params.sid;
 										String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
 										if (!StringUtils.isEmpty(file)) {
-											matchedSub.setExternalFile(new File(file));
+											matchedSub.setExternalFile(new File(file), null);
 											params.sid = matchedSub;
 											media_subtitle = params.sid;
 											finishedMatchingPreferences = true;

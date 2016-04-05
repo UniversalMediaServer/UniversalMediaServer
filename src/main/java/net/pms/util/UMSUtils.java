@@ -558,7 +558,7 @@ public class UMSUtils {
 							subData = tmp[1];
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
-								s.setExternalFile(new File(sFile));
+								s.setExternalFile(new File(sFile), null);
 								s.setId(100);
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);

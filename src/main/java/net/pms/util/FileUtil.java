@@ -880,7 +880,7 @@ public class FileUtil {
 										exists = true;
 									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
 										try {
-											sub.setExternalFile(f);
+											sub.setExternalFile(f, null);
 										} catch (FileNotFoundException ex) {
 											LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
 											LOGGER.trace("", ex);
@@ -892,6 +892,7 @@ public class FileUtil {
 							}
 
 							if (!exists) {
+								String forcedLang = null;
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
 								if (code.length() == 0 || !Iso639.codeIsValid(code)) {
@@ -905,16 +906,18 @@ public class FileUtil {
 											if (Iso639.codeIsValid(flavorLang)) {
 												sub.setLang(flavorLang);
 												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
+												forcedLang = flavorLang;
 											}
 										}
 									}
 								} else {
 									sub.setLang(code);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
+									forcedLang = code;
 								}
 
 								try {
-									sub.setExternalFile(f);
+									sub.setExternalFile(f, forcedLang);
 								} catch (FileNotFoundException ex) {
 									LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
 									LOGGER.trace("", ex);
