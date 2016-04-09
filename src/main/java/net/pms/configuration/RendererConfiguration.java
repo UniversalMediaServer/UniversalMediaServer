@@ -639,7 +639,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
 		DeviceConfiguration r = null;
 		boolean recognized = ref != null;
-		if (! recognized) {
+		if (!recognized) {
 			ref = getDefaultConf();
 		}
 		try {
@@ -669,7 +669,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		} catch (Exception e) {
 		}
-		if (! recognized) {
+		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
 			LOGGER.debug("Marking renderer \"{}\" at {} as unrecognized", r, ia);
 			r.loaded = false;
