@@ -1,4 +1,4 @@
-6.2.2 - 2016-04-??
+6.2.2 - 2016-04-09
 
 	General:
 		Improved support for subtitles in FFmpeg
