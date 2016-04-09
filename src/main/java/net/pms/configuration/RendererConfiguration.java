@@ -145,6 +145,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
+	protected static final String KEEP_ASPECT_RATIO_TRANSCODING = "KeepAspectRatioTranscoding";
 	protected static final String LIMIT_FOLDERS = "LimitFolders";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
@@ -2199,6 +2200,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
+	}
+
+	/**
+	 * If this is true, we will always output transcoded video at 16/9
+	 * aspect ratio to the renderer, meaning that all transcoded videos with
+	 * different aspect ratios will have black bars added to the edges to
+	 * make them 16/9.
+	 *
+	 * This addresses a bug in some renderers (like Panasonic TVs) where
+	 * they stretch transcoded videos that are not 16/9.
+	 *
+	 * @return
+	 */
+	public boolean isKeepAspectRatioTranscoding() {
+		return getBoolean(KEEP_ASPECT_RATIO_TRANSCODING, false);
 	}
 
 	/**

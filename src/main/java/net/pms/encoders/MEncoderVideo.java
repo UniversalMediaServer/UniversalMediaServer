@@ -914,7 +914,7 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
+		if (deferToTsmuxer == true && (params.mediaRenderer.isKeepAspectRatio() || params.mediaRenderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 		}
@@ -1266,7 +1266,10 @@ public class MEncoderVideo extends Player {
 			if (
 				!dvd &&
 				(
-					params.mediaRenderer.isKeepAspectRatio() &&
+					(
+						params.mediaRenderer.isKeepAspectRatio() ||
+						params.mediaRenderer.isKeepAspectRatioTranscoding()
+					) &&
 					!"16:9".equals(media.getAspectRatioContainer())
 				) &&
 				!configuration.isMencoderScaler()
@@ -1915,7 +1918,10 @@ public class MEncoderVideo extends Player {
 					!params.mediaRenderer.isMuxNonMod4Resolution()
 				) ||
 				(
-					params.mediaRenderer.isKeepAspectRatio() &&
+					(
+						params.mediaRenderer.isKeepAspectRatio() ||
+						params.mediaRenderer.isKeepAspectRatioTranscoding()
+					) &&
 					!"16:9".equals(media.getAspectRatioContainer())
 				)
 			) &&
@@ -1923,7 +1929,7 @@ public class MEncoderVideo extends Player {
 		) {
 			String vfValuePrepend = "expand=";
 
-			if (params.mediaRenderer.isKeepAspectRatio()) {
+			if (params.mediaRenderer.isKeepAspectRatio() || params.mediaRenderer.isKeepAspectRatioTranscoding()) {
 				String resolution = dlna.getResolutionForKeepAR(scaleWidth, scaleHeight);
 				scaleWidth = Integer.valueOf(substringBefore(resolution, "x"));
 				scaleHeight = Integer.valueOf(substringAfter(resolution, "x"));

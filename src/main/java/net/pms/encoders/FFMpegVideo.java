@@ -128,7 +128,7 @@ public class FFMpegVideo extends Player {
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
-		boolean keepAR = renderer.isKeepAspectRatio() &&
+		boolean keepAR = (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) &&
 				!media.is3dFullSbsOrOu() &&
 				!"16:9".equals(media.getAspectRatioContainer());
 
@@ -894,7 +894,7 @@ public class FFMpegVideo extends Player {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 			}
-			if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
+			if (deferToTsmuxer == true && (params.mediaRenderer.isKeepAspectRatio() || params.mediaRenderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			}
