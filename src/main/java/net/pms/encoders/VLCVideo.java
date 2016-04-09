@@ -570,7 +570,7 @@ public class VLCVideo extends Player {
 			encodingArgsBuilder.append(curEntry.getKey());
 
 			if (curEntry.getValue() != null) {
-				encodingArgsBuilder.append("=");
+				encodingArgsBuilder.append('=');
 				encodingArgsBuilder.append(curEntry.getValue());
 			}
 

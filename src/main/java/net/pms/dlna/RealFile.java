@@ -296,7 +296,7 @@ public class RealFile extends MapFile {
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append(PMS.get().getServer().getURL());
-		sb.append("/");
+		sb.append('/');
 		if (getMedia() != null && getMedia().getThumb() != null) {
 			return super.getThumbnailURL();
 		} else if (getType() == Format.AUDIO) {

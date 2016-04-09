@@ -25,8 +25,6 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.io.*;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +49,7 @@ import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-import static net.pms.util.StringUtil.*;
+import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -129,7 +127,7 @@ public class FFMpegVideo extends Player {
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
-		boolean keepAR = renderer.isKeepAspectRatio() &&
+		boolean keepAR = (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) &&
 				!media.is3dFullSbsOrOu() &&
 				!"16:9".equals(media.getAspectRatioContainer());
 
@@ -182,7 +180,6 @@ public class FFMpegVideo extends Player {
 			if (params.sid != null && params.sid.getType().isText()) {
 				boolean isSubsASS = params.sid.getType() == SubtitleType.ASS;
 				String originalSubsFilename = null;
-				String subsFilename;
 
 				// Assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
 				if (is3D && !isSubsASS) {
@@ -194,31 +191,7 @@ public class FFMpegVideo extends Player {
 				}
 
 				if (originalSubsFilename != null) {
-					StringBuilder s = new StringBuilder();
-					CharacterIterator it = new StringCharacterIterator(originalSubsFilename);
-					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
-						switch (ch) {
-							case '\'':
-								s.append("\\\\\\'");
-								break;
-							case ':':
-								s.append("\\\\:");
-								break;
-							case '\\':
-								s.append("/");
-								break;
-							case ']':
-							case '[':
-								s.append("\\");
-							default:
-								s.append(ch);
-								break;
-						}
-					}
-
-					subsFilename = s.toString();
-					subsFilename = subsFilename.replace(",", "\\,");
-					subsFilter.append("subtitles=").append(subsFilename);
+					subsFilter.append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
 					if (params.sid.isEmbedded()) {
 						subsFilter.append(":si=").append(params.sid.getId());
 					}
@@ -236,7 +209,14 @@ public class FFMpegVideo extends Player {
 					if (configuration.isFFmpegFontConfig() && !is3D && !isSubsASS) { // Do not force style for 3D videos and ASS subtitles
 						subsFilter.append(":force_style=");
 						subsFilter.append("'");
-						subsFilter.append("Fontname=").append(configuration.getFont());
+						String fontName = configuration.getFont();
+						if (isNotBlank(fontName)) {
+							String font = CodecUtil.isFontRegisteredInOS(fontName);
+							if (font != null) {
+								subsFilter.append("Fontname=").append(font);
+							}
+						}
+
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
 						subsFilter.append(",Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
 						subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
@@ -616,6 +596,9 @@ public class FFMpegVideo extends Player {
 		audioBitrateOptions.add("-q:a");
 		audioBitrateOptions.add(DEFAULT_QSCALE);
 
+		audioBitrateOptions.add("-ar");
+		audioBitrateOptions.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
+
 		return audioBitrateOptions;
 	}
 
@@ -910,7 +893,7 @@ public class FFMpegVideo extends Player {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 			}
-			if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
+			if (deferToTsmuxer == true && (params.mediaRenderer.isKeepAspectRatio() || params.mediaRenderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			}
@@ -1008,6 +991,11 @@ public class FFMpegVideo extends Player {
 					} else {
 						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
 					}
+				}
+
+				if (!customFFmpegOptions.contains("-ar ")) {
+					cmdList.add("-ar");
+					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
 				}
 			}
 
@@ -1388,7 +1376,7 @@ public class FFMpegVideo extends Player {
 						if (reDuration.reset(line).find()) {
 							String d = reDuration.group(1);
 							LOGGER.trace("[{}] setting duration: {}", ID, d);
-							dlna.getMedia().setDuration(convertStringToTime(d));
+							dlna.getMedia().setDuration(StringUtil.convertStringToTime(d));
 							return false; // done, stop filtering
 						}
 						return true; // keep filtering

@@ -447,7 +447,7 @@ class PatternMap<T> extends modAwareHashMap<String, T> {
 		groupmap.clear();
 		for (String regex : this.keySet()) {
 			// add each regex as a capture group
-			joined.append("|(").append(regex).append(")");
+			joined.append("|(").append(regex).append(')');
 			// map all subgroups to the parent
 			for (int i = 0; i < Pattern.compile(regex).matcher("").groupCount() + 1; i++) {
 				groupmap.add(regex);

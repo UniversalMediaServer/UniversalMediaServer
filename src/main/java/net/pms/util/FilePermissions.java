@@ -235,17 +235,17 @@ public class FilePermissions {
 		StringBuilder sb = new StringBuilder();
 		sb.append(folder ? "d" : "-");
 		if (read == null) {
-			sb.append("?");
+			sb.append('?');
 		} else {
 			sb.append(read ? "r" : "-");
 		}
 		if (write == null) {
-			sb.append("?");
+			sb.append('?');
 		} else {
 			sb.append(write ? "w" : "-");
 		}
 		if (execute == null) {
-			sb.append("?");
+			sb.append('?');
 		} else {
 			sb.append(execute ? "x" : "-");
 		}

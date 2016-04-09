@@ -144,6 +144,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
+	protected static final String KEEP_ASPECT_RATIO_TRANSCODING = "KeepAspectRatioTranscoding";
 	protected static final String LIMIT_FOLDERS = "LimitFolders";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
@@ -255,8 +256,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						String rendererName = r.getConfName();
 						allRenderersNames.add(rendererName);
 						String renderersGroup = null;
-						if (rendererName.indexOf(" ") > 0) {
-							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
+						if (rendererName.indexOf(' ') > 0) {
+							renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 						}
 
 						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
@@ -638,7 +639,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
 		DeviceConfiguration r = null;
 		boolean recognized = ref != null;
-		if (! recognized) {
+		if (!recognized) {
 			ref = getDefaultConf();
 		}
 		try {
@@ -668,7 +669,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		} catch (Exception e) {
 		}
-		if (! recognized) {
+		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
 			LOGGER.debug("Marking renderer \"{}\" at {} as unrecognized", r, ia);
 			r.loaded = false;
@@ -1890,16 +1891,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			pairArray = pair.split("=");
 			switch (pairArray[0]) {
 				case "keyint":
-					returnString.append("-g ").append(pairArray[1]).append(" ");
+					returnString.append("-g ").append(pairArray[1]).append(' ');
 					break;
 				case "vqscale":
-					returnString.append("-q:v ").append(pairArray[1]).append(" ");
+					returnString.append("-q:v ").append(pairArray[1]).append(' ');
 					break;
 				case "vqmin":
-					returnString.append("-qmin ").append(pairArray[1]).append(" ");
+					returnString.append("-qmin ").append(pairArray[1]).append(' ');
 					break;
 				case "vqmax":
-					returnString.append("-qmax ").append(pairArray[1]).append(" ");
+					returnString.append("-qmax ").append(pairArray[1]).append(' ');
 					break;
 				default:
 					break;
@@ -2195,6 +2196,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
+	}
+
+	/**
+	 * If this is true, we will always output transcoded video at 16/9
+	 * aspect ratio to the renderer, meaning that all transcoded videos with
+	 * different aspect ratios will have black bars added to the edges to
+	 * make them 16/9.
+	 *
+	 * This addresses a bug in some renderers (like Panasonic TVs) where
+	 * they stretch transcoded videos that are not 16/9.
+	 *
+	 * @return
+	 */
+	public boolean isKeepAspectRatioTranscoding() {
+		return getBoolean(KEEP_ASPECT_RATIO_TRANSCODING, false);
 	}
 
 	/**

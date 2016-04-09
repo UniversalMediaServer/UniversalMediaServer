@@ -704,7 +704,7 @@ public class Request extends HTTPResource {
 				if (parentFolder != null) {
 					response.append(parentFolder.getUpdateId());
 				} else {
-					response.append("1");
+					response.append('1');
 				}
 
 				response.append("</UpdateID>");
@@ -879,7 +879,7 @@ public class Request extends HTTPResource {
 	private String getEnclosingValue(String content, String leftTag, String rightTag) {
 		String result = null;
 		int leftTagPos = content.indexOf(leftTag);
-		int leftTagStop = content.indexOf(">", leftTagPos + 1);
+		int leftTagStop = content.indexOf('>', leftTagPos + 1);
 		int rightTagPos = content.indexOf(rightTag, leftTagStop + 1);
 
 		if (leftTagPos > -1 && rightTagPos > leftTagPos) {

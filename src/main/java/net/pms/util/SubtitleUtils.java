@@ -516,7 +516,7 @@ public class SubtitleUtils {
 			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
-			outputString.append("Style: Default,Arial,").append("15").append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(",").append(fontScaleY).append(",0,0,1,").append(outline).append(",").append(shadow);
+			outputString.append("Style: Default,Arial,").append("15").append(',').append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(',').append(fontScaleY).append(",0,0,1,").append(outline).append(',').append(shadow);
 			if (isOU) {
 				outputString.append(",2,15,15,15,0\n\n");
 			} else if (isSBS) {
