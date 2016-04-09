@@ -14,6 +14,8 @@
 	Renderers:
 		Improved support for Panasonic TVs
 		Improved support for Sony TVs
+	Languages:
+		Synchronized translations with crowdin
 	External Components:
 		Updated icu4j to 57.1
 		Updated MediaInfo to 0.7.84
