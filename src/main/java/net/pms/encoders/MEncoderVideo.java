@@ -1666,7 +1666,7 @@ public class MEncoderVideo extends Player {
 					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
 					cmdList.add("-slang");
 					cmdList.add("" + params.sid.getLang());
-				} else {
+				} else if (!params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) { //when subs are streamable do not transcode them
 					cmdList.add("-sub");
 					// assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
 					if (media.is3d() && params.sid.getType() != SubtitleType.ASS) {

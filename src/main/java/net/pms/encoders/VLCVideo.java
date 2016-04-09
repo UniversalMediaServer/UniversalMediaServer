@@ -510,7 +510,7 @@ public class VLCVideo extends Player {
 
 		// Handle subtitle language
 		if (params.sid != null) { // User specified language at the client, acknowledge it
-			if (params.sid.isExternal()) {
+			if (params.sid.isExternal() && !params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) {
 				String externalSubtitlesFileName;
 
 				// External subtitle file
