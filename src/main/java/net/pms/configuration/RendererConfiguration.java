@@ -2340,7 +2340,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * List of the file formats for which supported external subtitles formats
+	 * List of video formats for which supported external subtitles formats
 	 * are set for streaming together with streaming (not transcoded) video.
 	 * If empty all subtitles listed in "SupportedExternalSubtitlesFormats" will be streamed.
 	 * When specified only for listed video formats subtitles will be streamed.
