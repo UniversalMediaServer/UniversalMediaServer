@@ -18,7 +18,6 @@
  */
 package net.pms.dlna;
 
-import com.sun.jna.Platform;
 import java.awt.Component;
 import java.io.File;
 import java.sql.*;
@@ -87,7 +86,8 @@ public class DLNAMediaDatabase implements Runnable {
 
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
-		dbDir = new File(configuration.getProfileDirectory(), "database").getAbsolutePath();
+		File profileDirectory = new File(configuration.getProfileDirectory());
+		dbDir = new File(profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
 		url = Constants.START_URL + dbDir + File.separator + dbName;
 		LOGGER.debug("Using database URL: " + url);
 		LOGGER.info("Using database located at: " + dbDir);
