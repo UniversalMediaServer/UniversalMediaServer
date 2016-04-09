@@ -204,6 +204,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String USE_CLOSED_CAPTION = "UseClosedCaption";
 	protected static final String USE_SAME_EXTENSION = "UseSameExtension";
 	protected static final String VIDEO = "Video";
+	protected static final String VIDEO_FORMATS_SUPPORTING_STREAMED_EXTERNAL_SUBTITLES = "VideoFormatsSupportingStreamedExternalSubtitles";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 
@@ -2339,6 +2340,18 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * List of the file formats for which supported external subtitles formats
+	 * are set for streaming together with streaming (not transcoded) video.
+	 * If empty all subtitles listed in "SupportedExternalSubtitlesFormats" will be streamed.
+	 * When specified only for listed video formats subtitles will be streamed.
+	 * 
+	 * @return A comma-separated list of supported video formats listed in "Supported" section.
+	 */
+	public String getVideoFormatsSupportingStreamedExternalSubtitles() {
+		return getString(VIDEO_FORMATS_SUPPORTING_STREAMED_EXTERNAL_SUBTITLES, "");
+	}
+
+	/**
 	 * List of the renderer supported embedded subtitles formats.
 	 * 
 	 * @return A comma-separated list of supported embedded subtitles formats.
@@ -2364,21 +2377,38 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Check if the given subtitle type is supported by renderer for streaming.
+	 * Check if the given subtitle type is supported by renderer for streaming for given media.
 	 *
 	 * @param subtitle Subtitles for checking
-	 * @return True if the renderer specifies support for the subtitles
+	 * @param media Played media
+	 * 
+	 * @return True if the renderer specifies support for the subtitles and 
+	 * renderer supports subs streaming for the given media video.
 	 */
-	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
-		if (subtitle == null) {
+	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAMediaInfo media) {
+		if (subtitle == null || media == null) {
 			return false;
 		}
 
 		if (isSubtitlesStreamingSupported()) {
+			String[] supportedFormats = null;
+			if (StringUtils.isNotBlank(getVideoFormatsSupportingStreamedExternalSubtitles())) {
+				supportedFormats = getVideoFormatsSupportingStreamedExternalSubtitles().split(",");
+			}
+			
 			String[] supportedSubs = getSupportedExternalSubtitles().split(",");
 			for (String supportedSub : supportedSubs) {
 				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
-					return true;
+					if (supportedFormats != null) {
+						for (String supportedFormat : supportedFormats) {
+							if (media.getCodecV().equals(supportedFormat.trim().toLowerCase())) {
+								return true;
+							}
+						}
+					} else {
+						return true;
+					}
+					
 				}
 			}
 		}
