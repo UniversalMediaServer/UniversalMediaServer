@@ -19,18 +19,11 @@
  */
 package net.pms.network;
 
-import java.awt.event.ActionEvent;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
-import static net.pms.dlna.DLNAResource.Temp;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -38,6 +31,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.fourthline.cling.model.meta.Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static net.pms.dlna.DLNAResource.Temp;
 
 /**
  * Helper class to handle the UPnP traffic that makes UMS discoverable by
@@ -78,6 +80,9 @@ public class UPNPHelper extends UPNPControl {
 	private static Thread aliveThread;
 
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+
+	// The alive delay
+	private static final int aliveDelay = configuration.getUpnpAliveDelay();
 
 	private static final UPNPHelper instance = new UPNPHelper();
 	private static PlayerControlHandler httpControlHandler;
@@ -360,6 +365,7 @@ public class UPNPHelper extends UPNPControl {
 		Runnable rAlive = new Runnable() {
 			@Override
 			public void run() {
+				LOGGER.debug("configured alive delay is " + aliveDelay + " ms.");
 				int delay = 10000;
 
 				while (true) {
@@ -374,7 +380,7 @@ public class UPNPHelper extends UPNPControl {
 							delay = 20000;
 							break;
 						case 20000:
-							delay = 180000;
+							delay = aliveDelay;
 							break;
 						default:
 							break;
