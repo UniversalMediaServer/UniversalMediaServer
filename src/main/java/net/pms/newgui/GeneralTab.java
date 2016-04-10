@@ -377,7 +377,7 @@ public class GeneralTab {
 						int ab = Integer.parseInt(p);
 						configuration.setUpnpAliveDelay(ab);
 					} catch (NumberFormatException nfe) {
-						LOGGER.debug("Could not parse port from \"" + aliveDelay.getText() + "\"");
+						LOGGER.debug("Could not parse delay from \"" + aliveDelay.getText() + "\"");
 					}
 
 				}
