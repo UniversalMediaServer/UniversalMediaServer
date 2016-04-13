@@ -171,7 +171,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	protected static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
-	protected static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
+	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	protected static final String KEY_INFO_DB_RETRY = "infodb_retry";
 	protected static final String KEY_IP_FILTER = "ip_filter";
@@ -375,7 +375,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
 			KEY_HIDE_TRANSCODE_FOLDER,
 			KEY_HIDE_VIDEO_SETTINGS,
-			KEY_IGNORE_THE_WORD_THE,
+			KEY_IGNORE_THE_WORD_A_AND_THE,
 			KEY_IP_FILTER,
 			KEY_NETWORK_INTERFACE,
 			KEY_OPEN_ARCHIVES,
@@ -2832,12 +2832,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_AUDIO_RESAMPLE, value);
 	}
 
-	public boolean isIgnoreTheWordThe() {
-		return getBoolean(KEY_IGNORE_THE_WORD_THE, true);
+	public boolean isIgnoreTheWordAandThe() {
+		return getBoolean(KEY_IGNORE_THE_WORD_A_AND_THE, true);
 	}
 
-	public void setIgnoreTheWordThe(boolean value) {
-		configuration.setProperty(KEY_IGNORE_THE_WORD_THE, value);
+	public void setIgnoreTheWordAandThe(boolean value) {
+		configuration.setProperty(KEY_IGNORE_THE_WORD_A_AND_THE, value);
 	}
 
 	public boolean isPrettifyFilenames() {

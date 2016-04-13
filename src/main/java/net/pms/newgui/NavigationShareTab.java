@@ -578,13 +578,13 @@ public class NavigationShareTab {
 		});
 
 		// Ignore the word "the" while sorting
-		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordThe());
+		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordAandThe());
 		ignorethewordthe.setToolTipText(Messages.getString("FoldTab.44"));
 		ignorethewordthe.setContentAreaFilled(false);
 		ignorethewordthe.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setIgnoreTheWordThe((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setIgnoreTheWordAandThe((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
