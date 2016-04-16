@@ -39,6 +39,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
@@ -177,14 +178,19 @@ public class FFMpegVideo extends Player {
 
 		if (!isDisableSubtitles(params) && override) {
 			boolean isSubsManualTiming = true;
+			DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid != null && params.sid.getType().isText()) {
 				boolean isSubsASS = params.sid.getType() == SubtitleType.ASS;
 				String originalSubsFilename = null;
-
-				// Assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
-				if (is3D && !isSubsASS) {
-					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
+				if (is3D) {
+					if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
+						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
+					} else if (!isSubsASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
+						originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
+					} else {
+						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
+					}
 				} else if (params.sid.isExternal()) {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 				} else if (params.sid.isEmbedded()) {

@@ -169,6 +169,14 @@ public class SubtitleUtils {
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+		File convertedFile = dlna.getMediaSubtitle().getConvertedFile();
+
+		if (convertedFile != null && convertedFile.canRead()) {
+			// subs are already converted and exists
+			params.sid.setType(SubtitleType.ASS);
+			params.sid.setSubCharacterSet(CHARSET_UTF_8);
+			return convertedFile;
+		}
 
 		String filename = isEmbeddedSource ?
 			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
@@ -192,24 +200,6 @@ public class SubtitleUtils {
 		} else {
 			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
-		}
-
-		if (convertedSubs.canRead()) {
-			// subs are already converted
-			if (applyFontConfig || isEmbeddedSource || is3D) {
-				params.sid.setType(SubtitleType.ASS);
-				params.sid.setSubCharacterSet(CHARSET_UTF_8);
-				if (is3D) {
-					try {
-						convertedSubs = convertASSToASS3D(convertedSubs, media, params);
-					} catch (IOException | NullPointerException e) {
-						LOGGER.debug("Converting to ASS3D format ends with error: " + e);
-						return null;
-					}
-				}
-			}
-
-			return convertedSubs;
 		}
 
 		boolean isExternalAss = false;
@@ -286,6 +276,8 @@ public class SubtitleUtils {
 		}
 
 		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
+		params.sid.setConvertedFile(tempSubs);
+		dlna.getMediaSubtitle().setConvertedFile(tempSubs);
 		return tempSubs;
 	}
 
@@ -574,13 +566,13 @@ public class SubtitleUtils {
 							.append("Default,,")
 							.append("0000,")
 							.append(String.format("%04d,", 192 - depth3D))
-							.append("0000,")
+							.append("0000,,")
 							.append(text).append("\n")
 							.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("Default,,")
 							.append(String.format("%04d,", 192 - depth3D))
-							.append("0000,0000,")
+							.append("0000,0000,,")
 							.append(text).append("\n");
 						}
 					}
