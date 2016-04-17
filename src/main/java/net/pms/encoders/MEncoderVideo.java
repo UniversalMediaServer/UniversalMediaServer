@@ -1675,10 +1675,10 @@ public class MEncoderVideo extends Player {
 						} else if (params.sid.getType() != SubtitleType.ASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
 							File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
 							cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
-						} else {
-							cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
 						}
-					}	
+					} else {
+						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files					}
+					}
 
 					if (params.sid.isExternalFileUtf()) {
 						// Append -utf8 option for UTF-8 external subtitles
