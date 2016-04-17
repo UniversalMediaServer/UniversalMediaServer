@@ -202,6 +202,22 @@ public class SubtitleUtils {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
 		}
 
+		File converted3DSubs = new File(FileUtil.getFileNameWithoutExtension(convertedSubs.getAbsolutePath()) + "_3D.ass");
+		if (convertedSubs.canRead() || converted3DSubs.canRead()) {
+			// subs are already converted
+			if (applyFontConfig || isEmbeddedSource || is3D) {
+				params.sid.setType(SubtitleType.ASS);
+				params.sid.setSubCharacterSet(CHARSET_UTF_8);
+				if (converted3DSubs.canRead()) {
+					convertedSubs = converted3DSubs;
+				}
+			}
+
+			params.sid.setConvertedFile(convertedSubs);
+			dlna.getMediaSubtitle().setConvertedFile(convertedSubs);
+			return convertedSubs;
+		}
+
 		boolean isExternalAss = false;
 		if (
 			params.sid.getType() == SubtitleType.ASS &&
@@ -464,7 +480,7 @@ public class SubtitleUtils {
 	 * @throws IOException
 	 */
 	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media, OutputParams params) throws IOException, NullPointerException {
-		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + "_3D.ass");
+		File outputSubs = new File(FileUtil.getFileNameWithoutExtension(tempSubs.getAbsolutePath()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
 		Charset subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		if (subsFileCharset == null) {
