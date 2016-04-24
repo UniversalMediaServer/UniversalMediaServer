@@ -1293,7 +1293,7 @@ public class FileUtil {
 
 		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
 			// Remove "a" and "the" from filename
-			filename = filename.replaceAll("^(?i)A|The[ .]", "");
+			filename = filename.replaceAll("^(?i)A[ .]|The[ .]", "");
 
 			// Replace multiple whitespaces with space
 			filename = filename.replaceAll("\\s{2,}"," ");
