@@ -86,6 +86,7 @@ function changeMargins() {
 
 function scrollActions() {
 	if ($(window).width() > 1080) {
+		$("#Menu, #ContentPage #Menu #HomeButton, ul#Folders, ul#Media").stop();
 		if ($(window).scrollTop() === 0) {
 			$("#Menu").animate({height: 95}, 200);
 			$("#ContentPage #Menu #HomeButton").animate({height: 93}, 200);
@@ -98,6 +99,7 @@ function scrollActions() {
 			$("ul#Media").animate({paddingTop: 73}, 200);
 		}
 	} else {
+		$("#Menu, #ContentPage #Menu #HomeButton, ul#Media").stop();
 		$("#Menu").animate({height: 53}, 200);
 		$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
 		$("ul#Media").animate({paddingTop: 20}, 200);
