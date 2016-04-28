@@ -234,7 +234,7 @@ public class IpFilter {
 		return "IpFilter:" + getNormalizedFilter();
 	}
 
-	public String getNormalizedFilter() {
+	public synchronized String getNormalizedFilter() {
 		StringBuilder b = new StringBuilder();
 		for (Predicate r : matchers) {
 			if (b.length() > 0) {
@@ -246,7 +246,7 @@ public class IpFilter {
 		return b.toString();
 	}
 
-	public boolean allowed(InetAddress addr) {
+	public synchronized boolean allowed(InetAddress addr) {
 		boolean log = isFirstDecision(addr);
 		if (matchers.isEmpty()) {
 			if (log) {

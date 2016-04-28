@@ -1782,7 +1782,7 @@ public class PMS {
 		return get().ready;
 	}
 
-	public static GlobalIdRepo getGlobalRepo() {
+	public synchronized static GlobalIdRepo getGlobalRepo() {
 		return get().globalRepo;
 	}
 
