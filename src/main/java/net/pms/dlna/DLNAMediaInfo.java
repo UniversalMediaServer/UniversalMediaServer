@@ -1439,7 +1439,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Check for external subs here
-		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles()) {
+		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
 			FileUtil.isSubtitlesExists(f.getFile(), this);
 		}
 	}

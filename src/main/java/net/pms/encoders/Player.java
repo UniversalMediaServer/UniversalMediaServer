@@ -300,185 +300,189 @@ public abstract class Player {
 			}
 		}
 
-		StringTokenizer st = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
+		if (!configuration.isDisableSubtitles()) {
+			StringTokenizer st = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
 
-		/**
-		 * Check for external and internal subtitles matching the user's language
-		 * preferences
-		 */
-		boolean matchedInternalSubtitles = false;
-		boolean matchedExternalSubtitles = false;
-		while (st.hasMoreTokens()) {
-			String pair = st.nextToken();
-			if (pair.contains(",")) {
-				String audio = pair.substring(0, pair.indexOf(','));
-				String sub = pair.substring(pair.indexOf(',') + 1);
-				audio = audio.trim();
-				sub = sub.trim();
-				LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
+			/**
+			 * Check for external and internal subtitles matching the user's language
+			 * preferences
+			 */
+			boolean matchedInternalSubtitles = false;
+			boolean matchedExternalSubtitles = false;
+			while (st.hasMoreTokens()) {
+				String pair = st.nextToken();
+				if (pair.contains(",")) {
+					String audio = pair.substring(0, pair.indexOf(','));
+					String sub = pair.substring(pair.indexOf(',') + 1);
+					audio = audio.trim();
+					sub = sub.trim();
+					LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
 
-				if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
-					if (sub.equals("off")) {
-						/**
-						 * Ignore the "off" language for external subtitles if the user setting is enabled
-						 * TODO: Prioritize multiple external subtitles properly instead of just taking the first one we load
-						 */
-						if (configuration.isForceExternalSubtitles()) {
-							for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
-								if (present_sub.getExternalFile() != null) {
-									matchedSub = present_sub;
-									matchedExternalSubtitles = true;
-									LOGGER.trace("Ignoring the \"off\" language because there are external subtitles");
-									break;
-								}
-							}
-						}
-						if (!matchedExternalSubtitles) {
-							matchedSub = new DLNAMediaSubtitle();
-							matchedSub.setLang("off");
-						}
-					} else {
-						for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
-							if (present_sub.matchCode(sub) || sub.equals("*")) {
-								if (present_sub.getExternalFile() != null) {
-									if (configuration.isAutoloadExternalSubtitles()) {
-										// Subtitle is external and we want external subtitles, look no further
+					if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
+						if (sub.equals("off")) {
+							/**
+							 * Ignore the "off" language for external subtitles if the user setting is enabled
+							 * TODO: Prioritize multiple external subtitles properly instead of just taking the first one we load
+							 */
+							if (configuration.isForceExternalSubtitles()) {
+								for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
+									if (present_sub.getExternalFile() != null) {
 										matchedSub = present_sub;
-										LOGGER.trace("Matched external subtitles track: " + matchedSub);
-										break;
-									} else {
-										// Subtitle is external but we do not want external subtitles, keep searching
-										LOGGER.trace("External subtitles ignored because of user setting: " + present_sub);
-									}
-								} else if (!matchedInternalSubtitles) {
-									matchedSub = present_sub;
-									LOGGER.trace("Matched internal subtitles track: " + matchedSub);
-									if (configuration.isAutoloadExternalSubtitles()) {
-										// Subtitle is internal and we will wait to see if an external one is available instead
-										matchedInternalSubtitles = true;
-									} else {
-										// Subtitle is internal and we will use it
+										matchedExternalSubtitles = true;
+										LOGGER.trace("Ignoring the \"off\" language because there are external subtitles");
 										break;
 									}
 								}
 							}
+
+							if (!matchedExternalSubtitles) {
+								matchedSub = new DLNAMediaSubtitle();
+								matchedSub.setLang("off");
+							}
+						} else {
+							for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
+								if (present_sub.matchCode(sub) || sub.equals("*")) {
+									if (present_sub.getExternalFile() != null) {
+										if (configuration.isAutoloadExternalSubtitles()) {
+											// Subtitle is external and we want external subtitles, look no further
+											matchedSub = present_sub;
+											LOGGER.trace("Matched external subtitles track: " + matchedSub);
+											break;
+										} else {
+											// Subtitle is external but we do not want external subtitles, keep searching
+											LOGGER.trace("External subtitles ignored because of user setting: " + present_sub);
+										}
+									} else if (!matchedInternalSubtitles) {
+										matchedSub = present_sub;
+										LOGGER.trace("Matched internal subtitles track: " + matchedSub);
+										if (configuration.isAutoloadExternalSubtitles()) {
+											// Subtitle is internal and we will wait to see if an external one is available instead
+											matchedInternalSubtitles = true;
+										} else {
+											// Subtitle is internal and we will use it
+											break;
+										}
+									}
+								}
+							}
+						}
+
+						if (matchedSub != null && !matchedInternalSubtitles) {
+							break;
 						}
 					}
+				}
+			}
 
-					if (matchedSub != null && !matchedInternalSubtitles) {
+			/**
+			 * Check for external subtitles that were skipped in the above code block
+			 * because they didn't match language preferences, if there wasn't already
+			 * a match and the user settings specify it.
+			 */
+			if (matchedSub == null && configuration.isForceExternalSubtitles()) {
+				for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
+					if (present_sub.getExternalFile() != null) {
+						matchedSub = present_sub;
+						LOGGER.trace("Matched external subtitles track that did not match language preferences: " + matchedSub);
 						break;
 					}
 				}
 			}
-		}
 
-		/**
-		 * Check for external subtitles that were skipped in the above code block
-		 * because they didn't match language preferences, if there wasn't already
-		 * a match and the user settings specify it.
-		 */
-		if (matchedSub == null && configuration.isForceExternalSubtitles()) {
-			for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
-				if (present_sub.getExternalFile() != null) {
-					matchedSub = present_sub;
-					LOGGER.trace("Matched external subtitles track that did not match language preferences: " + matchedSub);
-					break;
+			/**
+			 * Disable chosen subtitles if the user has disabled all subtitles or
+			 * if the language preferences have specified the "off" language.
+			 *
+			 * TODO: Can't we save a bunch of looping by checking for isDisableSubtitles
+			 * just after the Live Subtitles check above?
+			 */
+			if (matchedSub != null && params.sid == null) {
+				if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
+					LOGGER.trace("Disabled the subtitles: " + matchedSub);
+				} else {
+					params.sid = matchedSub;
 				}
 			}
-		}
 
-		/**
-		 * Disable chosen subtitles if the user has disabled all subtitles or
-		 * if the language preferences have specified the "off" language.
-		 *
-		 * TODO: Can't we save a bunch of looping by checking for isDisableSubtitles
-		 * just after the Live Subtitles check above?
-		 */
-		if (matchedSub != null && params.sid == null) {
-			if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
-				LOGGER.trace("Disabled the subtitles: " + matchedSub);
-			} else {
-				params.sid = matchedSub;
-			}
-		}
+			/**
+			 * Check for forced subtitles.
+			 */
+			if (params.sid == null && media != null) {
+				// Check for subtitles again
+				File video = new File(fileName);
+				FileUtil.isSubtitlesExists(video, media, false);
 
-		/**
-		 * Check for forced subtitles.
-		 */
-		if (!configuration.isDisableSubtitles() && params.sid == null && media != null) {
-			// Check for subtitles again
-			File video = new File(fileName);
-			FileUtil.isSubtitlesExists(video, media, false);
+				if (configuration.isAutoloadExternalSubtitles()) {
+					boolean forcedSubsFound = false;
+					// Priority to external subtitles
+					for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
+						if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
+							st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
 
-			if (configuration.isAutoloadExternalSubtitles()) {
-				boolean forcedSubsFound = false;
-				// Priority to external subtitles
-				for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-					if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
-						st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
+							while (sub.getSubtitlesTrackTitleFromMetadata() != null && st.hasMoreTokens()) {
+								String forcedTags = st.nextToken();
+								forcedTags = forcedTags.trim();
+								if (
+										sub.getSubtitlesTrackTitleFromMetadata().toLowerCase().contains(forcedTags) &&
+										Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
+									) {
+									LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getSubtitlesTrackTitleFromMetadata());
+									LOGGER.trace("Forced subtitles track: " + sub);
 
-						while (sub.getSubtitlesTrackTitleFromMetadata() != null && st.hasMoreTokens()) {
-							String forcedTags = st.nextToken();
-							forcedTags = forcedTags.trim();
+									if (sub.getExternalFile() != null) {
+										LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
+									}
 
-							if (
-								sub.getSubtitlesTrackTitleFromMetadata().toLowerCase().contains(forcedTags) &&
-								Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
-							) {
-								LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getSubtitlesTrackTitleFromMetadata());
-								LOGGER.trace("Forced subtitles track: " + sub);
-
-								if (sub.getExternalFile() != null) {
-									LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
+									params.sid = sub;
+									forcedSubsFound = true;
+									break;
 								}
+							}
+
+							if (forcedSubsFound == true) {
+								break;
+							}
+						} else {
+							LOGGER.trace("Found subtitles track: " + sub);
+							if (sub.getExternalFile() != null) {
+								LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
 								params.sid = sub;
-								forcedSubsFound = true;
 								break;
 							}
 						}
-						if (forcedSubsFound == true) {
-							break;
-						}
-					} else {
-						LOGGER.trace("Found subtitles track: " + sub);
+					}
+				}
 
-						if (sub.getExternalFile() != null) {
-							LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
-							params.sid = sub;
-							break;
+				if (
+						matchedSub != null &&
+						matchedSub.getLang() != null &&
+						matchedSub.getLang().equals("off")
+				) {
+					return;
+				}
+
+				if (params.sid == null) {
+					st = new StringTokenizer(UMSUtils.getLangList(params.mediaRenderer), ",");
+					while (st.hasMoreTokens()) {
+						String lang = st.nextToken();
+						lang = lang.trim();
+						LOGGER.trace("Looking for a subtitle track with lang: " + lang);
+						for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
+							if (
+									sub.matchCode(lang) &&
+								!(
+									!configuration.isAutoloadExternalSubtitles() &&
+									sub.getExternalFile() != null
+								)
+								) {
+								params.sid = sub;
+								LOGGER.trace("Matched subtitles track: " + params.sid);
+								return;
+							}
 						}
 					}
 				}
-			}
-			if (
-				matchedSub != null &&
-				matchedSub.getLang() != null &&
-				matchedSub.getLang().equals("off")
-			) {
-				return;
-			}
-
-			if (params.sid == null) {
-				st = new StringTokenizer(UMSUtils.getLangList(params.mediaRenderer), ",");
-				while (st.hasMoreTokens()) {
-					String lang = st.nextToken();
-					lang = lang.trim();
-					LOGGER.trace("Looking for a subtitle track with lang: " + lang);
-					for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-						if (
-							sub.matchCode(lang) &&
-							!(
-								!configuration.isAutoloadExternalSubtitles() &&
-								sub.getExternalFile() != null
-							)
-						) {
-							params.sid = sub;
-							LOGGER.trace("Matched subtitles track: " + params.sid);
-							return;
-						}
-					}
-				}
-			}
+			}	
 		}
 	}
 
