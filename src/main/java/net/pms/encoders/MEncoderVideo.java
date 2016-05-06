@@ -1625,14 +1625,18 @@ public class MEncoderVideo extends Player {
 					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
 					cmdList.add("-slang");
 					cmdList.add("" + params.sid.getLang());
-				} else {
+				} else if (!params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) { //when subs are streamable do not transcode them
 					cmdList.add("-sub");
-					// assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
-					if (media.is3d() && params.sid.getType() != SubtitleType.ASS) {
-						File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
-						cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
+					DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
+					if (media.is3d()) {
+						if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
+							cmdList.add(convertedSubs.getConvertedFile().getAbsolutePath().replace(",", "\\,"));
+						} else if (params.sid.getType() != SubtitleType.ASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
+							File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+							cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
+						}
 					} else {
-						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
+						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files					}
 					}
 
 					if (params.sid.isExternalFileUtf()) {

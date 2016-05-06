@@ -1286,9 +1286,9 @@ public class FileUtil {
 			filename = filename.replaceAll("\\.|_", " ");
 		}
 
-		if (PMS.getConfiguration().isIgnoreTheWordThe()) {
-			// Remove "the" from filename
-			filename = filename.replaceAll("^(?i)The[ .]", "");
+		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
+			// Remove "a" and "the" from filename
+			filename = filename.replaceAll("^(?i)A[ .]|The[ .]", "");
 
 			// Replace multiple whitespaces with space
 			filename = filename.replaceAll("\\s{2,}"," ");

@@ -198,11 +198,13 @@ public class PMS {
 	 * @since 1.82.0
 	 */
 	public void setRendererFound(RendererConfiguration renderer) {
-		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
-			LOGGER.debug("Adding status button for " + renderer.getRendererName());
-			foundRenderers.add(renderer);
-			frame.addRenderer(renderer);
-			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+		synchronized (foundRenderers) {
+			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+				LOGGER.debug("Adding status button for " + renderer.getRendererName());
+				foundRenderers.add(renderer);
+				frame.addRenderer(renderer);
+				frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+			}
 		}
 	}
 
