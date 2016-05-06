@@ -1,4 +1,4 @@
-6.3.0 - 2016-05-??
+6.3.0 - 2016-05-07
 
 	General:
 		Added renderer config setting VideoFormatsSupportingStreamedExternalSubtitles
