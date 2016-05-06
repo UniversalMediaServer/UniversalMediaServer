@@ -1,7 +1,22 @@
-6.2.3 - 2016-04-??
+6.2.3 - 2016-05-??
 
 	General:
-		
+		Added renderer config setting VideoFormatsSupportingStreamedExternalSubtitles
+		Added renderer config setting StreamSubsForTranscodedVideo
+		Ignore the article "a" by default, along with "the"
+		Improved support for 3D subtitles
+		Improved support for streaming external subtitles
+		Defer to FFmpeg for transcoding VobSub subtitles
+		Fixed header animation delay on web interface
+	Renderers:
+		Added support for Yamaha RXV500D (thanks, newbietux!)
+		Improved support for Miracast M806
+		Improved support for Panasonic Viera GT50 TVs (thanks, pcjco!)
+		Improved support for Panasonic Viera TXL32V10E TVs
+	External Components:
+		Updated FFmpeg
+		Updated MediaInfo to 0.7.85
+		Updated MPlayer/MEncoder for Windows to SB65
 
 6.2.2 - 2016-04-09
 
