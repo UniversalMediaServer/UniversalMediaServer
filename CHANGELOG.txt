@@ -1,4 +1,4 @@
-6.2.3 - 2016-05-??
+6.3.0 - 2016-05-??
 
 	General:
 		Added renderer config setting VideoFormatsSupportingStreamedExternalSubtitles
@@ -13,6 +13,8 @@
 		Improved support for Miracast M806
 		Improved support for Panasonic Viera GT50 TVs (thanks, pcjco!)
 		Improved support for Panasonic Viera TXL32V10E TVs
+	Languages:
+		Synchronized translations with crowdin
 	External Components:
 		Updated FFmpeg
 		Updated MediaInfo to 0.7.85
