@@ -77,7 +77,7 @@
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 		<mediautil-version>1.0</mediautil-version>
-		<slf4j-version>1.7.19</slf4j-version>
+		<slf4j-version>1.7.21</slf4j-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
@@ -812,13 +812,13 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>cobertura-maven-plugin</artifactId>
-							<version>2.6</version>
+							<version>2.7</version>
 						</plugin>
 
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-pmd-plugin</artifactId>
-							<version>3.4</version>
+							<version>3.6</version>
 							<configuration>
 								<linkXref>false</linkXref>
 								<sourceEncoding>utf-8</sourceEncoding>
@@ -843,7 +843,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.0.0</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
