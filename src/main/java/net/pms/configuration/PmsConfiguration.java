@@ -284,6 +284,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	protected static final String KEY_UPNP_ENABLED = "upnp_enable";
 	protected static final String KEY_UPNP_PORT = "upnp_port";
+    protected static final String KEY_UPNP_ALIVE_DELAY = "upnp_alive_delay";
 	protected static final String KEY_USE_CACHE = "use_cache";
 	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	protected static final String KEY_USE_IMDB_INFO = "use_imdb_info";
@@ -807,6 +808,15 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setServerPort(int value) {
 		configuration.setProperty(KEY_SERVER_PORT, value);
 	}
+
+    /**
+     * Sets the delay between UPNP alive broadcasts.
+     *
+     * @param value The delay.
+     */
+    public void setUpnpAliveDelay(int value){
+        configuration.setProperty(KEY_UPNP_ALIVE_DELAY, value < 10000 ? 10000 : value);
+    }
 
 	/**
 	 * The hostname of the server.
@@ -3006,6 +3016,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	public int getUpnpPort() {
 		return getInt(KEY_UPNP_PORT, 1900);
 	}
+
+    public int getUpnpAliveDelay() {
+        return getInt(KEY_UPNP_ALIVE_DELAY, 180000);
+    }
 
 	public String getUuid() {
 		return getString(KEY_UUID, null);

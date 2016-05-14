@@ -23,12 +23,6 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
-import java.util.List;
-import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
@@ -42,6 +36,15 @@ import net.pms.util.WindowsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class GeneralTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
@@ -57,6 +60,7 @@ public class GeneralTab {
 	private JCheckBox preventSleep;
 	private JTextField host;
 	private JTextField port;
+	private JTextField aliveDelay;
 	private JTextField serverName;
 	private JComboBox<String> networkinterfacesCBX;
 	private JTextField ip_filter;
@@ -360,6 +364,25 @@ public class GeneralTab {
 				}
 			});
 
+			aliveDelay = new JTextField(configuration.getUpnpAliveDelay());
+			aliveDelay.setToolTipText(Messages.getString("NetworkTab.76"));
+			aliveDelay.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					try {
+						String p = aliveDelay.getText();
+						if (StringUtils.isEmpty(p)) {
+							p = "180000";
+						}
+						int ab = Integer.parseInt(p);
+						configuration.setUpnpAliveDelay(ab);
+					} catch (NumberFormatException nfe) {
+						LOGGER.debug("Could not parse delay from \"" + aliveDelay.getText() + "\"");
+					}
+
+				}
+			});
+
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.22"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 			ypos += 2;
 			cmp = (JComponent) cmp.getComponent(0);
@@ -417,6 +440,9 @@ public class GeneralTab {
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.24"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(port, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+			ypos += 2;
+			builder.addLabel(Messages.getString("NetworkTab.75"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.add(aliveDelay, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
