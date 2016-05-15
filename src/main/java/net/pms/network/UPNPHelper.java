@@ -366,18 +366,11 @@ public class UPNPHelper extends UPNPControl {
 					sleep(delay);
 					sendAlive();
 
-					// The first delay for sending an ALIVE message is 10 seconds,
-					// the second delay is for 20 seconds. From then on, all other
-					// delays are for 180 seconds.
-					switch (delay) {
-						case 10000:
-							delay = 20000;
-							break;
-						case 20000:
-							delay = 180000;
-							break;
-						default:
-							break;
+					// If a renderer is connected, broadcast every 30 seconds, otherwise every 10.
+					if (getRenderers(1).size() > 0) {
+						delay = 30000;
+					} else {
+						delay = 10000;
 					}
 				}
 			}
