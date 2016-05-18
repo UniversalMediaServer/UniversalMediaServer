@@ -1752,7 +1752,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isHDVideo() {
-		return (width > 864 || height > 540);
+		return (width > 864 || height > 576);
 	}
 
 	public boolean isMpegTS() {
