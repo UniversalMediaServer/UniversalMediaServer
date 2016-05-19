@@ -337,7 +337,7 @@ public class UPNPHelper extends UPNPControl {
 		InetAddress upnpAddress = getUPNPAddress();
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
 		socket.send(ssdpPacket);
-		sleep(rand.nextInt(delay / 2));
+		sleep(rand.nextInt(delay / 100 / 2));
 		// Send the SSDP packet twice in accordance with the DLNA specification
 		socket.send(ssdpPacket);
 //		LOGGER.trace( "Repeating the SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>"));
@@ -540,7 +540,7 @@ public class UPNPHelper extends UPNPControl {
 		sb.append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("CACHE-CONTROL: max-age=1800").append(CRLF);
+			sb.append("CACHE-CONTROL: max-age=300").append(CRLF);
 			sb.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		}
 
