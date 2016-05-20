@@ -1,7 +1,19 @@
 6.3.1 - 2016-05-??
 
 	General:
-		
+		Improved connectivity with devices
+		Improved support for 3D subtitles
+		Fixed support for PAL DVDs
+	Renderers:
+		Improved support for LG EG910V TVs
+		Improved support for Panasonic Viera E6 Series TVs
+		Improved detection of Windows Media Player
+		Fixed support for WMV 8 and below on Panasonic TVs
+	External Components:
+		Updated Cobertura Maven Plugin to 2.7
+		Updated Maven PMD Plugin to 3.6
+		Updated Maven Source Plugin to 3.0.0
+		Updated slf4j to 1.7.21
 
 6.3.0 - 2016-05-07
 
