@@ -332,23 +332,18 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		String msg = buildMsg(nt, message);
-		//Random rand = new Random();
-
-		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
-
+		Random rand = new Random();
+//		LOGGER.trace( "Sending the SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>"));
 		InetAddress upnpAddress = getUPNPAddress();
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
 		socket.send(ssdpPacket);
-
-		// XXX Why is it necessary to sleep for this random time? What would happen when random equals 0?
-		//sleep(rand.nextInt(1800 / 2));
-
-		// XXX Why send the same packet twice?
-		//socket.send(ssdpPacket);
-
-		// XXX Why is it necessary to sleep for this random time (again)?
-		//sleep(rand.nextInt(1800 / 2));
+		sleep(rand.nextInt(delay / 100 / 2));
+		// Send the SSDP packet twice in accordance with the DLNA specification
+		socket.send(ssdpPacket);
+//		LOGGER.trace( "Repeating the SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>"));
 	}
+
+	private static int delay = 10000;
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
@@ -358,24 +353,15 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	public static void listen() throws IOException {
 		Runnable rAlive = () -> {
-			int delay = 10000;
-			
 			while (true) {
 				sleep(delay);
 				sendAlive();
-				
-				// The first delay for sending an ALIVE message is 10 seconds,
-				// the second delay is for 20 seconds. From then on, all other
-				// delays are for 180 seconds.
-				switch (delay) {
-					case 10000:
-						delay = 20000;
-						break;
-					case 20000:
-						delay = 180000;
-						break;
-					default:
-						break;
+
+				// If a renderer is connected, broadcast every 30 seconds, otherwise every 10.
+				if (PMS.get().getFoundRenderers().size() > 0) {
+					delay = 30000;
+				} else {
+					delay = 10000;
 				}
 			}
 		};
@@ -548,14 +534,10 @@ public class UPNPHelper extends UPNPControl {
 		sb.append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("CACHE-CONTROL: max-age=1800").append(CRLF);
-		}
-
-		if (message.equals(ALIVE)) {
+			sb.append("CACHE-CONTROL: max-age=300").append(CRLF);
 			sb.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		}
 
-		sb.append(CRLF);
 		return sb.toString();
 	}
 
