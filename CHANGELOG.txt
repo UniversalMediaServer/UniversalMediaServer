@@ -9,6 +9,8 @@
 		Improved support for Panasonic Viera E6 Series TVs (thanks, Sami32!)
 		Improved detection of Windows Media Player (thanks, WolfganP!)
 		Fixed support for WMV 8 and below on Panasonic TVs
+	Languages:
+		Synchronized translations with crowdin
 	External Components:
 		Updated Cobertura Maven Plugin to 2.7
 		Updated Maven PMD Plugin to 3.6
