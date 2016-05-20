@@ -5,9 +5,9 @@
 		Improved support for 3D subtitles
 		Fixed support for PAL DVDs
 	Renderers:
-		Improved support for LG EG910V TVs
-		Improved support for Panasonic Viera E6 Series TVs
-		Improved detection of Windows Media Player
+		Improved support for LG EG910V TVs (thanks, ZakarFin!)
+		Improved support for Panasonic Viera E6 Series TVs (thanks, Sami32!)
+		Improved detection of Windows Media Player (thanks, WolfganP!)
 		Fixed support for WMV 8 and below on Panasonic TVs
 	External Components:
 		Updated Cobertura Maven Plugin to 2.7
