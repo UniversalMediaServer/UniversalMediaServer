@@ -332,19 +332,24 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		String msg = buildMsg(nt, message);
-		Random rand = new Random();
-//		LOGGER.trace( "Sending the SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>"));
+		//Random rand = new Random();
+
+		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
+
 		InetAddress upnpAddress = getUPNPAddress();
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
 		socket.send(ssdpPacket);
-		sleep(rand.nextInt(delay / 2));
-		// Send the SSDP packet twice in accordance with the DLNA specification
-		socket.send(ssdpPacket);
-//		LOGGER.trace( "Repeating the SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>"));
+
+		// XXX Why is it necessary to sleep for this random time? What would happen when random equals 0?
+		//sleep(rand.nextInt(1800 / 2));
+
+		// XXX Why send the same packet twice?
+		//socket.send(ssdpPacket);
+
+		// XXX Why is it necessary to sleep for this random time (again)?
+		//sleep(rand.nextInt(1800 / 2));
 	}
 
-	private static int delay = 10000;
-	
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
 	 * to listen for responses.
@@ -355,12 +360,14 @@ public class UPNPHelper extends UPNPControl {
 		Runnable rAlive = new Runnable() {
 			@Override
 			public void run() {
+				int delay = 10000;
+
 				while (true) {
 					sleep(delay);
 					sendAlive();
 
 					// If a renderer is connected, broadcast every 30 seconds, otherwise every 10.
-					if (PMS.get().getFoundRenderers().size() > 0) {
+					if (getRenderers(1).size() > 0) {
 						delay = 30000;
 					} else {
 						delay = 10000;
@@ -541,9 +548,13 @@ public class UPNPHelper extends UPNPControl {
 
 		if (message.equals(ALIVE)) {
 			sb.append("CACHE-CONTROL: max-age=1800").append(CRLF);
+		}
+
+		if (message.equals(ALIVE)) {
 			sb.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		}
 
+		sb.append(CRLF);
 		return sb.toString();
 	}
 
