@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
@@ -915,8 +916,21 @@ public class UPNPControl {
 	}
 
 	public static void setAVTransportURI(Device dev, String instanceID, String uri, String metaData) {
+		// Ensure uri is not url-encoded
+		uri = URLDecoder.decode(uri);
+		if (metaData != null) {
+			// Ensure metadata is plain xml and didl uri is not url-encoded
+			metaData = URLDecoder.decode(StringUtil.unEncodeXML(metaData));
+			// Ensure uri is same as didl uri
+			// Note: this assumes the first <res> item is guaranteed to be the media resource
+			String didlUri = StringUtils.substringAfterLast(StringUtils.substringBefore(metaData, "</res>"), ">");
+			if (StringUtils.isNotBlank(didlUri) && ! uri.equals(didlUri)) {
+				LOGGER.trace("using didl uri '{}' instead of '{}'", didlUri, uri);
+				uri = didlUri;
+			}
+		}
 		send(dev, instanceID, "AVTransport", "SetAVTransportURI", "CurrentURI", uri,
-			"CurrentURIMetaData", metaData != null ? StringUtil.unEncodeXML(metaData) : null);
+			"CurrentURIMetaData", metaData);
 	}
 
 	public static void setPlayMode(Device dev, String instanceID, String mode) {
