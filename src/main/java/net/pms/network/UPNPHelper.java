@@ -107,6 +107,7 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private UPNPHelper() {
 		rendererMap = new DeviceMap<>(DeviceConfiguration.class);
+		DEBUG = configuration.isUpnpDebug();
 	}
 
 	public static UPNPHelper getInstance() {
