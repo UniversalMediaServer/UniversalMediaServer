@@ -546,7 +546,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				continue;
 			}
 			RendererConfiguration r = addressAssociation.get(sa);
-			SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+			if (!r.isOffline()) {
+				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+			}
 		}
 	}
 
