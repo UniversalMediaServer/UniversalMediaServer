@@ -2215,6 +2215,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						}
 					}
+				} else if (mime.equals(MATROSKA_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=MKV";
 				} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
