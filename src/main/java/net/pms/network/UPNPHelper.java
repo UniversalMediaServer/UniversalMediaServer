@@ -556,9 +556,13 @@ public class UPNPHelper extends UPNPControl {
 
 		if (message.equals(ALIVE)) {
 			sb.append("CACHE-CONTROL: max-age=1800").append(CRLF);
+		}
+
+		if (message.equals(ALIVE)) {
 			sb.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		}
 
+		sb.append(CRLF);
 		return sb.toString();
 	}
 
