@@ -135,6 +135,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String HALVE_BITRATE = "HalveBitrate";
+	protected static final String FORCE_PLAYBACKTIMER = "ForcePlaybackTimer";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
@@ -1569,14 +1570,34 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns a UPnP player for this renderer if UPnP control is supported.
+	 * Returns whether to force a playback timer regardless of whether UPnP or
+	 * other control mechanisms are supported.
 	 *
-	 * @return a player or null.
+	 * @return Whether to force a playback timer.
+	 */
+	public boolean isForcePlaybackTimer() {
+		return getBoolean(FORCE_PLAYBACKTIMER, false);
+	}
+
+	/**
+	 * Returns a UPnP player for this renderer if UPnP control is supported,
+	 * or a simple playback timer if not.
+	 *
+	 * @return a player.
+	 */
+	public BasicPlayer createPlayer() {
+		return isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
+			new PlaybackTimer((DeviceConfiguration) this);
+	}
+
+	/**
+	 * Gets or creates the player.
+	 *
+	 * @return a player.
 	 */
 	public BasicPlayer getPlayer() {
 		if (player == null) {
-			player = isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
-				new PlaybackTimer((DeviceConfiguration) this);
+			player = isForcePlaybackTimer() ? new PlaybackTimer((DeviceConfiguration) this) : createPlayer();
 		}
 		return player;
 	}
@@ -1587,7 +1608,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param player
 	 */
 	public void setPlayer(UPNPHelper.Player player) {
-		this.player = player;
+		if (!isForcePlaybackTimer()) {
+			this.player = player;
+		}
 	}
 
 	@Override

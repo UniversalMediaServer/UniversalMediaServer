@@ -530,11 +530,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public BasicPlayer getPlayer() {
-		if (player == null) {
-			player = new WebPlayer(this);
-		}
-		return player;
+	public BasicPlayer createPlayer() {
+		return new WebPlayer(this);
 	}
 
 	@Override
