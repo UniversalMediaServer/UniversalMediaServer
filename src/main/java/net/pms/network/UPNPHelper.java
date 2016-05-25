@@ -562,6 +562,7 @@ public class UPNPHelper extends UPNPControl {
 			sb.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		}
 
+		// Sony devices like PS3 and PS4 need this extra linebreak
 		sb.append(CRLF);
 		return sb.toString();
 	}
