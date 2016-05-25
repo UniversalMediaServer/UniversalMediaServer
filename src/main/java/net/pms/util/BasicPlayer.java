@@ -287,7 +287,7 @@ public interface BasicPlayer extends ActionListener {
 					// Note: here metadata (if any) is actually the resource name
 					DLNAResource resource = DLNAResource.getValidResource(uri, metadata, renderer);
 					if (resource != null) {
-						return new Playlist.Item(resource.getURL("", true), resource.getDisplayName(renderer), resource.getDidlString(renderer));
+						return new Playlist.Item(resource.getURL("", true), resource.getDisplayName(renderer), resource.getDidlString(renderer, true));
 					}
 				}
 			}
