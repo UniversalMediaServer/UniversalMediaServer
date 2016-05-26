@@ -381,6 +381,10 @@ public class LibMediaInfoParser {
 	}
 
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
+		if (value.isEmpty()) {
+			return;
+		}
+
 		String format = null;
 
 		if (value.startsWith("3g2")) {
@@ -395,7 +399,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.CINEPACK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
-		} else if (value.toLowerCase().equals("webm")) {
+		} else if (value.equals("webm")) {
 			format = FormatConfiguration.WEBM;
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
