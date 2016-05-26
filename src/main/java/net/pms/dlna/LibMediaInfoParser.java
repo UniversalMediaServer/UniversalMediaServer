@@ -109,6 +109,7 @@ public class LibMediaInfoParser {
 							addSub(currentSubTrack, media);
 						} else {
 							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format").toLowerCase(), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format_Version").toLowerCase(), file);
 							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID").toLowerCase(), file);
 							media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
