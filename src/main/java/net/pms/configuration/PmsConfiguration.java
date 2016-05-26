@@ -3861,7 +3861,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_INFO_DB_RETRY, false);
 	}
 
-	public int aliveDelay() {
-		return getInt(KEY_ALIVE_DELAY, 180000);
+	public int getAliveDelay() {
+		return getInt(KEY_ALIVE_DELAY, 0);
 	}
 }

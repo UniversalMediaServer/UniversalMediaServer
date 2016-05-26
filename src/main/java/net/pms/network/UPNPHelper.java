@@ -350,6 +350,8 @@ public class UPNPHelper extends UPNPControl {
 		//sleep(rand.nextInt(1800 / 2));
 	}
 
+	private static int ALIVE_delay = 10000;
+
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
 	 * to listen for responses.
@@ -360,22 +362,31 @@ public class UPNPHelper extends UPNPControl {
 		Runnable rAlive = new Runnable() {
 			@Override
 			public void run() {
-				int delay = 10000;
-
 				while (true) {
-					sleep(delay);
+					sleep(ALIVE_delay);
 					sendAlive();
 
-					// The first delay for sending an ALIVE message is 10 seconds,
-					// the second delay is for 20 seconds. From then on, all other
-					// delays are standard for 180 seconds. It can be set less to
-					// make the recognition more aggressive.
-					switch (delay) {
+					/**
+					 * The first delay for sending an ALIVE message is 10 seconds,
+					 * the second delay is for 20 seconds. From then on, all other
+					 * delays are standard for 180 seconds. It can be customized
+					 * with the ALIVE_delay user configuration setting.
+					 */
+					switch (ALIVE_delay) {
 						case 10000:
-							delay = 20000;
+							ALIVE_delay = 20000;
 							break;
 						case 20000:
-							delay = configuration.aliveDelay();
+							// If getAliveDelay is 0, there is no custom alive delay
+							if (configuration.getAliveDelay() == 0) {
+								if (PMS.get().getFoundRenderers().size() > 0) {
+									ALIVE_delay = 30000;
+								} else {
+									ALIVE_delay = 10000;
+								}
+							} else {
+								ALIVE_delay = configuration.getAliveDelay();
+							}
 							break;
 						default:
 							break;
@@ -555,7 +566,7 @@ public class UPNPHelper extends UPNPControl {
 		sb.append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("CACHE-CONTROL: max-age=1800").append(CRLF);
+			sb.append("CACHE-CONTROL: max-age=").append(ALIVE_delay / 100).append(CRLF);
 			sb.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		}
 
@@ -565,9 +576,9 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
-	 * Gets the uPNP address.
+	 * Gets the UPnP address.
 	 *
-	 * @return the uPNP address
+	 * @return the UPnP address
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static InetAddress getUPNPAddress() throws IOException {
