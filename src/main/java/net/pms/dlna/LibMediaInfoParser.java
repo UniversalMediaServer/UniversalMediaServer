@@ -77,8 +77,8 @@ public class LibMediaInfoParser {
 				String value;
 
 				// set General
-				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format").toLowerCase(), file);
-				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").toLowerCase().trim(), file);
+				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
+				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
 				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
@@ -108,9 +108,9 @@ public class LibMediaInfoParser {
 							currentSubTrack.setId(media.getSubtitleTracksList().size());
 							addSub(currentSubTrack, media);
 						} else {
-							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format").toLowerCase(), file);
-							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format_Version").toLowerCase(), file);
-							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID").toLowerCase(), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format"), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format_Version"), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID"), file);
 							media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
 							media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
@@ -149,10 +149,10 @@ public class LibMediaInfoParser {
 				if (audioTracks > 0) {
 					for (int i = 0; i < audioTracks; i++) {
 						currentAudioTrack = new DLNAMediaAudio();
-						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format").toLowerCase(), file);
-						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version").toLowerCase(), file);
-						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile").toLowerCase(), file);
-						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID").toLowerCase(), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
 						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
 						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
@@ -218,7 +218,7 @@ public class LibMediaInfoParser {
 				// set Image
 				media.setImageCount(MI.Count_Get(image));
 				if (media.getImageCount() > 0) {
-					getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format").toLowerCase(), file);
+					getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format"), file);
 					media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 					media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 				}
@@ -381,6 +381,11 @@ public class LibMediaInfoParser {
 	}
 
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
+		if (value.isEmpty()) {
+			return;
+		}
+
+		value = value.toLowerCase();
 		String format = null;
 
 		if (value.startsWith("3g2")) {
@@ -395,7 +400,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.CINEPACK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
-		} else if (value.toLowerCase().equals("webm")) {
+		} else if (value.equals("webm")) {
 			format = FormatConfiguration.WEBM;
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;

@@ -1,7 +1,18 @@
-6.3.2 - 2016-06-??
+6.3.3 - 2016-06-??
 
 	General:
 		
+
+6.3.2 - 2016-05-27
+
+	General:
+		Added user config setting ALIVE_delay
+		Fixed calculating network speeds with offline renderers
+		Fixed detection of the MPEG-1 video codec
+	Renderers:
+		Fixed connectivity with Sony renderers
+	Languages:
+		Synchronized translations with crowdin
 
 6.3.1.1 - 2016-05-22
 
