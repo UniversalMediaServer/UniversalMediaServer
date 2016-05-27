@@ -1,4 +1,4 @@
-6.3.2 - 2016-05-??
+6.3.2 - 2016-05-27
 
 	General:
 		Added user config setting ALIVE_delay
