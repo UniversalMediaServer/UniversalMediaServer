@@ -681,14 +681,14 @@ public class MEncoderVideo extends Player {
 	 *
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
-	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
+	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, OutputParams params, String audioType) {
 		// Use device-specific pms conf
-		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
+		PmsConfiguration configuration = PMS.getConfiguration(params.mediaRenderer);
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
+		if (isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
+			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -699,7 +699,7 @@ public class MEncoderVideo extends Player {
 			LOGGER.trace("Using the video bitrate limit from the program settings (" + defaultMaxBitrates[0] + ")");
 		}
 
-		if (mediaRenderer.getCBRVideoBitrate() == 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -709,7 +709,7 @@ public class MEncoderVideo extends Player {
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
-			boolean isXboxOneWebVideo = mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+			boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
@@ -719,9 +719,9 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if ((mediaRenderer.isTranscodeToH264() || mediaRenderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
+			if ((params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
 				if (
-					mediaRenderer.isH264Level41Limited() &&
+					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
@@ -742,7 +742,7 @@ public class MEncoderVideo extends Player {
 					bufSize = defaultMaxBitrates[1];
 				}
 
-				if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
 					bufSize = 1835;
 				}
 			}
@@ -758,7 +758,7 @@ public class MEncoderVideo extends Player {
 						break;
 					case "aac":
 					case "ac3":
-						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
+						defaultMaxBitrates[0] -= CodecUtil.getAC3Bitrate(configuration, params.aid);
 						break;
 					default:
 						break;
@@ -1315,7 +1315,7 @@ public class MEncoderVideo extends Player {
 					":threads=" + (wmv && !params.mediaRenderer.isXbox360() ? 1 : configuration.getMencoderMaxThreads()) +
 					("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
-				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
+				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params, audioType);
 			} else if (configuration.getx264ConstantRateFactor() != null && isTranscodeToH264) {
 				// Set H.264 video quality
 				String x264CRF = configuration.getx264ConstantRateFactor();
@@ -1349,7 +1349,7 @@ public class MEncoderVideo extends Player {
 					":threads=" + configuration.getMencoderMaxThreads() +
 					":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
 
-				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
+				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params, audioType);
 			}
 
 			st = new StringTokenizer(encodeSettings, " ");
@@ -2064,7 +2064,7 @@ public class MEncoderVideo extends Player {
 							lavcopts,
 							media,
 							lavcopts,
-							params.mediaRenderer,
+							params,
 							""
 						);
 

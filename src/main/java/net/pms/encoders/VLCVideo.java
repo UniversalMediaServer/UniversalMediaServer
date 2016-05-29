@@ -364,7 +364,7 @@ public class VLCVideo extends Player {
 				if (params.mediaRenderer.isTranscodeToAAC()) {
 					defaultMaxBitrates[0] -= Math.min(configuration.getAudioBitrate(), 320);
 				} else {
-					defaultMaxBitrates[0] -= configuration.getAudioBitrate();
+					defaultMaxBitrates[0] -= CodecUtil.getAC3Bitrate(configuration, params.aid);
 				}
 
 				// Round down to the nearest Mb

@@ -76,15 +76,38 @@ public class CodecUtil {
 	}
 
 	public static int getAC3Bitrate(PmsConfiguration configuration, DLNAMediaAudio media) {
-		int defaultBitrate = configuration.getAudioBitrate();
-		if (media != null && defaultBitrate >= 384) {
+		String defaultBitrate = configuration.getAudioBitrateAC3();
+		String mpeg2Options = configuration.getMPEG2MainSettings();
+		boolean isWireless = mpeg2Options.contains("Wireless");
+		int bitrate = 640;
+
+		if (defaultBitrate.contains("Automatic")) {
+			if (isWireless) {
+				bitrate = 384;
+				if (media != null) {
+					if (media.getAudioProperties().getNumberOfChannels() == 2 || configuration.getAudioChannelCount() == 2) {
+						bitrate = 192;
+					} else if (media.getAudioProperties().getNumberOfChannels() == 1) {
+						bitrate = 128;
+					}
+				}
+			} else {
+				if (media.getAudioProperties().getNumberOfChannels() == 2 || configuration.getAudioChannelCount() == 2) {
+					bitrate = 448;
+				} else if (media.getAudioProperties().getNumberOfChannels() == 1) {
+					bitrate = 192;
+				}
+			}
+		} else {
+			bitrate = Integer.parseInt(defaultBitrate);
 			if (media.getAudioProperties().getNumberOfChannels() == 2 || configuration.getAudioChannelCount() == 2) {
-				defaultBitrate = 448;
+				bitrate = 448;
 			} else if (media.getAudioProperties().getNumberOfChannels() == 1) {
-				defaultBitrate = 192;
+				bitrate = 192;
 			}
 		}
-		return defaultBitrate;
+
+		return bitrate;
 	}
 
 	public static String getDefaultFontPath() {

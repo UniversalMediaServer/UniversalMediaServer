@@ -95,6 +95,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	protected static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
 	protected static final String KEY_AUDIO_BITRATE = "audio_bitrate";
+	protected static final String KEY_AUDIO_BITRATE_AC3 = "audio_bitrate_ac3";
 	protected static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
 	protected static final String KEY_AUDIO_LANGUAGES = "audio_languages";
@@ -776,12 +777,36 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * The AC-3 audio bitrate determines the quality of digital audio sound. An AV-receiver
+	 * The audio bitrate determines the quality of digital audio sound. An AV-receiver
 	 * or amplifier has to be capable of playing this quality. Default value is 640.
-	 * @return The AC-3 audio bitrate.
+	 *
+	 * @see #getAudioBitrateAC3()
+	 * @return The audio bitrate.
 	 */
 	public int getAudioBitrate() {
 		return getInt(KEY_AUDIO_BITRATE, 640);
+	}
+
+	/**
+	 * The AC-3 audio bitrate determines the quality of digital audio sound.
+	 * Default value is "Automatic", which means we determine it based on
+	 * the network type.
+	 *
+	 * @return The AC-3 audio bitrate.
+	 */
+	public String getAudioBitrateAC3() {
+		return getString(KEY_AUDIO_BITRATE_AC3, "Automatic");
+	}
+
+	/**
+	 * Sets the AC3 audio bitrate, which determines the quality of digital
+	 * audio sound. An AV-receiver or amplifier has to be capable of playing
+	 * this quality.
+	 *
+	 * @param value The AC3 audio bitrate.
+	 */
+	public void setAudioBitrateAC3(String value) {
+		configuration.setProperty(KEY_AUDIO_BITRATE_AC3, value);
 	}
 
 	/**
@@ -1631,17 +1656,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			value = 6;
 		}
 		configuration.setProperty(KEY_AUDIO_CHANNEL_COUNT, value);
-	}
-
-	/**
-	 * Sets the AC3 audio bitrate, which determines the quality of digital
-	 * audio sound. An AV-receiver or amplifier has to be capable of playing
-	 * this quality.
-	 *
-	 * @param value The AC3 audio bitrate.
-	 */
-	public void setAudioBitrate(int value) {
-		configuration.setProperty(KEY_AUDIO_BITRATE, value);
 	}
 
 	/**

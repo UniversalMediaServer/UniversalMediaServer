@@ -722,16 +722,11 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(encodedAudioPassthrough), cc.xyw(1, 10, 3));
 
 		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
-		abitrate = new JTextField("" + configuration.getAudioBitrate());
+		abitrate = new JTextField("" + configuration.getAudioBitrateAC3());
 		abitrate.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				try {
-					int ab = Integer.parseInt(abitrate.getText());
-					configuration.setAudioBitrate(ab);
-				} catch (NumberFormatException nfe) {
-					LOGGER.debug("Could not parse audio bitrate from \"" + abitrate.getText() + "\"");
-				}
+				configuration.setAudioBitrateAC3(abitrate.getText());
 			}
 		});
 		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
