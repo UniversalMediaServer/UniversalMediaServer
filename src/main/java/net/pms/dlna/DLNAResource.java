@@ -47,6 +47,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
+import net.pms.network.HTTPXMLHelper;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -2222,6 +2223,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						}
 					}
+				} else if (mime.equals(MATROSKA_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=MKV";
 				} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
@@ -2287,11 +2290,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
+		return getDidlString(mediaRenderer, false);
+	}
+
+	public final String getDidlString(RendererConfiguration mediaRenderer, boolean useHeader) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = mediaRenderer.isXbox360();
+
+		if (useHeader) {
+			sb.append(HTTPXMLHelper.DIDL_HEADER);
+		}
+
 		if (!isFolder()) {
 			if (format != null && format.isVideo()) {
 				if (
@@ -2616,6 +2628,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			closeTag(sb, "container");
 		} else {
 			closeTag(sb, "item");
+		}
+
+		if (useHeader) {
+			sb.append(HTTPXMLHelper.DIDL_FOOTER);
 		}
 
 		return sb.toString();

@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import net.pms.util.BasicPlayer;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
@@ -61,13 +62,14 @@ public class RendererPanel extends JPanel {
 				builder, y);
 		}
 
-		if (renderer.isControllable()) {
+		BasicPlayer player = renderer.getPlayer();
+		if (player instanceof BasicPlayer.Logical) {
 			builder.appendRow(rspec);
 			builder.addLabel(" ", cc.xy(1, ++y));
 			builder.appendRow(rspec);
 			builder.addSeparator(Messages.getString("RendererPanel.1"), cc.xyw(1, ++y, 2));
 			builder.appendRow(rspec);
-			builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
+			builder.add(new PlayerControlPanel(player), cc.xyw(1, ++y, 2));
 		}
 		return builder.getPanel();
 	}

@@ -105,12 +105,10 @@ public class ChromecastMgr implements ServiceListener {
 		}
 
 		@Override
-		public BasicPlayer getPlayer() {
-			if (player == null) {
-				player = new ChromecastPlayer(this, api);
-				((ChromecastPlayer)player).startPoll();
-			}
-			return player;
+		public BasicPlayer createPlayer() {
+			ChromecastPlayer p = new ChromecastPlayer(this, api);
+			p.startPoll();
+			return p;
 		}
 
 		@Override

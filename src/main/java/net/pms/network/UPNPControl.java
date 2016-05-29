@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -20,6 +21,7 @@ import org.fourthline.cling.controlpoint.SubscriptionCallback;
 import org.fourthline.cling.model.ServerClientTokens;
 import org.fourthline.cling.model.action.*;
 import org.fourthline.cling.model.gena.*;
+import org.fourthline.cling.model.message.control.ActionRequestMessage;
 import org.fourthline.cling.model.message.UpnpHeaders;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.model.message.header.DeviceTypeHeader;
@@ -29,9 +31,12 @@ import org.fourthline.cling.model.types.DeviceType;
 import org.fourthline.cling.model.types.ServiceId;
 import org.fourthline.cling.model.types.UDADeviceType;
 import org.fourthline.cling.model.types.UDN;
+import org.fourthline.cling.model.UnsupportedDataException;
 import org.fourthline.cling.registry.DefaultRegistryListener;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
+import org.fourthline.cling.transport.impl.SOAPActionProcessorImpl;
+import org.fourthline.cling.transport.spi.SOAPActionProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -60,7 +65,7 @@ public class UPNPControl {
 	public static final int RC = BasicPlayer.VOLUMECONTROL;
 	public static final int ANY = 0xff;
 
-	private static final boolean DEBUG = true; // log upnp state vars
+	protected static boolean DEBUG = false; // log upnp state vars, avt soap data, etc
 
 	protected static Map<String, Renderer> socketMap = new HashMap<>();
 
@@ -194,10 +199,8 @@ public class UPNPControl {
 					String id = data.get("InstanceID");
 					while (active && !"STOPPED".equals(data.get("TransportState"))) {
 						UPNPHelper.sleep(1000);
-//						if (DEBUG) LOGGER.debug("InstanceID: " + id);
 						for (ActionArgumentValue o : getPositionInfo(d, id)) {
 							data.put(o.getArgument().getName(), o.toString());
-//							if (DEBUG) LOGGER.debug(o.getArgument().getName() + ": " + o.toString());
 						}
 						alert();
 					}
@@ -243,7 +246,6 @@ public class UPNPControl {
 			for (int i = 0; i < ids.getLength(); i++) {
 				NodeList c = ids.item(i).getChildNodes();
 				String id = ((Element) ids.item(i)).getAttribute("val");
-//				if (DEBUG) LOGGER.debug("InstanceID: " + id);
 				if (item == null) {
 					item = rendererMap.get(uuid, id);
 				}
@@ -283,6 +285,19 @@ public class UPNPControl {
 				@Override
 				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
 					return UMSHeaders;
+				}
+
+				@Override
+				protected SOAPActionProcessor createSOAPActionProcessor() {
+					return new SOAPActionProcessorImpl() {
+						@Override
+						public void writeBody(ActionRequestMessage requestMessage, ActionInvocation actionInvocation) throws UnsupportedDataException {
+							super.writeBody(requestMessage, actionInvocation);
+							if (DEBUG) {
+								LOGGER.trace("Sending SOAP action: {}", requestMessage.getBodyString().replaceAll("><", ">\n<"));
+							}
+						}
+					};
 				}
 			};
 
@@ -367,8 +382,7 @@ public class UPNPControl {
 	}
 
 	public static boolean isUpnpControllable(String uuid) {
-		// Disable manually for Panasonic TVs since they lie
-		if (rendererMap.containsKey(uuid) && !getDeviceDetailsString(getDevice(uuid)).contains("VIERA")) {
+		if (rendererMap.containsKey(uuid)) {
 			return rendererMap.get(uuid, "0").controls != 0;
 		}
 		return false;
@@ -658,7 +672,7 @@ public class UPNPControl {
 		if (svc != null) {
 			Action x = svc.getAction(action);
 			String name = getFriendlyName(dev);
-			boolean log = !action.equals("GetPositionInfo");
+			boolean log = DEBUG || !action.equals("GetPositionInfo");
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
 				a.setInput("InstanceID", instanceID);
@@ -769,8 +783,21 @@ public class UPNPControl {
 	}
 
 	public static void setAVTransportURI(Device dev, String instanceID, String uri, String metaData) {
+		// Ensure uri is not url-encoded
+		uri = URLDecoder.decode(uri);
+		if (metaData != null) {
+			// Ensure metadata is plain xml and didl uri is not url-encoded
+			metaData = URLDecoder.decode(StringUtil.unEncodeXML(metaData));
+			// Ensure uri is same as didl uri
+			// Note: this assumes the first <res> item is guaranteed to be the media resource
+			String didlUri = StringUtils.substringAfterLast(StringUtils.substringBefore(metaData, "</res>"), ">");
+			if (StringUtils.isNotBlank(didlUri) && ! uri.equals(didlUri)) {
+				LOGGER.trace("using didl uri '{}' instead of '{}'", didlUri, uri);
+				uri = didlUri;
+			}
+		}
 		send(dev, instanceID, "AVTransport", "SetAVTransportURI", "CurrentURI", uri,
-			"CurrentURIMetaData", metaData != null ? StringUtil.unEncodeXML(metaData) : null);
+			"CurrentURIMetaData", metaData);
 	}
 
 	public static void setPlayMode(Device dev, String instanceID, String mode) {
