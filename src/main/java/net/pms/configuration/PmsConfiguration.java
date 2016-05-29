@@ -2695,7 +2695,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isPreventsSleep() {
-		return getBoolean(KEY_PREVENTS_SLEEP, false);
+		return getBoolean(KEY_PREVENTS_SLEEP, true);
 	}
 
 	public void setHTTPEngineV2(boolean value) {

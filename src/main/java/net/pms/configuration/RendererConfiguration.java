@@ -141,6 +141,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
+	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
@@ -1831,6 +1832,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * This was originally added for the PS3 after it was observed to need
+	 * a video whose maximum bitrate was under half of the network maximum.
+	 *
+	 * PMS and UMS have done this by default for years so it should be left
+	 * to true to avoid problems, but new renderers may benefit from trying
+	 * it set to false.
+	 *
+	 * @return whether to set the maximum bitrate to half of the network max
+	 */
+	public boolean isHalveBitrate() {
+		return getBoolean(HALVE_BITRATE, true);
+	}
+
+	/**
 	 * Returns the maximum bitrate (in bits-per-second) as defined by
 	 * whichever is lower out of the renderer setting or user setting.
 	 *
@@ -1851,6 +1866,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
 			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		if (isHalveBitrate()) {
+			defaultMaxBitrates[0] /= 2;
 		}
 
 		maximumBitrateTotal = defaultMaxBitrates[0] * 1000000;

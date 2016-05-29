@@ -716,11 +716,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						resumeRes.media.setThumbready(false);
 					}
 
+					/**
+					 * Secondary format is currently only used to provide 24-bit FLAC to PS3 by
+					 * sending it as a fake video. This can be made more reusable with a renderer
+					 * config setting like Mux24BitFlacToVideo if we ever have another purpose
+					 * for it, which I doubt we will have.
+					 */
 					if (
 						child.format.getSecondaryFormat() != null &&
 						child.media != null &&
 						defaultRenderer != null &&
-						defaultRenderer.supportsFormat(child.format.getSecondaryFormat())
+						defaultRenderer.supportsFormat(child.format.getSecondaryFormat()) &&
+						defaultRenderer.isPS3()
 					) {
 						DLNAResource newChild = child.clone();
 						newChild.setFormat(newChild.format.getSecondaryFormat());
@@ -879,9 +886,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
-				} else if (media.getBitrate() > (renderer.getMaxBandwidth() / 2)) {
+				} else if (media.getBitrate() > renderer.getMaxBandwidth()) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), (renderer.getMaxBandwidth() / 2));
+					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), renderer.getMaxBandwidth());
 				}
 			}
 
