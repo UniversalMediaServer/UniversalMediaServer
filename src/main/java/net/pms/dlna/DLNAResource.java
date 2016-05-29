@@ -886,9 +886,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
-				} else if (media.getBitrate() > (renderer.getMaxBandwidth() / 2)) {
+				} else if (media.getBitrate() > renderer.getMaxBandwidth()) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), (renderer.getMaxBandwidth() / 2));
+					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), renderer.getMaxBandwidth());
 				}
 			}
 

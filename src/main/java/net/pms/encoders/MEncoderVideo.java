@@ -703,9 +703,10 @@ public class MEncoderVideo extends Player {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] /= 2;
-			LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
+			if (mediaRenderer.isHalveBitrate()) {
+				defaultMaxBitrates[0] /= 2;
+				LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
+			}
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
