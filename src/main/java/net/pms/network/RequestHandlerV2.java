@@ -20,6 +20,7 @@ package net.pms.network;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -290,7 +291,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
-		ctx.attr(startStop).set(startStopListenerDelegate);
+		ctx.channel().attr(startStop).set(startStopListenerDelegate);
 
 		try {
 			request.answer(ctx, response, e, close, startStopListenerDelegate);
@@ -313,7 +314,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		if (cause != null) {
 			if (cause.getClass().equals(IOException.class)) {
 				LOGGER.debug("Connection error: " + cause);
-				StartStopListenerDelegate startStopListenerDelegate = ctx.attr(startStop).get();
+				StartStopListenerDelegate startStopListenerDelegate = ctx.channel().attr(startStop).get();
 				if (startStopListenerDelegate != null) {
 					LOGGER.debug("Premature end, stopping...");
 					startStopListenerDelegate.stop();
