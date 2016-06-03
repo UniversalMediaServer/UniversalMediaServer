@@ -380,26 +380,22 @@ public class RequestV2 extends HTTPResource {
 
 					Format format = dlna.getFormat();
 					if (format != null && format.isVideo()) {
-						if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
+						if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
 							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 							String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
 							if (isNotBlank(subtitleHttpHeader)) {
 								// Device allows a custom subtitle HTTP header; construct it
 								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
-								if (sub != null && sub.isExternal()) {
-									String subtitleUrl;
-									String subExtension = sub.getType().getExtension();
-									if (isNotBlank(subExtension)) {
-										subExtension = "." + subExtension;
-									}
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
-
-									output.headers().set(subtitleHttpHeader, subtitleUrl);
-								} else {
-									LOGGER.trace("Did not send subtitle headers because dlna.getMediaSubtitle returned null");
+								String subtitleUrl;
+								String subExtension = sub.getType().getExtension();
+								if (isNotBlank(subExtension)) {
+									subExtension = "." + subExtension;
 								}
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
+
+								output.headers().set(subtitleHttpHeader, subtitleUrl);
 							} else {
 								LOGGER.trace("Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader returned either null or blank");
 							}
