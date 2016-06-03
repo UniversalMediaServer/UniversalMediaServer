@@ -86,8 +86,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		// Is the request from our own Cling service, i.e. self-originating?
 		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT) != null &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
+			nettyRequest.headers().get(HttpHeaderNames.USER_AGENT) != null &&
+			nettyRequest.headers().get(HttpHeaderNames.USER_AGENT).contains("UMS/");
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
@@ -99,10 +99,10 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		LOGGER.trace("Opened request handler on socket " + remoteAddress);
 		PMS.get().getRegistry().disableGoToSleep();
-		request = new RequestV2(nettyRequest.getMethod().name(), nettyRequest.getUri().substring(1));
-		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().text() + " : " + request.getMethod() + " : " + request.getArgument());
+		request = new RequestV2(nettyRequest.method().name(), nettyRequest.uri().substring(1));
+		LOGGER.trace("Request: " + nettyRequest.protocolVersion().text() + " : " + request.getMethod() + " : " + request.getArgument());
 
-		if (nettyRequest.getProtocolVersion().minorVersion() == 0) {
+		if (nettyRequest.protocolVersion().minorVersion() == 0) {
 			request.setHttp10(true);
 		}
 
@@ -240,8 +240,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
 		}
 
-		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
-			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
+		if (nettyRequest.headers().contains(HttpHeaderNames.CONTENT_LENGTH)) {
+			byte data[] = new byte[(int) HttpUtil.getContentLength(nettyRequest)];
 			ByteBuf content = nettyRequest.content();
 			content.readBytes(data);
 			request.setTextContent(new String(data, "UTF-8"));
@@ -266,9 +266,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest e, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
-		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
-			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
-			!HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION));
+		boolean close = HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(nettyRequest.headers().get(HttpHeaderNames.CONNECTION)) ||
+			nettyRequest.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
+			!HttpHeaderValues.KEEP_ALIVE.contentEqualsIgnoreCase(nettyRequest.headers().get(HttpHeaderNames.CONNECTION));
 
 		// Build the response object.
 		HttpResponse response;
@@ -335,7 +335,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(
 				"Failure: " + status.toString() + "\r\n", Charset.forName("UTF-8")));
 		response.headers().set(
-			HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+			HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
 
 		// Close the connection as soon as the error message is sent.
 		ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
