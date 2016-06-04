@@ -163,6 +163,26 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
+	
+	private boolean externalSubsExist = false;
+	
+	public void setExternalSubsExist(boolean exist) {
+		this.externalSubsExist = exist;
+	}
+
+	public boolean isExternalSubsExist() {
+		return externalSubsExist;
+	}
+
+	private boolean externalSubsParsed = false;
+
+	public void setExternalSubsParsed(boolean parsed) {
+		this.externalSubsParsed = parsed;
+	}
+
+	public boolean isExternalSubsParsed() {
+		return externalSubsParsed;
+	}
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
