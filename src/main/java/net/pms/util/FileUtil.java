@@ -786,6 +786,10 @@ public class FileUtil {
 	}
 
 	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
+		if (media != null && media.isExternalSubsParsed()) {
+			return media.isExternalSubsExist();
+		}
+
 		boolean found = false;
 		if (file.exists()) {
 			found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
@@ -808,6 +812,11 @@ public class FileUtil {
 			if (subFolder.exists()) {
 				found = found || browseFolderForSubtitles(subFolder, file, media, usecache);
 			}
+		}
+
+		if (media != null) {
+			media.setExternalSubsExist(found);
+			media.setExternalSubsParsed(true);
 		}
 
 		return found;
