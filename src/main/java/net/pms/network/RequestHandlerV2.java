@@ -79,7 +79,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
-		FullHttpRequest nettyRequest = this.nettyRequest = e;
+		this.nettyRequest = e;
 
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
