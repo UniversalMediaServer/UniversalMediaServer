@@ -457,9 +457,8 @@ public class FFMpegVideo extends Player {
 
 			if (params.mediaRenderer.isHalveBitrate()) {
 				defaultMaxBitrates[0] /= 2;
+				LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
 			}
-
-			LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
