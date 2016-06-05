@@ -516,16 +516,12 @@ public class FFMpegVideo extends Player {
 				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + " to make room for audio");
 			}
 
-			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
-			bufSize *= 1000;
-			defaultMaxBitrates[0] *= 1000;
-
 			videoBitrateOptions.add("-bufsize");
-			videoBitrateOptions.add(String.valueOf(bufSize));
+			videoBitrateOptions.add(String.valueOf(bufSize) + "k");
 
 			if (defaultMaxBitrates[0] > 0) {
 				videoBitrateOptions.add("-maxrate");
-				videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
+				videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]) + "k");
 			}
 		}
 
