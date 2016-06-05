@@ -446,9 +446,9 @@ public class FFMpegVideo extends Player {
 
 		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
 			if (rendererMaxBitrates[0] < 0) {
-				// odd specail case here
-				// this is -1 so we guess that 300 kbps is good
-				defaultMaxBitrates[0] = 300;
+				// odd special case here
+				// this is -1 so we guess that 3000 kbps is good
+				defaultMaxBitrates[0] = 3000;
 				low = true;
 			} else {
 				// Convert value from Mb to Kb
@@ -511,7 +511,7 @@ public class FFMpegVideo extends Player {
 				// Round down to the nearest Mb
 				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
 				if (low) {
-					defaultMaxBitrates[0] = 300;
+					defaultMaxBitrates[0] = 3000;
 				}
 
 				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + " to make room for audio");
