@@ -93,13 +93,12 @@ public class ImagesUtil {
 	}
 
 	/**
-	 * This method populates the supplied {@link DLNAMediaInfo} object with some EXIF data 
-	 * (MODEL, EXPOSURE TIME, ORIENTATION and ISO).
+	 * This method populates the supplied {@link DLNAMediaInfo} object with some of the image data 
+	 * (WIDTH, HEIGHT, BITSPERPIXEL, COLORTYPE, MODEL, EXPOSURE TIME, ORIENTATION and ISO).
 	 *
-	 * @param file
-	 * The image file to be parsed
+	 * @param file The image file to be parsed
 	 * @param media
-	 * The MediaInfo metadata which will be populated
+	 * The Imaging metadata which will be populated
 	 * @throws ImageReadException 
 	 * @throws IOException 
 	 */
