@@ -5,13 +5,16 @@ import java.io.*;
 import mediautil.gen.Log;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
-import org.apache.sanselan.ImageReadException;
-import org.apache.sanselan.Sanselan;
-import org.apache.sanselan.common.IImageMetadata;
-import org.apache.sanselan.formats.jpeg.JpegImageMetadata;
-import org.apache.sanselan.formats.tiff.TiffField;
-import org.apache.sanselan.formats.tiff.constants.TiffConstants;
+import org.apache.commons.imaging.ImageInfo;
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.tiff.TiffField;
+import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,42 +94,58 @@ public class ImagesUtil {
 
 	/**
 	 * This method populates the supplied {@link DLNAMediaInfo} object with some EXIF data 
-	 * (MODEL, EXPOSURE TIME, ORIENTATION, ISO).
+	 * (MODEL, EXPOSURE TIME, ORIENTATION and ISO).
 	 *
 	 * @param file
 	 * The image file to be parsed
 	 * @param media
 	 * The MediaInfo metadata which will be populated
+	 * @throws ImageReadException 
+	 * @throws IOException 
 	 */
-	public static void parseImageMetadata (File file, DLNAMediaInfo media) {
-		try {
-			IImageMetadata meta = Sanselan.getMetadata(file);
+	public static void parseImageByImaging(File file, DLNAMediaInfo media) throws ImageReadException, IOException {
+		ImageInfo info = Imaging.getImageInfo(file);
+		media.setWidth(info.getWidth());
+		media.setHeight(info.getHeight());
+		media.setBitsPerPixel(info.getBitsPerPixel());
+		media.setColorType(info.getColorType());
+		String formatName = info.getFormatName();
+		if (formatName.startsWith("JPEG")) {
+			media.setCodecV(FormatConfiguration.JPG);
+			ImageMetadata meta = Imaging.getMetadata(file);
 			if (meta != null && meta instanceof JpegImageMetadata) {
 				JpegImageMetadata jpegmeta = (JpegImageMetadata) meta;
-				TiffField tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_MODEL);
+				TiffField tf = jpegmeta.findEXIFValue(TiffTagConstants.TIFF_TAG_MODEL);
 				if (tf != null) {
 					media.setModel(tf.getStringValue().trim());
 				}
 
-				tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_EXPOSURE_TIME);
+				tf = jpegmeta.findEXIFValue(ExifTagConstants.EXIF_TAG_EXPOSURE_TIME);
 				if (tf != null) {
 					media.setExposure((int) (1000 * tf.getDoubleValue()));
 				}
 
-				tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_ORIENTATION);
+				tf = jpegmeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION);
 				if (tf != null) {
 					media.setOrientation(tf.getIntValue());
 				}
 
-				tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_ISO);
+				tf = jpegmeta.findEXIFValue(ExifTagConstants.EXIF_TAG_ISO);
 				if (tf != null) {
 					// Galaxy Nexus jpg pictures may contain multiple values, take the first
 					int[] isoValues = tf.getIntArrayValue();
 					media.setIso(isoValues[0]);
 				}
 			}
-		} catch (ImageReadException | IOException e) {
-			LOGGER.info("Error parsing EXIF metadata of image ({}).", file.getAbsolutePath());
+
+		} else if (formatName.startsWith("PNG")) {
+			media.setCodecV(FormatConfiguration.PNG);
+		} else if (formatName.startsWith("GIF")) {
+			media.setCodecV(FormatConfiguration.GIF);
+		} else if (formatName.startsWith("BMP")) {
+			media.setCodecV(FormatConfiguration.BMP);
+		} else if (formatName.startsWith("TIF")) {
+			media.setCodecV(FormatConfiguration.TIFF);
 		}
 	}
 }

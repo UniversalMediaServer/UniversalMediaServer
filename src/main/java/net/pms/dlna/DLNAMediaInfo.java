@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
-import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
@@ -43,9 +42,8 @@ import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.sanselan.ImageInfo;
-import org.apache.sanselan.ImageReadException;
-import org.apache.sanselan.Sanselan;
+import org.apache.commons.imaging.ImageInfo.ColorType;
+import org.apache.commons.imaging.ImageReadException;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -867,29 +865,12 @@ public class DLNAMediaInfo implements Cloneable {
 			if (type == Format.IMAGE && file != null) {
 				try {
 					ffmpeg_parsing = false;
-					ImageInfo info = Sanselan.getImageInfo(file);
-					width = info.getWidth();
-					height = info.getHeight();
-					bitsPerPixel = info.getBitsPerPixel();
-					colorType = info.getColorType();
-					String formatName = info.getFormatName();
-					if (formatName.startsWith("JPEG")) {
-						codecV = FormatConfiguration.JPG;
-						ImagesUtil.parseImageMetadata (file, this);
-					} else if (formatName.startsWith("PNG")) {
-						codecV = FormatConfiguration.PNG;
-					} else if (formatName.startsWith("GIF")) {
-						codecV = FormatConfiguration.GIF;
-					} else if (formatName.startsWith("BMP")) {
-						codecV = FormatConfiguration.BMP;
-					} else if (formatName.startsWith("TIF")) {
-						codecV = FormatConfiguration.TIFF;
-					}
-
+					ImagesUtil.parseImageByImaging(file, this);
 					container = codecV;
 					imageCount++;
-				} catch (ImageReadException | IOException e) {
+				} catch (IOException | ImageReadException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
+//					ffmpeg_parsing = true;
 				}
 				if (configuration.getImageThumbnailsEnabled() && gen_thumb) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
@@ -2757,13 +2738,13 @@ public class DLNAMediaInfo implements Cloneable {
 		return (width == 720 && height == 576) || (width == 720 && height == 480);
 	}
 
-	private int colorType;
+	private ColorType colorType;
 
-	public void setColorType(int value) {
-		this.colorType = value;
+	public void setColorType(ColorType colorType) {
+		this.colorType = colorType;
 	}
 
-	public int getColorType() {
+	public ColorType getColorType() {
 		return colorType;
 	}
 }
