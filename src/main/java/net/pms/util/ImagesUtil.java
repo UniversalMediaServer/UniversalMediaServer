@@ -6,9 +6,6 @@ import mediautil.gen.Log;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.io.OutputParams;
-
-import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
 import org.apache.sanselan.common.IImageMetadata;
