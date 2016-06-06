@@ -77,8 +77,8 @@ public class CodecUtil {
 
 	public static int getAC3Bitrate(PmsConfiguration configuration, DLNAMediaAudio media) {
 		String defaultBitrate = configuration.getAudioBitrateAC3();
-		String mpeg2Options = configuration.getMPEG2MainSettings();
-		boolean isWireless = mpeg2Options.contains("Wireless");
+		String videoQualitySettings = configuration.getMPEG2MainSettings() + configuration.getx264ConstantRateFactor();
+		boolean isWireless = videoQualitySettings.contains("Wireless") && Integer.parseInt(configuration.getMaxVideoBitrate()) <= 30;
 		int bitrate = 640;
 
 		if (defaultBitrate.contains("Automatic")) {
