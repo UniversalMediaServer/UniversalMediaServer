@@ -22,7 +22,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
@@ -35,12 +37,14 @@ import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
+import net.pms.util.ImagesUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -873,43 +877,19 @@ public class DLNAMediaInfo implements Cloneable {
 					width = info.getWidth();
 					height = info.getHeight();
 					bitsPerPixel = info.getBitsPerPixel();
+					colorType = info.getColorType();
 					String formatName = info.getFormatName();
-
 					if (formatName.startsWith("JPEG")) {
-						codecV = "jpg";
-						IImageMetadata meta = Sanselan.getMetadata(file);
-
-						if (meta != null && meta instanceof JpegImageMetadata) {
-							JpegImageMetadata jpegmeta = (JpegImageMetadata) meta;
-							TiffField tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_MODEL);
-
-							if (tf != null) {
-								model = tf.getStringValue().trim();
-							}
-
-							tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_EXPOSURE_TIME);
-							if (tf != null) {
-								exposure = (int) (1000 * tf.getDoubleValue());
-							}
-
-							tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_ORIENTATION);
-							if (tf != null) {
-								orientation = tf.getIntValue();
-							}
-
-							tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_ISO);
-							if (tf != null) {
-								// Galaxy Nexus jpg pictures may contain multiple values, take the first
-								int[] isoValues = tf.getIntArrayValue();
-								iso = isoValues[0];
-							}
-						}
+						codecV = FormatConfiguration.JPG;
+						ImagesUtil.parseImageMetadata (file, this);
 					} else if (formatName.startsWith("PNG")) {
-						codecV = "png";
+						codecV = FormatConfiguration.PNG;
 					} else if (formatName.startsWith("GIF")) {
-						codecV = "gif";
+						codecV = FormatConfiguration.GIF;
+					} else if (formatName.startsWith("BMP")) {
+						codecV = FormatConfiguration.BMP;
 					} else if (formatName.startsWith("TIF")) {
-						codecV = "tiff";
+						codecV = FormatConfiguration.TIFF;
 					}
 
 					container = codecV;
@@ -2781,5 +2761,15 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public boolean isDVDResolution() {
 		return (width == 720 && height == 576) || (width == 720 && height == 480);
+	}
+
+	private int colorType;
+
+	public void setColorType(int value) {
+		this.colorType = value;
+	}
+
+	public int getColorType() {
+		return colorType;
 	}
 }

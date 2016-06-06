@@ -1,9 +1,20 @@
 package net.pms.util;
 
 import java.io.*;
+
 import mediautil.gen.Log;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.io.OutputParams;
+
+import org.apache.sanselan.ImageInfo;
+import org.apache.sanselan.ImageReadException;
+import org.apache.sanselan.Sanselan;
+import org.apache.sanselan.common.IImageMetadata;
+import org.apache.sanselan.formats.jpeg.JpegImageMetadata;
+import org.apache.sanselan.formats.tiff.TiffField;
+import org.apache.sanselan.formats.tiff.constants.TiffConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,5 +90,46 @@ public class ImagesUtil {
 		// Cleanup
 		input.close();
 		llj.freeMemory();
+	}
+
+	/**
+	 * This method populates the supplied {@link DLNAMediaInfo} object with some EXIF data 
+	 * (MODEL, EXPOSURE TIME, ORIENTATION, ISO).
+	 *
+	 * @param file
+	 * The image file to be parsed
+	 * @param media
+	 * The MediaInfo metadata which will be populated
+	 */
+	public static void parseImageMetadata (File file, DLNAMediaInfo media) {
+		try {
+			IImageMetadata meta = Sanselan.getMetadata(file);
+			if (meta != null && meta instanceof JpegImageMetadata) {
+				JpegImageMetadata jpegmeta = (JpegImageMetadata) meta;
+				TiffField tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_MODEL);
+				if (tf != null) {
+					media.setModel(tf.getStringValue().trim());
+				}
+
+				tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_EXPOSURE_TIME);
+				if (tf != null) {
+					media.setExposure((int) (1000 * tf.getDoubleValue()));
+				}
+
+				tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_ORIENTATION);
+				if (tf != null) {
+					media.setOrientation(tf.getIntValue());
+				}
+
+				tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_ISO);
+				if (tf != null) {
+					// Galaxy Nexus jpg pictures may contain multiple values, take the first
+					int[] isoValues = tf.getIntArrayValue();
+					media.setIso(isoValues[0]);
+				}
+			}
+		} catch (ImageReadException | IOException e) {
+			LOGGER.info("Error parsing EXIF metadata of image ({}).", file.getAbsolutePath());
+		}
 	}
 }
