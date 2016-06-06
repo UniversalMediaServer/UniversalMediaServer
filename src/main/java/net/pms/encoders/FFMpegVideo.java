@@ -829,11 +829,10 @@ public class FFMpegVideo extends Player {
 
 		/**
 		 * Defer to MEncoder for subtitles if:
-		 * - The setting is enabled or embedded fonts exist
+		 * - The setting is enabled
 		 * - There are subtitles to transcode
 		 * - The file is not being played via the transcode folder
 		 */
-		String prependTraceReason = "Switching from FFmpeg to MEncoder to transcode subtitles because ";
 		if (
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
 			params.sid != null &&
@@ -841,34 +840,24 @@ public class FFMpegVideo extends Player {
 				!configuration.getHideTranscodeEnabled() &&
 				dlna.isNoName() &&
 				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
+			) &&
+			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
+			params.sid.isEmbedded() &&
+			(
+				params.sid.getType().isText() ||
+				params.sid.getType() == SubtitleType.VOBSUB
 			)
 		) {
-			boolean deferToMencoder = false;
-			if (
-				configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
-				params.sid.isEmbedded() &&
-				(
-					params.sid.getType().isText() ||
-					params.sid.getType() == SubtitleType.VOBSUB
-				)
-			) {
-				deferToMencoder = true;
-				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
-			} else if (media.isEmbeddedFontExists()) {
-				deferToMencoder = true;
-				LOGGER.trace(prependTraceReason + "there are embedded fonts.");
-			}
-			if (deferToMencoder) {
-				MEncoderVideo mv = new MEncoderVideo();
-				return mv.launchTranscode(dlna, media, params);
-			}
+			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
+			MEncoderVideo mv = new MEncoderVideo();
+			return mv.launchTranscode(dlna, media, params);
 		}
 
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			boolean deferToTsmuxer = true;
-			prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
+			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
 			if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
