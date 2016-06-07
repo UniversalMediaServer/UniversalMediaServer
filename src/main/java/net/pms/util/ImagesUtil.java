@@ -1,7 +1,6 @@
 package net.pms.util;
 
 import java.io.*;
-
 import mediautil.gen.Log;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
@@ -97,8 +96,7 @@ public class ImagesUtil {
 	 * (WIDTH, HEIGHT, BITSPERPIXEL, COLORTYPE, MODEL, EXPOSURE TIME, ORIENTATION and ISO).
 	 *
 	 * @param file The image file to be parsed
-	 * @param media
-	 * The Imaging metadata which will be populated
+	 * @param media The Imaging metadata which will be populated
 	 * @throws ImageReadException 
 	 * @throws IOException 
 	 */
