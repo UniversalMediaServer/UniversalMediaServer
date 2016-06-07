@@ -68,7 +68,7 @@ public class LibMediaInfoParser {
 	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type, RendererConfiguration renderer) {
 		File file = inputFile.getFile();
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.Open(file.getAbsolutePath()) > 0) {
-			try {
+//			try {
 				StreamType general = StreamType.General;
 				StreamType video = StreamType.Video;
 				StreamType audio = StreamType.Audio;
@@ -221,12 +221,20 @@ public class LibMediaInfoParser {
 				// set Image
 				media.setImageCount(MI.Count_Get(image));
 				if (media.getImageCount() > 0) {
+					boolean parseByMediainfo = false;
 					// for image parsing use Imaging instead of the MediaInfo which doesn't provide enough information
 					try {
 						ImagesUtil.parseImageByImaging(file, media);
 						media.setContainer(media.getCodecV());
 					} catch (ImageReadException | IOException e) {
-						LOGGER.info("Error parsing image ({}) with Sanselan.", file.getAbsolutePath());
+						LOGGER.info("Error parsing image ({}) with Imaging, switching to MediaInfo.", file.getAbsolutePath());
+						parseByMediainfo = true;
+					}
+
+					if (parseByMediainfo) {
+						getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format"), file);
+						media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
+						media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 					}
 					
 //					media.setImageCount(media.getImageCount() + 1);
@@ -342,9 +350,9 @@ public class LibMediaInfoParser {
 				}
 
 				media.finalize(type, inputFile);
-			} catch (Exception e) {
-				LOGGER.error("Error in MediaInfo parsing:", e);
-			} finally {
+//			} catch (Exception e) {
+//				LOGGER.error("Error in MediaInfo parsing:", e);
+//			} finally {
 				MI.Close();
 				if (media.getContainer() == null) {
 					media.setContainer(DLNAMediaLang.UND);
@@ -355,7 +363,7 @@ public class LibMediaInfoParser {
 				}
 
 				media.setMediaparsed(true);
-			}
+//			}
 		}
 	}
 
