@@ -844,7 +844,10 @@ public class FFMpegVideo extends Player {
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.sid.isEmbedded() &&
 			(
-				params.sid.getType().isText() ||
+				(
+					params.sid.getType().isText() &&
+					params.sid.getType() != SubtitleType.ASS
+				) ||
 				params.sid.getType() == SubtitleType.VOBSUB
 			)
 		) {
