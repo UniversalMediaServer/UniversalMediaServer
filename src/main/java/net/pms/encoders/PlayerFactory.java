@@ -133,6 +133,7 @@ public final class PlayerFactory {
 		registerPlayer(new TsMuxeRAudio());
 		registerPlayer(new VideoLanAudioStreaming());
 		registerPlayer(new VideoLanVideoStreaming());
+		registerPlayer(new TranscodeImage());
 
 		if (Platform.isWindows()) {
 			registerPlayer(new FFmpegDVRMSRemux());

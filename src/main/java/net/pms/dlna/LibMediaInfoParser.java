@@ -236,8 +236,6 @@ public class LibMediaInfoParser {
 						media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 						media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 					}
-					
-//					media.setImageCount(media.getImageCount() + 1);
 				}
 
 				// set Subs in text format

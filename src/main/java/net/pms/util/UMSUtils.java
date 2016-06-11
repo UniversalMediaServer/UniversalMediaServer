@@ -42,6 +42,9 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.Imaging;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -609,7 +612,7 @@ public class UMSUtils {
 	 * @return the scaled image
 	 */
 	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
-		ByteArrayInputStream in = null;
+		InputStream in = null;
 		if (image == null && !outputBlank) {
 			return null;
 		} else if (image != null) {
@@ -619,10 +622,13 @@ public class UMSUtils {
 		try {
 			BufferedImage img;
 			if (in != null) {
-				img = ImageIO.read(in);
+//				img = Imaging.getBufferedImage(in);
+				img = Imaging.getBufferedImage(image);
+//				img = ImageIO.read(in);
 			} else {
 				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			}
+
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 			if (renderer != null && renderer.isThumbnailPadding()) {
@@ -641,7 +647,7 @@ public class UMSUtils {
 			}
 
 			return out.toByteArray();
-		} catch (IOException e) {
+		} catch (IOException | NullPointerException | ImageReadException e) {
 			LOGGER.debug("Failed to resize image: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
