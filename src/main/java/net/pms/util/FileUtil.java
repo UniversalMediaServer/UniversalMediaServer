@@ -637,20 +637,19 @@ public class FileUtil {
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
 				}
 			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.title) && StringUtils.isNotEmpty(info.year)) {
+				double similarity;
 				if (isMovieWithoutYear) {
-					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, info.title);
-					if (similarity > 0.9) {
-						formattedName = info.title + " (" + info.year + ")";
-					}
+					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, info.title);
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName + "' is " + similarity);
 				} else {
 					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d{4}\\)"), formattedName);
 					String titleFromFilename = formattedName.substring(0, yearIndex);
-					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
-					if (similarity > 0.9) {
-						formattedName = info.title + " (" + info.year + ")";
-					}
+					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
+				}
+
+				if (similarity > 0.9) {
+					formattedName = info.title + " (" + info.year + ")";
 				}
 			}
 		}
