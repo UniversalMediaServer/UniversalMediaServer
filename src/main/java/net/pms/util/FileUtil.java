@@ -625,7 +625,7 @@ public class FileUtil {
 
 					// The following line can run over 100 times in under 1ms
 					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
-					if (similarity > 0.9) {
+					if (similarity > 0.91) {
 						formattedName = info.title + formattedName.substring(showNameIndex);
 
 						if (isEpisodeToLookup) {
@@ -648,7 +648,7 @@ public class FileUtil {
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
 				}
 
-				if (similarity > 0.9) {
+				if (similarity > 0.91) {
 					formattedName = info.title + " (" + info.year + ")";
 				}
 			}
