@@ -622,9 +622,7 @@ public class UMSUtils {
 		try {
 			BufferedImage img;
 			if (in != null) {
-//				img = Imaging.getBufferedImage(in);
-				img = Imaging.getBufferedImage(image);
-//				img = ImageIO.read(in);
+				img = ImageIO.read(in);
 			} else {
 				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			}
@@ -647,7 +645,7 @@ public class UMSUtils {
 			}
 
 			return out.toByteArray();
-		} catch (IOException | NullPointerException | ImageReadException e) {
+		} catch (IOException | NullPointerException e) {
 			LOGGER.debug("Failed to resize image: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}

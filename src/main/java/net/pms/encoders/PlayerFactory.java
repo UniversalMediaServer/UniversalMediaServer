@@ -133,13 +133,13 @@ public final class PlayerFactory {
 		registerPlayer(new TsMuxeRAudio());
 		registerPlayer(new VideoLanAudioStreaming());
 		registerPlayer(new VideoLanVideoStreaming());
-		registerPlayer(new TranscodeImage());
 
 		if (Platform.isWindows()) {
 			registerPlayer(new FFmpegDVRMSRemux());
 		}
 
 		registerPlayer(new RAWThumbnailer());
+		registerPlayer(new TranscodeImage());
 
 		// Sort the players according to the configuration settings
 		Collections.sort(allPlayers, new PlayerSort());
@@ -263,9 +263,9 @@ public final class PlayerFactory {
 		if (resource == null) {
 			LOGGER.warn("Invalid resource (null): no player found");
 			return null;
-		} else if (resource.getMedia().isImage()) { // don't resolve player for image
+//		} else if (resource.getMedia().isImage()) { // don't resolve player for image
 //			LOGGER.trace("Don't resolve player for resource \"{}\"", resource.getName());
-			return null;
+//			return null;
 		} else {
 			LOGGER.trace("Getting player for resource \"{}\"", resource.getName());
 		}
