@@ -910,6 +910,8 @@ public class DLNAMediaInfo implements Cloneable {
 						codecV = "gif";
 					} else if (formatName.startsWith("TIF")) {
 						codecV = "tiff";
+					} else if (formatName.startsWith("BMP")) {
+						codecV = "bmp";
 					}
 
 					container = codecV;
@@ -1430,6 +1432,8 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.GIF_TYPEMIME;
 				} else if ("tiff".equals(codecV) || "tiff".equals(container)) {
 					mimeType = HTTPResource.TIFF_TYPEMIME;
+				} else if ("bmp".equals(codecV) || "bmp".equals(container)) {
+					mimeType = HTTPResource.BMP_TYPEMIME;	
 				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
 					mimeType = HTTPResource.MP4_TYPEMIME;
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
@@ -1446,7 +1450,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
 				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-				} else if (codecA.contains("pcm") || codecA.contains("wav")) {
+				} else if (codecA.contains("pcm") || codecA.contains("wav") || codecA.contains("dts")) {
 					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 				}
 			}
