@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+   PS3 Media Server, for streaming any medias to your PS3.
+   Copyright (C) 2008  A.Brochard
+ 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; version 2
+   of the License only.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<html>
+<head>
+<title>Networking and technical basics</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>Networking and technical basics</h1>
+
+	<!--
+		 Based on http://otmanix.de/english/2009/05/17/java-ps3-media-server-for-dummies-chapter-2-networking-and-technical-basics/
+		 Thanks, Otmanix!
+	-->
+
+	<h2>Network fundamentals</h2>
+	<p>
+		Before installing and running PS3 you should get an overview of the
+		network topology. The Playstation 3 communicates with your computer.
+		If one wants to see web content like YouTube videos an internet
+		connection is required. Most used technology for accessing the
+		internet is an <a href="http://en.wikipedia.org/wiki/Adsl">ADSL</a>-
+		or <a href="http://en.wikipedia.org/wiki/Cable_internet">cable-internet</a>-connection.
+		You connect the socket with a modem (ADSL or cable) which will later
+		do the dial in. The modem can be connected directly to the computer.
+		Most people use a WLAN-<a href="http://en.wikipedia.org/wiki/Router">router</a>
+		to connect. The router is then a gateway to the internet for PS3 and
+		your computer.
+	</p>
+
+	<p>
+		<img src="images/topology_ps3.jpg" />
+	</p>
+
+	<h3>WLAN</h3>
+	<p>
+		In most <a href="http://en.wikipedia.org/wiki/Wireless_LAN">WLAN</a>-routers
+		nowadays there is an integrated modem and WLAN-<a
+			href="http://en.wikipedia.org/wiki/Access_point">accesspoint</a>.
+		The PS3 and notebooks both have integrated WLAN-<a
+			href="http://en.wikipedia.org/wiki/Network_card">NIC</a>s and can
+		therefore communicate via WLAN when logged in into the access point.
+		The integrated WLAN network card of PS3 is compatible to standard
+		802.11 b/g. This means a maximum network speed of 54Mb/s. To log in
+		into the WALN-access point you need the following information:
+	</p>
+	<ul>
+		<li>WLAN network name (<a
+			href="http://en.wikipedia.org/wiki/SSID">SSID</a>)</li>
+		<li>WLAN network password (<a
+			href="http://en.wikipedia.org/wiki/Pre-shared_key">PSK</a>)</li>
+
+		<li>encryption standard (<a
+			href="http://en.wikipedia.org/wiki/Wpa">WPA</a>, <a
+			href="http://en.wikipedia.org/wiki/Wpa2#WPA2">WPA2</a>)</li>
+		<li>radio channel / frequency</li>
+	</ul>
+
+	<p>All these settings are defined on your WLAN router / access
+		point. If there are a lot of WLAN-networks in your range try to change
+		to a radio channel with the biggest frequency distance regarding the
+		other channels. Otherwise you may experience poor network quality and
+		speed. Another quality factor is having walls with much ferroconcrete.</p>
+
+	<p>You can reach an average speed of 35Mb/s. For streaming HD
+		videos this might be not enough.</p>
+
+
+	<h3>LAN</h3>
+	<p>
+		The biggest advantage of <a
+			href="http://en.wikipedia.org/wiki/Local_area_network">LAN</a>
+		(wired connections) is its maximum bandwidth of 1000 Mb/s. One big
+		disadvantage is you have to wire all devices, so you need physical
+		access. The devices (router, computer, PS3) have to be wired with <a
+			href="http://en.wikipedia.org/wiki/Category_5_cable">Cat5e</a>
+		S/FTP with RJ45-plugs. All devices have to be connected to your router
+		integrated switch. Of course you can extend the switch ports of your
+		router with an uplink to an external <a
+			href="http://en.wikipedia.org/wiki/Network_switch">switch</a>. If
+		your router switch ports are 100 Mb/s you can tune up maximum speed
+		with an external 1000 Mb/s switch. The link speed and duplex mode
+		should be handled automatically via <a
+			href="http://en.wikipedia.org/wiki/Autonegotiation">autonegotiation</a>.
+		Sometimes it does not work correctly and you have to change settings
+		on your computer by yourself.
+	</p>
+
+	<p>Example screenshot for changing linkspeed and duplex mode in
+		Windows XP:</p>
+	<p>
+		<img src="images/autonegotiation.jpg" />
+	</p>
+
+	<h3>DLAN</h3>
+	<p>
+		If it is not possible to wire your devices but you need a higher
+		network transfer rate there is a solution available called DLAN, also
+		known as powerLAN. In this case you use your power line for sending
+		data across it. Market leader for this technology is <a
+			href="http://www.devolo.com/consumer/dlan-mains-supply-network-fastest-200-mbit.html">devolo</a>.
+		You can get DLAN adapters with up to 200 Mb/s.
+	</p>
+	<p>There are new 1000 Mb/s powerline adapters available from
+		Belkin!</p>
+
+	<h3>TCP/IP, DHCP, ICS, DNS and firewall</h3>
+	<p>
+		The router is default gateway for all devices in your home network.
+		The communication is done via <a
+			href="http://en.wikipedia.org/wiki/Tcp/ip">TCP/IP</a> protocol. In
+		such a network every device needs an identifier called <a
+			href="http://en.wikipedia.org/wiki/Ip_address">IP-address</a>.
+		More than one program on your PC can use network at the same time.
+		Therefore these programs also use an identifier called <a
+			href="http://en.wikipedia.org/wiki/Port_number">port number</a>. PS3
+		media server uses port 5001 as default. You can change that if it is
+		already used by another software. Your home network is a <a
+			href="http://en.wikipedia.org/wiki/Private_network">private
+			network</a> and therefore uses special IP-addresses. The IP range is
+		limited by the so called <a
+			href="http://en.wikipedia.org/wiki/Subnet_mask">subnet mask</a>
+		(e.g. 255.255.255.0). Because nobody can memorize a large numbers of
+		IP addresses (like 74.125.67.100 for google.com) you need another
+		network service called <a
+			href="http://en.wikipedia.org/wiki/Domain_Name_System">DNS</a>
+		which translates IP addresses into domain names and vice versa. The
+		router forwards DNS requests to a DNS server of your provider and
+		sends the answer to the requesting device.
+	</p>
+
+	<p>
+		Setting up an IP-network is not a simple task. There was also a need
+		for automation. <a href="http://en.wikipedia.org/wiki/Dhcp">DHCP</a>
+		solves this issue. Your router has an integrated DHCP server which
+		sets up every network device (PS3 or computer) automatically. Do not
+		use DHCP and internet connection sharing (<a
+			href="http://en.wikipedia.org/wiki/Internet_Connection_Sharing">ICS</a>),
+		a windows feature, at the same time. ICS has to be deactivated.
+	</p>
+	<p>It is possible that your computer has more than one network card
+		built in. If you use virtualization software (VMware, Virtualbox,
+		etc.) additional virtual NICs are created.</p>
+
+	<p>
+		<img src="images/netzwerkverbindungen.jpg" />
+	</p>
+
+	<p>
+		For security reasons a <a title="Firewall"
+			href="http://en.wikipedia.org/wiki/Firewall">firewall</a> is
+		integrated in your router. The firewall restrics communication with
+		the internet. Most router integrated firewalls do not restrict
+		communication in your local network. It is also possible that there is
+		a personal firewall software running on your computer. To get UMS
+		running you have to open port 1900 (UPnP discovery) and 5001 (UMS). If
+		you change the port for UMS in configuration you have to change your
+		firewall settings as well.
+	</p>
+
+	<h3>UPnP</h3>
+	<p>
+		Windows only discovers UPnP devices in your home network when <a
+			href="http://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol">SSDP</a>
+		service is running. Here is a Microsoft knowledge base article on <a
+			href="http://support.microsoft.com/?scid=kb%3Ben-us%3B941206&amp;x=13&amp;y=8">how
+			to enable SSDP</a>.
+	</p>
+	<p>
+		<img src="images/ssdp.jpg" />
+	</p>
+	
+
+
+
+	<!--  Navigation -->
+	<hr />
+	<ul>
+		<li>Next: <a href="installation.html">Installation and basic
+				configuration</a>
+		</li>
+		<li>Previous: <a href="introduction.html">Introduction</a>
+		</li>
+		<li>Top: <a href="index.html">Help</a>
+		</li>
+	</ul>
+
+</body>
+</html>

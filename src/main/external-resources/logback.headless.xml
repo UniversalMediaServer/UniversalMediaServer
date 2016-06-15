@@ -1,0 +1,95 @@
+<configuration>
+	<!--
+		See http://logback.qos.ch/manual/ for more information on how to
+		configure the Logback logging engine.
+		Available levels: ALL < TRACE < DEBUG < INFO < WARN < ERROR < OFF
+	-->
+
+	<!--
+		Let UMS decide the path for the logfile: either the current directory
+		or (when that is read only) the system temp directory.
+	-->
+	<define name="logFilePath" class="net.pms.logging.DebugLogPropertyDefiner">
+		<key>logFilePath</key>
+	</define>
+
+	<!-- Get the user-preferred root logging level. -->
+	<define name="rootLevel" class="net.pms.logging.DebugLogPropertyDefiner">
+		<key>rootLevel</key>
+	</define>
+	
+	<!-- Get the logfile name -->
+	<define name="logFileName" class="net.pms.logging.DebugLogPropertyDefiner">
+		<key>logFileName</key>
+	</define>
+
+	<!-- Appender for the console -->
+	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- No threshold filtering, log everything the root logger allows -->
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!--
+		Appender for the default logfile that will keep the file growing in size
+		until UMS is restarted.
+	-->
+	<appender name="default.log" class="ch.qos.logback.core.FileAppender">
+		<!-- No threshold filtering, log everything the root logger allows -->
+		<file>${logFilePath}${file.separator}${logFileName}</file>
+		<append>false</append>  <!-- Start new logfile on each application start -->
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!--
+		Appender for the default logfile that will roll the logfile after 10 MBytes
+		and will keep a maximum of 5 old and compressed logs.
+	-->
+	<appender name="default.log.10MB" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- No threshold filtering, log everything the root logger allows -->
+		<file>${logFilePath}${file.separator}${logFileName}</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<fileNamePattern>${logFilePath}${logFileName}.%i.zip</fileNamePattern>
+			<minIndex>1</minIndex>
+			<maxIndex>5</maxIndex>
+		</rollingPolicy>
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!--
+		For debugging purposes it can be handy to define custom levels for
+		specific classes or packages. For example:
+
+	<logger name="net.pms.dlna.DLNAResource" level="ALL" />
+	<logger name="net.pms.network.RequestHandlerV2" level="ALL" />
+	<logger name="net.pms.util" level="ALL" />
+	-->
+
+	<!-- silence noise from external libraries -->
+	<logger name="org.apache" level="WARN" />
+	<logger name="httpclient.wire" level="WARN" />
+	<logger name="fm.last.musicbrainz.coverart" level="WARN" />
+
+	<!-- Root logger defines the minimum log level for all loggers -->
+	<root level="${rootLevel}">
+		<appender-ref ref="console" />
+
+		<!--
+			If unlimited growth of the logfile is not desired use the
+			appender-ref "default.log.10MB" instead of "default.log".
+		-->
+		<appender-ref ref="default.log" />
+		<!-- <appender-ref ref="default.log.10MB" /> -->
+	</root>
+</configuration>

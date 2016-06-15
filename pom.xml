@@ -1,0 +1,1648 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<!--
+		UMS consists of two major parts: UMS itself and the third party software needed to
+		run it. While UMS itself is 100% pure Java, some of the third party software is
+		not. This means building a platform specific distribution boils down to first
+		building the pms.jar and then assembling all application resources.
+
+		Note that Maven 3 does not automatically install all dependencies, unlike Maven 2.
+		To install external dependencies to your local repository, run the following commands:
+
+		mvn external:install
+
+		To build UMS, do:
+
+			mvn clean package
+
+		After building, the "target" directory will contain the binary.
+		To generate a full source code report, do:
+
+			mvn site
+
+		After generating, the "target/site" directory will contain the reports.
+	-->
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.pms</groupId>
+	<artifactId>ums</artifactId>
+	<name>Universal Media Server</name>
+	<packaging>jar</packaging>
+	<version>6.2.3-SNAPSHOT</version>
+	<url>http://www.universalmediaserver.com/</url>
+	<inceptionYear>2012</inceptionYear>
+
+	<!-- this is not required, but is recommended for plugin version checks -->
+	<prerequisites>
+		<maven>2.2.1</maven>
+	</prerequisites>
+
+	<organization>
+		<name>Universal Media Server</name>
+		<url>http://www.universalmediaserver.com/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GNU General Public License version 2</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+	<description>
+		Universal Media Server is a cross-platform DLNA-compliant UPnP Media Server.
+		Originally written to support the PlayStation 3, Universal Media Server has been
+		expanded to support a range of other media renderers, including smartphones,
+		televisions, music players and more.
+	</description>
+	<scm>
+		<connection>scm:git:git://github.com/UniversalMediaServer/UniversalMediaServer.git</connection>
+		<developerConnection>scm:git:git@github.com:UniversalMediaServer/UniversalMediaServer.git</developerConnection>
+		<tag>master</tag>
+		<url>https://github.com/UniversalMediaServer/UniversalMediaServer</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/UniversalMediaServer/UniversalMediaServer/issues</url>
+	</issueManagement>
+	<properties>
+		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
+		<project.version.short>6.2.3</project.version.short>
+		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
+
+		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
+		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
+
+		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
+		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
+		<mediautil-version>1.0</mediautil-version>
+		<slf4j-version>1.7.19</slf4j-version>
+
+		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
+		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
+		<project.binaries>${project.basedir}/target/bin</project.binaries>
+
+		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
+		<binary-revision>46</binary-revision>
+
+		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
+
+		<!--
+			 use the Windows makensis.exe for Windows builds unless
+			 the system makensis is explicitly selected via the
+			 system-makensis profile
+		 -->
+		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
+	</properties>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>ossrh</id>
+			<name>Sonatype OSS Repository</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<layout>default</layout>
+		</pluginRepository>
+	</pluginRepositories>
+	<repositories>
+		<!-- GSON -->
+		<repository>
+			<id>google-gson</id>
+			<name>google-gson</name>
+			<url>https://google-gson.googlecode.com/svn/mavenrepo/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>4thline-repo</id>
+			<url>http://4thline.org/m2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	<dependencies>
+		<!-- TODO this can be removed when MEncoder is removed -->
+		<dependency>
+			<groupId>org.beanshell</groupId>
+			<artifactId>bsh-core</artifactId>
+			<version>2.0b4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.10</version>
+			<exclusions>
+				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+			<version>3.1</version>
+			<exclusions>
+				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.191</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>1.1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.sanselan</groupId>
+			<artifactId>sanselan</artifactId>
+			<version>0.97-incubator</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.6.2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
+			<version>3.10.5.Final</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- maven replacement for nsisant-1.2.jar -->
+		<dependency>
+			<groupId>maven</groupId>
+			<artifactId>maven-nsis-plugin</artifactId>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.rome</groupId>
+			<artifactId>rome</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.coobird</groupId>
+			<artifactId>thumbnailator</artifactId>
+			<version>[0.4, 0.5)</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jai-imageio</groupId>
+			<artifactId>jai-imageio-core</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org</groupId>
+			<artifactId>jaudiotagger</artifactId>
+			<version>2.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jgoodies</groupId>
+			<artifactId>jgoodies-forms</artifactId>
+			<version>${jgoodies-forms-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jgoodies</groupId>
+			<artifactId>jgoodies-looks</artifactId>
+			<version>${jgoodies-looks-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.junrar</groupId>
+			<artifactId>junrar</artifactId>
+			<version>0.7</version>
+		</dependency>
+
+		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
+		<dependency>
+			<groupId>jwbroek.cuelib</groupId>
+			<artifactId>cuelib</artifactId>
+			<version>${cuelib-version}</version>
+		</dependency>
+
+		<!-- XXX: not Mavenized: http://sourceforge.net/projects/mediachest/ -->
+		<dependency>
+			<groupId>mediautil</groupId>
+			<artifactId>mediautil</artifactId>
+			<version>${mediautil-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>xmlwise</groupId>
+			<artifactId>xmlwise</artifactId>
+			<version>1.2.11</version>
+		</dependency>
+		<dependency>
+			<groupId>sevenzip</groupId>
+			<artifactId>jbinding</artifactId>
+			<version>${sevenzip-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>sevenzip-allplatforms</groupId>
+			<artifactId>jbinding-allplatforms</artifactId>
+			<version>${sevenzip-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.easytesting</groupId>
+			<artifactId>fest-util</artifactId>
+			<version>1.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<!-- Use 3.x for Java 8 -->
+			<version>2.3.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>4.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna-platform</artifactId>
+			<version>4.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom2</artifactId>
+			<version>2.0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.fourthline.cling</groupId>
+			<artifactId>cling-core</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.fourthline.cling</groupId>
+			<artifactId>cling-support</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seamless</groupId>
+			<artifactId>seamless-http</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seamless</groupId>
+			<artifactId>seamless-util</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seamless</groupId>
+			<artifactId>seamless-xml</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.samskivert</groupId>
+			<artifactId>jmustache</artifactId>
+			<version>1.12</version>
+		</dependency>
+		<dependency>
+			<groupId>su.litvak.chromecast</groupId>
+			<artifactId>api-v2</artifactId>
+			<version>0.9.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.20.0-GA</version>
+		</dependency>
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>57.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>annotations</artifactId>
+			<version>3.0.1u2</version>
+		</dependency>
+		<dependency>
+			<groupId>fm.last</groupId>
+			<artifactId>coverartarchive-api</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<defaultGoal>assembly:assembly</defaultGoal>
+
+		<!-- specify how files in src/main/resources are bundled in the target jar -->
+		<resources>
+			<!-- 1) package unfiltered resources -->
+
+			<!--
+				This needs to be defined explicitly if a <resources>...</resources>
+				section is used
+			-->
+			<resource>
+				<directory>src/main/resources</directory>
+				<!--
+					By default, Maven packages resources in the top-level of the jar e.g.
+
+						/example.res
+
+					The old PMS ant build packaged them in a "resources" directory
+					e.g:
+
+						/resources/example.res
+
+					Currently, we preserve the old destination. If this is ever changed
+					to the Maven default, a handful of files will need to be changed to
+					reference "/example.res" rather than "/resources/example.res"
+				-->
+				<targetPath>resources</targetPath>
+				<excludes>
+					<exclude>project.properties</exclude>
+				</excludes>
+
+				<!-- Avoid inadvertently filtering binaries -->
+				<filtering>false</filtering>
+			</resource>
+
+			<!-- 2) package filtered resources -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>resources</targetPath>
+				<includes>
+					<include>project.properties</include>
+				</includes>
+
+				<!-- Filter to replace Maven properties -->
+				<filtering>true</filtering>
+			</resource>
+
+			<!-- 3) package filtered NSIS header files -->
+			<resource>
+				<directory>src/main/external-resources/nsis</directory>
+				<includes>
+					<include>extra.nsh</include>
+				</includes>
+
+				<!-- Filter to replace Maven properties -->
+				<filtering>true</filtering>
+				<targetPath>..</targetPath>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<includes>
+					<include>project.properties</include>
+				</includes>
+				<targetPath>resources</targetPath>
+
+				<!-- Enable the use of Maven properties -->
+				<filtering>true</filtering>
+			</testResource>
+			<!--*.srt files to test charset detection-->
+			<testResource>
+				<directory>src/test/resources/net/pms/util</directory>
+				<includes>
+					<include>*.srt</include>
+				</includes>
+				<targetPath>net/pms/util</targetPath>
+			</testResource>
+		</testResources>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+
+						<!--
+							1) Force language because JUnit tests depend on English language strings
+
+							2) Use our JNA dependency rather than the system's - fixes
+							the following error on Linux (Ubuntu 12.04 with system
+							jna-3.2.7.jar via libjna-java):
+
+							There is an incompatible JNA native library installed on this system.
+						-->
+						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
+					</configuration>
+					<version>2.19</version>
+				</plugin>
+
+				<!-- 
+					This plugin's configuration is used to run crowdin plugin from the command line,
+					it has no influence on the Maven build itself. 
+				-->
+				<plugin>
+					<groupId>com.universalmediaserver</groupId>
+					<artifactId>crowdin-maven-plugin</artifactId>
+					<version>0.3</version>
+					<configuration>
+						<project>${project}</project>
+						<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
+						<downloadFolder>${project.basedir}/extras/crowdin</downloadFolder>
+						<statusFile>${project.basedir}/src/main/resources/languages.properties</statusFile>
+						<crowdinServerId>crowdin-ums</crowdinServerId>
+						<pushFileName>messages.properties</pushFileName>
+						<pushFileTitle>Universal Media Server</pushFileTitle>
+						<projectName>Universal Media Server</projectName>
+					</configuration>
+				</plugin>
+
+				<!--
+					This plugin's configuration is used to store Eclipse m2e settings only.
+					It has no influence on the Maven build itself.
+				-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-antrun-plugin
+										</artifactId>
+										<versionRange>
+											[1.7,)
+										</versionRange>
+										<goals>
+											<goal>run</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											pl.project13.maven
+										</groupId>
+										<artifactId>
+											git-commit-id-plugin
+										</artifactId>
+										<versionRange>
+											[${git-commit-id-plugin-version},)
+										</versionRange>
+										<goals>
+											<goal>revision</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.universalmediaserver
+										</groupId>
+										<artifactId>
+											external-maven-plugin
+										</artifactId>
+										<versionRange>
+											[0.1,)
+										</versionRange>										
+										<goals>
+											<goal>clean</goal>
+											<goal>deploy</goal>
+											<goal>install</goal>
+											<goal>resolve</goal>
+											<goal>localinstall</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute></execute>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.universalmediaserver</groupId>
+										<artifactId>
+											crowdin-maven-plugin
+										</artifactId>
+										<versionRange>
+											[0.1,)
+										</versionRange>
+										<goals>
+											<goal>fetch</goal>
+											<goal>push</goal>
+											<goal>build</goal>
+											<goal>apply</goal>
+											<goal>pull</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute></execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<!--
+				Plugin to add git commit information properties.
+				These are used in the project.properties files.
+				See: https://github.com/ktoso/maven-git-commit-id-plugin
+			-->
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>${git-commit-id-plugin-version}</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<dateFormat>yyyy-MM-dd</dateFormat>
+					<verbose>false</verbose>
+					<generateGitPropertiesFile>false</generateGitPropertiesFile>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<testSource>1.7</testSource>
+					<testTarget>1.7</testTarget>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.10</version>
+				<configuration>
+					<additionalProjectnatures>
+						<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+					</additionalProjectnatures>
+					<additionalBuildcommands>
+						<buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
+					</additionalBuildcommands>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+					<wtpversion>1.5</wtpversion>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-idea-plugin</artifactId>
+				<version>2.2.1</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+					<dependenciesAsLibraries>true</dependenciesAsLibraries>
+					<useFullNames>false</useFullNames>
+				</configuration>
+			</plugin>
+
+			<!--
+				This plugin will take care of installing the external dependencies that do not
+				exist in a public Maven repository. That is why we store some jar files in the
+				"src/main/external-resources/lib" directory and have this plugin take care of
+				the installation at build time.
+
+				Checksums can be calculated with "openssl sha1 [filename]".
+			-->
+			<plugin>
+				<groupId>com.universalmediaserver</groupId>
+				<artifactId>external-maven-plugin</artifactId>
+				<version>0.1</version>
+				<inherited>false</inherited>
+				<configuration>
+					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
+					<createChecksum>true</createChecksum>
+					<artifactItems>
+						<artifactItem>
+							<groupId>sevenzip</groupId>
+							<artifactId>jbinding</artifactId>
+							<version>${sevenzip-version}</version>
+							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-{version}.{packaging}</downloadUrl>
+						</artifactItem>
+						<artifactItem>
+							<groupId>sevenzip-allplatforms</groupId>
+							<artifactId>jbinding-allplatforms</artifactId>
+							<version>${sevenzip-version}</version>
+							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
+						</artifactItem>
+						<artifactItem>
+							<groupId>jwbroek.cuelib</groupId>
+							<artifactId>cuelib</artifactId>
+							<version>${cuelib-version}</version>
+							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
+							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
+						</artifactItem>
+						<artifactItem>
+							<groupId>mediautil</groupId>
+							<artifactId>mediautil</artifactId>
+							<version>${mediautil-version}</version>
+							<downloadUrl>http://downloads.sourceforge.net/project/mediachest/MediaUtil/Version%201.0/mediautil-1.zip</downloadUrl>
+							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
+							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
+							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
+						</artifactItem>
+					</artifactItems>
+				</configuration>
+				<executions>
+					<execution>
+						<id>clean-external-dependencies</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.4</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.doxia</groupId>
+						<artifactId>doxia-module-docbook-simple</artifactId>
+						<version>1.5</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<reportPlugins>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-project-info-reports-plugin</artifactId>
+							<version>2.8.1</version>
+							<reports>
+								<report>index</report>
+								<report>dependencies</report>
+								<report>dependency-convergence</report>
+								<report>dependency-management</report>
+								<report>plugins</report>
+							</reports>
+						</plugin>
+
+						<!-- PMS tests report -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-surefire-report-plugin</artifactId>
+							<version>2.19</version>
+							<configuration>
+								<showSuccess>false</showSuccess>
+							</configuration>
+						</plugin>
+
+						<!-- Javadoc -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-javadoc-plugin</artifactId>
+							<version>${maven-javadoc-plugin-version}</version>
+							<configuration>
+								<quiet>true</quiet>
+								<tags>
+									<tag>
+										<name>todo</name>
+										<placement>a</placement>
+										<head>To Do:</head>
+									</tag>
+									<tag>
+										<name>review</name>
+										<placement>a</placement>
+										<head>Review:</head>
+									</tag>
+								</tags>
+								<detectJavaApiLink>false</detectJavaApiLink>
+								<links>
+									<link>http://docs.oracle.com/javase/7/docs/api/</link>
+								</links>
+
+								<!--
+									Doclet to generate class diagrams inside Javadoc.
+									Requires the installation of Graphviz (http://www.graphviz.org/)
+								-->
+								<doclet>org.jboss.apiviz.APIviz</doclet>
+								<docletArtifact>
+									<groupId>org.jboss.apiviz</groupId>
+									<artifactId>apiviz</artifactId>
+									<version>1.3.2.GA</version>
+								</docletArtifact>
+								<useStandardDocletOptions>true</useStandardDocletOptions>
+							</configuration>
+						</plugin>
+
+						<!-- Class dependency report -->
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>jdepend-maven-plugin</artifactId>
+							<version>2.0</version>
+						</plugin>
+
+						<!-- Findbugs report -->
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>findbugs-maven-plugin</artifactId>
+							<version>3.0.3</version>														
+						</plugin>
+
+						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-checkstyle-plugin</artifactId>
+							<version>2.11</version>
+						</plugin> -->
+
+						<!-- Cobertura Test Coverage report -->
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>cobertura-maven-plugin</artifactId>
+							<version>2.6</version>
+						</plugin>
+
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-pmd-plugin</artifactId>
+							<version>3.4</version>
+							<configuration>
+								<linkXref>false</linkXref>
+								<sourceEncoding>utf-8</sourceEncoding>
+								<minimumTokens>100</minimumTokens>
+								<targetJdk>1.7</targetJdk>
+							</configuration>
+						</plugin>
+
+						<plugin>
+							<groupId>com.github.jrh3k5</groupId>
+							<artifactId>l10n-maven-plugin</artifactId>
+							<version>1.4</version>
+							<configuration>
+								<failBuild>true</failBuild>
+								<messagesFile>${project.basedir}/src/main/resources/i18n/messages.properties</messagesFile>
+								<translatedMessagesPattern>src/main/resources/i18n/messages*.properties</translatedMessagesPattern>
+							</configuration>
+						</plugin>
+					</reportPlugins>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.4</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin-version}</version>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>system-makensis</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+
+			<properties>
+				<!-- if selected, use the system makensis on Linux, Mac OS X &c. -->
+				<makensis-bin>makensis</makensis-bin>
+			</properties>
+		</profile>
+
+		<!--
+			Windows profile: takes care of building the final package for Microsoft Windows
+		-->
+		<profile>
+			<id>windows</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+
+			<build>
+				<plugins>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.6</version>
+							<configuration>
+								<descriptors>
+									<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+								</descriptors>
+								<archive>
+									<manifest>
+										<mainClass>net.pms.PMS</mainClass>
+										<!--
+											this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+											without it, the following exception is thrown when PMS starts:
+
+											Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+												Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+													java.lang.IllegalArgumentException: vendorName == null!
+
+											See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+										-->
+										<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+									</manifest>
+								</archive>
+							</configuration>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to move the pms-x.x.x-jar-with-dependencies.jar to pms.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>process-resources-windows</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the download folders exist -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/win32" />
+										<mkdir dir="${project.binaries}/win32/avisynth" />
+										<mkdir dir="${project.binaries}/win32/codecs" />
+										<mkdir dir="${project.binaries}/win32/dvrms" />
+										<mkdir dir="${project.binaries}/win32/fonts" />
+										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
+										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
+										<mkdir dir="${project.binaries}/win32/fonts" />
+										<mkdir dir="${project.binaries}/win32/interframe" />
+										<mkdir dir="${project.binaries}/win32/mplayer" />
+										<mkdir dir="${project.binaries}/win32/service" />
+
+										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
+										<get src="${project.binaries-base}/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo.dll"  usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/win32/builds.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/win32/dcrawMS.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/win32/ffmpeg.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/win32/ffmpeg64.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/win32/flac.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/win32/mencoder.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/win32/mplayer.exe"  usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR-new.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/win32/vcomp100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/win32/avisynth/avisynth.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv33260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv43260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drvc.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/pncrt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/sipr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/tokr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wma9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmv9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmvdmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dvrms/ffmpeg_MPGMUX.exe?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/ffmpeg_MPGMUX.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dvrms/pthreadGC2.dll?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/pthreadGC2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/45-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/50-user.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/51-local.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/60-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/README" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper-community-license-1.1.txt?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper-community-license-1.1.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.conf?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
+
+										<!-- Make sure the destination folder for the service wrapper exists and copy the files. -->
+										<mkdir dir="${project.basedir}/win32/service" />
+										<copy todir="${project.basedir}/win32/service" overwrite="true">
+											<fileset dir="${project.binaries}/win32/service" />
+										</copy>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-windows</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Copy the pms-x.x.x-jar-with-dependencies.jar to pms.jar -->
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+										      tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
+						The "generate-project" goal generates a file "target/project.nsh", which contains the
+						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
+						"pms.nsi" and "setup.nsi" files.
+					-->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>nsis-maven-plugin</artifactId>
+						<version>1.0-SNAPSHOT</version>
+						<executions>
+							<execution>
+								<id>build-pms-windows</id>
+								<configuration>
+									<makensisBin>${makensis-bin}</makensisBin>
+									<outputFile>${project.build.directory}/UMS.exe</outputFile>
+									<setupScript>${project.external-resources}/nsis/pms.nsi</setupScript>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>generate-project</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+
+							<execution>
+								<id>build-setup-windows</id>
+								<configuration>
+									<makensisBin>${makensis-bin}</makensisBin>
+									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
+									<setupScript>${project.external-resources}/nsis/setup.nsi</setupScript>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>generate-project</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Linux profile: takes care of building the final package for Linux
+		-->
+		<profile>
+			<id>linux</id>
+			<!--
+				this setting does the right thing on Linux
+				and is needed for the Hudson profile to work
+			-->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.5.2</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+
+							<!-- Assemble the PMS distribution file. -->
+							<execution>
+								<id>build-pms-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-linux.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Use the antrun plugin to:
+
+						Download the tsMuxeR binary to ${project.binaries}/tsMuxeR
+						Copy the pms-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<id>process-resources-linux</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/linux/ffmpeg?p=${binary-revision}" dest="${project.binaries}/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/ffmpeg64?p=${binary-revision}" dest="${project.binaries}/ffmpeg64" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/tsMuxeR-new" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/tsMuxeR_license.txt" usetimestamp="true" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>copy-jar-with-dependencies-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Mac OSX Java 7 profile: takes care of building the final package for Mac OSX using Java 7.
+			Note: This does not make the .dmg you will have to do that manually. Use the open source dmgCreator
+		-->
+		<profile>
+			<id>osx-java7</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>1.4</version>
+						<executions>
+							<execution>
+								<id>enforce-java</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireJavaVersion>
+											<version>[1.7.0-80,1.7.0-100]</version>
+										</requireJavaVersion>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Plugin to download binaries before assembly
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<id>process-resources-osx-java-7</id>
+								<phase>test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR-new" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-osx-java-7</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package app</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.1.UMS.jar"/>
+										<bundleapp outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
+										           name="${project.name}"
+										           displayname="${project.name}"
+										           identifier="net.pms.PMS"
+										           shortversion="${project.version}"
+										           icon="${project.basedir}/src/main/resources/images/logo.icns"
+										           applicationCategory="public.app-category.developer-tools"
+										           mainclassname="net.pms.PMS">
+											<!--<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_21.jdk/Contents/Home"/>-->
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+											<option value="-Xmx768M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.4</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-osx-java-7</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the UMS files in the right place before 
+								moving them to the app Bundle.
+							-->
+							<execution>
+								<id>make-assembly-osx-java-7</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-osx_java7_8.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!--
+			Mac OSX Java 8 profile: takes care of building the final package for Mac OSX using Java 8.
+			Note: This does not make the .dmg you will have to do that manually. Use the open source dmgCreator
+		-->
+		<profile>
+			<id>osx-java8</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>1.4</version>
+						<executions>
+							<execution>
+								<id>enforce-java</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireJavaVersion>
+											<version>[1.8.0-51,1.8.0-100]</version>
+										</requireJavaVersion>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Plugin to download binaries before assembly
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<id>process-resources-osx-java-8</id>
+								<phase>test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR-new" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-osx-java-8</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package app</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.1.UMS.jar"/>
+										<bundleapp outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
+										           name="${project.name}"
+										           displayname="${project.name}"
+										           identifier="net.pms.PMS"
+										           shortversion="${project.version}"
+										           icon="${project.basedir}/src/main/resources/images/logo.icns"
+										           applicationCategory="public.app-category.developer-tools"
+										           mainclassname="net.pms.PMS">
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+											<option value="-Xmx768M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.4</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-osx-java-8</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the UMS files in the right place before 
+								moving them to the app Bundle.
+							-->
+							<execution>
+								<id>make-assembly-osx-java-8</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-osx_java7_8.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!--
+			Hudson (windows-jar): minimal profile that builds pms.jar with the
+			Windows JNA. The POSIX JNA causes snapshot builds to crash the JVM on
+			Windows, whereas the Windows JNA only disables MediaInfo for Ubuntu
+			users, who can still use ffmpeg.
+
+			Another difference from the other profiles is that we don't download the
+			binaries or build the tarball.
+		-->
+		<profile>
+			<id>windows-jar</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<property>
+					<name>env.HUDSON_URL</name>
+				</property>
+			</activation>
+
+			<build>
+				<plugins>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.4</version>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Use the antrun plugin to: copy the
+						pms-x.x.x-jar-with-dependencies.jar to pms.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>copy-jar-with-dependencies-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+										      tofile="${project.basedir}/target/pms.jar" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			This profile allows running PMS from inside Eclipse
+			(Requires a "mvn clean package" to download the binaries first)
+		-->
+		<profile>
+			<id>run-from-eclipse</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.4.0</version>
+						<executions>
+							<execution>
+								<phase>test</phase>
+								<goals>
+									<goal>java</goal>
+								</goals>
+								<configuration>
+									<classpathScope>test</classpathScope>
+									<mainClass>net.pms.PMS</mainClass>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

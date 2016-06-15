@@ -1,0 +1,13 @@
+--- x264/encoder/set.c	2012-05-04 22:45:03.000000000 +0200
++++ x264/encoder/set.c	2012-05-05 14:23:42.779901918 +0200
+@@ -574,9 +574,7 @@
+     CHECKED_MALLOC( payload, 200 + strlen( opts ) );
+
+     memcpy( payload, uuid, 16 );
+-    sprintf( payload+16, "x264 - core %d%s - H.264/MPEG-4 AVC codec - "
+-             "Copy%s 2003-2012 - http://www.videolan.org/x264.html - options: %s",
+-             X264_BUILD, X264_VERSION, HAVE_GPL?"left":"right", opts );
++    sprintf( payload+16, "x264 - core %d%s", X264_BUILD, X264_VERSION);
+     length = strlen(payload)+1;
+
+     x264_sei_write( s, (uint8_t *)payload, length, SEI_USER_DATA_UNREGISTERED );

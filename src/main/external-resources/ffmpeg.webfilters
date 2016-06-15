@@ -1,0 +1,46 @@
+# These are custom rules to fine-tune the behaviour of
+# FFmpeg Web Video transcoding with respect to specific urls.  
+
+
+########################## EXCLUDE ##############################
+# urls to be skipped (i.e. passed along to later engines)
+#    format:   <regex to match>
+#################################################################
+
+EXCLUDE
+
+# unresolved youtube urls
+#gdata\.youtube\.com|youtube_gdata
+
+# other unresolved urls
+feeds\.feedburner\.com
+www\.gameswelt\.de
+eurogamer\.net
+gametrailers\.com
+giantbomb\.com
+icanhascheezburger\.com
+pcgames\.de
+winfuture\.de
+
+
+########################## OPTIONS ##############################
+# urls requiring specific FFmpeg options.
+#    format:   <regex to match> | <options to add>
+#################################################################
+
+OPTIONS
+
+trailers\.apple\.com | -user-agent QuickTime/7.6.2
+# uncomment the rule below if you experience audio problems with endgadget:
+#www\.viddler\.com | -target ntsc-dvd
+
+
+########################## REPLACE ##############################
+# urls to be modified (using capture groups).
+#    format:   <regex to match> | <replacement regex>
+#    example: .*somewhere\.com.* | $0\?somevar=true
+#################################################################
+
+REPLACE
+
+# no rules yet

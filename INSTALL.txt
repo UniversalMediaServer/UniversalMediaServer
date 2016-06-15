@@ -1,0 +1,30 @@
+Installers for Windows and Mac OS X and tarballs for Linux can be found at:
+
+    http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
+
+To install UMS from the tarball on Linux, open a terminal and enter the
+following commands (replace <version> with the version you're installing):
+Note: These instructions have been tested on Ubuntu 12.04, but something similar
+should work on most Unix distributions)
+
+1) Install the dependencies (this only needs to be done once):
+
+    sudo apt-get install mediainfo openjdk-7-jre
+    # you can also optionally install dcraw and VLC: sudo apt-get install dcraw vlc
+
+2) Download the tarball e.g.:
+
+    # if wget isn't installed, run: sudo apt-get install wget
+    wget http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-<version>.tgz/download
+
+3) Extract the tarball into a ums-<version> directory:
+
+    tar xzvf ums-<version>.tgz
+
+4) Run (note: UMS should NOT be run as root):
+
+    cd ums-<version>
+    ./UMS.sh
+
+UMS accesses some files in the ums-<version> directory (the working directory).
+Other files will be looked for in ~/.config/UMS

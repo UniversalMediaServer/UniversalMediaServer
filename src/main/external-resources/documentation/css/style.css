@@ -1,0 +1,43 @@
+/*
+ * PS3 Media Server, for streaming any medias to your PS3.
+ * Copyright (C) 2008  A.Brochard
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+ 
+ /*
+  * Please note:
+  * Any sizes that are to be relative to the OS base font size must be set
+  * in HelpTab.buildStyleSheet(). This is done to support OS font scaling
+  * used on example for high DPI monitors.
+  */
+  
+body {
+	font-family: Arial;
+	color: #000000;
+}
+
+dt {
+	font-weight: bold;
+}
+
+blockquote {
+	border: 1px solid #000000;
+	padding: 5px;
+	background-color: #cccccc;
+}
+pre, tt {
+	font-family: Courier New, Courier;
+}
