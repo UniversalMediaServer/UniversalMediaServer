@@ -1403,7 +1403,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AVI_TYPEMIME;
 					break;
 				case "wav":
-                			mimeType = HTTPResource.WAV_TYPEMIME;
+                			mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
                 			break;
 				case "asf":
 				case "wmv":
