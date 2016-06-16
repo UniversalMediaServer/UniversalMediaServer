@@ -194,7 +194,7 @@ public class UPNPControl {
 				public void run() {
 					String id = data.get("InstanceID");
 					while (active && !"STOPPED".equals(data.get("TransportState"))) {
-						UPNPHelper.sleep(1000);
+						sleep(1000);
 //						if (DEBUG) LOGGER.debug("InstanceID: " + id);
 						for (ActionArgumentValue o : getPositionInfo(d, id)) {
 							data.put(o.getArgument().getName(), o.toString());
@@ -202,7 +202,7 @@ public class UPNPControl {
 						}
 						alert();
 					}
-					if (! active) {
+					if (!active) {
 						data.put("TransportState", "STOPPED");
 						alert();
 					}
@@ -321,7 +321,7 @@ public class UPNPControl {
 			};
 
 			upnpService = new UpnpServiceImpl(sc, rl);
-			search();
+			initializeSearcher();
 
 			LOGGER.debug("UPNP Services are online, listening for media renderers");
 		} catch (Exception ex) {
@@ -333,9 +333,9 @@ public class UPNPControl {
 	private static Thread searchThread;
 
 	/**
-	 * Find all media renderers on the network
+	 * Runs a Cling search every 10/20/30 seconds to discover new renderers.
 	 */
-	public void search() {
+	public void initializeSearcher() {
 		Runnable rSearch = new Runnable() {
 			@Override
 			public void run() {
