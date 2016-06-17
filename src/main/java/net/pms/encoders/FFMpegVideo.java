@@ -197,7 +197,6 @@ public class FFMpegVideo extends Player {
 					} else {
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
-					
 				} else if (params.sid.isEmbedded()) {
 					originalSubsFilename = dlna.getSystemName();
 				}

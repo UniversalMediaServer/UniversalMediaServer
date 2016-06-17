@@ -163,9 +163,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
-	
+
 	private boolean externalSubsExist = false;
-	
+
 	public void setExternalSubsExist(boolean exist) {
 		this.externalSubsExist = exist;
 	}
