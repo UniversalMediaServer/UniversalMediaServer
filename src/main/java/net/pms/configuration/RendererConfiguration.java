@@ -2295,7 +2295,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Reformatted name
 	 */
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
-		// Wrap + tuncate
+		// Wrap + truncate
 		int len = 0;
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
@@ -2305,7 +2305,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				// Wrap
 				int i = dlna.isFolder() ? 0 : indent;
 				String newline = "\n" + (dlna.isFolder() ? "" : inset);
-				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
+				name = name.substring(0, i + (i < name.length() && Character.isWhitespace(name.charAt(i)) ? 1 : 0))
 					+ WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
 				len = lineWidth * lineHeight;
 				if (len != 0 && name.length() > len) {

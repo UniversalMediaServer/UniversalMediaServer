@@ -1275,7 +1275,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Unhandled expection while resolving {}: {}", getDisplayName(), e.getMessage());
+			LOGGER.warn("Unhandled exception while resolving {}: {}", getDisplayName(), e.getMessage());
 			LOGGER.debug("", e);
 		}
 	}

@@ -5,15 +5,22 @@
 		Prevent sleep mode while streaming by default
 		Tweaked language
 		Improved/fixed some documentation (thanks, Sami32!)
+		Improved file parsing speed
+		Improved logging
 		Fixed support for CMYK JPEG images
 		Fixed 24-bit FLAC fake videos showing up for non-PS3 renderers
 		Fixed unsupported subtitles being streamed
+		Fixed transcoding bitrate in rare cases
 	Renderers:
 		Improved video quality on wireless networks for Panasonic VT60
 		Improved support for Sony Bravia NX800 TVs (thanks, prescott66!)
 	Languages:
-		Czech, Polish, Russian, Swedish and Turkish translations were completed on Crowdin
-		French and Polish translations were validated on Crowdin
+		Czech translation was completed (thanks, jirkapas and panther7!)
+		French translation was completed and validated (thanks, archaos, Kielo, Kirvx, misterfred and Nadar!)
+		Polish translation was completed and validated (thanks, anonymodmous, K4r0lSz, Nadar and robo25!)
+		Russian translation was completed (thanks, antonyfg, dronidzer, guzu-guzu, lxnderty, Nadar and Tianuchka!)
+		Swedish translation was completed (thanks, klebom, linushg111, mattias_karlsson_89, millenniumb, Nadar, qwert352, rchk, richarda, Rowly, sebastianboos, Stetoskop, strayhat and swarish!)
+		Turkish translation was completed and validated (thanks, hasanbahcekapili, OnarEngincan and onuroztemizel!)
 	External Components:
 		Updated h2database to 1.4.192
 
