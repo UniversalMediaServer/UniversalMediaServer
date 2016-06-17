@@ -369,20 +369,23 @@ public class UPNPHelper extends UPNPControl {
 					/**
 					 * The first delay for sending an ALIVE message is 10 seconds,
 					 * the second delay is for 20 seconds. From then on, all other
-					 * delays are standard for 180 seconds. It can be customized
-					 * with the ALIVE_delay user configuration setting.
+					 * delays are for 30/180 seconds depending on whether there
+					 * are renderers connected. It can be customized with the 
+					 * ALIVE_delay user configuration setting.
 					 */
 					switch (ALIVE_delay) {
 						case 10000:
 							ALIVE_delay = 20000;
 							break;
 						case 20000:
+						case 30000:
+						case 180000:
 							// If getAliveDelay is 0, there is no custom alive delay
 							if (configuration.getAliveDelay() == 0) {
 								if (PMS.get().getFoundRenderers().size() > 0) {
-									ALIVE_delay = 30000;
+									ALIVE_delay = 180000;
 								} else {
-									ALIVE_delay = 10000;
+									ALIVE_delay = 30000;
 								}
 							} else {
 								ALIVE_delay = configuration.getAliveDelay();
@@ -566,7 +569,7 @@ public class UPNPHelper extends UPNPControl {
 		sb.append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("CACHE-CONTROL: max-age=").append(ALIVE_delay / 100).append(CRLF);
+			sb.append("CACHE-CONTROL: max-age=1800").append(CRLF);
 			sb.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		}
 
