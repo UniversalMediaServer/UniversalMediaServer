@@ -369,8 +369,8 @@ public class UPNPHelper extends UPNPControl {
 					/**
 					 * The first delay for sending an ALIVE message is 10 seconds,
 					 * the second delay is for 20 seconds. From then on, all other
-					 * delays are standard for 180 seconds. It can be customized
-					 * with the ALIVE_delay user configuration setting.
+					 * delays are 30 seconds. It can be customized with the
+					 * ALIVE_delay user configuration setting.
 					 */
 					switch (ALIVE_delay) {
 						case 10000:
