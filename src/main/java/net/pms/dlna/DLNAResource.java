@@ -877,6 +877,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
 			} else if (format.isVideo() && parserV2) {
+				int maxBandwidth = renderer.getMaxBandwidth();
+				if (renderer.isHalveBitrate()) {
+					maxBandwidth /= 2;
+				}
+
 				if (
 					renderer.isKeepAspectRatio() &&
 					!"16:9".equals(media.getAspectRatioContainer())
@@ -886,9 +891,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
-				} else if (media.getBitrate() > renderer.getMaxBandwidth()) {
+				} else if (media.getBitrate() > maxBandwidth) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), renderer.getMaxBandwidth());
+					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), maxBandwidth);
 				}
 			}
 
