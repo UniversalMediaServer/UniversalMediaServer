@@ -80,7 +80,7 @@ public class SubtitleUtils {
 			// Thai
 			put(CHARSET_WINDOWS_874, "cp874");
 			put(CHARSET_ISO_8859_11, "ISO-8859-11");
-			put(CHARSET_TIS_620, "TIS-620");
+			put(CHARSET_TIS_620, "tis-620");
 			// Chinese
 			put(CHARSET_ISO_2022_CN, "ISO-2022-CN");
 			put(CHARSET_BIG5, "enca:zh:big5");
