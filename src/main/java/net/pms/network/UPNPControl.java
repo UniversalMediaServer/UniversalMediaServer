@@ -340,11 +340,11 @@ public class UPNPControl {
 			@Override
 			public void run() {
 				while (true) {
-					sleep(search_delay);
 					for (DeviceType t : mediaRendererTypes) {
 						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
 					}
 					LOGGER.trace("Searching for renderers with Cling...");
+					sleep(search_delay);
 
 					/**
 					 * The first delay for sending a search message is 10 seconds,
