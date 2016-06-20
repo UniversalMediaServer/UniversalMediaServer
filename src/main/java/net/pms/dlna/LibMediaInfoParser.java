@@ -140,6 +140,8 @@ public class LibMediaInfoParser {
 							if (!media.isEncrypted()) {
 								media.setEncrypted("encrypted".equals(MI.Get(video, i, "Encryption")));
 							}
+
+							media.setVideoBitDepth(Integer.parseInt(MI.Get(video, i, "BitDepth")));
 						}
 					}
 				}
