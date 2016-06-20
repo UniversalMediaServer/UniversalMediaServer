@@ -877,6 +877,7 @@ public class TranscodingTab {
 			Messages.getString("CharacterSet.8859-14"),
 			Messages.getString("CharacterSet.8859-15"),
 			Messages.getString("CharacterSet.8859-16"),
+			Messages.getString("CharacterSet.TIS-620"),
 			Messages.getString("CharacterSet.Big5"),
 			Messages.getString("CharacterSet.EUC-JP"),
 			Messages.getString("CharacterSet.EUC-KR"),
