@@ -89,6 +89,10 @@ public class SubtitleUtils {
 			put(CHARSET_ISO_2022_JP, "ISO-2022-JP");
 			put(CHARSET_EUC_JP, "euc-jp");
 			put(CHARSET_SHIFT_JIS, "shift-jis");
+			// Thai
+			put(CHARSET_WINDOWS_874, "MS874");
+			put(CHARSET_ISO_8859_11, "ISO-8859-11");
+			put(CHARSET_TIS_620, "TIS-620");
 		}
 	};
 

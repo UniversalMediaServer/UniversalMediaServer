@@ -108,6 +108,7 @@ public final class Languages {
 		"sl",      // Slovenian
 		"es",      // Spanish, Castilian
 		"sv",      // Swedish
+//		"th",      // Thai
 		"tr",      // Turkish
 		"uk",      // Ukrainian
 		"vi",      // Vietnamese
