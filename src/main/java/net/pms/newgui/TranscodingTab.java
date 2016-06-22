@@ -884,7 +884,7 @@ public class TranscodingTab {
 			Messages.getString("CharacterSet.IBM420"),
 			Messages.getString("CharacterSet.IBM424"),
 			Messages.getString("CharacterSet.KOI8-R"),
-			Messages.getString("CharacterSet.ShiftJIS")
+			Messages.getString("CharacterSet.ShiftJIS"),
 			Messages.getString("CharacterSet.TIS-620")
 		};
 
