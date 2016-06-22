@@ -142,7 +142,7 @@ public class LibMediaInfoParser {
 							}
 
 							value = MI.Get(video, i, "BitDepth");
-							if (isNotBlank(value)) {
+							if (!value.isEmpty()) {
 								media.setVideoBitDepth(Integer.parseInt(value));
 							}
 							
