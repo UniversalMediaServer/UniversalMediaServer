@@ -133,6 +133,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioDvdIso;
 	public String aspectRatioContainer;
 	public String aspectRatioVideoTrack;
+	private int videoBitDepth;
 
 	private byte thumb[];
 
@@ -159,9 +160,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
-	
+
 	private boolean externalSubsExist = false;
-	
+
 	public void setExternalSubsExist(boolean exist) {
 		this.externalSubsExist = exist;
 	}
@@ -1965,6 +1966,20 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setFrameRateMode(String frameRateMode) {
 		this.frameRateMode = frameRateMode;
+	}
+
+	/**
+	 * @return the video bit depth
+	 */
+	public int getVideoBitDepth() {
+		return videoBitDepth;
+	}
+
+	/**
+	 * @param value the video bit depth to set
+	 */
+	public void setVideoBitDepth(int value) {
+		this.videoBitDepth = value;
 	}
 
 	/**
