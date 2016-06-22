@@ -121,22 +121,22 @@ public class LibMediaInfoParser {
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
 							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
-							value = MI.Get(video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name);
+							value = MI.Get(video, i, "Format_Settings_QPel");
 							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							}
 
-							value = MI.Get(video, i, "Format_Settings_GMC", InfoType.Text, InfoType.Name);
+							value = MI.Get(video, i, "Format_Settings_GMC");
 							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_GMC, value);
 							}
 
-							value = MI.Get(video, i, "Format_Settings_GOP", InfoType.Text, InfoType.Name);
+							value = MI.Get(video, i, "Format_Settings_GOP");
 							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_GOP, value);
 							}
 
-							media.setMuxingMode(MI.Get(video, i, "MuxingMode", InfoType.Text, InfoType.Name));
+							media.setMuxingMode(MI.Get(video, i, "MuxingMode"));
 							if (!media.isEncrypted()) {
 								media.setEncrypted("encrypted".equals(MI.Get(video, i, "Encryption")));
 							}
