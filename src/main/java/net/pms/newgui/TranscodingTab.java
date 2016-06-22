@@ -841,7 +841,7 @@ public class TranscodingTab {
 			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
 			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
 			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
-			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS"
+			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
 		};
 		String[] values = new String[]{
 			Messages.getString("General.2"),
@@ -884,7 +884,8 @@ public class TranscodingTab {
 			Messages.getString("CharacterSet.IBM420"),
 			Messages.getString("CharacterSet.IBM424"),
 			Messages.getString("CharacterSet.KOI8-R"),
-			Messages.getString("CharacterSet.ShiftJIS")
+			Messages.getString("CharacterSet.ShiftJIS"),
+			Messages.getString("CharacterSet.TIS-620")
 		};
 
 		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
