@@ -11,6 +11,7 @@ public class Constants {
 	public static final String CHARSET_ISO_8859_7	= "ISO-8859-7".intern();
 	public static final String CHARSET_ISO_8859_8	= "ISO-8859-8".intern();
 	public static final String CHARSET_ISO_8859_9	= "ISO-8859-9".intern();
+	public static final String CHARSET_ISO_8859_11	= "ISO-8859-11".intern();
 	public static final String CHARSET_BIG5			= "BIG5".intern();
 	public static final String CHARSET_GB18030		= "GB18030".intern();
 	public static final String CHARSET_EUC_JP		= "EUC-JP".intern();
@@ -20,7 +21,9 @@ public class Constants {
 	public static final String CHARSET_IBM855		= "IBM855".intern();
 	public static final String CHARSET_IBM866		= "IBM866".intern();
 	public static final String CHARSET_KOI8_R		= "KOI8-R".intern();
+	public static final String CHARSET_TIS_620		= "TIS-620".intern();
 	public static final String CHARSET_MACCYRILLIC	= "MACCYRILLIC".intern();
+	public static final String CHARSET_WINDOWS_874	= "WINDOWS-874".intern();
 	public static final String CHARSET_WINDOWS_1250 = "WINDOWS-1250".intern();
 	public static final String CHARSET_WINDOWS_1251 = "WINDOWS-1251".intern();
 	public static final String CHARSET_WINDOWS_1252 = "WINDOWS-1252".intern();
