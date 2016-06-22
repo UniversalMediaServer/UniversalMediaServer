@@ -182,6 +182,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	protected static final String SUPPORTED = "Supported";
+	protected static final String SUPPORTED_VIDEO_BIT_DEPTHS = "SupportedVideoBitDepths";
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
 	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
@@ -2880,5 +2881,32 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean streamSubsForTranscodedVideo() {
 		return getBoolean(STREAM_SUBS_FOR_TRANSCODED_VIDEO, false);
+	}
+
+	/**
+	 * List of supported video bit depths.
+	 *
+	 * @return a comma-separated list of supported video bit depths.
+	 */
+	public String getSupportedVideoBitDepths() {
+		return getString(SUPPORTED_VIDEO_BIT_DEPTHS, "8");
+	}
+
+	/**
+	 * Check if the given video bit depth is supported.
+	 *
+	 * @param videoBitDepth The video bit depth
+	 * 
+	 * @return whether the video bit depth is supported.
+	 */
+	public boolean isVideoBitDepthSupported(int videoBitDepth) {
+		String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
+		for (String supportedBitDepth : supportedBitDepths) {
+			if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
