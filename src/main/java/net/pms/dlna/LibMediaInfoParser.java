@@ -82,15 +82,15 @@ public class LibMediaInfoParser {
 				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
-				if (isNotBlank(value)) {
+				if (!value.isEmpty()) {
 					media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
 				}
 				value = MI.Get(general, 0, "Title");
-				if (isNotBlank(value)) {
+				if (!value.isEmpty()) {
 					media.setFileTitleFromMetadata(value);
 				}
 				value = MI.Get(general, 0, "Attachements");
-				if (isNotBlank(value)) {
+				if (!value.isEmpty()) {
 					media.setEmbeddedFontExists(true);
 				}
 
@@ -121,27 +121,36 @@ public class LibMediaInfoParser {
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
 							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
-							value = MI.Get(video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name);
-							if (isNotBlank(value)) {
+							value = MI.Get(video, i, "Format_Settings_QPel");
+							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							}
 
-							value = MI.Get(video, i, "Format_Settings_GMC", InfoType.Text, InfoType.Name);
-							if (isNotBlank(value)) {
+							value = MI.Get(video, i, "Format_Settings_GMC");
+							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_GMC, value);
 							}
 
-							value = MI.Get(video, i, "Format_Settings_GOP", InfoType.Text, InfoType.Name);
-							if (isNotBlank(value)) {
+							value = MI.Get(video, i, "Format_Settings_GOP");
+							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_GOP, value);
 							}
 
-							media.setMuxingMode(MI.Get(video, i, "MuxingMode", InfoType.Text, InfoType.Name));
+							media.setMuxingMode(MI.Get(video, i, "MuxingMode"));
 							if (!media.isEncrypted()) {
 								media.setEncrypted("encrypted".equals(MI.Get(video, i, "Encryption")));
 							}
 
-							media.setVideoBitDepth(Integer.parseInt(MI.Get(video, i, "BitDepth")));
+							value = MI.Get(video, i, "BitDepth");
+							if (!value.isEmpty()) {
+								try {
+									media.setVideoBitDepth(Integer.parseInt(value));
+								} catch (NumberFormatException nfe) {
+									LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
+								}
+								
+							}
+							
 						}
 					}
 				}
@@ -187,7 +196,7 @@ public class LibMediaInfoParser {
 
 						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 						value = MI.Get(audio, i, "ID/String");
-						if (isNotBlank(value)) {
+						if (!value.isEmpty()) {
 							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 								currentAudioTrack.setId(getSpecificID(value));
 							} else {
@@ -196,7 +205,7 @@ public class LibMediaInfoParser {
 						}
 
 						value = MI.Get(general, i, "Track/Position");
-						if (isNotBlank(value)) {
+						if (!value.isEmpty()) {
 							try {
 								currentAudioTrack.setTrack(Integer.parseInt(value));
 							} catch (NumberFormatException nfe) {
@@ -205,7 +214,7 @@ public class LibMediaInfoParser {
 						}
 
 						value = MI.Get(audio, i, "BitDepth");
-						if (isNotBlank(value)) {
+						if (!value.isEmpty()) {
 							try {
 								currentAudioTrack.setBitsperSample(Integer.parseInt(value));
 							} catch (NumberFormatException nfe) {
@@ -236,7 +245,7 @@ public class LibMediaInfoParser {
 						currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
 						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 						value = MI.Get(text, i, "ID/String");
-						if (isNotBlank(value)) {
+						if (!value.isEmpty()) {
 							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 								currentSubTrack.setId(getSpecificID(value));
 							} else {
