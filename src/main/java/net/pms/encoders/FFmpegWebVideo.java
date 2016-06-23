@@ -35,10 +35,10 @@ import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
 import net.pms.external.URLResolver.URLResult;
 import net.pms.io.OutputParams;
+import net.pms.io.OutputTextLogger;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.io.OutputTextLogger;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -447,7 +447,7 @@ class PatternMap<T> extends modAwareHashMap<String, T> {
 		groupmap.clear();
 		for (String regex : this.keySet()) {
 			// add each regex as a capture group
-			joined.append("|(").append(regex).append(")");
+			joined.append("|(").append(regex).append(')');
 			// map all subgroups to the parent
 			for (int i = 0; i < Pattern.compile(regex).matcher("").groupCount() + 1; i++) {
 				groupmap.add(regex);

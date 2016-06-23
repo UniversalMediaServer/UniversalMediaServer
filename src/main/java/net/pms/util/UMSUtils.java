@@ -30,9 +30,10 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.filters.Canvas;
 import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.filters.Canvas;
 import net.coobird.thumbnailator.geometry.Positions;
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
@@ -41,7 +42,6 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -259,8 +259,7 @@ public class UMSUtils {
 		String res;
 		if (r != null) {
 			res = r.getSubLanguage();
-		}
-		else {
+		} else {
 			res = PMS.getConfiguration().getSubtitlesLanguages();
 		}
 		if (three) {
@@ -288,7 +287,7 @@ public class UMSUtils {
 
 		public IOList(String uri, int mode) {
 			this.mode = mode;
-			if (! StringUtils.isBlank(uri)) {
+			if (!StringUtils.isBlank(uri)) {
 				file = new File(uri);
 				load(file);
 			} else {
@@ -318,7 +317,7 @@ public class UMSUtils {
 			return (mode & m) == m;
 		}
 
-		public File getFile()  {
+		public File getFile() {
 			return file;
 		}
 
@@ -379,22 +378,21 @@ public class UMSUtils {
 							id = "internal:" + r.getClass().getName();
 						}
 
-						sb.append("master:").append(id).append(";");
+						sb.append("master:").append(id).append(';');
 						if (r.getPlayer() != null) {
-							sb.append("player:").append(r.getPlayer().toString()).append(";");
+							sb.append("player:").append(r.getPlayer().toString()).append(';');
 						}
 						if (r.isResume()) {
 							sb.append("resume");
 							sb.append(r.getResume().getResumeFile().getAbsolutePath());
-							sb.append(";");
+							sb.append(';');
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null
-									&& sub.getId() != -1) {
+							if (sub.getLang() != null && sub.getId() != -1) {
 								sb.append("sub");
 								sb.append(sub.getLang());
-								sb.append(",");
+								sb.append(',');
 								if (sub.isExternal()) {
 									sb.append("file:");
 									sb.append(sub.getExternalFile().getAbsolutePath());
@@ -402,7 +400,7 @@ public class UMSUtils {
 									sb.append("id:");
 									sb.append("").append(sub.getId());
 								}
-								sb.append(";");
+								sb.append(';');
 							}
 						}
 						sb.append(data);
@@ -560,7 +558,7 @@ public class UMSUtils {
 							subData = tmp[1];
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
-								s.setExternalFile(new File(sFile));
+								s.setExternalFile(new File(sFile), null);
 								s.setId(100);
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);

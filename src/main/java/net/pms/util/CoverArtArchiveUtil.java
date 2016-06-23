@@ -19,6 +19,10 @@
  */
 package net.pms.util;
 
+import fm.last.musicbrainz.coverart.CoverArt;
+import fm.last.musicbrainz.coverart.CoverArtException;
+import fm.last.musicbrainz.coverart.CoverArtImage;
+import fm.last.musicbrainz.coverart.impl.DefaultCoverArtArchiveClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -48,10 +52,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import fm.last.musicbrainz.coverart.CoverArt;
-import fm.last.musicbrainz.coverart.CoverArtException;
-import fm.last.musicbrainz.coverart.CoverArtImage;
-import fm.last.musicbrainz.coverart.impl.DefaultCoverArtArchiveClient;
 
 /**
  * This class is responsible for fetching music covers from Cover Art Archive.
@@ -131,7 +131,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			}
 			if (StringUtil.hasValue(artistId)) {
 				if (result.length() > 0) {
-					result.append(" (").append(artistId).append(")");
+					result.append(" (").append(artistId).append(')');
 				} else {
 					result.append(artistId);
 				}
@@ -156,14 +156,14 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			if (StringUtil.hasValue(title)) {
 				result.append(title);
 				if (StringUtil.hasValue(trackId)) {
-					result.append(" (").append(trackId).append(")");
+					result.append(" (").append(trackId).append(')');
 				}
 			} else if (StringUtil.hasValue(trackId)) {
 				result.append(trackId);
 			}
 			if (StringUtil.hasValue(year)) {
 				if (result.length() > 0) {
-					result.append(" (").append(year).append(")");
+					result.append(" (").append(year).append(')');
 				} else {
 					result.append(year);
 				}
@@ -516,7 +516,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		for (String word : words) {
 			sb.append(StringUtil.luceneEscape(word)).append("~ ");
 		}
-		sb.append(")");
+		sb.append(')');
 		return sb.toString();
 	}
 
@@ -590,7 +590,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			if (added) {
 				query.append(AND);
 			}
-			query.append("date:").append(urlEncode(tagInfo.year)).append("*");
+			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
 			added = true;
 		}
 		return query.toString();
@@ -640,7 +640,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			if (added) {
 				query.append(AND);
 			}
-			query.append("date:").append(urlEncode(tagInfo.year)).append("*");
+			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
 			added = true;
 		}
 		return query.toString();
@@ -738,7 +738,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 						connection.setRequestProperty("Accept-Charset", StandardCharsets.UTF_8.name());
 						int status = connection.getResponseCode();
 						if (status != 200) {
-							LOGGER.error("Could not lookup audio cover for \"{}\": musicbrainz.com replied with status code {}", tagInfo.title, status);
+							LOGGER.error("Could not lookup audio cover for \"{}\": musicbrainz.org replied with status code {}", tagInfo.title, status);
 							return null;
 						}
 

@@ -1,5 +1,6 @@
 package net.pms.network;
 
+import java.io.IOException;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.util.BasicPlayer;
@@ -10,8 +11,6 @@ import su.litvak.chromecast.api.v2.ChromeCast;
 import su.litvak.chromecast.api.v2.Media;
 import su.litvak.chromecast.api.v2.MediaStatus;
 import su.litvak.chromecast.api.v2.Status;
-
-import java.io.IOException;
 
 public class ChromecastPlayer extends BasicPlayer.Logical {
 	private static final String MediaPlayer = "CC1AD845";
@@ -142,7 +141,7 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 							state.mute = status.volume.muted;
 						}
 						alert();
-					} catch (Exception e) {
+					} catch (InterruptedException | IOException e) {
 						LOGGER.debug("Bad chromecast mediastate " + e);
 					}
 				}

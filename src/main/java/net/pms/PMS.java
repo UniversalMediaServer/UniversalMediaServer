@@ -24,6 +24,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
@@ -37,12 +38,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
 import net.pms.dlna.*;
@@ -121,6 +123,8 @@ public class PMS {
 
 	private JmDNS jmDNS;
 
+	public static BufferedImage thumbnailOverlayImage;
+
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
 	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
@@ -194,11 +198,13 @@ public class PMS {
 	 * @since 1.82.0
 	 */
 	public void setRendererFound(RendererConfiguration renderer) {
-		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
-			LOGGER.debug("Adding status button for " + renderer.getRendererName());
-			foundRenderers.add(renderer);
-			frame.addRenderer(renderer);
-			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+		synchronized (foundRenderers) {
+			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+				LOGGER.debug("Adding status button for " + renderer.getRendererName());
+				foundRenderers.add(renderer);
+				frame.addRenderer(renderer);
+				frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+			}
 		}
 	}
 
@@ -591,12 +597,14 @@ public class PMS {
 			web = new RemoteWeb(configuration.getWebPort());
 		}
 
+		// init Credentials
+		credMgr = new CredMgr(configuration.getCredFile());
+
+		// init dbs
+		keysDb = new UmsKeysDb();
 		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
-
-		// init Credentials
-		credMgr = new CredMgr(configuration.getCredFile());
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
@@ -815,6 +823,13 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
+
+		// Load the fully played overlay image, in case it's needed later
+		try {
+			thumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
+		} catch (IOException ex) {
+			java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+		}
 
 		return true;
 	}
@@ -1042,9 +1057,9 @@ public class PMS {
 		if (serverName == null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(System.getProperty("os.name").replace(" ", "_"));
-			sb.append("-");
+			sb.append('-');
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
-			sb.append("-");
+			sb.append('-');
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
 			sb.append(", UPnP/1.0, UMS/").append(getVersion());
 			serverName = sb.toString();
@@ -1891,5 +1906,15 @@ public class PMS {
 
 	public static boolean verifyCred(String owner,String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
+	}
+
+	private UmsKeysDb keysDb;
+
+	public static String getKey(String key) {
+		 return instance.keysDb.get(key);
+	}
+
+	public static void setKey(String key, String val) {
+		instance.keysDb.set(key, val);
 	}
 }

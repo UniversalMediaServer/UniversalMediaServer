@@ -41,13 +41,13 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
-import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.*;
+import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -703,9 +703,10 @@ public class MEncoderVideo extends Player {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] /= 2;
-			LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
+			if (mediaRenderer.isHalveBitrate()) {
+				defaultMaxBitrates[0] /= 2;
+				LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
+			}
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -914,7 +915,7 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
+		if (deferToTsmuxer == true && (params.mediaRenderer.isKeepAspectRatio() || params.mediaRenderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 		}
@@ -1266,7 +1267,10 @@ public class MEncoderVideo extends Player {
 			if (
 				!dvd &&
 				(
-					params.mediaRenderer.isKeepAspectRatio() &&
+					(
+						params.mediaRenderer.isKeepAspectRatio() ||
+						params.mediaRenderer.isKeepAspectRatioTranscoding()
+					) &&
 					!"16:9".equals(media.getAspectRatioContainer())
 				) &&
 				!configuration.isMencoderScaler()
@@ -1414,24 +1418,25 @@ public class MEncoderVideo extends Player {
 					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getAssScale());
 
 					// Set subtitles font
-					if (configuration.getFont() != null && configuration.getFont().length() > 0) {
+					if (isNotBlank(configuration.getFont())) {
 						/* Set font with -font option, workaround for the bug:
 						 * https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156
 						 */
-						sb.append(" -font ").append(quoteArg(configuration.getFont())).append(" ");
-						sb.append(" -ass-force-style FontName=").append(quoteArg(configuration.getFont())).append(",");
+						sb.append(" -font ").append(quoteArg(configuration.getFont())).append(' ');
+						String font = CodecUtil.isFontRegisteredInOS(configuration.getFont());
+						if (font != null) {
+							sb.append(" -ass-force-style FontName=").append(quoteArg(font)).append(',');
+						}
+						
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
-							/*
-							 * Variable "font" contains a font path instead of a font name.
-							 * Does "-ass-force-style" support font paths? In tests on OS X
-							 * the font path is ignored (Outline, Shadow and MarginV are
-							 * used, though) and the "-font" definition is used instead.
-							 * See: https://github.com/ps3mediaserver/ps3mediaserver/pull/14
-							 */
-							sb.append(" -font ").append(quoteArg(font)).append(" ");
-							sb.append(" -ass-force-style FontName=").append(quoteArg(font)).append(",");
+							sb.append(" -font ").append(quoteArg(font)).append(' ');
+							String fontName = CodecUtil.isFontRegisteredInOS(font);
+							if (fontName != null) {
+								sb.append(" -ass-force-style FontName=").append(quoteArg(fontName)).append(',');
+							}
+							
 						} else {
 							sb.append(" -font Arial ");
 							sb.append(" -ass-force-style FontName=Arial,");
@@ -1457,7 +1462,7 @@ public class MEncoderVideo extends Player {
 
 					subtitleMargin += userMargin;
 
-					sb.append(",MarginV=").append(subtitleMargin).append(" ");
+					sb.append(",MarginV=").append(subtitleMargin).append(' ');
 				} else if (intOCH > 0) {
 					/*
 					 * Add to the subtitle margin
@@ -1466,7 +1471,7 @@ public class MEncoderVideo extends Player {
 					subtitleMargin = (media.getHeight() / 100) * intOCH;
 					subtitleMargin /= 2;
 
-					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(" ");
+					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(' ');
 				}
 
 				// MEncoder is not compiled with fontconfig on Mac OS X, therefore
@@ -1475,7 +1480,7 @@ public class MEncoderVideo extends Player {
 					String font = CodecUtil.getDefaultFontPath();
 
 					if (isNotBlank(font)) {
-						sb.append("-font ").append(quoteArg(font)).append(" ");
+						sb.append("-font ").append(quoteArg(font)).append(' ');
 					}
 				}
 
@@ -1487,11 +1492,11 @@ public class MEncoderVideo extends Player {
 			} else {
 				// Set subtitles font
 				if (configuration.getFont() != null && configuration.getFont().length() > 0) {
-					sb.append(" -font ").append(quoteArg(configuration.getFont())).append(" ");
+					sb.append(" -font ").append(quoteArg(configuration.getFont())).append(' ');
 				} else {
 					String font = CodecUtil.getDefaultFontPath();
 					if (isNotBlank(font)) {
-						sb.append(" -font ").append(quoteArg(font)).append(" ");
+						sb.append(" -font ").append(quoteArg(font)).append(' ');
 					}
 				}
 
@@ -1513,7 +1518,7 @@ public class MEncoderVideo extends Player {
 
 				subtitleMargin += userMargin;
 
-				sb.append(" -subpos ").append(100 - subtitleMargin).append(" ");
+				sb.append(" -subpos ").append(100 - subtitleMargin).append(' ');
 			}
 
 			// Common subtitle options
@@ -1521,14 +1526,14 @@ public class MEncoderVideo extends Player {
 			// Appending the flag will break execution, so skip it on Mac OS X.
 			if (!Platform.isMac()) {
 				// Use fontconfig if enabled
-				sb.append("-").append(configuration.isMencoderFontConfig() ? "" : "no").append("fontconfig ");
+				sb.append('-').append(configuration.isMencoderFontConfig() ? "" : "no").append("fontconfig ");
 			}
 
 			// Apply DVD/VOBsub subtitle quality
 			if (params.sid.getType() == SubtitleType.VOBSUB && configuration.getMencoderVobsubSubtitleQuality() != null) {
 				String subtitleQuality = configuration.getMencoderVobsubSubtitleQuality();
 
-				sb.append("-spuaa ").append(subtitleQuality).append(" ");
+				sb.append("-spuaa ").append(subtitleQuality).append(' ');
 			}
 
 			// External subtitles file
@@ -1546,9 +1551,9 @@ public class MEncoderVideo extends Player {
 					}
 
 					if (isNotBlank(subcp)) {
-						sb.append("-subcp ").append(subcp).append(" ");
+						sb.append("-subcp ").append(subcp).append(' ');
 						if (configuration.isMencoderSubFribidi()) {
-							sb.append("-fribidi-charset ").append(subcp).append(" ");
+							sb.append("-fribidi-charset ").append(subcp).append(' ');
 						}
 					}
 				}
@@ -1662,12 +1667,16 @@ public class MEncoderVideo extends Player {
 					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
 					cmdList.add("-slang");
 					cmdList.add("" + params.sid.getLang());
-				} else {
+				} else if (!params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
 					cmdList.add("-sub");
-					// assume when subs are in the ASS format and video is 3D then subs not need conversion to 3D
-					if (media.is3d() && params.sid.getType() != SubtitleType.ASS) {
-						File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
-						cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
+					DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
+					if (media.is3d()) {
+						if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
+							cmdList.add(convertedSubs.getConvertedFile().getAbsolutePath().replace(",", "\\,"));
+						} else if (params.sid.getType() != SubtitleType.ASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
+							File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+							cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
+						}
 					} else {
 						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
 					}
@@ -1803,7 +1812,7 @@ public class MEncoderVideo extends Player {
 				scaleHeight = convertToModX(scaleHeight, 4);
 
 				vfValueOverscanPrepend.append("softskip,expand=-").append(intOCWPixels).append(":-").append(intOCHPixels);
-				vfValueOverscanMiddle.append(",scale=").append(scaleWidth).append(":").append(scaleHeight);
+				vfValueOverscanMiddle.append(",scale=").append(scaleWidth).append(':').append(scaleHeight);
 			}
 
 			/*
@@ -1832,7 +1841,7 @@ public class MEncoderVideo extends Player {
 
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", your Video Scaler setting");
 
-				vfValueVS.append("scale=").append(scaleWidth).append(":").append(scaleHeight);
+				vfValueVS.append("scale=").append(scaleWidth).append(':').append(scaleHeight);
 			} else if (isResolutionTooHighForRenderer) {
 				// The video resolution is too big for the renderer so we need to scale it down
 
@@ -1874,7 +1883,7 @@ public class MEncoderVideo extends Player {
 
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", the maximum your renderer supports");
 
-				vfValueVS.append("scale=").append(scaleWidth).append(":").append(scaleHeight);
+				vfValueVS.append("scale=").append(scaleWidth).append(':').append(scaleHeight);
 			}
 
 			// Put the string together taking into account overscan compensation and video scaler
@@ -1914,7 +1923,10 @@ public class MEncoderVideo extends Player {
 					!params.mediaRenderer.isMuxNonMod4Resolution()
 				) ||
 				(
-					params.mediaRenderer.isKeepAspectRatio() &&
+					(
+						params.mediaRenderer.isKeepAspectRatio() ||
+						params.mediaRenderer.isKeepAspectRatioTranscoding()
+					) &&
 					!"16:9".equals(media.getAspectRatioContainer())
 				)
 			) &&
@@ -1922,7 +1934,7 @@ public class MEncoderVideo extends Player {
 		) {
 			String vfValuePrepend = "expand=";
 
-			if (params.mediaRenderer.isKeepAspectRatio()) {
+			if (params.mediaRenderer.isKeepAspectRatio() || params.mediaRenderer.isKeepAspectRatioTranscoding()) {
 				String resolution = dlna.getResolutionForKeepAR(scaleWidth, scaleHeight);
 				scaleWidth = Integer.valueOf(substringBefore(resolution, "x"));
 				scaleHeight = Integer.valueOf(substringAfter(resolution, "x"));
@@ -2587,8 +2599,7 @@ public class MEncoderVideo extends Player {
 								Object result = interpreter.eval(key);
 
 								if (result != null && result instanceof Boolean && (Boolean) result) {
-									sb.append(" ");
-									sb.append(value);
+									sb.append(' ').append(value);
 								}
 							}
 						} catch (Throwable e) {

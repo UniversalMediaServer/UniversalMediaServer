@@ -235,7 +235,7 @@ public class PluginTab {
 			}
 		});
 
-		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
+		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1").toLowerCase());
 		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
 		refresh.addActionListener(new ActionListener() {
 			@Override

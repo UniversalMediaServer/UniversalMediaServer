@@ -110,7 +110,7 @@ public class NavigationShareTab {
 			int i2 = 0;
 			for (int i = 0; i < folderTableModel.getRowCount(); i++) {
 				if (i > 0) {
-					folders.append(",");
+					folders.append(',');
 				}
 
 				String directory = (String) folderTableModel.getValueAt(i, 0);
@@ -122,7 +122,7 @@ public class NavigationShareTab {
 				folders.append(directory.replace(",", "&comma;"));
 				if (monitored) {
 					if (i2 > 0) {
-						foldersMonitored.append(",");
+						foldersMonitored.append(',');
 					}
 					i2++;
 
@@ -578,13 +578,13 @@ public class NavigationShareTab {
 		});
 
 		// Ignore the word "the" while sorting
-		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordThe());
+		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordAandThe());
 		ignorethewordthe.setToolTipText(Messages.getString("FoldTab.44"));
 		ignorethewordthe.setContentAreaFilled(false);
 		ignorethewordthe.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setIgnoreTheWordThe((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setIgnoreTheWordAandThe((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 

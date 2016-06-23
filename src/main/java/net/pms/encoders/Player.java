@@ -292,7 +292,7 @@ public abstract class Player {
 				matchedSub = params.sid;
 				String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
 				if (!StringUtils.isEmpty(file)) {
-					matchedSub.setExternalFile(new File(file));
+					matchedSub.setExternalFile(new File(file), null);
 					params.sid = matchedSub;
 					return;
 				}

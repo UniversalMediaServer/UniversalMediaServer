@@ -1,7 +1,151 @@
-6.1.1 - 2016-??-??
+6.3.3 - 2016-06-??
 
 	General:
-		
+		Added renderer config setting HalveBitrate
+		Prevent sleep mode while streaming by default
+		Tweaked language
+		Improved/fixed some documentation (thanks, Sami32!)
+		Improved file parsing speed
+		Improved logging
+		Fixed support for CMYK JPEG images
+		Fixed 24-bit FLAC fake videos showing up for non-PS3 renderers
+		Fixed unsupported subtitles being streamed
+		Fixed transcoding bitrate in rare cases
+	Renderers:
+		Improved video quality on wireless networks for Panasonic VT60
+		Improved support for Sony Bravia NX800 TVs (thanks, prescott66!)
+	Languages:
+		Czech translation was completed (thanks, jirkapas and panther7!)
+		French translation was completed and validated (thanks, archaos, Kielo, Kirvx, misterfred and Nadar!)
+		Polish translation was completed and validated (thanks, anonymodmous, K4r0lSz, Nadar and robo25!)
+		Russian translation was completed (thanks, antonyfg, dronidzer, guzu-guzu, lxnderty, Nadar and Tianuchka!)
+		Swedish translation was completed (thanks, klebom, linushg111, mattias_karlsson_89, millenniumb, Nadar, qwert352, rchk, richarda, Rowly, sebastianboos, Stetoskop, strayhat and swarish!)
+		Turkish translation was completed and validated (thanks, hasanbahcekapili, OnarEngincan and onuroztemizel!)
+	External Components:
+		Updated h2database to 1.4.192
+
+6.3.2 - 2016-05-27
+
+	General:
+		Added user config setting ALIVE_delay
+		Fixed calculating network speeds with offline renderers
+		Fixed detection of the MPEG-1 video codec
+	Renderers:
+		Fixed connectivity with Sony renderers
+	Languages:
+		Synchronized translations with crowdin
+
+6.3.1.1 - 2016-05-22
+
+	General:
+		Fixed connectivity issues
+
+6.3.1 - 2016-05-20
+
+	General:
+		Improved connectivity with devices
+		Improved support for 3D subtitles
+		Fixed support for PAL DVDs
+	Renderers:
+		Improved support for LG EG910V TVs (thanks, ZakarFin!)
+		Improved support for Panasonic Viera E6 Series TVs (thanks, Sami32!)
+		Improved detection of Windows Media Player (thanks, WolfganP!)
+		Fixed support for WMV 8 and below on Panasonic TVs
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated Cobertura Maven Plugin to 2.7
+		Updated Maven PMD Plugin to 3.6
+		Updated Maven Source Plugin to 3.0.0
+		Updated slf4j to 1.7.21
+
+6.3.0 - 2016-05-07
+
+	General:
+		Added renderer config setting VideoFormatsSupportingStreamedExternalSubtitles
+		Added renderer config setting StreamSubsForTranscodedVideo
+		Ignore the article "a" by default, along with "the"
+		Improved support for 3D subtitles
+		Improved support for streaming external subtitles
+		Defer to FFmpeg for transcoding VobSub subtitles
+		Fixed header animation delay on web interface
+	Renderers:
+		Added support for Yamaha RXV500D (thanks, newbietux!)
+		Improved support for Miracast M806
+		Improved support for Panasonic Viera GT50 TVs (thanks, pcjco!)
+		Improved support for Panasonic Viera TXL32V10E TVs
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated FFmpeg
+		Updated MediaInfo to 0.7.85
+		Updated MPlayer/MEncoder for Windows to SB65
+
+6.2.2 - 2016-04-09
+
+	General:
+		Improved support for subtitles in FFmpeg
+		Improved support for custom fonts
+		Improved general performance
+		Added renderer config setting KeepAspectRatioTranscoding
+		Fixed FFmpeg not using the TranscodedVideoAudioSampleRate renderer config setting
+		Fixed detection of 3D videos
+		Fixed filenames starting with "The" being listed first
+		Fixed link to musicbrainz (thanks, Utano!)
+		Fixed automatic subtitles language detection overruling manual detection
+		Put the database in the profile directory on non-Windows operating systems
+	Renderers:
+		Improved support for Panasonic TVs
+		Improved support for Sony TVs
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated icu4j to 57.1
+		Updated MediaInfo to 0.7.84
+
+6.2.1 - 2016-03-28
+
+	General:
+		Added more tooltips
+		Fixed DTS-HD being detected as DTS
+		Fixed support for embedded ASS subtitles in FFmpeg
+		Fixed minor bugs
+	Renderers:
+		Improved support for Panasonic ST60 TVs
+		Improved support for Samsung J6200 TVs
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated chromecast-java-api-v2 to 0.9.1
+		Updated FFmpeg
+		Updated Google gson to 2.6.2
+		Updated jai-imageio-core to 1.3.1
+		Updated jmustache to 1.12
+		Updated JNA to 4.2.2
+		Updated logback to 1.1.6
+		Updated slf4j to 1.7.19
+
+6.2.0 - 2016-03-12
+
+	General:
+		Use image instead of text in thumbnail overlays
+		Improved the web interface
+		Added support for using Open Subtitles credentials
+		Improved filename prettifying
+		Fixed bump support on mobile devices
+	Renderers:
+		Improved Panasonic VT60 support
+		Improved Samsung J55xx support
+		Fixed duplicate subtitles on Samsung TVs
+	Languages:
+		Synchronized translations with crowdin
+	External Components:
+		Updated Apache Commons Collections to 3.2.2
+		Updated l10n Maven plugin to 1.4
+		Updated logback to 1.1.5
+		Updated Maven Project Info Reports plugin to 2.8.1
+		Updated MediaInfo to 0.7.83
+		Updated slf4j to 1.7.16
 
 6.1.0 - 2016-02-20
 

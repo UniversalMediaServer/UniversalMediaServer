@@ -29,7 +29,6 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Locale;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;

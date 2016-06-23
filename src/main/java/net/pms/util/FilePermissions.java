@@ -19,6 +19,7 @@
  */
 package net.pms.util;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -30,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
 
 /**
  * An object that encapsulates file permissions for a <code>File</code> object.
@@ -235,17 +235,17 @@ public class FilePermissions {
 		StringBuilder sb = new StringBuilder();
 		sb.append(folder ? "d" : "-");
 		if (read == null) {
-			sb.append("?");
+			sb.append('?');
 		} else {
 			sb.append(read ? "r" : "-");
 		}
 		if (write == null) {
-			sb.append("?");
+			sb.append('?');
 		} else {
 			sb.append(write ? "w" : "-");
 		}
 		if (execute == null) {
-			sb.append("?");
+			sb.append('?');
 		} else {
 			sb.append(execute ? "x" : "-");
 		}

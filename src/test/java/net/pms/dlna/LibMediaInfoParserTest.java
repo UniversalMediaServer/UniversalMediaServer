@@ -18,11 +18,8 @@
  */
 package net.pms.dlna;
 
-import org.junit.Test;
-
-import com.sun.syndication.io.impl.Base64;
-
 import static org.assertj.core.api.Assertions.*;
+import org.junit.Test;
 
 public class LibMediaInfoParserTest {
 	@Test

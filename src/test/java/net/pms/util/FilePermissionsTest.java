@@ -19,8 +19,6 @@
  */
 package net.pms.util;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,6 +28,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 import org.apache.commons.io.FileUtils;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

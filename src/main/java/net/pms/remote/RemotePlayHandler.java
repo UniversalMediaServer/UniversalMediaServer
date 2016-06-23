@@ -276,7 +276,7 @@ public class RemotePlayHandler implements HttpHandler {
 			LOGGER.debug("got a play request " + t.getRequestURI());
 			String id = RemoteUtil.getId("play/", t);
 			String response = mkPage(id, t);
-			LOGGER.trace("play page " + response);
+//			LOGGER.trace("play page " + response);
 			RemoteUtil.respond(t, response, 200, "text/html");
 		} else if (p.contains("/playerstatus/")) {
 			String json = IOUtils.toString(t.getRequestBody(), "UTF-8");

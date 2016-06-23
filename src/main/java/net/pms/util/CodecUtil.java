@@ -20,6 +20,10 @@
 package net.pms.util;
 
 import com.sun.jna.Platform;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.PMS;
@@ -141,6 +145,37 @@ public class CodecUtil {
 		if (f.exists()) {
 			return f.getAbsolutePath();
 		}
+		return null;
+	}
+
+	/**
+	 * Check the font file or font name if registered in the OS
+	 *
+	 * @param fontName font represented by font file or by the font name
+	 *
+	 * @return the registered font name or null when not found
+	 */
+	public static String isFontRegisteredInOS(String fontName) {
+		if (isNotBlank(fontName)) {
+			File fontFile = new File(fontName);
+			if (fontFile.exists()) { // Test if the font is specified by the file.
+				try {
+					fontName = Font.createFont(Font.TRUETYPE_FONT, fontFile).getFontName();
+				} catch (FontFormatException | IOException e) {
+					LOGGER.debug("Exception when implementing the custom font: ", e.getMessage());
+				}
+			}
+
+			// The font is specified by the name. Check if it is registered in the OS.
+			String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+			for (String font : fonts) {
+				if (font.equals(fontName)) {
+					return font;
+				}
+			}
+		}
+
+		LOGGER.debug("Font name not found. Check if it is properly specified or installed in the OS");
 		return null;
 	}
 }

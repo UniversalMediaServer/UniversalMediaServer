@@ -49,6 +49,7 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -715,11 +716,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						resumeRes.media.setThumbready(false);
 					}
 
+					/**
+					 * Secondary format is currently only used to provide 24-bit FLAC to PS3 by
+					 * sending it as a fake video. This can be made more reusable with a renderer
+					 * config setting like Mux24BitFlacToVideo if we ever have another purpose
+					 * for it, which I doubt we will have.
+					 */
 					if (
 						child.format.getSecondaryFormat() != null &&
 						child.media != null &&
 						defaultRenderer != null &&
-						defaultRenderer.supportsFormat(child.format.getSecondaryFormat())
+						defaultRenderer.supportsFormat(child.format.getSecondaryFormat()) &&
+						defaultRenderer.isPS3()
 					) {
 						DLNAResource newChild = child.clone();
 						newChild.setFormat(newChild.format.getSecondaryFormat());
@@ -828,7 +836,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
 					if (params.sid != null) {
 						if (params.sid.isExternal()) {
-							if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid)) {
+							if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
 								media_subtitle = params.sid;
 								media_subtitle.setSubsStreamable(true);
 								LOGGER.trace("This video has external subtitles that should be streamed");
@@ -869,6 +877,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
 			} else if (format.isVideo() && parserV2) {
+				int maxBandwidth = renderer.getMaxBandwidth();
+				if (renderer.isHalveBitrate()) {
+					maxBandwidth /= 2;
+				}
+
 				if (
 					renderer.isKeepAspectRatio() &&
 					!"16:9".equals(media.getAspectRatioContainer())
@@ -878,9 +891,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
-				} else if (media.getBitrate() > (renderer.getMaxBandwidth() / 2)) {
+				} else if (media.getBitrate() > maxBandwidth) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), (renderer.getMaxBandwidth() / 2));
+					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), maxBandwidth);
+				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
+					isIncompatible = true;
+					LOGGER.trace(prependTraceReason + "the bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
 				}
 			}
 
@@ -1267,7 +1283,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Unhandled expection while resolving {}: {}", getDisplayName(), e.getMessage());
+			LOGGER.warn("Unhandled exception while resolving {}: {}", getDisplayName(), e.getMessage());
 			LOGGER.debug("", e);
 		}
 	}
@@ -1515,12 +1531,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 //			return withSuffix ? (displayName + nameSuffix) : displayName;
 //		}
 
-		displayName = getName();
+		// this unescape trick is to solve the problem of a name containing
+		// unicode stuff like \u005e
+		// if it's done here it will fix this for all objects
+		displayName = StringEscapeUtils.unescapeJava(getName());
 		nameSuffix = "";
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
-		boolean subsAreValidForStreaming = media_subtitle != null && media_subtitle.isStreamable() && player == null;
+		boolean subsAreValidForStreaming = media_subtitle != null && media_subtitle.isStreamable() && mediaRenderer != null && mediaRenderer.streamSubsForTranscodedVideo();
 		if (this instanceof RealFile && !isFolder()) {
 			RealFile rf = (RealFile) this;
 			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
@@ -1671,7 +1690,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); //id
-		sb.append("/");
+		sb.append('/');
 		sb.append(prefix);
 		sb.append(urlEncode ? encode(uri) : uri);
 		return sb.toString();
@@ -1686,7 +1705,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); //id
-		sb.append("/");
+		sb.append('/');
 		sb.append("subtitle0000");
 		sb.append(encode(subs.getExternalFile().getName()));
 		return sb.toString();
@@ -1956,7 +1975,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										matchedSub = params.sid;
 										String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
 										if (!StringUtils.isEmpty(file)) {
-											matchedSub.setExternalFile(new File(file));
+											matchedSub.setExternalFile(new File(file), null);
 											params.sid = matchedSub;
 											media_subtitle = params.sid;
 											finishedMatchingPreferences = true;
@@ -2065,6 +2084,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
 											LOGGER.trace("Disabled the subtitles: " + matchedSub);
 										} else {
+											if (mediaRenderer.isExternalSubtitlesFormatSupported(matchedSub, media)) {
+												matchedSub.setSubsStreamable(true);
+											}
 											params.sid = matchedSub;
 											media_subtitle = params.sid;
 										}
@@ -2098,6 +2120,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															if (sub.getExternalFile() != null) {
 																LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
 															}
+
+															if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
+																sub.setSubsStreamable(true);
+															}
 															params.sid = sub;
 															media_subtitle = params.sid;
 															forcedSubsFound = true;
@@ -2112,6 +2138,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 													LOGGER.trace("Found subtitles track: " + sub);
 													if (sub.getExternalFile() != null) {
 														LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
+														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
+															sub.setSubsStreamable(true);
+														}
 														params.sid = sub;
 														media_subtitle = params.sid;
 														break;
@@ -2142,6 +2171,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															sub.getExternalFile() != null
 														)
 													) {
+														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
+															sub.setSubsStreamable(true);
+														}
 														params.sid = sub;
 														LOGGER.trace("Matched subtitles track: " + params.sid);
 														break;
@@ -2277,7 +2309,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (format != null && format.isVideo()) {
 				if (
 					!configuration.isDisableSubtitles() &&
-					player == null &&
+					(player != null && mediaRenderer.streamSubsForTranscodedVideo() || player == null) &&
 					media_subtitle != null &&
 					media_subtitle.isStreamable()
 				) {
@@ -2379,7 +2411,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 				String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, c);
 				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer);
-				wireshark.append(" ").append(tempString);
+				wireshark.append(' ').append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 				if (subsAreValidForStreaming && mediaRenderer.offerSubtitlesByProtocolInfo() && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", media_subtitle.getType().getExtension().toUpperCase());
@@ -2518,7 +2550,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
-				wireshark.append(" ").append(getFileURL()).append(transcodedExtension);
+				wireshark.append(' ').append(getFileURL()).append(transcodedExtension);
 				sb.append(getFileURL()).append(transcodedExtension);
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);
@@ -3292,7 +3324,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		result.append(format);
 		result.append(", discovered=");
 		result.append(isDiscovered());
-		result.append("]");
+		result.append(']');
 		return result.toString();
 	}
 

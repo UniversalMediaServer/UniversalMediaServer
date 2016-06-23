@@ -19,6 +19,7 @@
  */
 package net.pms.dlna;
 
+import com.ibm.icu.text.CharsetMatch;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ibm.icu.text.CharsetMatch;
 
 /**
  * This class keeps track of the subtitle information for media.
@@ -48,6 +48,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private String liveSubURL;
 	private String liveSubFile;
 	private boolean isStreamable = false;
+	private File convertedFile;
 
 	/**
 	 * Returns whether or not the subtitles are embedded.
@@ -90,6 +91,11 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 			result.append(externalFile.toString());
 			result.append(", external file character set: ");
 			result.append(subsCharacterSet);
+		}
+
+		if (convertedFile != null) {
+			result.append(", convertedFile: ");
+			result.append(convertedFile.toString());
 		}
 
 		return result.toString();
@@ -164,8 +170,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 	/**
 	 * @param externalFile the externalFile to set
+	 * @param langForced 
 	 */
-	public void setExternalFile(File externalFile) throws FileNotFoundException {
+	public void setExternalFile(File externalFile, String forcedLang) throws FileNotFoundException {
 		if (externalFile == null) {
 			throw new FileNotFoundException("Can't read file: no file supplied");
 		} else if (!FileUtil.getFilePermissions(externalFile).isReadable()) {
@@ -173,13 +180,13 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		}
 
 		this.externalFile = externalFile;
-		setFileSubsCharacterSet();
+		setFileSubsCharacterSet(forcedLang);
 	}
 
-	private void setFileSubsCharacterSet() {
+	private void setFileSubsCharacterSet(String forcedLang) {
 		if (type.isPicture()) {
 			subsCharacterSet = null;
-		} else {
+		} else if (forcedLang == null) { // do not check subs charset or language when the language is specified in the filename
 			try {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
@@ -204,7 +211,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	public void setExternalFileCharacterSet(String charSet) {
 		setSubCharacterSet(charSet);
 	}
-	
+
 	public void setSubCharacterSet(String charSet) {
 		subsCharacterSet = charSet;
 	}
@@ -278,5 +285,13 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 	public void setSubsStreamable(boolean isStreamable) {
 		this.isStreamable = isStreamable;
+	}
+
+	public void setConvertedFile (File convertedFile) {
+		this.convertedFile = convertedFile;
+	}
+
+	public File getConvertedFile() {
+		return convertedFile;
 	}
 }

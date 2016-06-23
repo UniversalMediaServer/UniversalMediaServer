@@ -22,8 +22,8 @@ import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
-import java.io.BufferedWriter;
 import java.awt.Frame;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -41,9 +41,9 @@ import net.pms.dlna.CodeEnter;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.CoverSupplier;
+import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
-import net.pms.util.FilePermissions;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
@@ -87,6 +87,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static boolean avsHackLogged = false;
 
 	protected static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
+	protected static final String KEY_ALIVE_DELAY = "ALIVE_delay";
 	protected static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	protected static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	protected static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
@@ -171,8 +172,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	protected static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
-	protected static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
+	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
+	protected static final String KEY_INFO_DB_RETRY = "infodb_retry";
 	protected static final String KEY_IP_FILTER = "ip_filter";
 	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	protected static final String KEY_LANGUAGE = "language";
@@ -372,9 +374,10 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_HIDE_EXTENSIONS,
 			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
 			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
+			KEY_HIDE_SUBS_INFO,
 			KEY_HIDE_TRANSCODE_FOLDER,
 			KEY_HIDE_VIDEO_SETTINGS,
-			KEY_IGNORE_THE_WORD_THE,
+			KEY_IGNORE_THE_WORD_A_AND_THE,
 			KEY_IP_FILTER,
 			KEY_NETWORK_INTERFACE,
 			KEY_OPEN_ARCHIVES,
@@ -664,7 +667,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * </p>
 	 */
 	public synchronized String getDefaultLogFileFolder() {
-
 		if (defaultLogFileDir == null) {
 			if (Platform.isLinux()) {
 				if (LOGGER.isTraceEnabled()) {
@@ -2693,7 +2695,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isPreventsSleep() {
-		return getBoolean(KEY_PREVENTS_SLEEP, false);
+		return getBoolean(KEY_PREVENTS_SLEEP, true);
 	}
 
 	public void setHTTPEngineV2(boolean value) {
@@ -2832,12 +2834,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_AUDIO_RESAMPLE, value);
 	}
 
-	public boolean isIgnoreTheWordThe() {
-		return getBoolean(KEY_IGNORE_THE_WORD_THE, true);
+	public boolean isIgnoreTheWordAandThe() {
+		return getBoolean(KEY_IGNORE_THE_WORD_A_AND_THE, true);
 	}
 
-	public void setIgnoreTheWordThe(boolean value) {
-		configuration.setProperty(KEY_IGNORE_THE_WORD_THE, value);
+	public void setIgnoreTheWordAandThe(boolean value) {
+		configuration.setProperty(KEY_IGNORE_THE_WORD_A_AND_THE, value);
 	}
 
 	public boolean isPrettifyFilenames() {
@@ -3855,4 +3857,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SHOW_SPLASH_SCREEN, value);
 	}
 
+	public boolean isInfoDbRetry() {
+		return getBoolean(KEY_INFO_DB_RETRY, false);
+	}
+
+	public int getAliveDelay() {
+		return getInt(KEY_ALIVE_DELAY, 0);
+	}
 }

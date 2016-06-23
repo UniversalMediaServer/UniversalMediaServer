@@ -143,10 +143,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
+	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
+	protected static final String KEEP_ASPECT_RATIO_TRANSCODING = "KeepAspectRatioTranscoding";
 	protected static final String LIMIT_FOLDERS = "LimitFolders";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
@@ -179,8 +181,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SQUARE_AUDIO_THUMBNAILS = "SquareAudioThumbnails";
 	protected static final String SQUARE_IMAGE_THUMBNAILS = "SquareImageThumbnails";
 	protected static final String STREAM_EXT = "StreamExtensions";
+	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	protected static final String SUPPORTED = "Supported";
+	protected static final String SUPPORTED_VIDEO_BIT_DEPTHS = "SupportedVideoBitDepths";
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
 	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
@@ -205,6 +209,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String USE_CLOSED_CAPTION = "UseClosedCaption";
 	protected static final String USE_SAME_EXTENSION = "UseSameExtension";
 	protected static final String VIDEO = "Video";
+	protected static final String VIDEO_FORMATS_SUPPORTING_STREAMED_EXTERNAL_SUBTITLES = "VideoFormatsSupportingStreamedExternalSubtitles";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 
@@ -264,8 +269,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						String rendererName = r.getConfName();
 						allRenderersNames.add(rendererName);
 						String renderersGroup = null;
-						if (rendererName.indexOf(" ") > 0) {
-							renderersGroup = rendererName.substring(0, rendererName.indexOf(" "));
+						if (rendererName.indexOf(' ') > 0) {
+							renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 						}
 
 						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
@@ -332,15 +337,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public void setStringList(String key, List<String> value) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		for (String element : value) {
-			if (!result.isEmpty()) {
-				result += ", ";
+			if (!result.toString().equals("")) {
+				result.append(", ");
 			}
-			result += element;
+			result.append(element);
 		}
-		if (result.isEmpty()) {
-			result = "None";
+		if (result.toString().equals("")) {
+			result.append("None");
 		}
 		configuration.setProperty(key, result);
 	}
@@ -551,7 +556,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				continue;
 			}
 			RendererConfiguration r = addressAssociation.get(sa);
-			SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+			if (!r.isOffline()) {
+				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+			}
 		}
 	}
 
@@ -647,7 +654,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
 		DeviceConfiguration r = null;
 		boolean recognized = ref != null;
-		if (! recognized) {
+		if (!recognized) {
 			ref = getDefaultConf();
 		}
 		try {
@@ -677,7 +684,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		} catch (Exception e) {
 		}
-		if (! recognized) {
+		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
 			LOGGER.debug("Marking renderer \"{}\" at {} as unrecognized", r, ia);
 			r.loaded = false;
@@ -1834,6 +1841,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * This was originally added for the PS3 after it was observed to need
+	 * a video whose maximum bitrate was under half of the network maximum.
+	 *
+	 * PMS and UMS have done this by default for years so it should be left
+	 * to true to avoid problems, but new renderers may benefit from trying
+	 * it set to false.
+	 *
+	 * @return whether to set the maximum bitrate to half of the network max
+	 */
+	public boolean isHalveBitrate() {
+		return getBoolean(HALVE_BITRATE, true);
+	}
+
+	/**
 	 * Returns the maximum bitrate (in bits-per-second) as defined by
 	 * whichever is lower out of the renderer setting or user setting.
 	 *
@@ -1854,6 +1875,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
 			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		if (isHalveBitrate()) {
+			defaultMaxBitrates[0] /= 2;
 		}
 
 		maximumBitrateTotal = defaultMaxBitrates[0] * 1000000;
@@ -1902,16 +1927,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			pairArray = pair.split("=");
 			switch (pairArray[0]) {
 				case "keyint":
-					returnString.append("-g ").append(pairArray[1]).append(" ");
+					returnString.append("-g ").append(pairArray[1]).append(' ');
 					break;
 				case "vqscale":
-					returnString.append("-q:v ").append(pairArray[1]).append(" ");
+					returnString.append("-q:v ").append(pairArray[1]).append(' ');
 					break;
 				case "vqmin":
-					returnString.append("-qmin ").append(pairArray[1]).append(" ");
+					returnString.append("-qmin ").append(pairArray[1]).append(' ');
 					break;
 				case "vqmax":
-					returnString.append("-qmax ").append(pairArray[1]).append(" ");
+					returnString.append("-qmax ").append(pairArray[1]).append(' ');
 					break;
 				default:
 					break;
@@ -2061,7 +2086,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Some devices (e.g. Samsung) recognize a custom HTTP header for retrieving
 	 * the contents of a subtitles file. This method will return the name of that
-	 * custom HTTP header, or "" if no such header exists. Default value is "".
+	 * custom HTTP header, or "" if no such header exists. The supported external
+	 * subtitles must be set by {@link #SupportedExternalSubtitlesFormats()}. 
+	 * 
+	 * Default value is "".
 	 *
 	 * @return The name of the custom HTTP header.
 	 */
@@ -2207,6 +2235,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * If this is true, we will always output transcoded video at 16/9
+	 * aspect ratio to the renderer, meaning that all transcoded videos with
+	 * different aspect ratios will have black bars added to the edges to
+	 * make them 16/9.
+	 *
+	 * This addresses a bug in some renderers (like Panasonic TVs) where
+	 * they stretch transcoded videos that are not 16/9.
+	 *
+	 * @return
+	 */
+	public boolean isKeepAspectRatioTranscoding() {
+		return getBoolean(KEEP_ASPECT_RATIO_TRANSCODING, false);
+	}
+
+	/**
 	 * If this is false, FFmpeg will upscale videos with resolutions lower
 	 * than SD (720 pixels wide) to the maximum resolution your renderer
 	 * supports.
@@ -2261,7 +2304,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Reformatted name
 	 */
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
-		// Wrap + tuncate
+		// Wrap + truncate
 		int len = 0;
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
@@ -2271,7 +2314,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				// Wrap
 				int i = dlna.isFolder() ? 0 : indent;
 				String newline = "\n" + (dlna.isFolder() ? "" : inset);
-				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
+				name = name.substring(0, i + (i < name.length() && Character.isWhitespace(name.charAt(i)) ? 1 : 0))
 					+ WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
 				len = lineWidth * lineHeight;
 				if (len != 0 && name.length() > len) {
@@ -2317,10 +2360,33 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
+	/**
+	 * List of the renderer supported external subtitles formats
+	 * for streaming together with streaming (not transcoded) video.
+	 * 
+	 * @return A comma-separated list of supported text-based external subtitles formats.
+	 */
 	public String getSupportedExternalSubtitles() {
 		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS, "");
 	}
 
+	/**
+	 * List of video formats for which supported external subtitles formats
+	 * are set for streaming together with streaming (not transcoded) video.
+	 * If empty all subtitles listed in "SupportedExternalSubtitlesFormats" will be streamed.
+	 * When specified only for listed video formats subtitles will be streamed.
+	 * 
+	 * @return A comma-separated list of supported video formats listed in "Supported" section.
+	 */
+	public String getVideoFormatsSupportingStreamedExternalSubtitles() {
+		return getString(VIDEO_FORMATS_SUPPORTING_STREAMED_EXTERNAL_SUBTITLES, "");
+	}
+
+	/**
+	 * List of the renderer supported embedded subtitles formats.
+	 * 
+	 * @return A comma-separated list of supported embedded subtitles formats.
+	 */
 	public String getSupportedEmbeddedSubtitles() {
 		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS, "");
 	}
@@ -2342,21 +2408,38 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Check if the given subtitle type is supported by renderer for streaming.
+	 * Check if the given subtitle type is supported by renderer for streaming for given media.
 	 *
 	 * @param subtitle Subtitles for checking
-	 * @return True if the renderer specifies support for the subtitles
+	 * @param media Played media
+	 * 
+	 * @return True if the renderer specifies support for the subtitles and 
+	 * renderer supports subs streaming for the given media video.
 	 */
-	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
-		if (subtitle == null) {
+	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAMediaInfo media) {
+		if (subtitle == null || media == null) {
 			return false;
 		}
 
 		if (isSubtitlesStreamingSupported()) {
+			String[] supportedFormats = null;
+			if (StringUtils.isNotBlank(getVideoFormatsSupportingStreamedExternalSubtitles())) {
+				supportedFormats = getVideoFormatsSupportingStreamedExternalSubtitles().split(",");
+			}
+			
 			String[] supportedSubs = getSupportedExternalSubtitles().split(",");
 			for (String supportedSub : supportedSubs) {
 				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
-					return true;
+					if (supportedFormats != null) {
+						for (String supportedFormat : supportedFormats) {
+							if (media.getCodecV().equals(supportedFormat.trim().toLowerCase())) {
+								return true;
+							}
+						}
+					} else {
+						return true;
+					}
+					
 				}
 			}
 		}
@@ -2641,7 +2724,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						alert();
 						try {
 							Thread.sleep(1000);
-						} catch (Exception e) {
+						} catch (InterruptedException e) {
 						}
 					}
 					// Reset only if another item hasn't already begun playing
@@ -2797,5 +2880,41 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isSquareImageThumbnails() {
 		return getBoolean(SQUARE_IMAGE_THUMBNAILS, false);
+	}
+
+	/**
+	 * Whether to stream subtitles even if the video is transcoded. It may work on some renderers.
+	 *
+	 * @return whether to stream subtitles for transcoded video
+	 */
+	public boolean streamSubsForTranscodedVideo() {
+		return getBoolean(STREAM_SUBS_FOR_TRANSCODED_VIDEO, false);
+	}
+
+	/**
+	 * List of supported video bit depths.
+	 *
+	 * @return a comma-separated list of supported video bit depths.
+	 */
+	public String getSupportedVideoBitDepths() {
+		return getString(SUPPORTED_VIDEO_BIT_DEPTHS, "8");
+	}
+
+	/**
+	 * Check if the given video bit depth is supported.
+	 *
+	 * @param videoBitDepth The video bit depth
+	 * 
+	 * @return whether the video bit depth is supported.
+	 */
+	public boolean isVideoBitDepthSupported(int videoBitDepth) {
+		String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
+		for (String supportedBitDepth : supportedBitDepths) {
+			if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

@@ -105,7 +105,7 @@ public class MapFileConfiguration {
 			StringBuilder jsonStringFromConf = new StringBuilder();
 			for (String value : arrayLevel1) {
 				if (!firstLoop) {
-					jsonStringFromConf.append(",");
+					jsonStringFromConf.append(',');
 				}
 
 				if (i == 0) {

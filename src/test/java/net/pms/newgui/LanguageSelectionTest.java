@@ -19,15 +19,15 @@
  */
 package net.pms.newgui;
 
-import static org.junit.Assert.assertFalse;
-import java.util.Locale;
-import org.apache.commons.configuration.ConfigurationException;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import java.util.Locale;
+import org.apache.commons.configuration.ConfigurationException;
+import static org.junit.Assert.assertFalse;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 
 public class LanguageSelectionTest {

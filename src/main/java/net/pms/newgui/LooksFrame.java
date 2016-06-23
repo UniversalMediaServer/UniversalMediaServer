@@ -331,13 +331,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 
 		String ss = configuration.getScreenSize();
-		storedScreenSize.height = Integer.parseInt(ss.substring(ss.indexOf("x") + 1));
-		storedScreenSize.width = Integer.parseInt(ss.substring(0, ss.indexOf("x")));
+		storedScreenSize.height = Integer.parseInt(ss.substring(ss.indexOf('x') + 1));
+		storedScreenSize.width = Integer.parseInt(ss.substring(0, ss.indexOf('x')));
 		String[] windowGeometryValues = configuration.getWindowGeometry().split(",");
-		int posX = Integer.parseInt(windowGeometryValues[0].substring(windowGeometryValues[0].indexOf("=") + 1));
-		int posY = Integer.parseInt(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf("=") + 1));
-		storedWindowSize.width = Integer.parseInt(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf("=") + 1));
-		storedWindowSize.height = Integer.parseInt(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf("=") + 1));
+		int posX = Integer.parseInt(windowGeometryValues[0].substring(windowGeometryValues[0].indexOf('=') + 1));
+		int posY = Integer.parseInt(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf('=') + 1));
+		storedWindowSize.width = Integer.parseInt(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf('=') + 1));
+		storedWindowSize.height = Integer.parseInt(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf('=') + 1));
 		setSize(storedWindowSize);
 		boolean screenChanged = false;
 		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
@@ -502,7 +502,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 				configuration.setWindowExtendedState(getExtendedState());
 			} else {
 				configuration.setWindowExtendedState(NORMAL);
-				configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf("[") + 1, windowGeometry.indexOf("]")));
+				configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf('[') + 1, windowGeometry.indexOf(']')));
 			}
 			configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
 		} catch (Exception e) {

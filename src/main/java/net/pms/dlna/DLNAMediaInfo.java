@@ -39,8 +39,8 @@ import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -137,6 +137,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioDvdIso;
 	public String aspectRatioContainer;
 	public String aspectRatioVideoTrack;
+	private int videoBitDepth;
 
 	private byte thumb[];
 
@@ -163,6 +164,26 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
+
+	private boolean externalSubsExist = false;
+
+	public void setExternalSubsExist(boolean exist) {
+		this.externalSubsExist = exist;
+	}
+
+	public boolean isExternalSubsExist() {
+		return externalSubsExist;
+	}
+
+	private boolean externalSubsParsed = false;
+
+	public void setExternalSubsParsed(boolean parsed) {
+		this.externalSubsParsed = parsed;
+	}
+
+	public boolean isExternalSubsParsed() {
+		return externalSubsParsed;
+	}
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -462,9 +483,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 		for (Map.Entry<String, String> entry : extras.entrySet()) {
 			sb.append(entry.getKey());
-			sb.append("|");
+			sb.append('|');
 			sb.append(entry.getValue());
-			sb.append("|");
+			sb.append('|');
 		}
 
 		return sb.toString();
@@ -1063,7 +1084,7 @@ public class DLNAMediaInfo implements Cloneable {
 						 * prevent using this method by using MediaInfo=true in renderer configs.
 						 */
 						if ("mov".equals(container)) {
-							container = line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf("'")).trim();
+							container = line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim();
 							LOGGER.trace("Setting container to " + container + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
 						}
 					} else {
@@ -1408,6 +1429,8 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.PNG_TYPEMIME;
 				} else if ("gif".equals(codecV) || "gif".equals(container)) {
 					mimeType = HTTPResource.GIF_TYPEMIME;
+				} else if ("tiff".equals(codecV) || "tiff".equals(container)) {
+					mimeType = HTTPResource.TIFF_TYPEMIME;
 				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
 					mimeType = HTTPResource.MP4_TYPEMIME;
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
@@ -1424,7 +1447,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
 				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-				} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
+				} else if (codecA.contains("pcm") || codecA.contains("wav")) {
 					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 				}
 			}
@@ -1553,7 +1576,7 @@ public class DLNAMediaInfo implements Cloneable {
 					videoWithinH264LevelLimits = false;
 				}
 			}
-			return videoWithinH264LevelLimits.booleanValue();
+			return videoWithinH264LevelLimits;
 		}
 	}
 
@@ -1752,7 +1775,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isHDVideo() {
-		return (width > 864 || height > 540);
+		return (width > 864 || height > 576);
 	}
 
 	public boolean isMpegTS() {
@@ -1988,6 +2011,20 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setFrameRateMode(String frameRateMode) {
 		this.frameRateMode = frameRateMode;
+	}
+
+	/**
+	 * @return the video bit depth
+	 */
+	public int getVideoBitDepth() {
+		return videoBitDepth;
+	}
+
+	/**
+	 * @param value the video bit depth to set
+	 */
+	public void setVideoBitDepth(int value) {
+		this.videoBitDepth = value;
 	}
 
 	/**
@@ -2629,12 +2666,12 @@ public class DLNAMediaInfo implements Cloneable {
 			return false;
 		}
 
-		switch (stereoscopy) {
+		switch (stereoscopy.toLowerCase()) {
 			case "overunderrt":
-			case "OULF":
-			case "OURF":
-			case "SBSLF":
-			case "SBSRF":
+			case "oulf":
+			case "ourf":
+			case "sbslf":
+			case "sbsrf":
 			case "top-bottom (left eye first)":
 			case "top-bottom (right eye first)":
 			case "side by side (left eye first)":
@@ -2699,21 +2736,21 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		isAnaglyph = true;
-		switch (stereoscopy) {
+		switch (stereoscopy.toLowerCase()) {
 			case "overunderrt":
-			case "OULF":
+			case "oulf":
 			case "top-bottom (left eye first)":
 				isAnaglyph = false;
 				return Mode3D.OUL;
-			case "OURF":
+			case "ourf":
 			case "top-bottom (right eye first)":
 				isAnaglyph = false;
 				return Mode3D.OUR;
-			case "SBSLF":
+			case "sbslf":
 			case "side by side (left eye first)":
 				isAnaglyph = false;
 				return Mode3D.SBSL;
-			case "SBSRF":
+			case "sbsrf":
 			case "side by side (right eye first)":
 				isAnaglyph = false;
 				return Mode3D.SBSR;
@@ -2723,29 +2760,29 @@ public class DLNAMediaInfo implements Cloneable {
 			case "half side by side (left eye first)":
 				isAnaglyph = false;
 				return Mode3D.HSBSL;
-			case "ARCG":
+			case "arcg":
 				return Mode3D.ARCG;
-			case "ARCH":
+			case "arch":
 				return Mode3D.ARCH;
-			case "ARCC":
+			case "arcc":
 				return Mode3D.ARCC;
-			case "ARCD":
+			case "arcd":
 				return Mode3D.ARCD;
-			case "AGMG":
+			case "agmg":
 				return Mode3D.AGMG;
-			case "AGMH":
+			case "agmh":
 				return Mode3D.AGMH;
-			case "AGMC":
+			case "agmc":
 				return Mode3D.AGMC;
-			case "AGMD":
+			case "agmd":
 				return Mode3D.AGMD;
-			case "AYBG":
+			case "aybg":
 				return Mode3D.AYBG;
-			case "AYBH":
+			case "aybh":
 				return Mode3D.AYBH;
-			case "AYBC":
+			case "aybc":
 				return Mode3D.AYBC;
-			case "AYBD":
+			case "aybd":
 				return Mode3D.AYBD;
 		}
 
