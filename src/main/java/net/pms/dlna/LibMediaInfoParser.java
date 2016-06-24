@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
@@ -148,9 +147,7 @@ public class LibMediaInfoParser {
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
 								}
-								
 							}
-							
 						}
 					}
 				}
