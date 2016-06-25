@@ -1,4 +1,4 @@
-6.4.0 - 2016-06-??
+6.4.0 - 2016-06-26
 
 	General:
 		Regularly initiate UPnP searches for new renderers
