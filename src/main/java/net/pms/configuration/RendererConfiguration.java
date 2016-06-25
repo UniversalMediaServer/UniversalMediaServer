@@ -140,6 +140,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
+	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
@@ -180,6 +181,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	protected static final String SUPPORTED = "Supported";
+	protected static final String SUPPORTED_VIDEO_BIT_DEPTHS = "SupportedVideoBitDepths";
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
 	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
@@ -1827,6 +1829,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * This was originally added for the PS3 after it was observed to need
+	 * a video whose maximum bitrate was under half of the network maximum.
+	 *
+	 * PMS and UMS have done this by default for years so it should be left
+	 * to true to avoid problems, but new renderers may benefit from trying
+	 * it set to false.
+	 *
+	 * @return whether to set the maximum bitrate to half of the network max
+	 */
+	public boolean isHalveBitrate() {
+		return getBoolean(HALVE_BITRATE, true);
+	}
+
+	/**
 	 * Returns the maximum bitrate (in bits-per-second) as defined by
 	 * whichever is lower out of the renderer setting or user setting.
 	 *
@@ -1847,6 +1863,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
 			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		if (isHalveBitrate()) {
+			defaultMaxBitrates[0] /= 2;
 		}
 
 		maximumBitrateTotal = defaultMaxBitrates[0] * 1000000;
@@ -2272,7 +2292,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Reformatted name
 	 */
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
-		// Wrap + tuncate
+		// Wrap + truncate
 		int len = 0;
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
@@ -2282,7 +2302,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				// Wrap
 				int i = dlna.isFolder() ? 0 : indent;
 				String newline = "\n" + (dlna.isFolder() ? "" : inset);
-				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
+				name = name.substring(0, i + (i < name.length() && Character.isWhitespace(name.charAt(i)) ? 1 : 0))
 					+ WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
 				len = lineWidth * lineHeight;
 				if (len != 0 && name.length() > len) {
@@ -2843,5 +2863,32 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean streamSubsForTranscodedVideo() {
 		return getBoolean(STREAM_SUBS_FOR_TRANSCODED_VIDEO, false);
+	}
+
+	/**
+	 * List of supported video bit depths.
+	 *
+	 * @return a comma-separated list of supported video bit depths.
+	 */
+	public String getSupportedVideoBitDepths() {
+		return getString(SUPPORTED_VIDEO_BIT_DEPTHS, "8");
+	}
+
+	/**
+	 * Check if the given video bit depth is supported.
+	 *
+	 * @param videoBitDepth The video bit depth
+	 * 
+	 * @return whether the video bit depth is supported.
+	 */
+	public boolean isVideoBitDepthSupported(int videoBitDepth) {
+		String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
+		for (String supportedBitDepth : supportedBitDepths) {
+			if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

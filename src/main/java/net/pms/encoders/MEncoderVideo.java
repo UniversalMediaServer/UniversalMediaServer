@@ -662,9 +662,10 @@ public class MEncoderVideo extends Player {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] /= 2;
-			LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
+			if (mediaRenderer.isHalveBitrate()) {
+				defaultMaxBitrates[0] /= 2;
+				LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
+			}
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -1625,7 +1626,7 @@ public class MEncoderVideo extends Player {
 					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
 					cmdList.add("-slang");
 					cmdList.add("" + params.sid.getLang());
-				} else if (!params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) { //when subs are streamable do not transcode them
+				} else if (!params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
 					cmdList.add("-sub");
 					DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 					if (media.is3d()) {
@@ -1636,7 +1637,7 @@ public class MEncoderVideo extends Player {
 							cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
 						}
 					} else {
-						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files					}
+						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
 					}
 
 					if (params.sid.isExternalFileUtf()) {

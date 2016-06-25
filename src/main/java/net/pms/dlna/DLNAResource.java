@@ -716,11 +716,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						resumeRes.media.setThumbready(false);
 					}
 
+					/**
+					 * Secondary format is currently only used to provide 24-bit FLAC to PS3 by
+					 * sending it as a fake video. This can be made more reusable with a renderer
+					 * config setting like Mux24BitFlacToVideo if we ever have another purpose
+					 * for it, which I doubt we will have.
+					 */
 					if (
 						child.format.getSecondaryFormat() != null &&
 						child.media != null &&
 						defaultRenderer != null &&
-						defaultRenderer.supportsFormat(child.format.getSecondaryFormat())
+						defaultRenderer.supportsFormat(child.format.getSecondaryFormat()) &&
+						defaultRenderer.isPS3()
 					) {
 						DLNAResource newChild = child.clone();
 						newChild.setFormat(newChild.format.getSecondaryFormat());
@@ -870,6 +877,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
 			} else if (format.isVideo() && parserV2) {
+				int maxBandwidth = renderer.getMaxBandwidth();
+				if (renderer.isHalveBitrate()) {
+					maxBandwidth /= 2;
+				}
+
 				if (
 					renderer.isKeepAspectRatio() &&
 					!"16:9".equals(media.getAspectRatioContainer())
@@ -879,9 +891,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
-				} else if (media.getBitrate() > (renderer.getMaxBandwidth() / 2)) {
+				} else if (media.getBitrate() > maxBandwidth) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), (renderer.getMaxBandwidth() / 2));
+					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), maxBandwidth);
+				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
+					isIncompatible = true;
+					LOGGER.trace(prependTraceReason + "the bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
 				}
 			}
 
@@ -1268,7 +1283,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Unhandled expection while resolving {}: {}", getDisplayName(), e.getMessage());
+			LOGGER.warn("Unhandled exception while resolving {}: {}", getDisplayName(), e.getMessage());
 			LOGGER.debug("", e);
 		}
 	}
@@ -2065,7 +2080,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											LOGGER.trace("Disabled the subtitles: " + matchedSub);
 										} else {
 											if (mediaRenderer.isExternalSubtitlesFormatSupported(matchedSub, media)) {
-												matchedSub.setSubsStreamable(true);	
+												matchedSub.setSubsStreamable(true);
 											}
 											params.sid = matchedSub;
 											media_subtitle = params.sid;
@@ -2100,9 +2115,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															if (sub.getExternalFile() != null) {
 																LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
 															}
-															
+
 															if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
-																sub.setSubsStreamable(true);	
+																sub.setSubsStreamable(true);
 															}
 															params.sid = sub;
 															media_subtitle = params.sid;
@@ -2119,7 +2134,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 													if (sub.getExternalFile() != null) {
 														LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
 														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
-															sub.setSubsStreamable(true);	
+															sub.setSubsStreamable(true);
 														}
 														params.sid = sub;
 														media_subtitle = params.sid;
@@ -2152,7 +2167,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 														)
 													) {
 														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
-															sub.setSubsStreamable(true);	
+															sub.setSubsStreamable(true);
 														}
 														params.sid = sub;
 														LOGGER.trace("Matched subtitles track: " + params.sid);
