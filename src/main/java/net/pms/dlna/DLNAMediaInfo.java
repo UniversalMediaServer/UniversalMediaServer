@@ -133,7 +133,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioDvdIso;
 	public String aspectRatioContainer;
 	public String aspectRatioVideoTrack;
-	private int videoBitDepth;
+	private int videoBitDepth = 8;
 
 	private byte thumb[];
 
