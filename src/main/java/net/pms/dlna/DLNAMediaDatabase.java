@@ -393,6 +393,7 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
 				media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
 				media.setImageCount(rs.getInt("IMAGECOUNT"));
+				media.setVideoBitDepth(rs.getInt("BITDEPTH"));
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
