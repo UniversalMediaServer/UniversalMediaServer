@@ -2,7 +2,7 @@
 
 	General:
 		Regularly initiate UPnP searches for new renderers
-		Added renderer config setting HalveBitrate and SupportedVideoBitDepths
+		Added renderer config settings HalveBitrate and SupportedVideoBitDepths
 		Prevent sleep mode while streaming by default
 		Tweaked language
 		Improved/fixed some documentation (thanks, Sami32!)
