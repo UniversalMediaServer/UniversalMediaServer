@@ -9,6 +9,7 @@ import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
+import static net.pms.network.UPNPHelper.sleep;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
@@ -193,7 +194,7 @@ public class UPNPControl {
 				public void run() {
 					String id = data.get("InstanceID");
 					while (active && !"STOPPED".equals(data.get("TransportState"))) {
-						UPNPHelper.sleep(1000);
+						sleep(1000);
 //						if (DEBUG) LOGGER.debug("InstanceID: " + id);
 						for (ActionArgumentValue o : getPositionInfo(d, id)) {
 							data.put(o.getArgument().getName(), o.toString());
@@ -201,7 +202,7 @@ public class UPNPControl {
 						}
 						alert();
 					}
-					if (! active) {
+					if (!active) {
 						data.put("TransportState", "STOPPED");
 						alert();
 					}
@@ -273,7 +274,6 @@ public class UPNPControl {
 	}
 
 	public void init() {
-
 		try {
 			db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			UMSHeaders = new UpnpHeaders();
@@ -321,16 +321,56 @@ public class UPNPControl {
 			};
 
 			upnpService = new UpnpServiceImpl(sc, rl);
-
-			// find all media renderers on the network
-			for (DeviceType t : mediaRendererTypes) {
-				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-			}
+			initializeSearcher();
 
 			LOGGER.debug("UPNP Services are online, listening for media renderers");
 		} catch (Exception ex) {
 			LOGGER.debug("UPNP startup Error", ex);
 		}
+	}
+
+	private static int search_delay = 10000;
+	private static Thread searchThread;
+
+	/**
+	 * Runs a Cling search every 10/20/30 seconds to discover new renderers.
+	 */
+	public void initializeSearcher() {
+		Runnable rSearch = new Runnable() {
+			@Override
+			public void run() {
+				while (true) {
+					for (DeviceType t : mediaRendererTypes) {
+						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
+					}
+					LOGGER.trace("Searching for renderers with Cling...");
+					sleep(search_delay);
+
+					/**
+					 * The first delay for sending a search message is 10 seconds,
+					 * the second delay is for 20 seconds. From then on, all other
+					 * delays are 30 seconds.
+					 */
+					switch (search_delay) {
+						case 10000:
+							search_delay = 20000;
+							break;
+						case 20000:
+							if (PMS.get().getFoundRenderers().size() > 0) {
+								search_delay = 30000;
+							} else {
+								search_delay = 10000;
+							}
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		};
+
+		searchThread = new Thread(rSearch, "UPNP-Search");
+		searchThread.start();
 	}
 
 	public void shutdown() {
@@ -340,6 +380,9 @@ public class UPNPControl {
 				if (upnpService != null) {
 					LOGGER.debug("Stopping UPNP Services...");
 					upnpService.shutdown();
+				}
+				if (searchThread != null) {
+					searchThread.interrupt();
 				}
 			}
 		}).start();
