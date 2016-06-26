@@ -433,6 +433,7 @@ public class StringUtil {
 				case ']':
 				case '[':
 				case ',':
+				case ';':
 					sb.append("\\");
 				default:
 					sb.append(ch);
