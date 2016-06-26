@@ -39,20 +39,20 @@ import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TranscodeImage extends FFMpegVideo {
+public class TranscodeImage extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodeImage.class);
 
 	public TranscodeImage() {
-	}	
-	
-	public byte[] ConvertImage(File file) {
+	}
+
+	public byte[] ConvertImageToJpeg(File file) {
 		LOGGER.trace("The file \"{}\" is transcoded to the JPEG format.", file.getAbsolutePath());
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			BufferedImage bi = ImageIO.read(file);
 	        ImageIO.write(bi, FormatConfiguration.JPG, baos);
 	        baos.flush();
-	        byte image[] = baos.toByteArray();
+	        byte[] image = baos.toByteArray();
 	    	baos.close();
 	    	return image;
 	    } catch(IOException e) {
@@ -106,13 +106,9 @@ public class TranscodeImage extends FFMpegVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
-		if (media == null) {
-			return null;
-		}
-
 		params.waitbeforestart = 0;
-		byte image[] = ConvertImage(new File(dlna.getSystemName()));
-		media.setSize(image.length);
+		byte[] image = ConvertImageToJpeg(new File(dlna.getSystemName()));
+		dlna.getMedia().setSize(image.length);
 		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 		return pw;
 	}
