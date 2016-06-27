@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
+
+import net.coobird.thumbnailator.Thumbnails;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -45,12 +47,16 @@ public class TranscodeImage extends Player {
 	public TranscodeImage() {
 	}
 
-	public byte[] ConvertImageToJpeg(File file) {
+	public byte[] ConvertImageToJpeg(DLNAResource dlna) {
+		File file = new File(dlna.getSystemName());
 		LOGGER.trace("The file \"{}\" is transcoded to the JPEG format.", file.getAbsolutePath());
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			BufferedImage bi = ImageIO.read(file);
-	        ImageIO.write(bi, FormatConfiguration.JPG, baos);
+			Thumbnails.of(ImageIO.read(file))
+				.size(dlna.getMedia().getWidth(), dlna.getMedia().getHeight())
+				.outputFormat("JPEG")
+				.outputQuality(1.0f)
+				.toOutputStream(baos);
 	        baos.flush();
 	        byte[] image = baos.toByteArray();
 	    	baos.close();
@@ -107,7 +113,7 @@ public class TranscodeImage extends Player {
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		params.waitbeforestart = 0;
-		byte[] image = ConvertImageToJpeg(new File(dlna.getSystemName()));
+		byte[] image = ConvertImageToJpeg(dlna);
 		dlna.getMedia().setSize(image.length);
 		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 		return pw;
