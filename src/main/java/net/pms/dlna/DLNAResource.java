@@ -304,6 +304,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return id;
 	}
 
+	/**
+	 * Returns the integer representation of the id of this resource based
+	 * on the index in its parent container.
+	 *
+	 * @return The id integer.
+	 * @since 6.4.1
+	 */
 	public int getIntId() {
 		return Integer.parseInt(getId());
 	}
