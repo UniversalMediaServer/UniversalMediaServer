@@ -3601,10 +3601,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the update counter for this resource. When the resource needs
-	 * to be refreshed, its counter is updated.
+	 * Returns the updates id for this resource. When the resource needs
+	 * to be refreshed, its id is updated.
 	 *
-	 * @return The update counter.
+	 * @return The updated id.
 	 * @see #notifyRefresh()
 	 */
 	public int getUpdateId() {
@@ -3612,10 +3612,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets the update counter for this resource. When the resource needs
-	 * to be refreshed, its counter should be updated.
+	 * Sets the updated id for this resource. When the resource needs
+	 * to be refreshed, its id should be updated.
 	 *
-	 * @param updateId The counter value to set.
+	 * @param updateId The updated id value to set.
 	 * @since 1.50
 	 */
 	protected void setUpdateId(int updateId) {
@@ -3623,10 +3623,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the update counter for all resources. When all resources need
-	 * to be refreshed, this counter is updated.
+	 * Returns the updates id for all resources. When all resources need
+	 * to be refreshed, this id is updated.
 	 *
-	 * @return The system update counter.
+	 * @return The system updated id.
 	 * @since 1.50
 	 */
 	public static int getSystemUpdateId() {
@@ -3634,10 +3634,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets the update counter for all resources. When all resources need
-	 * to be refreshed, this counter should be updated.
+	 * Sets the updated id for all resources. When all resources need
+	 * to be refreshed, this id should be updated.
 	 *
-	 * @param systemUpdateId The system update counter to set.
+	 * @param systemUpdateId The system updated id to set.
 	 * @since 1.50
 	 */
 	public static void setSystemUpdateId(int systemUpdateId) {
