@@ -304,6 +304,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return id;
 	}
 
+	public int getIntId() {
+		return Integer.parseInt(getId());
+	}
+
 	/**
 	 * Set the ID of this resource based on the index in its parent container.
 	 * Its main purpose is to be unique in the parent container. The method is

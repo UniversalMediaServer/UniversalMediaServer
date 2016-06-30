@@ -2,6 +2,9 @@ package net.pms.dlna.virtual;
 
 import java.io.File;
 import java.util.ArrayList;
+
+import com.google.common.base.Strings;
+
 import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
@@ -202,6 +205,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 
+		setUpdateId(this.getIntId());
 		//return removedFiles.size() != 0 || addedFiles.size() != 0 || removedString.size() != 0 || addedString.size() != 0;
 	}
 }
