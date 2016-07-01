@@ -28,7 +28,7 @@
 		<!-- No threshold filtering, log everything the root logger allows -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<charset>UTF-8</charset>
-			<pattern>%d{HH:mm:ss} %-5level %msg%n</pattern>
+			<pattern>%d{HH:mm:ss} %-5level %class{36}.%M %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -37,7 +37,7 @@
 		<!-- No threshold filtering, log everything the root logger allows -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<charset>UTF-8</charset>
-			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+			<pattern>%-5level %d{HH:mm:ss.SSS} [%thread] %class{36}.%M %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -51,7 +51,7 @@
 		<append>false</append>  <!-- Start new logfile on each application start -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<charset>UTF-8</charset>
-			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %class{36}.%M %msg%n</pattern>
 		</encoder>
 	</appender>
 
@@ -79,11 +79,11 @@
 	<!--
 		For debugging purposes it can be handy to define custom levels for
 		specific classes or packages. For example:
+	-->
 
 	<logger name="net.pms.dlna.DLNAResource" level="ALL" />
 	<logger name="net.pms.network.RequestHandlerV2" level="ALL" />
 	<logger name="net.pms.util" level="ALL" />
-	-->
 
 	<!-- silence noise from external libraries -->
 	<logger name="org.apache" level="WARN" />

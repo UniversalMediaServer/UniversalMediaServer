@@ -84,7 +84,7 @@
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
-		<project.binaries>${project.basedir}/target/bin</project.binaries>
+		<project.binaries>${project.basedir}/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
 		<binary-revision>55</binary-revision>
@@ -644,8 +644,8 @@
 					<additionalBuildcommands>
 						<buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
 					</additionalBuildcommands>
-					<downloadSources>true</downloadSources>
-					<downloadJavadocs>true</downloadJavadocs>
+					<downloadSources>false</downloadSources>
+					<downloadJavadocs>false</downloadJavadocs>
 					<wtpversion>1.5</wtpversion>
 				</configuration>
 			</plugin>
