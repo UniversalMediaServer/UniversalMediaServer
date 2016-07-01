@@ -1,6 +1,7 @@
 package net.pms.dlna;
 
 import java.util.ArrayList;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,12 @@ public class GlobalIdRepo {
 			id = globalId++;
 			d.setIndexId(id);
 			dlna = d;
+		}
+		
+		
+		@Override
+		public String toString() {
+			return dlna.toString();
 		}
 	}
 	private ArrayList<ID> ids = new ArrayList<>();

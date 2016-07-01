@@ -18,23 +18,35 @@
  */
 package net.pms.dlna;
 
-import com.sun.jna.Platform;
-import java.io.*;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	private boolean useSuperThumb;
 
+	public RealFile(DLNAMediaInfo media) {
+		this(new File(media.getFileName()));
+		setMedia(media);
+	}
+	
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
 		setLastModified(file.lastModified());
@@ -172,7 +184,7 @@ public class RealFile extends MapFile {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
-					ArrayList<DLNAMediaInfo> medias = database.getData(fileName, file.lastModified());
+					List<DLNAMediaInfo> medias = database.getData(fileName, file.lastModified());
 
 					if (medias != null && medias.size() == 1) {
 						setMedia(medias.get(0));

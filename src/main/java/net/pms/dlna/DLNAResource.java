@@ -18,16 +18,38 @@
  */
 package net.pms.dlna;
 
-import java.io.*;
+import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
+import static net.pms.util.StringUtil.addAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.closeTag;
+import static net.pms.util.StringUtil.convertTimeToString;
+import static net.pms.util.StringUtil.encodeXML;
+import static net.pms.util.StringUtil.endTag;
+import static net.pms.util.StringUtil.openTag;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -36,7 +58,15 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.encoders.*;
+import net.pms.encoders.AviSynthFFmpeg;
+import net.pms.encoders.AviSynthMEncoder;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.MEncoderVideo;
+import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.TsMuxeRVideo;
+import net.pms.encoders.VLCVideo;
+import net.pms.encoders.VideoLanVideoStreaming;
 import net.pms.external.AdditionalResourceFolderListener;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
@@ -47,8 +77,15 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
-import net.pms.util.*;
-import static net.pms.util.StringUtil.*;
+import net.pms.util.DLNAList;
+import net.pms.util.FileUtil;
+import net.pms.util.FullyPlayed;
+import net.pms.util.ImagesUtil;
+import net.pms.util.Iso639;
+import net.pms.util.MpegUtil;
+import net.pms.util.OpenSubtitle;
+import net.pms.util.UMSUtils;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -1113,7 +1150,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) {
-		ArrayList<DLNAResource> resources = new ArrayList<>();
+		List<DLNAResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
@@ -1150,8 +1187,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				resources.add(dlna);
 				dlna.refreshChildrenIfNeeded(searchStr);
 			} else {
-				dlna.discoverWithRenderer(renderer, count, true, searchStr);
-
+				if (searchStr != null)
+						dlna.discoverWithRenderer(renderer, count, searchStr);
+				else 
+					dlna.discoverWithRenderer(renderer, count, true, searchStr);
 				if (count == 0) {
 					count = dlna.getChildren().size();
 				}
@@ -1215,10 +1254,34 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		updateId += 1;
 		systemUpdateId += 1;
 	}
+	final protected List<DLNAMediaInfo> discoverWithRenderer(RendererConfiguration renderer, int count, String searchStr) {
+		// Use device-specific pms conf, if any
+		PmsConfiguration configuration = PMS.getConfiguration(renderer);
+		
+		List<DLNAMediaInfo> medias = null;
+		if (searchStr != null && configuration.getUseCache()) {
+			DLNAMediaDatabase database = PMS.get().getDatabase();
 
+			if (database != null) {
+				// TODO: limit by count
+				getChildren().clear();
+
+				medias = database.searchData("fileName", searchStr);
+				for (DLNAMediaInfo dlnaMediaInfo : medias) {
+					DLNAMediaInfo mediaInfo = medias.get(0);
+					DLNAResource resource = new RealFile(mediaInfo);
+					// Searched resource already exists in GlobalIdRepo; hence update
+					updateChild(resource);
+				}
+			}
+		}
+		return medias;
+	}
+	
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
+		
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configuration.getFolderLimit() && depthLimit()) {
