@@ -1223,7 +1223,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		updateId += 1;
+		if (!(this instanceof VirtualFolder)) {
+			updateId += 1;
+		}
+		
 		systemUpdateId += 1;
 	}
 
