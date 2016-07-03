@@ -74,7 +74,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 	}
 
 	private String transformSQL(String sql) {
-
 		sql = sql.replace("${0}", transformName(getName()));
 		if (getParent() != null) {
 			sql = sql.replace("${1}", transformName(getParent().getName()));
@@ -130,23 +129,23 @@ public class MediaLibraryFolder extends VirtualFolder {
 			for (File file : list) {
 				boolean present = false;
 
-				for (DLNAResource dlna : getChildren()) {
-					if (i == 0 && (!(dlna instanceof VirtualFolder) || (dlna instanceof MediaLibraryFolder))) {
-						removedFiles.add(dlna);
+				for (DLNAResource child : getChildren()) {
+					if (i == 0 && (!(child instanceof VirtualFolder) || (child instanceof MediaLibraryFolder))) {
+						removedFiles.add(child);
 					}
 
-					String name = dlna.getName();
-					long lm = dlna.getLastModified();
+					String childName = child.getName();
+					long lm = child.getLastModified();
 					boolean videoTSHack = false;
 
-					if (dlna instanceof DVDISOFile) {
-						DVDISOFile dvdISOFile = (DVDISOFile) dlna;
+					if (child instanceof DVDISOFile) {
+						DVDISOFile dvdISOFile = (DVDISOFile) child;
 						// XXX DVDISOFile has inconsistent ideas of what constitutes a VIDEO_TS folder
 						videoTSHack = dvdISOFile.getFilename().equals(file.getName());
 					}
 
-					if ((file.getName().equals(name) || videoTSHack) && file.lastModified() == lm) {
-						removedFiles.remove(dlna);
+					if ((file.getName().equals(childName) || videoTSHack) && file.lastModified() == lm) {
+						removedFiles.remove(child);
 						present = true;
 					}
 				}
@@ -160,13 +159,13 @@ public class MediaLibraryFolder extends VirtualFolder {
 		if (strings != null) {
 			for (String f : strings) {
 				boolean present = false;
-				for (DLNAResource d : getChildren()) {
-					if (i == 0 && (!(d instanceof VirtualFolder) || (d instanceof MediaLibraryFolder))) {
-						removedString.add(d);
+				for (DLNAResource child : getChildren()) {
+					if (i == 0 && (!(child instanceof VirtualFolder) || (child instanceof MediaLibraryFolder))) {
+						removedString.add(child);
 					}
-					String name = d.getName();
-					if (f.equals(name)) {
-						removedString.remove(d);
+					String childName = child.getName();
+					if (f.equals(childName)) {
+						removedString.remove(child);
 						present = true;
 					}
 				}
