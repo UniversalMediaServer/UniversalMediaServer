@@ -368,8 +368,8 @@ public class DLNAMediaDatabase implements Runnable {
 	
 	public List<DLNAMediaInfo> searchData(String name, String value) {
 		Map<DataType, Object> params = new LinkedHashMap<>();
-		params.put(DataType.STRING, "%" + value + "%");
-		return query("SELECT * FROM FILES WHERE " + name + " LIKE ?", params);
+		params.put(DataType.STRING, "%" + value.toLowerCase() + "%");
+		return query("SELECT * FROM FILES WHERE lower(" + name + ") LIKE ?", params);
 	}
 
 	public List<DLNAMediaInfo> getData(String name, long modified) {
@@ -388,6 +388,7 @@ public class DLNAMediaDatabase implements Runnable {
 			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
 			
+			if (params != null) {
 			int i = 1;
 			for (DataType dataType : params.keySet()) {
 				switch (dataType) {
@@ -403,6 +404,7 @@ public class DLNAMediaDatabase implements Runnable {
 				default:
 					break;
 				}
+			}
 			}
 
 			rs = stmt.executeQuery();
