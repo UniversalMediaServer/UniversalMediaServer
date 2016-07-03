@@ -45,6 +45,7 @@ public class RealFile extends MapFile {
 	public RealFile(DLNAMediaInfo media) {
 		this(new File(media.getFileName()));
 		setMedia(media);
+		resolveFormat();
 	}
 	
 	public RealFile(File file) {

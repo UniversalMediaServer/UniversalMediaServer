@@ -290,8 +290,9 @@ public class RemoteWeb {
 				// unless the code is entered
 				in = r.getGenericThumbnailInputStream(null);
 			} else {
-				r.checkThumbnail();
-				in = r.getThumbnailInputStream();
+				in = r.getMedia().getThumbnailInputStream();
+//				r.checkThumbnail();
+//				in = r.getThumbnailInputStream();
 			}
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Content-Type", r.getThumbnailContentType());

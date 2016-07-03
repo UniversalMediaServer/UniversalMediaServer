@@ -184,10 +184,11 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void discoverChildren(String str) {
+		getChildren().clear();
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
-		} else {
-			return;
+//		} else {
+//			return;
 		}
 
 		int sm = configuration.getSortMethod(getPath());

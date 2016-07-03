@@ -1187,15 +1187,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				resources.add(dlna);
 				dlna.refreshChildrenIfNeeded(searchStr);
 			} else {
-				if (searchStr != null)
+				if (searchStr != null && lastSearch != searchStr)
 						dlna.discoverWithRenderer(renderer, count, searchStr);
 				else 
 					dlna.discoverWithRenderer(renderer, count, true, searchStr);
-				if (count == 0) {
-					count = dlna.getChildren().size();
-				}
+					if (count == -1 || count > dlna.getChildren().size()) {
+						count = dlna.getChildren().size();
+					}
+					resources.addAll(dlna.getChildren().subList(start, count));
 
-				if (count > 0) {
+					// Need to find a way to avoid thread locks after removing following if block
+				/*if (count > 0) {
 					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
 					int nParallelThreads = 3;
@@ -1216,7 +1218,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							final DLNAResource child = dlna.getChildren().get(i);
 							if (child != null) {
 								tpe.execute(child);
-								resources.add(child);
+//								resources.add(child);
 							} else {
 								LOGGER.warn("null child at index {} in {}", i, systemName);
 							}
@@ -1231,8 +1233,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					LOGGER.trace("End of analysis for " + systemName);
-				}
+				}*/
 			}
+			
 		}
 
 		lastSearch = searchStr;
@@ -1265,13 +1268,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (database != null) {
 				// TODO: limit by count
 				getChildren().clear();
+				UMSUtils.getSqlFromCriteria(searchStr);
 
 				medias = database.searchData("fileName", searchStr);
 				for (DLNAMediaInfo dlnaMediaInfo : medias) {
 					DLNAMediaInfo mediaInfo = medias.get(0);
 					DLNAResource resource = new RealFile(mediaInfo);
+					PMS.getGlobalRepo().add(resource);
+					resource.setPreferredMimeType(renderer);
+					resource.setParent(this);
+					
+					getChildren().add(resource);
 					// Searched resource already exists in GlobalIdRepo; hence update
-					updateChild(resource);
+//					updateChild(resource);
 				}
 			}
 		}
@@ -1283,7 +1292,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		
 		// Discover children if it hasn't been done already
-		if (!isDiscovered()) {
+		if (!isDiscovered() || forced) {
 			if (configuration.getFolderLimit() && depthLimit()) {
 				if (renderer.getConfName().equalsIgnoreCase("Playstation 3") || renderer.isXbox360()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
