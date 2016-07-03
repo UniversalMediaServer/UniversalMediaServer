@@ -2751,7 +2751,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isHideMediaLibraryFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, true);
+		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, false);
 	}
 
 	public void setHideMediaLibraryFolder(final boolean value) {

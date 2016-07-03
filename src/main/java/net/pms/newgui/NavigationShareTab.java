@@ -416,7 +416,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// Hide cache folder
+		// Hide Media Library folder
 		hidemedialibraryfolder = new JCheckBox(Messages.getString("FoldTab.32"), configuration.isHideMediaLibraryFolder());
 		hidemedialibraryfolder.setContentAreaFilled(false);
 		hidemedialibraryfolder.addItemListener(new ItemListener() {
