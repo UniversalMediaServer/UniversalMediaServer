@@ -20,28 +20,51 @@
 
 package net.pms.util;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.Collator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
+
 import javax.imageio.ImageIO;
+
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.filters.Canvas;
 import net.coobird.thumbnailator.geometry.Positions;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.*;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RealFile;
+import net.pms.dlna.ResumeObj;
+import net.pms.dlna.SevenZipEntry;
+import net.pms.dlna.WebStream;
+import net.pms.dlna.ZippedEntry;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -648,4 +671,96 @@ public class UMSUtils {
 
 		return null;
 	}
+	
+	public enum MediaType {
+		AUDIO, ALBUM, ARTIST, OTHER
+	}
+	
+	public static String getSqlFromCriteria(String str) {
+		StringBuffer sql = new StringBuffer();
+		getSqlFromCriteria(str, sql, MediaType.OTHER);
+		return sql.toString();
+	}
+	
+	private static MediaType getSqlFromCriteria(String str, StringBuffer sql, MediaType type) {
+		if (str == null)
+			return null;
+		
+		if (str.startsWith("(")) {
+			String expr = str.substring(1, str.lastIndexOf(")"));
+			sql.append("(");
+			type = getSqlFromCriteria(expr, sql, type);
+			sql.append(")");
+		} else {
+			String op = " and ";
+			String[] factors = str.split(op, 2);
+			
+			if (factors.length == 1) {
+				op = " or ";
+				factors = str.split(op, 2);
+				if (factors.length == 1) {
+					LOGGER.debug("process " + str.trim());
+
+					String factor = factors[0];
+			        factor = factor.trim();
+			        String[] subFactors = factor.split("\\s", 3);
+			        
+			        if (subFactors != null && subFactors.length == 3) {
+			            String value = subFactors[2];
+						if ("upnp:class".equalsIgnoreCase(subFactors[0]) && 
+			            		("=".equalsIgnoreCase(subFactors[1]) || "derivedfrom".equalsIgnoreCase(subFactors[1]))) {
+							if ("\"object.item.audioItem\"".equalsIgnoreCase(value)) {
+				                type = MediaType.AUDIO;
+			                } else if ("\"object.container.album.musicAlbum\"".equalsIgnoreCase(value)) {
+				                type = MediaType.ALBUM;
+			                } else if ("\"object.container.person.musicArtist\"".equalsIgnoreCase(value)) {
+				                type = MediaType.ARTIST;
+			                }
+							return type;
+			            }
+			            
+			            if ("contains".equalsIgnoreCase(subFactors[1])) {
+			            	// Remove surrounding quotes: dc:title contains "cap"
+			            	value = value.substring(1, value.length() - 1);
+			                if ("dc:title".equalsIgnoreCase(subFactors[0])) {
+			                	if (type.equals(MediaType.AUDIO)) {
+			                		sql.append("TITLE like '%").append(value).append("%'");
+			                	} else if (type.equals(MediaType.ALBUM)) {
+			                		sql.append("ALBUM like '%").append(value).append("%'");
+			                	} else if (type.equals(MediaType.ARTIST)) {
+			                		sql.append("ARTIST like '%").append(value).append("%'");
+			                	} else {
+			                    	sql.append("TITLECONTAINER like '%").append(value).append("%'");
+			                    	sql.append(" or ");
+			                    	sql.append("TITLEVIDEOTRACK like '%").append(value).append("%'");
+			                	}
+			                } else if ("upnp:artist".equalsIgnoreCase(subFactors[0])) {
+			                	sql.append("ARTIST like '%").append(value).append("%'");
+			                } else if ("dc:creator".equalsIgnoreCase(subFactors[0])) {
+			                	// Don't have info. about this field in DB
+			                	sql.append("1=1");
+			                }
+			            }
+			            
+			            if ("exists".equalsIgnoreCase(subFactors[1])) {
+			            	// TODO: Add proper logic
+			            	sql.append("1=1");
+			            }
+			        }
+			        
+			        LOGGER.debug(sql.toString());
+			    
+					return null;
+				}
+			}
+			
+			for (int i = 0; i < factors.length; i++) {
+				type = getSqlFromCriteria(factors[i], sql, type);
+				if (type == null && i < factors.length - 1)
+					sql.append(op);
+			}
+		}
+		return type;
+	}
+	
 }
