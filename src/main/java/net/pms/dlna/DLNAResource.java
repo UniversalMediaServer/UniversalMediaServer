@@ -636,7 +636,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// is preferred.
 						String name = getName();
 
-						if (!configuration.isHideRecentlyPlayedFolder()) {
+						if (configuration.isShowRecentlyPlayedFolder()) {
 							player = child.player;
 						} else {
 							for (Player p : PlayerFactory.getPlayers()) {
@@ -977,7 +977,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
-		if (configuration.getHideTranscodeEnabled()) {
+		if (!configuration.isShowTranscodeFolder()) {
 			return null;
 		}
 
@@ -3887,7 +3887,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			configuration.isDisableSubtitles() ||
 			!configuration.isAutoloadExternalSubtitles() ||
-			configuration.isHideLiveSubtitlesFolder() ||
+			!configuration.isShowLiveSubtitlesFolder() ||
 			!isLiveSubtitleFolderAvailable()
 		) {
 			return null;

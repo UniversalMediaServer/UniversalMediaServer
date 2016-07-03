@@ -111,7 +111,7 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (!configuration.isHideRecentlyPlayedFolder()) {
+		if (configuration.isShowRecentlyPlayedFolder()) {
 			last = new Playlist(Messages.getString("VirtualFolder.1"),
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
@@ -128,7 +128,7 @@ public class RootFolder extends DLNAResource {
 			}
 			mon = new MediaMonitor(dirs);
 
-			if (!configuration.isHideNewMediaFolder()) {
+			if (configuration.isShowNewMediaFolder()) {
 				addChild(mon);
 			}
 		}
@@ -177,7 +177,7 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (!configuration.isHideMediaLibraryFolder()) {
+		if (configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
 				addChild(libraryRes);
@@ -188,7 +188,7 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		if (!configuration.getHideVideoSettings()) {
+		if (configuration.isShowServerSettingsFolder()) {
 			addAdminFolder();
 		}
 
@@ -1191,7 +1191,7 @@ public class RootFolder extends DLNAResource {
 	private DLNAResource getVideoSettingsFolder() {
 		DLNAResource res = null;
 
-		if (!configuration.getHideVideoSettings()) {
+		if (configuration.isShowServerSettingsFolder()) {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
 			res.addChild(vfSub);
@@ -1316,11 +1316,11 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isHideLiveSubtitlesFolder()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isShowLiveSubtitlesFolder()) {
 				@Override
 				public boolean enable() {
-					configuration.setHideLiveSubtitlesFolder(!configuration.isHideLiveSubtitlesFolder());
-					return configuration.isHideLiveSubtitlesFolder();
+					configuration.setShowLiveSubtitlesFolder(configuration.isShowLiveSubtitlesFolder());
+					return configuration.isShowLiveSubtitlesFolder();
 				}
 			});
 		}
