@@ -70,6 +70,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_ASPECTRATIO_VIDEOTRACK = 5;
 	private final int SIZE_AVC_LEVEL = 3;
 	private final int SIZE_CONTAINER = 32;
+	private final int SIZE_IMDBID = 16;
 	private final int SIZE_MATRIX_COEFFICIENTS = 16;
 	private final int SIZE_MODEL = 128;
 	private final int SIZE_MUXINGMODE = 32;
@@ -83,6 +84,8 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_ARTIST = 255;
 	private final int SIZE_SONGNAME = 255;
 	private final int SIZE_GENRE = 64;
+	private final int SIZE_TVSHOWNAME = 255;
+	private final int SIZE_TVEPISODENAME = 255;
 
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
@@ -252,6 +255,12 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", VIDEOTRACKCOUNT         INT");
 				sb.append(", IMAGECOUNT              INT");
 				sb.append(", BITDEPTH                INT");
+				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
+				sb.append(", YEAR                    INT");
+				sb.append(", TVSHOWNAME              VARCHAR2(").append(SIZE_TVSHOWNAME).append(')');
+				sb.append(", TVSEASON                INT");
+				sb.append(", TVEPISODENUMBER         INT");
+				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_TVEPISODENAME).append(')');
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -394,6 +403,12 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
 				media.setImageCount(rs.getInt("IMAGECOUNT"));
 				media.setVideoBitDepth(rs.getInt("BITDEPTH"));
+				media.setIMDbID(rs.getString("IMDBID"));
+				media.setYear(rs.getInt("YEAR"));
+				media.setTVShowName(rs.getString("TVSHOWNAME"));
+				media.setTVSeason(rs.getInt("TVSEASON"));
+				media.setTVEpisodeNumber(rs.getInt("TVEPISODENUMBER"));
+				media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
@@ -465,8 +480,9 @@ public class DLNAMediaDatabase implements Runnable {
 				"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
 				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
 				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
-				"MATRIXCOEFFICIENTS, EMBEDDEDFONTEXISTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
-				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				"MATRIXCOEFFICIENTS, EMBEDDEDFONTEXISTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, "+
+				"BITDEPTH, IMDBID, YEAR, TVSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME) VALUES "+
+				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -517,6 +533,12 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(30, media.getVideoTrackCount());
 				ps.setInt(31, media.getImageCount());
 				ps.setInt(32, media.getVideoBitDepth());
+				ps.setString(33, left(media.getIMDbID(), SIZE_IMDBID));
+				ps.setInt(34, media.getYear());
+				ps.setString(35, left(media.getTVShowName(), SIZE_TVSHOWNAME));
+				ps.setInt(36, media.getTVSeason());
+				ps.setInt(37, media.getTVEpisodeNumber());
+				ps.setString(38, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -547,6 +569,12 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(30, 0);
 				ps.setInt(31, 0);
 				ps.setInt(32, 0);
+				ps.setString(33, null);
+				ps.setInt(34, 0);
+				ps.setString(35, null);
+				ps.setInt(36, 0);
+				ps.setInt(37, 0);
+				ps.setString(38, null);
 			}
 			ps.executeUpdate();
 			int id;

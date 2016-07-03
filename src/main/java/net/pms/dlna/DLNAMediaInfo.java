@@ -139,6 +139,16 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 
+	/**
+	 * Metadata gathered from either the filename or OpenSubtitles.
+	 */
+	private String imdbID;
+	private int year;
+	private String tvShowName;
+	private int tvSeason;
+	private int tvEpisodeNumber;
+	private String tvEpisodeName;
+
 	private byte thumb[];
 
 	/**
@@ -2025,6 +2035,54 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setVideoBitDepth(int value) {
 		this.videoBitDepth = value;
+	}
+
+	public String getIMDbID() {
+		return imdbID;
+	}
+
+	public void setIMDbID(String value) {
+		this.imdbID = value;
+	}
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int value) {
+		this.year = value;
+	}
+
+	public String getTVShowName() {
+		return tvShowName;
+	}
+
+	public void setTVShowName(String value) {
+		this.tvShowName = value;
+	}
+
+	public int getTVSeason() {
+		return tvSeason;
+	}
+
+	public void setTVSeason(int value) {
+		this.tvSeason = value;
+	}
+
+	public int getTVEpisodeNumber() {
+		return tvEpisodeNumber;
+	}
+
+	public void setTVEpisodeNumber(int value) {
+		this.tvEpisodeNumber = value;
+	}
+
+	public String getTVEpisodeName() {
+		return tvEpisodeName;
+	}
+
+	public void setTVEpisodeName(String value) {
+		this.tvEpisodeName = value;
 	}
 
 	/**
