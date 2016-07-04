@@ -684,14 +684,14 @@ public class RequestV2 extends HTTPResource {
 					searchCriteria
 				);
 
-				if (searchCriteria != null && files != null) {
+				/*if (searchCriteria != null && files != null) {
 					UMSUtils.postSearch(files, searchCriteria);
 					if (xbox360) {
 						if (files.size() > 0) {
 							files = files.get(0).getChildren();
 						}
 					}
-				}
+				}*/
 
 				int minus = 0;
 				if (files != null) {
@@ -703,8 +703,9 @@ public class RequestV2 extends HTTPResource {
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
 							response.append(uf.getDidlString(mediaRenderer));
 						} else {
-							minus++;
+//							minus++;
 						}
+						response.append(uf.getDidlString(mediaRenderer));
 					}
 				}
 
