@@ -1187,10 +1187,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				resources.add(dlna);
 				dlna.refreshChildrenIfNeeded(searchStr);
 			} else {
-				if (searchStr != null && lastSearch != searchStr)
+				if (searchStr != null) {
 						dlna.discoverWithRenderer(renderer, count, searchStr);
-				else 
+				} else { 
 					dlna.discoverWithRenderer(renderer, count, true, searchStr);
+				}
 					if (count == -1 || count > dlna.getChildren().size()) {
 						count = dlna.getChildren().size();
 					}
@@ -1268,11 +1269,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (database != null) {
 				// TODO: limit by count
 				getChildren().clear();
-				UMSUtils.getSqlFromCriteria(searchStr);
-
-				medias = database.searchData("fileName", searchStr);
-				for (DLNAMediaInfo dlnaMediaInfo : medias) {
-					DLNAMediaInfo mediaInfo = medias.get(0);
+				String sql = UMSUtils.getSqlFromCriteria(searchStr);
+				sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and " + sql;
+//				sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and filename like '%cap%'";
+				medias = database.query(sql, null);
+//				searchStr = "cap";
+//				medias = database.searchData("fileName", searchStr);
+				for (int i = 0; i < medias.size(); i++) {
+					DLNAMediaInfo mediaInfo = medias.get(i);
 					DLNAResource resource = new RealFile(mediaInfo);
 					PMS.getGlobalRepo().add(resource);
 					resource.setPreferredMimeType(renderer);

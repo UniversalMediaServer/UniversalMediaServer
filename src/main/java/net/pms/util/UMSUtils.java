@@ -723,19 +723,20 @@ public class UMSUtils {
 			            	// Remove surrounding quotes: dc:title contains "cap"
 			            	value = value.substring(1, value.length() - 1);
 			                if ("dc:title".equalsIgnoreCase(subFactors[0])) {
-			                	if (type.equals(MediaType.AUDIO)) {
-			                		sql.append("TITLE like '%").append(value).append("%'");
-			                	} else if (type.equals(MediaType.ALBUM)) {
-			                		sql.append("ALBUM like '%").append(value).append("%'");
-			                	} else if (type.equals(MediaType.ARTIST)) {
-			                		sql.append("ARTIST like '%").append(value).append("%'");
-			                	} else {
-			                    	sql.append("TITLECONTAINER like '%").append(value).append("%'");
-			                    	sql.append(" or ");
-			                    	sql.append("TITLEVIDEOTRACK like '%").append(value).append("%'");
-			                	}
+//			                	if (type.equals(MediaType.AUDIO)) {
+//			                		sql.append("TITLE like '%").append(value).append("%'");
+//			                	} else if (type.equals(MediaType.ALBUM)) {
+//			                		sql.append("ALBUM like '%").append(value).append("%'");
+//			                	} else if (type.equals(MediaType.ARTIST)) {
+//			                		sql.append("ARTIST like '%").append(value).append("%'");
+//			                	} else {
+//			                    	sql.append("TITLECONTAINER like '%").append(value).append("%'");
+//			                    	sql.append(" or ");
+//			                    	sql.append("TITLEVIDEOTRACK like '%").append(value).append("%'");
+//			                	}
+			                	sql.append("LOWER(FILENAME) like '%").append(value).append("%'");
 			                } else if ("upnp:artist".equalsIgnoreCase(subFactors[0])) {
-			                	sql.append("ARTIST like '%").append(value).append("%'");
+			                	sql.append("LOWER(ARTIST) like '%").append(value).append("%'");
 			                } else if ("dc:creator".equalsIgnoreCase(subFactors[0])) {
 			                	// Don't have info. about this field in DB
 			                	sql.append("1=1");

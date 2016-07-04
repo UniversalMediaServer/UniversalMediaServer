@@ -37,6 +37,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
+		if (search != null)
+			search = String.format("dc:title contains \"%s\"", search);
 
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, -1, root.getDefaultRenderer(), search);
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
@@ -68,9 +70,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 				return null;
 			}
 		}
-		if (StringUtils.isNotEmpty(search) && !(res instanceof CodeEnter)) {
-			UMSUtils.postSearch(res, search);
-		}
+//		if (StringUtils.isNotEmpty(search) && !(res instanceof CodeEnter)) {
+//			UMSUtils.postSearch(res, search);
+//		}
 
 		boolean hasFile = false;
 

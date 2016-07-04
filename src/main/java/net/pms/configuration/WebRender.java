@@ -627,7 +627,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			state.mute = "0".equals(data.get("mute")) ? false : true;
 			s = data.get("volume");
 			state.volume = s == null ? 0 : Integer.valueOf(s);
-			long seconds = Integer.valueOf(data.get("position"));
+			long seconds = 0;
+			if (data.get("position") != null)
+				seconds = Integer.valueOf(data.get("position"));
 			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
 			alert();
 			if (state.playback == STOPPED) {
