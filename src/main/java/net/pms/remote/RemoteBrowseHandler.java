@@ -1,13 +1,11 @@
 package net.pms.remote;
 
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -17,11 +15,14 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.util.UMSUtils;
+
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 public class RemoteBrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
@@ -209,7 +210,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 		HashMap<String, Object> vars = new HashMap<>();
 		vars.put("name", id.equals("0") ? configuration.getServerDisplayName() :
-			StringEscapeUtils.escapeHtml(root.getDLNAResource(id, null).getDisplayName()));
+			StringEscapeUtils.escapeHtml(res.get(0).getParent().getDisplayName()));
 		vars.put("hasFile", hasFile);
 		vars.put("folders", folders);
 		vars.put("media", media);

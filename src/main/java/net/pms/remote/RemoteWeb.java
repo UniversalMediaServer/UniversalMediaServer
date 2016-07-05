@@ -222,11 +222,11 @@ public class RemoteWeb {
 				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			}
 			//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
-			root.discoverChildren();
 			cookie = UUID.randomUUID().toString();
 			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
 			roots.put(cookie, root);
 		}
+		root.discoverChildren();
 		return root;
 	}
 
@@ -264,6 +264,7 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
+			try {
 			if (RemoteUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
@@ -302,6 +303,9 @@ public class RemoteWeb {
 			OutputStream os = t.getResponseBody();
 			LOGGER.trace("input is {} output is {}", in, os);
 			RemoteUtil.dump(in, os);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

@@ -1,6 +1,8 @@
 package net.pms.dlna;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -8,6 +10,19 @@ import org.slf4j.LoggerFactory;
 
 public class GlobalIdRepo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalIdRepo.class);
+	
+	/**
+	 * Store <id, filename>
+	 */
+	Map<String, String> idMap = new WeakHashMap<>();
+	/**
+	 * Store <id, filename>
+	 */
+	Map<String, DLNAResource> resourcesMap = new WeakHashMap<>();
+	/**
+	 * Store <filename, id>
+	 */
+	Map<String, String> filenameMap = new WeakHashMap<>();
 
 	// Global ids start at 1, since id 0 is reserved as a pseudonym for 'renderer root'
 	private int globalId = 1, deletions = 0;
@@ -32,16 +47,29 @@ public class GlobalIdRepo {
 	public GlobalIdRepo() {
 	}
 
+	public String getId(String filename) {
+		return filenameMap.get(filename);
+	}
+	
+	public String getFilename(String id) {
+		return idMap.get(id);
+	}
+	
 	public synchronized void add(DLNAResource d) {
-		String id = d.getId();
-		if (id != null) {
-			remove(id);
+		if (d.getId() == null) {
+			d.setIndexId(globalId++);
 		}
-		ids.add(new ID(d));
+		
+		if (d.getMedia() != null) {
+		filenameMap.put(d.getId(), d.getMedia().getFileName());
+		idMap.put(d.getMedia().getFileName(), d.getId());
+		}
+		resourcesMap.put(d.getId(), d);
 	}
 
 	public DLNAResource get(String id) {
-		return get(parseIndex(id));
+//		return get(parseIndex(id));
+		return resourcesMap.get(id);
 	}
 
 	public synchronized DLNAResource get(int id) {

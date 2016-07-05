@@ -46,9 +46,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import net.pms.Messages;
 import net.pms.PMS;
@@ -301,7 +298,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Deprecated
 	protected long lastRefreshTime;
 
-	@SuppressWarnings("unused")
 	private String lastSearch;
 
 	private VirtualFolder dynamicPls;
@@ -1090,57 +1086,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) {
-		// this method returns exactly ONE (1) DLNAResource
-		// it's used when someone requests playback of media. The media must
-		// first have been discovered by someone first (unless it's a Temp item)
-
-		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.contains("$Temp/")) {
-			return Temp.get(objectId, renderer);
-		}
-
-		// Now strip off the filename
-		objectId = StringUtils.substringBefore(objectId, "/");
-
-		/*DLNAResource dlna = renderer.cacheGet(objectId);
-		if (dlna == null) {
-			// nothing found. Try again
-			LOGGER.debug("requested media ({}) not discovered by {}, trying other renderers", objectId, renderer);
-			for (RendererConfiguration r : PMS.get().getRenders()) {
-				if (r.equals(renderer)) {
-					// no need to search ourself again
-					continue;
-				}
-				DLNAResource res = r.cacheGet(objectId);
-				if (res != null && !res.isFolder()) {
-					// only non-folders can be found this way
-					LOGGER.debug("render " + r +" had found media " + res);
-					return res;
-				}
-			}
-		}
-		return dlna;*/
-		DLNAResource dlna;
-		String[] ids = objectId.split("\\.");
-		if (objectId.equals("0")) {
-			dlna = renderer.getRootFolder();
-		} else {
-			// only allow the last one here
-			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);//renderer.cacheGet(objectId);
-		}
-
-		if (dlna == null) {
+	public DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) {
+		List<DLNAResource> res = getDLNAResources(objectId, false, 0, 1, renderer, null);
+		if (res.size() > 0)
+			return res.get(0);
+		else
 			return null;
-		}
-
-		if (PMS.filter(renderer, dlna)) {
-			// apply filter to make sure we're not bypassing it...
-			LOGGER.debug("Resource " + dlna.getName() + " is filtered out for render " + renderer.getRendererName());
-			return null;
-		}
-
-		return dlna;
+		
 	}
 
 	/**
@@ -1156,11 +1108,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return List of DLNAResource items.
 	 * @throws IOException
 	 */
-	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean children, int start, int count, RendererConfiguration renderer) throws IOException {
+	public List<DLNAResource> getDLNAResources(String objectId, boolean children, int start, int count, RendererConfiguration renderer) throws IOException {
 		return getDLNAResources(objectId, children, start, count, renderer, null);
 	}
 
-	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) {
+	/**
+	 * 
+	 * @param objectId
+	 * @param returnChildren Return children if true; else return objects matching objectId
+	 * @param start
+	 * @param count
+	 * @param renderer
+	 * @param searchStr
+	 * @return
+	 */
+	public List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) {
 		List<DLNAResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
@@ -1172,30 +1134,38 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		DLNAResource dlna;
-		String[] ids = objectId.split("\\.");
+		DLNAResource dlna = null;
 		if (objectId.equals("0")) {
 			dlna = renderer.getRootFolder();
 		} else {
-			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);
+			if (searchStr != null) {
+				String sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and ";
+				resources = discoverWithRenderer(renderer, sql, start, count, searchStr, null);
+			} else {
+				dlna = PMS.getGlobalRepo().get(objectId);
+
+				// Not available in cache. Retrieve from DB
+				if (dlna == null) {
+					String filename = PMS.getGlobalRepo().getFilename(objectId);
+					String sql = String.format("SELECT f.* FROM FILES f where filename = '%'", filename);
+					resources = discoverWithRenderer(renderer, sql, start, count, searchStr, null);
+
+				}
+			}
+
 		}
 
-		if (dlna != null) {
-			// FIXME: Do we use CodeEnter?
-			if (!(dlna instanceof CodeEnter) && !isCodeValid(dlna)) {
-				LOGGER.debug("code is not valid any longer");
-				return resources;
-			}
-			if (searchStr != null) {
-				resources = discoverWithRenderer(renderer, start, count, searchStr, null);
-			} else {
-				dlna.discoverWithRenderer(renderer, count, false, searchStr);
+		if (dlna != null && searchStr == null) {
+			if (returnChildren) {
+				dlna.discoverWithRenderer(renderer, count, true, searchStr);
+				// dlna.discoverChildren();
+
 				if (count == -1 || count > dlna.getChildren().size()) {
 					count = dlna.getChildren().size();
 				}
 				resources.addAll(dlna.getChildren().subList(start, count));
-			}
-
+			} else
+				resources.add(dlna);
 		}
 
 		lastSearch = searchStr;
@@ -1217,19 +1187,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		updateId += 1;
 		systemUpdateId += 1;
 	}
-	final protected List<DLNAResource> discoverWithRenderer(RendererConfiguration renderer, int start, int count, String searchStr, String sortStr) {
-		// Use device-specific pms conf, if any
-		PmsConfiguration configuration = PMS.getConfiguration(renderer);
-		
+	final protected List<DLNAResource> discoverWithRenderer(RendererConfiguration renderer, String sqlMain, int start, int count, String searchStr, String sortStr) {
 		List<DLNAResource> resources = new ArrayList<>();
 		VirtualFolder container = new unattachedFolder(searchStr);
-		if (searchStr != null && configuration.getUseCache()) {
+//		if (searchStr != null && configuration.getUseCache()) {
 			DLNAMediaDatabase database = PMS.get().getDatabase();
 
 			if (database != null) {
 				// TODO: limit by count
 				String sql = UMSUtils.getSqlFromCriteria(searchStr);
-				sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and " + sql;
+				sql = sqlMain + sql;
+				// select * from test order by id desc limit 10 offset 11
 //				sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and filename like '%cap%'";
 				List<DLNAMediaInfo> medias = null;
 				medias = database.query(sql, null);
@@ -1245,7 +1213,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					resources.add(resource);
 				}
 			}
-		}
+//		}
 		return resources;
 	}
 	
@@ -1400,7 +1368,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * TODO: (botijo) What is the intention of this function? Looks like a prototype to be overloaded.
 	 */
-	public void discoverChildren() {
+	public synchronized void discoverChildren() {
 	}
 
 	public void discoverChildren(String str) {
