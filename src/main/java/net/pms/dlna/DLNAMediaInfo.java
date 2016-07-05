@@ -2053,11 +2053,11 @@ public class DLNAMediaInfo implements Cloneable {
 		this.year = value;
 	}
 
-	public String getTVShowName() {
+	public String getMovieOrShowName() {
 		return tvShowName;
 	}
 
-	public void setTVShowName(String value) {
+	public void setMovieOrShowName(String value) {
 		this.tvShowName = value;
 	}
 

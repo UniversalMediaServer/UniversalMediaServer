@@ -73,6 +73,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_IMDBID = 16;
 	private final int SIZE_MATRIX_COEFFICIENTS = 16;
 	private final int SIZE_MODEL = 128;
+	private final int SIZE_MOVIEORSHOWNAME = 255;
 	private final int SIZE_MUXINGMODE = 32;
 	private final int SIZE_FRAMERATE_MODE = 16;
 	private final int SIZE_STEREOSCOPY = 255;
@@ -84,7 +85,6 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_ARTIST = 255;
 	private final int SIZE_SONGNAME = 255;
 	private final int SIZE_GENRE = 64;
-	private final int SIZE_TVSHOWNAME = 255;
 	private final int SIZE_TVEPISODENAME = 255;
 
 	public DLNAMediaDatabase(String name) {
@@ -257,7 +257,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", BITDEPTH                INT");
 				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
 				sb.append(", YEAR                    INT");
-				sb.append(", TVSHOWNAME              VARCHAR2(").append(SIZE_TVSHOWNAME).append(')');
+				sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MOVIEORSHOWNAME).append(')');
 				sb.append(", TVSEASON                INT");
 				sb.append(", TVEPISODENUMBER         INT");
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_TVEPISODENAME).append(')');
@@ -405,7 +405,7 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setVideoBitDepth(rs.getInt("BITDEPTH"));
 				media.setIMDbID(rs.getString("IMDBID"));
 				media.setYear(rs.getInt("YEAR"));
-				media.setTVShowName(rs.getString("TVSHOWNAME"));
+				media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
 				media.setTVSeason(rs.getInt("TVSEASON"));
 				media.setTVEpisodeNumber(rs.getInt("TVEPISODENUMBER"));
 				media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
@@ -481,7 +481,7 @@ public class DLNAMediaDatabase implements Runnable {
 				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
 				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
 				"MATRIXCOEFFICIENTS, EMBEDDEDFONTEXISTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, "+
-				"BITDEPTH, IMDBID, YEAR, TVSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME) VALUES "+
+				"BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME) VALUES "+
 				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
@@ -535,7 +535,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(32, media.getVideoBitDepth());
 				ps.setString(33, left(media.getIMDbID(), SIZE_IMDBID));
 				ps.setInt(34, media.getYear());
-				ps.setString(35, left(media.getTVShowName(), SIZE_TVSHOWNAME));
+				ps.setString(35, left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
 				ps.setInt(36, media.getTVSeason());
 				ps.setInt(37, media.getTVEpisodeNumber());
 				ps.setString(38, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
