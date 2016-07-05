@@ -43,6 +43,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, -1, root.getDefaultRenderer(), search);
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		
+		if (res.isEmpty()) {
+			// Invalid id; redirect to root
+			// redirect to ourself
+			Headers hdr = t.getResponseHeaders();
+			hdr.add("Location", "/browse/" + root.getResourceId());
+			RemoteUtil.respond(t, "", 302, "text/html");
+			return null;
+		}
 		if (!res.isEmpty() &&
 			res.get(0).getParent() != null &&
 			(res.get(0).getParent() instanceof CodeEnter)) {

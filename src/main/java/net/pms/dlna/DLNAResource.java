@@ -1177,77 +1177,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (objectId.equals("0")) {
 			dlna = renderer.getRootFolder();
 		} else {
-			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);//renderer.cacheGet(objectId);
-		}
-
-		if (dlna == null) {
-			// nothing in the cache do a traditional search
-			dlna = search(ids, renderer);
-			//dlna = search(objectId, count, renderer, searchStr);
+			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);
 		}
 
 		if (dlna != null) {
+			// FIXME: Do we use CodeEnter?
 			if (!(dlna instanceof CodeEnter) && !isCodeValid(dlna)) {
 				LOGGER.debug("code is not valid any longer");
 				return resources;
 			}
-			String systemName = dlna.getSystemName();
-			dlna.setDefaultRenderer(renderer);
-
-			if (!returnChildren) {
-				resources.add(dlna);
-				dlna.refreshChildrenIfNeeded(searchStr);
+			if (searchStr != null) {
+				resources = discoverWithRenderer(renderer, start, count, searchStr, null);
 			} else {
-				if (searchStr != null) {
-						dlna.discoverWithRenderer(renderer, count, searchStr);
-				} else { 
-					dlna.discoverWithRenderer(renderer, count, true, searchStr);
+				dlna.discoverWithRenderer(renderer, count, false, searchStr);
+				if (count == -1 || count > dlna.getChildren().size()) {
+					count = dlna.getChildren().size();
 				}
-					if (count == -1 || count > dlna.getChildren().size()) {
-						count = dlna.getChildren().size();
-					}
-					resources.addAll(dlna.getChildren().subList(start, count));
-
-					// Need to find a way to avoid thread locks after removing following if block
-				/*if (count > 0) {
-					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
-
-					int nParallelThreads = 3;
-					if (dlna instanceof DVDISOFile) {
-						nParallelThreads = 1; // Some DVD drives die with 3 parallel threads
-					}
-
-					ThreadPoolExecutor tpe = new ThreadPoolExecutor(
-						Math.min(count, nParallelThreads),
-						count,
-						20,
-						TimeUnit.SECONDS,
-						queue
-					);
-
-					for (int i = start; i < start + count; i++) {
-						if (i < dlna.getChildren().size()) {
-							final DLNAResource child = dlna.getChildren().get(i);
-							if (child != null) {
-								tpe.execute(child);
-//								resources.add(child);
-							} else {
-								LOGGER.warn("null child at index {} in {}", i, systemName);
-							}
-						}
-					}
-
-					try {
-						tpe.shutdown();
-						tpe.awaitTermination(20, TimeUnit.SECONDS);
-					} catch (InterruptedException e) {
-						LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
-					}
-
-					LOGGER.trace("End of analysis for " + systemName);
-				}*/
+				resources.addAll(dlna.getChildren().subList(start, count));
 			}
-			
+
 		}
 
 		lastSearch = searchStr;
@@ -1269,20 +1217,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		updateId += 1;
 		systemUpdateId += 1;
 	}
-	final protected List<DLNAMediaInfo> discoverWithRenderer(RendererConfiguration renderer, int count, String searchStr) {
+	final protected List<DLNAResource> discoverWithRenderer(RendererConfiguration renderer, int start, int count, String searchStr, String sortStr) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		
-		List<DLNAMediaInfo> medias = null;
+		List<DLNAResource> resources = new ArrayList<>();
+		VirtualFolder container = new unattachedFolder(searchStr);
 		if (searchStr != null && configuration.getUseCache()) {
 			DLNAMediaDatabase database = PMS.get().getDatabase();
 
 			if (database != null) {
 				// TODO: limit by count
-				getChildren().clear();
 				String sql = UMSUtils.getSqlFromCriteria(searchStr);
 				sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and " + sql;
 //				sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and filename like '%cap%'";
+				List<DLNAMediaInfo> medias = null;
 				medias = database.query(sql, null);
 //				searchStr = "cap";
 //				medias = database.searchData("fileName", searchStr);
@@ -1291,15 +1240,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					DLNAResource resource = new RealFile(mediaInfo);
 					PMS.getGlobalRepo().add(resource);
 					resource.setPreferredMimeType(renderer);
-					resource.setParent(this);
+					resource.setParent(container);
 					
-					getChildren().add(resource);
-					// Searched resource already exists in GlobalIdRepo; hence update
-//					updateChild(resource);
+					resources.add(resource);
 				}
 			}
 		}
-		return medias;
+		return resources;
 	}
 	
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
@@ -1332,27 +1279,27 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			notifyRefresh();
-		} else {
-			// if forced, then call the old 'refreshChildren' method
-			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);
-			/*if (forced && shouldRefresh(searchStr)) {
-				doRefreshChildren(searchStr);
-				notifyRefresh();
-			} */
-			if (forced) {
-				// This seems to follow the same code path as the else below in the case of MapFile, because
-				// refreshChildren calls shouldRefresh -> isRefreshNeeded -> doRefreshChildren, which is what happens below
-				// (refreshChildren is not overridden in MapFile)
-				if (refreshChildren(searchStr)) {
-					notifyRefresh();
-				}
-			} else {
-				// if not, then the regular isRefreshNeeded/doRefreshChildren pair.
-				if (shouldRefresh(searchStr)) {
-					doRefreshChildren(searchStr);
-					notifyRefresh();
-				}
-			}
+//		} else {
+//			// if forced, then call the old 'refreshChildren' method
+//			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);
+//			/*if (forced && shouldRefresh(searchStr)) {
+//				doRefreshChildren(searchStr);
+//				notifyRefresh();
+//			} */
+//			if (forced) {
+//				// This seems to follow the same code path as the else below in the case of MapFile, because
+//				// refreshChildren calls shouldRefresh -> isRefreshNeeded -> doRefreshChildren, which is what happens below
+//				// (refreshChildren is not overridden in MapFile)
+//				if (refreshChildren(searchStr)) {
+//					notifyRefresh();
+//				}
+//			} else {
+//				// if not, then the regular isRefreshNeeded/doRefreshChildren pair.
+//				if (shouldRefresh(searchStr)) {
+//					doRefreshChildren(searchStr);
+//					notifyRefresh();
+//				}
+//			}
 		}
 	}
 
