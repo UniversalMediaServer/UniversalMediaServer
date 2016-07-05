@@ -1669,7 +1669,10 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public InputStream getThumbnailInputStream() {
-		return new ByteArrayInputStream(thumb);
+		ByteArrayInputStream is = null;
+		if (getThumb() != null)
+			is = new ByteArrayInputStream(getThumb());
+		return is;
 	}
 
 	public String getValidFps(boolean ratios) {

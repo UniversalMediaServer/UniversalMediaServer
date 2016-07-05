@@ -284,13 +284,13 @@ public class RemoteWeb {
 				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
-			InputStream in;
-			if (!configuration.isShowCodeThumbs() && !r.isCodeValid(r)) {
+			InputStream in = r.getMedia().getThumbnailInputStream();
+			if (in == null) {
 				// we shouldn't show the thumbs for coded objects
 				// unless the code is entered
 				in = r.getGenericThumbnailInputStream(null);
-			} else {
-				in = r.getMedia().getThumbnailInputStream();
+//			} else {
+//				in = r.getMedia().getThumbnailInputStream();
 //				r.checkThumbnail();
 //				in = r.getThumbnailInputStream();
 			}
