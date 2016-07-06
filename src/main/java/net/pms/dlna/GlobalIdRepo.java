@@ -84,6 +84,7 @@ public class GlobalIdRepo {
 				id = d.getId();
 			} else {
 				d.setId(id);
+				return;
 			}
 		}
 		
