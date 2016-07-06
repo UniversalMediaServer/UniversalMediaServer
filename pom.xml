@@ -126,6 +126,12 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<dependency>
+		    <groupId>net.sf.ehcache</groupId>
+		    <artifactId>ehcache</artifactId>
+		    <version>2.10.0</version>
+		</dependency>
+	
 		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
 			<groupId>org.beanshell</groupId>
