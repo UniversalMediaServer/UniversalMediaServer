@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResumeObj {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final transient PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
 	private static final int DAYS = 3600 * 24 * 1000;
 

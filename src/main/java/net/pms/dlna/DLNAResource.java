@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
@@ -97,13 +98,13 @@ import org.slf4j.LoggerFactory;
  * When everything has been changed to private, the deprecated note can be
  * removed.
  */
-public abstract class DLNAResource extends HTTPResource implements Cloneable, Runnable {
+public abstract class DLNAResource extends HTTPResource implements Cloneable, Runnable, Serializable {
 	private final Map<String, Integer> requestIdToRefcount = new HashMap<>();
 	private boolean resolved;
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-	protected PmsConfiguration configuration = PMS.getConfiguration();
+	protected transient PmsConfiguration configuration = PMS.getConfiguration();
 //	private boolean subsAreValidForStreaming = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
@@ -160,21 +161,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
-	protected DLNAMediaInfo media;
+	protected transient DLNAMediaInfo media;
 
 	/**
 	 * @deprecated Use {@link #getMediaAudio()} and {@link
 	 * #setMediaAudio(DLNAMediaAudio)} to access this field.
 	 */
 	@Deprecated
-	protected DLNAMediaAudio media_audio;
+	protected transient DLNAMediaAudio media_audio;
 
 	/**
 	 * @deprecated Use {@link #getMediaSubtitle()} and {@link
 	 * #setMediaSubtitle(DLNAMediaSubtitle)} to access this field.
 	 */
 	@Deprecated
-	protected DLNAMediaSubtitle media_subtitle;
+	protected transient DLNAMediaSubtitle media_subtitle;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -187,7 +188,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @see Player
 	 */
-	private Player player;
+	private transient Player player;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -195,7 +196,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Deprecated
 	protected boolean discovered = false;
 
-	private ProcessWrapper externalProcess;
+	private transient ProcessWrapper externalProcess;
 
 	/**
 	 * @deprecated Use #hasExternalSubtitles()
@@ -237,7 +238,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * The time range for the file containing the start and end time in seconds.
 	 */
 	@Deprecated
-	protected Range.Time splitRange = new Range.Time();
+	protected transient Range.Time splitRange = new Range.Time();
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -256,7 +257,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	// Ditlew - needs this in one of the derived classes
 	@Deprecated
-	protected RendererConfiguration defaultRenderer;
+	protected transient RendererConfiguration defaultRenderer;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -278,8 +279,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * List of children objects associated with this DLNAResource. This is only valid when the DLNAResource is of the container type.
 	 */
 	@Deprecated
-	protected DLNAList children;
-	//protected List<DLNAResource> children;
+//	protected DLNAList children;
+	protected List<DLNAResource> children;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -1122,7 +1123,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param searchStr
 	 * @return
 	 */
-	public List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) {
+	public List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count,
+			RendererConfiguration renderer, String searchStr) {
 		List<DLNAResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
@@ -1135,35 +1137,38 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		objectId = StringUtils.substringBefore(objectId, "/");
 
 		DLNAResource dlna = null;
-		if (objectId.equals("0")) {
-			dlna = renderer.getRootFolder();
+		if (searchStr != null) {
+			String sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and ";
+			resources = discoverWithRenderer(renderer, sql, start, count, searchStr, null);
 		} else {
-			if (searchStr != null) {
-				String sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and ";
+			dlna = PMS.getGlobalRepo().get(objectId);
+
+			// Not available in cache. Retrieve from DB
+			if (dlna == null) {
+				String filename = PMS.getGlobalRepo().getFilename(objectId);
+				String sql;
+				if (filename != null)
+					sql = String.format("SELECT f.* FROM FILES f where filename = '%s'", filename);
+				else
+					sql = String.format("SELECT f.* FROM FILES f where id = %s", objectId);
 				resources = discoverWithRenderer(renderer, sql, start, count, searchStr, null);
-			} else {
-				dlna = PMS.getGlobalRepo().get(objectId);
 
-				// Not available in cache. Retrieve from DB
-				if (dlna == null) {
-					String filename = PMS.getGlobalRepo().getFilename(objectId);
-					String sql = String.format("SELECT f.* FROM FILES f where filename = '%'", filename);
-					resources = discoverWithRenderer(renderer, sql, start, count, searchStr, null);
-
-				}
 			}
-
 		}
 
 		if (dlna != null && searchStr == null) {
 			if (returnChildren) {
-				dlna.discoverWithRenderer(renderer, count, true, searchStr);
-				// dlna.discoverChildren();
-
 				if (count == -1 || count > dlna.getChildren().size()) {
 					count = dlna.getChildren().size();
 				}
+				if (start > dlna.getChildren().size()) {
+					start = dlna.getChildren().size();
+				}
 				resources.addAll(dlna.getChildren().subList(start, count));
+				for (DLNAResource resource : resources) {
+					// if (resource instanceof MapFile)
+					resource.refreshChildren();
+				}
 			} else
 				resources.add(dlna);
 		}
@@ -1190,30 +1195,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	final protected List<DLNAResource> discoverWithRenderer(RendererConfiguration renderer, String sqlMain, int start, int count, String searchStr, String sortStr) {
 		List<DLNAResource> resources = new ArrayList<>();
 		VirtualFolder container = new unattachedFolder(searchStr);
-//		if (searchStr != null && configuration.getUseCache()) {
-			DLNAMediaDatabase database = PMS.get().getDatabase();
+		DLNAMediaDatabase database = PMS.get().getDatabase();
 
-			if (database != null) {
-				// TODO: limit by count
-				String sql = UMSUtils.getSqlFromCriteria(searchStr);
-				sql = sqlMain + sql;
-				// select * from test order by id desc limit 10 offset 11
-//				sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and filename like '%cap%'";
-				List<DLNAMediaInfo> medias = null;
-				medias = database.query(sql, null);
-//				searchStr = "cap";
-//				medias = database.searchData("fileName", searchStr);
-				for (int i = 0; i < medias.size(); i++) {
-					DLNAMediaInfo mediaInfo = medias.get(i);
-					DLNAResource resource = new RealFile(mediaInfo);
-					PMS.getGlobalRepo().add(resource);
-					resource.setPreferredMimeType(renderer);
-					resource.setParent(container);
-					
-					resources.add(resource);
-				}
+		if (database != null) {
+			// TODO: limit by count
+			String sql = UMSUtils.getSqlFromCriteria(searchStr);
+			sql = sqlMain + sql;
+			// select * from test order by id desc limit 10 offset 11
+			// "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and filename like '%cap%'";
+			List<DLNAMediaInfo> medias = null;
+			medias = database.query(sql, null);
+			// searchStr = "cap";
+			// medias = database.searchData("fileName", searchStr);
+			for (int i = 0; i < medias.size(); i++) {
+				DLNAMediaInfo mediaInfo = medias.get(i);
+				DLNAResource resource = new RealFile(mediaInfo);
+				PMS.getGlobalRepo().add(resource);
+				resource.setPreferredMimeType(renderer);
+				resource.setParent(container);
+
+				resources.add(resource);
 			}
-//		}
+		}
 		return resources;
 	}
 	
@@ -1232,7 +1235,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					defaultRenderer.addFolderLimit(this);
 				}
 			}
-
 			discoverChildren(searchStr);
 			boolean ready;
 

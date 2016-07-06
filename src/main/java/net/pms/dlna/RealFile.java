@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 
 import net.pms.PMS;
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jna.Platform;
 
-public class RealFile extends MapFile {
+public class RealFile extends MapFile implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	private boolean useSuperThumb;

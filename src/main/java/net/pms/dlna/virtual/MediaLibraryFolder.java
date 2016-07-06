@@ -13,7 +13,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int ISOS = 3;
 	private String sqls[];
 	private int expectedOutputs[];
-	private DLNAMediaDatabase database;
+	private transient DLNAMediaDatabase database;
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});

@@ -741,6 +741,8 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
+				} else if (searchCriteria != null) {
+					response.append("<TotalMatches>").append(filessize).append("</TotalMatches>");
 				} else if (browseDirectChildren) {
 					response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenNumber() : filessize) - minus).append("</TotalMatches>");
 				} else {

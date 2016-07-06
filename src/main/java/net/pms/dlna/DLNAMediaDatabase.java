@@ -387,24 +387,24 @@ public class DLNAMediaDatabase implements Runnable {
 		try {
 			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
-			
+
 			if (params != null) {
-			int i = 1;
-			for (DataType dataType : params.keySet()) {
-				switch (dataType) {
-				case INT:
-					stmt.setInt(i++, (Integer) params.get(dataType));
-					break;
-				case STRING:
-					stmt.setString(i++, (String) params.get(dataType));
-					break;
-				case TIME:
-					stmt.setTimestamp(i++, (Timestamp) params.get(dataType));
-					break;
-				default:
-					break;
+				int i = 1;
+				for (DataType dataType : params.keySet()) {
+					switch (dataType) {
+					case INT:
+						stmt.setInt(i++, (Integer) params.get(dataType));
+						break;
+					case STRING:
+						stmt.setString(i++, (String) params.get(dataType));
+						break;
+					case TIME:
+						stmt.setTimestamp(i++, (Timestamp) params.get(dataType));
+						break;
+					default:
+						break;
+					}
 				}
-			}
 			}
 
 			rs = stmt.executeQuery();

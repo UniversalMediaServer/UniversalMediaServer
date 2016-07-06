@@ -1,10 +1,17 @@
 package net.pms.dlna;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.Objects;
+
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Ehcache;
+import net.sf.ehcache.Element;
 
 import org.apache.commons.lang.StringUtils;
+import org.jboss.cache.TreeCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,17 +19,19 @@ public class GlobalIdRepo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalIdRepo.class);
 	
 	/**
-	 * Store <id, filename>
-	 */
-	Map<String, String> idMap = new WeakHashMap<>();
-	/**
-	 * Store <id, filename>
-	 */
-	Map<String, DLNAResource> resourcesMap = new WeakHashMap<>();
-	/**
 	 * Store <filename, id>
 	 */
-	Map<String, String> filenameMap = new WeakHashMap<>();
+	Map<String, String> idMap = new HashMap<>();
+	/**
+	 * Store <id, DLNAResource>
+	 */
+	Ehcache resourcesMap = null;
+	/**
+	 * Store <id, filename>
+	 */
+	Map<String, String> filenameMap = new HashMap<>();
+	
+	TreeCache tree = null;
 
 	// Global ids start at 1, since id 0 is reserved as a pseudonym for 'renderer root'
 	private int globalId = 1, deletions = 0;
@@ -42,39 +51,61 @@ public class GlobalIdRepo {
 			return dlna.toString();
 		}
 	}
+	
 	private ArrayList<ID> ids = new ArrayList<>();
 
 	public GlobalIdRepo() {
+		CacheManager cacheManager = CacheManager.newInstance();
+		resourcesMap = cacheManager.addCacheIfAbsent("PMS");
 	}
 
 	public String getId(String filename) {
-		return filenameMap.get(filename);
+		return idMap.get(filename);
 	}
 	
 	public String getFilename(String id) {
-		return idMap.get(id);
+		return filenameMap.get(id);
 	}
 	
+	/**
+	 * Resources are added by id. A resource with an id that exists in repo will overwrite the entry.
+	 * @param d
+	 */
 	public synchronized void add(DLNAResource d) {
-		if (d.getId() == null) {
-			d.setIndexId(globalId++);
+		String filename = d.getSystemName();
+		String id = d.getId();
+		if (get(id) != null)
+			return;
+		
+		if (id == null) {
+			id = getId(filename);
+			if (id == null) {
+				d.setIndexId(globalId++);
+				id = d.getId();
+			} else {
+				d.setId(id);
+			}
 		}
 		
-		if (d.getMedia() != null) {
-		filenameMap.put(d.getId(), d.getMedia().getFileName());
-		idMap.put(d.getMedia().getFileName(), d.getId());
+		Element el = new Element(new Key(id, filename), d);
+		if ("0".equals(id)) {
+			el = new Element(new Key(id, null), d); // hashcode uses filename which is usually not available while fetching from cache
+			el.setEternal(true);
 		}
-		resourcesMap.put(d.getId(), d);
+		el.setEternal(true); // Remove it later
+//		System.out.println(id + ": " + filename);
+		
+		resourcesMap.put(el);
+		idMap.put(filename, id);
+		filenameMap.put(id, filename);
+//		System.out.println(resourcesMap.isKeyInCache(el) + " :::: " + get(id));
 	}
 
-	public DLNAResource get(String id) {
-//		return get(parseIndex(id));
-		return resourcesMap.get(id);
-	}
-
-	public synchronized DLNAResource get(int id) {
-		int index = indexOf(id);
-		return index > -1 ? ids.get(index).dlna : null;
+	public synchronized DLNAResource get(String id) {
+		Element el = resourcesMap.get(new Key(id, null));
+		if (el == null)
+			return null;
+		return (DLNAResource) el.getObjectValue();
 	}
 
 	public void remove(DLNAResource d) {
@@ -82,16 +113,9 @@ public class GlobalIdRepo {
 	}
 
 	public void remove(String id) {
-		remove(parseIndex(id));
-	}
-
-	public synchronized void remove(int id) {
-		int index = indexOf(id);
-		if (index > -1) {
-			LOGGER.debug("GlobalIdRepo: removing id {} - {}", id, ids.get(index).dlna.getName());
-			ids.remove(index);
-			deletions++;
-		}
+		resourcesMap.remove(id);
+		filenameMap.remove(idMap.get(id));
+		idMap.remove(id);
 	}
 
 	public static int parseIndex(String id) {
@@ -104,7 +128,7 @@ public class GlobalIdRepo {
 	}
 
 	public boolean exists(String id) {
-		return indexOf(parseIndex(id)) != -1;
+		return idMap.containsKey(id);
 	}
 
 	private synchronized int indexOf(int id) {
@@ -132,5 +156,32 @@ public class GlobalIdRepo {
 		}
 		LOGGER.debug("GlobalIdRepo: id not found: {}", id);
 		return -1;
+	}
+}
+class Key implements Serializable {
+	String id, filename;
+	Key(String id, String file) {
+		this.id = id;
+		this.filename = file;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		boolean result = false;
+		if (o instanceof Key) {
+			Key k = (Key) o;
+			result = id.equals(k.id) || (filename == null && k.filename == null) || (filename != null && filename.equals(k.filename));
+		}
+		return result;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
+	
+	@Override
+	public String toString() {
+		return new StringBuffer(id).append(" : ").append(filename).toString();
 	}
 }

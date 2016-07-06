@@ -147,8 +147,10 @@ public class PMS {
 		if (renderer == null) {
 			renderer = RendererConfiguration.getDefaultConf();
 		}
+		RootFolder root = renderer.getRootFolder();
+		root.setDefaultRenderer(renderer);
 
-		return renderer.getRootFolder();
+		return root;
 	}
 
 	/**
@@ -770,7 +772,8 @@ public class PMS {
 		// XXX: this must be called:
 		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
 		//     b) *after* mediaLibrary is initialized, if enabled (above)
-		getRootFolder(RendererConfiguration.getDefaultConf());
+		RootFolder root = getRootFolder(RendererConfiguration.getDefaultConf());
+		getGlobalRepo().add(root);
 
 		frame.serverReady();
 

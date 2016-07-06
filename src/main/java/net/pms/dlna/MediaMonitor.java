@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 public class MediaMonitor extends VirtualFolder {
 	private static Set<String> fullyPlayedEntries;
 	private File[] dirs;
-	private PmsConfiguration config;
+	private transient PmsConfiguration config;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 

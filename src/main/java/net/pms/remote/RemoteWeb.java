@@ -205,7 +205,8 @@ public class RemoteWeb {
 
 			tag.add(t.getRemoteAddress().getHostString());
 			tag.add("web");
-			root = new RootFolder(tag);
+//			root = new RootFolder(tag);
+			root = (RootFolder) PMS.getGlobalRepo().get("0");
 			try {
 				WebRender render = new WebRender(user);
 				root.setDefaultRenderer(render);
@@ -224,9 +225,9 @@ public class RemoteWeb {
 			//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 			cookie = UUID.randomUUID().toString();
 			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+//			root.discoverChildren();
 			roots.put(cookie, root);
 		}
-		root.discoverChildren();
 		return root;
 	}
 

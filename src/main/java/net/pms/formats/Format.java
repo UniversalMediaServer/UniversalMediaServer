@@ -18,19 +18,22 @@
  */
 package net.pms.formats;
 
+import java.io.Serializable;
 import java.util.StringTokenizer;
+
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Abstract class to store known information about a given format.
  */
-public abstract class Format implements Cloneable {
+public abstract class Format implements Cloneable, Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Format.class);
 	private String icon = null;
 	protected int type = UNKNOWN;
