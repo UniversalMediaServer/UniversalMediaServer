@@ -672,6 +672,11 @@ public class UMSUtils {
 		return null;
 	}
 	
+	/**
+	 * This is used to prepare query based on Item type
+	 * 
+	 * @author anand
+	 */
 	public enum MediaType {
 		AUDIO, ALBUM, ARTIST, OTHER
 	}
@@ -711,10 +716,17 @@ public class UMSUtils {
 			            		("=".equalsIgnoreCase(subFactors[1]) || "derivedfrom".equalsIgnoreCase(subFactors[1]))) {
 							if ("\"object.item.audioItem\"".equalsIgnoreCase(value)) {
 				                type = MediaType.AUDIO;
+				                sql.append("f.type = 1");
 			                } else if ("\"object.container.album.musicAlbum\"".equalsIgnoreCase(value)) {
 				                type = MediaType.ALBUM;
+				                sql.append("f.type = 1");
 			                } else if ("\"object.container.person.musicArtist\"".equalsIgnoreCase(value)) {
 				                type = MediaType.ARTIST;
+				                sql.append("f.type = 1");
+			                } else if ("\"object.item.videoItem\"".equalsIgnoreCase(value)) {
+			                	sql.append("f.type = 4");
+			                } else {
+			                	sql.append("f.type = 4");
 			                }
 							return type;
 			            }
@@ -757,7 +769,7 @@ public class UMSUtils {
 			
 			for (int i = 0; i < factors.length; i++) {
 				type = getSqlFromCriteria(factors[i], sql, type);
-				if (type == null && i < factors.length - 1)
+				if (i < factors.length - 1)
 					sql.append(op);
 			}
 		}

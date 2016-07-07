@@ -3911,7 +3911,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Resume handling
 	////////////////////////////////////////////////////
 
-	private ResumeObj resume;
+	private transient ResumeObj resume;
 	private int resHash;
 	private long startTime;
 
