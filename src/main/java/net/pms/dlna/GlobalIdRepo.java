@@ -68,7 +68,7 @@ public class GlobalIdRepo {
 	}
 	
 	/**
-	 * Resources are added by id. A resource with an id that exists in repo will overwrite the entry.
+	 * This method ensures a unique id for DLNAResource identified by a file (path + filename).
 	 * @param d
 	 */
 	public synchronized void add(DLNAResource d) {

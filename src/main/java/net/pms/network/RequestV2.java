@@ -254,6 +254,8 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
 		boolean xbox360 = mediaRenderer.isXbox360();
+		
+		LOGGER.info(argument);
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -285,7 +287,7 @@ public class RequestV2 extends HTTPResource {
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
+			dlna = PMS.get().getRootFolder(null).getDLNAResource(id, mediaRenderer);
 			String fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
@@ -606,7 +608,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
-				//LOGGER.trace(content);
+				LOGGER.info(content);
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
@@ -701,7 +703,7 @@ public class RequestV2 extends HTTPResource {
 						}
 
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
-							response.append(uf.getDidlString(mediaRenderer));
+//							response.append(uf.getDidlString(mediaRenderer));
 						} else {
 //							minus++;
 						}
@@ -851,6 +853,7 @@ public class RequestV2 extends HTTPResource {
 				ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
 				output.setContent(buf);
 			}
+			LOGGER.info(response.toString());
 
 			// Send the response to the client.
 			future = e.getChannel().write(output);

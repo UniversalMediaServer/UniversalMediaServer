@@ -1194,13 +1194,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 	final protected List<DLNAResource> discoverWithRenderer(RendererConfiguration renderer, String sqlMain, int start, int count, String searchStr, String sortStr) {
 		List<DLNAResource> resources = new ArrayList<>();
-		VirtualFolder container = new unattachedFolder(searchStr);
+		VirtualFolder container = new unattachedFolder("0");
 		DLNAMediaDatabase database = PMS.get().getDatabase();
 
 		if (database != null) {
-			// TODO: limit by count
 			String sql = UMSUtils.getSqlFromCriteria(searchStr);
-			sql = sqlMain + sql;
+			sql = sqlMain + sql + String.format(" order by f.id offset %d limit %d", start, count);
 			// select * from test order by id desc limit 10 offset 11
 			// "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and filename like '%cap%'";
 			List<DLNAMediaInfo> medias = null;
