@@ -89,8 +89,8 @@ public class LibMediaInfoParser {
 					media.setFileTitleFromMetadata(value);
 				}
 				value = MI.Get(general, 0, "Attachments");
-				if (!value.isEmpty() && value.toLowerCase().contains(".ttf")) {
-					media.setEmbeddedFontExists(true);
+				if (!value.isEmpty()) {
+					media.setEmbeddedFontExists(value.toLowerCase().contains(".ttf"));
 				}
 
 				// set Video
