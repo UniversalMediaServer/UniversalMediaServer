@@ -909,10 +909,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			String audioTracksList = getName() + media.getAudioTracksList().toString();
 
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
-			if (!format.isCompatible(media, renderer)) {
-				isIncompatible = true;
-				LOGGER.trace(prependTraceReason + "it is not supported by the renderer", getName());
-			} else if (
+//			if (!format.isCompatible(media, renderer)) {
+//				isIncompatible = true;
+//				LOGGER.trace(prependTraceReason + "it is not supported by the renderer", getName());
+//			} else 
+			if (
 				configuration.isEncodedAudioPassthrough() &&
 				(
 					audioTracksList.contains("audio codec: AC3") ||
@@ -953,7 +954,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Transcode if:
 			// 1) transcoding is forced by configuration, or
 			// 2) transcoding is preferred and not prevented by configuration
-			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
+			if (preferTranscode) {
+//				if (forceTranscode || (preferTranscode && !isSkipTranscode())) {				
 				if (parserV2) {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), player.toString(), renderer != null ? renderer.getMimeType(mimeType(player), media) : media.getMimeType());
 				} else {

@@ -930,12 +930,12 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else {
 			// No response data and no input stream. Seems we are merely serving up headers.
-			if (lowRange > 0 && highRange > 0) {
-				// FIXME: There is no content, so why set a length?
-				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + (highRange - lowRange + 1));
-			} else {
+//			if (lowRange > 0 && highRange > 0) {
+//				// FIXME: There is no content, so why set a length?
+//				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + (highRange - lowRange + 1));
+//			} else {
 				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
-			}
+//			}
 
 			// Send the response headers to the client.
 			future = e.getChannel().write(output);
