@@ -5,13 +5,16 @@ import com.samskivert.mustache.Template;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
+
 import java.io.*;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.*;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
@@ -22,6 +25,7 @@ import net.pms.dlna.Range;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.FileWatcher;
 import net.pms.util.Languages;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -145,7 +149,8 @@ public class RemoteUtil {
 	}
 
 	public static boolean deny(HttpExchange t) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress()) || !PMS.isReady();
+		InetAddress address = t.getRemoteAddress().getAddress();
+		return  (!address.isLoopbackAddress() && PMS.getConfiguration().getIpFiltering().allowed(address)) || !PMS.isReady();
 	}
 
 	private static Range.Byte nullRange(long len) {
