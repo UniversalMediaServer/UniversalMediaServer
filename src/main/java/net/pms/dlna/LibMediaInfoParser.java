@@ -2,6 +2,7 @@ package net.pms.dlna;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,9 +89,9 @@ public class LibMediaInfoParser {
 				if (!value.isEmpty()) {
 					media.setFileTitleFromMetadata(value);
 				}
-				value = MI.Get(general, 0, "Attachments");
+				value = MI.Get(general, 0, "Attachments").toLowerCase();
 				if (!value.isEmpty()) {
-					media.setEmbeddedFontExists(value.toLowerCase().contains(".ttf"));
+					media.setEmbeddedFontExists(value.contains(".ttf") || value.contains(".otf"));
 				}
 
 				// set Video
