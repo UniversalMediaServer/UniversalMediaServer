@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -33,6 +34,7 @@ import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.fourthline.cling.model.meta.Device;
@@ -124,7 +126,7 @@ public class UPNPHelper extends UPNPControl {
 	 * @param st The search target string
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private static void sendDiscover(String host, int port, String st) throws IOException {
+	private static String sendDiscover(String host, int port, String st) throws IOException {
 		String usn = PMS.get().usn();
 		String serverHost = PMS.get().getServer().getHost();
 		int serverPort = PMS.get().getServer().getPort();
@@ -158,8 +160,9 @@ public class UPNPHelper extends UPNPControl {
 			LOGGER.trace("Sending discovery [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
 		}
 
-		sendReply(host, port, msg);
+//		sendReply(host, port, msg);
 		lastSearch = st;
+		return msg;
 	}
 
 	/**
@@ -450,47 +453,55 @@ public class UPNPHelper extends UPNPControl {
 							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 							multicastSocket.receive(receivePacket);
 
-							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
-
 							InetAddress address = receivePacket.getAddress();
-							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
+							if (configuration.getIpFiltering().allowed(address)) {
+								String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
-							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+								int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
-							if (packetType == M_SEARCH) {
-								if (configuration.getIpFiltering().allowed(address)) {
+								boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+
+								if (packetType == M_SEARCH) {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
 									if (!redundant) {
 										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
 									}
 
+									String msg = null;
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-									}
+										msg = sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
+									} else
 
 									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
-										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
-									}
+										msg = sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
+									} else
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
+										msg = sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+									} else
 
 									if (StringUtils.indexOf(s, "ssdp:all") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
+										msg = sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+									} else
 
 									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
-										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
+										msg = sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 									}
+									
+									if (msg != null && !msg.isEmpty()) {
+										InetAddress inetAddr = InetAddress.getByName(remoteAddr);
+										DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, remotePort);
+								        multicastSocket.send(dgmPacket);
+									}
+
+								// Don't log redundant notify messages
+								} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
+									LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
 								}
-							// Don't log redundant notify messages
-							} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
+								lastAddress = address;
+								lastPacketType = packetType;
 							}
-							lastAddress = address;
-							lastPacketType = packetType;
 						}
 					} catch (BindException e) {
 						if (!bindErrorReported) {
