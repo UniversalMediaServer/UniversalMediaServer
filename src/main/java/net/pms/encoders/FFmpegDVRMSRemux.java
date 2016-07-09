@@ -46,7 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
 	private JTextField altffpath;
-	public static final String ID = "ffmpegdvrmsremux";
+	public static final String ID = "FFmpegDVRMSRemux";
 
 	@Override
 	public int purpose() {

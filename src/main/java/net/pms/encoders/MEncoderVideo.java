@@ -95,7 +95,7 @@ public class MEncoderVideo extends Player {
 	private static final String INVALID_CUSTOM_OPTIONS_LIST = Arrays.toString(INVALID_CUSTOM_OPTIONS);
 
 	public static final int MENCODER_MAX_THREADS = 8;
-	public static final String ID = "mencoder";
+	public static final String ID = "MEncoder";
 
 	// TODO (breaking change): most (probably all) of these
 	// protected fields should be private. And at least two
@@ -1034,10 +1034,10 @@ public class MEncoderVideo extends Player {
 			(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 		 */
 
-		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+		final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
 
-		encodedAudioPassthrough = isTsMuxeRVideoEngineEnabled &&
+		encodedAudioPassthrough = isTsMuxeRVideoEngineActive &&
 			configuration.isEncodedAudioPassthrough() &&
 			params.mediaRenderer.isWrapEncodedAudioIntoPCM() &&
 			(
@@ -1064,7 +1064,7 @@ public class MEncoderVideo extends Player {
 			ac3Remux = true;
 		} else {
 			// Now check for DTS remux and LPCM streaming
-			dtsRemux = isTsMuxeRVideoEngineEnabled &&
+			dtsRemux = isTsMuxeRVideoEngineActive &&
 				configuration.isAudioEmbedDtsInPcm() &&
 				(
 					!isDVD ||
@@ -1074,7 +1074,7 @@ public class MEncoderVideo extends Player {
 				!avisynth() &&
 				params.mediaRenderer.isDTSPlayable() &&
 				!combinedCustomOptions.contains("acodec=");
-			pcm = isTsMuxeRVideoEngineEnabled &&
+			pcm = isTsMuxeRVideoEngineActive &&
 				configuration.isAudioUsePCM() &&
 				(
 					!isDVD ||

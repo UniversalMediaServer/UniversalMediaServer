@@ -30,7 +30,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 
 public class DCRaw extends ImagePlayer {
-	public final static String ID = "dcraw";
+	public final static String ID = "DCRaw";
 	private static final Logger LOGGER = LoggerFactory.getLogger(DCRaw.class);
 
 	protected String[] getDefaultArgs() {

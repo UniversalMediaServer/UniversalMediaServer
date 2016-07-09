@@ -1,10 +1,8 @@
 package net.pms.encoders;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.util.ProcessUtil;
 
 public class FFmpegOptions extends optionsHashMap {
@@ -85,9 +83,8 @@ public class FFmpegOptions extends optionsHashMap {
 	public FFmpegOptions() {
 	}
 
-	public static List<String> getSupportedProtocols(PmsConfiguration configuration) {
-		ArrayList<String> protocols = new ArrayList<>();
-		String output = ProcessUtil.run(configuration.getFfmpegPath(), "-protocols");
+	public static void getSupportedProtocols(final List<String> protocols, String executable) {
+		String output = ProcessUtil.run(executable, "-protocols");
 		boolean add = false;
 		boolean old = false;
 		for (String line : output.split("\\s*\n\\s*")) {
@@ -106,7 +103,6 @@ public class FFmpegOptions extends optionsHashMap {
 				protocols.add(line.split("\\s+")[1]);
 			}
 		}
-		return protocols;
 	}
 }
 
