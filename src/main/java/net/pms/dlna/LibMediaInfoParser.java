@@ -2,7 +2,6 @@ package net.pms.dlna;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
