@@ -255,7 +255,7 @@ public class RequestV2 extends HTTPResource {
 		DLNAResource dlna = null;
 		boolean xbox360 = mediaRenderer.isXbox360();
 		
-		LOGGER.info(argument);
+		LOGGER.info("{} : {}", mediaRenderer, argument);
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -616,7 +616,8 @@ public class RequestV2 extends HTTPResource {
 					if (containerID == null || (xbox360 && !containerID.contains("$"))) {
 						objectID = "0";
 					} else {
-						objectID = containerID;
+						// XBOX adds $ to containerId from CDS
+						objectID = containerID.replace("$", "");
 						containerID = null;
 					}
 				}
@@ -771,7 +772,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				LOGGER.trace(response.toString());
+				LOGGER.trace("{} : {}", mediaRenderer, response);
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());

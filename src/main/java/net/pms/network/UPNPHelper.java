@@ -447,9 +447,9 @@ public class UPNPHelper extends UPNPControl {
 						int M_SEARCH = 1, NOTIFY = 2;
 						InetAddress lastAddress = null;
 						int lastPacketType = 0;
+						byte[] buf = new byte[1024];
 
 						while (true) {
-							byte[] buf = new byte[1024];
 							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 							multicastSocket.receive(receivePacket);
 

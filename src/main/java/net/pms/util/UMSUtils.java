@@ -65,6 +65,7 @@ import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -714,6 +715,7 @@ public class UMSUtils {
 			            String value = subFactors[2];
 						if ("upnp:class".equalsIgnoreCase(subFactors[0]) && 
 			            		("=".equalsIgnoreCase(subFactors[1]) || "derivedfrom".equalsIgnoreCase(subFactors[1]))) {
+							value = StringEscapeUtils.unescapeXml(value);
 							if ("\"object.item.audioItem\"".equalsIgnoreCase(value)) {
 				                type = MediaType.AUDIO;
 				                sql.append("f.type = 1");
