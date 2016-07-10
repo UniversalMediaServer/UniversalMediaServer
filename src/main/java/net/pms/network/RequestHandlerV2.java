@@ -71,6 +71,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		"nt",
 		"sid",
 		"timeout",
+		"cache-control",
 		"user-agent"
 	};
 
@@ -265,7 +266,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	 * @return True when not allowed, false otherwise.
 	 */
 	private boolean filterIp(InetAddress inetAddress) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
+		return !((inetAddress.getHostAddress().equals(PMS.get().getServer().getHost())) || PMS.getConfiguration().getIpFiltering().allowed(inetAddress));
 	}
 
 	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
