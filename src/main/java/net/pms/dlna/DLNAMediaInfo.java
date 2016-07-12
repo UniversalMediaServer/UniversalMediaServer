@@ -1373,6 +1373,9 @@ public class DLNAMediaInfo implements Cloneable {
 				case "mov":
 					mimeType = HTTPResource.MOV_TYPEMIME;
 					break;
+				case "bmp":
+					mimeType = HTTPResource.BMP_TYPEMIME;
+					break;
 			}
 		}
 
