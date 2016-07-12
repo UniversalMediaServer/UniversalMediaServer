@@ -305,6 +305,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * Returns the integer representation of the id of this resource based
+	 * on the index in its parent container.
+	 *
+	 * @return The id integer.
+	 * @since 6.4.1
+	 */
+	public int getIntId() {
+		return Integer.parseInt(getId());
+	}
+
+	/**
 	 * Set the ID of this resource based on the index in its parent container.
 	 * Its main purpose is to be unique in the parent container. The method is
 	 * automatically called by addChildInternal, so most of the time it is not
@@ -877,6 +888,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
 			} else if (format.isVideo() && parserV2) {
+				int maxBandwidth = renderer.getMaxBandwidth();
+				if (renderer.isHalveBitrate()) {
+					maxBandwidth /= 2;
+				}
+
 				if (
 					renderer.isKeepAspectRatio() &&
 					!"16:9".equals(media.getAspectRatioContainer())
@@ -886,9 +902,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
-				} else if (media.getBitrate() > renderer.getMaxBandwidth()) {
+				} else if (media.getBitrate() > maxBandwidth) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), renderer.getMaxBandwidth());
+					LOGGER.trace(prependTraceReason + "the bitrate ({}) is too high ({}).", getName(), media.getBitrate(), maxBandwidth);
+				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
+					isIncompatible = true;
+					LOGGER.trace(prependTraceReason + "the bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
 				}
 			}
 
@@ -2072,7 +2091,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											LOGGER.trace("Disabled the subtitles: " + matchedSub);
 										} else {
 											if (mediaRenderer.isExternalSubtitlesFormatSupported(matchedSub, media)) {
-												matchedSub.setSubsStreamable(true);	
+												matchedSub.setSubsStreamable(true);
 											}
 											params.sid = matchedSub;
 											media_subtitle = params.sid;
@@ -2107,9 +2126,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															if (sub.getExternalFile() != null) {
 																LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
 															}
-															
+
 															if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
-																sub.setSubsStreamable(true);	
+																sub.setSubsStreamable(true);
 															}
 															params.sid = sub;
 															media_subtitle = params.sid;
@@ -2126,7 +2145,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 													if (sub.getExternalFile() != null) {
 														LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
 														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
-															sub.setSubsStreamable(true);	
+															sub.setSubsStreamable(true);
 														}
 														params.sid = sub;
 														media_subtitle = params.sid;
@@ -2159,7 +2178,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 														)
 													) {
 														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
-															sub.setSubsStreamable(true);	
+															sub.setSubsStreamable(true);
 														}
 														params.sid = sub;
 														LOGGER.trace("Matched subtitles track: " + params.sid);
@@ -3582,10 +3601,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the update counter for this resource. When the resource needs
-	 * to be refreshed, its counter is updated.
+	 * Returns the updates id for this resource. When the resource needs
+	 * to be refreshed, its id is updated.
 	 *
-	 * @return The update counter.
+	 * @return The updated id.
 	 * @see #notifyRefresh()
 	 */
 	public int getUpdateId() {
@@ -3593,10 +3612,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets the update counter for this resource. When the resource needs
-	 * to be refreshed, its counter should be updated.
+	 * Sets the updated id for this resource. When the resource needs
+	 * to be refreshed, its id should be updated.
 	 *
-	 * @param updateId The counter value to set.
+	 * @param updateId The updated id value to set.
 	 * @since 1.50
 	 */
 	protected void setUpdateId(int updateId) {
@@ -3604,10 +3623,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the update counter for all resources. When all resources need
-	 * to be refreshed, this counter is updated.
+	 * Returns the updates id for all resources. When all resources need
+	 * to be refreshed, this id is updated.
 	 *
-	 * @return The system update counter.
+	 * @return The system updated id.
 	 * @since 1.50
 	 */
 	public static int getSystemUpdateId() {
@@ -3615,10 +3634,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets the update counter for all resources. When all resources need
-	 * to be refreshed, this counter should be updated.
+	 * Sets the updated id for all resources. When all resources need
+	 * to be refreshed, this id should be updated.
 	 *
-	 * @param systemUpdateId The system update counter to set.
+	 * @param systemUpdateId The system updated id to set.
 	 * @since 1.50
 	 */
 	public static void setSystemUpdateId(int systemUpdateId) {

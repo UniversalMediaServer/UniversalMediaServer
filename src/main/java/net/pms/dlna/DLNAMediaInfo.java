@@ -133,6 +133,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioDvdIso;
 	public String aspectRatioContainer;
 	public String aspectRatioVideoTrack;
+	private int videoBitDepth = 8;
 
 	private byte thumb[];
 
@@ -159,9 +160,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
-	
+
 	private boolean externalSubsExist = false;
-	
+
 	public void setExternalSubsExist(boolean exist) {
 		this.externalSubsExist = exist;
 	}
@@ -1401,7 +1402,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
 				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-				} else if (codecA.startsWith("pcm") || codecA.contains("wav")) {
+				} else if (codecA.contains("pcm") || codecA.contains("wav")) {
 					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 				}
 			}
@@ -1965,6 +1966,20 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setFrameRateMode(String frameRateMode) {
 		this.frameRateMode = frameRateMode;
+	}
+
+	/**
+	 * @return the video bit depth
+	 */
+	public int getVideoBitDepth() {
+		return videoBitDepth;
+	}
+
+	/**
+	 * @param value the video bit depth to set
+	 */
+	public void setVideoBitDepth(int value) {
+		this.videoBitDepth = value;
 	}
 
 	/**

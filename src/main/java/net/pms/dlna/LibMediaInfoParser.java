@@ -8,7 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
@@ -92,9 +91,9 @@ public class LibMediaInfoParser {
 				if (!value.isEmpty()) {
 					media.setFileTitleFromMetadata(value);
 				}
-				value = MI.Get(general, 0, "Attachements");
+				value = MI.Get(general, 0, "Attachments").toLowerCase();
 				if (!value.isEmpty()) {
-					media.setEmbeddedFontExists(true);
+					media.setEmbeddedFontExists(value.contains(".ttf") || value.contains(".otf"));
 				}
 
 				// set Video
@@ -124,24 +123,33 @@ public class LibMediaInfoParser {
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
 							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
-							value = MI.Get(video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name);
+							value = MI.Get(video, i, "Format_Settings_QPel");
 							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							}
 
-							value = MI.Get(video, i, "Format_Settings_GMC", InfoType.Text, InfoType.Name);
+							value = MI.Get(video, i, "Format_Settings_GMC");
 							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_GMC, value);
 							}
 
-							value = MI.Get(video, i, "Format_Settings_GOP", InfoType.Text, InfoType.Name);
+							value = MI.Get(video, i, "Format_Settings_GOP");
 							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_GOP, value);
 							}
 
-							media.setMuxingMode(MI.Get(video, i, "MuxingMode", InfoType.Text, InfoType.Name));
+							media.setMuxingMode(MI.Get(video, i, "MuxingMode"));
 							if (!media.isEncrypted()) {
 								media.setEncrypted("encrypted".equals(MI.Get(video, i, "Encryption")));
+							}
+
+							value = MI.Get(video, i, "BitDepth");
+							if (!value.isEmpty()) {
+								try {
+									media.setVideoBitDepth(Integer.parseInt(value));
+								} catch (NumberFormatException nfe) {
+									LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
+								}
 							}
 						}
 					}

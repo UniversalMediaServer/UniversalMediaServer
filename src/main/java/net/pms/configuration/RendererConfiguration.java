@@ -182,6 +182,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	protected static final String SUPPORTED = "Supported";
+	protected static final String SUPPORTED_VIDEO_BIT_DEPTHS = "SupportedVideoBitDepths";
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
 	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
@@ -2295,7 +2296,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Reformatted name
 	 */
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
-		// Wrap + tuncate
+		// Wrap + truncate
 		int len = 0;
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
@@ -2305,7 +2306,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				// Wrap
 				int i = dlna.isFolder() ? 0 : indent;
 				String newline = "\n" + (dlna.isFolder() ? "" : inset);
-				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
+				name = name.substring(0, i + (i < name.length() && Character.isWhitespace(name.charAt(i)) ? 1 : 0))
 					+ WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
 				len = lineWidth * lineHeight;
 				if (len != 0 && name.length() > len) {
@@ -2880,5 +2881,32 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean streamSubsForTranscodedVideo() {
 		return getBoolean(STREAM_SUBS_FOR_TRANSCODED_VIDEO, false);
+	}
+
+	/**
+	 * List of supported video bit depths.
+	 *
+	 * @return a comma-separated list of supported video bit depths.
+	 */
+	public String getSupportedVideoBitDepths() {
+		return getString(SUPPORTED_VIDEO_BIT_DEPTHS, "8");
+	}
+
+	/**
+	 * Check if the given video bit depth is supported.
+	 *
+	 * @param videoBitDepth The video bit depth
+	 * 
+	 * @return whether the video bit depth is supported.
+	 */
+	public boolean isVideoBitDepthSupported(int videoBitDepth) {
+		String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
+		for (String supportedBitDepth : supportedBitDepths) {
+			if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
