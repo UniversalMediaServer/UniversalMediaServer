@@ -1312,7 +1312,6 @@
 											<option value="-Xmx768M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
-											<option value="-Djava.net.preferIPv4Stack=true"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -1489,7 +1488,6 @@
 											<option value="-Xmx768M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
-											<option value="-Djava.net.preferIPv4Stack=true"/>
 										</bundleapp>
 									</target>
 								</configuration>

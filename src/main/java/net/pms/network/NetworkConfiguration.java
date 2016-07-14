@@ -147,18 +147,15 @@ public class NetworkConfiguration {
 	 * {@link #getInstance()} to retrieve an instance.
 	 */
 	private NetworkConfiguration(Enumeration<NetworkInterface> networkInterfaces) {
-		System.setProperty("java.net.preferIPv4Stack", "true");
-
 		checkNetworkInterface(networkInterfaces, null);
 	}
 
 	/**
 	 * Collect all of the relevant addresses for the given network interface,
 	 * add them to the global address map and return them.
-	 * 
-	 * @param networkInterface
-	 *            The network interface.
-	 * @return The available addresses.
+	 *
+	 * @param networkInterface The network interface.
+	 * @return                 The available addresses.
 	 */
 	private Set<InetAddress> addAvailableAddresses(NetworkInterface networkInterface) {
 		Set<InetAddress> addrSet = new HashSet<>();
