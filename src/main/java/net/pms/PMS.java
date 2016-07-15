@@ -1310,10 +1310,11 @@ public class PMS {
 	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
 	 * is known or can be determined.
 	 *
-	 * @return The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 * @param  renderer The renderer configuration.
+	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
 	 */
-	public static PmsConfiguration getConfiguration(RendererConfiguration r) {
-		return (r != null && (r instanceof DeviceConfiguration)) ? (DeviceConfiguration)r : configuration;
+	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
+		return (renderer != null && (renderer instanceof DeviceConfiguration)) ? (DeviceConfiguration) renderer : configuration;
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
