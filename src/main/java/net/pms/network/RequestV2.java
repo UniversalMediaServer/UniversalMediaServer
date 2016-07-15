@@ -313,9 +313,9 @@ public class RequestV2 extends HTTPResource {
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						inputStream = dlna.getGenericThumbnailInputStream(null);
 					} else {
-						if (mediaRenderer.isUseMediaInfo()) {
-							dlna.checkThumbnail();
-						}
+//						if (mediaRenderer.isUseMediaInfo()) {
+//							dlna.checkThumbnail();
+//						}
 						inputStream = dlna.getThumbnailInputStream();
 					}
 					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
@@ -947,14 +947,15 @@ public class RequestV2 extends HTTPResource {
 			}
 		}
 
-		// Log trace information
-		Iterator<String> it = output.headers().names().iterator();
+		if (LOGGER.isTraceEnabled()) {
+			// Log trace information
+			Iterator<String> it = output.headers().names().iterator();
 
-		while (it.hasNext()) {
-			String headerName = it.next();
-			LOGGER.trace("Sent to socket: " + headerName + ": " + output.headers().get(headerName));
+			while (it.hasNext()) {
+				String headerName = it.next();
+				LOGGER.trace("Sent to socket: " + headerName + ": " + output.headers().get(headerName));
+			}
 		}
-
 		return future;
 	}
 
