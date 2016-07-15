@@ -269,6 +269,8 @@ public class RootFolder extends DLNAResource {
 
 					scan(child);
 					child.getChildren().clear();
+				} else if (!running){
+					break;
 				}
 			}
 		} else {
