@@ -889,9 +889,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
 			} else if (format.isVideo() && parserV2) {
 				int maxBandwidth = renderer.getMaxBandwidth();
-				if (renderer.isHalveBitrate()) {
-					maxBandwidth /= 2;
-				}
 
 				if (
 					renderer.isKeepAspectRatio() &&
