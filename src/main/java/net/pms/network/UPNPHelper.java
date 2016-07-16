@@ -448,9 +448,10 @@ public class UPNPHelper extends UPNPControl {
 						InetAddress lastAddress = null;
 						int lastPacketType = 0;
 						byte[] buf = new byte[1024];
+						DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 
 						while (true) {
-							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
+							receivePacket.setLength(buf.length);
 							multicastSocket.receive(receivePacket);
 
 							InetAddress address = receivePacket.getAddress();

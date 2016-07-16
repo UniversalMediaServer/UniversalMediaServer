@@ -150,7 +150,7 @@ public class RemoteUtil {
 
 	public static boolean deny(HttpExchange t) {
 		InetAddress address = t.getRemoteAddress().getAddress();
-		return  (!address.isLoopbackAddress() && PMS.getConfiguration().getIpFiltering().allowed(address)) || !PMS.isReady();
+		return  (!address.isLoopbackAddress() && !PMS.getConfiguration().getIpFiltering().allowed(address)) || !PMS.isReady();
 	}
 
 	private static Range.Byte nullRange(long len) {
