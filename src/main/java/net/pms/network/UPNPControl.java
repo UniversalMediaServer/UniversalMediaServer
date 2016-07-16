@@ -724,7 +724,7 @@ public class UPNPControl {
 					}
 				}.run();
 
-				if (log) {
+				if (log && LOGGER.isDebugEnabled()) {
 					for (ActionArgumentValue arg : a.getOutput()) {
 						LOGGER.debug("Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());
 					}

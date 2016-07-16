@@ -656,25 +656,26 @@ public class RequestV2 extends HTTPResource {
 
 				// Xbox 360 virtual containers ... d'oh!
 				String searchCriteria = null;
-				if (xbox360 && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
-					if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
-						objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
-					} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
-						objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
-					} else if (containerID.equals("5") && PMS.get().getLibrary().getGenreFolder() != null) {
-						objectID = PMS.get().getLibrary().getGenreFolder().getResourceId();
-					} else if (containerID.equals("F") && PMS.get().getLibrary().getPlaylistFolder() != null) {
-						objectID = PMS.get().getLibrary().getPlaylistFolder().getResourceId();
-					} else if (containerID.equals("4") && PMS.get().getLibrary().getAllFolder() != null) {
-						objectID = PMS.get().getLibrary().getAllFolder().getResourceId();
-					} else if (containerID.equals("1")) {
-						String artist = getEnclosingValue(content, "upnp:artist = &quot;", "&quot;)");
-						if (artist != null) {
-							objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
-							searchCriteria = artist;
-						}
-					}
-				} else if (soapaction.contains("ContentDirectory:1#Search")) {
+//				if (xbox360 && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
+//					if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
+//						objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
+//					} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
+//						objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
+//					} else if (containerID.equals("5") && PMS.get().getLibrary().getGenreFolder() != null) {
+//						objectID = PMS.get().getLibrary().getGenreFolder().getResourceId();
+//					} else if (containerID.equals("F") && PMS.get().getLibrary().getPlaylistFolder() != null) {
+//						objectID = PMS.get().getLibrary().getPlaylistFolder().getResourceId();
+//					} else if (containerID.equals("4") && PMS.get().getLibrary().getAllFolder() != null) {
+//						objectID = PMS.get().getLibrary().getAllFolder().getResourceId();
+//					} else if (containerID.equals("1")) {
+//						String artist = getEnclosingValue(content, "upnp:artist = &quot;", "&quot;)");
+//						if (artist != null) {
+//							objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
+//							searchCriteria = artist;
+//						}
+//					}
+//				} else 
+					if (soapaction.contains("ContentDirectory:1#Search")) {
 					searchCriteria = getEnclosingValue(content, "<SearchCriteria", "</SearchCriteria>");
 				}
 
