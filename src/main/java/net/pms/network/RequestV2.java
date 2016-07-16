@@ -909,7 +909,9 @@ public class RequestV2 extends HTTPResource {
 
 						// Always close the channel after the response is sent because of
 						// a freeze at the end of video when the channel is not closed.
-						future.getChannel().close();
+						
+						// For Denon, there's a follow-up thumbnail request which finishes first and causes the connection to close.
+//						future.getChannel().close();
 						startStopListenerDelegate.stop();
 					}
 				});
