@@ -1622,7 +1622,7 @@
 		</profile>
 
 		<!--
-			This profile allows running PMS from inside Eclipse
+			This profile allows running UMS from inside Eclipse
 			(Requires a "mvn clean package" to download the binaries first)
 		-->
 		<profile>
@@ -1632,7 +1632,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.4.0</version>
+						<version>1.5.0</version>
 						<executions>
 							<execution>
 								<phase>test</phase>
