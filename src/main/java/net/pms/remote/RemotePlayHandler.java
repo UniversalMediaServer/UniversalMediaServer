@@ -1,15 +1,15 @@
 package net.pms.remote;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
@@ -20,11 +20,15 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.util.SubtitleUtils;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 public class RemotePlayHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemotePlayHandler.class);
@@ -73,13 +77,10 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("serverName", configuration.getServerDisplayName());
 
 		LOGGER.debug("Make play page " + id);
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-		if (root == null) {
-			LOGGER.debug("root not found");
-			throw new IOException("Unknown root");
-		}
+		RootFolder root = parent.getRoot(RemoteUtil.userName(t), true, t);
 		WebRender renderer = (WebRender) root.getDefaultRenderer();
 		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
+
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
 		DLNAResource r = root.getDLNAResource(id, renderer);
 		if (r == null) {
@@ -207,54 +208,59 @@ public class RemotePlayHandler implements HttpHandler {
 	}
 
 	@Override
-	public void handle(HttpExchange t) throws IOException {
-		if (RemoteUtil.deny(t)) {
-			throw new IOException("Access denied");
-		}
-		String p = t.getRequestURI().getPath();
-		if (p.contains("/play/")) {
-			LOGGER.debug("got a play request " + t.getRequestURI());
-			String id = RemoteUtil.getId("play/", t);
-			String response = mkPage(id, t);
-//			LOGGER.trace("play page " + response);
-			RemoteUtil.respond(t, response, 200, "text/html");
-		} else if (p.contains("/playerstatus/")) {
-			String json = IOUtils.toString(t.getRequestBody(), "UTF-8");
-			LOGGER.trace("got player status: " + json);
-			RemoteUtil.respond(t, "", 200, "text/html");
+	public void handle(HttpExchange t) {
+		try {
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			String p = t.getRequestURI().getPath();
+			if (p.contains("/play/")) {
+				LOGGER.debug("got a play request " + t.getRequestURI());
+				String id = RemoteUtil.getId("play/", t);
+				String response = mkPage(id, t);
+				// LOGGER.trace("play page " + response);
+				RemoteUtil.respond(t, response, 200, "text/html");
+			} else if (p.contains("/playerstatus/")) {
+				String json = IOUtils.toString(t.getRequestBody(), "UTF-8");
+				LOGGER.trace("got player status: " + json);
+				RemoteUtil.respond(t, "", 200, "text/html");
 
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-			if (root == null) {
-				LOGGER.debug("root not found");
-				throw new IOException("Unknown root");
-			}
-			WebRender renderer = (WebRender) root.getDefaultRenderer();
-			((WebRender.WebPlayer)renderer.getPlayer()).setData(json);
-		}  else if (p.contains("/playlist/")) {
-			String[] tmp = p.split("/");
-			// sanity
-			if (tmp.length < 3) {
-				throw new IOException("Bad request");
-			}
-			String op = tmp[tmp.length - 2];
-			String id = tmp[tmp.length - 1];
-			DLNAResource r = PMS.getGlobalRepo().get(id);
- 			if (r != null) {
 				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 				if (root == null) {
 					LOGGER.debug("root not found");
 					throw new IOException("Unknown root");
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
- 				if (op.equals("add")) {
- 					PMS.get().getDynamicPls().add(r);
-					renderer.notify(renderer.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
-				} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
-					((Playlist)r.getParent()).remove(r);
-					renderer.notify(renderer.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
+			} else if (p.contains("/playlist/")) {
+				String[] tmp = p.split("/");
+				// sanity
+				if (tmp.length < 3) {
+					throw new IOException("Bad request");
 				}
+				String op = tmp[tmp.length - 2];
+				String id = tmp[tmp.length - 1];
+				DLNAResource r = PMS.getGlobalRepo().get(id);
+				if (r != null) {
+					RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+					if (root == null) {
+						LOGGER.debug("root not found");
+						throw new IOException("Unknown root");
+					}
+					WebRender renderer = (WebRender) root.getDefaultRenderer();
+					if (op.equals("add")) {
+						PMS.get().getDynamicPls().add(r);
+						renderer.notify(renderer.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+					} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
+						((Playlist) r.getParent()).remove(r);
+						renderer.notify(renderer.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+					}
+				}
+				RemoteUtil.respond(t, returnPage(), 200, "text/html");
 			}
-			RemoteUtil.respond(t, returnPage(), 200, "text/html");
+		} catch (Exception e) {
+			// Not catching the exception will kill the web thread.
+			LOGGER.error("Error in request: {}", e);
 		}
 	}
 }
