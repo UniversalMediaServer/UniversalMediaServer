@@ -35,7 +35,7 @@
 				<h2>{{name}}</h2><br>
 {{/isVideo}}
 				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
-					<source src="/media/{{id1}}" type="{{mime}}">
+					<source src="{{url}}" type="{{mime}}">
 {{#sub}}
 					<track kind="subtitles" src="/files/{{this}}" default>
 {{/sub}}

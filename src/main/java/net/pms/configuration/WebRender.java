@@ -619,21 +619,24 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 
 		public void setData(String jsonData) {
-			data = gson.fromJson(jsonData, data.getClass());
-			String s = data.get("playback");
-			state.playback = "STOPPED".equals(s) ? STOPPED :
-				"PLAYING".equals(s) ? PLAYING :
-				"PAUSED".equals(s) ? PAUSED : -1;
-			state.mute = "0".equals(data.get("mute")) ? false : true;
-			s = data.get("volume");
-			state.volume = s == null ? 0 : Integer.valueOf(s);
-			long seconds = 0;
-			if (data.get("position") != null)
-				seconds = Integer.valueOf(data.get("position"));
-			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
-			alert();
-			if (state.playback == STOPPED) {
-				((WebRender)renderer).stop();
+			try {
+				data = gson.fromJson(jsonData, data.getClass());
+				String s = data.get("playback");
+				state.playback = "STOPPED".equals(s) ? STOPPED : "PLAYING".equals(s) ? PLAYING
+						: "PAUSED".equals(s) ? PAUSED : -1;
+				state.mute = "0".equals(data.get("mute")) ? false : true;
+				s = data.get("volume");
+				state.volume = s == null ? 0 : Integer.valueOf(s);
+				long seconds = 0;
+				if (data.get("position") != null)
+					seconds = Integer.valueOf(data.get("position"));
+				state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
+				alert();
+				if (state.playback == STOPPED) {
+					((WebRender) renderer).stop();
+				}
+			} catch (Exception e) {
+				LOGGER.error("Error setting player data: {}", e);
 			}
 		}
 	}

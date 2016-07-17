@@ -29,9 +29,13 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.remote.RemoteUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -89,9 +93,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		InetAddress ia = remoteAddress.getAddress();
 
 		// Is the request from our own Cling service, i.e. self-originating?
+		String ua = nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT);
 		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT) != null &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
+			ua != null && ua.contains("UMS/");
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
@@ -117,9 +121,12 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
 		// default renderer.
-
+		renderer = RemoteUtil.matchRenderer("", ua, ia);
+		
+		if (renderer == null) {
 		// Attempt 1: try to recognize the renderer by its socket address from previous requests
 		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+		}
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.

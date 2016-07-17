@@ -1,6 +1,7 @@
 package net.pms.remote;
 
 import com.sun.net.httpserver.*;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -14,7 +15,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+
 import javax.net.ssl.*;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -22,6 +25,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -490,7 +494,7 @@ public class RemoteWeb {
 				throw new IOException("Access denied");
 			}
 			RootFolder root = parent.getRoot(RemoteUtil.userName(t), true, t);
-			WebRender renderer = (WebRender) root.getDefaultRenderer();
+			WebRender renderer = RemoteUtil.matchRenderer(RemoteUtil.userName(t), t);
 			String json = renderer.getPushData();
 			RemoteUtil.respond(t, json, 200, "text");
 		}

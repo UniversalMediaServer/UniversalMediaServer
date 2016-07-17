@@ -55,6 +55,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -78,6 +79,8 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.UPNPControl;
+import net.pms.network.UPNPControl.Renderer;
+import net.pms.remote.RemoteUtil;
 import net.pms.util.DLNAList;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
@@ -544,18 +547,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * if this DLNAResource is a container.
 	 */
 	public boolean isCompatible(RendererConfiguration mediarenderer) {
-		String s = UPNPControl.getRenderer(mediarenderer.getUUID()).data.get("sink");
+		boolean supported = false;
+		String type = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getFileURL());
+
+		if (mediarenderer instanceof WebRender) {
+			supported = RemoteUtil.directmime(type);
+			return supported;
+		}
+		
+		Renderer renderer = UPNPControl.getRenderer(mediarenderer.getUUID());
+		String s = renderer.data.get("sink");
 		if (s == null) {
 			// Determine source of the stream
 			Device dev = UPNPControl.getDevice(mediarenderer.getUUID());
 			UPNPControl.getProtocolInfo(dev, "0");
-			s = UPNPControl.getRenderer(mediarenderer.getUUID()).data.get("sink");
+			s = renderer.data.get("sink");
 		}
 		ProtocolInfos protocolInfos = new ProtocolInfos(s);
 
-		String type = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getFileURL());
 		MimeType supportedMimeType = MimeType.valueOf(type);
-		boolean supported = false;
 
 		for (ProtocolInfo source : protocolInfos) {
 			if (source.getContentFormatMimeType().isCompatible(supportedMimeType)) {

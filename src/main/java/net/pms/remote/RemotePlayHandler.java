@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -78,7 +79,7 @@ public class RemotePlayHandler implements HttpHandler {
 
 		LOGGER.debug("Make play page " + id);
 		RootFolder root = parent.getRoot(RemoteUtil.userName(t), true, t);
-		WebRender renderer = (WebRender) root.getDefaultRenderer();
+		WebRender renderer = RemoteUtil.matchRenderer(RemoteUtil.userName(t), t);
 		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
@@ -112,10 +113,10 @@ public class RemotePlayHandler implements HttpHandler {
 		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
 
 		// hack here to ensure we got a root folder to use for recently played etc.
-		root.getDefaultRenderer().setRootFolder(root);
+		renderer.setRootFolder(root);
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = root.getDefaultRenderer().getMimeType(r.mimeType(), r.getMedia());
+		String mime = renderer.getMimeType(r.mimeType(), r.getMedia());
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
 		String auto = "autoplay";
 		@SuppressWarnings("unused")
@@ -137,6 +138,7 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("isVideo", isVideo);
 		vars.put("name", name);
 		vars.put("id1", id1);
+		vars.put("url", r.getURL(""));
 		vars.put("autoContinue", configuration.getWebAutoCont(format));
 		if (configuration.isDynamicPls()) {
 			if (r.getParent() instanceof Playlist) {
@@ -214,6 +216,8 @@ public class RemotePlayHandler implements HttpHandler {
 				throw new IOException("Access denied");
 			}
 			String p = t.getRequestURI().getPath();
+			WebRender renderer = RemoteUtil.matchRenderer(RemoteUtil.userName(t), t);
+
 			if (p.contains("/play/")) {
 				LOGGER.debug("got a play request " + t.getRequestURI());
 				String id = RemoteUtil.getId("play/", t);
@@ -230,7 +234,6 @@ public class RemotePlayHandler implements HttpHandler {
 					LOGGER.debug("root not found");
 					throw new IOException("Unknown root");
 				}
-				WebRender renderer = (WebRender) root.getDefaultRenderer();
 				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
 			} else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");
@@ -247,7 +250,6 @@ public class RemotePlayHandler implements HttpHandler {
 						LOGGER.debug("root not found");
 						throw new IOException("Unknown root");
 					}
-					WebRender renderer = (WebRender) root.getDefaultRenderer();
 					if (op.equals("add")) {
 						PMS.get().getDynamicPls().add(r);
 						renderer.notify(renderer.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
@@ -261,6 +263,14 @@ public class RemotePlayHandler implements HttpHandler {
 		} catch (Exception e) {
 			// Not catching the exception will kill the web thread.
 			LOGGER.error("Error in request: {}", e);
+				// Invalid id, object not in cache or session expired; redirect to root
+//				String path = t.getRequestURI().getPath();
+//				String response = "<html><body>404 - File Not Found: " + path + "</body></html>";
+//				RemoteUtil.respond(t, response, 302, "text/html");
+				
+			Headers hdr = t.getResponseHeaders();
+			hdr.add("Location", "/browse/0");
+			RemoteUtil.respond(t, "", 302, "text/html");
 		}
 	}
 }

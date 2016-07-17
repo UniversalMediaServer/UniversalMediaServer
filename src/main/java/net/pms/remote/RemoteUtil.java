@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RemoteUtil {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteUtil.class);
 
 	public static final String MIME_MP4 = "video/mp4";
@@ -43,6 +44,7 @@ public class RemoteUtil {
 	//public static final String MIME_TRANS = MIME_WEBM;
 	public static final String MIME_MP3 = "audio/mpeg";
 	public static final String MIME_WAV = "audio/wav";
+	public static final String MIME_AUDIO_OGG = "audio/ogg";
 	public static final String MIME_PNG = "image/png";
 	public static final String MIME_JPG = "image/jpeg";
 
@@ -187,6 +189,7 @@ public class RemoteUtil {
 				mime.equals(MIME_MP4) ||
 				mime.equals(MIME_WEBM) ||
 				mime.equals(MIME_OGG) ||
+				mime.equals(MIME_AUDIO_OGG) ||
 				mime.equals(MIME_MP3) ||
 				mime.equals(MIME_PNG) ||
 				mime.equals(MIME_JPG)
@@ -222,9 +225,13 @@ public class RemoteUtil {
 	}
 
 	public static WebRender matchRenderer(String user, HttpExchange t) {
-		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
+		return matchRenderer(user, t.getRequestHeaders().getFirst("User-agent"), t.getRemoteAddress().getAddress());
+	}
+	
+	public static WebRender matchRenderer(String user, String ua, InetAddress address) {
+		int browser = WebRender.getBrowser(ua);
 		String confName = WebRender.getBrowserName(browser);
-		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
+		RendererConfiguration r = RendererConfiguration.find(confName, address);
 		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender)r).getUser()))) ?
 			(WebRender) r : null;
 	}
