@@ -496,7 +496,11 @@ public class RemoteWeb {
 			RootFolder root = parent.getRoot(RemoteUtil.userName(t), true, t);
 			WebRender renderer = RemoteUtil.matchRenderer(RemoteUtil.userName(t), t);
 			String json = renderer.getPushData();
-			RemoteUtil.respond(t, json, 200, "text");
+			if ("".equals(json)) {
+				RemoteUtil.respond(t, json, 404, "text");
+			} else {
+				RemoteUtil.respond(t, json, 200, "text");
+			}
 		}
 	}
 }

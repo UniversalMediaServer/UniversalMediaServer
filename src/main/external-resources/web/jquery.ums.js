@@ -122,7 +122,7 @@ function umsAjax(u, reload) {
 	});
 }
 
-var polling, refused;
+var polling, refused = 0;
 
 function poll() {
 	$('body').append('<div id="notices"><div/></div>');
@@ -152,7 +152,7 @@ function poll() {
 				}
 			},
 			error: function() {
-				if (++refused > 10) {
+				if (++refused > 5) {
 					clearInterval(polling);
 				}
 			}
