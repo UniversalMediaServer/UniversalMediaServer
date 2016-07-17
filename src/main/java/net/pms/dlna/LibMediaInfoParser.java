@@ -86,6 +86,7 @@ public class LibMediaInfoParser {
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
 					media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
+					media.setThumbready(true);
 				}
 				value = MI.Get(general, 0, "Title");
 				if (!value.isEmpty()) {
@@ -231,7 +232,7 @@ public class LibMediaInfoParser {
 						ImagesUtil.parseImageByImaging(file, media);
 						media.setContainer(media.getCodecV());
 					} catch (ImageReadException | IOException e) {
-						LOGGER.info("Error parsing image ({}) with Imaging, switching to MediaInfo.", file.getAbsolutePath());
+						LOGGER.debug("Error when parsing image ({}) with Imaging, switching to MediaInfo.", file.getAbsolutePath());
 						parseByMediainfo = true;
 					}
 
