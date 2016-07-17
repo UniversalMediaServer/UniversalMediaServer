@@ -1,17 +1,26 @@
 package net.pms.network;
 
+import static net.pms.network.UPNPHelper.sleep;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import net.pms.PMS;
-import static net.pms.network.UPNPHelper.sleep;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.UpnpService;
@@ -19,13 +28,23 @@ import org.fourthline.cling.UpnpServiceImpl;
 import org.fourthline.cling.controlpoint.ActionCallback;
 import org.fourthline.cling.controlpoint.SubscriptionCallback;
 import org.fourthline.cling.model.ServerClientTokens;
-import org.fourthline.cling.model.action.*;
-import org.fourthline.cling.model.gena.*;
+import org.fourthline.cling.model.action.ActionArgumentValue;
+import org.fourthline.cling.model.action.ActionInvocation;
+import org.fourthline.cling.model.gena.CancelReason;
+import org.fourthline.cling.model.gena.GENASubscription;
 import org.fourthline.cling.model.message.UpnpHeaders;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.model.message.header.DeviceTypeHeader;
 import org.fourthline.cling.model.message.header.UpnpHeader;
-import org.fourthline.cling.model.meta.*;
+import org.fourthline.cling.model.meta.Action;
+import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.model.meta.DeviceDetails;
+import org.fourthline.cling.model.meta.Icon;
+import org.fourthline.cling.model.meta.ManufacturerDetails;
+import org.fourthline.cling.model.meta.ModelDetails;
+import org.fourthline.cling.model.meta.RemoteDevice;
+import org.fourthline.cling.model.meta.RemoteDeviceIdentity;
+import org.fourthline.cling.model.meta.Service;
 import org.fourthline.cling.model.types.DeviceType;
 import org.fourthline.cling.model.types.ServiceId;
 import org.fourthline.cling.model.types.UDADeviceType;
@@ -736,9 +755,41 @@ public class UPNPControl {
 	}
 
 	// ConnectionManager
-	public static String getProtocolInfo(Device dev, String instanceID, String dir) {
-		return send(dev, instanceID, "ConnectionManager", "GetProtocolInfo")
-			.getOutput(dir).toString();
+	public static String getProtocolInfo(Device dev, String instanceID) {
+
+		Service svc = dev.findService(ServiceId.valueOf("ConnectionManager"));
+		final String uuid = getUUID(dev);
+		if (svc != null) {
+			Action x = svc.getAction("GetProtocolInfo");
+			String name = getFriendlyName(dev);
+			if (x != null) {
+				ActionInvocation a = new ActionInvocation(x);
+
+				new ActionCallback(a, upnpService.getControlPoint()) {
+					@Override
+					public void success(ActionInvocation invocation) {
+						String s = invocation.getOutput("Sink").toString();
+//						ProtocolInfos protocolInfos = new ProtocolInfos(s);
+						rendererMap.get(uuid, "0").data.put("sink", s);
+						rendererMap.mark(uuid, ACTIVE, true);
+					}
+
+					@Override
+					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
+						LOGGER.debug("Action failed: {}", defaultMsg);
+						rendererMap.mark(uuid, ACTIVE, false);
+					}
+				}.run();
+
+				if (LOGGER.isDebugEnabled()) {
+					for (ActionArgumentValue arg : a.getOutput()) {
+						LOGGER.debug("Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());
+					}
+				}
+				return a.toString();
+			}
+		}
+		return null;
 	}
 
 	// AVTransport

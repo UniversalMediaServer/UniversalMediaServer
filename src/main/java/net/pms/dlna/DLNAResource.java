@@ -48,6 +48,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import javax.activation.MimetypesFileTypeMap;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -75,6 +77,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
+import net.pms.network.UPNPControl;
 import net.pms.util.DLNAList;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
@@ -86,6 +89,10 @@ import net.pms.util.UMSUtils;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.support.model.ProtocolInfo;
+import org.fourthline.cling.support.model.ProtocolInfos;
+import org.seamless.util.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -536,12 +543,29 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *		RendererConfiguration} can understand type of media. Also returns true
 	 * if this DLNAResource is a container.
 	 */
-	public boolean isCompatible(RendererConfiguration renderer) {
-		return format == null
-			|| format.isUnknown()
-			|| (format.isVideo() && renderer.isVideoSupported())
-			|| (format.isAudio() && renderer.isAudioSupported())
-			|| (format.isImage() && renderer.isImageSupported());
+	public boolean isCompatible(RendererConfiguration mediarenderer) {
+		String s = UPNPControl.getRenderer(mediarenderer.getUUID()).data.get("sink");
+		if (s == null) {
+			// Determine source of the stream
+			Device dev = UPNPControl.getDevice(mediarenderer.getUUID());
+			UPNPControl.getProtocolInfo(dev, "0");
+			s = UPNPControl.getRenderer(mediarenderer.getUUID()).data.get("sink");
+		}
+		ProtocolInfos protocolInfos = new ProtocolInfos(s);
+
+		String type = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getFileURL());
+		MimeType supportedMimeType = MimeType.valueOf(type);
+		boolean supported = false;
+
+		for (ProtocolInfo source : protocolInfos) {
+			if (source.getContentFormatMimeType().isCompatible(supportedMimeType)) {
+				// ... It's supported!
+				supported = true;
+				break;
+			}
+		}
+
+		return supported;
 	}
 
 	/**
@@ -2939,8 +2963,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.trace("Setting lastStartPosition from time-seeking: " + lastStartPosition);
 		}
 
-		// Determine source of the stream
-		if (player == null && !isResume()) {
+
+        
+		if (isCompatible(mediarenderer)) {
 			// No transcoding
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
@@ -3002,11 +3027,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				params.timeseek = resume.getTimeOffset() / 1000;
-				if (player == null) {
-					player = new FFMpegVideo();
-				}
+				
 			}
-
+			if (player == null) {
+				player = PlayerFactory.getPlayer(this);
+			}
 			if (System.currentTimeMillis() - lastStartSystemTime < 500) {
 				try {
 					Thread.sleep(500);
