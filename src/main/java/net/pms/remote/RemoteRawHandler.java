@@ -3,15 +3,20 @@ package net.pms.remote;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +41,8 @@ public class RemoteRawHandler implements HttpHandler {
 		String id;
 		id = RemoteUtil.strip(RemoteUtil.getId("raw/", t));
 		LOGGER.debug("raw id " + id);
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+		WebRender renderer = RemoteUtil.matchRenderer(RemoteUtil.userName(t), t);
+		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
 		if (res.size() != 1) {
 			// another error
 			LOGGER.debug("media unkonwn");
@@ -46,12 +52,12 @@ public class RemoteRawHandler implements HttpHandler {
 		long len = dlna.length();
 		dlna.setPlayer(null);
 		Range.Byte range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
-		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
+		InputStream in = dlna.getInputStream(range, renderer);
 		if (len == 0) {
 			// For web resources actual length may be unknown until we open the stream
 			len = dlna.length();
 		}
-		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
+		String mime = renderer.getMimeType(dlna.mimeType(), dlna.getMedia());
 		Headers hdr = t.getResponseHeaders();
 		LOGGER.debug("dumping media " + mime + " " + dlna);
 		hdr.add("Content-Type", mime);
