@@ -3,9 +3,11 @@ package net.pms.remote;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -15,6 +17,7 @@ import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.FFmpegAudio;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.util.FileUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +76,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		DLNAMediaSubtitle sid = null;
 		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
 		//DLNAResource dlna = res.get(0);
-		WebRender render = (WebRender) r;
+		WebRender render = RemoteUtil.matchRenderer(RemoteUtil.userName(t), t);
 		DLNAMediaInfo m = dlna.getMedia();
 		if (m == null) {
 			m = new DLNAMediaInfo();
@@ -83,11 +86,12 @@ public class RemoteMediaHandler implements HttpHandler {
 			mime = m.getMimeType();
 		}
 		int code = 200;
-		dlna.setDefaultRenderer(r);
+//		dlna.setDefaultRenderer(r);
 		if (dlna.getFormat().isVideo()) {
-			if (flash) {
-				mime = "video/flash";
-			} else if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, m)) {
+//			if (flash) {
+//				mime = "video/flash";
+//			} else 
+				if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, m)) {
 				mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
 				if (FileUtil.isUrl(dlna.getSystemName())) {
 					dlna.setPlayer(new FFmpegWebVideo());
@@ -115,7 +119,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		m.setMimeType(mime);
 		Range.Byte range = RemoteUtil.parseRange(t.getRequestHeaders(), dlna.length());
 		LOGGER.debug("dumping media " + mime + " " + dlna);
-		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
+		InputStream in = dlna.getInputStream(range, render);
 		if(range.getEnd() == 0) {
 			// For web resources actual length may be unknown until we open the stream
 			range.setEnd(dlna.length());

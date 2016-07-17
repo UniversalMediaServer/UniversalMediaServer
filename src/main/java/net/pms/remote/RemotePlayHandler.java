@@ -122,19 +122,18 @@ public class RemotePlayHandler implements HttpHandler {
 		@SuppressWarnings("unused")
 		String coverImage = "";
 
-		if (isVideo) {
-			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
-				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
-					mime = r.getMedia().getMimeType();
-				}
-			}
-			if (!flowplayer) {
-				if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia()) || r.isResume()) {
-					WebRender render = (WebRender) r.getDefaultRenderer();
-					mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
-				}
-			}
-		}
+//		if (isVideo) {
+//			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
+//				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
+//					mime = r.getMedia().getMimeType();
+//				}
+//			}
+//			if (!flowplayer) {
+//				if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia()) || r.isResume()) {
+//					mime = renderer != null ? renderer.getVideoMimeType() : RemoteUtil.transMime();
+//				}
+//			}
+//		}
 		vars.put("isVideo", isVideo);
 		vars.put("name", name);
 		vars.put("id1", id1);
@@ -165,10 +164,11 @@ public class RemotePlayHandler implements HttpHandler {
 			vars.put("mime", mime);
 			if (flowplayer) {
 				if (
-					RemoteUtil.directmime(mime) &&
-					!RemoteUtil.transMp4(mime, r.getMedia()) &&
-					!r.isResume() &&
-					!forceFlash
+					RemoteUtil.directmime(mime) 
+//					&&
+//					!RemoteUtil.transMp4(mime, r.getMedia()) &&
+//					!r.isResume() &&
+//					!forceFlash
 				) {
 					vars.put("src", true);
 				}
