@@ -390,8 +390,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("16k");
 //		cmdList.add("-ar");
 //		cmdList.add("44100");
-		cmdList.add("-strict");
-		cmdList.add("experimental");
 		/*cmdList.add("-pix_fmt");
 		cmdList.add("yuv420p");*/
 //		cmdList.add("-frag_duration");
