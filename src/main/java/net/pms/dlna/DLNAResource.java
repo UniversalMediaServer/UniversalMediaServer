@@ -52,6 +52,7 @@ import javax.activation.MimetypesFileTypeMap;
 
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -550,6 +551,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean supported = false;
 		String type = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getFileURL());
 
+		if (mediarenderer instanceof DeviceConfiguration) {
+			// Direct stream call. No conversion required.
+			supported = true;
+			return supported;
+		}
+		
 		if (mediarenderer instanceof WebRender) {
 			supported = RemoteUtil.directmime(type);
 			return supported;

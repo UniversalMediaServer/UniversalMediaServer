@@ -23,9 +23,11 @@ import java.net.*;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
 import java.util.concurrent.Executors;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -103,6 +105,7 @@ public class HTTPServer implements Runnable {
 			LOGGER.info("Using localhost address");
 			address = new InetSocketAddress(port);
 		}
+		address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
 		LOGGER.info("Created socket: " + address);
 
