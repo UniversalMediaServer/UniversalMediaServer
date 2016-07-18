@@ -351,9 +351,6 @@ public class FFMpegVideo extends Player {
 				} else if (renderer.isTranscodeToAAC()) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("aac");
-
-					transcodeOptions.add("-strict");
-					transcodeOptions.add("experimental");
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");

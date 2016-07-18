@@ -624,8 +624,11 @@ public class UMSUtils {
 				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			}
 
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			if (img == null) { // ImageIO doesn't support the image format
+				return null;
+			}
 
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			if (renderer != null && renderer.isThumbnailPadding()) {
 				Thumbnails.of(img)
 					.size(width, height)

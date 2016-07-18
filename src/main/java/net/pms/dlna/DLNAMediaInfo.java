@@ -283,12 +283,6 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public boolean embeddedFontExists = false;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
 	public String stereoscopy;
 
 	/**
@@ -302,8 +296,6 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public String videoTrackTitleFromMetadata;
-
-	private boolean gen_thumb;
 
 	private int videoTrackCount = 0;
 	private int imageCount = 0;
@@ -503,7 +495,6 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public DLNAMediaInfo() {
 		thumbready = true; // this class manages thumbnails by default with the parser_v1 method
-		gen_thumb = false;
 	}
 
 	@Deprecated
@@ -513,9 +504,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume, RendererConfiguration renderer) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
-		forThumbnail.gen_thumb = true;
+		forThumbnail.setMediaparsed(mediaparsed);  // check if file was already parsed by MediaInfo
 		forThumbnail.durationSec = getDurationInSeconds();
-
 		if (seekPosition <= forThumbnail.durationSec) {
 			forThumbnail.durationSec = seekPosition;
 		} else {
@@ -747,7 +737,7 @@ public class DLNAMediaInfo implements Cloneable {
 			i++;
 		}
 
-		if (isMediaparsed()) {
+		if (isMediaparsed() && !thumbOnly) { // file could be already parsed by MediaInfo and we need only thumbnail
 			return;
 		}
 
@@ -864,16 +854,19 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 
 			if (type == Format.IMAGE && file != null) {
-				try {
-					ffmpeg_parsing = false;
-					ImagesUtil.parseImageByImaging(file, this);
-					container = codecV;
-					imageCount++;
-				} catch (IOException | ImageReadException e) {
-					LOGGER.info("Error parsing image ({}) with Imaging, switching to FFmpeg.", file.getAbsolutePath());
-					ffmpeg_parsing = true;
+				if (!thumbOnly) {
+					try {
+						ffmpeg_parsing = false;
+						ImagesUtil.parseImageByImaging(file, this);
+						container = codecV;
+						imageCount++;
+					} catch (IOException | ImageReadException e) {
+						LOGGER.debug("Error when parsing image ({}) with Imaging, switching to FFmpeg.", file.getAbsolutePath());
+						ffmpeg_parsing = true;
+					}
 				}
-				if (configuration.getImageThumbnailsEnabled() && gen_thumb) {
+				
+				if (configuration.getImageThumbnailsEnabled() && thumbOnly) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
@@ -1386,6 +1379,8 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.GIF_TYPEMIME;
 				} else if ("tiff".equals(codecV) || "tiff".equals(container)) {
 					mimeType = HTTPResource.TIFF_TYPEMIME;
+				} else if ("bmp".equals(codecV) || "bmp".equals(container)) {
+					mimeType = HTTPResource.BMP_TYPEMIME;
 				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
 					mimeType = HTTPResource.MP4_TYPEMIME;
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
@@ -1595,9 +1590,6 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append(", matrix coefficients: ");
 			result.append(matrixCoefficients);
 		}
-
-		result.append(", attached fonts: ");
-		result.append(embeddedFontExists);
 
 		if (isNotBlank(fileTitleFromMetadata)) {
 			result.append(", file title from metadata: ");
@@ -2136,22 +2128,6 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setMatrixCoefficients(String matrixCoefficients) {
 		this.matrixCoefficients = matrixCoefficients;
-	}
-
-	/**
-	 * @return whether the file container has custom fonts attached.
-	 */
-	public boolean isEmbeddedFontExists() {
-		return embeddedFontExists;
-	}
-
-	/**
-	 * Sets whether the file container has custom fonts attached.
-	 *
-	 * @param exists true if at least one attached font exists
-	 */
-	public void setEmbeddedFontExists(boolean exists) {
-		this.embeddedFontExists = exists;
 	}
 
 	public String getFileTitleFromMetadata() {
