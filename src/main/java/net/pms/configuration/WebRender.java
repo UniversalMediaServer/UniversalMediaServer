@@ -67,7 +67,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		new GIF(),
 		new JPG(),
 		new MP3(),
-		new PNG()
+		new PNG(),
+		new BMP()
 	};
 
 	private static final Matcher umsInfo = Pattern.compile("platform=(.+)&width=(.+)&height=(.+)&isTouchDevice=(.+)").matcher("");
