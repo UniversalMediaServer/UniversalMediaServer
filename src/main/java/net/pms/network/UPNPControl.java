@@ -536,6 +536,7 @@ public class UPNPControl {
 				LOGGER.debug("Adding device: {} {}", d.getType(), d.toString());
 				rendererMap.mark(uuid, ACTIVE, true);
 				subscribeAll(d, uuid);
+				getProtocolInfo(d, "0");
 				rendererReady(uuid);
 				return true;
 			}

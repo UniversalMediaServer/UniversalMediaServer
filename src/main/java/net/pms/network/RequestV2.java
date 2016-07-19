@@ -27,6 +27,9 @@ import java.net.Socket;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import javax.activation.MimetypesFileTypeMap;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -37,6 +40,7 @@ import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -373,7 +377,8 @@ public class RequestV2 extends HTTPResource {
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
 					) {
-						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
+						String mime = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getArgument());
+						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer, mime);
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
 							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
@@ -704,11 +709,11 @@ public class RequestV2 extends HTTPResource {
 							uf.setFakeParentId(containerID);
 						}
 
-						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
+//						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
 //							response.append(uf.getDidlString(mediaRenderer));
-						} else {
+//						} else {
 //							minus++;
-						}
+//						}
 						response.append(uf.getDidlString(mediaRenderer));
 					}
 				}

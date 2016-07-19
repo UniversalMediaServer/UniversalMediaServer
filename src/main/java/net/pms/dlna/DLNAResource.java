@@ -540,6 +540,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		return null;
 	}
+	
+	public boolean isCompatible(String mimetype) {
+		return mimeType().equalsIgnoreCase(mimetype);
+	}
 
 	/**
 	 * @param renderer Renderer for which to check if file is supported.
@@ -549,20 +553,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public boolean isCompatible(RendererConfiguration mediarenderer) {
 		boolean supported = false;
-		String type = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getFileURL());
-
-		if (mediarenderer instanceof DeviceConfiguration) {
-			// Direct stream call. No conversion required.
-			supported = true;
-			return supported;
-		}
+		String type = mimeType();
 		
+		if (mediarenderer.getUUID() == null) {
+			// Raw request
+			return true;
+		}
+
 		if (mediarenderer instanceof WebRender) {
 			supported = RemoteUtil.directmime(type);
 			return supported;
 		}
 		
 		Renderer renderer = UPNPControl.getRenderer(mediarenderer.getUUID());
+		LOGGER.trace("Data: {}", renderer.data);
 		String s = renderer.data.get("sink");
 		if (s == null) {
 			// Determine source of the stream
@@ -2569,30 +2573,36 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				endTag(sb);
 				// Add transcoded format extension to the output stream URL.
-				String transcodedExtension = "";
-				if (player != null && media != null) {
+				String transcodedExtension = null;
+				if (getMedia() != null) {
 					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
-					if (media.isVideo()) {
-						if (mediaRenderer.isTranscodeToMPEGTS()) {
-							transcodedExtension = "_transcoded_to.ts";
-						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-							transcodedExtension = "_transcoded_to.wmv";
-						} else {
-							transcodedExtension = "_transcoded_to.mpg";
-						}
-					} else if (media.isAudio()) {
-						if (mediaRenderer.isTranscodeToMP3()) {
-							transcodedExtension = "_transcoded_to.mp3";
-						} else if (mediaRenderer.isTranscodeToWAV()) {
-							transcodedExtension = "_transcoded_to.wav";
-						} else {
-							transcodedExtension = "_transcoded_to.pcm";
-						}
+					if (getMedia().isVideo()) {
+						transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.VIDEO_INT, mimeType());
+//						if (mediaRenderer.isTranscodeToMPEGTS()) {
+//							transcodedExtension = "_transcoded_to.ts";
+//						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
+//							transcodedExtension = "_transcoded_to.wmv";
+//						} else {
+//							transcodedExtension = "_transcoded_to.mpg";
+//						}
+					} else if (getMedia().isAudio()) {
+						transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.AUDIO_INT, mimeType());
+//						if (mediaRenderer.isTranscodeToMP3()) {
+//							transcodedExtension = "_transcoded_to.mp3";
+//						} else if (mediaRenderer.isTranscodeToWAV()) {
+//							transcodedExtension = "_transcoded_to.wav";
+//						} else {
+//							transcodedExtension = "_transcoded_to.pcm";
+//						}
 					}
 				}
 
-				wireshark.append(' ').append(getFileURL()).append(transcodedExtension);
-				sb.append(getFileURL()).append(transcodedExtension);
+				wireshark.append(' ').append(getFileURL());
+				sb.append(getFileURL());
+				if (transcodedExtension != null) {
+					wireshark.append("_transcoded_to.").append(transcodedExtension);
+					sb.append("_transcoded_to.").append(transcodedExtension);
+				}
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);
 				closeTag(sb, "res");
@@ -2936,6 +2946,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+		return getInputStream(range, mediarenderer, mimeType());
+	}
+	
+	/**
+	 * Returns a stream, transcoding if requested mime type is different from resource mime type.
+	 * @param range
+	 * @param mediarenderer
+	 * @param mimetype
+	 * @return
+	 * @throws IOException
+	 */
+	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer, String mimetype) throws IOException {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
@@ -2982,7 +3004,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 
         
-		if (isCompatible(mediarenderer)) {
+		if (isCompatible(mimetype)) {
 			// No transcoding
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
@@ -3169,7 +3191,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String mimeType() {
-		return mimeType(player);
+		return MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getFileURL());
+//		return mimeType(player);
 	}
 
 	public String mimeType(Player player) {
