@@ -1836,14 +1836,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * This was originally added for the PS3 after it was observed to need
 	 * a video whose maximum bitrate was under half of the network maximum.
 	 *
-	 * PMS and UMS have done this by default for years so it should be left
-	 * to true to avoid problems, but new renderers may benefit from trying
-	 * it set to false.
-	 *
 	 * @return whether to set the maximum bitrate to half of the network max
 	 */
 	public boolean isHalveBitrate() {
-		return getBoolean(HALVE_BITRATE, true);
+		return getBoolean(HALVE_BITRATE, false);
 	}
 
 	/**
