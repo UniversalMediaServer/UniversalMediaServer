@@ -1,7 +1,33 @@
 6.4.1 - 2016-??-??
 
 	General:
-		
+		Fixed support for semicolons in paths in FFmpeg
+		Improved speed of parsing files
+		Use ellipses for overflowing text in the left menu on the web interface
+		Fixed the cancellation of media library scans
+		Fixed videos being transcoded too often because of bitrate halving
+	Renderers:
+		Added support for LG Blu-Ray players
+		Updated support for images on Panasonic TXL32V10E TVs
+		Improved support for XviD codec on Panasonic TVs and VLC apps
+		Fixed support for virtual folders like New Media and Cache on Panasonic TVs
+		Fixed support for WebVTT subtitles on Samsung TVs
+	External Components:
+		Updated assertj to 2.5.0
+		Updated ChromeCast Java API to 0.9.2
+		Updated Cling to 2.1.1
+		Updated commons-io to 2.5
+		Updated doxia plugin to 1.7
+		Updated exec maven plugin to 1.5.0
+		Updated gson to 2.7
+		Updated logback to 1.1.7
+		Updated maven antrun plugin to 1.8
+		Updated maven compiler plugin to 3.5.1
+		Updated maven enforcer plugin to 1.4.1
+		Updated maven site plugin to 3.5.1
+		Updated maven source plugin to 3.0.1
+		Updated MediaInfo to 0.7.87
+		Updated Netty to 3.10.6
 
 6.4.0 - 2016-06-26
 

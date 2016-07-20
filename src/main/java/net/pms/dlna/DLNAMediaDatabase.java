@@ -249,7 +249,6 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(')');
 				sb.append(", STEREOSCOPY             VARCHAR2(").append(SIZE_STEREOSCOPY).append(')');
 				sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(')');
-				sb.append(", EMBEDDEDFONTEXISTS      BIT              NOT NULL");
 				sb.append(", TITLECONTAINER          VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", TITLEVIDEOTRACK         VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", VIDEOTRACKCOUNT         INT");
@@ -397,7 +396,6 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
 				media.setStereoscopy(rs.getString("STEREOSCOPY"));
 				media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
-				media.setEmbeddedFontExists(rs.getBoolean("EMBEDDEDFONTEXISTS"));
 				media.setFileTitleFromMetadata(rs.getString("TITLECONTAINER"));
 				media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
 				media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
@@ -480,7 +478,7 @@ public class DLNAMediaDatabase implements Runnable {
 				"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
 				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
 				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
-				"MATRIXCOEFFICIENTS, EMBEDDEDFONTEXISTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, "+
+				"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, "+
 				"BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME) VALUES "+
 				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
@@ -527,18 +525,17 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(24, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
 				ps.setString(25, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
 				ps.setString(26, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-				ps.setBoolean(27, media.isEmbeddedFontExists());
-				ps.setString(28, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
-				ps.setString(29, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
-				ps.setInt(30, media.getVideoTrackCount());
-				ps.setInt(31, media.getImageCount());
-				ps.setInt(32, media.getVideoBitDepth());
-				ps.setString(33, left(media.getIMDbID(), SIZE_IMDBID));
-				ps.setInt(34, media.getYear());
-				ps.setString(35, left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
-				ps.setInt(36, media.getTVSeason());
-				ps.setInt(37, media.getTVEpisodeNumber());
-				ps.setString(38, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
+				ps.setString(27, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
+				ps.setString(28, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
+				ps.setInt(29, media.getVideoTrackCount());
+				ps.setInt(30, media.getImageCount());
+				ps.setInt(31, media.getVideoBitDepth());
+				ps.setString(32, left(media.getIMDbID(), SIZE_IMDBID));
+				ps.setInt(33, media.getYear());
+				ps.setString(34, left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
+				ps.setInt(35, media.getTVSeason());
+				ps.setInt(36, media.getTVEpisodeNumber());
+				ps.setString(37, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -563,18 +560,17 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(24, null);
 				ps.setString(25, null);
 				ps.setString(26, null);
-				ps.setBoolean(27, false);
+				ps.setString(27, null);
 				ps.setString(28, null);
-				ps.setString(29, null);
+				ps.setInt(29, 0);
 				ps.setInt(30, 0);
 				ps.setInt(31, 0);
-				ps.setInt(32, 0);
-				ps.setString(33, null);
-				ps.setInt(34, 0);
-				ps.setString(35, null);
+				ps.setString(32, null);
+				ps.setInt(33, 0);
+				ps.setString(34, null);
+				ps.setInt(35, 0);
 				ps.setInt(36, 0);
-				ps.setInt(37, 0);
-				ps.setString(38, null);
+				ps.setString(37, null);
 			}
 			ps.executeUpdate();
 			int id;
