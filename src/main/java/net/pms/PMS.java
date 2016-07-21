@@ -198,11 +198,13 @@ public class PMS {
 	 * @since 1.82.0
 	 */
 	public void setRendererFound(RendererConfiguration renderer) {
-		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
-			LOGGER.debug("Adding status button for " + renderer.getRendererName());
-			foundRenderers.add(renderer);
-			frame.addRenderer(renderer);
-			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+		synchronized (foundRenderers) {
+			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+				LOGGER.debug("Adding status button for " + renderer.getRendererName());
+				foundRenderers.add(renderer);
+				frame.addRenderer(renderer);
+				frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+			}
 		}
 	}
 
@@ -1055,9 +1057,9 @@ public class PMS {
 		if (serverName == null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(System.getProperty("os.name").replace(" ", "_"));
-			sb.append("-");
+			sb.append('-');
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
-			sb.append("-");
+			sb.append('-');
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
 			sb.append(", UPnP/1.0, UMS/").append(getVersion());
 			serverName = sb.toString();
@@ -1308,10 +1310,11 @@ public class PMS {
 	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
 	 * is known or can be determined.
 	 *
-	 * @return The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 * @param  renderer The renderer configuration.
+	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
 	 */
-	public static PmsConfiguration getConfiguration(RendererConfiguration r) {
-		return (r != null && (r instanceof DeviceConfiguration)) ? (DeviceConfiguration)r : configuration;
+	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
+		return (renderer != null && (renderer instanceof DeviceConfiguration)) ? (DeviceConfiguration) renderer : configuration;
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {

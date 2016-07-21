@@ -48,6 +48,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private String liveSubURL;
 	private String liveSubFile;
 	private boolean isStreamable = false;
+	private File convertedFile;
 
 	/**
 	 * Returns whether or not the subtitles are embedded.
@@ -92,6 +93,11 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 			result.append(subsCharacterSet);
 		}
 
+		if (convertedFile != null) {
+			result.append(", convertedFile: ");
+			result.append(convertedFile.toString());
+		}
+
 		return result.toString();
 	}
 
@@ -134,8 +140,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 	/**
 	 * @param externalFile the externalFile to set
+	 * @param langForced 
 	 */
-	public void setExternalFile(File externalFile) throws FileNotFoundException {
+	public void setExternalFile(File externalFile, String forcedLang) throws FileNotFoundException {
 		if (externalFile == null) {
 			throw new FileNotFoundException("Can't read file: no file supplied");
 		} else if (!FileUtil.getFilePermissions(externalFile).isReadable()) {
@@ -143,13 +150,13 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		}
 
 		this.externalFile = externalFile;
-		setFileSubsCharacterSet();
+		setFileSubsCharacterSet(forcedLang);
 	}
 
-	private void setFileSubsCharacterSet() {
+	private void setFileSubsCharacterSet(String forcedLang) {
 		if (type.isPicture()) {
 			subsCharacterSet = null;
-		} else {
+		} else if (forcedLang == null) { // do not check subs charset or language when the language is specified in the filename
 			try {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
@@ -167,7 +174,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 			}
 		}
 	}
-	
+
 	public void setSubCharacterSet(String charSet) {
 		subsCharacterSet = charSet;
 	}
@@ -234,5 +241,13 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 	public void setSubsStreamable(boolean isStreamable) {
 		this.isStreamable = isStreamable;
+	}
+
+	public void setConvertedFile (File convertedFile) {
+		this.convertedFile = convertedFile;
+	}
+
+	public File getConvertedFile() {
+		return convertedFile;
 	}
 }

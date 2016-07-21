@@ -169,6 +169,14 @@ public class SubtitleUtils {
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+		File convertedFile = dlna.getMediaSubtitle().getConvertedFile();
+
+		if (convertedFile != null && convertedFile.canRead()) {
+			// subs are already converted and exists
+			params.sid.setType(SubtitleType.ASS);
+			params.sid.setSubCharacterSet(CHARSET_UTF_8);
+			return convertedFile;
+		}
 
 		String filename = isEmbeddedSource ?
 			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
@@ -194,21 +202,19 @@ public class SubtitleUtils {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
 		}
 
-		if (convertedSubs.canRead()) {
+		File converted3DSubs = new File(FileUtil.getFileNameWithoutExtension(convertedSubs.getAbsolutePath()) + "_3D.ass");
+		if (convertedSubs.canRead() || converted3DSubs.canRead()) {
 			// subs are already converted
 			if (applyFontConfig || isEmbeddedSource || is3D) {
 				params.sid.setType(SubtitleType.ASS);
 				params.sid.setSubCharacterSet(CHARSET_UTF_8);
-				if (is3D) {
-					try {
-						convertedSubs = convertASSToASS3D(convertedSubs, media, params);
-					} catch (IOException | NullPointerException e) {
-						LOGGER.debug("Converting to ASS3D format ends with error: " + e);
-						return null;
-					}
+				if (converted3DSubs.canRead()) {
+					convertedSubs = converted3DSubs;
 				}
 			}
 
+			params.sid.setConvertedFile(convertedSubs);
+			dlna.getMediaSubtitle().setConvertedFile(convertedSubs);
 			return convertedSubs;
 		}
 
@@ -286,6 +292,8 @@ public class SubtitleUtils {
 		}
 
 		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
+		params.sid.setConvertedFile(tempSubs);
+		dlna.getMediaSubtitle().setConvertedFile(tempSubs);
 		return tempSubs;
 	}
 
@@ -472,7 +480,7 @@ public class SubtitleUtils {
 	 * @throws IOException
 	 */
 	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media, OutputParams params) throws IOException, NullPointerException {
-		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + "_3D.ass");
+		File outputSubs = new File(FileUtil.getFileNameWithoutExtension(tempSubs.getAbsolutePath()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
 		Charset subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		if (subsFileCharset == null) {
@@ -516,7 +524,7 @@ public class SubtitleUtils {
 			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
-			outputString.append("Style: Default,Arial,").append("15").append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(",").append(fontScaleY).append(",0,0,1,").append(outline).append(",").append(shadow);
+			outputString.append("Style: Default,Arial,").append("15").append(',').append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(',').append(fontScaleY).append(",0,0,1,").append(outline).append(',').append(shadow);
 			if (isOU) {
 				outputString.append(",2,15,15,15,0\n\n");
 			} else if (isSBS) {
@@ -574,13 +582,13 @@ public class SubtitleUtils {
 							.append("Default,,")
 							.append("0000,")
 							.append(String.format("%04d,", 192 - depth3D))
-							.append("0000,")
+							.append("0000,,")
 							.append(text).append("\n")
 							.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("Default,,")
 							.append(String.format("%04d,", 192 - depth3D))
-							.append("0000,0000,")
+							.append("0000,0000,,")
 							.append(text).append("\n");
 						}
 					}

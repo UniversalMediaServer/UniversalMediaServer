@@ -37,7 +37,7 @@ public class GlobalIdRepo {
 		return get(parseIndex(id));
 	}
 
-	public DLNAResource get(int id) {
+	public synchronized DLNAResource get(int id) {
 		int index = indexOf(id);
 		return index > -1 ? ids.get(index).dlna : null;
 	}

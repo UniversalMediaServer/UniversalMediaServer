@@ -212,7 +212,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				for (DLNAMediaSubtitle subtitle : subtitleTracks) {
 					// only add the option if the renderer supports the given format
 					if (subtitle.isExternal()) { // do not check for embedded subs
-						if (renderer.isExternalSubtitlesFormatSupported(subtitle)) {
+						if (renderer.isExternalSubtitlesFormatSupported(subtitle, child.getMedia())) {
 							DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
 							copy.getMediaSubtitle().setSubsStreamable(true);
 							entries.add(copy);

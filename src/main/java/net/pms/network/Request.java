@@ -358,24 +358,22 @@ public class Request extends HTTPResource {
 						startStopListenerDelegate.start(dlna);
 						output(output, "Content-Type: " + getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia()));
 
-						if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
+						if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
 							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 							String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-							if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
+							if (isNotBlank(subtitleHttpHeader)) {
 								// Device allows a custom subtitle HTTP header; construct it
 								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
-								if (sub != null && sub.isStreamable()) {
-									String subtitleUrl;
-									String subExtension = sub.getType().getExtension();
-									if (isNotBlank(subExtension)) {
-										subExtension = "." + subExtension;
-									}
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
-
-									output(output, subtitleHttpHeader + ": " + subtitleUrl);
+								String subtitleUrl;
+								String subExtension = sub.getType().getExtension();
+								if (isNotBlank(subExtension)) {
+									subExtension = "." + subExtension;
 								}
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
+
+								output(output, subtitleHttpHeader + ": " + subtitleUrl);
 							}
 						}
 
@@ -704,7 +702,7 @@ public class Request extends HTTPResource {
 				if (parentFolder != null) {
 					response.append(parentFolder.getUpdateId());
 				} else {
-					response.append("1");
+					response.append('1');
 				}
 
 				response.append("</UpdateID>");
@@ -879,7 +877,7 @@ public class Request extends HTTPResource {
 	private String getEnclosingValue(String content, String leftTag, String rightTag) {
 		String result = null;
 		int leftTagPos = content.indexOf(leftTag);
-		int leftTagStop = content.indexOf(">", leftTagPos + 1);
+		int leftTagStop = content.indexOf('>', leftTagPos + 1);
 		int rightTagPos = content.indexOf(rightTag, leftTagStop + 1);
 
 		if (leftTagPos > -1 && rightTagPos > leftTagPos) {

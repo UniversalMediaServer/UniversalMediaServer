@@ -143,7 +143,7 @@ public class UPNPHelper extends UPNPControl {
 		discovery.append("HTTP/1.1 200 OK").append(CRLF);
 		discovery.append("CACHE-CONTROL: max-age=1200").append(CRLF);
 		discovery.append("DATE: ").append(sdf.format(new Date(System.currentTimeMillis()))).append(" GMT").append(CRLF);
-		discovery.append("LOCATION: http://").append(serverHost).append(":").append(serverPort).append("/description/fetch").append(CRLF);
+		discovery.append("LOCATION: http://").append(serverHost).append(':').append(serverPort).append("/description/fetch").append(CRLF);
 		discovery.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		discovery.append("ST: ").append(st).append(CRLF);
 		discovery.append("EXT: ").append(CRLF);
@@ -350,6 +350,8 @@ public class UPNPHelper extends UPNPControl {
 		//sleep(rand.nextInt(1800 / 2));
 	}
 
+	private static int ALIVE_delay = 10000;
+
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
 	 * to listen for responses.
@@ -360,21 +362,34 @@ public class UPNPHelper extends UPNPControl {
 		Runnable rAlive = new Runnable() {
 			@Override
 			public void run() {
-				int delay = 10000;
-
 				while (true) {
-					sleep(delay);
+					sleep(ALIVE_delay);
 					sendAlive();
 
-					// The first delay for sending an ALIVE message is 10 seconds,
-					// the second delay is for 20 seconds. From then on, all other
-					// delays are for 180 seconds.
-					switch (delay) {
+					/**
+					 * The first delay for sending an ALIVE message is 10 seconds,
+					 * the second delay is for 20 seconds. From then on, all other
+					 * delays are for 30/180 seconds depending on whether there
+					 * are renderers connected. It can be customized with the 
+					 * ALIVE_delay user configuration setting.
+					 */
+					switch (ALIVE_delay) {
 						case 10000:
-							delay = 20000;
+							ALIVE_delay = 20000;
 							break;
 						case 20000:
-							delay = 180000;
+						case 30000:
+						case 180000:
+							// If getAliveDelay is 0, there is no custom alive delay
+							if (configuration.getAliveDelay() == 0) {
+								if (PMS.get().getFoundRenderers().size() > 0) {
+									ALIVE_delay = 180000;
+								} else {
+									ALIVE_delay = 30000;
+								}
+							} else {
+								ALIVE_delay = configuration.getAliveDelay();
+							}
 							break;
 						default:
 							break;
@@ -537,12 +552,12 @@ public class UPNPHelper extends UPNPControl {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("NOTIFY * HTTP/1.1").append(CRLF);
-		sb.append("HOST: ").append(IPV4_UPNP_HOST).append(":").append(UPNP_PORT).append(CRLF);
+		sb.append("HOST: ").append(IPV4_UPNP_HOST).append(':').append(UPNP_PORT).append(CRLF);
 		sb.append("NT: ").append(nt).append(CRLF);
 		sb.append("NTS: ").append(message).append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("LOCATION: http://").append(PMS.get().getServer().getHost()).append(":").append(PMS.get().getServer().getPort()).append("/description/fetch").append(CRLF);
+			sb.append("LOCATION: http://").append(PMS.get().getServer().getHost()).append(':').append(PMS.get().getServer().getPort()).append("/description/fetch").append(CRLF);
 		}
 
 		sb.append("USN: ").append(PMS.get().usn());
@@ -555,20 +570,18 @@ public class UPNPHelper extends UPNPControl {
 
 		if (message.equals(ALIVE)) {
 			sb.append("CACHE-CONTROL: max-age=1800").append(CRLF);
-		}
-
-		if (message.equals(ALIVE)) {
 			sb.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		}
 
+		// Sony devices like PS3 and PS4 need this extra linebreak
 		sb.append(CRLF);
 		return sb.toString();
 	}
 
 	/**
-	 * Gets the uPNP address.
+	 * Gets the UPnP address.
 	 *
-	 * @return the uPNP address
+	 * @return the UPnP address
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static InetAddress getUPNPAddress() throws IOException {

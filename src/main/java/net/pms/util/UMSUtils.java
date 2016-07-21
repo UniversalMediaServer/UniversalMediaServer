@@ -378,21 +378,21 @@ public class UMSUtils {
 							id = "internal:" + r.getClass().getName();
 						}
 
-						sb.append("master:").append(id).append(";");
+						sb.append("master:").append(id).append(';');
 						if (r.getPlayer() != null) {
-							sb.append("player:").append(r.getPlayer().toString()).append(";");
+							sb.append("player:").append(r.getPlayer().toString()).append(';');
 						}
 						if (r.isResume()) {
 							sb.append("resume");
 							sb.append(r.getResume().getResumeFile().getAbsolutePath());
-							sb.append(";");
+							sb.append(';');
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
 							if (sub.getLang() != null && sub.getId() != -1) {
 								sb.append("sub");
 								sb.append(sub.getLang());
-								sb.append(",");
+								sb.append(',');
 								if (sub.isExternal()) {
 									sb.append("file:");
 									sb.append(sub.getExternalFile().getAbsolutePath());
@@ -400,7 +400,7 @@ public class UMSUtils {
 									sb.append("id:");
 									sb.append("").append(sub.getId());
 								}
-								sb.append(";");
+								sb.append(';');
 							}
 						}
 						sb.append(data);
@@ -558,7 +558,7 @@ public class UMSUtils {
 							subData = tmp[1];
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
-								s.setExternalFile(new File(sFile));
+								s.setExternalFile(new File(sFile), null);
 								s.setId(100);
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);
@@ -623,8 +623,12 @@ public class UMSUtils {
 			} else {
 				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			}
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
+			if (img == null) { // ImageIO doesn't support the image format
+				return null;
+			}
+
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			if (renderer != null && renderer.isThumbnailPadding()) {
 				Thumbnails.of(img)
 					.size(width, height)

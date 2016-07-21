@@ -133,6 +133,9 @@ ul#Folders li a:hover {
 ul#Folders li span {
 	display: block;
 	margin-bottom: 5px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 ul#Media {

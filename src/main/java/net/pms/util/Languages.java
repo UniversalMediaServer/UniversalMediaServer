@@ -296,8 +296,8 @@ public final class Languages {
 			case "zh-hans":
 				return "zh-Hans";
 			default:
-				if (languageTag.indexOf("-") > 0) {
-					languageTag = languageTag.substring(0, languageTag.indexOf("-"));
+				if (languageTag.indexOf('-') > 0) {
+					languageTag = languageTag.substring(0, languageTag.indexOf('-'));
 				}
 				if (languageTag.equalsIgnoreCase("nb") || languageTag.equalsIgnoreCase("nn")) {
 					return "no";

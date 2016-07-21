@@ -317,8 +317,9 @@ public class VLCVideo extends Player {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] /= 2;
+			if (params.mediaRenderer.isHalveBitrate()) {
+				defaultMaxBitrates[0] /= 2;
+			}
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -510,7 +511,7 @@ public class VLCVideo extends Player {
 
 		// Handle subtitle language
 		if (params.sid != null) { // User specified language at the client, acknowledge it
-			if (params.sid.isExternal()) {
+			if (params.sid.isExternal() && !params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) {
 				String externalSubtitlesFileName;
 
 				// External subtitle file
@@ -571,7 +572,7 @@ public class VLCVideo extends Player {
 			encodingArgsBuilder.append(curEntry.getKey());
 
 			if (curEntry.getValue() != null) {
-				encodingArgsBuilder.append("=");
+				encodingArgsBuilder.append('=');
 				encodingArgsBuilder.append(curEntry.getValue());
 			}
 

@@ -343,7 +343,7 @@ public class FileUtil {
 	 * Same as above, but they are common words so we reduce the chances of a
 	 * false-positive by being case-sensitive.
 	 */
-	private static final String COMMON_FILE_ENDS_CASE_SENSITIVE = "[\\s\\.]PROPER[\\s\\.].*|[\\s\\.]iNTERNAL[\\s\\.].*|[\\s\\.]LIMITED[\\s\\.].*|[\\s\\.]LiMiTED[\\s\\.].*|[\\s\\.]FESTiVAL[\\s\\.].*|[\\s\\.]NORDIC[\\s\\.].*|[\\s\\.]REAL[\\s\\.].*|[\\s\\.]SUBBED[\\s\\.].*|[\\s\\.]RETAIL[\\s\\.].*|[\\s\\.]EXTENDED[\\s\\.].*|[\\s\\.]NEWEDIT[\\s\\.].*";
+	private static final String COMMON_FILE_ENDS_CASE_SENSITIVE = "[\\s\\.]PROPER[\\s\\.].*|[\\s\\.]iNTERNAL[\\s\\.].*|[\\s\\.]LIMITED[\\s\\.].*|[\\s\\.]LiMiTED[\\s\\.].*|[\\s\\.]FESTiVAL[\\s\\.].*|[\\s\\.]NORDIC[\\s\\.].*|[\\s\\.]REAL[\\s\\.].*|[\\s\\.]SUBBED[\\s\\.].*|[\\s\\.]RETAIL[\\s\\.].*|[\\s\\.]EXTENDED[\\s\\.].*|[\\s\\.]NEWEDIT[\\s\\.].*|[\\s\\.]WEB[\\s\\.].*";
 
 	/**
 	 * Editions to be added to the end of the prettified name
@@ -625,7 +625,7 @@ public class FileUtil {
 
 					// The following line can run over 100 times in under 1ms
 					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
-					if (similarity > 0.9) {
+					if (similarity > 0.91) {
 						formattedName = info.title + formattedName.substring(showNameIndex);
 
 						if (isEpisodeToLookup) {
@@ -637,20 +637,19 @@ public class FileUtil {
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
 				}
 			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.title) && StringUtils.isNotEmpty(info.year)) {
+				double similarity;
 				if (isMovieWithoutYear) {
-					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, info.title);
-					if (similarity > 0.9) {
-						formattedName = info.title + " (" + info.year + ")";
-					}
+					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, info.title);
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName + "' is " + similarity);
 				} else {
 					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d{4}\\)"), formattedName);
 					String titleFromFilename = formattedName.substring(0, yearIndex);
-					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
-					if (similarity > 0.9) {
-						formattedName = info.title + " (" + info.year + ")";
-					}
+					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
+				}
+
+				if (similarity > 0.91) {
+					formattedName = info.title + " (" + info.year + ")";
 				}
 			}
 		}
@@ -786,6 +785,10 @@ public class FileUtil {
 	}
 
 	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
+		if (media != null && media.isExternalSubsParsed()) {
+			return media.isExternalSubsExist();
+		}
+
 		boolean found = false;
 		if (file.exists()) {
 			found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
@@ -808,6 +811,11 @@ public class FileUtil {
 			if (subFolder.exists()) {
 				found = found || browseFolderForSubtitles(subFolder, file, media, usecache);
 			}
+		}
+
+		if (media != null) {
+			media.setExternalSubsExist(found);
+			media.setExternalSubsParsed(true);
 		}
 
 		return found;
@@ -880,7 +888,7 @@ public class FileUtil {
 										exists = true;
 									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
 										try {
-											sub.setExternalFile(f);
+											sub.setExternalFile(f, null);
 										} catch (FileNotFoundException ex) {
 											LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
 											LOGGER.trace("", ex);
@@ -892,6 +900,7 @@ public class FileUtil {
 							}
 
 							if (!exists) {
+								String forcedLang = null;
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
 								if (code.length() == 0 || !Iso639.codeIsValid(code)) {
@@ -905,16 +914,18 @@ public class FileUtil {
 											if (Iso639.codeIsValid(flavorLang)) {
 												sub.setLang(flavorLang);
 												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
+												forcedLang = flavorLang;
 											}
 										}
 									}
 								} else {
 									sub.setLang(code);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
+									forcedLang = code;
 								}
 
 								try {
-									sub.setExternalFile(f);
+									sub.setExternalFile(f, forcedLang);
 								} catch (FileNotFoundException ex) {
 									LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
 									LOGGER.trace("", ex);
@@ -1288,9 +1299,9 @@ public class FileUtil {
 			filename = filename.replaceAll("\\.|_", " ");
 		}
 
-		if (PMS.getConfiguration().isIgnoreTheWordThe()) {
-			// Remove "the" from filename
-			filename = filename.replaceAll("(?i)\\bThe\\b", "");
+		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
+			// Remove "a" and "the" from filename
+			filename = filename.replaceAll("^(?i)A[ .]|The[ .]", "");
 
 			// Replace multiple whitespaces with space
 			filename = filename.replaceAll("\\s{2,}"," ");

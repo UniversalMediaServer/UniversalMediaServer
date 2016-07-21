@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.MediaInfo.InfoType;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
@@ -77,21 +76,17 @@ public class LibMediaInfoParser {
 				String value;
 
 				// set General
-				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format").toLowerCase(), file);
-				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").toLowerCase().trim(), file);
+				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
+				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
 				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
-				if (isNotBlank(value)) {
+				if (!value.isEmpty()) {
 					media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
 				}
 				value = MI.Get(general, 0, "Title");
-				if (isNotBlank(value)) {
+				if (!value.isEmpty()) {
 					media.setFileTitleFromMetadata(value);
-				}
-				value = MI.Get(general, 0, "Attachements");
-				if (isNotBlank(value)) {
-					media.setEmbeddedFontExists(true);
 				}
 
 				// set Video
@@ -108,8 +103,9 @@ public class LibMediaInfoParser {
 							currentSubTrack.setId(media.getSubtitleTracksList().size());
 							addSub(currentSubTrack, media);
 						} else {
-							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format").toLowerCase(), file);
-							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID").toLowerCase(), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format"), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format_Version"), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID"), file);
 							media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
 							media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
@@ -120,24 +116,33 @@ public class LibMediaInfoParser {
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
 							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
-							value = MI.Get(video, i, "Format_Settings_QPel", InfoType.Text, InfoType.Name);
-							if (isNotBlank(value)) {
+							value = MI.Get(video, i, "Format_Settings_QPel");
+							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							}
 
-							value = MI.Get(video, i, "Format_Settings_GMC", InfoType.Text, InfoType.Name);
-							if (isNotBlank(value)) {
+							value = MI.Get(video, i, "Format_Settings_GMC");
+							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_GMC, value);
 							}
 
-							value = MI.Get(video, i, "Format_Settings_GOP", InfoType.Text, InfoType.Name);
-							if (isNotBlank(value)) {
+							value = MI.Get(video, i, "Format_Settings_GOP");
+							if (!value.isEmpty()) {
 								media.putExtra(FormatConfiguration.MI_GOP, value);
 							}
 
-							media.setMuxingMode(MI.Get(video, i, "MuxingMode", InfoType.Text, InfoType.Name));
+							media.setMuxingMode(MI.Get(video, i, "MuxingMode"));
 							if (!media.isEncrypted()) {
 								media.setEncrypted("encrypted".equals(MI.Get(video, i, "Encryption")));
+							}
+
+							value = MI.Get(video, i, "BitDepth");
+							if (!value.isEmpty()) {
+								try {
+									media.setVideoBitDepth(Integer.parseInt(value));
+								} catch (NumberFormatException nfe) {
+									LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
+								}
 							}
 						}
 					}
@@ -148,10 +153,10 @@ public class LibMediaInfoParser {
 				if (audioTracks > 0) {
 					for (int i = 0; i < audioTracks; i++) {
 						currentAudioTrack = new DLNAMediaAudio();
-						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format").toLowerCase(), file);
-						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version").toLowerCase(), file);
-						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile").toLowerCase(), file);
-						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID").toLowerCase(), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
 						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
 						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
@@ -184,7 +189,7 @@ public class LibMediaInfoParser {
 
 						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 						value = MI.Get(audio, i, "ID/String");
-						if (isNotBlank(value)) {
+						if (!value.isEmpty()) {
 							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 								currentAudioTrack.setId(getSpecificID(value));
 							} else {
@@ -193,7 +198,7 @@ public class LibMediaInfoParser {
 						}
 
 						value = MI.Get(general, i, "Track/Position");
-						if (isNotBlank(value)) {
+						if (!value.isEmpty()) {
 							try {
 								currentAudioTrack.setTrack(Integer.parseInt(value));
 							} catch (NumberFormatException nfe) {
@@ -202,7 +207,7 @@ public class LibMediaInfoParser {
 						}
 
 						value = MI.Get(audio, i, "BitDepth");
-						if (isNotBlank(value)) {
+						if (!value.isEmpty()) {
 							try {
 								currentAudioTrack.setBitsperSample(Integer.parseInt(value));
 							} catch (NumberFormatException nfe) {
@@ -217,7 +222,7 @@ public class LibMediaInfoParser {
 				// set Image
 				media.setImageCount(MI.Count_Get(image));
 				if (media.getImageCount() > 0) {
-					getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format").toLowerCase(), file);
+					getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format"), file);
 					media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 					media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 				}
@@ -227,13 +232,13 @@ public class LibMediaInfoParser {
 				if (subTracks > 0) {
 					for (int i = 0; i < subTracks; i++) {
 						currentSubTrack = new DLNAMediaSubtitle();
-						currentSubTrack.setSubCharacterSet(MI.Get(text, i, "Format"));
+						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "Format")));
 						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "CodecID")));
 						currentSubTrack.setLang(getLang(MI.Get(text, i, "Language/String")));
 						currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
 						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 						value = MI.Get(text, i, "ID/String");
-						if (isNotBlank(value)) {
+						if (!value.isEmpty()) {
 							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 								currentSubTrack.setId(getSpecificID(value));
 							} else {
@@ -380,6 +385,11 @@ public class LibMediaInfoParser {
 	}
 
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
+		if (value.isEmpty()) {
+			return;
+		}
+
+		value = value.toLowerCase();
 		String format = null;
 
 		if (value.startsWith("3g2")) {
@@ -394,7 +404,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.CINEPACK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
-		} else if (value.toLowerCase().equals("webm")) {
+		} else if (value.equals("webm")) {
 			format = FormatConfiguration.WEBM;
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
@@ -498,7 +508,17 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WAV;
 		} else if (value.equals("shorten")) {
 			format = FormatConfiguration.SHORTEN;
-		} else if (value.equals("dts") || value.equals("a_dts") || value.equals("8")) {
+		} else if (
+			(
+				value.equals("dts") ||
+				value.equals("a_dts") ||
+				value.equals("8")
+			) &&
+			(
+				audio.getCodecA() == null ||
+				!audio.getCodecA().equals(FormatConfiguration.DTSHD)
+			)
+		) {
 			format = FormatConfiguration.DTS;
 		} else if (value.equals("mpeg audio")) {
 			format = FormatConfiguration.MPA;
