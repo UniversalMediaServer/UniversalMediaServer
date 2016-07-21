@@ -265,10 +265,12 @@ public class RequestV2 extends HTTPResource {
 
 		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
 			// Request to output a page to the HTML console.
+			PMS.get().getRegistry().disableGoToSleep();
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.append(HTMLConsole.servePage(argument.substring(8)));
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
 			// Request to retrieve a file
+			PMS.get().getRegistry().disableGoToSleep();
 
 			/**
 			 * Skip the leading "get/"
@@ -491,6 +493,7 @@ public class RequestV2 extends HTTPResource {
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
+			PMS.get().getRegistry().disableGoToSleep();
 			if (argument.toLowerCase().endsWith(".png")) {
 				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/png");
 			} else {
@@ -502,6 +505,7 @@ public class RequestV2 extends HTTPResource {
 			output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
+//			PMS.get().getRegistry().disableGoToSleep();
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			output.headers().set(HttpHeaders.Names.CACHE_CONTROL, "no-cache");
 			output.headers().set(HttpHeaders.Names.EXPIRES, "0");
@@ -538,6 +542,7 @@ public class RequestV2 extends HTTPResource {
 				inputStream = null;
 			}
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
+			PMS.get().getRegistry().disableGoToSleep();
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(HTTPXMLHelper.XML_HEADER);
 			response.append(CRLF);
@@ -557,6 +562,7 @@ public class RequestV2 extends HTTPResource {
 			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
+			PMS.get().getRegistry().disableGoToSleep();
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
 			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
@@ -570,6 +576,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 			}
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
+			PMS.get().getRegistry().disableGoToSleep();
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
@@ -776,6 +783,7 @@ public class RequestV2 extends HTTPResource {
 				LOGGER.trace(response.toString());
 			}
 		} else if (method.equals("SUBSCRIBE")) {
+			PMS.get().getRegistry().disableGoToSleep();
 			output.headers().set("SID", PMS.get().usn());
 
 			/**
@@ -832,6 +840,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.EVENT_FOOTER);
 			}
 		} else if (method.equals("NOTIFY")) {
+//			PMS.get().getRegistry().disableGoToSleep();
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
 			output.headers().set("NT", "upnp:event");
 			output.headers().set("NTS", "upnp:propchange");

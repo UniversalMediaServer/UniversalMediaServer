@@ -265,10 +265,12 @@ public class Request extends HTTPResource {
 
 		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
 			// Request to output a page to the HTML console.
+			PMS.get().getRegistry().disableGoToSleep();
 			output(output, "Content-Type: text/html");
 			response.append(HTMLConsole.servePage(argument.substring(8)));
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
 			// Request to retrieve a file
+			PMS.get().getRegistry().disableGoToSleep();
 
 			/**
 			 * Skip the leading "get/"
@@ -450,6 +452,7 @@ public class Request extends HTTPResource {
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
+			PMS.get().getRegistry().disableGoToSleep();
 			if (argument.toLowerCase().endsWith(".png")) {
 				output(output, "Content-Type: image/png");
 			} else {
@@ -496,6 +499,7 @@ public class Request extends HTTPResource {
 				inputStream = new ByteArrayInputStream(s.getBytes());
 			}
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
+			PMS.get().getRegistry().disableGoToSleep();
 			output(output, CONTENT_TYPE_UTF8);
 			response.append(HTTPXMLHelper.XML_HEADER);
 			response.append(CRLF);
@@ -513,6 +517,7 @@ public class Request extends HTTPResource {
 			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
+			PMS.get().getRegistry().disableGoToSleep();
 			output(output, CONTENT_TYPE_UTF8);
 			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
@@ -525,6 +530,7 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 			}
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
+			PMS.get().getRegistry().disableGoToSleep();
 			output(output, CONTENT_TYPE_UTF8);
 
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
@@ -730,6 +736,7 @@ public class Request extends HTTPResource {
 				LOGGER.trace(response.toString());
 			}
 		} else if (method.equals("SUBSCRIBE")) {
+			PMS.get().getRegistry().disableGoToSleep();
 			if (soapaction == null) {
 				// Ignore this
 				return;
