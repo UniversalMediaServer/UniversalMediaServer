@@ -250,14 +250,14 @@ public class IpFilter {
 		boolean log = isFirstDecision(addr);
 		if (matchers.isEmpty()) {
 			if (log) {
-				LOGGER.info("No IP filter specified, access granted to " + addr);
+				LOGGER.debug("No IP filter specified, access granted to " + addr);
 			}
 			return true;
 		}
 		for (Predicate p : matchers) {
 			if (p.match(addr)) {
 				if (log) {
-					LOGGER.info("Access granted to " + addr + " by rule: " + p);
+					LOGGER.trace("Access granted to " + addr + " by rule: " + p);
 				}
 				return true;
 			}
