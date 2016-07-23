@@ -18,6 +18,19 @@
  */
 package net.pms.network;
 
+import static net.pms.util.StringUtil.convertStringToTime;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.stream.ChunkedStream;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,29 +39,26 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.activation.MimetypesFileTypeMap;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.*;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.util.StringUtil;
-import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.stream.ChunkedStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +69,6 @@ public class RequestV2 extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
 	private final static String CRLF = "\r\n";
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
-	private static int BUFFER_SIZE = 8 * 1024;
 	private final String method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -247,13 +256,13 @@ public class RequestV2 extends HTTPResource {
 	 * @return The {@link ChannelFuture} object via which the response was sent.
 	 * @throws IOException
 	 */
-	public ChannelFuture answer(
-		HttpResponse output,
-		MessageEvent e,
+	public StringBuilder answer(
+		FullHttpResponse output,
+		HttpRequest e,
 		final boolean close,
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
-		ChannelFuture future = null;
+//		ChannelFuture future = null;
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
@@ -366,6 +375,7 @@ public class RequestV2 extends HTTPResource {
 
 					long totalsize = dlna.length(mediaRenderer);
 					boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
+					String rendererMimeType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getArgument());
 
 					// Ignore ByteRangeRequests while media is transcoded
 					if (
@@ -377,8 +387,7 @@ public class RequestV2 extends HTTPResource {
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
 					) {
-						String mime = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getArgument());
-						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer, mime);
+						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer, rendererMimeType);
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
 							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
@@ -426,7 +435,6 @@ public class RequestV2 extends HTTPResource {
 						startStopListenerDelegate.start(dlna);
 
 						// Try to determine the content type of the file
-						String rendererMimeType = getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia());
 
 						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
@@ -435,7 +443,7 @@ public class RequestV2 extends HTTPResource {
 						// Response generation:
 						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
-						boolean chunked = mediaRenderer.isChunkedTransfer();
+						boolean chunked = true;//mediaRenderer.isChunkedTransfer();
 
 						// Determine the total size. Note: when transcoding the length is
 						// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
@@ -449,7 +457,8 @@ public class RequestV2 extends HTTPResource {
 
 						if (requested != 0) {
 							// Determine the range (i.e. smaller of known or requested bytes)
-							long bytes = remaining > -1 ? remaining : inputStream.available();
+							long bytes = remaining > -1 ? remaining : dlna.getMedia().getSize();//inputStream.available();
+//							long bytes = remaining > -1 ? remaining : inputStream.available();
 
 							if (requested > 0 && bytes > requested) {
 								bytes = requested + 1;
@@ -852,22 +861,22 @@ public class RequestV2 extends HTTPResource {
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
 			byte responseData[] = response.toString().getBytes("UTF-8");
-			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
+			output.headers().set(HttpHeaderNames.CONTENT_LENGTH, "" + responseData.length);
 
 			// HEAD requests only require headers to be set, no need to set contents.
 			if (!method.equals("HEAD")) {
 				// Not a HEAD request, so set the contents of the response.
-				ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
-				output.setContent(buf);
+				ByteBuf buf = Unpooled.copiedBuffer(responseData);
+				output.replace(buf);
 			}
 			LOGGER.info(response.toString());
 
 			// Send the response to the client.
-			future = e.getChannel().write(output);
+//			future = output.write();
 
 			if (close) {
 				// Close the channel after the response is sent.
-				future.addListener(ChannelFutureListener.CLOSE);
+//				future.addListener(ChannelFutureListener.CLOSE);
 			}
 		} else if (inputStream != null) {
 			// There is an input stream to send as a response.
@@ -896,31 +905,32 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			// Send the response headers to the client.
-			future = e.getChannel().write(output);
+//			future = e.getChannel().write(output);
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
+				output.headers().set(HttpHeaders.Names.TRANSFER_ENCODING, "chunked");
 				// Send the response body to the client in chunks.
-				ChannelFuture chunkWriteFuture = e.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
-
-				// Add a listener to clean up after sending the entire response body.
-				chunkWriteFuture.addListener(new ChannelFutureListener() {
-					@Override
-					public void operationComplete(ChannelFuture future) {
-						try {
-							PMS.get().getRegistry().reenableGoToSleep();
-							inputStream.close();
-						} catch (IOException e) {
-							LOGGER.debug("Caught exception", e);
-						}
-
-						// Always close the channel after the response is sent because of
-						// a freeze at the end of video when the channel is not closed.
-						
-						// For Denon, there's a follow-up thumbnail request which finishes first and causes the connection to close.
-//						future.getChannel().close();
-						startStopListenerDelegate.stop();
-					}
-				});
+//				ChannelFuture chunkWriteFuture = e.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
+//
+//				// Add a listener to clean up after sending the entire response body.
+//				chunkWriteFuture.addListener(new ChannelFutureListener() {
+//					@Override
+//					public void operationComplete(ChannelFuture future) {
+//						try {
+//							PMS.get().getRegistry().reenableGoToSleep();
+//							inputStream.close();
+//						} catch (IOException e) {
+//							LOGGER.debug("Caught exception", e);
+//						}
+//
+//						// Always close the channel after the response is sent because of
+//						// a freeze at the end of video when the channel is not closed.
+//						
+//						// For Denon, there's a follow-up thumbnail request which finishes first and causes the connection to close.
+////						future.getChannel().close();
+//						startStopListenerDelegate.stop();
+//					}
+//				});
 			} else {
 				// HEAD method is being used, so simply clean up after the response was sent.
 				try {
@@ -932,7 +942,7 @@ public class RequestV2 extends HTTPResource {
 
 				if (close) {
 					// Close the channel after the response is sent
-					future.addListener(ChannelFutureListener.CLOSE);
+//					future.addListener(ChannelFutureListener.CLOSE);
 				}
 
 				startStopListenerDelegate.stop();
@@ -947,12 +957,12 @@ public class RequestV2 extends HTTPResource {
 //			}
 
 			// Send the response headers to the client.
-			future = e.getChannel().write(output);
-
-			if (close) {
-				// Close the channel after the response is sent.
-				future.addListener(ChannelFutureListener.CLOSE);
-			}
+//			future = e.getChannel().write(output);
+//
+//			if (close) {
+//				// Close the channel after the response is sent.
+//				future.addListener(ChannelFutureListener.CLOSE);
+//			}
 		}
 
 		if (LOGGER.isTraceEnabled()) {
@@ -964,7 +974,7 @@ public class RequestV2 extends HTTPResource {
 				LOGGER.trace("Sent to socket: " + headerName + ": " + output.headers().get(headerName));
 			}
 		}
-		return future;
+		return response;
 	}
 
 	/**

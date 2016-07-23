@@ -11,7 +11,6 @@ import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 
 import org.apache.commons.lang.StringUtils;
-import org.jboss.cache.TreeCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +30,6 @@ public class GlobalIdRepo {
 	 */
 	Map<String, String> filenameMap = new HashMap<>();
 	
-	TreeCache tree = null;
-
 	// Global ids start at 1, since id 0 is reserved as a pseudonym for 'renderer root'
 	private int globalId = 1, deletions = 0;
 

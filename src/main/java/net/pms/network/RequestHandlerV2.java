@@ -18,7 +18,29 @@
  */
 package net.pms.network;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.TooLongFrameException;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.stream.ChunkedStream;
+import io.netty.util.CharsetUtil;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
@@ -32,35 +54,28 @@ import java.util.regex.Pattern;
 
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.external.StartStopListenerDelegate;
-import net.pms.network.UPNPControl.Renderer;
-import net.pms.remote.RemoteUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.*;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.frame.TooLongFrameException;
-import org.jboss.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
+public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpRequest> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlerV2.class);
 
 	private static final Pattern TIMERANGE_PATTERN = Pattern.compile(
 		"timeseekrange\\.dlna\\.org\\W*npt\\W*=\\W*([\\d.:]+)?-?([\\d.:]+)?",
 		Pattern.CASE_INSENSITIVE
 	);
+	
+	private static int BUFFER_SIZE = 8 * 1024;
 
-	private volatile HttpRequest nettyRequest;
-	private final ChannelGroup group;
-
-	public RequestHandlerV2(ChannelGroup group) {
-		this.group = group;
-	}
+	private volatile FullHttpRequest nettyRequest;
+//	private final ChannelGroup group;
+//
+//	public RequestHandlerV2(ChannelGroup group) {
+//		this.group = group;
+//	}
 
 	// Used to filter out known headers when the renderer is not recognized
 	private final static String[] KNOWN_HEADERS = {
@@ -81,16 +96,16 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	};
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest e)
 		throws Exception {
 		RequestV2 request = null;
 		RendererConfiguration renderer = null;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
-		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) e.getMessage();
+		FullHttpRequest nettyRequest = this.nettyRequest = e;
 
-		InetSocketAddress remoteAddress = (InetSocketAddress) e.getChannel().getRemoteAddress();
+		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
 		// Is the request from our own Cling service, i.e. self-originating?
@@ -100,7 +115,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
-			e.getChannel().close();
+			ctx.channel().close();
 			LOGGER.trace(isSelf ?
 				("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort()) :
 				("Access denied for address " + ia + " based on IP filter"));
@@ -109,10 +124,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		LOGGER.trace("Opened request handler on socket " + remoteAddress);
 		PMS.get().getRegistry().disableGoToSleep();
-		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
-		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().getText() + " : " + request.getMethod() + " : " + request.getArgument());
+		request = new RequestV2(nettyRequest.method().name(), nettyRequest.uri().substring(1));
+		LOGGER.trace("Request: " + nettyRequest.protocolVersion().text() + " : " + request.getMethod() + " : " + request.getArgument());
 
-		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
+		if (nettyRequest.protocolVersion().minorVersion() == 0) {
 			request.setHttp10(true);
 		}
 
@@ -122,12 +137,13 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
 		// default renderer.
-		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+//		renderer = RemoteUtil.matchRenderer("", ua, ia);
+//		if (renderer == null)
+			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 		
 		if (renderer != null) {
 		// Attempt 1: try to recognize the renderer by its socket address from previous requests
 			String uuid = UPNPControl.getUUID(ia);
-			Renderer r = UPNPControl.getRenderer(uuid);
 			renderer.setUUID(uuid);
 		}
 
@@ -255,9 +271,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
 		}
 
-		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
-			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
-			ChannelBuffer content = nettyRequest.getContent();
+		if (nettyRequest.headers().contains(HttpHeaderNames.CONTENT_LENGTH)) {
+			byte data[] = new byte[(int) HttpUtil.getContentLength(nettyRequest)];
+			ByteBuf content = nettyRequest.content();
 			content.readBytes(data);
 			request.setTextContent(new String(data, "UTF-8"));
 		}
@@ -279,36 +295,69 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return !((inetAddress.getHostAddress().equals(PMS.get().getServer().getHost())) || PMS.getConfiguration().getIpFiltering().allowed(inetAddress));
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, HttpRequest e, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
 			!HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION));
 
 		// Build the response object.
-		HttpResponse response;
+		FullHttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
-			response = new DefaultHttpResponse(
+			response = new DefaultFullHttpResponse(
 				HttpVersion.HTTP_1_1,
-				HttpResponseStatus.PARTIAL_CONTENT
+				HttpResponseStatus.OK
 			);
 		} else {
 			String soapAction = nettyRequest.headers().get("SOAPACTION");
 
 			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
-				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+				response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			} else {
-				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 			}
 		}
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
-		ctx.setAttachment(startStopListenerDelegate);
+//		ctx.attr(startStopListenerDelegate);
 
+		ChannelFuture chunkWriteFuture = null;
 		try {
-			request.answer(response, e, close, startStopListenerDelegate);
+			StringBuilder content = request.answer(response, e, close, startStopListenerDelegate);
+			if (request.getInputStream() != null) {
+				final InputStream inputStream = request.getInputStream();
+				
+				ctx.write(response);
+				chunkWriteFuture = ctx.write(new ChunkedStream(inputStream));
+				ctx.write(LastHttpContent.EMPTY_LAST_CONTENT);
+
+				// Add a listener to clean up after sending the entire response body.
+				chunkWriteFuture.addListener(new ChannelFutureListener() {
+					@Override
+					public void operationComplete(ChannelFuture future) {
+						try {
+							PMS.get().getRegistry().reenableGoToSleep();
+							inputStream.close();
+						} catch (IOException e) {
+							LOGGER.debug("Caught exception", e);
+						}
+
+						// Always close the channel after the response is sent because of
+						// a freeze at the end of video when the channel is not closed.
+						
+						// For Denon, there's a follow-up thumbnail request which finishes first and causes the connection to close.
+						future.channel().close();
+//						startStopListenerDelegate.stop();
+					}
+				});
+
+			} else {
+				ByteBuf buffer = Unpooled.copiedBuffer(content, CharsetUtil.UTF_8);
+				response.content().writeBytes(buffer);
+				chunkWriteFuture = ctx.write(response);
+			}
 		} catch (IOException e1) {
 			LOGGER.trace("HTTP request V2 IO error: " + e1.getMessage());
 			// note: we don't call stop() here in a finally block as
@@ -317,12 +366,18 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// already been called
 			startStopListenerDelegate.stop();
 		}
+		ctx.flush();
+		// Decide whether to close the connection or not.
+		if (close) {
+			// Close the connection when the whole content is written out.
+			chunkWriteFuture.addListener(ChannelFutureListener.CLOSE);
+		}
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable e)
 		throws Exception {
-		Channel ch = e.getChannel();
+		Channel ch = ctx.channel();
 		Throwable cause = e.getCause();
 		if (cause instanceof TooLongFrameException) {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
@@ -331,43 +386,43 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		if (cause != null) {
 			if (cause.getClass().equals(IOException.class)) {
 				LOGGER.debug("Connection error: " + cause);
-				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();
-				if (startStopListenerDelegate != null) {
-					LOGGER.debug("Premature end, stopping...");
-					startStopListenerDelegate.stop();
-				}
+//				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();
+//				if (startStopListenerDelegate != null) {
+//					LOGGER.debug("Premature end, stopping...");
+//					startStopListenerDelegate.stop();
+//				}
 			} else if (!cause.getClass().equals(ClosedChannelException.class)) {
 				LOGGER.debug("Caught exception: {}", cause.getMessage());
 				LOGGER.trace("", cause);
 			}
 		}
-		if (ch.isConnected()) {
+		if (ch.isOpen()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 		}
 		ch.close();
 	}
 
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-		HttpResponse response = new DefaultHttpResponse(
+		FullHttpResponse response = new DefaultFullHttpResponse(
 			HttpVersion.HTTP_1_1, status);
 		response.headers().set(
 			HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-		response.setContent(ChannelBuffers.copiedBuffer(
+		response.content().writeBytes(Unpooled.copiedBuffer(
 			"Failure: " + status.toString() + "\r\n", Charset.forName("UTF-8")));
 
 		// Close the connection as soon as the error message is sent.
-		ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+		ctx.channel().write(response).addListener(ChannelFutureListener.CLOSE);
 	}
 
-	@Override
-	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
-		throws Exception {
-		// as seen in http://www.jboss.org/netty/community.html#nabble-td2423020
-		super.channelOpen(ctx, e);
-		if (group != null) {
-			group.add(ctx.getChannel());
-		}
-	}
+//	@Override
+//	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
+//		throws Exception {
+//		// as seen in http://www.jboss.org/netty/community.html#nabble-td2423020
+//		super.channelOpen(ctx, e);
+//		if (group != null) {
+//			group.add(ctx.channel());
+//		}
+//	}
 
 	/* Uncomment to see channel events in the trace logs
 	@Override
