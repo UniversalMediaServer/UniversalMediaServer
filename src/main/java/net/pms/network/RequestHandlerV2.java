@@ -27,6 +27,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -329,9 +330,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			if (request.getInputStream() != null) {
 				final InputStream inputStream = request.getInputStream();
 				
-				ctx.write(response);
+				DefaultHttpResponse response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				ctx.write(response1);
 				chunkWriteFuture = ctx.write(new ChunkedStream(inputStream));
-				ctx.write(LastHttpContent.EMPTY_LAST_CONTENT);
 
 				// Add a listener to clean up after sending the entire response body.
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
