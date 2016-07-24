@@ -27,6 +27,9 @@ import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * Abstract class to store known information about a given format.
  */
 public abstract class Format implements Cloneable, Serializable {
+	private static final Tika TIKA = new Tika();
 	private static final Logger LOGGER = LoggerFactory.getLogger(Format.class);
 	private String icon = null;
 	protected int type = UNKNOWN;
@@ -337,4 +341,20 @@ public abstract class Format implements Cloneable, Serializable {
 	 * @return The identifier.
 	 */
 	public abstract Identifier getIdentifier();
+	
+	public static String getExtension(String mimetype) {
+		String ext = null;
+		try {
+			ext = MimeTypes.getDefaultMimeTypes().forName(mimetype).getExtension();
+			if ("".equals(ext))
+				ext = null;
+		} catch (MimeTypeException e) {
+			LOGGER.warn("Unknown mime type: {}", mimetype);
+		}
+		return ext;
+	}
+	
+	public static String getMimetype(String filename) {
+		return TIKA.detect(filename);
+	}
 }

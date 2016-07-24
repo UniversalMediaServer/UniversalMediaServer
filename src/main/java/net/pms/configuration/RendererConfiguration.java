@@ -1,7 +1,5 @@
 package net.pms.configuration;
 
-import com.sun.jna.Platform;
-
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,16 +7,31 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.activation.MimetypesFileTypeMap;
-
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.*;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.LibMediaInfoParser;
+import net.pms.dlna.MediaType;
+import net.pms.dlna.RootFolder;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.v2.AudioProperties;
@@ -26,8 +39,8 @@ import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPControl;
-import net.pms.network.UPNPHelper;
 import net.pms.network.UPNPControl.Renderer;
+import net.pms.network.UPNPHelper;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
@@ -43,12 +56,14 @@ import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.fourthline.cling.model.meta.Device;
+import org.apache.tika.mime.MimeTypes;
 import org.fourthline.cling.support.model.ProtocolInfo;
 import org.fourthline.cling.support.model.ProtocolInfos;
 import org.seamless.util.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
 
 public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
@@ -2944,10 +2959,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			for (ProtocolInfo source : protocolInfos) {
 				MimeType mimet = source.getContentFormatMimeType();
-				if (audio == null && mimet.getType().equals("audio"))
-					audio = mimet.getSubtype();
-				if (video == null && mimet.getType().equals("video"))
-					video = mimet.getSubtype();
+				if (audio == null || video == null) {
+					String ext = Format.getExtension(mimet.toString());
+					if (ext != null && !ext.isEmpty()) {
+						if (audio == null && mimet.getType().equals("audio"))
+							audio = ext;
+						if (video == null && mimet.getType().equals("video"))
+							video = ext;
+					}
+				}
 				if (source.getContentFormatMimeType().isCompatible(supportedMimeType)) {
 					// ... It's supported!
 					supported = true;

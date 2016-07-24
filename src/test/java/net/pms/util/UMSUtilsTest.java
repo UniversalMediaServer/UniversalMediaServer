@@ -1,15 +1,20 @@
 package net.pms.util;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
+import static org.assertj.core.api.Assertions.assertThat;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+
 import org.apache.commons.configuration.ConfigurationException;
-import static org.assertj.core.api.Assertions.*;
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypes;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 
 public class UMSUtilsTest {
 	/**
@@ -33,6 +38,22 @@ public class UMSUtilsTest {
 	}
 	
 	@Test
+	public void testFiledetection() throws Exception {
+		String mimeType = "video/x-ms-wmv";
+		String ext = MimeTypes.getDefaultMimeTypes().forName(mimeType).getExtension();
+		assertThat(ext).isEqualTo(".wmv");
+		
+		String mime = new Tika().detect("as" + ext);
+		assertThat(mime).isEqualTo(mimeType);
+		
+		mimeType = "audio/vnd.dlna.adts";
+		ext = MimeTypes.getDefaultMimeTypes().forName(mimeType).getExtension();
+		assertThat(ext).isEqualTo("");
+		
+		mime = new Tika().detect("as" + ext);
+		assertThat(mime).isEqualTo("application/octet-stream");
+	}
+	
 	public void testCriteria() throws Exception {
 		String str;
 		String sql;

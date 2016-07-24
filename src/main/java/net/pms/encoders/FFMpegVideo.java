@@ -357,7 +357,7 @@ public class FFMpegVideo extends Player {
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
-						transcodeOptions.add("ac3");
+						transcodeOptions.add("aac");
 					}
 				}
 			}
@@ -370,13 +370,15 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
+			String mime = "mp4";
+//			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
+			if ("mp4".equals(media.getMimeType())) {
 				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {
 						transcodeOptions.add("libx264");
 					} else {
-						transcodeOptions.add("libx265");
+						transcodeOptions.add("libx264");
 					}
 					transcodeOptions.add("-tune");
 					transcodeOptions.add("zerolatency");
@@ -391,6 +393,9 @@ public class FFMpegVideo extends Player {
 				}
 				transcodeOptions.add("-pix_fmt");
 				transcodeOptions.add("yuv420p");
+			} else if ("wmv".equals(media.getMimeType())) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("msmpeg4");
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
@@ -401,10 +406,14 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("-f");
 				if (dtsRemux) {
 					transcodeOptions.add("mpeg2video");
-				} else if (renderer.isTranscodeToMPEGTS()) {
-					transcodeOptions.add("mpegts");
+//				} else if (renderer.isTranscodeToMPEGTS()) {
+//					transcodeOptions.add("mpegts");
 				} else {
-					transcodeOptions.add("vob");
+//					transcodeOptions.add("vob");
+					transcodeOptions.add("mp4");
+					// Move file info to the beginning for streaming
+					transcodeOptions.add("-movflags");
+					transcodeOptions.add("frag_keyframe+empty_moov");
 				}
 			}
 		}

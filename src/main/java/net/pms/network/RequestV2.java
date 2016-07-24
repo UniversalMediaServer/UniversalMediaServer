@@ -23,13 +23,11 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.stream.ChunkedStream;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -44,8 +42,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-
-import javax.activation.MimetypesFileTypeMap;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -302,6 +298,10 @@ public class RequestV2 extends HTTPResource {
 			// Retrieve the DLNAresource itself.
 			dlna = PMS.get().getRootFolder(null).getDLNAResource(id, mediaRenderer);
 			String fileName = id.substring(id.indexOf('/') + 1);
+			int end = fileName.indexOf('?');
+			if (end != -1) {
+				fileName = fileName.substring(0, end);
+			}
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);
@@ -375,7 +375,7 @@ public class RequestV2 extends HTTPResource {
 
 					long totalsize = dlna.length(mediaRenderer);
 					boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
-					String rendererMimeType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getArgument());
+					String rendererMimeType = Format.getMimetype(fileName);
 
 					// Ignore ByteRangeRequests while media is transcoded
 					if (

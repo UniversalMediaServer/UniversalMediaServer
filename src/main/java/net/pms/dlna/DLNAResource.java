@@ -3060,6 +3060,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				params.stdin = (IPushOutput) this;
 			}
 
+			DLNAMediaInfo media = new DLNAMediaInfo();
+			media.setMimeType(mimetype);
 			if (resume != null) {
 				if (range.isTimeRange()) {
 					resume.update((Range.Time) range, this);
@@ -3191,7 +3193,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String mimeType() {
-		return MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(getFileURL());
+		return Format.getMimetype(getFileURL());
 //		return mimeType(player);
 	}
 

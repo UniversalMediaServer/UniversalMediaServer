@@ -233,7 +233,7 @@ public abstract class Player {
 				for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 					if (audio.matchCode(lang)) {
 						params.aid = audio;
-						LOGGER.trace("Matched audio track: " + audio);
+						LOGGER.debug("Matched audio track: " + audio);
 						return;
 					}
 
