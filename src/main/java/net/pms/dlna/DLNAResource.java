@@ -2600,8 +2600,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark.append(' ').append(getFileURL());
 				sb.append(getFileURL());
 				if (transcodedExtension != null) {
-					wireshark.append("_transcoded_to.").append(transcodedExtension);
-					sb.append("_transcoded_to.").append(transcodedExtension);
+					wireshark.append("_transcoded_to").append(transcodedExtension);
+					sb.append("_transcoded_to").append(transcodedExtension);
 				}
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);

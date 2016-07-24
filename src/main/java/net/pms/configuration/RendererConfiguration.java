@@ -2961,7 +2961,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				MimeType mimet = source.getContentFormatMimeType();
 				if (audio == null || video == null) {
 					String ext = Format.getExtension(mimet.toString());
-					if (ext != null && !ext.isEmpty()) {
+					if (ext != null) {
 						if (audio == null && mimet.getType().equals("audio"))
 							audio = ext;
 						if (video == null && mimet.getType().equals("video"))

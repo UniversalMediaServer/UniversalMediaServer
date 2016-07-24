@@ -200,12 +200,18 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("" + params.timeend);
 		}
 
-		if (params.mediaRenderer.isTranscodeToMP3()) {
+		// Streaming support
+		cmdList.add("-movflags");
+		cmdList.add("+faststart");
+		
+//		if (params.mediaRenderer.isTranscodeToMP3()) {
+		if ("audio/mp3".equals(media.getMimeType())) {
 			cmdList.add("-f");
 			cmdList.add("mp3");
 			cmdList.add("-ab");
-			cmdList.add("320000");
-		} else if (params.mediaRenderer.isTranscodeToWAV()) {
+			cmdList.add("320000");  
+//		} else if (params.mediaRenderer.isTranscodeToWAV()) {
+		} else if ("audio/mp4".equals(media.getMimeType())) {
 			cmdList.add("-f");
 			cmdList.add("wav");
 		} else { // default: LPCM

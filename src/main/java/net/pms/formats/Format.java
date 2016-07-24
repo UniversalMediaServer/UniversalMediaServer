@@ -348,6 +348,8 @@ public abstract class Format implements Cloneable, Serializable {
 			ext = MimeTypes.getDefaultMimeTypes().forName(mimetype).getExtension();
 			if ("".equals(ext))
 				ext = null;
+			else if (".mp4a".equals(ext))
+				ext = ".m4a";
 		} catch (MimeTypeException e) {
 			LOGGER.warn("Unknown mime type: {}", mimetype);
 		}

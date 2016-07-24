@@ -218,6 +218,12 @@
 			<version>4.1.3.Final</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>1.4</version>
+		</dependency>
+		
 
 		<!-- maven replacement for nsisant-1.2.jar -->
 		<dependency>
