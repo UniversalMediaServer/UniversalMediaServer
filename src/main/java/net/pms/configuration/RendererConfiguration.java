@@ -1285,12 +1285,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 *            configured for this renderer.
 	 * @return The mime type.
 	 */
-	public String getMimeType(String mimeType, DLNAMediaInfo media) {
+	public String getMimeType(DLNAResource resource) {
+		String mimeType = resource.mimeType();
 		if (mimeType == null) {
 			return null;
 		}
 
 		String matchedMimeType = null;
+		DLNAMediaInfo media = resource.getMedia();
 
 		if (isUseMediaInfo()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.

@@ -98,6 +98,7 @@ public class RemoteRawHandler implements HttpHandler {
 			}
 			mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
 		}
+ 
 		Headers hdr = t.getResponseHeaders();
 		LOGGER.debug("Sending media \"{}\" with mime type \"{}\"", dlna, mime);
 		hdr.add("Content-Type", mime);

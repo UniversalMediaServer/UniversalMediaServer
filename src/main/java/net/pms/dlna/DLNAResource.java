@@ -854,6 +854,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 		}
 
+		String rendererForceExtensions = null;
+		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
+		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
+		String configurationForceExtensions = configurationSpecificToRenderer.getForceTranscodeForExtensions();
+
+		// Should transcoding be forced for this format?
+		boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
+
 		/**
 		 * At this stage, we know the media is compatible with the renderer based on its
 		 * "Supported" lines, and can therefore be streamed to the renderer without a
@@ -867,17 +875,46 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
 				if (params.sid != null) {
 					if (params.sid.isExternal()) {
-						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
-							media_subtitle = params.sid;
-							media_subtitle.setSubsStreamable(true);
-							LOGGER.trace("This video has external subtitles that could be streamed");
+						if (renderer != null) {
+							boolean subsMatched = renderer.getFormatConfiguration().match(media.getContainer(),
+									media.getCodecV(),
+									null,
+									0,
+									0,
+									0,
+									media.getWidth(),
+									media.getHeight(),
+									null,
+									params.sid.getType().name(),
+									params.sid.isExternal()) != null;
+							if (subsMatched) {
+								media_subtitle = params.sid;
+								media_subtitle.setSubsStreamable(true);
+								LOGGER.trace("This video has external subtitles that should be streamed");
+							}
 						} else {
+							forceTranscode = true;
 							hasSubsToTranscode = true;
 							LOGGER.trace("This video has external subtitles that should be transcoded");
 						}
-					} else if (params.sid.isEmbedded()) {
-						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
-							LOGGER.trace("This video has embedded subtitles that could be streamed");
+					} else {
+						if (renderer != null) {
+							boolean subsMatched = renderer.getFormatConfiguration().match(media.getContainer(),
+									media.getCodecV(),
+									null,
+									0,
+									0,
+									0,
+									media.getWidth(),
+									media.getHeight(),
+									null,
+									params.sid.getType().name(),
+									params.sid.isExternal()) != null;
+							if (subsMatched) {
+								media_subtitle = params.sid;
+								media_subtitle.setSubsStreamable(true);
+								LOGGER.trace("This video has embedded subtitles that should be streamed");
+							}
 						} else {
 							hasSubsToTranscode = true;
 							LOGGER.trace("This video has embedded subtitles that should be transcoded");
@@ -894,9 +931,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
-		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
-		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
-
 		// Should transcoding be skipped for this format?
 		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
 
@@ -909,15 +943,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
 		if (resolvedPlayer != null) {
-			String configurationForceExtensions = configurationSpecificToRenderer.getForceTranscodeForExtensions();
-			String rendererForceExtensions = null;
-
 			if (renderer != null) {
 				rendererForceExtensions = renderer.getTranscodedExtensions();
 			}
 
-			// Should transcoding be forced for this format?
-			boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
+			if (forceTranscode) {
+				LOGGER.trace("File \"{}\" will be forced to be transcoded by configuration", getName());
+			}
+
 			boolean isIncompatible = false;
 
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
@@ -1007,7 +1040,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// 2) transcoding is preferred and not prevented by configuration
 			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(mimeType(resolvedPlayer), media) : media.getMimeType());
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(this) : media.getMimeType());
 				} else {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\"", getName(), resolvedPlayer.toString());
 				}
@@ -2371,7 +2404,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// is determined for the default renderer. This renderer may rewrite the
 		// mime type based on its configuration. Looking up that mime type is
 		// not guaranteed to return a match for another renderer.
-		String mime = mediaRenderer.getMimeType(mimeType(), media);
+		String mime = mediaRenderer.getMimeType(this);
 
 		// Use our best guess if we have no valid mime type
 		if (mime == null || mime.contains("/transcode")) {
