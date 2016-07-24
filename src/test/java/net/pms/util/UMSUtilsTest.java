@@ -3,6 +3,7 @@ package net.pms.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.formats.Format;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.tika.Tika;
@@ -52,6 +53,14 @@ public class UMSUtilsTest {
 		
 		mime = new Tika().detect("as" + ext);
 		assertThat(mime).isEqualTo("application/octet-stream");
+		
+		mimeType = "audio/mpeg";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".mp2");
+		
+		mimeType = "audio/mp4";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".m4a");
 	}
 	
 	public void testCriteria() throws Exception {

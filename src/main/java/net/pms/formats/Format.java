@@ -19,6 +19,8 @@
 package net.pms.formats;
 
 import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import net.pms.configuration.RendererConfiguration;
@@ -344,12 +346,18 @@ public abstract class Format implements Cloneable, Serializable {
 	
 	public static String getExtension(String mimetype) {
 		String ext = null;
+		List<String> list = null;
 		try {
-			ext = MimeTypes.getDefaultMimeTypes().forName(mimetype).getExtension();
-			if ("".equals(ext))
-				ext = null;
-			else if (".mp4a".equals(ext))
-				ext = ".m4a";
+			list = MimeTypes.getDefaultMimeTypes().forName(mimetype).getExtensions();
+			Iterator<String> iterator = list.iterator();
+			while (iterator.hasNext()) {
+				String extension = (String) iterator.next();
+				// Prefer . + 3 ext
+				if (extension.length() == 4) {
+					ext = extension;
+					break;
+				}
+			}
 		} catch (MimeTypeException e) {
 			LOGGER.warn("Unknown mime type: {}", mimetype);
 		}

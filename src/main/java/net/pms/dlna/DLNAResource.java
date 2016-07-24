@@ -2572,37 +2572,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				endTag(sb);
-				// Add transcoded format extension to the output stream URL.
-				String transcodedExtension = null;
-				if (getMedia() != null) {
-					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
-					if (getMedia().isVideo()) {
-						transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.VIDEO_INT, mimeType());
-//						if (mediaRenderer.isTranscodeToMPEGTS()) {
-//							transcodedExtension = "_transcoded_to.ts";
-//						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-//							transcodedExtension = "_transcoded_to.wmv";
-//						} else {
-//							transcodedExtension = "_transcoded_to.mpg";
-//						}
-					} else if (getMedia().isAudio()) {
-						transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.AUDIO_INT, mimeType());
-//						if (mediaRenderer.isTranscodeToMP3()) {
-//							transcodedExtension = "_transcoded_to.mp3";
-//						} else if (mediaRenderer.isTranscodeToWAV()) {
-//							transcodedExtension = "_transcoded_to.wav";
-//						} else {
-//							transcodedExtension = "_transcoded_to.pcm";
-//						}
-					}
-				}
-
-				wireshark.append(' ').append(getFileURL());
-				sb.append(getFileURL());
-				if (transcodedExtension != null) {
-					wireshark.append("_transcoded_to").append(transcodedExtension);
-					sb.append("_transcoded_to").append(transcodedExtension);
-				}
+				
+				sb.append(getTranscodedFileURL(mediaRenderer));
+				wireshark.append(' ').append(getTranscodedFileURL(mediaRenderer));
+				
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);
 				closeTag(sb, "res");
@@ -2683,6 +2656,40 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return sb.toString();
+	}
+
+	public String getTranscodedFileURL(RendererConfiguration mediaRenderer) {
+		StringBuilder result = new StringBuilder(getFileURL());
+		// Add transcoded format extension to the output stream URL.
+		String transcodedExtension = null;
+		if (getMedia() != null) {
+			// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
+			if (getMedia().isVideo()) {
+				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.VIDEO_INT, mimeType());
+//						if (mediaRenderer.isTranscodeToMPEGTS()) {
+//							transcodedExtension = "_transcoded_to.ts";
+//						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
+//							transcodedExtension = "_transcoded_to.wmv";
+//						} else {
+//							transcodedExtension = "_transcoded_to.mpg";
+//						}
+			} else if (getMedia().isAudio()) {
+				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.AUDIO_INT, mimeType());
+//						if (mediaRenderer.isTranscodeToMP3()) {
+//							transcodedExtension = "_transcoded_to.mp3";
+//						} else if (mediaRenderer.isTranscodeToWAV()) {
+//							transcodedExtension = "_transcoded_to.wav";
+//						} else {
+//							transcodedExtension = "_transcoded_to.pcm";
+//						}
+			}
+		}
+
+		if (transcodedExtension != null) {
+			result.append("_transcoded_to").append(transcodedExtension);
+		}
+		
+		return result.toString();
 	}
 
 	/**
