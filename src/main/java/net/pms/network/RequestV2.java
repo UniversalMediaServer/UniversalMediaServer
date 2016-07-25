@@ -390,7 +390,7 @@ public class RequestV2 extends HTTPResource {
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer, rendererMimeType);
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
-							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
+//							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
 						}
 					}
 

@@ -39,7 +39,7 @@ public class RemoteWeb {
 	private TrustManagerFactory tmf;
 	private HttpServer server;
 	private SSLContext sslContext;
-	private Map<String, RootFolder> roots;
+	private Map<String, WebRender> roots;
 	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final int defaultPort = configuration.getWebPort();
@@ -171,35 +171,39 @@ public class RemoteWeb {
 	}
 
 	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
+		return (RootFolder) PMS.getGlobalRepo().get("0");
+	}
+	
+	public WebRender getRenderer(String user, HttpExchange t) {
 		String groupTag = getTag(user);
 		String cookie = RemoteUtil.getCookie("UMS", t);
-		RootFolder root;
+		WebRender render;
 		synchronized (roots) {
-			root = roots.get(cookie);
-			if (root == null) {
+			render = roots.get(cookie);
+			if (render == null) {
 				// Double-check for cookie errors
-				WebRender valid = RemoteUtil.matchRenderer(user, t);
-				if (valid != null) {
-					// A browser of the same type and user is already connected at
-					// this ip but for some reason we didn't get a cookie match.
-					RootFolder validRoot = valid.getRootFolder();
-					// Do a reverse lookup to see if it's been registered
-					for (Map.Entry<String, RootFolder> entry : roots.entrySet()) {
-						if (entry.getValue() == validRoot) {
-							// Found
-							root = validRoot;
-							cookie = entry.getKey();
-							LOGGER.debug("Allowing browser connection without cookie match: {}: {}", valid.getRendererName(), t.getRemoteAddress().getAddress());
-							break;
-						}
-					}
-				}
-			}
+//				render = RemoteUtil.matchRenderer(user, t);
+//				if (valid != null) {
+//					// A browser of the same type and user is already connected at
+//					// this ip but for some reason we didn't get a cookie match.
+//					RootFolder validRoot = valid.getRootFolder();
+//					// Do a reverse lookup to see if it's been registered
+//					for (Map.Entry<String, RootFolder> entry : roots.entrySet()) {
+//						if (entry.getValue() == validRoot) {
+//							// Found
+//							root = validRoot;
+//							cookie = entry.getKey();
+//							LOGGER.debug("Allowing browser connection without cookie match: {}: {}", valid.getRendererName(), t.getRemoteAddress().getAddress());
+//							break;
+//						}
+//					}
+//				}
+//			}
 
-			if (!create || (root != null)) {
-				t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
-				return root;
-			}
+//			if (!create || (root != null)) {
+//				t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+//				return root;
+//			}
 
 			ArrayList<String> tag = new ArrayList<>();
 			tag.add(user);
@@ -210,29 +214,30 @@ public class RemoteWeb {
 			tag.add(t.getRemoteAddress().getHostString());
 			tag.add("web");
 //			root = new RootFolder(tag);
-			root = (RootFolder) PMS.getGlobalRepo().get("0");
+//			root = (RootFolder) PMS.getGlobalRepo().get("0");
 			try {
-				WebRender render = new WebRender(user);
-				root.setDefaultRenderer(render);
-				render.setRootFolder(root);
-				render.associateIP(t.getRemoteAddress().getAddress());
-				render.associatePort(t.getRemoteAddress().getPort());
-				if (configuration.useWebSubLang()) {
-					render.setSubLang(StringUtils.join(RemoteUtil.getLangs(t), ","));
-				}
+				render = new WebRender(user);
+//				root.setDefaultRenderer(render);
+//				render.setRootFolder(root);
+//				render.associateIP(t.getRemoteAddress().getAddress());
+//				render.associatePort(t.getRemoteAddress().getPort());
+//				if (configuration.useWebSubLang()) {
+//					render.setSubLang(StringUtils.join(RemoteUtil.getLangs(t), ","));
+//				}
 //				render.setUA(t.getRequestHeaders().getFirst("User-agent"));
 				render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
+				roots.put(cookie, render);
 			} catch (ConfigurationException e) {
-				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+//				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			}
 			//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 			cookie = UUID.randomUUID().toString();
 			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+			}
 //			root.discoverChildren();
-			roots.put(cookie, root);
 		}
-		return root;
+		return render;
 	}
 
 	public void associate(HttpExchange t, WebRender webRenderer) {

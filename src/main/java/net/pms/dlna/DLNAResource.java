@@ -2307,7 +2307,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * 			Media Renderer for which to represent this information.
 	 * @return String representation of the mime type
 	 */
-	private String getRendererMimeType(RendererConfiguration mediaRenderer) {
+	public String getRendererMimeType(RendererConfiguration mediaRenderer) {
+
+		String result = mimeType();
+		// Add transcoded format extension to the output stream URL.
+		String transcodedExtension = null;
+		if (getMedia() != null) {
+			// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
+			if (getMedia().isVideo()) {
+				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.VIDEO_INT, mimeType());
+			} else if (getMedia().isAudio()) {
+				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.AUDIO_INT, mimeType());
+			}
+		}
+
+		if (transcodedExtension != null) {
+			result = transcodedExtension;
+		}
+		
+		return result;
+	}
+	
+	private String getRendererMimeType1(RendererConfiguration mediaRenderer) {
 		// FIXME: There is a flaw here. In addChild(DLNAResource) the mime type
 		// is determined for the default renderer. This renderer may rewrite the
 		// mime type based on its configuration. Looking up that mime type is
@@ -2661,32 +2682,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public String getTranscodedFileURL(RendererConfiguration mediaRenderer) {
 		StringBuilder result = new StringBuilder(getFileURL());
 		// Add transcoded format extension to the output stream URL.
-		String transcodedExtension = null;
-		if (getMedia() != null) {
-			// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
-			if (getMedia().isVideo()) {
-				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.VIDEO_INT, mimeType());
-//						if (mediaRenderer.isTranscodeToMPEGTS()) {
-//							transcodedExtension = "_transcoded_to.ts";
-//						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-//							transcodedExtension = "_transcoded_to.wmv";
-//						} else {
-//							transcodedExtension = "_transcoded_to.mpg";
-//						}
-			} else if (getMedia().isAudio()) {
-				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.AUDIO_INT, mimeType());
-//						if (mediaRenderer.isTranscodeToMP3()) {
-//							transcodedExtension = "_transcoded_to.mp3";
-//						} else if (mediaRenderer.isTranscodeToWAV()) {
-//							transcodedExtension = "_transcoded_to.wav";
-//						} else {
-//							transcodedExtension = "_transcoded_to.pcm";
-//						}
-			}
-		}
+		String transcodedExtension = getRendererMimeType(mediaRenderer);
+//		if (getMedia() != null) {
+//			// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
+//			if (getMedia().isVideo()) {
+//				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.VIDEO_INT, mimeType());
+////						if (mediaRenderer.isTranscodeToMPEGTS()) {
+////							transcodedExtension = "_transcoded_to.ts";
+////						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
+////							transcodedExtension = "_transcoded_to.wmv";
+////						} else {
+////							transcodedExtension = "_transcoded_to.mpg";
+////						}
+//			} else if (getMedia().isAudio()) {
+//				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.AUDIO_INT, mimeType());
+////						if (mediaRenderer.isTranscodeToMP3()) {
+////							transcodedExtension = "_transcoded_to.mp3";
+////						} else if (mediaRenderer.isTranscodeToWAV()) {
+////							transcodedExtension = "_transcoded_to.wav";
+////						} else {
+////							transcodedExtension = "_transcoded_to.pcm";
+////						}
+//			}
+//		}
 
-		if (transcodedExtension != null) {
-			result.append("_transcoded_to").append(transcodedExtension);
+		if (!mimeType().equals(transcodedExtension)) {
+			result.append("_transcoded_to").append(Format.getExtension(transcodedExtension));
 		}
 		
 		return result.toString();

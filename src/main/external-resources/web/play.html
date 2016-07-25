@@ -34,7 +34,7 @@
 				<img height=256 width=256 src="/thumb/{{id1}}" alt=""><br>
 				<h2>{{name}}</h2><br>
 {{/isVideo}}
-				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
+				<{{mediaType}} id="player" controls {{auto}}>
 					<source src="{{url}}" type="{{mime}}">
 {{#sub}}
 					<track kind="subtitles" src="/files/{{this}}" default>
@@ -56,12 +56,14 @@
 		<script>
 			var state = {};
 			var player = document.getElementById('player');
+			var wait = 0;
 
-			function status(k, v, wait) {
+			function status(k, v) {
 				//console.log('status '+JSON.stringify(arguments));
 				state[k] = v;
-				if (! wait) {
+				if ((k == 'PLAYING' && wait++ > 5000) || k != 'PLAYING') { // Update once in 5 seconds for playing status
 					$.post('/playerstatus/', JSON.stringify(state));
+					wait = 0;
 				}
 			}
 

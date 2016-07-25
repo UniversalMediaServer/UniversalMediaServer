@@ -346,6 +346,15 @@ public abstract class Format implements Cloneable, Serializable {
 	
 	public static String getExtension(String mimetype) {
 		String ext = null;
+		// Some defaults
+		if (mimetype.equals("audio/mpeg")) {
+			ext = ".mp3";
+			return ext;
+		} else if (mimetype.equals("audio/vnd.dlna.adts")) {
+			ext = ".m4a";
+			return ext;
+		}
+		
 		List<String> list = null;
 		try {
 			list = MimeTypes.getDefaultMimeTypes().forName(mimetype).getExtensions();

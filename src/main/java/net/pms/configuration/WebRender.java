@@ -21,6 +21,7 @@
 package net.pms.configuration;
 
 import com.google.gson.Gson;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -28,22 +29,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaType;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.io.OutputParams;
+import net.pms.network.UPNPControl;
+import net.pms.network.UPNPControl.Renderer;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.fourthline.cling.support.model.ProtocolInfo;
+import org.fourthline.cling.support.model.ProtocolInfos;
+import org.seamless.util.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -641,5 +650,30 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				LOGGER.error("Error setting player data: {}", e);
 			}
 		}
+	}
+	
+	public String getPreferredFormat(int type, final String mime) {
+		String audio = RemoteUtil.MIME_MP3, video = RemoteUtil.MIME_MP4;
+		String result = null;
+		boolean supported = RemoteUtil.directmime(mime);
+
+		if (!supported) {
+
+			switch (type) {
+			case MediaType.AUDIO_INT:
+				result = audio;
+				break;
+			case MediaType.VIDEO_INT:
+				result = video;
+				break;
+			case MediaType.IMAGE_INT:
+
+				break;
+			default:
+				break;
+			}
+		}
+
+		return result;
 	}
 }

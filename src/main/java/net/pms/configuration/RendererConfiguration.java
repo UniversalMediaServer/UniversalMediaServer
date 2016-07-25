@@ -2942,6 +2942,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return false;
 	}
 	
+	/**
+	 * Return null if mime is supported; else the supported mimetype
+	 * @param type
+	 * @param mime
+	 * @return
+	 */
 	public String getPreferredFormat(int type, final String mime) {
 		String audio = null, video = null;
 		String result = null;
@@ -2959,16 +2965,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			for (ProtocolInfo source : protocolInfos) {
 				MimeType mimet = source.getContentFormatMimeType();
-				if (audio == null || video == null) {
-					String ext = Format.getExtension(mimet.toString());
-					if (ext != null) {
-						if (audio == null && mimet.getType().equals("audio"))
-							audio = ext;
-						if (video == null && mimet.getType().equals("video"))
-							video = ext;
-					}
-				}
-				if (source.getContentFormatMimeType().isCompatible(supportedMimeType)) {
+				if (audio == null && mimet.getType().equals("audio"))
+					audio = mimet.toString();
+				if (video == null && mimet.getType().equals("video"))
+					video = mimet.toString();
+				if (mimet.isCompatible(supportedMimeType)) {
 					// ... It's supported!
 					supported = true;
 					break;

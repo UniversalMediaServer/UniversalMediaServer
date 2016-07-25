@@ -78,9 +78,10 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("serverName", configuration.getServerDisplayName());
 
 		LOGGER.debug("Make play page " + id);
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t), true, t);
-		WebRender renderer = RemoteUtil.matchRenderer(RemoteUtil.userName(t), t);
-		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
+		String user = RemoteUtil.userName(t);
+		RootFolder root = parent.getRoot(user, true, t);
+		WebRender renderer = parent.getRenderer(user, t);
+//		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
 		DLNAResource r = root.getDLNAResource(id, renderer);
@@ -113,15 +114,19 @@ public class RemotePlayHandler implements HttpHandler {
 		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
 
 		// hack here to ensure we got a root folder to use for recently played etc.
-		renderer.setRootFolder(root);
+//		renderer.setRootFolder(root);
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = renderer.getMimeType(r.mimeType(), r.getMedia());
+		String mime = r.getRendererMimeType(renderer);
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
 		String auto = "autoplay";
 		@SuppressWarnings("unused")
 		String coverImage = "";
 
+//		if (!RemoteUtil.directmime(mime)) {
+//			mime = r.getMedia().isAudio() ? RemoteUtil.MIME_MP3 :
+//				r.getMedia().isVideo() ? RemoteUtil.MIME_MP4 : RemoteUtil.MIME_JPG;
+//		}
 //		if (isVideo) {
 //			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
 //				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
@@ -137,7 +142,7 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("isVideo", isVideo);
 		vars.put("name", name);
 		vars.put("id1", id1);
-		vars.put("url", r.getURL(""));
+		vars.put("url", r.getTranscodedFileURL(renderer));
 		vars.put("autoContinue", configuration.getWebAutoCont(format));
 		if (configuration.isDynamicPls()) {
 			if (r.getParent() instanceof Playlist) {
@@ -170,11 +175,11 @@ public class RemotePlayHandler implements HttpHandler {
 //					!r.isResume() &&
 //					!forceFlash
 				) {
-					vars.put("src", true);
+//					vars.put("src", true);
 				}
 			} else {
-				vars.put("width", renderer.getVideoWidth());
-				vars.put("height", renderer.getVideoHeight());
+//				vars.put("width", renderer.getVideoWidth());
+//				vars.put("height", renderer.getVideoHeight());
 			}
 		}
 		if (configuration.useWebControl()) {
@@ -216,7 +221,7 @@ public class RemotePlayHandler implements HttpHandler {
 				throw new IOException("Access denied");
 			}
 			String p = t.getRequestURI().getPath();
-			WebRender renderer = RemoteUtil.matchRenderer(RemoteUtil.userName(t), t);
+			WebRender renderer = parent.getRenderer(RemoteUtil.userName(t), t);
 
 			if (p.contains("/play/")) {
 				LOGGER.debug("got a play request " + t.getRequestURI());
