@@ -39,7 +39,6 @@ public class RemoteWeb {
 	private TrustManagerFactory tmf;
 	private HttpServer server;
 	private SSLContext sslContext;
-	private Map<String, WebRender> roots;
 	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final int defaultPort = configuration.getWebPort();
@@ -53,7 +52,6 @@ public class RemoteWeb {
 			port = defaultPort;
 		}
 
-		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
 		resources = AccessController.doPrivileged(new PrivilegedAction<RemoteUtil.ResourceManager>() {
 
@@ -177,9 +175,9 @@ public class RemoteWeb {
 	public WebRender getRenderer(String user, HttpExchange t) {
 		String groupTag = getTag(user);
 		String cookie = RemoteUtil.getCookie("UMS", t);
-		WebRender render;
-		synchronized (roots) {
-			render = roots.get(cookie);
+		WebRender render = null;
+		synchronized (render) {
+			render = (WebRender) PMS.get().getGlobalRepo().getRenderer(cookie);
 			if (render == null) {
 				// Double-check for cookie errors
 //				render = RemoteUtil.matchRenderer(user, t);
@@ -227,7 +225,7 @@ public class RemoteWeb {
 //				render.setUA(t.getRequestHeaders().getFirst("User-agent"));
 				render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
-				roots.put(cookie, render);
+				PMS.get().getGlobalRepo().addRenderer(cookie, render);
 			} catch (ConfigurationException e) {
 //				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			}

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import net.pms.network.UPNPControl.Renderer;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
@@ -25,6 +26,10 @@ public class GlobalIdRepo {
 	 * Store <id, DLNAResource>
 	 */
 	Ehcache resourcesMap = null;
+	/**
+	 * Store <cookie, Renderer>
+	 */
+	Ehcache renderCache = null;
 	/**
 	 * Store <id, filename>
 	 */
@@ -54,6 +59,7 @@ public class GlobalIdRepo {
 	public GlobalIdRepo() {
 		CacheManager cacheManager = CacheManager.newInstance();
 		resourcesMap = cacheManager.addCacheIfAbsent("PMS");
+		renderCache = cacheManager.addCacheIfAbsent("renderer"); 
 	}
 
 	public String getId(String filename) {
@@ -62,6 +68,19 @@ public class GlobalIdRepo {
 	
 	public String getFilename(String id) {
 		return filenameMap.get(id);
+	}
+	
+	public void addRenderer(String cookie, Renderer r) {
+		renderCache.put(new Element(cookie, r));
+	}
+	
+	public Renderer getRenderer(String cookie) {
+		Renderer r = null;
+		Element el = renderCache.get(cookie);
+		if (el != null)
+			r = (Renderer) el.getObjectValue();
+		
+		return r;
 	}
 	
 	/**
