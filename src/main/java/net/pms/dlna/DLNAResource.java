@@ -2318,6 +2318,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.VIDEO_INT, mimeType());
 			} else if (getMedia().isAudio()) {
 				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.AUDIO_INT, mimeType());
+			} else if (getMedia().isImage()) {
+				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.IMAGE_INT, mimeType());
 			}
 		}
 

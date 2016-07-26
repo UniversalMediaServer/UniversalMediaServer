@@ -2949,7 +2949,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return
 	 */
 	public String getPreferredFormat(int type, final String mime) {
-		String audio = null, video = null;
+		String audio = null, video = null, image = null;
 		String result = null;
 		boolean supported = false;
 
@@ -2966,9 +2966,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			for (ProtocolInfo source : protocolInfos) {
 				MimeType mimet = source.getContentFormatMimeType();
 				if (audio == null && mimet.getType().equals("audio"))
-					audio = mimet.toString();
+					audio = "audio/" + mimet.getSubtype();
 				if (video == null && mimet.getType().equals("video"))
-					video = mimet.toString();
+					video = "video/" + mimet.getSubtype();
+				if (image == null && mimet.getType().equals("image"))
+					image = "image/" + mimet.getSubtype();
 				if (mimet.isCompatible(supportedMimeType)) {
 					// ... It's supported!
 					supported = true;
@@ -2986,7 +2988,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				result = video;
 				break;
 			case MediaType.IMAGE_INT:
-
+				result = image;
 				break;
 			default:
 				break;
