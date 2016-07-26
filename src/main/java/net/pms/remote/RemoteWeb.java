@@ -1,8 +1,10 @@
 package net.pms.remote;
 
-import com.sun.net.httpserver.*;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.AccessController;
@@ -11,16 +13,18 @@ import java.security.KeyStore;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
-import javax.net.ssl.*;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManagerFactory;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
@@ -30,6 +34,16 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.BasicAuthenticator;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 
 @SuppressWarnings("restriction")
 public class RemoteWeb {
@@ -175,65 +189,32 @@ public class RemoteWeb {
 	public WebRender getRenderer(String user, HttpExchange t) {
 		String groupTag = getTag(user);
 		String cookie = RemoteUtil.getCookie("UMS", t);
-		WebRender render = null;
-		synchronized (render) {
-			render = (WebRender) PMS.get().getGlobalRepo().getRenderer(cookie);
-			if (render == null) {
-				// Double-check for cookie errors
-//				render = RemoteUtil.matchRenderer(user, t);
-//				if (valid != null) {
-//					// A browser of the same type and user is already connected at
-//					// this ip but for some reason we didn't get a cookie match.
-//					RootFolder validRoot = valid.getRootFolder();
-//					// Do a reverse lookup to see if it's been registered
-//					for (Map.Entry<String, RootFolder> entry : roots.entrySet()) {
-//						if (entry.getValue() == validRoot) {
-//							// Found
-//							root = validRoot;
-//							cookie = entry.getKey();
-//							LOGGER.debug("Allowing browser connection without cookie match: {}: {}", valid.getRendererName(), t.getRemoteAddress().getAddress());
-//							break;
-//						}
-//					}
-//				}
-//			}
+		WebRender render = (WebRender) PMS.get().getGlobalRepo().getRenderer(cookie);
+		if (render == null) {
+			synchronized (this) {
 
-//			if (!create || (root != null)) {
-//				t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
-//				return root;
-//			}
+				ArrayList<String> tag = new ArrayList<>();
+				tag.add(user);
+				if (!groupTag.equals(user)) {
+					tag.add(groupTag);
+				}
 
-			ArrayList<String> tag = new ArrayList<>();
-			tag.add(user);
-			if (!groupTag.equals(user)) {
-				tag.add(groupTag);
+				tag.add(t.getRemoteAddress().getHostString());
+				tag.add("web");
+				try {
+					render = new WebRender(user);
+					render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t),
+							t.getRequestHeaders().getFirst("User-agent"));
+					PMS.get().setRendererFound(render);
+					PMS.get().getGlobalRepo().addRenderer(cookie, render);
+				} catch (ConfigurationException e) {
+					// root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+				}
+				if (cookie == null) {
+					cookie = UUID.randomUUID().toString();
+					t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+				}
 			}
-
-			tag.add(t.getRemoteAddress().getHostString());
-			tag.add("web");
-//			root = new RootFolder(tag);
-//			root = (RootFolder) PMS.getGlobalRepo().get("0");
-			try {
-				render = new WebRender(user);
-//				root.setDefaultRenderer(render);
-//				render.setRootFolder(root);
-//				render.associateIP(t.getRemoteAddress().getAddress());
-//				render.associatePort(t.getRemoteAddress().getPort());
-//				if (configuration.useWebSubLang()) {
-//					render.setSubLang(StringUtils.join(RemoteUtil.getLangs(t), ","));
-//				}
-//				render.setUA(t.getRequestHeaders().getFirst("User-agent"));
-				render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
-				PMS.get().setRendererFound(render);
-				PMS.get().getGlobalRepo().addRenderer(cookie, render);
-			} catch (ConfigurationException e) {
-//				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
-			}
-			//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
-			cookie = UUID.randomUUID().toString();
-			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
-			}
-//			root.discoverChildren();
 		}
 		return render;
 	}
