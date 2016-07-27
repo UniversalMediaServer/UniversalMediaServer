@@ -10,12 +10,13 @@ should work on most Unix distributions)
 1) Install the dependencies (this only needs to be done once):
 
     # If a Java Virtual Machine is not installed yet, you will need to install one :
-    # sudo apt-get install mediainfo openjdk-7-jre
+    sudo apt-get install mediainfo openjdk-7-jre
     # or
     # sudo apt-get install mediainfo openjdk-8-jre
     #
     # you can also optionally install dcraw and VLC: sudo apt-get install dcraw vlc
-    # Some linux distributions, as Ubuntu 64 bit, will need to load some more libraries to be able to support DTS with tsMuxeR:
+    #
+    # Some linux distributions, as Ubuntu 64-bit, will need to load some more libraries to be able to support DTS with tsMuxeR:
     sudo apt-get install lib32z1 lib32ncurses5 libbz2-1.0:i386 libstdc++6:i386
     # Informations taken from https://github.com/UniversalMediaServer/UniversalMediaServer/issues/269#issuecomment-235410175
     # and http://askubuntu.com/questions/637113/unable-to-locate-package-lib32bz2-1-0
