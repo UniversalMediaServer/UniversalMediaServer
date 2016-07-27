@@ -71,7 +71,9 @@ public class GlobalIdRepo {
 	}
 	
 	public void addRenderer(String cookie, Renderer r) {
-		renderCache.put(new Element(cookie, r));
+		Element el = new Element(cookie, r);
+		el.setTimeToIdle(2 * 30);
+		renderCache.put(el);
 	}
 	
 	public Renderer getRenderer(String cookie) {

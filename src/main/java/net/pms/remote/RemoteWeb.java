@@ -192,27 +192,30 @@ public class RemoteWeb {
 		WebRender render = (WebRender) PMS.get().getGlobalRepo().getRenderer(cookie);
 		if (render == null) {
 			synchronized (this) {
+				// Waiting thread might find the renderer now
+				render = (WebRender) PMS.get().getGlobalRepo().getRenderer(cookie);
+				if (render == null) {
+					ArrayList<String> tag = new ArrayList<>();
+					tag.add(user);
+					if (!groupTag.equals(user)) {
+						tag.add(groupTag);
+					}
 
-				ArrayList<String> tag = new ArrayList<>();
-				tag.add(user);
-				if (!groupTag.equals(user)) {
-					tag.add(groupTag);
-				}
-
-				tag.add(t.getRemoteAddress().getHostString());
-				tag.add("web");
-				try {
-					render = new WebRender(user);
-					render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t),
-							t.getRequestHeaders().getFirst("User-agent"));
-					PMS.get().setRendererFound(render);
-					PMS.get().getGlobalRepo().addRenderer(cookie, render);
-				} catch (ConfigurationException e) {
-					// root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
-				}
-				if (cookie == null) {
-					cookie = UUID.randomUUID().toString();
-					t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+					tag.add(t.getRemoteAddress().getHostString());
+					tag.add("web");
+					try {
+						render = new WebRender(user);
+						render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t),
+								t.getRequestHeaders().getFirst("User-agent"));
+						PMS.get().setRendererFound(render);
+						PMS.get().getGlobalRepo().addRenderer(cookie, render);
+					} catch (ConfigurationException e) {
+						// root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					}
+					if (cookie == null) {
+						cookie = UUID.randomUUID().toString();
+						t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+					}
 				}
 			}
 		}
