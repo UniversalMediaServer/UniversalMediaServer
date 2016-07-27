@@ -23,6 +23,7 @@ package net.pms.configuration;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +57,7 @@ import org.seamless.util.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebRender extends DeviceConfiguration implements RendererConfiguration.OutputOverride {
+public class WebRender extends DeviceConfiguration implements RendererConfiguration.OutputOverride, Serializable {
 	private String user;
 	private String ip;
 	@SuppressWarnings("unused")
@@ -69,7 +70,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private int screenHeight = 0;
 	private boolean isTouchDevice = false;
 	private String subLang;
-	private Gson gson;
+	private transient Gson gson;
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats = {
