@@ -347,13 +347,16 @@ public abstract class Format implements Cloneable, Serializable {
 	public static String getExtension(String mimetype) {
 		String ext = null;
 		// Some defaults
-		if (mimetype.equals("audio/mpeg")) {
+		if (mimetype.equalsIgnoreCase("audio/mpeg")) {
 			ext = ".mp3";
-			return ext;
-		} else if (mimetype.equals("audio/vnd.dlna.adts")) {
+		} else if (mimetype.equalsIgnoreCase("audio/vnd.dlna.adts")) {
 			ext = ".m4a";
-			return ext;
+		} else if (mimetype.equalsIgnoreCase("audio/l16")) {
+			ext = ".wav";
 		}
+		
+		if (ext != null)
+			return ext;
 		
 		List<String> list = null;
 		try {
@@ -374,6 +377,10 @@ public abstract class Format implements Cloneable, Serializable {
 	}
 	
 	public static String getMimetype(String filename) {
-		return TIKA.detect(filename);
+		String mimetype = TIKA.detect(filename);
+		
+//		if (filename.endsWith(".l16"))
+//			mimetype = "audio/L16";
+		return mimetype;
 	}
 }

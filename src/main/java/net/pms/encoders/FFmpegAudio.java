@@ -205,16 +205,18 @@ public class FFmpegAudio extends FFMpegVideo {
 		cmdList.add("+faststart");
 		
 //		if (params.mediaRenderer.isTranscodeToMP3()) {
-		if ("audio/mp3".equals(media.getMimeType())) {
+		if ("audio/mp3".equals(media.getMimeType())
+				|| "audio/mpeg".equals(media.getMimeType())) {
 			cmdList.add("-f");
 			cmdList.add("mp3");
 			cmdList.add("-ab");
 			cmdList.add("320000");  
 //		} else if (params.mediaRenderer.isTranscodeToWAV()) {
-		} else if ("audio/mp4".equals(media.getMimeType())) {
+		} else if ("audio/mp4".equals(media.getMimeType())
+				|| "audio/x-wav".equals(media.getMimeType())) {
 			cmdList.add("-f");
 			cmdList.add("wav");
-		} else { // default: LPCM
+		} else { // default: LPCM / L16
 			cmdList.add("-f");
 			cmdList.add("s16be"); // same as -f wav, but without a WAV header
 		}

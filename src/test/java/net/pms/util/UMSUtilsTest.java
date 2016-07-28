@@ -64,7 +64,10 @@ public class UMSUtilsTest {
 		
 		mimeType = "audio/l16";
 		ext = Format.getExtension(mimeType);
-		assertThat(ext).isEqualTo(".m4a");
+		assertThat(ext).isEqualTo(".wav");
+		
+		mime = Format.getMimetype("as" + ext);
+		assertThat(mime).isEqualTo("audio/x-wav");
 	}
 	
 	public void testCriteria() throws Exception {
