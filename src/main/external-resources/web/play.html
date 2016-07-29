@@ -58,18 +58,18 @@
 			var player = document.getElementById('player');
 			var wait = 0;
 
-			function status(k, v) {
+			function status(k, v, now) {
 				//console.log('status '+JSON.stringify(arguments));
 				state[k] = v;
-				if ((k == 'PLAYING' && wait++ > 5000) || k != 'PLAYING') { // Update once in 5 seconds for playing status
+				if (wait++ > 10 || now) { // Update once in 5 seconds for playing status
 					$.post('/playerstatus/', JSON.stringify(state));
 					wait = 0;
 				}
 			}
 
 			function volumeStatus() {
-				status('mute', player.muted ? '1' : '0', true);
-				status('volume', (player.volume * 100).toFixed(0));
+				status('mute', player.muted ? '1' : '0', true, true);
+				status('volume', (player.volume * 100).toFixed(0), true);
 			}
 
 			player.addEventListener('playing', function(){status('playback', 'PLAYING');});
