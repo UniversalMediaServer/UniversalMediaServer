@@ -27,3 +27,11 @@ ul#Media {
 	position: static;
 }
 
+#VideoContainer {
+	max-width: 100%;
+	margin: 5px auto;
+}
+
+#art {
+	margin: auto 10%;
+}

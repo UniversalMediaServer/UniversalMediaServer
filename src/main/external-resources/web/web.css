@@ -31,7 +31,8 @@ body#ContentPage.browsePage {
 }
 
 #ContentPage #Container {
-	position: relative;
+	position: absolute;
+	width: 100%;
 }
 
 #FrontPage #Menu {
@@ -82,10 +83,17 @@ body#ContentPage.browsePage {
 
 
 #VideoContainer {
-	max-width: 720px;
-	margin: 100px auto 0 auto;
+	max-width: 60%;
+	margin: 100px auto;
 }
 
+#art {
+	margin: auto 35%;
+}
+
+audio {
+	width: 100%;
+}
 /* Menu */
 
 #Logo {

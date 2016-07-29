@@ -31,8 +31,10 @@
 
 			<div id="VideoContainer">
 {{^isVideo}}
+				<div id="art">
 				<img height=256 width=256 src="/thumb/{{id1}}" alt=""><br>
 				<h2>{{name}}</h2><br>
+				</div>
 {{/isVideo}}
 				<{{mediaType}} id="player" controls {{auto}}>
 					<source src="{{url}}" type="{{mime}}">
