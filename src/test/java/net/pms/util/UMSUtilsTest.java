@@ -62,12 +62,24 @@ public class UMSUtilsTest {
 		ext = Format.getExtension(mimeType);
 		assertThat(ext).isEqualTo(".m4a");
 		
+		mime = new Tika().detect("as" + ext);
+		assertThat(mime).isEqualTo(mimeType);
+		
+		// Denon
 		mimeType = "audio/l16";
 		ext = Format.getExtension(mimeType);
 		assertThat(ext).isEqualTo(".wav");
 		
 		mime = Format.getMimetype("as" + ext);
 		assertThat(mime).isEqualTo("audio/x-wav");
+		
+		// Xbox
+		mimeType = "video/mpeg";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".mp4");
+		
+		mime = new Tika().detect("as" + ext);
+		assertThat(mime).isEqualTo(mimeType);
 	}
 	
 	public void testCriteria() throws Exception {

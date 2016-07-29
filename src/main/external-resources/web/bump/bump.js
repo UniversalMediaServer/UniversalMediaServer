@@ -1,4 +1,5 @@
 isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);
+var wait = 0;
 
 var bump = (function() {
 //	console.log('jquery '+$.fn.jquery);
@@ -91,12 +92,13 @@ var bump = (function() {
 	}
 
 	function status() {
-		if (enabled) {
+		if (enabled && wait++ > 10) {
 			$.get(addr+'status/'+renderer, refresh);
 		}
 	}
 
 	function refresh(data) {
+		wait = 0;
 		var vars = $.parseJSON(data);
 		if ('uuid' in vars && vars['uuid'] !== renderer) return;
 		if ('state' in vars) {

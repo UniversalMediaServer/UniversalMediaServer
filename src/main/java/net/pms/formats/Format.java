@@ -347,12 +347,17 @@ public abstract class Format implements Cloneable, Serializable {
 	public static String getExtension(String mimetype) {
 		String ext = null;
 		// Some defaults
+		// Audio
 		if (mimetype.equalsIgnoreCase("audio/mpeg")) {
 			ext = ".mp3";
 		} else if (mimetype.equalsIgnoreCase("audio/vnd.dlna.adts")) {
 			ext = ".m4a";
 		} else if (mimetype.equalsIgnoreCase("audio/l16")) {
 			ext = ".wav";
+			
+		// Video	
+		} else if (mimetype.equalsIgnoreCase("video/mpeg")) {
+			ext = ".mp4";
 		}
 		
 		if (ext != null)
@@ -382,5 +387,19 @@ public abstract class Format implements Cloneable, Serializable {
 //		if (filename.endsWith(".l16"))
 //			mimetype = "audio/L16";
 		return mimetype;
+	}
+	
+	/**
+	 * Whether UMS supports the mimetype
+	 * 
+	 * @param mimetype
+	 * @return
+	 */
+	public static boolean isSupportedMimetype(String mimetype) {
+		boolean supported = true;
+		
+		if ("audio/L16".equalsIgnoreCase(mimetype))
+				supported = false;
+		return supported;
 	}
 }

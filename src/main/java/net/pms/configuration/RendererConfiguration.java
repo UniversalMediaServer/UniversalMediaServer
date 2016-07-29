@@ -2961,17 +2961,22 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (s != null) {
 			ProtocolInfos protocolInfos = new ProtocolInfos(s);
 
-			MimeType supportedMimeType = MimeType.valueOf(mime);
+			MimeType requestedMimeType = MimeType.valueOf(mime);
 
 			for (ProtocolInfo source : protocolInfos) {
 				MimeType mimet = source.getContentFormatMimeType();
-				if (audio == null && mimet.getType().equals("audio"))
+				if (audio == null && mimet.getType().equals("audio")) {
 					audio = "audio/" + mimet.getSubtype();
+					if (!Format.isSupportedMimetype(audio)) {
+						audio = null;
+						continue;
+					}
+				}
 				if (video == null && mimet.getType().equals("video"))
 					video = "video/" + mimet.getSubtype();
 				if (image == null && mimet.getType().equals("image"))
 					image = "image/" + mimet.getSubtype();
-				if (mimet.isCompatible(supportedMimeType)) {
+				if (mimet.isCompatible(requestedMimeType)) {
 					// ... It's supported!
 					supported = true;
 					break;
