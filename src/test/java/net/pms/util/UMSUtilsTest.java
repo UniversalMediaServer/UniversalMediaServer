@@ -41,18 +41,18 @@ public class UMSUtilsTest {
 	@Test
 	public void testFiledetection() throws Exception {
 		String mimeType = "video/x-ms-wmv";
-		String ext = MimeTypes.getDefaultMimeTypes().forName(mimeType).getExtension();
+		String ext = Format.getExtension(mimeType);
 		assertThat(ext).isEqualTo(".wmv");
 		
-		String mime = new Tika().detect("as" + ext);
+		String mime = Format.getMimetype("as" + ext);
 		assertThat(mime).isEqualTo(mimeType);
 		
 		mimeType = "audio/vnd.dlna.adts";
-		ext = MimeTypes.getDefaultMimeTypes().forName(mimeType).getExtension();
-		assertThat(ext).isEqualTo("");
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".m4a");
 		
-		mime = new Tika().detect("as" + ext);
-		assertThat(mime).isEqualTo("application/octet-stream");
+		mime = Format.getMimetype("as" + ext);
+		assertThat(mime).isEqualTo("audio/mp4");
 		
 		mimeType = "audio/mpeg";
 		ext = Format.getExtension(mimeType);
@@ -62,7 +62,7 @@ public class UMSUtilsTest {
 		ext = Format.getExtension(mimeType);
 		assertThat(ext).isEqualTo(".m4a");
 		
-		mime = new Tika().detect("as" + ext);
+		mime = Format.getMimetype("as" + ext);
 		assertThat(mime).isEqualTo(mimeType);
 		
 		// Denon
@@ -78,8 +78,8 @@ public class UMSUtilsTest {
 		ext = Format.getExtension(mimeType);
 		assertThat(ext).isEqualTo(".mp4");
 		
-		mime = new Tika().detect("as" + ext);
-		assertThat(mime).isEqualTo(mimeType);
+		mime = Format.getMimetype("as" + ext);
+		assertThat(mime).isEqualTo("video/mp4");
 	}
 	
 	public void testCriteria() throws Exception {
