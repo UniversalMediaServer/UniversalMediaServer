@@ -9,23 +9,53 @@ should work on most Unix distributions)
 
 1) Install the dependencies (this only needs to be done once):
 
-    # If a Java Virtual Machine is not installed yet, you will need to install one :
-    sudo apt-get install mediainfo openjdk-7-jre
-    # or
-    # sudo apt-get install mediainfo openjdk-8-jre
-    #
-    # you can also optionally install dcraw and VLC: sudo apt-get install dcraw vlc
-    #
-    # Some linux distributions, as Ubuntu 64-bit, will need to load some more libraries to be able to support DTS with tsMuxeR:
+    # UMS requires a Java Virtual Machine to run. Which version depends on which binary package was downloaded. UMS for Java 7 would need version 7 or newer, UMS for Java 8 would need version 8 or newer. The most common JVM's to use on Linux is openjdk. Which, if any, of the packages that's available depends on your distro, it's version and what sources are enabled. 
+
+    # Install JVM on Debian/Ubuntu and derivates: Debian 8 need to use backports to install openjdk-8 at the time of writing. It's not possible to cover all the sources needed for the different versions in this document. If the package isn't found, make sure to run ```apt-get update``` to make sure the sources are refreshed. 
+      # To install openjdk-7 run:
+      sudo apt-get install openjdk-7-jre
+      # To install openjdk-8 run:
+      sudo apt-get install openjdk-8-jre
+
+    # Install JVM on Fedora, OpenSUSE, Mandriva, Red Hat/Centos and derivates: The epel repo might be needed on some platforms. 
+      # To install openjdk-7 run:
+      sudo yum install java-1.7.0-openjdk
+      # To install openjdk-8 run:
+      sudo yum install java-1.8.0-openjdk
+
+    # Install JVM on Arch:
+      # To install openjdk-7 run:
+      sudo pacman -S jre7-openjdk
+      # To install openjdk-8 run:
+      sudo pacman -S jre8-openjdk
+
+    # UMS use MediaInfo to get information about media files. It can be run without it, but media handling will suffer as UMS won't have a detailed information available.
+    # Install MediaInfo on Debian/Ubuntu and derivates:
+    sudo apt-get install mediainfo
+    # Install MediaInfo on Fedora, OpenSUSE, Mandriva, Red Hat/Centos and derivates:
+    sudo yum install mediainfo 
+    # Install MediaInfo on Arch (community repository must be enabled):
+    sudo pacman -S mediainfo
+
+    # You can optionally install dcraw (to decode raw images from digital cameras) and VLC (to use VLC as a transcoding engine). Just omit one if you don't want that.
+    # Install dcraw and VLC on Debian/Ubuntu and derivates:
+    sudo apt-get install dcraw vlc
+    # Install dcraw and VLC on Fedora, OpenSUSE, Mandriva, Red Hat/Centos and derivates:
+    sudo yum install dcraw vlc
+    # Install dcraw and VLC on Arch (extra repository must be enabled):
+    sudo pacman -S dcraw vlc
+
+    #UMS uses tsMuxeR as a transcoding engine. tsMuxeR is 32 bit only, so installation of some 32 bit libraries are necessary on 64 bit platforms if you want to use tsMuxeR as a transcoding engine.
+    # Install tsMuxeR dependencies on 64 bit Debian/Ubuntu and derivates:
     sudo dpkg --add-architecture i386
     sudo apt-get update
     sudo apt-get install lib32z1 lib32ncurses5 libbz2-1.0:i386 libstdc++6:i386
-    # Informations taken from https://github.com/UniversalMediaServer/UniversalMediaServer/issues/269#issuecomment-235410175
-    # and http://askubuntu.com/questions/637113/unable-to-locate-package-lib32bz2-1-0
-    #
-    # On some Linux distibution you will also need to install libzen when installing libmediainfo, if you don't know just
-    # install it to avoid issues.
-    sudo apt-get install libmediainfo libzen
+    # Install tsMuxeR dependencies on 64 bit Fedora, OpenSUSE, Mandriva, Red Hat/Centos and derivates:
+    sudo yum install zlib.i686 ncurses-libs.i686 bzip2-libs.i686 libstdc++.i686
+    # Install tsMuxeR dependencies on 64 bit Arch (multilib repo must be enabled):
+    sudo pacman -S lib32-zlib lib32-ncurses lib32-bzip2 lib32-libstdc++5
+
+    # Other distros and/or package managers not covered here will need to have the same/corresponding packages installed. If a package isn't available, the binary must be downloaded and installed or built from source. 
 
 2) Download the tarball e.g.:
 
