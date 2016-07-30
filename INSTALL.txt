@@ -45,7 +45,7 @@ should work on most Unix distributions)
     # Install dcraw and VLC on Arch (extra repository must be enabled):
     sudo pacman -S dcraw vlc
 
-    #UMS uses tsMuxeR as a transcoding engine. tsMuxeR is 32 bit only, so installation of some 32 bit libraries are necessary on 64 bit platforms if you want to use tsMuxeR as a transcoding engine.
+    # UMS uses tsMuxeR as a transcoding engine. tsMuxeR is 32 bit only, so installation of some 32 bit libraries are necessary on 64 bit platforms if you want to use tsMuxeR as a transcoding engine.
     # Install tsMuxeR dependencies on 64 bit Debian/Ubuntu and derivates:
     sudo dpkg --add-architecture i386
     sudo apt-get update
