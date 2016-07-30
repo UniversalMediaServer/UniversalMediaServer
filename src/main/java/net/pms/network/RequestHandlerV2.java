@@ -321,7 +321,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			}
 		}
 
-		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		final StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
 //		ctx.attr(startStopListenerDelegate);
 
@@ -351,7 +351,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 						
 						// For Denon, there's a follow-up thumbnail request which finishes first and causes the connection to close.
 						future.channel().close();
-//						startStopListenerDelegate.stop();
+						startStopListenerDelegate.stop();
 					}
 				});
 
