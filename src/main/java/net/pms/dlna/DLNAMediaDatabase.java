@@ -60,7 +60,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "7";
+	private final String latestVersion = "8";
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -86,6 +86,9 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_SONGNAME = 255;
 	private final int SIZE_GENRE = 64;
 	private final int SIZE_TVEPISODENAME = 255;
+	private final int SIZE_YEAR = 4;
+	private final int SIZE_TVSEASON = 4;
+	private final int SIZE_TVEPISODENUMBER = 8;
 
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
@@ -255,11 +258,12 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", IMAGECOUNT              INT");
 				sb.append(", BITDEPTH                INT");
 				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
-				sb.append(", YEAR                    INT");
+				sb.append(", YEAR                    VARCHAR2(").append(SIZE_YEAR).append(')');
 				sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MOVIEORSHOWNAME).append(')');
-				sb.append(", TVSEASON                INT");
-				sb.append(", TVEPISODENUMBER         INT");
+				sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
+				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_TVEPISODENAME).append(')');
+				sb.append(", ISTVEPISODE             BOOLEAN");
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -356,6 +360,39 @@ public class DLNAMediaDatabase implements Runnable {
 		return found;
 	}
 
+	/**
+	 * Whether data from OpenSubtitles has been written to the database for
+	 * this file.
+	 *
+	 * @param name
+	 * @param modified
+	 * @return 
+	 */
+	public boolean isOpenSubtitlesMetadataExists(String name, long modified) {
+		boolean found = false;
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement stmt = null;
+		try {
+			conn = getConnection();
+			stmt = conn.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ? AND IMDBID IS NOT NULL");
+			stmt.setString(1, name);
+			stmt.setTimestamp(2, new Timestamp(modified));
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				found = true;
+			}
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+			return false;
+		} finally {
+			close(rs);
+			close(stmt);
+			close(conn);
+		}
+		return found;
+	}
+
 	public ArrayList<DLNAMediaInfo> getData(String name, long modified) {
 		ArrayList<DLNAMediaInfo> list = new ArrayList<>();
 		Connection conn = null;
@@ -402,11 +439,21 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setImageCount(rs.getInt("IMAGECOUNT"));
 				media.setVideoBitDepth(rs.getInt("BITDEPTH"));
 				media.setIMDbID(rs.getString("IMDBID"));
-				media.setYear(rs.getInt("YEAR"));
+				media.setYear(rs.getString("YEAR"));
 				media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
-				media.setTVSeason(rs.getInt("TVSEASON"));
-				media.setTVEpisodeNumber(rs.getInt("TVEPISODENUMBER"));
+				media.setTVSeason(rs.getString("TVSEASON"));
+				media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
 				media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
+				media.setIsTVEpisode(rs.getBoolean("ISTVEPISODE"));
+				LOGGER.info("Returning from database:");
+				LOGGER.info("IMDBID: " + rs.getString("IMDBID"));
+				LOGGER.info("YEAR: " + rs.getString("YEAR"));
+				LOGGER.info("MOVIEORSHOWNAME: " + rs.getString("MOVIEORSHOWNAME"));
+				LOGGER.info("TVSEASON: " + rs.getString("TVSEASON"));
+				LOGGER.info("TVEPISODENUMBER: " + rs.getString("TVEPISODENUMBER"));
+				LOGGER.info("TVEPISODENAME: " + rs.getString("TVEPISODENAME"));
+				LOGGER.info("ISTVEPISODE: " + rs.getBoolean("ISTVEPISODE"));
+				LOGGER.info("");
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
@@ -478,9 +525,8 @@ public class DLNAMediaDatabase implements Runnable {
 				"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
 				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
 				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
-				"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, "+
-				"BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME) VALUES "+
-				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
+				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -530,12 +576,6 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(29, media.getVideoTrackCount());
 				ps.setInt(30, media.getImageCount());
 				ps.setInt(31, media.getVideoBitDepth());
-				ps.setString(32, left(media.getIMDbID(), SIZE_IMDBID));
-				ps.setInt(33, media.getYear());
-				ps.setString(34, left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
-				ps.setInt(35, media.getTVSeason());
-				ps.setInt(36, media.getTVEpisodeNumber());
-				ps.setString(37, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -565,12 +605,6 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(29, 0);
 				ps.setInt(30, 0);
 				ps.setInt(31, 0);
-				ps.setString(32, null);
-				ps.setInt(33, 0);
-				ps.setString(34, null);
-				ps.setInt(35, 0);
-				ps.setInt(36, 0);
-				ps.setString(37, null);
 			}
 			ps.executeUpdate();
 			int id;
@@ -643,6 +677,44 @@ public class DLNAMediaDatabase implements Runnable {
 
 				close(insert);
 			}
+		} catch (SQLException se) {
+			if (se.getErrorCode() == 23505) {
+				LOGGER.debug("Duplicate key while inserting this entry: " + name + " into the database: " + se.getMessage());
+			} else {
+				LOGGER.error(null, se);
+			}
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	public synchronized void appendWithDataFromOpenSubtitles(String name, long modified, int type, DLNAMediaInfo media) {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = getConnection();
+			ps = conn.prepareStatement("UPDATE FILES SET IMDBID = ?, YEAR = ?, MOVIEORSHOWNAME = ?, TVSEASON = ?, TVEPISODENUMBER = ?, TVEPISODENAME = ?, ISTVEPISODE = ? WHERE FILENAME = ?");
+			if (media != null) {
+				ps.setString(1, left(media.getIMDbID(), SIZE_IMDBID));
+				ps.setString(2, left(media.getYear(), SIZE_YEAR));
+				ps.setString(3, left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
+				ps.setString(4, left(media.getTVSeason(), SIZE_TVSEASON));
+				ps.setString(5, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
+				ps.setString(6, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
+				ps.setBoolean(7, media.isTVEpisode());
+				LOGGER.info("Inserting isTVEpisode to database: " + media.isTVEpisode() + " for: " + media.getMovieOrShowName() + " " + media.getTVEpisodeNumber());
+			} else {
+				ps.setString(1, null);
+				ps.setString(2, null);
+				ps.setString(3, null);
+				ps.setString(4, null);
+				ps.setString(5, null);
+				ps.setString(6, null);
+				ps.setBoolean(7, false);
+			}
+			ps.setString(8, name);
+			ps.executeUpdate();
 		} catch (SQLException se) {
 			if (se.getErrorCode() == 23505) {
 				LOGGER.debug("Duplicate key while inserting this entry: " + name + " into the database: " + se.getMessage());

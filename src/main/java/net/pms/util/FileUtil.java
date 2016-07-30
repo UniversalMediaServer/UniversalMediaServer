@@ -273,7 +273,6 @@ public class FileUtil {
 
 	/**
 	 * Capitalize the first letter of each word if the string contains no capital letters
-	 *
 	 */
 	private static String convertFormattedNameToTitleCaseParts(String formattedName) {
 		if (formattedName.equals(formattedName.toLowerCase())) {
@@ -360,14 +359,15 @@ public class FileUtil {
 	 *
 	 * @param f The filename
 	 * @param file The file to possibly be used by the InfoDb
+	 * @param media The DLNAMediaInfo for database access
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, File file) {
+	public static String getFileNamePrettified(String f, File file, DLNAMediaInfo media) {
 		String fileNameWithoutExtension;
 		String formattedName = "";
 		String formattedNameTemp;
-		String searchFormattedName;
+		String searchFormattedName = "";
 		String edition = "";
 
 		// These are false unless we recognize that we could use some info on the video from IMDb
@@ -379,7 +379,6 @@ public class FileUtil {
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
 		formattedName = removeGroupNameFromBeginning(fileNameWithoutExtension);
-		searchFormattedName = "";
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
@@ -614,42 +613,42 @@ public class FileUtil {
 		 *
 		 * TODO: Make the following logic only happen once.
 		 */
-		if (file != null && (isTVSeriesToLookup || isMovieToLookup)) {
-			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
-			if (info == null) {
-				PMS.get().infoDbAdd(file, StringUtil.hasValue(searchFormattedName) ?  searchFormattedName : formattedName);
-			} else if (isTVSeriesToLookup) {
+		if (file != null && media != null && (isTVSeriesToLookup || isMovieToLookup)) {
+			String movieOrShowName = media.getMovieOrShowName();
+			String tvShowEpisodeName = media.getTVEpisodeName();
+			String year = media.getYear();
+			if (isTVSeriesToLookup) {
 				int showNameIndex = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
-				if (StringUtils.isNotEmpty(info.title) && showNameIndex != -1) {
+				if (StringUtils.isNotEmpty(movieOrShowName) && showNameIndex != -1) {
 					String titleFromFilename = formattedName.substring(0, showNameIndex);
 
 					// The following line can run over 100 times in under 1ms
-					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
+					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, movieOrShowName);
 					if (similarity > 0.91) {
-						formattedName = info.title + formattedName.substring(showNameIndex);
+						formattedName = movieOrShowName + formattedName.substring(showNameIndex);
 
 						if (isEpisodeToLookup) {
-							if (StringUtils.isNotEmpty(info.ep_name)) {
-								formattedName += " - " + info.ep_name;
+							if (StringUtils.isNotEmpty(media.getTVEpisodeName())) {
+								formattedName += " - " + tvShowEpisodeName;
 							}
 						}
 					}
-					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
+					LOGGER.trace("The similarity between '" + movieOrShowName + "' and '" + titleFromFilename + "' is " + similarity);
 				}
-			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.title) && StringUtils.isNotEmpty(info.year)) {
+			} else if (isMovieToLookup && StringUtils.isNotEmpty(movieOrShowName) && year != null) {
 				double similarity;
 				if (isMovieWithoutYear) {
-					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, info.title);
-					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName + "' is " + similarity);
+					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, movieOrShowName);
+					LOGGER.trace("The similarity between '" + movieOrShowName + "' and '" + formattedName + "' is " + similarity);
 				} else {
 					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d{4}\\)"), formattedName);
 					String titleFromFilename = formattedName.substring(0, yearIndex);
-					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
-					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
+					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, movieOrShowName);
+					LOGGER.trace("The similarity between '" + movieOrShowName + "' and '" + titleFromFilename + "' is " + similarity);
 				}
 
 				if (similarity > 0.91) {
-					formattedName = info.title + " (" + info.year + ")";
+					formattedName = movieOrShowName + " (" + year + ")";
 				}
 			}
 		}
@@ -665,6 +664,289 @@ public class FileUtil {
 		}
 
 		return formattedName;
+	}
+
+	/**
+	 * Returns metadata from the filename which we will use to check the
+	 * validity of online lookups.
+	 *
+	 * @param file The file to possibly be used by the InfoDb
+	 * @param media The DLNAMediaInfo for database access
+	 *
+	 * @return The metadata
+	 */
+	public static String[] getFileNameMetadata(File file, DLNAMediaInfo media) {
+		if (file == null) {
+			return new String[] { null, null, null, null, null, null };
+		}
+
+		String fileNameWithoutExtension;
+		String formattedName = "";
+		String formattedNameTemp;
+		String searchFormattedName = "";
+		String edition = "";
+
+		// These are false unless we recognize that we could use some info on the video from IMDb
+		boolean isEpisodeToLookup  = false;
+		boolean isMovieToLookup    = false;
+		boolean isMovieWithoutYear = false;
+
+		String movieOrShowName = "";
+		String year = null;
+		String tvEpisodeName = "";
+		String tvEpisodeSeason = null;
+		String tvEpisodeNumber = null;
+
+		Pattern pattern;
+		Matcher matcher;
+
+		// Remove file extension
+		fileNameWithoutExtension = getFileNameWithoutExtension(file.getName());
+		formattedName = removeGroupNameFromBeginning(fileNameWithoutExtension);
+
+		if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
+			pattern = Pattern.compile("[sS](\\d\\d)[eE](\\d\\d)(?:[eE]|-[eE])(\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+
+			if (matcher.find()) {
+				tvEpisodeSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+				tvEpisodeNumber += "-" + matcher.group(3);
+			}
+
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3-$5$6");
+			formattedName = formattedName.replaceAll("[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3-$5$6");
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)[\\s\\.]", " - $1$2$3-$5$6 - ");
+			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.equals(formattedNameTemp)) {
+				isEpisodeToLookup = true;
+			}
+
+			formattedName = formattedNameTemp;
+			formattedName = removeFilenameEndMetadata(formattedName);
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes within the first 9 seasons
+			pattern = Pattern.compile("[sS](\\d\\d)[eE](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvEpisodeSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3");
+			formattedName = formattedName.replaceAll("[\\s\\.]S0(\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
+			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.equals(formattedNameTemp)) {
+				isEpisodeToLookup = true;
+			}
+
+			formattedName = formattedNameTemp;
+			formattedName = removeFilenameEndMetadata(formattedName);
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
+			// This matches scene and most p2p TV episodes that release several times per week
+			pattern = Pattern.compile("[\\s\\.]((?:19|20)\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvEpisodeSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+				tvEpisodeNumber += "/" + matcher.group(3);
+			}
+
+			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2/$3/$4");
+			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2/$3/$4");
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]", " - $1$2/$3/$4 - ");
+			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.equals(formattedNameTemp)) {
+				isEpisodeToLookup = true;
+			}
+
+			formattedName = formattedNameTemp;
+			formattedName = removeFilenameEndMetadata(formattedName);
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
+			// This matches scene and most p2p movies
+			isMovieToLookup = true;
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
+			// This matches rarer types of movies
+			isMovieToLookup = true;
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
+			formattedName = removeFilenameEndMetadata(formattedName);
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
+			// This matches rarer types of movies
+			isMovieToLookup = true;
+			formattedName = removeFilenameEndMetadata(formattedName);
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
+			// This matches anime with a hash at the end of the name
+			pattern = Pattern.compile("[\\s\\.]-[\\s\\.](\\d\\d)[\\s\\.]");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvEpisodeSeason = "1";
+				tvEpisodeNumber = matcher.group(1);
+			}
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
+
+			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
+				isEpisodeToLookup = true;
+				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
+			}
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
+			// This matches anime without a hash in the name
+			pattern = Pattern.compile("[\\s\\.]-[\\s\\.](\\d\\d)[\\s\\.]");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvEpisodeSeason = "1";
+				tvEpisodeNumber = matcher.group(1);
+			}
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*|\\[h264.*", "");
+
+			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
+				isEpisodeToLookup = true;
+				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
+			}
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
+			// This is probably a movie that doesn't specify a year
+			isMovieToLookup = true;
+			isMovieWithoutYear = true;
+			formattedName = removeFilenameEndMetadata(formattedName);
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		}
+
+		// Remove extra spaces
+		formattedName = formattedName.replaceAll("\\s+", " ");
+
+		/**
+		 * Add info from OpenSubtitles
+		 *
+		 * TODO: Make the following logic only happen once.
+		 */
+		formattedName = formattedName.trim();
+		if (media != null && (tvEpisodeSeason != null || isMovieToLookup)) {
+			if (tvEpisodeSeason != null) {
+				// Remove leading 0 from the season if it exists
+				tvEpisodeSeason = StringUtils.stripStart(tvEpisodeSeason, "0");
+
+				int showNameIndex = indexOf(Pattern.compile("(?i) - \\d\\d\\d - .*"), formattedName);
+				if (StringUtils.isEmpty(movieOrShowName)) {
+					if (showNameIndex != -1) {
+						movieOrShowName = formattedName.substring(0, showNameIndex);
+						tvEpisodeName = formattedName.substring(showNameIndex + 9);
+					} else {
+						showNameIndex = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
+						if (showNameIndex != -1) {
+							movieOrShowName = formattedName.substring(0, showNameIndex);
+						}
+					}
+				}
+			} else {
+				if (isMovieWithoutYear) {
+					movieOrShowName = formattedName;
+				} else {
+					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d{4}\\)"), formattedName);
+					movieOrShowName = formattedName.substring(0, yearIndex);
+					year = formattedName.substring(yearIndex + 2, yearIndex + 6);
+				}
+			}
+		}
+
+		// Add the edition information if it exists
+		if (!edition.isEmpty()) {
+			String substr = formattedName.substring(Math.max(0, formattedName.length() - 2));
+			if (" -".equals(substr)) {
+				formattedName = formattedName.substring(0, formattedName.length() - 2);
+			}
+			formattedName += " " + edition;
+		}
+
+		return new String[] { movieOrShowName, year, edition, tvEpisodeSeason, tvEpisodeNumber, tvEpisodeName };
 	}
 
 	/**

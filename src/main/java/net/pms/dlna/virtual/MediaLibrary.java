@@ -12,6 +12,7 @@ public class MediaLibrary extends VirtualFolder {
 	private MediaLibraryFolder artistFolder;
 	private MediaLibraryFolder genreFolder;
 	private MediaLibraryFolder playlistFolder;
+	private MediaLibraryFolder tvShowsFolder;
 
 	public MediaLibraryFolder getAlbumFolder() {
 		return albumFolder;
@@ -23,6 +24,38 @@ public class MediaLibrary extends VirtualFolder {
 	}
 
 	private void init() {
+		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("PMS.34"), null);
+		tvShowsFolder = new MediaLibraryFolder(
+			Messages.getString("VirtualFolder.4"),
+			new String[]{
+				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE ORDER BY MOVIEORSHOWNAME ASC",
+				"SELECT DISTINCT TVSEASON FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON ASC",
+				"TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER ASC"
+			},
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
+		);
+		vfVideo.addChild(tvShowsFolder);
+		MediaLibraryFolder movies = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), "TYPE = 4 AND NOT ISTVEPISODE ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		vfVideo.addChild(movies);
+		MediaLibraryFolder mlfVideo01 = new MediaLibraryFolder(Messages.getString("PMS.35"), "TYPE = 4 ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		vfVideo.addChild(mlfVideo01);
+		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
+			Messages.getString("PMS.12"),
+			new String[]{
+				"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES WHERE TYPE = 4 ORDER BY MODIFIED DESC",
+				"TYPE = 4 AND FORMATDATETIME(MODIFIED, 'd MMM yyyy') = '${0}' ORDER BY FILENAME ASC"
+			},
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
+		);
+		vfVideo.addChild(mlfVideo02);
+		MediaLibraryFolder mlfVideo03 = new MediaLibraryFolder(Messages.getString("PMS.36"), "TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576) ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		vfVideo.addChild(mlfVideo03);
+		MediaLibraryFolder mlfVideo04 = new MediaLibraryFolder(Messages.getString("PMS.39"), "TYPE = 4 AND (WIDTH <= 864 AND HEIGHT <= 576) ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		vfVideo.addChild(mlfVideo04);
+		MediaLibraryFolder mlfVideo05 = new MediaLibraryFolder(Messages.getString("PMS.40"), "TYPE = 32 ORDER BY FILENAME ASC", MediaLibraryFolder.ISOS);
+		vfVideo.addChild(mlfVideo05);
+		addChild(vfVideo);
+
 		VirtualFolder vfAudio = new VirtualFolder(Messages.getString("PMS.1"), null);
 		allFolder = new MediaLibraryFolder(Messages.getString("PMS.11"), "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 ORDER BY F.FILENAME ASC", MediaLibraryFolder.FILES);
 		vfAudio.addChild(allFolder);
@@ -66,19 +99,6 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder mlfPhoto04 = new MediaLibraryFolder(Messages.getString("PMS.25"), new String[]{"SELECT ISO FROM FILES WHERE TYPE = 2 AND ISO > 0 ORDER BY ISO ASC", "TYPE = 2 AND ISO = '${0}' ORDER BY FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfImage.addChild(mlfPhoto04);
 		addChild(vfImage);
-
-		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("PMS.34"), null);
-		MediaLibraryFolder mlfVideo01 = new MediaLibraryFolder(Messages.getString("PMS.35"), "TYPE = 4 ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		vfVideo.addChild(mlfVideo01);
-		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(Messages.getString("PMS.12"), new String[]{"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES WHERE TYPE = 4 ORDER BY MODIFIED DESC", "TYPE = 4 AND FORMATDATETIME(MODIFIED, 'd MMM yyyy') = '${0}' ORDER BY FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
-		vfVideo.addChild(mlfVideo02);
-		MediaLibraryFolder mlfVideo03 = new MediaLibraryFolder(Messages.getString("PMS.36"), "TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576) ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		vfVideo.addChild(mlfVideo03);
-		MediaLibraryFolder mlfVideo04 = new MediaLibraryFolder(Messages.getString("PMS.39"), "TYPE = 4 AND (WIDTH <= 864 AND HEIGHT <= 576) ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		vfVideo.addChild(mlfVideo04);
-		MediaLibraryFolder mlfVideo05 = new MediaLibraryFolder(Messages.getString("PMS.40"), "TYPE = 32 ORDER BY FILENAME ASC", MediaLibraryFolder.ISOS);
-		vfVideo.addChild(mlfVideo05);
-		addChild(vfVideo);
 	}
 
 	public MediaLibraryFolder getArtistFolder() {

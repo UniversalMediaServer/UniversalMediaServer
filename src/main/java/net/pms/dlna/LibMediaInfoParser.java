@@ -10,6 +10,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
+import net.pms.util.OpenSubtitle;
 import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -146,6 +147,7 @@ public class LibMediaInfoParser {
 							}
 						}
 					}
+					OpenSubtitle.backgroundLookupAndAdd(file, file.getName(), media);
 				}
 
 				// set Audio

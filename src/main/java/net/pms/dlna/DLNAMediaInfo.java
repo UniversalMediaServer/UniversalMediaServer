@@ -143,11 +143,12 @@ public class DLNAMediaInfo implements Cloneable {
 	 * Metadata gathered from either the filename or OpenSubtitles.
 	 */
 	private String imdbID;
-	private int year;
+	private String year;
 	private String tvShowName;
-	private int tvSeason;
-	private int tvEpisodeNumber;
+	private String tvSeason;
+	private String tvEpisodeNumber;
 	private String tvEpisodeName;
+	private boolean isTVEpisode;
 
 	private byte thumb[];
 
@@ -2036,11 +2037,11 @@ public class DLNAMediaInfo implements Cloneable {
 		this.imdbID = value;
 	}
 
-	public int getYear() {
+	public String getYear() {
 		return year;
 	}
 
-	public void setYear(int value) {
+	public void setYear(String value) {
 		this.year = value;
 	}
 
@@ -2052,19 +2053,19 @@ public class DLNAMediaInfo implements Cloneable {
 		this.tvShowName = value;
 	}
 
-	public int getTVSeason() {
+	public String getTVSeason() {
 		return tvSeason;
 	}
 
-	public void setTVSeason(int value) {
+	public void setTVSeason(String value) {
 		this.tvSeason = value;
 	}
 
-	public int getTVEpisodeNumber() {
+	public String getTVEpisodeNumber() {
 		return tvEpisodeNumber;
 	}
 
-	public void setTVEpisodeNumber(int value) {
+	public void setTVEpisodeNumber(String value) {
 		this.tvEpisodeNumber = value;
 	}
 
@@ -2074,6 +2075,14 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setTVEpisodeName(String value) {
 		this.tvEpisodeName = value;
+	}
+
+	public boolean isTVEpisode() {
+		return isTVEpisode;
+	}
+
+	public void setIsTVEpisode(boolean value) {
+		this.isTVEpisode = value;
 	}
 
 	/**
