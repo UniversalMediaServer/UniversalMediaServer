@@ -1,24 +1,26 @@
 package net.pms.remote;
 
-import com.samskivert.mustache.Mustache;
-import com.samskivert.mustache.Template;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpPrincipal;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
 
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
@@ -31,6 +33,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.samskivert.mustache.Mustache;
+import com.samskivert.mustache.Template;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpPrincipal;
 
 public class RemoteUtil {
 
@@ -225,19 +233,25 @@ public class RemoteUtil {
 	}
 
 	public static WebRender matchRenderer(String user, HttpExchange t) {
-		return matchRenderer(user, t.getRequestHeaders().getFirst("User-agent"), t.getRemoteAddress().getAddress());
+		String cookie = RemoteUtil.getCookie("UMS", t);
+		WebRender r = (WebRender) PMS.get().getGlobalRepo().getRenderer(cookie);
+		return r;
 	}
 	
-	public static WebRender matchRenderer(String user, String ua, InetAddress address) {
-		int browser = WebRender.getBrowser(ua);
-		String confName = WebRender.getBrowserName(browser);
-		RendererConfiguration r = RendererConfiguration.find(confName, address);
-		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender)r).getUser()))) ?
-			(WebRender) r : null;
+	public static WebRender matchRenderer(String cookiestr, String ua, InetAddress address) {
+		String user = getCookie("UMS", cookiestr);
+		WebRender r = (WebRender) PMS.get().getGlobalRepo().getRenderer(user);
+		return r;
 	}
 
 	public static String getCookie(String name, HttpExchange t) {
 		String cstr = t.getRequestHeaders().getFirst("Cookie");
+		name = getCookie(name, cstr);
+		LOGGER.debug("Cookie '{}' not found: {}", name, t.getRequestHeaders().get("Cookie"));
+		return name;
+	}
+
+	public static String getCookie(String name, String cstr) {
 		if (!StringUtils.isEmpty(cstr)) {
 			name += "=";
 			for (String str : cstr.trim().split("\\s*;\\s*")) {
@@ -246,8 +260,7 @@ public class RemoteUtil {
 				}
 			}
 		}
-		LOGGER.debug("Cookie '{}' not found: {}", name, t.getRequestHeaders().get("Cookie"));
-		return null;
+		return name;
 	}
 
 	private static final int WIDTH = 0;

@@ -36,7 +36,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.stream.ChunkedStream;
 import io.netty.util.CharsetUtil;
 
@@ -56,6 +55,7 @@ import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.remote.RemoteUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -110,7 +110,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		InetAddress ia = remoteAddress.getAddress();
 
 		// Is the request from our own Cling service, i.e. self-originating?
-		String ua = nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT);
+		String ua = nettyRequest.headers().get(HttpHeaderNames.USER_AGENT);
 		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
 			ua != null && ua.contains("UMS/");
 
@@ -138,8 +138,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
 		// default renderer.
-//		renderer = RemoteUtil.matchRenderer("", ua, ia);
-//		if (renderer == null)
+		String cookieString = headers.get(HttpHeaderNames.COOKIE);
+		renderer = RemoteUtil.matchRenderer(cookieString, ua, ia);
+		if (renderer == null)
 			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 		
 		if (renderer != null) {
