@@ -35,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import net.pms.PMS;
+import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.Format;
@@ -447,7 +448,7 @@ public class OpenSubtitle {
 	}
 
 	public static void backgroundLookupAndAdd(final File file, final String formattedName, final DLNAMediaInfo media) {
-		if (!PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
+		if (getConfiguration().getUseCache() && !PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
@@ -456,12 +457,12 @@ public class OpenSubtitle {
 						LOGGER.info("Looking up " + file.getName());
 						metadataFromOpenSubtitles = getInfo(file, file.getName(), media);
 						boolean isMetadataSet = false;
-						String[] metadataFromFilename = FileUtil.getFileNameMetadata(file, media);
+						String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
 
 						String titleFromFilename           = metadataFromFilename[0];
 						String yearFromFilename            = metadataFromFilename[1];
 						String editionFromFilename         = metadataFromFilename[2];
-						String tvEpisodeSeasonFromFilename = metadataFromFilename[3];
+						String tvSeasonFromFilename        = metadataFromFilename[3];
 						String tvEpisodeNumberFromFilename = metadataFromFilename[4];
 						String tvEpisodeNameFromFilename   = metadataFromFilename[5];
 
@@ -501,9 +502,10 @@ public class OpenSubtitle {
 									media.setIMDbID(metadataFromOpenSubtitles[0]);
 									media.setMovieOrShowName(metadataFromOpenSubtitles[2]);
 									media.setYear(metadataFromOpenSubtitles[5]);
+									media.setEdition(editionFromFilename);
 
 									// If the filename has indicated this is a TV episode
-									if (tvEpisodeSeasonFromFilename != null) {
+									if (tvSeasonFromFilename != null) {
 										media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
 										media.setTVSeason(metadataFromOpenSubtitles[3]);
 										media.setTVEpisodeNumber(metadataFromOpenSubtitles[4]);
@@ -521,18 +523,21 @@ public class OpenSubtitle {
 							 * the filename.
 							 */
 							media.setMovieOrShowName(titleFromFilename);
-							if (tvEpisodeSeasonFromFilename != null) {
-								media.setTVSeason(tvEpisodeSeasonFromFilename);
+							if (tvSeasonFromFilename != null && tvEpisodeNumberFromFilename != null && tvEpisodeNameFromFilename != null) {
+								media.setTVSeason(tvSeasonFromFilename);
 								media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
 								media.setTVEpisodeName(tvEpisodeNameFromFilename);
 								LOGGER.info("2 Setting is TV episode true for " + titleFromFilename + " " + tvEpisodeNumberFromFilename);
 								media.setIsTVEpisode(true);
 							}
-							if (StringUtils.isNotEmpty(yearFromFilename)) {
+							if (yearFromFilename != null) {
 								media.setYear(yearFromFilename);
 							}
+							if (editionFromFilename != null) {
+								media.setEdition(editionFromFilename);
+							}
 						}
-
+LOGGER.info("3 Getting is TV episode for " + titleFromFilename + " " + tvEpisodeNumberFromFilename + ": " + media.isTVEpisode());
 						PMS.get().storeOpenSubtitlesMetadataInCache(file, Format.VIDEO, media);
 					} catch (IOException ex) {
 						// This will happen regularly so just log it in trace mode

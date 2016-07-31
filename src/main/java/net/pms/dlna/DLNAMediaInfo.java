@@ -148,6 +148,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private String tvSeason;
 	private String tvEpisodeNumber;
 	private String tvEpisodeName;
+	private String edition;
 	private boolean isTVEpisode;
 
 	private byte thumb[];
@@ -2083,6 +2084,14 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setIsTVEpisode(boolean value) {
 		this.isTVEpisode = value;
+	}
+
+	public String getEdition() {
+		return edition;
+	}
+
+	public void setEdition(String value) {
+		this.edition = value;
 	}
 
 	/**
