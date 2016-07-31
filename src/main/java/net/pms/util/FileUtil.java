@@ -451,7 +451,6 @@ public class FileUtil {
 
 		String fileNameWithoutExtension;
 		String formattedName;
-		String formattedNameTemp;
 
 		// These are false unless we recognize that we could use some info on the video from IMDb
 		boolean isMovieWithoutYear = false;
@@ -650,7 +649,7 @@ public class FileUtil {
 			// Remove leading 0 from the season if it exists
 			tvSeason = StringUtils.stripStart(tvSeason, "0");
 
-			pattern = Pattern.compile("(?i) - (\\d{3}|\\d{4}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
+			pattern = Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
 			int showNameIndex = indexOf(pattern, formattedName);
 			if (StringUtils.isEmpty(movieOrShowName)) {
 				if (showNameIndex != -1) {
@@ -664,7 +663,7 @@ public class FileUtil {
 						}
 					}
 				} else {
-					showNameIndex = indexOf(Pattern.compile("(?i) - (\\d{3}|\\d{4}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
+					showNameIndex = indexOf(Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
 					if (showNameIndex != -1) {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}

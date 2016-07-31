@@ -475,17 +475,19 @@ public class OpenSubtitle {
 							LOGGER.info("Found " + file.getName() + " : " + metadataFromOpenSubtitles[2]);
 
 							String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
+							String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
+							String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
 
 							/**
 							 * Proceed if the years match, or if there is no year then try the movie/show name.
 							 */
 							if (
 								(
-									yearFromFilename != null &&
+									StringUtils.isNotBlank(yearFromFilename) &&
 									yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
 									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
 								) || (
-									yearFromFilename == null &&
+									StringUtils.isBlank(yearFromFilename) &&
 									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
 								)
 							) {
@@ -496,25 +498,46 @@ public class OpenSubtitle {
 								 * This means we get proper case and special characters without worrying about
 								 * incorrect results being used.
 								 */
-								double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(metadataFromFilename[0], metadataFromOpenSubtitles[2]);
+								double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(metadataFromFilename[0], titleFromOpenSubtitles);
 								LOGGER.trace("The similarity between '" + titleFromOpenSubtitles + "' and '" + titleFromFilename + "' is " + similarity);
 								if (similarity > 0.91) {
-									media.setIMDbID(metadataFromOpenSubtitles[0]);
-									media.setMovieOrShowName(metadataFromOpenSubtitles[2]);
-									media.setYear(metadataFromOpenSubtitles[5]);
-									media.setEdition(editionFromFilename);
+									/**
+									 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
+									 * number, so we validate those as well.
+									 * This check will pass if either we don't know what the season and episode
+									 * numbers are from the filename, or we do and they match with our results
+									 * from OpenSubtitles.
+									 */
+									if (
+										(
+											StringUtils.isNotBlank(tvSeasonFromFilename) &&
+											StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
+											tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) &&
+											StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
+											StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
+											tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)
+										) || (
+											StringUtils.isBlank(tvSeasonFromFilename) &&
+											StringUtils.isBlank(tvEpisodeNumberFromFilename)
+										)
+									) {
+										media.setIMDbID(metadataFromOpenSubtitles[0]);
+										media.setMovieOrShowName(titleFromOpenSubtitles);
+										media.setYear(metadataFromOpenSubtitles[5]);
+										media.setEdition(editionFromFilename);
 
-									// If the filename has indicated this is a TV episode
-									if (tvSeasonFromFilename != null) {
-										media.setTVSeason(metadataFromOpenSubtitles[3]);
-										media.setTVEpisodeNumber(metadataFromOpenSubtitles[4]);
-										if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
-											media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
+										// If the filename has indicated this is a TV episode
+										if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
+											media.setTVSeason(tvSeasonFromOpenSubtitles);
+											media.setTVEpisodeNumber(tvEpisodeNumberFromOpenSubtitles);
+											if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
+												media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
+											}
+											LOGGER.info("1 Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
+											media.setIsTVEpisode(true);
 										}
-										LOGGER.info("1 Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
-										media.setIsTVEpisode(true);
+										isMetadataSet = true;
 									}
-									isMetadataSet = true;
 								}
 							}
 						}
@@ -525,7 +548,7 @@ public class OpenSubtitle {
 							 * the filename.
 							 */
 							media.setMovieOrShowName(titleFromFilename);
-							if (tvSeasonFromFilename != null && tvEpisodeNumberFromFilename != null) {
+							if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
 								media.setTVSeason(tvSeasonFromFilename);
 								media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
 								if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
