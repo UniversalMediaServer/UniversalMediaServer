@@ -506,9 +506,11 @@ public class OpenSubtitle {
 
 									// If the filename has indicated this is a TV episode
 									if (tvSeasonFromFilename != null) {
-										media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
 										media.setTVSeason(metadataFromOpenSubtitles[3]);
 										media.setTVEpisodeNumber(metadataFromOpenSubtitles[4]);
+										if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
+											media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
+										}
 										LOGGER.info("1 Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
 										media.setIsTVEpisode(true);
 									}
@@ -523,10 +525,12 @@ public class OpenSubtitle {
 							 * the filename.
 							 */
 							media.setMovieOrShowName(titleFromFilename);
-							if (tvSeasonFromFilename != null && tvEpisodeNumberFromFilename != null && tvEpisodeNameFromFilename != null) {
+							if (tvSeasonFromFilename != null && tvEpisodeNumberFromFilename != null) {
 								media.setTVSeason(tvSeasonFromFilename);
 								media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
-								media.setTVEpisodeName(tvEpisodeNameFromFilename);
+								if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
+									media.setTVEpisodeName(tvEpisodeNameFromFilename);
+								}
 								LOGGER.info("2 Setting is TV episode true for " + titleFromFilename + " " + tvEpisodeNumberFromFilename);
 								media.setIsTVEpisode(true);
 							}

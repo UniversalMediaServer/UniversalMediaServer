@@ -401,7 +401,7 @@ public class FileUtil {
 		}
 
 		if (title == null) {
-			return f;
+			return getFileNameWithoutExtension(f);
 		}
 
 		// Build the prettified filename from the metadata
