@@ -234,11 +234,11 @@ public class RemotePlayHandler implements HttpHandler {
 				LOGGER.trace("got player status: " + json);
 				RemoteUtil.respond(t, "", 200, "text/html");
 
-				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-				if (root == null) {
-					LOGGER.debug("root not found");
-					throw new IOException("Unknown root");
-				}
+//				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+//				if (root == null) {
+//					LOGGER.debug("root not found");
+//					throw new IOException("Unknown root");
+//				}
 				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
 			} else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");

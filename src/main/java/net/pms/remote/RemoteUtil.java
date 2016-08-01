@@ -246,21 +246,24 @@ public class RemoteUtil {
 
 	public static String getCookie(String name, HttpExchange t) {
 		String cstr = t.getRequestHeaders().getFirst("Cookie");
-		name = getCookie(name, cstr);
-		LOGGER.debug("Cookie '{}' not found: {}", name, t.getRequestHeaders().get("Cookie"));
-		return name;
+		String result = getCookie(name, cstr);
+		if (result == null)
+			LOGGER.debug("Cookie '{}' not found: {}", name, t.getRequestHeaders().get("Cookie"));
+		return result;
 	}
 
 	public static String getCookie(String name, String cstr) {
+		String cookie = null;
 		if (!StringUtils.isEmpty(cstr)) {
 			name += "=";
 			for (String str : cstr.trim().split("\\s*;\\s*")) {
 				if (str.startsWith(name)) {
-					return str.substring(name.length());
+					cookie = str.substring(name.length());
+					break;
 				}
 			}
 		}
-		return name;
+		return cookie;
 	}
 
 	private static final int WIDTH = 0;

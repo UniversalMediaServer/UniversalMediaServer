@@ -974,9 +974,9 @@ public class FFMpegVideo extends Player {
 		// Now that inputs and filtering are complete, see if we should
 		// give the renderer the final say on the command
 		boolean override = false;
-		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(cmdList, dlna, this, params);
-		}
+//		if (renderer instanceof RendererConfiguration.OutputOverride) {
+//			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(cmdList, dlna, this, params);
+//		}
 
 		if (!override) {
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
