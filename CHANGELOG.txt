@@ -1,14 +1,14 @@
-6.4.1 - 2016-??-??
+6.5.0 - 2016-??-??
 
 	General:
-		Fixed support for semicolons in paths in FFmpeg
-		Improved speed of parsing files
 		Use ellipses for overflowing text in the left menu on the web interface
+		Improved speed of parsing files
+		Improved documentation in DefaultRenderer.conf, UMS.conf and the code
+		Fixed support for semicolons in paths in FFmpeg
 		Fixed the cancellation of media library scans
 		Fixed videos being transcoded too often because of bitrate halving
-		Improved documentation in DefaultRenderer.conf, UMS.conf and the code
 		Fixed support for video files within compressed folders
-		Send the correct MIME type for WAV DTS files
+		Fixed the MIME type for WAV DTS files
 	Renderers:
 		Added support for LG Blu-Ray players
 		Added support for Naim Mu-So wireless audio systems
