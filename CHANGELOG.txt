@@ -1,4 +1,4 @@
-6.5.0 - 2016-??-??
+6.5.0 - 2016-08-01
 
 	General:
 		Use ellipses for overflowing text in the left menu on the web interface
