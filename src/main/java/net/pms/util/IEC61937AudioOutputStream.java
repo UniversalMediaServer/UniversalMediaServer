@@ -1,5 +1,5 @@
 /**
- * Class used to embed HD Audio data (AC3, DTS, DTSHD?, TRUEHD?) into a LPCM stream, according to IEC-61937, used by S/PDIF
+ * Class used to embed HD Audio data (AC3, DTS, DTSHD, TRUEHD) into a LPCM stream, according to IEC-61937, used by S/PDIF
  *
  * As of today (2011/07/15), only AC3 and DTS are working on my receiver, Denon AVR-1910
  * DTS-HD cannot work because it needs a LPCM stream of 2 channels sampled at 192kHz = 6.1Mbits/s. (8 channels for TrueHD, 24Mbit/s)
