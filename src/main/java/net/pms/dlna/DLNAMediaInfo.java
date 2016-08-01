@@ -287,12 +287,6 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public boolean embeddedFontExists = false;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
 	public String stereoscopy;
 
 	/**
@@ -1441,7 +1435,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
 				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-				} else if (codecA.contains("pcm") || codecA.contains("wav")) {
+				} else if (codecA.contains("pcm") || codecA.contains("wav") || codecA.contains("dts")) {
 					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 				}
 			}
@@ -1634,9 +1628,6 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append(", matrix coefficients: ");
 			result.append(matrixCoefficients);
 		}
-
-		result.append(", attached fonts: ");
-		result.append(embeddedFontExists);
 
 		if (isNotBlank(fileTitleFromMetadata)) {
 			result.append(", file title from metadata: ");
@@ -2172,22 +2163,6 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setMatrixCoefficients(String matrixCoefficients) {
 		this.matrixCoefficients = matrixCoefficients;
-	}
-
-	/**
-	 * @return whether the file container has custom fonts attached.
-	 */
-	public boolean isEmbeddedFontExists() {
-		return embeddedFontExists;
-	}
-
-	/**
-	 * Sets whether the file container has custom fonts attached.
-	 *
-	 * @param exists true if at least one attached font exists
-	 */
-	public void setEmbeddedFontExists(boolean exists) {
-		this.embeddedFontExists = exists;
 	}
 
 	public String getFileTitleFromMetadata() {

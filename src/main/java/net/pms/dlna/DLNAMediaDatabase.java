@@ -60,7 +60,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "6";
+	private final String latestVersion = "7";
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -245,8 +245,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", MUXINGMODE              VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 				sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(')');
 				sb.append(", STEREOSCOPY             VARCHAR2(").append(SIZE_STEREOSCOPY).append(')');
-				sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(')');
-				sb.append(", EMBEDDEDFONTEXISTS      BIT              NOT NULL");
+				sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(')');;
 				sb.append(", TITLECONTAINER          VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", TITLEVIDEOTRACK         VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", VIDEOTRACKCOUNT         INT");
@@ -388,7 +387,6 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
 				media.setStereoscopy(rs.getString("STEREOSCOPY"));
 				media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
-				media.setEmbeddedFontExists(rs.getBoolean("EMBEDDEDFONTEXISTS"));
 				media.setFileTitleFromMetadata(rs.getString("TITLECONTAINER"));
 				media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
 				media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
@@ -465,8 +463,8 @@ public class DLNAMediaDatabase implements Runnable {
 				"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
 				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
 				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
-				"MATRIXCOEFFICIENTS, EMBEDDEDFONTEXISTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
-				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
+				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -511,12 +509,11 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(24, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
 				ps.setString(25, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
 				ps.setString(26, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-				ps.setBoolean(27, media.isEmbeddedFontExists());
-				ps.setString(28, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
-				ps.setString(29, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
-				ps.setInt(30, media.getVideoTrackCount());
-				ps.setInt(31, media.getImageCount());
-				ps.setInt(32, media.getVideoBitDepth());
+				ps.setString(27, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
+				ps.setString(28, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
+				ps.setInt(29, media.getVideoTrackCount());
+				ps.setInt(30, media.getImageCount());
+				ps.setInt(31, media.getVideoBitDepth());
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -541,12 +538,11 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(24, null);
 				ps.setString(25, null);
 				ps.setString(26, null);
-				ps.setBoolean(27, false);
+				ps.setString(27, null);
 				ps.setString(28, null);
-				ps.setString(29, null);
+				ps.setInt(29, 0);
 				ps.setInt(30, 0);
 				ps.setInt(31, 0);
-				ps.setInt(32, 0);
 			}
 			ps.executeUpdate();
 			int id;

@@ -201,6 +201,8 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
+	private IFrame frame = PMS.get().getFrame();
+
 	public void scan() {
 		if (!configuration.getUseCache()) {
 			throw new IllegalStateException("Can't scan when cache is disabled");
@@ -214,7 +216,6 @@ public class RootFolder extends DLNAResource {
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		LOGGER.trace("Starting scan of: {}", this.getName());
 		scan(this);
-		IFrame frame = PMS.get().getFrame();
 
 		// Running might have been set false during scan
 		if (running) {
@@ -246,7 +247,7 @@ public class RootFolder extends DLNAResource {
 					String childName = child.getName();
 					if (child instanceof RealFile) {
 						LOGGER.debug("Scanning folder: " + childName);
-						PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName);
+						frame.setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName);
 					}
 
 					if (child.isDiscovered()) {
@@ -268,8 +269,12 @@ public class RootFolder extends DLNAResource {
 
 					scan(child);
 					child.getChildren().clear();
+				} else if (!running){
+					break;
 				}
 			}
+		} else {
+			frame.setScanLibraryEnabled(true);
 		}
 	}
 

@@ -776,10 +776,22 @@ public class NavigationShareTab {
 							JOptionPane.YES_NO_OPTION);
 						if (option == JOptionPane.YES_OPTION) {
 							database.stopScanLibrary();
-							looksFrame.setStatusLine(null);
+							looksFrame.setStatusLine(Messages.getString("FoldTab.41"));
 							setScanLibraryEnabled(false);
 							but5.setToolTipText(Messages.getString("FoldTab.41"));
 						}
+					}
+				} else {
+					int option = JOptionPane.showConfirmDialog(
+						looksFrame,
+						Messages.getString("FoldTab.10"),
+						Messages.getString("Dialog.Question"),
+						JOptionPane.YES_NO_OPTION);
+					if (option == JOptionPane.YES_OPTION) {
+						database.stopScanLibrary();
+						looksFrame.setStatusLine(null);
+						setScanLibraryEnabled(false);
+						but5.setToolTipText(Messages.getString("FoldTab.41"));
 					}
 				}
 			}

@@ -256,7 +256,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return true if external subtitles file is UTF-8 or UTF-16 encoded, false otherwise.
+	 * @return true if external subtitles file is UTF-8, UTF-16 or UTF-32 encoded, false otherwise.
 	 */
 	public boolean isExternalFileUtf() {
 		return (isExternalFileUtf8() || isExternalFileUtf16() || isExternalFileUtf32());

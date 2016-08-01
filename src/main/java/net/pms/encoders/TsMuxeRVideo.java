@@ -349,7 +349,6 @@ public class TsMuxeRVideo extends Player {
 							"-ac", "" + channels,
 							"-f", "adts",
 							"-c:a", "aac",
-							"-strict", "experimental",
 							"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
 							"-y",
 							ffAudioPipe[0].getInputPipe()
