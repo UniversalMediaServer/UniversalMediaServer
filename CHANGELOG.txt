@@ -6,12 +6,21 @@
 		Use ellipses for overflowing text in the left menu on the web interface
 		Fixed the cancellation of media library scans
 		Fixed videos being transcoded too often because of bitrate halving
+		Improved documentation in DefaultRenderer.conf, UMS.conf and the code
+		Fixed support for video files within compressed folders
+		Send the correct MIME type for WAV DTS files
 	Renderers:
 		Added support for LG Blu-Ray players
-		Updated support for images on Panasonic TXL32V10E TVs
+		Added support for Naim Mu-So wireless audio systems
+		Improved detection of LG TVs
+		Improved support for AC-3 audio on VLC on iOS and Apple TV
 		Improved support for XviD codec on Panasonic TVs and VLC apps
+		Improved support for images on Panasonic TXL32V10E TVs
 		Fixed support for virtual folders like New Media and Cache on Panasonic TVs
 		Fixed support for WebVTT subtitles on Samsung TVs
+	Languages:
+		Danish translation was completed and validated (thanks, jensen83, nba, squadjot, The_lonely_Glowstone and the_slayer_dk!)
+		Portuguese translation was completed (thanks, arqmatiasreis, El_Locco, Nadahar and plucas!)
 	External Components:
 		Updated assertj to 2.5.0
 		Updated ChromeCast Java API to 0.9.2
