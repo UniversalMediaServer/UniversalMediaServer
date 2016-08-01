@@ -111,6 +111,13 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
+		if (configuration.isShowMediaLibraryFolder()) {
+			DLNAResource libraryRes = PMS.get().getLibrary();
+			if (libraryRes != null) {
+				addChild(libraryRes);
+			}
+		}
+
 		if (configuration.isShowRecentlyPlayedFolder()) {
 			last = new Playlist(Messages.getString("VirtualFolder.1"),
 				PMS.getConfiguration().getDataFile("UMS.last"),
@@ -174,13 +181,6 @@ public class RootFolder extends DLNAResource {
 			DLNAResource iTunesRes = getiTunesFolder();
 			if (iTunesRes != null) {
 				addChild(iTunesRes);
-			}
-		}
-
-		if (configuration.isShowMediaLibraryFolder()) {
-			DLNAResource libraryRes = PMS.get().getLibrary();
-			if (libraryRes != null) {
-				addChild(libraryRes);
 			}
 		}
 
