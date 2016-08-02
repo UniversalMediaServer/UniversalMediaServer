@@ -81,7 +81,7 @@ public class RemotePlayHandler implements HttpHandler {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
 		WebRender renderer = parent.getRenderer(user, t);
-//		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
+		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
 		DLNAResource r = root.getDLNAResource(id, renderer);

@@ -8,7 +8,7 @@ function changeMargins() {
 	var row_h = 180;
 	var row_start = 0;
 	var spaces = 1;
-
+	
 	if (viewType === 'grid') {
 		for (var i = 0; i < cells.length; i++) {
 			images_w += (180 * aspect);
@@ -85,6 +85,10 @@ function changeMargins() {
 }
 
 function scrollActions() {
+	// Update view size in cookie
+	Cookies.set('UMSINFO', 'platform=' + navigator.platform + '&width=' + $(window).width() + '&height=' + $(window).height() + '&isTouchDevice=' + (window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window)), { path: '/' });
+	//$("video").css("width", $(window).width());
+
 	if ($(window).width() > 1080) {
 		$("#Menu, #ContentPage #Menu #HomeButton, ul#Folders, ul#Media").stop();
 		if ($(window).scrollTop() === 0) {
@@ -214,17 +218,17 @@ $(document).ready(function() {
 	setPadColor();
 
 	if ($('#Media').length) {
-		$(window).bind('load resize', changeMargins);
+		$(window).on('load resize', changeMargins);
 	}
 
 	if ($('#Folders').length) {
-		$('#Folders li').bind('contextmenu', function(){
+		$('#Folders li').on('contextmenu', function(){
 			return false;
 		});
 	}
 
 	if ($('#Menu').length) {
-		$(window).bind('load resize scroll', scrollActions);
+		$(window).on('load resize scroll', scrollActions);
 	}
 
 	poll();

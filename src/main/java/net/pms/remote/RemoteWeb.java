@@ -205,8 +205,8 @@ public class RemoteWeb {
 					tag.add("web");
 					try {
 						render = new WebRender(user);
-						render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t),
-								t.getRequestHeaders().getFirst("User-agent"));
+//						render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t),
+//								t.getRequestHeaders().getFirst("User-agent"));
 //						PMS.get().setRendererFound(render);
 						PMS.get().getGlobalRepo().addRenderer(cookie, render);
 					} catch (ConfigurationException e) {

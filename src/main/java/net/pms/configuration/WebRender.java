@@ -260,11 +260,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			(screenHeight != 0 && RemoteUtil.getHeight() > screenHeight);
 	}
 
-	public int getVideoWidth() {
+	public int getMaxVideoWidth() {
 		return isScreenSizeConstrained() ? screenWidth : RemoteUtil.getWidth();
 	}
 
-	public int getVideoHeight() {
+	public int getMaxVideoHeight() {
 		return isScreenSizeConstrained() ? screenHeight : RemoteUtil.getHeight();
 	}
 
@@ -482,7 +482,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getFFmpegVideoFilterOverride() {
-		return "scale=" + getVideoWidth() + ":" + getVideoHeight();
+		return "scale=" + getMaxVideoWidth() + ":" + getMaxVideoHeight();
 	}
 
 	@Override

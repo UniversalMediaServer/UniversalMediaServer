@@ -134,40 +134,57 @@ public class FFMpegVideo extends Player {
 				!"16:9".equals(media.getAspectRatioContainer());
 
 		// Scale and pad the video if necessary
-		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-			if (media.is3dFullSbsOrOu()) {
-				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-			} else {
-				scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-
-				if (keepAR) {
-					scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-				}
-			}
-		} else if (keepAR && isMediaValid) {
-			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
-				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
-				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
-			} else {
-				scalePadFilterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
-				scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
-			}
-
-			scaleWidth  = convertToModX(scaleWidth, 4);
-			scaleHeight = convertToModX(scaleHeight, 4);
-
-			// Make sure we didn't exceed the renderer's maximum resolution.
-			if (
-				scaleHeight > renderer.getMaxVideoHeight() ||
-				scaleWidth  > renderer.getMaxVideoWidth()
-			) {
-				scaleHeight = renderer.getMaxVideoHeight();
-				scaleWidth  = renderer.getMaxVideoWidth();
-			}
-
-			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
-		}
-
+//		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+//			if (media.is3dFullSbsOrOu()) {
+//				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+//			} else {
+//				scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+//
+//				if (keepAR) {
+//					scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+//				}
+//			}
+//		} else if (keepAR && isMediaValid) {
+//			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+//				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+//				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
+//			} else {
+//				scalePadFilterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+//				scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
+//			}
+//
+//			scaleWidth  = convertToModX(scaleWidth, 4);
+//			scaleHeight = convertToModX(scaleHeight, 4);
+//
+//			// Make sure we didn't exceed the renderer's maximum resolution.
+//			if (
+//				scaleHeight > renderer.getMaxVideoHeight() ||
+//				scaleWidth  > renderer.getMaxVideoWidth()
+//			) {
+//				scaleHeight = renderer.getMaxVideoHeight();
+//				scaleWidth  = renderer.getMaxVideoWidth();
+//			}
+//
+//			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
+//		}
+		
+		/*
+		 * scale=iw*sar*min($MAX_WIDTH/(iw*sar)\,$MAX_HEIGHT/ih):ih*min($MAX_WIDTH/(iw*sar)\,$MAX_HEIGHT/ih)
+		 * pad=$MAX_WIDTH:$MAX_HEIGHT:(ow-iw)/2:(oh-ih)/2
+		 */
+		// Use min. of renderer and media size
+		int MAX_WIDTH = Math.min(renderer.getMaxVideoWidth(), dlna.getMedia().getWidth());
+		int MAX_HEIGHT = Math.min(renderer.getMaxVideoHeight(), dlna.getMedia().getHeight());
+		
+		// Convert the dimensions to a factor of 4
+		MAX_WIDTH  = convertToModX(MAX_WIDTH, 4);
+		MAX_HEIGHT  = convertToModX(MAX_HEIGHT, 4);
+		
+		String filter = "scale=iw*sar*min(" + MAX_WIDTH + "/(iw*sar)\\," + MAX_HEIGHT + "/ih):ih*min(" + MAX_WIDTH + "/(iw*sar)\\," + MAX_HEIGHT + "/ih)";
+		scalePadFilterChain.add(filter);
+		filter = "pad=" + MAX_WIDTH + ":" + MAX_HEIGHT + ":(ow-iw)/2:(oh-ih)/2";
+//		scalePadFilterChain.add(filter);
+		
 		filterChain.addAll(scalePadFilterChain);
 
 		boolean override = true;
@@ -261,10 +278,10 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		String overrideVF = renderer.getFFmpegVideoFilterOverride();
-		if (StringUtils.isNotEmpty(overrideVF)) {
-			filterChain.add(overrideVF);
-		}
+//		String overrideVF = renderer.getFFmpegVideoFilterOverride();
+//		if (StringUtils.isNotEmpty(overrideVF)) {
+//			filterChain.add(overrideVF);
+//		}
 
 		// Convert 3D video to the other output 3D format
 		if (
