@@ -110,6 +110,9 @@ public class ResumeObj {
 	}
 
 	private static void write(long time, long duration, File f) {
+		if (time > duration)
+			return;
+		
 		try {
 			try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8))) {
 				out.write(time + "," + duration);
