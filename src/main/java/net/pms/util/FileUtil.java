@@ -401,7 +401,8 @@ public class FileUtil {
 		}
 
 		if (title == null) {
-			return getFileNameWithoutExtension(f);
+			formattedName = getFileNameWithoutExtension(f);
+			return basicPrettify(formattedName);
 		}
 
 		// Build the prettified filename from the metadata
@@ -1316,13 +1317,17 @@ public class FileUtil {
 		return false;
 	}
 
+	public static String basicPrettify(String filename) {
+		// Remove possible fansub group name
+		filename = removeGroupNameFromBeginning(filename);
+
+		// Replace periods and underscores with spaces
+		return  filename.replaceAll("\\.|_", " ");
+	}
+
 	public static String renameForSorting(String filename) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
-			// This makes anime sort properly
-			filename = removeGroupNameFromBeginning(filename);
-
-			// Replace periods and underscores with spaces
-			filename = filename.replaceAll("\\.|_", " ");
+			filename = basicPrettify(filename);
 		}
 
 		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
