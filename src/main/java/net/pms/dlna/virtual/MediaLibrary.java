@@ -37,6 +37,8 @@ public class MediaLibrary extends VirtualFolder {
 		vfVideo.addChild(tvShowsFolder);
 		MediaLibraryFolder movies = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), "TYPE = 4 AND NOT ISTVEPISODE ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		vfVideo.addChild(movies);
+		MediaLibraryFolder movies3D = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), "TYPE = 4 AND NOT ISTVEPISODE AND STEREOSCOPY != '' ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		vfVideo.addChild(movies3D);
 		MediaLibraryFolder mlfVideo01 = new MediaLibraryFolder(Messages.getString("PMS.35"), "TYPE = 4 ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		vfVideo.addChild(mlfVideo01);
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
