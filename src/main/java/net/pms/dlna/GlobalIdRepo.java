@@ -72,7 +72,7 @@ public class GlobalIdRepo {
 	
 	public void addRenderer(String cookie, Renderer r) {
 		Element el = new Element(cookie, r);
-		el.setTimeToIdle(2 * 30);
+		el.setTimeToIdle(2 * 60); // 2 minutes
 		renderCache.put(el);
 	}
 	
@@ -107,11 +107,10 @@ public class GlobalIdRepo {
 		}
 		
 		Element el = new Element(new Key(id, filename), d);
-		if ("0".equals(id)) {
+		if ("0".equals(id) || d.isFolder()) {
 			el = new Element(new Key(id, null), d); // hashcode uses filename which is usually not available while fetching from cache
 			el.setEternal(true);
 		}
-		el.setEternal(true); // Remove it later
 //		System.out.println(id + ": " + filename);
 		
 		resourcesMap.put(el);
