@@ -48,11 +48,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import javax.activation.MimetypesFileTypeMap;
-
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -1204,6 +1201,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (dlna != null && searchStr == null) {
+			dlna.refreshChildren();
+//			TaskRunner.getInstance().submit(resource);
 			if (returnChildren) {
 				if (count == -1 || count > dlna.getChildren().size()) {
 					count = dlna.getChildren().size();
@@ -1212,12 +1211,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					start = dlna.getChildren().size();
 				}
 				resources.addAll(dlna.getChildren().subList(start, count));
-				for (DLNAResource resource : resources) {
-					// if (resource instanceof MapFile)
-					resource.refreshChildren();
-				}
-			} else
+			} else {
 				resources.add(dlna);
+			}
 		}
 
 		lastSearch = searchStr;

@@ -107,15 +107,15 @@ public class GlobalIdRepo {
 		}
 		
 		Element el = new Element(new Key(id, filename), d);
-		if ("0".equals(id) || d.isFolder()) {
+		if ("0".equals(id)) {
 			el = new Element(new Key(id, null), d); // hashcode uses filename which is usually not available while fetching from cache
-			el.setEternal(true);
 		}
+		el.setEternal(true);
 //		System.out.println(id + ": " + filename);
 		
 		resourcesMap.put(el);
-		idMap.put(filename, id);
-		filenameMap.put(id, filename);
+//		idMap.put(filename, id);
+//		filenameMap.put(id, filename);
 //		System.out.println(resourcesMap.isKeyInCache(el) + " :::: " + get(id));
 	}
 
@@ -132,8 +132,8 @@ public class GlobalIdRepo {
 
 	public void remove(String id) {
 		resourcesMap.remove(id);
-		filenameMap.remove(idMap.get(id));
-		idMap.remove(id);
+//		filenameMap.remove(idMap.get(id));
+//		idMap.remove(id);
 	}
 
 	public static int parseIndex(String id) {
