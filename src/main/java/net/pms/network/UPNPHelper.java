@@ -141,13 +141,19 @@ public class UPNPHelper extends UPNPControl {
 		StringBuilder discovery = new StringBuilder();
 
 		discovery.append("HTTP/1.1 200 OK").append(CRLF);
-		discovery.append("CACHE-CONTROL: max-age=1200").append(CRLF);
+		discovery.append("CACHE-CONTROL: max-age=1800").append(CRLF);
 		discovery.append("DATE: ").append(sdf.format(new Date(System.currentTimeMillis()))).append(" GMT").append(CRLF);
 		discovery.append("LOCATION: http://").append(serverHost).append(':').append(serverPort).append("/description/fetch").append(CRLF);
 		discovery.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		discovery.append("ST: ").append(st).append(CRLF);
 		discovery.append("EXT: ").append(CRLF);
 		discovery.append("USN: ").append(usn).append(st).append(CRLF);
+		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
+
+		discovery.append("M-SEARCH * HTTP/1.1").append(CRLF);
+		discovery.append("ST: ").append(st).append(CRLF);
+		discovery.append("MX: 3").append(CRLF);
+		discovery.append("MAN: \"ssdp:discover\"").append(CRLF);
 		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
 
 		String msg = discovery.toString();
