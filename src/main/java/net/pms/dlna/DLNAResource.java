@@ -2650,9 +2650,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param mediaRenderer The renderer configuration.
 	 * @param sb The StringBuilder to append the response to.
+	 * @param format Image format e.g. JPEG_TN, JPEG_SM
 	 */
 	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb, String format) {
-		final String thumbURL = getThumbnailURL();
+		final String thumbURL = getURL("thumbnail0000_" + format.split("_")[1] + "_");//getThumbnailURL();
 		if (StringUtils.isNotBlank(thumbURL)) {
 			if (mediaRenderer.getThumbNailAsResource()) {
 				// Samsung 2012 (ES and EH) models do not recognize the "albumArtURI" element. Instead,
