@@ -352,14 +352,11 @@ public class UPNPHelper extends UPNPControl {
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
 		socket.send(ssdpPacket);
 
-		// XXX Why is it necessary to sleep for this random time? What would happen when random equals 0?
-		//sleep(rand.nextInt(1800 / 2));
-
-		// XXX Why send the same packet twice?
-		//socket.send(ssdpPacket);
-
-		// XXX Why is it necessary to sleep for this random time (again)?
-		//sleep(rand.nextInt(1800 / 2));
+		// Send the message three times as recommended by the standard
+		sleep(100);
+		socket.send(ssdpPacket);
+		sleep(100);
+		socket.send(ssdpPacket);
 	}
 
 	private static int ALIVE_delay = 10000;
