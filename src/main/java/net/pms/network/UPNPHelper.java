@@ -344,12 +344,20 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		String msg = buildMsg(nt, message);
-		//Random rand = new Random();
+		Random rand = new Random();
 
 		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
 
 		InetAddress upnpAddress = getUPNPAddress();
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
+
+		/**
+		 * Requirement [7.2.4.1]: UPnP endpoints (devices and control points) should
+		 * wait a random amount of time, between 0 and 100 milliseconds after acquiring
+		 * a new IP address, before sending advertisements or initiating searches on a
+		 * new IP interface.
+		 */
+		sleep(rand.nextInt(101));
 		socket.send(ssdpPacket);
 
 		// Send the message three times as recommended by the standard
