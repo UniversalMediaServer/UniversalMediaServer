@@ -76,7 +76,8 @@ public class UPNPHelper extends UPNPControl {
 		"urn:schemas-upnp-org:device:MediaServer:1",
 		"urn:schemas-upnp-org:service:ContentDirectory:1",
 		"urn:schemas-upnp-org:service:ConnectionManager:1",
-		PMS.get().usn()
+		PMS.get().usn(),
+		"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1"
 	};
 
 	// The listener.
