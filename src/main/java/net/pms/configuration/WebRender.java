@@ -67,7 +67,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		new GIF(),
 		new JPG(),
 		new MP3(),
-		new PNG()
+		new PNG(),
+		new BMP()
 	};
 
 	private static final Matcher umsInfo = Pattern.compile("platform=(.+)&width=(.+)&height=(.+)&isTouchDevice=(.+)").matcher("");
@@ -110,6 +111,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
 //		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
+		configuration.addProperty(SUPPORTED, "f:bmp m:image/bmp");
 		configuration.addProperty(SUPPORTED, "f:jpg m:image/jpeg");
 		configuration.addProperty(SUPPORTED, "f:png m:image/png");
 		configuration.addProperty(SUPPORTED, "f:gif m:image/gif");
