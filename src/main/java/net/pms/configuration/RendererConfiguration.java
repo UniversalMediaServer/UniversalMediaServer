@@ -185,7 +185,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SUPPORTED_VIDEO_BIT_DEPTHS = "SupportedVideoBitDepths";
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
 	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
-	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
 	protected static final String TEXTWRAP = "TextWrap";
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";

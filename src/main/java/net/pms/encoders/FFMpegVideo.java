@@ -820,7 +820,11 @@ public class FFMpegVideo extends Player {
 			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, configuration);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
-			cmdList.add(filename);
+			if (params.stdin != null) {		
+				cmdList.add("pipe:");
+			} else {
+				cmdList.add(filename);
+			}	
 		}
 
 		/**
