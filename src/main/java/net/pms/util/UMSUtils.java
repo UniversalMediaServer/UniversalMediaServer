@@ -171,13 +171,22 @@ public class UMSUtils {
 		}
 	}
 
+	/**
+	 * JPEG_TN   size must not exceed  160x160 (horizontal * vertical)
+	 * JPEG_SM   size must not exceed  640x480
+	 * JPEG_MED size must not exceed 1024x768
+	 * JPEG_LRG size must not exceed 4096x4096
+	 * @param in
+	 * @param r
+	 * @return
+	 * @throws IOException
+	 */
 	@SuppressWarnings("deprecation")
 	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
-		if (in == null) {
-			return in;
-		}
-		String ts = r.getThumbSize();
-		if (StringUtils.isEmpty(ts) && StringUtils.isEmpty(r.getThumbBG())) {
+		return scaleThumb(in, r.getThumbSize(), r.getThumbBG());
+	}
+	public static InputStream scaleThumb(InputStream in, String size, String background) throws IOException {
+		if (in == null || (StringUtils.isEmpty(size) && StringUtils.isEmpty(background))) {
 			// no need to convert here
 			return in;
 		}
@@ -198,24 +207,33 @@ public class UMSUtils {
 		}
 		w = img.getWidth();
 		h = img.getHeight();
-		if (StringUtils.isNotEmpty(ts)) {
+		if (StringUtils.isNotEmpty(size)) {
+			if (size.equals("TN"))
+				size = "160x160";
+			else if (size.equals("SM"))
+				size = "640x480";
+			else if (size.equals("MED"))
+				size = "1024x768";
+			else if (size.equals("LRG"))
+				size = "4096x4096";
+			
 			// size limit thumbnail
-			w = getHW(ts.split("x"), 0);
-			h = getHW(ts.split("x"), 1);
+			w = getHW(size.split("x"), 0);
+			h = getHW(size.split("x"), 1);
 			if (w == 0 || h == 0) {
-				LOGGER.debug("bad thumb size {} skip scaling", ts);
-				w = h = 0; // just to make sure
+				LOGGER.debug("bad thumb size {} skip scaling", size);
+//				w = h = 0; // just to make sure
 			}
 		}
-		if (StringUtils.isNotEmpty(r.getThumbBG())) {
+		if (StringUtils.isNotEmpty(background)) {
 			try {
-				Field field = Color.class.getField(r.getThumbBG());
+				Field field = Color.class.getField(background);
 				col = (Color) field.get(null);
 			} catch (Exception e) {
-				LOGGER.debug("bad color name " + r.getThumbBG());
+				LOGGER.debug("bad color name " + background);
 			}
 		}
-		if (w == 0 && h == 0 && col == null) {
+		if (w == 0 || h == 0) {
 			return in;
 		}
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
