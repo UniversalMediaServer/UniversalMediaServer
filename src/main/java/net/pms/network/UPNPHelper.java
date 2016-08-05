@@ -71,6 +71,14 @@ public class UPNPHelper extends UPNPControl {
 	// The Constant BYEBYE.
 	private static final String BYEBYE = "ssdp:byebye";
 
+	private static final String[] NT_LIST = {
+		"upnp:rootdevice",
+		"urn:schemas-upnp-org:device:MediaServer:1",
+		"urn:schemas-upnp-org:service:ContentDirectory:1",
+		"urn:schemas-upnp-org:service:ConnectionManager:1",
+		PMS.get().usn()
+	};
+
 	// The listener.
 	private static Thread listenerThread;
 
@@ -199,11 +207,9 @@ public class UPNPHelper extends UPNPControl {
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
 
-			sendMessage(multicastSocket, "upnp:rootdevice", ALIVE);
-			sendMessage(multicastSocket, PMS.get().usn(), ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
+			for (String NT: NT_LIST) {
+				sendMessage(multicastSocket, NT, ALIVE);
+			}
 		} catch (IOException e) {
 			LOGGER.debug("Error sending ALIVE message", e);
 		} finally {
@@ -295,10 +301,9 @@ public class UPNPHelper extends UPNPControl {
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
 
-			sendMessage(multicastSocket, "upnp:rootdevice", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", BYEBYE);
+			for (String NT: NT_LIST) {
+				sendMessage(multicastSocket, NT, BYEBYE);
+			}
 		} catch (IOException e) {
 			LOGGER.debug("Error sending BYEBYE message", e);
 		} finally {
