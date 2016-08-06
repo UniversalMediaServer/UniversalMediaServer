@@ -337,19 +337,19 @@ public class FileUtil {
 	 * When we encounter one of these strings, the string and everything after
 	 * them will be removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]2160p.*|[\\s\\.]WEB-DL.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]BRRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*|[\\s\\.]READNFO.*|[\\s\\.]60FPS.*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]2160p.*|.*[\\s\\.]WEB-DL.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]BRRip.*|.*[\\s\\.]WEBRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*|.*[\\s\\.]READNFO.*|.*[\\s\\.]60FPS.*";
+	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
 
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
 	 * false-positive by being case-sensitive.
 	 */
-	private static final String COMMON_FILE_ENDS_CASE_SENSITIVE = "[\\s\\.]PROPER[\\s\\.].*|[\\s\\.]iNTERNAL[\\s\\.].*|[\\s\\.]LIMITED[\\s\\.].*|[\\s\\.]LiMiTED[\\s\\.].*|[\\s\\.]FESTiVAL[\\s\\.].*|[\\s\\.]NORDIC[\\s\\.].*|[\\s\\.]REAL[\\s\\.].*|[\\s\\.]SUBBED[\\s\\.].*|[\\s\\.]RETAIL[\\s\\.].*|[\\s\\.]EXTENDED[\\s\\.].*|[\\s\\.]NEWEDIT[\\s\\.].*|[\\s\\.]WEB[\\s\\.].*";
+	private static final String COMMON_FILE_ENDS_CASE_SENSITIVE = "\\sPROPER\\s.*|\\siNTERNAL\\s.*|\\sLIMITED\\s.*|\\sLiMiTED\\s.*|\\sFESTiVAL\\s.*|\\sNORDIC\\s.*|\\sREAL\\s.*|\\sSUBBED\\s.*|\\sRETAIL\\s.*|\\sEXTENDED\\s.*|\\sNEWEDIT\\s.*|\\sWEB\\s.*";
 
 	/**
 	 * Editions to be added to the end of the prettified name
 	 */
-	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|IMAX[\\s\\.]Edition|Uncensored|Directors[\\s\\.]Cut|Uncut)(?!\\))";
+	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special\\sEdition|Unrated|Final\\sCut|Remastered|Extended\\sCut|IMAX\\sEdition|Uncensored|Directors\\sCut|Uncut)(?!\\))";
 	private static final Pattern COMMON_FILE_EDITIONS_PATTERN = Pattern.compile(COMMON_FILE_EDITIONS);
 
 	/**
@@ -401,8 +401,7 @@ public class FileUtil {
 		}
 
 		if (title == null) {
-			formattedName = getFileNameWithoutExtension(f);
-			return basicPrettify(formattedName);
+			return basicPrettify(f);
 		}
 
 		// Build the prettified filename from the metadata
@@ -450,7 +449,6 @@ public class FileUtil {
 			return new String[] { null, null, null, null, null, null };
 		}
 
-		String fileNameWithoutExtension;
 		String formattedName;
 
 		// These are false unless we recognize that we could use some info on the video from IMDb
@@ -466,9 +464,7 @@ public class FileUtil {
 		Pattern pattern;
 		Matcher matcher;
 
-		// Remove file extension
-		fileNameWithoutExtension = getFileNameWithoutExtension(filename);
-		formattedName = removeGroupNameFromBeginning(fileNameWithoutExtension);
+		formattedName = basicPrettify(filename);
 
 		if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
@@ -485,9 +481,9 @@ public class FileUtil {
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)[\\s\\.]", " - $1$2$3-$5$6 - ");
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
-			formattedName = formattedName.replaceAll("[\\s\\.]S(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)\\s", " - $1$2$3-$5$6 - ");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
+			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
@@ -519,9 +515,9 @@ public class FileUtil {
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S(\\d\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
-			formattedName = formattedName.replaceAll("[\\s\\.]S(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
 
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 
@@ -531,9 +527,9 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\.", " ");
 
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
+		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
-			pattern = Pattern.compile("[\\s\\.]((?:19|20)\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]");
+			pattern = Pattern.compile("\\s((?:19|20)\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s");
 			matcher = pattern.matcher(formattedName);
 			if (matcher.find()) {
 				tvSeason = matcher.group(1);
@@ -544,9 +540,9 @@ public class FileUtil {
 			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]", " - $1$2/$3/$4 - ");
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)", " - $1$2/$3/$4");
-			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)", " - $1$2/$3/$4");
+			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s", " - $1$2/$3/$4 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " - $1$2/$3/$4");
+			formattedName = formattedName.replaceAll("\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " - $1$2/$3/$4");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
@@ -559,11 +555,11 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\.", " ");
 
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
+		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s.*")) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
-			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
+			formattedName = formattedName.replaceAll("\\s(19|20)(\\d\\d)", " ($1$2)");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
@@ -596,7 +592,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
 			// This matches anime with a hash at the end of the name
-			pattern = Pattern.compile("[\\s\\.]-[\\s\\.](\\d\\d)[\\s\\.]");
+			pattern = Pattern.compile("\\s-\\s(\\d\\d)\\s");
 			matcher = pattern.matcher(formattedName);
 			if (matcher.find()) {
 				tvSeason = "1";
@@ -612,7 +608,7 @@ public class FileUtil {
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
-			pattern = Pattern.compile("[\\s\\.]-[\\s\\.](\\d\\d)[\\s\\.]");
+			pattern = Pattern.compile("\\s-\\s(\\d\\d)\\s");
 			matcher = pattern.matcher(formattedName);
 			if (matcher.find()) {
 				tvSeason = "1";
@@ -1317,7 +1313,17 @@ public class FileUtil {
 		return false;
 	}
 
+	/**
+	 * Removes the file extension, fansub group name, and replaces periods
+	 * and underscores with spaces.
+	 *
+	 * @param filename
+	 * @return prettified filename
+	 */
 	public static String basicPrettify(String filename) {
+		// Remove file extension
+		filename = getFileNameWithoutExtension(filename);
+
 		// Remove possible fansub group name
 		filename = removeGroupNameFromBeginning(filename);
 
