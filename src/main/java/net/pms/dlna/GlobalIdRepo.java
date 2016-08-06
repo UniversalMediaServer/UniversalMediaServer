@@ -135,6 +135,15 @@ public class GlobalIdRepo {
 //		filenameMap.remove(idMap.get(id));
 //		idMap.remove(id);
 	}
+	
+	/**
+	 * Clear all elements and resets global id
+	 */
+	public void clear() {
+		resourcesMap.removeAll();
+		
+		globalId = 1;
+	}
 
 	public static int parseIndex(String id) {
 		try {

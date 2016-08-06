@@ -763,17 +763,7 @@ public class PMS {
 			LOGGER.info("WEB interface is available at: " + web.getUrl());
 		}
 
-		// initialize the cache
-		if (configuration.getUseCache()) {
-			mediaLibrary = new MediaLibrary();
-			LOGGER.info("A tiny cache admin interface is available at: http://" + server.getHost() + ":" + server.getPort() + "/console/home");
-		}
-
-		// XXX: this must be called:
-		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
-		//     b) *after* mediaLibrary is initialized, if enabled (above)
-		RootFolder root = getRootFolder(RendererConfiguration.getDefaultConf());
-		getGlobalRepo().add(root);
+		refreshLibrary();
 
 		frame.serverReady();
 
@@ -835,6 +825,22 @@ public class PMS {
 		}
 
 		return true;
+	}
+
+	public void refreshLibrary() {
+		getGlobalRepo().clear();
+		// initialize the cache
+		if (configuration.getUseCache()) {
+			mediaLibrary = new MediaLibrary();
+			LOGGER.info("A tiny cache admin interface is available at: http://" + server.getHost() + ":" + server.getPort() + "/console/home");
+		}
+
+		// XXX: this must be called:
+		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
+		//     b) *after* mediaLibrary is initialized, if enabled (above)
+		RootFolder root = getRootFolder(RendererConfiguration.getDefaultConf());
+		root.reset();
+		getGlobalRepo().add(root);
 	}
 
 	private MediaLibrary mediaLibrary;

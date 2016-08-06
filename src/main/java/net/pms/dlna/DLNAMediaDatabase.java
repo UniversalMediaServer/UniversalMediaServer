@@ -872,6 +872,7 @@ public class DLNAMediaDatabase implements Runnable {
 	@Override
 	public void run() {
 		try {
+			PMS.get().refreshLibrary();
 			PMS.get().getRootFolder(null).scan();
 		} catch (Exception e) {
 			LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());

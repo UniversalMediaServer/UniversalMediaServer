@@ -1389,6 +1389,7 @@ public class RootFolder extends DLNAResource {
 	}
 
 	public void reset() {
+		getChildren().clear();
 		setDiscovered(false);
 	}
 
