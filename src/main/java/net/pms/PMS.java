@@ -819,6 +819,9 @@ public class PMS {
 		});
 
 		configuration.setAutoSave();
+		UPNPHelper.sendByeBye();
+		LOGGER.trace("Waiting 250 milliseconds...");
+		Thread.sleep(250);
 		UPNPHelper.sendAlive();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
@@ -1061,7 +1064,7 @@ public class PMS {
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
 			sb.append('-');
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
-			sb.append(", UPnP/1.0, UMS/").append(getVersion());
+			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(getVersion());
 			serverName = sb.toString();
 		}
 

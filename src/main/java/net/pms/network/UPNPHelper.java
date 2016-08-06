@@ -71,6 +71,15 @@ public class UPNPHelper extends UPNPControl {
 	// The Constant BYEBYE.
 	private static final String BYEBYE = "ssdp:byebye";
 
+	private static final String[] NT_LIST = {
+		"upnp:rootdevice",
+		"urn:schemas-upnp-org:device:MediaServer:1",
+		"urn:schemas-upnp-org:service:ContentDirectory:1",
+		"urn:schemas-upnp-org:service:ConnectionManager:1",
+		PMS.get().usn(),
+		"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1"
+	};
+
 	// The listener.
 	private static Thread listenerThread;
 
@@ -141,13 +150,19 @@ public class UPNPHelper extends UPNPControl {
 		StringBuilder discovery = new StringBuilder();
 
 		discovery.append("HTTP/1.1 200 OK").append(CRLF);
-		discovery.append("CACHE-CONTROL: max-age=1200").append(CRLF);
+		discovery.append("CACHE-CONTROL: max-age=1800").append(CRLF);
 		discovery.append("DATE: ").append(sdf.format(new Date(System.currentTimeMillis()))).append(" GMT").append(CRLF);
 		discovery.append("LOCATION: http://").append(serverHost).append(':').append(serverPort).append("/description/fetch").append(CRLF);
 		discovery.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		discovery.append("ST: ").append(st).append(CRLF);
 		discovery.append("EXT: ").append(CRLF);
 		discovery.append("USN: ").append(usn).append(st).append(CRLF);
+		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
+
+		discovery.append("M-SEARCH * HTTP/1.1").append(CRLF);
+		discovery.append("ST: ").append(st).append(CRLF);
+		discovery.append("MX: 3").append(CRLF);
+		discovery.append("MAN: \"ssdp:discover\"").append(CRLF);
 		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
 
 		String msg = discovery.toString();
@@ -193,11 +208,9 @@ public class UPNPHelper extends UPNPControl {
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
 
-			sendMessage(multicastSocket, "upnp:rootdevice", ALIVE);
-			sendMessage(multicastSocket, PMS.get().usn(), ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
+			for (String NT: NT_LIST) {
+				sendMessage(multicastSocket, NT, ALIVE);
+			}
 		} catch (IOException e) {
 			LOGGER.debug("Error sending ALIVE message", e);
 		} finally {
@@ -289,10 +302,9 @@ public class UPNPHelper extends UPNPControl {
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
 
-			sendMessage(multicastSocket, "upnp:rootdevice", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", BYEBYE);
+			for (String NT: NT_LIST) {
+				sendMessage(multicastSocket, NT, BYEBYE);
+			}
 		} catch (IOException e) {
 			LOGGER.debug("Error sending BYEBYE message", e);
 		} finally {
@@ -332,22 +344,27 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		String msg = buildMsg(nt, message);
-		//Random rand = new Random();
+		Random rand = new Random();
 
 		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
 
 		InetAddress upnpAddress = getUPNPAddress();
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
+
+		/**
+		 * Requirement [7.2.4.1]: UPnP endpoints (devices and control points) should
+		 * wait a random amount of time, between 0 and 100 milliseconds after acquiring
+		 * a new IP address, before sending advertisements or initiating searches on a
+		 * new IP interface.
+		 */
+		sleep(rand.nextInt(101));
 		socket.send(ssdpPacket);
 
-		// XXX Why is it necessary to sleep for this random time? What would happen when random equals 0?
-		//sleep(rand.nextInt(1800 / 2));
-
-		// XXX Why send the same packet twice?
-		//socket.send(ssdpPacket);
-
-		// XXX Why is it necessary to sleep for this random time (again)?
-		//sleep(rand.nextInt(1800 / 2));
+		// Send the message three times as recommended by the standard
+		sleep(100);
+		socket.send(ssdpPacket);
+		sleep(100);
+		socket.send(ssdpPacket);
 	}
 
 	private static int ALIVE_delay = 10000;
