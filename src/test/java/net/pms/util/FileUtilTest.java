@@ -129,6 +129,9 @@ public class FileUtilTest {
 
 		// Video of an anime episode
 		assertThat(FileUtil.getFileNamePrettified("Universal Media Server - 02 [BD.1080p] [700D423E].mkv", null, null)).isEqualTo("Universal Media Server - 102");
+		assertThat(FileUtil.getFileNamePrettified("[FanSubbers]_Universal_Media_Server_02_[700D423E].mp4", null, null)).isEqualTo("Universal Media Server - 102");
+		assertThat(FileUtil.getFileNamePrettified("[FanSubbers]_Universal_Media_Server_-_02_[720p][700D423E].mkv", null, null)).isEqualTo("Universal Media Server - 102");
+		assertThat(FileUtil.getFileNamePrettified("[FanSubbers] Universal Media Server S1 EP02 (BD 1280x720 x264 AAC ASS(EN)) [700D423E].mkv", null, null)).isEqualTo("Universal Media Server - 102");
 	}
 
 	@Test

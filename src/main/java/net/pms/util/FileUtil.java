@@ -352,7 +352,7 @@ public class FileUtil {
 	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special\\sEdition|Unrated|Final\\sCut|Remastered|Extended\\sCut|IMAX\\sEdition|Uncensored|Directors\\sCut|Uncut)(?!\\))";
 	private static final Pattern COMMON_FILE_EDITIONS_PATTERN = Pattern.compile(COMMON_FILE_EDITIONS);
 
-	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d)([\\s']|v\\d)";
+	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d)(?:[\\s']|v\\d)";
 	private static final Pattern COMMON_ANIME_EPISODE_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_EPISODE_NUMBERS);
 
 	/**
@@ -495,9 +495,6 @@ public class FileUtil {
 
 			formattedName = removeFilenameEndMetadata(formattedName);
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
@@ -521,14 +518,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)\\s", " - $1$2$3 - ");
 			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
 			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
-
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-
 			formattedName = removeFilenameEndMetadata(formattedName);
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
@@ -553,10 +543,6 @@ public class FileUtil {
 			}
 
 			formattedName = removeFilenameEndMetadata(formattedName);
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s.*")) {
 			// This matches scene and most p2p movies
@@ -570,9 +556,6 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
@@ -581,16 +564,10 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
 			formattedName = removeFilenameEndMetadata(formattedName);
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
 			formattedName = removeFilenameEndMetadata(formattedName);
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
@@ -599,10 +576,13 @@ public class FileUtil {
 			if (matcher.find()) {
 				tvSeason = "1";
 				tvEpisodeNumber = matcher.group(1);
-			}
 
-			// Remove underscores
-			formattedName = formattedName.replaceAll("_", " ");
+				int showNameIndex = indexOf(COMMON_ANIME_EPISODE_NUMBERS_PATTERN, formattedName);
+				if (showNameIndex != -1) {
+					movieOrShowName = formattedName.substring(0, showNameIndex);
+				}
+
+			}
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
@@ -614,10 +594,12 @@ public class FileUtil {
 			if (matcher.find()) {
 				tvSeason = "1";
 				tvEpisodeNumber = matcher.group(1);
-			}
 
-			// Remove underscores
-			formattedName = formattedName.replaceAll("_", " ");
+				int showNameIndex = indexOf(COMMON_ANIME_EPISODE_NUMBERS_PATTERN, formattedName);
+				if (showNameIndex != -1) {
+					movieOrShowName = formattedName.substring(0, showNameIndex);
+				}
+			}
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*|\\[h264.*", "");
@@ -633,15 +615,19 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		}
 
 		// Remove extra spaces
 		formattedName = formattedName.replaceAll("\\s+", " ");
 		formattedName = formattedName.trim();
+		if (movieOrShowName != null) {
+			movieOrShowName = movieOrShowName.trim();
+			String substr = movieOrShowName.substring(Math.max(0, movieOrShowName.length() - 2));
+			if (" -".equals(substr)) {
+				movieOrShowName = movieOrShowName.substring(0, movieOrShowName.length() - 2);
+			}
+		}
 
 		if (tvSeason != null) {
 			// Remove leading 0 from the season if it exists
