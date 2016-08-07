@@ -81,6 +81,7 @@
 	<logger name="org.apache" level="WARN" />
 	<logger name="httpclient.wire" level="WARN" />
 	<logger name="fm.last.musicbrainz.coverart" level="WARN" />
+	<logger name="oshi" level="WARN" />
 
 	<!-- Root logger defines the minimum log level for all loggers -->
 	<root level="${rootLevel}">
