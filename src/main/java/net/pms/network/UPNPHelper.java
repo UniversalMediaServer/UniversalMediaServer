@@ -383,33 +383,15 @@ public class UPNPHelper extends UPNPControl {
 					sleep(ALIVE_delay);
 					sendAlive();
 
-					/**
-					 * The first delay for sending an ALIVE message is 10 seconds,
-					 * the second delay is for 20 seconds. From then on, all other
-					 * delays are for 30/180 seconds depending on whether there
-					 * are renderers connected. It can be customized with the 
-					 * ALIVE_delay user configuration setting.
-					 */
-					switch (ALIVE_delay) {
-						case 10000:
-							ALIVE_delay = 20000;
-							break;
-						case 20000:
-						case 30000:
-						case 180000:
-							// If getAliveDelay is 0, there is no custom alive delay
-							if (configuration.getAliveDelay() == 0) {
-								if (PMS.get().getFoundRenderers().size() > 0) {
-									ALIVE_delay = 180000;
-								} else {
-									ALIVE_delay = 30000;
-								}
-							} else {
-								ALIVE_delay = configuration.getAliveDelay();
-							}
-							break;
-						default:
-							break;
+					// If getAliveDelay is 0, there is no custom alive delay
+					if (configuration.getAliveDelay() == 0) {
+						if (PMS.get().getFoundRenderers().size() > 0) {
+							ALIVE_delay = 30000;
+						} else {
+							ALIVE_delay = 10000;
+						}
+					} else {
+						ALIVE_delay = configuration.getAliveDelay();
 					}
 				}
 			}
@@ -479,7 +461,7 @@ public class UPNPHelper extends UPNPControl {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
 									if (!redundant) {
-										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
 									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -512,7 +494,7 @@ public class UPNPHelper extends UPNPControl {
 					} catch (BindException e) {
 						if (!bindErrorReported) {
 							LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
-							+ ", which means that PMS will not automatically appear on your renderer! "
+							+ ", which means that UMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
 							+ "UMS will keep trying to bind to it...[" + e.getMessage() + "]");
@@ -521,7 +503,7 @@ public class UPNPHelper extends UPNPControl {
 						bindErrorReported = true;
 						sleep(5000);
 					} catch (IOException e) {
-						LOGGER.error("UPNP network exception: ", e.getMessage());
+						LOGGER.error("UPnP network exception: ", e.getMessage());
 						LOGGER.trace("", e);
 						sleep(1000);
 					} finally {
@@ -531,6 +513,8 @@ public class UPNPHelper extends UPNPControl {
 								InetAddress upnpAddress = getUPNPAddress();
 								multicastSocket.leaveGroup(upnpAddress);
 							} catch (IOException e) {
+								LOGGER.trace("Final UPnP network exception: ", e.getMessage());
+								LOGGER.trace("", e);
 							}
 
 							multicastSocket.disconnect();
