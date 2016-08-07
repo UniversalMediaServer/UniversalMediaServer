@@ -67,6 +67,10 @@ import net.pms.newgui.*;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
+import oshi.hardware.GlobalMemory;
+import oshi.hardware.HardwareAbstractionLayer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -1387,12 +1391,17 @@ public class PMS {
 	 */
 	private void logSystemInfo() {
 		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
+		HardwareAbstractionLayer hal = new SystemInfo().getHardware();
+        CentralProcessor processor = hal.getProcessor();
+        GlobalMemory memory = hal.getMemory();
 
 		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
-		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
-		LOGGER.info("Memory: {} MB", memoryInMB);
+		LOGGER.info("Physical memory available: {} MB", memory.getAvailable() / 1048576);
+		LOGGER.info("Memory accessible by Java: {} MB", memoryInMB);
+		LOGGER.info("CPU: " + processor.getName());
 		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("");
 
 		if (Platform.isMac()) {
