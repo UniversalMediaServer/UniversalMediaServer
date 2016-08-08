@@ -29,6 +29,7 @@ import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -406,9 +407,11 @@ public class PMS {
 	 *
 	 * @return <code>true</code> if the server has been initialized correctly.
 	 *         <code>false</code> if initialization was aborted.
+	 * @throws SQLException
+	 * @throws InterruptedException
 	 * @throws Exception
 	 */
-	private boolean init() throws Exception {
+	private boolean init() throws IOException, SQLException, InterruptedException {
 		// Show the language selection dialog before displayBanner();
 		if (
 			!isHeadless() &&
@@ -1385,6 +1388,16 @@ public class PMS {
 		return bitness;
 	}
 
+	private int cpuScore;
+
+	/**
+	 * Returns the CPU benchmark score which can be used to determine the transcoding setting
+	 * in accordance with the CPU power. If null than the CPU is unknown or not benchmarked.
+	 */
+	public int getCpuScore() {
+		return cpuScore;
+	}
+
 	/**
 	 * Log system properties identifying Java, the OS and encoding and log
 	 * warnings where appropriate.
@@ -1394,12 +1407,25 @@ public class PMS {
 		HardwareAbstractionLayer hal = new SystemInfo().getHardware();
         CentralProcessor processor = hal.getProcessor();
         GlobalMemory memory = hal.getMemory();
+        String name = processor.getName();
+        String result = CbmAPI.getCpuByName(name);
+        String score = "not available";
+        if (result.contains("Score")) {
+        	score = result.substring(result.indexOf("Score") + 8, result.indexOf(",") - 1);
+        	try {
+        		cpuScore = Integer.parseInt(score);
+        	} catch (NumberFormatException e) {
+                LOGGER.error("Can't parse the CPU score result: " + e);
+            }
+
+        }
 
 		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
-		LOGGER.info("Physical memory available: {} MB", memory.getAvailable() / 1048576);
+		LOGGER.info("Physical memory: {} MB", memory.getTotal() / 1048576);
+		LOGGER.info("Available physical memory : {} MB", memory.getAvailable() / 1048576);
 		LOGGER.info("Memory accessible by Java: {} MB", memoryInMB);
-		LOGGER.info("CPU: " + processor.getName());
+		LOGGER.info("CPU: " + name + ", Benchmark score: " + score);
 		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("");
