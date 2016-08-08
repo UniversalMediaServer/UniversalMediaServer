@@ -71,5 +71,12 @@ should work on most Unix distributions)
     cd ums-<version>
     ./UMS.sh
 
+5) The user may have to manually copying these files to his profile folder:
+
+    UMS.conf
+    WEB.conf
+    ffmpeg.webfilters   (used for trailers.apple.com, could be downloaded from https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/src/main/external-resources/ffmpeg.webfilters)
+    VirtualFolders.conf
+
 UMS accesses some files in the ums-<version> directory (the working directory).
 Other files will be looked for in ~/.config/UMS
