@@ -89,11 +89,15 @@
 				<include>WEB.conf</include>
 				<include>logback.headless.xml</include>
 				<include>logback.xml</include>
+				<include>documentation/**</include>
 				<include>linux/*.txt</include>
 				<include>plugins/**</include>
 				<include>renderers/*</include>
 				<include>VirtualFolders.conf</include>
 				<include>DummyInput.ass</include>
+				<include>DummyInput.jpg</include>
+				<include>web/**</include>
+				<include>ffmpeg.webfilters</include>
 			</includes>
 		</fileSet>
 
