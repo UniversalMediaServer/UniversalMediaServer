@@ -3889,20 +3889,20 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public void parseCpuInfo() {
-        String name = new SystemInfo().getHardware().getProcessor().getName();
-        boolean cpuChanged = false;
-        if (getCpuName().isEmpty() || !getCpuName().equals(name)) {
-        	setCpuName(name);
-        	cpuChanged = true;
-        }
+		String name = new SystemInfo().getHardware().getProcessor().getName();
+		boolean cpuChanged = false;
+		if (getCpuName().isEmpty() || !getCpuName().equals(name)) {
+			setCpuName(name);
+			cpuChanged = true;
+		}
 
-        if ((getCpuScore().isEmpty() || cpuChanged) && !getCpuName().isEmpty()) {
-        	String result = CbmAPI.getCpuByName(getCpuName());
-            if (result.contains("Score")) {
-           		setCpuScore(result.substring(result.indexOf("Score") + 8, result.indexOf(",") - 1));
-            } else {
-            	setCpuScore("not available");
-            }
-        }
+		if ((getCpuScore().isEmpty() || cpuChanged) && !getCpuName().isEmpty()) {
+			String result = CbmAPI.getCpuByName(getCpuName());
+			if (result.contains("Score")) {
+				setCpuScore(result.substring(result.indexOf("Score") + 8, result.indexOf(",") - 1));
+			} else {
+				setCpuScore("not available");
+			}
+		}
 	}
 }
