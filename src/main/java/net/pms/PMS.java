@@ -1398,7 +1398,7 @@ public class PMS {
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("PC total physical memory: " + memory.getTotal() / 1048576 + " " + Messages.getString("StatusTab.12"));
 		LOGGER.info("PC physical memory currently available: " + memory.getAvailable() / 1048576 + " " + Messages.getString("StatusTab.12"));
-		LOGGER.info("Max amount of memory accesible by Java: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
+		LOGGER.info("Max amount of memory accessible by Java: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
 		LOGGER.info("CPU: " + configuration.getCpuName() + ", Benchmark score: " + configuration.getCpuScore());
 		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
