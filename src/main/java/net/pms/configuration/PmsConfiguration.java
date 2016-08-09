@@ -40,10 +40,15 @@ import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
+import net.pms.util.CbmAPI;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
+import oshi.hardware.GlobalMemory;
+import oshi.hardware.HardwareAbstractionLayer;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
@@ -127,6 +132,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
+	protected static final String KEY_CPU_NAME = "cpu_name";
+	protected static final String KEY_CPU_SCORE = "cpu_score";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
@@ -3863,5 +3870,39 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getAliveDelay() {
 		return getInt(KEY_ALIVE_DELAY, 0);
+	}
+
+	public void setCpuName(String value) {
+		configuration.setProperty(KEY_CPU_NAME, value);
+	}
+
+	public String getCpuName() {
+		return getString(KEY_CPU_NAME, "");
+	}
+
+	public void setCpuScore(String value) {
+		configuration.setProperty(KEY_CPU_SCORE, value);
+	}
+
+	public String getCpuScore() {
+		return getString(KEY_CPU_SCORE, "");
+	}
+
+	public void parseCpuInfo() {
+		String name = new SystemInfo().getHardware().getProcessor().getName();
+		boolean cpuChanged = false;
+		if (getCpuName().isEmpty() || !getCpuName().equals(name)) {
+			setCpuName(name);
+			cpuChanged = true;
+		}
+
+		if ((getCpuScore().isEmpty() || cpuChanged) && !getCpuName().isEmpty()) {
+			String result = CbmAPI.getCpuByName(getCpuName());
+			if (result.contains("Score")) {
+				setCpuScore(result.substring(result.indexOf("Score") + 8, result.indexOf(",") - 1));
+			} else {
+				setCpuScore("not available");
+			}
+		}
 	}
 }
