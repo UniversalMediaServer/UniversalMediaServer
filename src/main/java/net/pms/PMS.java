@@ -1391,28 +1391,15 @@ public class PMS {
 	 */
 	private void logSystemInfo() {
 		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
-		HardwareAbstractionLayer hal = new SystemInfo().getHardware();
-        CentralProcessor processor = hal.getProcessor();
-        GlobalMemory memory = hal.getMemory();
-        String name = processor.getName();
-        String result = CbmAPI.getCpuByName(name);
-        String score = "not available";
-        if (result.contains("Score")) {
-        	score = result.substring(result.indexOf("Score") + 8, result.indexOf(",") - 1);
-        	try {
-        		cpuScore = Integer.parseInt(score);
-        	} catch (NumberFormatException e) {
-                LOGGER.error("Can't parse the CPU score result: " + e);
-            }
-        	
-        }
+        GlobalMemory memory = new SystemInfo().getHardware().getMemory();
+        configuration.parseCpuInfo();
 
 		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("PC total physical memory: " + memory.getTotal() / 1048576 + " " + Messages.getString("StatusTab.12"));
 		LOGGER.info("PC physical memory currently available: " + memory.getAvailable() / 1048576 + " " + Messages.getString("StatusTab.12"));
 		LOGGER.info("Max amount of memory accesible by Java: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
-		LOGGER.info("CPU: " + name + ", Benchmark score: " + score);
+		LOGGER.info("CPU: " + configuration.getCpuName() + ", Benchmark score: " + configuration.getCpuScore());
 		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("");
