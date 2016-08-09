@@ -3900,6 +3900,8 @@ public class PmsConfiguration extends RendererConfiguration {
         	String result = CbmAPI.getCpuByName(getCpuName());
             if (result.contains("Score")) {
            		setCpuScore(result.substring(result.indexOf("Score") + 8, result.indexOf(",") - 1));
+            } else {
+            	setCpuScore("not available");
             }
         }
 	}
