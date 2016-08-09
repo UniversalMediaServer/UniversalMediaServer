@@ -299,7 +299,9 @@ public class RequestV2 extends HTTPResource {
 			dlna = PMS.get().getRootFolder(null).getDLNAResource(id, mediaRenderer);
 			String fileName = id.substring(id.indexOf('/') + 1);
 			int end = fileName.indexOf('?');
+			String queryStr = null;
 			if (end != -1) {
+				queryStr = fileName.substring(end + 1);
 				fileName = fileName.substring(0, end);
 			}
 
@@ -316,7 +318,7 @@ public class RequestV2 extends HTTPResource {
 			if (dlna != null) {
 				// DLNAresource was found.
 
-				if (fileName.startsWith("thumbnail0000")) {
+				if (fileName.startsWith("thumbnail0000") || (queryStr != null && "albumArt=true".equals(queryStr))) {
 					// This is a request for a thumbnail file.
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, dlna.getThumbnailContentType());
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
@@ -536,8 +538,9 @@ public class RequestV2 extends HTTPResource {
 
 				if (xbox360) {
 					LOGGER.debug("DLNA changes for Xbox 360");
-					s = s.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
-					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
+					s = s.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Player Sharing");
+					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Player Sharing</modelName>");
+//					s = s.replace("<modelNumber>01</modelNumber>", "<modelNumber>11</modelNumber>");
 					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
 						"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
