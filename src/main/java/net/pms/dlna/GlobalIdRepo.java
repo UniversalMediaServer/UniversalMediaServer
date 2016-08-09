@@ -56,8 +56,10 @@ public class GlobalIdRepo {
 	
 	private ArrayList<ID> ids = new ArrayList<>();
 
+	private CacheManager cacheManager;
+
 	public GlobalIdRepo() {
-		CacheManager cacheManager = CacheManager.newInstance();
+		cacheManager = CacheManager.newInstance();
 		resourcesMap = cacheManager.addCacheIfAbsent("PMS");
 		renderCache = cacheManager.addCacheIfAbsent("renderer"); 
 	}
@@ -143,6 +145,10 @@ public class GlobalIdRepo {
 		resourcesMap.removeAll();
 		
 		globalId = 1;
+	}
+	
+	public void shutdown() {
+		cacheManager.shutdown();
 	}
 
 	public static int parseIndex(String id) {

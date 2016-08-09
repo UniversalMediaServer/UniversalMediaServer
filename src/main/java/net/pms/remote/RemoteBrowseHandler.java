@@ -45,11 +45,13 @@ public class RemoteBrowseHandler implements HttpHandler {
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		
 		if (res.isEmpty()) {
-			// Invalid id, object not in cache or session expired; redirect to root
+			if ("0".equals(id)) {
+				// Invalid id, object not in cache or session expired; redirect to root
+				t.getRequestHeaders().set("Cookie", "UMS=");
 //			String path = t.getRequestURI().getPath();
 //			String response = "<html><body>404 - File Not Found: " + path + "</body></html>";
 //			RemoteUtil.respond(t, response, 302, "text/html");
-			
+			}
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Location", "/browse/" + root.getResourceId());
 			RemoteUtil.respond(t, "", 302, "text/html");

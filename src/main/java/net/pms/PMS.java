@@ -19,35 +19,58 @@
 
 package net.pms;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
-import com.sun.jna.Platform;
-import com.sun.net.httpserver.HttpServer;
-import java.awt.*;
+import java.awt.AWTError;
+import java.awt.Component;
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.imageio.ImageIO;
 import javax.jmdns.JmDNS;
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
-import net.pms.dlna.*;
+import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.GlobalIdRepo;
+import net.pms.dlna.Playlist;
+import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -55,7 +78,13 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.io.*;
+import net.pms.io.BasicSystemUtils;
+import net.pms.io.MacSystemUtils;
+import net.pms.io.OutputParams;
+import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.SolarisUtils;
+import net.pms.io.SystemUtils;
+import net.pms.io.WinUtils;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
@@ -63,10 +92,31 @@ import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
-import net.pms.newgui.*;
+import net.pms.newgui.DbgPacker;
+import net.pms.newgui.DummyFrame;
+import net.pms.newgui.IFrame;
+import net.pms.newgui.LanguageSelection;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.Splash;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
-import net.pms.util.*;
+import net.pms.util.CodeDb;
+import net.pms.util.CredMgr;
+import net.pms.util.FileUtil;
+import net.pms.util.FileWatcher;
+import net.pms.util.FullyPlayed;
+import net.pms.util.InfoDb;
+import net.pms.util.Languages;
+import net.pms.util.OpenSubtitle;
+import net.pms.util.ProcessUtil;
+import net.pms.util.PropertiesUtil;
+import net.pms.util.SystemErrWrapper;
+import net.pms.util.TaskRunner;
+import net.pms.util.TempFileMgr;
+import net.pms.util.UmsKeysDb;
+import net.pms.util.Version;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -75,6 +125,12 @@ import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+
+import com.sun.jna.Platform;
+import com.sun.net.httpserver.HttpServer;
 
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
@@ -763,7 +819,7 @@ public class PMS {
 			LOGGER.info("WEB interface is available at: " + web.getUrl());
 		}
 
-		refreshLibrary();
+		refreshLibrary(false);
 
 		frame.serverReady();
 
@@ -792,6 +848,7 @@ public class PMS {
 					}
 
 					get().getServer().stop();
+					get().getGlobalRepo().shutdown();
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					LOGGER.debug("Caught exception", e);
@@ -827,7 +884,7 @@ public class PMS {
 		return true;
 	}
 
-	public void refreshLibrary() {
+	public void refreshLibrary(boolean scan) {
 		getGlobalRepo().clear();
 		// initialize the cache
 		if (configuration.getUseCache()) {
@@ -839,7 +896,11 @@ public class PMS {
 		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
 		//     b) *after* mediaLibrary is initialized, if enabled (above)
 		RootFolder root = getRootFolder(RendererConfiguration.getDefaultConf());
-		root.reset();
+		if (scan) {
+			// We don't need scan on startup which delays the start process
+			root.reset();
+			root.scan();
+		}
 		getGlobalRepo().add(root);
 	}
 
@@ -1095,6 +1156,10 @@ public class PMS {
 
 	private synchronized static void createInstance() {
 		assert instance == null; // this should only be called once
+		
+		Properties props = System.getProperties();
+		props.setProperty("net.sf.ehcache.enableShutdownHook", "true");
+		
 		instance = new PMS();
 
 		try {
