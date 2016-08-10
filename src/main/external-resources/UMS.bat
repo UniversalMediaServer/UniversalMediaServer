@@ -6,4 +6,4 @@ echo You can try to reduce the Xmx parameter value if you keep getting "Cannot c
 echo Last word: You must have java installed ! http://www.java.com
 echo ------------------------------------------------
 pause
-start javaw -Xmx768M -Dfile.encoding=UTF-8 -classpath update.jar;ums.jar net.pms.PMS
+start javaw -Xmx768M -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -classpath update.jar;ums.jar net.pms.PMS
