@@ -3,6 +3,7 @@ package net.pms.dlna;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -65,7 +66,20 @@ public class GlobalIdRepo {
 	}
 
 	public String getId(String filename) {
-		return idMap.get(filename);
+		String id = null;
+		if (filename != null) {
+			DLNAResource resource = null;
+			List keys = resourcesMap.getKeys();
+			for (Object object : keys) {
+				resource = (DLNAResource) resourcesMap.get(object).getObjectValue();
+				if (filename.equals(resource.getSystemName())) {
+					id = resource.getId();
+					break;
+				}
+			}
+
+		}
+		return id;
 	}
 	
 	public String getFilename(String id) {
@@ -97,21 +111,19 @@ public class GlobalIdRepo {
 		if (get(id) != null)
 			return;
 		
-		if (id == null) {
+		if (id == null && resourcesMap.isValueInCache(d)) {
 			id = getId(filename);
-			if (id == null) {
-				d.setIndexId(globalId++);
-				id = d.getId();
-			} else {
-				d.setId(id);
-				return;
-			}
+			d.setId(id);
+			return;
 		}
-		
-		Element el = new Element(new Key(id, filename), d);
+
 		if ("0".equals(id)) {
-			el = new Element(new Key(id, null), d); // hashcode uses filename which is usually not available while fetching from cache
+//			System.out.println("root folder");
+		} else {
+			d.setIndexId(globalId++);
+			id = d.getId();
 		}
+		Element el = new Element(id, d);
 		el.setEternal(true);
 //		System.out.println(id + ": " + filename);
 		
@@ -122,7 +134,7 @@ public class GlobalIdRepo {
 	}
 
 	public synchronized DLNAResource get(String id) {
-		Element el = resourcesMap.get(new Key(id, null));
+		Element el = resourcesMap.get(id);
 		if (el == null)
 			return null;
 		return (DLNAResource) el.getObjectValue();
@@ -133,7 +145,10 @@ public class GlobalIdRepo {
 	}
 
 	public void remove(String id) {
-		resourcesMap.remove(id);
+		/* Once discovered, don't remove from cache so that it can be reused.
+		 * 
+		 */
+//		resourcesMap.remove(id);
 //		filenameMap.remove(idMap.get(id));
 //		idMap.remove(id);
 	}
@@ -149,6 +164,15 @@ public class GlobalIdRepo {
 	
 	public void shutdown() {
 		cacheManager.shutdown();
+	}
+	
+	@Override
+	public String toString() {
+		List keys = resourcesMap.getKeys();
+		for (Object  el : keys) {
+			System.out.println(resourcesMap.get(el));
+		}
+		return super.toString();
 	}
 
 	public static int parseIndex(String id) {

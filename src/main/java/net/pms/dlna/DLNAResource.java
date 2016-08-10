@@ -4425,4 +4425,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		scaleHeight = Player.convertToModX(scaleHeight, 4);
 		return scaleWidth + "x" + scaleHeight;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		boolean result = false;
+		if (o instanceof DLNAResource) {
+			DLNAResource k = (DLNAResource) o;
+			result = getSystemName().equals(k.getSystemName());
+			System.out.println(k + ":" + this);
+		}
+		return result;
+	}
+	
+	@Override
+	public int hashCode() {
+		return getSystemName().hashCode();
+	}
 }
