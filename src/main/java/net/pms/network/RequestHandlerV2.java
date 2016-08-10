@@ -308,7 +308,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultFullHttpResponse(
 				HttpVersion.HTTP_1_1,
-				HttpResponseStatus.OK
+				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
 			String soapAction = nettyRequest.headers().get("SOAPACTION");
@@ -331,7 +331,13 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			if (request.getInputStream() != null) {
 				final InputStream inputStream = request.getInputStream();
 				
+				// Partial content aka byte range seek support
 				DefaultHttpResponse response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				if (response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+					response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT);
+					response1.headers().add(response.headers());
+				}
+
 				ctx.write(response1);
 				chunkWriteFuture = ctx.write(new ChunkedStream(inputStream));
 

@@ -3188,6 +3188,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				};
 
 				new Thread(r, "Hanging External Process Stopper").start();
+			} else {
+				is = wrap(is, high, low);
 			}
 
 			return is;
@@ -4432,7 +4434,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (o instanceof DLNAResource) {
 			DLNAResource k = (DLNAResource) o;
 			result = getSystemName().equals(k.getSystemName());
-			System.out.println(k + ":" + this);
+//			System.out.println(k + ":" + this);
 		}
 		return result;
 	}
