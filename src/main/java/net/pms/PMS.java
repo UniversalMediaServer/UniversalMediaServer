@@ -1171,8 +1171,8 @@ public class PMS {
 		if (isHeadless() && denyHeadless) {
 			System.err.println(
 				"Either a graphics environment isn't available or headless " +
-			    "mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
-			    " can't start, exiting."
+				"mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
+				" can't start, exiting."
 			);
 			System.exit(1);
 		} else if (!isHeadless()) {
@@ -1905,7 +1905,7 @@ public class PMS {
 		return instance.credMgr.getTag(owner, username);
 	}
 
-	public static boolean verifyCred(String owner,String tag, String user, String pwd) {
+	public static boolean verifyCred(String owner, String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
 	}
 
