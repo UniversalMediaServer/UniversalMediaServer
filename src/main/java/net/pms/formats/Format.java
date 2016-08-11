@@ -356,7 +356,7 @@ public abstract class Format implements Cloneable, Serializable {
 			ext = ".wav";
 			
 		// Video	
-		} else if (mimetype.equalsIgnoreCase("video/mpeg")) {
+		} else if (mimetype.equalsIgnoreCase("video/mpeg") || mimetype.equalsIgnoreCase("video/mp4")) {
 			ext = ".mp4";
 		}
 		
@@ -386,6 +386,8 @@ public abstract class Format implements Cloneable, Serializable {
 		
 //		if (filename.endsWith(".l16"))
 //			mimetype = "audio/L16";
+		if (filename.endsWith(".avi"))
+			mimetype = "video/avi";
 		return mimetype;
 	}
 	

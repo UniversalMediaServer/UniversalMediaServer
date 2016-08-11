@@ -449,7 +449,7 @@ public class LibMediaInfoParser {
 		} else if (value.startsWith("vp9")) {
 			format = FormatConfiguration.VP9;
 		} else if (value.contains("xvid")) {
-			format = FormatConfiguration.MP4;
+			format = FormatConfiguration.DIVX;//MP4;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
 		} else if (value.contains("div") || value.contains("dx")) {
