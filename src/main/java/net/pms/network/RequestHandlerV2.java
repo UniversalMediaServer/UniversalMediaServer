@@ -340,6 +340,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 					response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT);
 				}
 				response1.headers().set(response.headers());
+				response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
 
 				ctx.write(response1);
 				chunkWriteFuture = ctx.write(new ChunkedStream(inputStream));
