@@ -80,6 +80,16 @@ public class UMSUtilsTest {
 		
 		mime = Format.getMimetype("as" + ext);
 		assertThat(mime).isEqualTo("video/mp4");
+		
+		mime = Format.getMimetype("as.avi");
+		assertThat(mime).isEqualTo("video/avi");
+		
+		mimeType = "audio/mpeg";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".mp3");
+		
+		mime = Format.getMimetype("as" + ext);
+		assertThat(mime).isEqualTo(mimeType);
 	}
 	
 	public void testCriteria() throws Exception {

@@ -336,6 +336,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				// Partial content aka byte range seek support
 				DefaultHttpResponse response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 				if (response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+					// Smaller files need not be served as partial content
 					response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT);
 				}
 				response1.headers().set(response.headers());
