@@ -540,7 +540,7 @@ public class RequestV2 extends HTTPResource {
 					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Player Sharing");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Player Sharing</modelName>");
-//					s = s.replace("<modelNumber>01</modelNumber>", "<modelNumber>11</modelNumber>");
+					s = s.replace("<modelNumber>01</modelNumber>", "<modelNumber>11</modelNumber>");
 					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
 						"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
