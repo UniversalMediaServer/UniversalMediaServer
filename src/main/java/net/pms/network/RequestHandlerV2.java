@@ -24,11 +24,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -41,6 +41,7 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.stream.ChunkedStream;
 import io.netty.util.CharsetUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -340,11 +341,33 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 					response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT);
 				}
 				response1.headers().set(response.headers());
-				response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
+				
+				long start = 0;
+				long end = 0;
+				if (response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+					start = request.getLowRange();
+					end = request.getHighRange();
+//					// WMP needs content length for smaller files
+					response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
+				}
 
-				ctx.write(response1);
-				chunkWriteFuture = ctx.write(new ChunkedStream(inputStream));
+				// Stream avi
+				if (request.getFile() != null && !response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+					File f = request.getFile();
+					if (end == 0)
+						end = f.length();
+					response1.headers().remove(HttpHeaderNames.TRANSFER_ENCODING);
+					ctx.write(response1);
+					chunkWriteFuture = ctx.write(new DefaultFileRegion(f, start, end));
+				} else {
+//					response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
+					ctx.write(response1);
+					chunkWriteFuture = ctx.write(new ChunkedStream(inputStream));
+				}
 				ctx.write(LastHttpContent.EMPTY_LAST_CONTENT);
+
+				System.out.println(e);
+				System.out.println(response1);
 
 				// Add a listener to clean up after sending the entire response body.
 				chunkWriteFuture.addListener(new ChannelFutureListener() {

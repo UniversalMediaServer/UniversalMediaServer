@@ -2990,6 +2990,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				result = audio;
 				break;
 			case MediaType.VIDEO_INT:
+				// MP4 is more widely supported (plus XBOX doesn't support video/mpeg)
+				if ("video/mpeg".equals(video))
+					video = "video/mp4";
 				result = video;
 				break;
 			case MediaType.IMAGE_INT:

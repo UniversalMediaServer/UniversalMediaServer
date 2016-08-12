@@ -29,6 +29,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +51,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
+import net.pms.dlna.RealFile;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.util.StringUtil;
@@ -87,6 +89,7 @@ public class RequestV2 extends HTTPResource {
 	 */
 	private long lowRange;
 	private InputStream inputStream;
+	private File file;
 	private RendererConfiguration mediaRenderer;
 	private String transferMode;
 	private String contentFeatures;
@@ -395,6 +398,8 @@ public class RequestV2 extends HTTPResource {
 						)
 					) {
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer, rendererMimeType);
+						if (dlna instanceof RealFile && ("video/avi".equals(rendererMimeType) || "audio/mp4".equals(rendererMimeType)))
+							setFile(((RealFile) dlna).getFile());
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
 //							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
@@ -1014,5 +1019,13 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		return result;
+	}
+
+	public File getFile() {
+		return file;
+	}
+
+	public void setFile(File file) {
+		this.file = file;
 	}
 }
