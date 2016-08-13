@@ -399,6 +399,10 @@ public class FFMpegVideo extends Player {
 			if ("video/mp4".equals(media.getMimeType())) {
 				transcodeOptions.add("-f");
 				transcodeOptions.add("mp4");
+				if (renderer.isXbox360()) {
+					transcodeOptions.add("-ac");
+					transcodeOptions.add("2");
+				}
 				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {

@@ -347,8 +347,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				if (response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
 					start = request.getLowRange();
 					end = request.getHighRange();
-//					// WMP needs content length for smaller files
-					response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
 				}
 
 				// Stream avi
@@ -360,7 +358,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 					ctx.write(response1);
 					chunkWriteFuture = ctx.write(new DefaultFileRegion(f, start, end));
 				} else {
-//					response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
+					// WMP needs content length for smaller files
+					if (!request.getArgument().endsWith(".xml"))
+						response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
 					ctx.write(response1);
 					chunkWriteFuture = ctx.write(new ChunkedStream(inputStream));
 				}
