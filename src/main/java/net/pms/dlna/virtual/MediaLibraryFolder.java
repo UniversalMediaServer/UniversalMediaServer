@@ -2,6 +2,7 @@ package net.pms.dlna.virtual;
 
 import java.io.File;
 import java.util.ArrayList;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
@@ -11,6 +12,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int TEXTS = 1;
 	public static final int PLAYLISTS = 2;
 	public static final int ISOS = 3;
+	public static final int SEASONS = 4;
 	private String sqls[];
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
@@ -24,6 +26,20 @@ public class MediaLibraryFolder extends VirtualFolder {
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
 		this.database = PMS.get().getDatabase();
+	}
+
+	public MediaLibraryFolder(String name, String sql, int expectedOutput, String nameToDisplay) {
+		this(name, new String[]{sql}, new int[]{expectedOutput}, nameToDisplay);
+	}
+
+	public MediaLibraryFolder(String name, String sql[], int expectedOutput[], String nameToDisplay) {
+		super(name, null);
+		this.sqls = sql;
+		this.expectedOutputs = expectedOutput;
+		this.database = PMS.get().getDatabase();
+		if (nameToDisplay != null) {
+			this.displayNameOverride = nameToDisplay;
+		}
 	}
 
 	@Override
@@ -66,6 +82,23 @@ public class MediaLibraryFolder extends VirtualFolder {
 							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
 							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
+						}
+					}
+				} else if (expectedOutput == SEASONS) {
+					String nameToDisplay;
+					ArrayList<String> list = database.getStrings(sql);
+					if (list != null) {
+						for (String s : list) {
+							nameToDisplay = null;
+							if (s.length() != 4) {
+								nameToDisplay = Messages.getString("VirtualFolder.6") + " " + s;
+							}
+
+							String sqls2[] = new String[sqls.length - 1];
+							int expectedOutputs2[] = new int[expectedOutputs.length - 1];
+							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
+							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
+							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2, nameToDisplay));
 						}
 					}
 				}

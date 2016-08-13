@@ -76,9 +76,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 
 	/**
-	 * The name displayed on the renderer. Cached the first time getDisplayName(RendererConfiguration) is called.
+	 * The name displayed on the renderer if displayNameFinal is not specified.
 	 */
 	private String displayName;
+
+	/**
+	 * The name displayed on the renderer. If this is null, displayName is used.
+	 */
+	public String displayNameOverride;
 
 	/**
 	 * The suffix added to the name. Contains additional info about audio and subtitles.
@@ -1532,6 +1537,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
+
+		/**
+		 * Allow the use of displayNameOverride for names we do not allow
+		 * to be transformed.
+		 */
+		if (displayNameOverride != null) {
+			displayName = displayNameOverride;
+			return displayName;
+		}
+
 		// displayName shouldn't be cached, since device configurations may differ
 //		if (displayName != null) { // cached
 //			return withSuffix ? (displayName + nameSuffix) : displayName;

@@ -32,7 +32,7 @@ public class MediaLibrary extends VirtualFolder {
 				"SELECT DISTINCT TVSEASON FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON ASC",
 				"TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER ASC"
 			},
-			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES}
 		);
 		vfVideo.addChild(tvShowsFolder);
 		MediaLibraryFolder movies = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), "TYPE = 4 AND NOT ISTVEPISODE ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
