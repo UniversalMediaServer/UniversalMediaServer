@@ -210,7 +210,10 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("-f");
 			cmdList.add("mp3");
 			cmdList.add("-ab");
-			cmdList.add("320000");  
+			if (params.mediaRenderer.isXbox360())
+				cmdList.add("128000");
+			else
+				cmdList.add("320000"); 
 //		} else if (params.mediaRenderer.isTranscodeToWAV()) {
 		} else if (".wav".equals(ext) || ".m4a".equals(ext)) {
 			cmdList.add("-f");
