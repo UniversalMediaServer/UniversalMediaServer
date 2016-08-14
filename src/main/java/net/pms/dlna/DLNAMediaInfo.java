@@ -785,9 +785,7 @@ public class DLNAMediaInfo implements Cloneable {
 							if (!channels.isEmpty()) {
 								if (channels.equals("1") || channels.contains("mono")) { // parse value "1" or "Mono"
 									audio.getAudioProperties().setNumberOfChannels(1);
-								} else if (channels.equals("2") || channels.contains("stereo")) { // parse value "2" or "Joint stereo"
-									audio.getAudioProperties().setNumberOfChannels(2);
-								} else {
+								} else if (!(channels.equals("2") || channels.contains("stereo"))){ // this value is default so try to parse the unknown value
 									try {
 										audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(channels));
 									} catch (NumberFormatException e) {
