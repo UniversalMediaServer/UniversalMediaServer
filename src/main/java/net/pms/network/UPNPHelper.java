@@ -80,6 +80,11 @@ public class UPNPHelper extends UPNPControl {
 		"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1"
 	};
 
+	private static final String[] ST_LIST = {
+		"urn:schemas-upnp-org:device:MediaRenderer:1",
+		"urn:schemas-upnp-org:device:Basic:1"
+	};
+
 	// The listener.
 	private static Thread listenerThread;
 
@@ -159,12 +164,6 @@ public class UPNPHelper extends UPNPControl {
 		discovery.append("USN: ").append(usn).append(st).append(CRLF);
 		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
 
-		discovery.append("M-SEARCH * HTTP/1.1").append(CRLF);
-		discovery.append("ST: ").append(st).append(CRLF);
-		discovery.append("MX: 3").append(CRLF);
-		discovery.append("MAN: \"ssdp:discover\"").append(CRLF);
-		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
-
 		String msg = discovery.toString();
 
 		if (st.equals(lastSearch)) {
@@ -174,6 +173,18 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		sendReply(host, port, msg);
+
+		for (String ST: ST_LIST) {
+			discovery = new StringBuilder();
+			discovery.append("M-SEARCH * HTTP/1.1").append(CRLF);
+			discovery.append("ST: ").append(ST).append(CRLF);
+			discovery.append("HOST: ").append(IPV4_UPNP_HOST).append(':').append(UPNP_PORT).append(CRLF);
+			discovery.append("MX: 3").append(CRLF);
+			discovery.append("MAN: \"ssdp:discover\"").append(CRLF).append(CRLF);
+			msg = discovery.toString();
+			sendReply(host, port, msg);
+		}
+
 		lastSearch = st;
 	}
 
@@ -293,7 +304,7 @@ public class UPNPHelper extends UPNPControl {
 	 * Send the UPnP BYEBYE message.
 	 */
 	public static void sendByeBye() {
-		LOGGER.info("Sending BYEBYE...");
+		LOGGER.debug("Sending BYEBYE...");
 
 		MulticastSocket multicastSocket = null;
 
