@@ -321,56 +321,14 @@ public class UPNPControl {
 			};
 
 			upnpService = new UpnpServiceImpl(sc, rl);
-			initializeSearcher();
+			for (DeviceType t : mediaRendererTypes) {
+				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
+			}
 
 			LOGGER.debug("UPNP Services are online, listening for media renderers");
 		} catch (Exception ex) {
 			LOGGER.debug("UPNP startup Error", ex);
 		}
-	}
-
-	private static int search_delay = 10000;
-	private static Thread searchThread;
-
-	/**
-	 * Runs a Cling search every 10/20/30 seconds to discover new renderers.
-	 */
-	public void initializeSearcher() {
-		Runnable rSearch = new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					for (DeviceType t : mediaRendererTypes) {
-						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-					}
-					LOGGER.trace("Searching for renderers with Cling...");
-					sleep(search_delay);
-
-					/**
-					 * The first delay for sending a search message is 10 seconds,
-					 * the second delay is for 20 seconds. From then on, all other
-					 * delays are 30 seconds.
-					 */
-					switch (search_delay) {
-						case 10000:
-							search_delay = 20000;
-							break;
-						case 20000:
-							if (PMS.get().getFoundRenderers().size() > 0) {
-								search_delay = 30000;
-							} else {
-								search_delay = 10000;
-							}
-							break;
-						default:
-							break;
-					}
-				}
-			}
-		};
-
-		searchThread = new Thread(rSearch, "UPNP-Search");
-		searchThread.start();
 	}
 
 	public void shutdown() {
@@ -380,9 +338,6 @@ public class UPNPControl {
 				if (upnpService != null) {
 					LOGGER.debug("Stopping UPNP Services...");
 					upnpService.shutdown();
-				}
-				if (searchThread != null) {
-					searchThread.interrupt();
 				}
 			}
 		}).start();
