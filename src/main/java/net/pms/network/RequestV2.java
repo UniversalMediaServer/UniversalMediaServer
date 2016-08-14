@@ -770,7 +770,15 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());
-			output.headers().set("TIMEOUT", "Second-1800");
+
+			/**
+ 			 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
+ 			 * subscribed UPnP control points. The device must enforce a subscription
+ 			 * TIMEOUT value of 5 minutes.
+ 			 * The UPnP device behavior of enforcing this 5 minutes TIMEOUT value is
+ 			 * implemented by specifying "TIMEOUT: second-300" as an HTTP header/value pair.
+ 			 */
+			output.headers().set("TIMEOUT", "Second-300");
 
 			if (soapaction != null) {
 				String cb = soapaction.replace("<", "").replace(">", "");

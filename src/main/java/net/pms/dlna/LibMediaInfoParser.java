@@ -641,6 +641,7 @@ public class LibMediaInfoParser {
 		if (value.contains("/")) {
 			value = value.substring(0, value.indexOf('/')).trim();
 		}
+
 		try {
 			return Integer.parseInt(value);
 		} catch (NumberFormatException e) {

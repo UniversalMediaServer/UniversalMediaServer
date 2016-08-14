@@ -2419,7 +2419,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
 					if (supportedFormats != null) {
 						for (String supportedFormat : supportedFormats) {
-							if (media.getCodecV().equals(supportedFormat.trim().toLowerCase())) {
+							if (media.getCodecV() != null && media.getCodecV().equals(supportedFormat.trim().toLowerCase())) {
 								return true;
 							}
 						}
