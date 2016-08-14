@@ -416,9 +416,9 @@ public class OpenSubtitle {
 			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
 			String name = m.group(2);
 			Matcher m1 = re1.matcher(name);
-			String eptit = "";
+			String episodeName = "";
 			if (m1.find()) {
-				eptit = m1.group(2).trim();
+				episodeName = m1.group(2).trim();
 				name = m1.group(1).trim();
 			}
 
@@ -428,7 +428,7 @@ public class OpenSubtitle {
 			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
 			 * something like "Episode #1.4", so discard that.
 			 */
-			String episodeName = StringEscapeUtils.unescapeHtml4(eptit);
+			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
 			if (episodeName.startsWith("Episode #")) {
 				episodeName = "";
 			}
