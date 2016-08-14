@@ -400,7 +400,10 @@ public abstract class Format implements Cloneable, Serializable {
 	public static boolean isSupportedMimetype(String mimetype) {
 		boolean supported = true;
 		
-		if ("audio/L16".equalsIgnoreCase(mimetype))
+		if ("audio/L16".equalsIgnoreCase(mimetype)
+				|| "video/vnd.dlna.mpeg-tts".equalsIgnoreCase(mimetype)
+				|| "video/mpeg2".equalsIgnoreCase(mimetype)
+				)
 				supported = false;
 		return supported;
 	}

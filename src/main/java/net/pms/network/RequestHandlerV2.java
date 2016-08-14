@@ -309,6 +309,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		// Build the response object.
 		FullHttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
+			// Limiting block size for better perf. doesn't work. Clients don't make follow up request
+//			if (request.getHighRange() == -1)
+//				request.setHighRange(request.getLowRange() + 8 * BUFFER_SIZE);
 			response = new DefaultFullHttpResponse(
 				HttpVersion.HTTP_1_1,
 				HttpResponseStatus.PARTIAL_CONTENT
@@ -351,6 +354,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 				// Stream avi
 				if (request.getFile() != null && !response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+					inputStream.close();
 					File f = request.getFile();
 					if (end == 0)
 						end = f.length();

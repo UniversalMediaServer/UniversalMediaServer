@@ -84,7 +84,12 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-
+	
+	public enum DeviceProfile {
+		MOBILE, TABLET, TV
+	}
+	private DeviceProfile deviceProfile = DeviceProfile.TV;
+	
 	public FFMpegVideo() {
 	}
 
@@ -177,7 +182,8 @@ public class FFMpegVideo extends Player {
 		if (renderer.getMaxVideoWidth() < width) {
 			int height = dlna.getMedia().getHeight();
 			int MAX_WIDTH = Math.min(renderer.getMaxVideoWidth(), width);
-
+			if (MAX_WIDTH < 720)
+				deviceProfile = DeviceProfile.MOBILE;
 			// Maintain aspect ratio
 			int MAX_HEIGHT = (height * MAX_WIDTH) / width;
 
@@ -399,9 +405,12 @@ public class FFMpegVideo extends Player {
 			if ("video/mp4".equals(media.getMimeType())) {
 				transcodeOptions.add("-f");
 				transcodeOptions.add("mp4");
-				if (renderer.isXbox360()) {
+				if (renderer.isXbox360() || deviceProfile == DeviceProfile.MOBILE) {
 					transcodeOptions.add("-ac");
 					transcodeOptions.add("2");
+					
+					transcodeOptions.add("-ab");
+					transcodeOptions.add("128000");
 				}
 				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
