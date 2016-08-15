@@ -353,14 +353,18 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				}
 
 				// Stream avi
-				if (request.getFile() != null && !response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+				if (request.getFile() != null){// && !response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
 					inputStream.close();
 					File f = request.getFile();
-					if (end == 0)
-						end = f.length();
+					if (end == -1)
+						end += f.length();
 					response1.headers().remove(HttpHeaderNames.TRANSFER_ENCODING);
+					if (response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+						response1.headers().set(HttpHeaderNames.CONTENT_LENGTH, end - start + 1);
+						response1.headers().set(HttpHeaderNames.CONTENT_RANGE, String.format("bytes %d-%d/%d", start, end, f.length()));
+					}
 					ctx.write(response1);
-					chunkWriteFuture = ctx.write(new DefaultFileRegion(f, start, end));
+					chunkWriteFuture = ctx.write(new DefaultFileRegion(f, start, end + 1));
 				} else {
 					// WMP needs content length for smaller files
 					if (!request.getArgument().endsWith(".xml"))
