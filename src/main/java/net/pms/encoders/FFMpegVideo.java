@@ -445,8 +445,8 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Move file info to the beginning for streaming
-			transcodeOptions.add("-movflags");
-			transcodeOptions.add("frag_keyframe+empty_moov");
+//			transcodeOptions.add("-movflags");
+//			transcodeOptions.add("frag_keyframe+empty_moov");
 //			if (!customFFmpegOptions.contains("-f")) {
 //				// Output file format
 //				transcodeOptions.add("-f");
@@ -1088,9 +1088,9 @@ public class FFMpegVideo extends Player {
 			params.input_pipes[0] = pipe;
 
 			// Output file
-			cmdList.add(pipe.getInputPipe());
+//			cmdList.add(pipe.getInputPipe());
 		}
-
+		cmdList.add(dlna.getFilename(params.mediaRenderer));
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
 

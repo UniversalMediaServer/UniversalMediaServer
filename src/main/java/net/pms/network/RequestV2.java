@@ -400,6 +400,8 @@ public class RequestV2 extends HTTPResource {
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer, rendererMimeType);
 						if (dlna.isCompatible(rendererMimeType) && ("video/avi".equals(dlna.mimeType()) || dlna.mimeType().endsWith("mp4")))
 							setFile(((RealFile) dlna).getFile());
+						else if (inputStream == null) // Transcoding complete
+							setFile(new File(dlna.getFilename(mediaRenderer)));
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
 //							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);

@@ -74,6 +74,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.UPNPControl;
@@ -3110,6 +3111,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
+				File f = new File(getFilename(mediarenderer));
+				if (f.exists())
+					return null;
+				
 				// First playback attempt => start new transcoding process
 				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 				lastStartSystemTime = System.currentTimeMillis();
@@ -3187,7 +3192,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				};
 
-				new Thread(r, "Hanging External Process Stopper").start();
+//				new Thread(r, "Hanging External Process Stopper").start();
 			} else {
 				is = wrap(is, high, low);
 			}
@@ -4442,5 +4447,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Override
 	public int hashCode() {
 		return getSystemName().hashCode();
+	}
+	
+	public String getFilename(RendererConfiguration renderer) {
+		StringBuilder name = new StringBuilder(encode(renderer.getRendererName()));
+		name.append(getName()).append("_pipe");
+		return name.toString();
 	}
 }

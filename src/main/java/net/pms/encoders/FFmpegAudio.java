@@ -228,17 +228,17 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("s16be"); // same as -f wav, but without a WAV header
 		}
 
-		if (configuration.isAudioResample()) {
-			if (params.mediaRenderer.isTranscodeAudioTo441()) {
-				cmdList.add("-ar");
-				cmdList.add("44100");
-			} else {
-				cmdList.add("-ar");
-				cmdList.add("48000");
-			}
-		}
+//		if (configuration.isAudioResample()) {
+//			if (params.mediaRenderer.isTranscodeAudioTo441()) {
+//				cmdList.add("-ar");
+//				cmdList.add("44100");
+//			} else {
+//				cmdList.add("-ar");
+//				cmdList.add("48000");
+//			}
+//		}
 
-		cmdList.add("pipe:");
+		cmdList.add(dlna.getFilename(params.mediaRenderer));
 
 		String[] cmdArray = new String[ cmdList.size() ];
 		cmdList.toArray(cmdArray);

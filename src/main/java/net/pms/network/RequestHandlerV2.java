@@ -334,7 +334,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		ChannelFuture chunkWriteFuture = null;
 		try {
 			StringBuilder content = request.answer(response, e, close, startStopListenerDelegate);
-			if (request.getInputStream() != null) {
+			if (request.getInputStream() != null || request.getFile() != null) {
 				final InputStream inputStream = request.getInputStream();
 				
 				// Partial content aka byte range seek support
@@ -354,7 +354,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 				// Stream avi
 				if (request.getFile() != null){// && !response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
-					inputStream.close();
 					File f = request.getFile();
 					if (end <= 0)
 						end = f.length() - 1;
@@ -383,7 +382,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 					public void operationComplete(ChannelFuture future) {
 						try {
 							PMS.get().getRegistry().reenableGoToSleep();
-							inputStream.close();
+							if (inputStream != null)
+								inputStream.close();
 						} catch (IOException e) {
 							LOGGER.debug("Caught exception", e);
 						}
