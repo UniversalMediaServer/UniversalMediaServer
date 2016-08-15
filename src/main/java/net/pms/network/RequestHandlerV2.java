@@ -356,11 +356,11 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				if (request.getFile() != null){// && !response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
 					inputStream.close();
 					File f = request.getFile();
-					if (end == -1)
-						end += f.length();
+					if (end <= 0)
+						end = f.length() - 1;
 					response1.headers().remove(HttpHeaderNames.TRANSFER_ENCODING);
+					response1.headers().set(HttpHeaderNames.CONTENT_LENGTH, end - start + 1);
 					if (response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
-						response1.headers().set(HttpHeaderNames.CONTENT_LENGTH, end - start + 1);
 						response1.headers().set(HttpHeaderNames.CONTENT_RANGE, String.format("bytes %d-%d/%d", start, end, f.length()));
 					}
 					ctx.write(response1);
