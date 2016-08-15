@@ -215,9 +215,14 @@ public class FFmpegAudio extends FFMpegVideo {
 			else
 				cmdList.add("320000"); 
 //		} else if (params.mediaRenderer.isTranscodeToWAV()) {
-		} else if (".wav".equals(ext) || ".m4a".equals(ext)) {
+		} else if (".wav".equals(ext)) {
 			cmdList.add("-f");
 			cmdList.add("wav");
+		} else if (".m4a".equals(ext)) {
+			cmdList.add("-f");
+			cmdList.add("mp4");
+			cmdList.add("-c:a");
+			cmdList.add("aac");
 		} else { // default: LPCM / L16
 			cmdList.add("-f");
 			cmdList.add("s16be"); // same as -f wav, but without a WAV header
