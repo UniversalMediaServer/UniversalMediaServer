@@ -142,6 +142,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		// header matches are attempted and if those fail as well we're stuck with the
 		// default renderer.
 		String cookieString = headers.get(HttpHeaderNames.COOKIE);
+		if (cookieString == null)
+			cookieString = headers.get("cookies");
 		renderer = RemoteUtil.matchRenderer(cookieString, ua, ia);
 		if (renderer == null)
 			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);

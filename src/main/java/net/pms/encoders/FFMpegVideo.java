@@ -182,7 +182,7 @@ public class FFMpegVideo extends Player {
 		if (renderer.getMaxVideoWidth() < width) {
 			int height = dlna.getMedia().getHeight();
 			int MAX_WIDTH = Math.min(renderer.getMaxVideoWidth(), width);
-			if (MAX_WIDTH < 720)
+			if (MAX_WIDTH <= 720)
 				deviceProfile = DeviceProfile.MOBILE;
 			// Maintain aspect ratio
 			int MAX_HEIGHT = (height * MAX_WIDTH) / width;
@@ -1082,10 +1082,10 @@ public class FFMpegVideo extends Player {
 			);
 
 			// This process wraps the command that creates the named pipe
-			pipe = new PipeProcess(fifoName);
-			pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
-
-			params.input_pipes[0] = pipe;
+//			pipe = new PipeProcess(fifoName);
+//			pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
+//
+//			params.input_pipes[0] = pipe;
 
 			// Output file
 //			cmdList.add(pipe.getInputPipe());
@@ -1107,15 +1107,15 @@ public class FFMpegVideo extends Player {
 		setOutputParsing(dlna, pw, false);
 
 		if (!dtsRemux) {
-			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+//			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
 			/**
 			 * It can take a long time for Windows to create a named pipe (and
 			 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
 			 * the current thread.
 			 */
-			mkfifo_process.runInSameThread();
-			pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
+//			mkfifo_process.runInSameThread();
+//			pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
 
 			// Give the mkfifo process a little time
 			try {

@@ -3030,8 +3030,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 
-        
-		if (isCompatible(mimetype)) {
+        boolean resize = mediarenderer.getMaxVideoWidth() < getMedia().getWidth();
+		if (isCompatible(mimetype) && !resize) {
 			// No transcoding
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
@@ -3110,7 +3110,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
-				File f = new File(getFilename(mediarenderer));
 				if (getFile(mediarenderer) != null)
 					return null;
 				
@@ -4456,7 +4455,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.error("Pipe may not be in temporary directory", e);
 		}
 		name.append(encode(renderer.getRendererName()));
-		// Include resolution
+		name.append("_").append(renderer.getMaxVideoWidth()).append("_");
 		name.append(getName()).append("_pipe");
 		return name.toString();
 	}

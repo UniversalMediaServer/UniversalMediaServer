@@ -439,7 +439,7 @@ public class RequestV2 extends HTTPResource {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
 					}
 
-					if (inputStream == null) {
+					if (inputStream == null && getFile() == null) {
 						if (!ignoreTranscodeByteRangeRequests) {
 							// No inputStream indicates that transcoding / remuxing probably crashed.
 							LOGGER.error("There is no inputstream to return for " + name);
@@ -471,8 +471,8 @@ public class RequestV2 extends HTTPResource {
 
 						if (requested != 0) {
 							// Determine the range (i.e. smaller of known or requested bytes)
-//							long bytes = remaining > -1 ? remaining : dlna.getMedia().getSize();//inputStream.available();
-							long bytes = remaining > -1 ? remaining : inputStream.available();
+							long bytes = remaining > -1 ? remaining : dlna.getMedia().getSize();//inputStream.available();
+//							long bytes = remaining > -1 ? remaining : inputStream.available();
 
 							if (requested > 0 && bytes > requested) {
 								bytes = requested + 1;
