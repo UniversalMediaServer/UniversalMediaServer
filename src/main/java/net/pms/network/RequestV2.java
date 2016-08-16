@@ -401,7 +401,7 @@ public class RequestV2 extends HTTPResource {
 						if (dlna.isCompatible(rendererMimeType) && ("video/avi".equals(dlna.mimeType()) || dlna.mimeType().endsWith("mp4")))
 							setFile(((RealFile) dlna).getFile());
 						else if (inputStream == null) // Transcoding complete
-							setFile(new File(dlna.getFilename(mediaRenderer)));
+							setFile(dlna.getFile(mediaRenderer));
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
 //							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);

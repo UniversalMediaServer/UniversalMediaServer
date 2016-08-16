@@ -74,7 +74,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.UPNPControl;
@@ -3112,7 +3111,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				File f = new File(getFilename(mediarenderer));
-				if (f.exists())
+				if (getFile(mediarenderer) != null)
 					return null;
 				
 				// First playback attempt => start new transcoding process
@@ -4450,8 +4449,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 	
 	public String getFilename(RendererConfiguration renderer) {
-		StringBuilder name = new StringBuilder(encode(renderer.getRendererName()));
+		StringBuilder name = new StringBuilder();
+		try {
+			name.append(PMS.getConfiguration().getTempFolder()).append("/");
+		} catch (IOException e) {
+			LOGGER.error("Pipe may not be in temporary directory", e);
+		}
+		name.append(encode(renderer.getRendererName()));
+		// Include resolution
 		name.append(getName()).append("_pipe");
 		return name.toString();
+	}
+	public File getFile(RendererConfiguration renderer) {
+		File file = new File(getFilename(renderer))	;
+		if (file.exists())
+			return file;
+		else
+			return null;
 	}
 }
