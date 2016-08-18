@@ -1,7 +1,7 @@
 package net.pms.util;
 
-import com.ibm.icu.text.CharsetDetector;
-import com.ibm.icu.text.CharsetMatch;
+//import com.ibm.icu.text.CharsetDetector;
+//import com.ibm.icu.text.CharsetMatch;
 import com.sun.jna.Platform;
 import java.io.*;
 import java.lang.reflect.Field;
@@ -27,6 +27,8 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.icu4j.CharsetDetector;
+import net.pms.util.icu4j.CharsetMatch;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.WordUtils;
