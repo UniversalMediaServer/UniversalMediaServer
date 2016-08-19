@@ -1204,7 +1204,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			dlna.refreshChildren();
 //			TaskRunner.getInstance().submit(resource);
 			if (returnChildren) {
-				if (count == -1 || count > dlna.getChildren().size()) {
+				if (count == -1 || (start + count) > dlna.getChildren().size()) {
 					count = dlna.getChildren().size();
 				}
 				if (start > dlna.getChildren().size()) {
