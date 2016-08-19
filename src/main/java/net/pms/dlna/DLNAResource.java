@@ -2255,16 +2255,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					// patters - on Sony BDP m2ts clips aren't listed without this
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
 				} else if (mime.equals(JPEG_TYPEMIME)) {
-					int size = media.getWidth() * media.getHeight();
-					if (size > (1024 * 768)) {
+					if ((media.getWidth() * media.getHeight()) > (1024*768)) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_LRG";
-					} else if (size > (640 * 480)) {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_MED";
-					} else if (size > (160 * 160)) {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_SM";
 					} else {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_TN";
-					}
+						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_MED";
+					}	
 				} else if (mime.equals(AUDIO_MP3_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=MP3";
 				} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME) || mime.equals(AUDIO_WAV_TYPEMIME)) {
