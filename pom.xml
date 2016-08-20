@@ -687,9 +687,9 @@
 				Checksums can be calculated with "openssl sha1 [filename]".
 			-->
 			<plugin>
-				<groupId>com.savage7.maven.plugins</groupId>
-				<artifactId>maven-external-dependency-plugin</artifactId>
-				<version>0.5</version>
+				<groupId>com.universalmediaserver</groupId>
+				<artifactId>external-maven-plugin</artifactId>
+				<version>0.1</version>
 				<inherited>false</inherited>
 				<configuration>
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
@@ -730,7 +730,7 @@
 						<id>clean-external-dependencies</id>
 						<phase>clean</phase>
 						<goals>
-							<goal>clean-external</goal>
+							<goal>clean</goal>
 						</goals>
 					</execution>
 				</executions>
