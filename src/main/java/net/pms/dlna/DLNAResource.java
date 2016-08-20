@@ -2241,11 +2241,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
 				} else if (mime.equals(JPEG_TYPEMIME)) {
 					int size = media.getWidth() * media.getHeight();
-					if (size > (1024 * 768)) {
+					if (size > (786432)) { // 1024 * 768
 						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_LRG";
-					} else if (size > (640 * 480)) {
+					} else if (size > (307200)) { // 640 * 480
 						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_MED";
-					} else if (size > (160 * 160)) {
+					} else if (size > (25600)) { // 160 * 160
 						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_SM";
 					} else {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_TN";
