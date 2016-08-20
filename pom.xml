@@ -730,7 +730,7 @@
 						<id>clean-external-dependencies</id>
 						<phase>clean</phase>
 						<goals>
-							<goal>clean</goal>
+							<goal>clean-external</goal>
 						</goals>
 					</execution>
 				</executions>
