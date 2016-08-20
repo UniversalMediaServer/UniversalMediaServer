@@ -375,8 +375,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				}
 				ctx.write(LastHttpContent.EMPTY_LAST_CONTENT);
 
-				System.out.println(e);
-				System.out.println(response1);
+				LOGGER.info(e.toString());
+				LOGGER.info(response1.toString());
 
 				// Add a listener to clean up after sending the entire response body.
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
