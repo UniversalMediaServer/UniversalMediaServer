@@ -87,12 +87,14 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	}
 
 	public boolean isMode(int m) {
-		return (mode & m) == m;
+		return (mode == m);
 	}
 
 	@Override
-	public void discoverChildren() {
-		if (list.size() > 0) {
+	public boolean refreshChildren() {
+		int i = 1 + (isMode(AUTOSAVE) ? 0 : 1);
+		if (list.size() > getChildren().size() - i) { // less clear and save option
+			getChildren().clear();
 			final Playlist self = this;
 			// Save
 			if (! isMode(AUTOSAVE)) {
@@ -112,21 +114,23 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 					return true;
 				}
 			});
-		}
+//		}
 		for (DLNAResource r : list) {
 			// addchild might clear the masterparent
 			// so fetch it first and readd
 			ExternalListener master = r.getMasterParent();
 			addChild(r);
 			r.setMasterParent(master);
-			if (r.isResume()) {
-				// add this non resume after
-				DLNAResource clone = r.clone();
-				clone.setResume(null);
-				addChild(clone);
-				clone.setMasterParent(master);
-			}
+//			if (r.isResume()) {
+//				// add this non resume after
+//				DLNAResource clone = r.clone();
+//				clone.setResume(null);
+//				addChild(clone);
+//				clone.setMasterParent(master);
+//			}
 		}
+		}
+		return true;
 	}
 
 	public List<DLNAResource> getList() {
