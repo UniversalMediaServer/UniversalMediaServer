@@ -2016,6 +2016,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
 	}
 
+	public boolean isResolutionCompatibleWithRenderer(int width) {
+		return width <= getMaxVideoWidth();
+	}
+	
 	/**
 	 * Whether the resolution is compatible with the renderer.
 	 *

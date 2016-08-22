@@ -3030,8 +3030,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 
-        boolean resize = mediarenderer.getMaxVideoWidth() < getMedia().getWidth();
-		if (isCompatible(mimetype) && !resize) {
+		if (isCompatible(mimetype) 
+				&& mediarenderer.isResolutionCompatibleWithRenderer(getMedia().getWidth())) {
 			// No transcoding
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();

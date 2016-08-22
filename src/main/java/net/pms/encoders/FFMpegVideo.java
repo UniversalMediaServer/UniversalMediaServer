@@ -179,7 +179,7 @@ public class FFMpegVideo extends Player {
 		 */
 		// Use min. width of renderer and media size
 		int width = dlna.getMedia().getWidth();
-		if (renderer.getMaxVideoWidth() < width) {
+		if (!renderer.isResolutionCompatibleWithRenderer(width)) {
 			int height = dlna.getMedia().getHeight();
 			int MAX_WIDTH = Math.min(renderer.getMaxVideoWidth(), width);
 			if (MAX_WIDTH <= 720)
