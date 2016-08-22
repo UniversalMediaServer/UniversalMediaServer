@@ -20,16 +20,13 @@
 
 package net.pms.encoders;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
-
 import net.coobird.thumbnailator.Thumbnails;
-import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -52,8 +49,10 @@ public class TranscodeImage extends Player {
 		LOGGER.trace("The file \"{}\" is transcoded to the JPEG format.", file.getAbsolutePath());
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			int width = dlna.getMedia().getWidth();
+			int height = dlna.getMedia().getHeight();
 			Thumbnails.of(ImageIO.read(file))
-				.size(dlna.getMedia().getWidth(), dlna.getMedia().getHeight())
+				.size(width > 4096 ? 4096 : width, height > 4096 ? 4096 : height) // do not exceed the JPEG_LRG maximum size (4096x4096)
 				.outputFormat("JPEG")
 				.outputQuality(1.0f)
 				.toOutputStream(baos);
@@ -121,10 +120,6 @@ public class TranscodeImage extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (PlayerUtil.isImage(resource)) {
-			return true;
-		}
-
-		return false;
+		return PlayerUtil.isImage(resource);
 	}
 }
