@@ -6,7 +6,6 @@ addons:
 jdk:
   - oraclejdk8
   - oraclejdk7
-  - openjdk6
   - openjdk7    
 install: mvn external:install 
 script: mvn install -Dmaven.javadoc.skip=true -B -V -DskipTests=true
