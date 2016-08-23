@@ -4,4 +4,8 @@ addons:
     packages:
     - mediainfo 
 install: mvn external:install 
-script: mvn install -Dmaven.javadoc.skip=true -B -V
+script: mvn install -Dmaven.javadoc.skip=true -B -V -DskipTests=true
+
+branches:
+  only:
+    - dev
