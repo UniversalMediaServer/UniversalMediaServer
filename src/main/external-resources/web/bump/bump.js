@@ -80,6 +80,7 @@ var bump = (function() {
 		console.log('press: '+addr+b+'/'+renderer+query);
 		$.get(addr+b+'/'+renderer+query, refresh);
 		selindex = -1;
+		refused = 0;
 	}
 
 	function mute() {
