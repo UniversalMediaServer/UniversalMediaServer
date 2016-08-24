@@ -1204,11 +1204,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			dlna.refreshChildren();
 //			TaskRunner.getInstance().submit(resource);
 			if (returnChildren) {
-				if (count == -1 || (start + count) > dlna.getChildren().size()) {
-					count = dlna.getChildren().size();
+				int size = dlna.getChildren().size();
+				if (count == -1 || (start + count) > size) {
+					count = size;
 				}
-				if (start > dlna.getChildren().size()) {
-					start = dlna.getChildren().size();
+				if (start > size) {
+					start = size;
 				}
 				resources.addAll(dlna.getChildren().subList(start, count));
 			} else {
@@ -2655,6 +2656,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							uclass = "object.container.playlistContainer";
 							break;
 					}
+				} else if (this instanceof Playlist || this instanceof PlaylistFolder) {
+					uclass = "object.container.playlistContainer";
 				}
 			} else if (getFormat() != null && getFormat().isVideo()) {
 				uclass = "object.item.videoItem";

@@ -92,6 +92,7 @@ public class UMSUtilsTest {
 		assertThat(mime).isEqualTo(mimeType);
 	}
 	
+	@Test
 	public void testCriteria() throws Exception {
 		String str;
 		String sql;

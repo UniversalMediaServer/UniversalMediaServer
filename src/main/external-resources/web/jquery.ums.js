@@ -122,6 +122,8 @@ function umsAjax(u, reload) {
 	$.ajax({url: u}).done(function() {
 		if(reload) {
 			window.location.reload();
+		} else {
+			poll();
 		}
 	});
 }
