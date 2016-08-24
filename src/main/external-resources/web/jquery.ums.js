@@ -123,7 +123,7 @@ function umsAjax(u, reload) {
 		if(reload) {
 			window.location.reload();
 		} else {
-			poll();
+			refused = 0;
 		}
 	});
 }
@@ -133,6 +133,9 @@ var polling, refused = 0;
 function poll() {
 	$('body').append('<div id="notices"><div/></div>');
 	polling = setInterval(function(){
+		if (refused > 0 && refused < 10)
+			return;
+		refused = 0;
 		$.ajax({ url: '/poll',
 			success: function(json){
 				refused = 0;
@@ -158,8 +161,9 @@ function poll() {
 				}
 			},
 			error: function() {
-				if (++refused > 5) {
-					clearInterval(polling);
+				if (++refused > 1) {
+//					clearInterval(polling);
+//					polling = 0;
 				}
 			}
 		});

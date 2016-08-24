@@ -525,7 +525,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		subLang = s;
 	}
 
-	private ArrayList<String[]> push;
+	private List<String[]> push;
 
 	public void push(String... args) {
 		push.add(args);

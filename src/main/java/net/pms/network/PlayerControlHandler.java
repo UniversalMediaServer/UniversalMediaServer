@@ -1,6 +1,7 @@
 package net.pms.network;
 
 import com.sun.net.httpserver.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.*;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -17,6 +19,7 @@ import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -78,6 +81,8 @@ public class PlayerControlHandler implements HttpHandler {
 		Logical player = uuid != null ? getPlayer(uuid) : null;
 
 		if (player != null) {
+			WebRender renderer = parent.getRenderer(RemoteUtil.userName(x), x);
+			String title = q.get("title");
 			switch (p[2]) {
 				case "status":
 					// limit status updates to one per second
@@ -85,7 +90,7 @@ public class PlayerControlHandler implements HttpHandler {
 					log = false;
 					break;
 				case "play":
-					player.pressPlay(translate(q.get("uri")), q.get("title"));
+					player.pressPlay(translate(q.get("uri")), title);
 					break;
 				case "stop":
 					player.pressStop();
@@ -109,16 +114,22 @@ public class PlayerControlHandler implements HttpHandler {
 					player.setVolume(Integer.valueOf(q.get("vol")));
 					break;
 				case "add":
-					player.add(-1, translate(q.get("uri")), q.get("title"), null, true);
+					player.add(-1, translate(q.get("uri")), title, null, true);
+					if (renderer != null)
+						renderer.notify(renderer.OK, "Added '" + title + "' to dynamic playlist");
 					break;
 				case "remove":
 					player.remove(translate(q.get("uri")));
+					if (renderer != null)
+						renderer.notify(renderer.INFO, "Removed '" + title + "' from playlist");
 					break;
 				case "clear":
 					player.clear();
+					if (renderer != null)
+						renderer.notify(renderer.INFO, "Cleared playlist");
 					break;
 				case "seturi":
-					player.setURI(translate(q.get("uri")), q.get("title"));
+					player.setURI(translate(q.get("uri")), title);
 					break;
 			}
 			json.add(getPlayerState(player));
