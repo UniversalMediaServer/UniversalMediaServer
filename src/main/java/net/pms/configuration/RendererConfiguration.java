@@ -56,7 +56,6 @@ import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.tika.mime.MimeTypes;
 import org.fourthline.cling.support.model.ProtocolInfo;
 import org.fourthline.cling.support.model.ProtocolInfos;
 import org.seamless.util.MimeType;
@@ -2721,6 +2720,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			final DLNAResource res = renderer.getPlayingRes();
 			state.name = res.getDisplayName();
 			duration = 0;
+			final long startTime = System.currentTimeMillis();
 			if (res.getMedia() != null) {
 				duration = (long) res.getMedia().getDurationInSeconds() * 1000;
 				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
@@ -2732,7 +2732,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					while (res == renderer.getPlayingRes()) {
 						long elapsed;
 						if ((long) res.getLastStartPosition() == 0) {
-							elapsed = System.currentTimeMillis() - (long) res.getStartTime();
+							elapsed = System.currentTimeMillis() - (long) startTime;// res.getStartTime();
 						} else {
 							elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
 							elapsed += (long) (res.getLastStartPosition() * 1000);
@@ -2742,6 +2742,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							// Position is valid as far as we can tell
 							state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
 						} else {
+							renderer.setPlayingRes(null);
 							// Position is invalid, blink instead
 							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
 						}
@@ -2752,9 +2753,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						}
 					}
 					// Reset only if another item hasn't already begun playing
-					if (renderer.getPlayingRes() == null) {
-						reset();
-					}
+//					if (renderer.getPlayingRes() == null) {
+//						reset();
+//					}
 				}
 			};
 			new Thread(r).start();

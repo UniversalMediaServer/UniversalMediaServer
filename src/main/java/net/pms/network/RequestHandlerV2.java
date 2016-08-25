@@ -75,6 +75,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	private static int BUFFER_SIZE = 8 * 1024;
 
 	private volatile FullHttpRequest nettyRequest;
+	private RendererConfiguration renderer = null;
+
 //	private final ChannelGroup group;
 //
 //	public RequestHandlerV2(ChannelGroup group) {
@@ -103,7 +105,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest e)
 		throws Exception {
 		RequestV2 request = null;
-		RendererConfiguration renderer = null;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
@@ -330,6 +331,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		final StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		startStopListenerDelegate.setRenderer(renderer);
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
 //		ctx.attr(startStopListenerDelegate);
 
