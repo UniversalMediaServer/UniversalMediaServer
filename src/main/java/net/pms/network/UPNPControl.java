@@ -238,6 +238,7 @@ public class UPNPControl {
 
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
 		try {
+			LOGGER.trace(xml);
 			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
 //			doc.getDocumentElement().normalize();
 			NodeList ids = doc.getElementsByTagName("InstanceID");
@@ -638,7 +639,7 @@ public class UPNPControl {
 			// Reason should be null, or it didn't end regularly
 			if (reason != null) {
 				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId() +
-					" on " + uuid + ": " + reason);
+					" on " + getFriendlyName(uuid) + ": " + reason);
 			}
 			rendererMap.mark(uuid, RENEW, true);
 		}

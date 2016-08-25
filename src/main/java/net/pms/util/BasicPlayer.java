@@ -1,5 +1,8 @@
 package net.pms.util;
 
+import static net.pms.network.UPNPHelper.unescape;
+
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -8,14 +11,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingUtilities;
+
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import static net.pms.network.UPNPHelper.unescape;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -241,7 +246,7 @@ public interface BasicPlayer extends ActionListener {
 			playlist = new Playlist(this);
 			lastPlayback = STOPPED;
 			maxVol = renderer.getMaxVolume();
-			autoContinue = renderer.isAutoContinue();
+			autoContinue = true;//renderer.isAutoContinue();
 			addAllSiblings = renderer.isAutoAddAll();
 			forceStop = false;
 			alert();
@@ -467,6 +472,7 @@ public interface BasicPlayer extends ActionListener {
 					if (d != null) {
 						item.uri = d.getURL("", true);
 						item.metadata = d.getDidlString(renderer);
+						item.duration = d.getMedia().getDuration();
 						return true;
 					}
 					return false;
@@ -489,8 +495,7 @@ public interface BasicPlayer extends ActionListener {
 
 			public void add(final int index, final String uri, final String name, final String metadata, final boolean select) {
 				if (!StringUtils.isBlank(uri)) {
-					// TODO: check headless mode (should work according to https://java.net/bugzilla/show_bug.cgi?id=2568)
-					SwingUtilities.invokeLater(new Runnable() {
+					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							Item item = resolve(uri);
 							if (item == null) {
@@ -507,8 +512,7 @@ public interface BasicPlayer extends ActionListener {
 
 			public void remove(final String uri) {
 				if (!StringUtils.isBlank(uri)) {
-					// TODO: check headless mode
-					SwingUtilities.invokeLater(new Runnable() {
+					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							Item item = resolve(uri);
 							if (item != null) {
@@ -545,6 +549,7 @@ public interface BasicPlayer extends ActionListener {
 			}
 
 			public static class Item {
+				public Double duration;
 				private static final Logger LOGGER = LoggerFactory.getLogger(Item.class);
 				public String name, uri, metadata;
 				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
