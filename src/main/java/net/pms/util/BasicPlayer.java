@@ -249,7 +249,7 @@ public interface BasicPlayer extends ActionListener {
 			autoContinue = true;//renderer.isAutoContinue();
 			addAllSiblings = renderer.isAutoAddAll();
 			forceStop = false;
-			alert();
+//			alert();
 			initAutoPlay(this);
 		}
 
@@ -286,6 +286,7 @@ public interface BasicPlayer extends ActionListener {
 			}
 			if (state.playback == PLAYING) {
 				pause();
+				state.playback = PAUSED;
 			} else {
 				if (state.playback == STOPPED) {
 					Playlist.Item item = playlist.resolve(uri);
@@ -293,12 +294,14 @@ public interface BasicPlayer extends ActionListener {
 						uri = item.uri;
 						metadata = item.metadata;
 						state.name = item.name;
+						state.duration = item.duration;
 					}
 					if (uri != null && !uri.equals(state.uri)) {
 						setURI(uri, metadata);
 					}
+					play();
+					state.playback = PLAYING;
 				}
-				play();
 			}
 		}
 
@@ -306,6 +309,7 @@ public interface BasicPlayer extends ActionListener {
 		public void pressStop() {
 			forceStop = true;
 			stop();
+			state.playback = STOPPED;
 		}
 
 		@Override
@@ -319,20 +323,25 @@ public interface BasicPlayer extends ActionListener {
 		}
 
 		public void step(int n) {
+			if (playlist == null || !playlist.step(n)) {
+				return;
+			}
+			
 			if (state.playback != STOPPED) {
 				stop();
 			}
 			state.playback = STOPPED;
-			playlist.step(n);
+//			playlist.step(n);
 			pressPlay(null, null);
 		}
 
 		@Override
 		public void alert() {
-			boolean stopping = state.playback == STOPPED && lastPlayback != -1 && lastPlayback != STOPPED;
-			lastPlayback = state.playback;
+//			boolean stopping = state.playback == STOPPED && lastPlayback != -1 && lastPlayback != STOPPED;
+//			boolean stopping = lastPlayback == STOPPED && "0:00:00".equals(state.position);
+//			lastPlayback = state.playback;
 			super.alert();
-			if (stopping && autoContinue && !forceStop) {
+			if (state.playback == STOPPED) {
 				next();
 			}
 		}
@@ -472,7 +481,7 @@ public interface BasicPlayer extends ActionListener {
 					if (d != null) {
 						item.uri = d.getURL("", true);
 						item.metadata = d.getDidlString(renderer);
-						item.duration = d.getMedia().getDuration();
+						item.duration = d.getMedia().getDurationString();
 						return true;
 					}
 					return false;
@@ -523,11 +532,16 @@ public interface BasicPlayer extends ActionListener {
 				}
 			}
 
-			public void step(int n) {
-				if (getSize() > 0) {
-					int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
+			public boolean step(int n) {
+				int i = (getIndexOf(getSelectedItem()) + n);
+				boolean hasNext = false;
+				// Don't step beyond last item
+				if (i < getSize()) {
+//					int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
 					setSelectedItem(getElementAt(i));
+					hasNext = true;
 				}
+				return hasNext;
 			}
 
 			@Override
@@ -549,7 +563,7 @@ public interface BasicPlayer extends ActionListener {
 			}
 
 			public static class Item {
-				public Double duration;
+				public String duration;
 				private static final Logger LOGGER = LoggerFactory.getLogger(Item.class);
 				public String name, uri, metadata;
 				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
@@ -576,10 +590,12 @@ public interface BasicPlayer extends ActionListener {
 
 				@Override
 				public boolean equals(Object other) {
-					return other == null ? false :
-						other == this ? true :
-						other instanceof Item ? ((Item)other).uri.equals(uri) :
-						other.toString().equals(uri);
+					// Playlist items can be duplicate	
+					return super.equals(other);
+//					return other == null ? false :
+//						other == this ? true :
+//						other instanceof Item ? ((Item)other).uri.equals(uri) :
+//						other.toString().equals(uri);
 				}
 
 				@Override
