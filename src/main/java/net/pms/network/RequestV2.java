@@ -478,8 +478,8 @@ public class RequestV2 extends HTTPResource {
 								bytes = requested + 1;
 							}
 
-							// Calculate the corresponding highRange (this is usually redundant).
-//							highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
+							// Calculate the corresponding highRange (this is required).
+							highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
 
