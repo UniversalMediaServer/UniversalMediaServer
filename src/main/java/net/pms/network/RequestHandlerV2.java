@@ -263,8 +263,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */
-	private boolean filterIp(InetAddress inetAddress) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
+	public static boolean filterIp(InetAddress inetAddress) {
+		return !((inetAddress.getHostAddress().equals(PMS.get().getServer().getHost())) || PMS.getConfiguration().getIpFiltering().allowed(inetAddress));
 	}
 
 	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
