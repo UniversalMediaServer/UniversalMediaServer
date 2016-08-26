@@ -2743,8 +2743,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
 						} else {
 							renderer.setPlayingRes(null);
+							break;
 							// Position is invalid, blink instead
-							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
+//							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
 						}
 						alert();
 						try {

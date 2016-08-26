@@ -1,5 +1,4 @@
 isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);
-var wait = 0;
 
 var bump = (function() {
 //	console.log('jquery '+$.fn.jquery);
@@ -93,13 +92,13 @@ var bump = (function() {
 	}
 
 	function status() {
-		if (enabled && wait++ > 10) {
+		if (enabled) {
 			$.get(addr+'status/'+renderer, refresh);
 		}
 	}
+	window.setInterval(status, 1000);
 
 	function refresh(data) {
-		wait = 0;
 		var vars = $.parseJSON(data);
 		if ('uuid' in vars && vars['uuid'] !== renderer) return;
 		if ('state' in vars) {
@@ -138,7 +137,7 @@ var bump = (function() {
 		}
 		$('#bumpvol').attr('disabled', state.mute === 'true');
 		$('#bumppos').html(state.position+(state.position == '0:00' ? '' : state.duration == '0:00' ? '' : (' / '+state.duration)));
-		status();
+//		status();
 	}
 
 	function setSelect(select, opts, index) {
