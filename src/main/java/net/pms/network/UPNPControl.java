@@ -18,6 +18,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 
@@ -586,6 +587,9 @@ public class UPNPControl {
 	}
 
 	protected void rendererRemoved(Device d) {
+		DeviceConfiguration r = (DeviceConfiguration) rendererMap.get(getUUID(d), "0");
+		if (r != null)
+			r.delete(0);
 		LOGGER.debug(getFriendlyName(d) + " is now offline.");
 	}
 
