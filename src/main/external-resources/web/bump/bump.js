@@ -96,6 +96,7 @@ var bump = (function() {
 			$.get(addr+'status/'+renderer, refresh);
 		}
 	}
+	window.setInterval(status, 1000);
 
 	function refresh(data) {
 		var vars = $.parseJSON(data);
@@ -136,7 +137,7 @@ var bump = (function() {
 		}
 		$('#bumpvol').attr('disabled', state.mute === 'true');
 		$('#bumppos').html(state.position+(state.position == '0:00' ? '' : state.duration == '0:00' ? '' : (' / '+state.duration)));
-		status();
+//		status();
 	}
 
 	function setSelect(select, opts, index) {
