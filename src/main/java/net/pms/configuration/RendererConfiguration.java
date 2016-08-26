@@ -1562,7 +1562,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public BasicPlayer getPlayer() {
 		/* Giving up performance for accurate play status */
-		if (player == null) 
+		if (player == null || (player instanceof PlaybackTimer && isUpnpControllable())) 
 		{
 			player = isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
 				new PlaybackTimer((DeviceConfiguration) this);

@@ -170,7 +170,10 @@ public class UPNPControl {
 			data.put("TransportState", "STOPPED");
 		}
 
-		public void alert() {
+		/**
+		 * It's synchronized to avoid listeners being modified while it's in progress.
+		 */
+		public synchronized void alert() {
 			if (isUpnpDevice(uuid) && (monitor == null || !monitor.isAlive()) && !"STOPPED".equals(data.get("TransportState"))) {
 				monitor();
 			}
@@ -179,12 +182,12 @@ public class UPNPControl {
 			}
 		}
 
-		public Map<String, String> connect(ActionListener listener) {
+		public synchronized Map<String, String> connect(ActionListener listener) {
 			listeners.add(listener);
 			return data;
 		}
 
-		public void disconnect(ActionListener listener) {
+		public synchronized void disconnect(ActionListener listener) {
 			listeners.remove(listener);
 		}
 
@@ -194,6 +197,8 @@ public class UPNPControl {
 				@Override
 				public void run() {
 					String id = data.get("InstanceID");
+					String name = getMediaInfo(d, id);
+					data.put("AVTransportURI", name);
 					while (active && !"STOPPED".equals(data.get("TransportState"))) {
 						sleep(1000);
 //						if (DEBUG) LOGGER.debug("InstanceID: " + id);
@@ -239,7 +244,7 @@ public class UPNPControl {
 
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
 		try {
-			LOGGER.trace(xml);
+			LOGGER.info(xml);
 			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
 //			doc.getDocumentElement().normalize();
 			NodeList ids = doc.getElementsByTagName("InstanceID");
@@ -524,7 +529,7 @@ public class UPNPControl {
 	protected void rendererRemoved(Device d) {
 		DeviceConfiguration r = (DeviceConfiguration) rendererMap.get(getUUID(d), "0");
 		if (r != null)
-			r.delete(0);
+			r.delete(5000);
 		LOGGER.debug(getFriendlyName(d) + " is now offline.");
 	}
 
@@ -754,7 +759,7 @@ public class UPNPControl {
 
 	public static String getMediaInfo(Device dev, String instanceID) {
 		return send(dev, instanceID, "AVTransport", "GetMediaInfo")
-			.getOutput("MediaInfo").toString();
+			.getOutput("CurrentURI").toString();
 	}
 
 	public static ActionArgumentValue[] getPositionInfo(Device dev, String instanceID) {

@@ -847,8 +847,14 @@ public class UPNPHelper extends UPNPControl {
 			state.metadata = data.get("AVTransportURIMetaData");
 
 			// update playlist only if uri has changed
-			if (!StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi)) {
-				playlist.set(state.uri, null, state.metadata);
+			if (!StringUtils.isBlank(state.uri)) {
+				if (!state.uri.equals(lasturi)) {
+					playlist.set(state.uri, null, state.metadata);
+				}
+			} else {
+				// We are updating player status for device playing local media
+				state.name = null;
+				state.duration = "--:--";
 			}
 			lasturi = state.uri;
 			alert();
