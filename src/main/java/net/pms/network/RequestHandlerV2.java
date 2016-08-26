@@ -299,7 +299,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */
-	private boolean filterIp(InetAddress inetAddress) {
+	public static boolean filterIp(InetAddress inetAddress) {
 		return !((inetAddress.getHostAddress().equals(PMS.get().getServer().getHost())) || PMS.getConfiguration().getIpFiltering().allowed(inetAddress));
 	}
 

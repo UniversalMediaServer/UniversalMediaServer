@@ -24,6 +24,7 @@ import net.pms.configuration.IpFilter;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
+import net.pms.network.RequestHandlerV2;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.FileWatcher;
 import net.pms.util.Languages;
@@ -160,7 +161,8 @@ public class RemoteUtil {
 
 	public static boolean deny(HttpExchange t) {
 		InetAddress address = t.getRemoteAddress().getAddress();
-		return  (!address.isLoopbackAddress() && !PMS.getConfiguration().getIpFiltering().allowed(address)) || !PMS.isReady();
+//		return  (!address.isLoopbackAddress() && !PMS.getConfiguration().getIpFiltering().allowed(address)) || !PMS.isReady();
+		return RequestHandlerV2.filterIp(address);
 	}
 
 	private static Range.Byte nullRange(long len) {
