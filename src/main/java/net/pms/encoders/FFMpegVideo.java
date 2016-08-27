@@ -445,8 +445,8 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Move file info to the beginning for streaming
-//			transcodeOptions.add("-movflags");
-//			transcodeOptions.add("frag_keyframe+empty_moov");
+			transcodeOptions.add("-movflags");
+			transcodeOptions.add("frag_keyframe+empty_moov");
 //			if (!customFFmpegOptions.contains("-f")) {
 //				// Output file format
 //				transcodeOptions.add("-f");
@@ -1043,19 +1043,19 @@ public class FFMpegVideo extends Player {
 					cmdList.add(String.valueOf(channels));
 				}
 
-				if (!customFFmpegOptions.contains("-ab ")) {
-					cmdList.add("-ab");
-					if (renderer.isTranscodeToAAC()) {
-						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
-					} else {
-						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
-					}
-				}
+//				if (!customFFmpegOptions.contains("-ab ")) {
+//					cmdList.add("-ab");
+//					if (renderer.isTranscodeToAAC()) {
+//						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
+//					} else {
+//						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
+//					}
+//				}
 
-				if (!customFFmpegOptions.contains("-ar ")) {
-					cmdList.add("-ar");
-					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
-				}
+//				if (!customFFmpegOptions.contains("-ar ")) {
+//					cmdList.add("-ar");
+//					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
+//				}
 			}
 
 			// Add the output options (-f, -c:a, -c:v, etc.)

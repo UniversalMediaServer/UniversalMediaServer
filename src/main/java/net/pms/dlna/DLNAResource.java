@@ -3032,9 +3032,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.trace("Setting lastStartPosition from time-seeking: " + lastStartPosition);
 		}
 
-
+		OutputParams params = new OutputParams(configuration);
+		Player.setAudioAndSubs(getSystemName(), getMedia(), params);
+		setMediaSubtitle(params.sid);
+		
 		if (isCompatible(mimetype) 
-				&& mediarenderer.isResolutionCompatibleWithRenderer(getMedia().getWidth())) {
+				&& mediarenderer.isResolutionCompatibleWithRenderer(getMedia().getWidth())
+				&& getMediaSubtitle() == null) {
 			// No transcoding
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
@@ -3077,9 +3081,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return fis;
 		} else {
 			// Pipe transcoding result
-			OutputParams params = new OutputParams(configuration);
+//			OutputParams params = new OutputParams(configuration);
 			params.aid = getMediaAudio();
-			params.sid = media_subtitle;
+//			params.sid = media_subtitle;
 			params.header = getHeaders();
 			params.mediaRenderer = mediarenderer;
 			timeRange.limit(getSplitRange());

@@ -368,7 +368,7 @@ public class RequestV2 extends HTTPResource {
 					DLNAResource.Rendering origRendering = null;
 					if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
 						// Adjust rendering details for this renderer
-						origRendering = dlna.updateRendering(mediaRenderer);
+//						origRendering = dlna.updateRendering(mediaRenderer);
 					}
 					// If range has not been initialized yet and the DLNAResource has its
 					// own start and end defined, initialize range with those values before
@@ -465,6 +465,14 @@ public class RequestV2 extends HTTPResource {
 							// In chunked mode we try to avoid arbitrary values.
 							totalsize = -1;
 						}
+						
+						if (inputStream != null)
+							totalsize = inputStream.available();
+						else if (getFile() != null)
+							totalsize = getFile().length();
+						else
+							totalsize = dlna.getMedia().getSize();
+
 
 						long remaining = totalsize - lowRange;
 						long requested = highRange - lowRange;
@@ -507,10 +515,10 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaderNames.ACCEPT_RANGES, "bytes");
 						output.headers().set(HttpHeaderNames.CONNECTION, "keep-alive");
 					}
-					if (origRendering != null) {
+//					if (origRendering != null) {
 						// Restore original rendering details
-						dlna.updateRendering(origRendering);
-					}
+//						dlna.updateRendering(origRendering);
+//					}
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
