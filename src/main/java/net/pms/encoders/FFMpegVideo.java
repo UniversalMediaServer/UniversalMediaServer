@@ -432,7 +432,8 @@ public class FFMpegVideo extends Player {
 				}
 				transcodeOptions.add("-pix_fmt");
 				transcodeOptions.add("yuv420p");
-			} else if ("video/x-ms-wmv".equals(media.getMimeType())) {
+			} else if ("video/x-ms-wmv".equals(media.getMimeType())
+					|| "video/avi".equals(media.getMimeType())) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("msmpeg4");
 				transcodeOptions.add("-f");
@@ -445,8 +446,8 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Move file info to the beginning for streaming
-			transcodeOptions.add("-movflags");
-			transcodeOptions.add("frag_keyframe+empty_moov");
+//			transcodeOptions.add("-movflags");
+//			transcodeOptions.add("frag_keyframe+empty_moov");
 //			if (!customFFmpegOptions.contains("-f")) {
 //				// Output file format
 //				transcodeOptions.add("-f");

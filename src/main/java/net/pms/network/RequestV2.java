@@ -399,10 +399,19 @@ public class RequestV2 extends HTTPResource {
 						)
 					) {
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer, rendererMimeType);
-						if (dlna.isCompatible(rendererMimeType) && ("video/avi".equals(dlna.mimeType()) || dlna.mimeType().endsWith("mp4")))
-							setFile(((RealFile) dlna).getFile());
-						else if (inputStream == null) // Transcoding complete
-							setFile(dlna.getFile(mediaRenderer));
+//						if (dlna.isCompatible(rendererMimeType) && ("video/avi".equals(dlna.mimeType()) || dlna.mimeType().endsWith("mp4"))) {
+//							setFile(((RealFile) dlna).getFile());
+//							inputStream.close();
+//						} else 
+						if (inputStream == null) {
+							if (dlna.getFile(mediaRenderer) != null) {
+								// Transcoding complete
+								setFile(dlna.getFile(mediaRenderer));
+							} else {
+								setFile(((RealFile) dlna).getFile());	
+							}
+						}
+						
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
 //							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
@@ -467,12 +476,12 @@ public class RequestV2 extends HTTPResource {
 							totalsize = -1;
 						}
 						
-						if (inputStream != null)
-							totalsize = inputStream.available();
-						else if (getFile() != null)
-							totalsize = getFile().length();
-						else
-							totalsize = dlna.getMedia().getSize();
+//						if (inputStream != null)
+//							totalsize = inputStream.available();
+//						else if (getFile() != null)
+//							totalsize = getFile().length();
+//						else
+//							totalsize = dlna.getMedia().getSize();
 
 
 						long remaining = totalsize - lowRange;

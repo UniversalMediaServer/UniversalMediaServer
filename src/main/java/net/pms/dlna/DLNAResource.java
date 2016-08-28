@@ -3037,6 +3037,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.trace("Setting lastStartPosition from time-seeking: " + lastStartPosition);
 		}
 
+		// Be careful of getMedia().isExternalSubsParsed() flag while debugging
 		OutputParams params = new OutputParams(configuration);
 		Player.setAudioAndSubs(getSystemName(), getMedia(), params);
 		setMediaSubtitle(params.sid);
@@ -3045,6 +3046,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				&& mediarenderer.isResolutionCompatibleWithRenderer(getMedia().getWidth())
 				&& getMediaSubtitle() == null) {
 			// No transcoding
+			if (true)
+				return null;
+			
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
 				InputStream fis = new PipedInputStream(out);
