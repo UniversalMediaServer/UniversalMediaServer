@@ -27,6 +27,7 @@ import static net.pms.util.StringUtil.encodeXML;
 import static net.pms.util.StringUtil.endTag;
 import static net.pms.util.StringUtil.openTag;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,6 +55,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -468,7 +470,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// TODO: Determine renderer's correct localization value
 		int localizationValue = 1;
 		String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, localizationValue);
-		return (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer) + ";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
+		return (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") 
+//				+ getDlnaOrgOpFlags(mediaRenderer) 
+				// Time seek is tricky - as of now, don't support it
+				+ "DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
 	public DLNAResource getPrimaryResource() {
@@ -3081,6 +3086,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return fis;
 		} else {
 			// Pipe transcoding result
+			// We have result from previous transcoding attempt. Let's use it.
+			if (getFile(mediarenderer) != null)
+				return null;
+			
 //			OutputParams params = new OutputParams(configuration);
 			params.aid = getMediaAudio();
 //			params.sid = media_subtitle;
@@ -3116,10 +3125,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			// (Re)start transcoding process if necessary
-			if (externalProcess == null || externalProcess.isDestroyed()) {
-				if (getFile(mediarenderer) != null)
-					return null;
-				
+ 			if (params.timeseek == 0.0 && (externalProcess == null || externalProcess.isDestroyed())) {
 				// First playback attempt => start new transcoding process
 				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 				lastStartSystemTime = System.currentTimeMillis();
@@ -3134,12 +3140,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
 				}
-			} else if (
+			} else 
+				if (
 				params.timeseek > 0 &&
-				media != null &&
-				media.isMediaparsed() &&
-				media.getDurationInSeconds() > 0
-			) {
+				getMedia() != null &&
+//						getMedia().isMediaparsed() &&
+						getMedia().getDurationInSeconds() > 0
+			) 
+				{
 				// Time seek request => stop running transcode process and start a new one
 				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
 				params.minBufferSize = 1;
@@ -3197,7 +3205,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				};
 
-//				new Thread(r, "Hanging External Process Stopper").start();
+				new Thread(r, "Hanging External Process Stopper").start();
 			} else {
 				is = wrap(is, high, low);
 			}
@@ -4454,6 +4462,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return getSystemName().hashCode();
 	}
 	
+	/**
+	 * Get a filename per renderer and renderer width. e.g one file per portrait and landscape orientation.
+	 * @param renderer
+	 * @return File name
+	 */
 	public String getFilename(RendererConfiguration renderer) {
 		StringBuilder name = new StringBuilder();
 		try {
@@ -4466,11 +4479,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		name.append(getName()).append("_pipe");
 		return name.toString();
 	}
+	
+	/**
+	 * If transcoded file duration is same as original file, return exising File object; null otherwise.
+	 * @param renderer
+	 * @return File object
+	 */
 	public File getFile(RendererConfiguration renderer) {
+		File result = null;
 		File file = new File(getFilename(renderer))	;
-		if (file.exists())
-			return file;
-		else
-			return null;
+		if (file.exists()) {
+			// Check if transcoded file duration is same as original file
+			DLNAMediaInfo info = new DLNAMediaInfo();
+			InputFile inputFile = new InputFile();
+			inputFile.setFile(file);
+			LibMediaInfoParser.parse(info, inputFile, getFormat().getType());
+			LOGGER.trace("Original duration: {}, transcoded duration: {}", getMedia().getDuration(), info.getDuration());
+
+			if (getMedia().getDuration().equals(info.getDuration())) {
+//					&& getMedia().getMimeType().equals(info.getMimeType())) {
+				result = file;
+			}
+		}
+		return result;
 	}
 }

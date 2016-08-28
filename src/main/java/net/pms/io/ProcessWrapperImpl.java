@@ -235,7 +235,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("", e);
 			}
-			stopProcess();
+//			stopProcess();
 		} finally {
 			try {
 				if (bo != null) {
@@ -263,6 +263,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					}
 				}
 			}
+			stopProcess();
 			PMS.get().currentProcesses.remove(process);
 		}
 	}

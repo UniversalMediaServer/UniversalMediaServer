@@ -53,7 +53,7 @@ public class LibMediaInfoParser {
 		}
 	}
 
-	@Deprecated
+//	@Deprecated
 	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type) {
 		parse(media, inputFile, type, null);
 	}
@@ -169,6 +169,7 @@ public class LibMediaInfoParser {
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
 
 						if (
+							renderer != null &&
 							renderer.isPrependTrackNumbers() &&
 							currentAudioTrack.getTrack() > 0 &&
 							currentAudioTrack.getSongname() != null &&

@@ -788,8 +788,8 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		}
 
 		LOGGER.debug("Attaching thread: " + thread);
-		attachedThread = thread;
-		startTimer();
+//		attachedThread = thread;
+//		startTimer();
 	}
 
 	private void startTimer() {

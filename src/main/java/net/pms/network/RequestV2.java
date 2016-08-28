@@ -318,7 +318,8 @@ public class RequestV2 extends HTTPResource {
 				dlna = null;
 			}
 
-			if (dlna != null) {
+			// WMP uses SMIL for subtitiles. But we don't support it
+			if (dlna != null && !argument.endsWith(".smi")) {
 				// DLNAresource was found.
 
 				if (fileName.startsWith("thumbnail0000") || (queryStr != null && "albumArt=true".equals(queryStr))) {
@@ -508,7 +509,8 @@ public class RequestV2 extends HTTPResource {
 						// Calculate the corresponding highRange (this is usually redundant).
 //						highRange = lowRange + CLoverride - (CLoverride > 0 ? 1 : 0);
 
-						if (contentFeatures != null) {
+//						if (contentFeatures != null) 
+						{
 							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
