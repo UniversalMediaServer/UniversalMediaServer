@@ -1161,9 +1161,6 @@ public class PMS {
 	private synchronized static void createInstance() {
 		assert instance == null; // this should only be called once
 		
-		Properties props = System.getProperties();
-		props.setProperty("net.sf.ehcache.enableShutdownHook", "true");
-		
 		instance = new PMS();
 
 		try {
@@ -1197,6 +1194,8 @@ public class PMS {
 		CacheLogger.startCaching();
 		// Make sure that no other versions of JNA found on the system is used
 		System.setProperty("jna.nosys", "true");
+		System.setProperty("net.sf.ehcache.skipUpdateCheck", "true");
+		System.setProperty("net.sf.ehcache.enableShutdownHook", "true");
 
 		// Set headless options if given as a system property when launching the JVM
 		if (System.getProperty(CONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
