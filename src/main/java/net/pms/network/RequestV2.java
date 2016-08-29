@@ -476,12 +476,12 @@ public class RequestV2 extends HTTPResource {
 							totalsize = -1;
 						}
 						
-//						if (inputStream != null)
-//							totalsize = inputStream.available();
-//						else if (getFile() != null)
-//							totalsize = getFile().length();
-//						else
-//							totalsize = dlna.getMedia().getSize();
+						if (inputStream != null)
+							totalsize = inputStream.available();
+						else if (getFile() != null)
+							totalsize = getFile().length();
+						else
+							totalsize = dlna.getMedia().getSize();
 
 
 						long remaining = totalsize - lowRange;
@@ -489,7 +489,7 @@ public class RequestV2 extends HTTPResource {
 
 						if (requested != 0) {
 							// Determine the range (i.e. smaller of known or requested bytes)
-							long bytes = remaining > -1 ? remaining : dlna.getMedia().getSize();//inputStream.available();
+							long bytes = remaining > -1 ? remaining : totalsize;//dlna.getMedia().getSize();//inputStream.available();
 //							long bytes = remaining > -1 ? remaining : inputStream.available();
 
 							if (requested > 0 && bytes > requested) {

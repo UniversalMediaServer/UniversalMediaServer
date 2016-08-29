@@ -3103,6 +3103,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			params.timeseek = timeRange.getStartOrZero();
 			params.timeend = timeRange.getEndOrZero();
 			params.shift_scr = timeseek_auto;
+//			params.log = true;
 			if (this instanceof IPushOutput) {
 				params.stdin = (IPushOutput) this;
 			}
@@ -4500,7 +4501,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LibMediaInfoParser.parse(info, inputFile, getFormat().getType());
 			LOGGER.trace("Original duration: {}, transcoded duration: {}", getMedia().getDuration(), info.getDuration());
 
-			if (getMedia().getDuration().equals(info.getDuration())) {
+			// Only video files have duration info.
+			if ((!getMedia().isVideo() && file.length() > 0)
+					|| getMedia().getDuration().equals(info.getDuration())) {
 //					&& getMedia().getMimeType().equals(info.getMimeType())) {
 				result = file;
 			}
