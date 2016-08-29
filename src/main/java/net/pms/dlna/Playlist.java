@@ -138,7 +138,8 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 			save();
 		}
 		getChildren().clear();
-		setDiscovered(false);
+//		setDiscovered(false);
+		refreshChildren();
 		if (list.size() < 1 && ! isMode(PERMANENT)) {
 			// Self-delete if empty
 			getParent().getChildren().remove(this);
