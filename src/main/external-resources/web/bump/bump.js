@@ -48,6 +48,17 @@ var bump = (function() {
 		$('#bumppos').click(function(){bump.settings();});
 		$('#bexit').click(function(){bump.exit();});
 		$('#bclose').attr('src',img['close']).attr('alt','x');
+		
+		$('#bplaylist').on("click", function() {
+			console.log("playlist selected");
+			clearInterval(poll);
+		});
+		$('#bplaylist').on("focusout", function() {
+			console.log("playlist deselected");
+			poll = window.setInterval(status, 10000);
+		});
+
+
 	}
 
 	function settings() {
@@ -96,7 +107,8 @@ var bump = (function() {
 			$.get(addr+'status/'+renderer, refresh);
 		}
 	}
-	window.setInterval(status, 1000);
+	
+	var poll = window.setInterval(status, 10000);
 
 	function refresh(data) {
 		var vars = $.parseJSON(data);
@@ -109,7 +121,7 @@ var bump = (function() {
 			setRenderer();
 		}
 		if (editmode < 2 && 'playlist' in vars) {
-			var found = -1;
+			var found = 0;
 			var playlist = vars['playlist'];
 			for(var i=0; i < playlist.length; i++) {
 				if (playlist[i][0] === here[0] && !playlist[i][2].indexOf('$i$') === 0) {
@@ -121,7 +133,7 @@ var bump = (function() {
 				found = 0;
 			}
 			setSelect('#bplaylist', vars['playlist'], selindex > -1 ? selindex:found);
-			tog('#bremovebutton,#bclearbutton', $('#bplaylist > option').length < 2);
+			tog('#baddbutton,#bremovebutton,#bclearbutton', $('#bplaylist > option').length < 1);
 			if (editmode == 1) editmode++;
 		}
 	}
@@ -142,6 +154,8 @@ var bump = (function() {
 
 	function setSelect(select, opts, index) {
 		$(select).html('');
+		if (opts.length == 0)
+			return;
 		var override = index!==undefined && index>-1;
 		for (var i=0; i<opts.length; i++) {
 			var name = opts[i][0];
