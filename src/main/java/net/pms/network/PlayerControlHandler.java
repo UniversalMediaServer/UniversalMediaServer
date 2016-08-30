@@ -89,67 +89,11 @@ public class PlayerControlHandler implements HttpHandler {
 
 		String uuid = p.length > 3 ? p[3] : null;
 		Logical player = uuid != null ? getPlayer(uuid) : null;
+		WebRender renderer = parent.getRenderer(RemoteUtil.userName(x), x);
+		String title = q.get("title");
+		String uri = q.get("uri");
 
-		if (player != null) {
-			WebRender renderer = parent.getRenderer(RemoteUtil.userName(x), x);
-			String title = q.get("title");
-			String uri = q.get("uri");
-			switch (p[2]) {
-				case "status":
-					// limit status updates to one per second
-					UPNPHelper.sleep(1000);
-					log = false;
-					break;
-				case "play":
-					player.pressPlay(translate(uri), title);
-					break;
-				case "stop":
-					player.pressStop();
-					break;
-				case "prev":
-					player.prev();
-					break;
-				case "next":
-					player.next();
-					break;
-				case "fwd":
-					player.forward();
-					break;
-				case "rew":
-					player.rewind();
-					break;
-				case "mute":
-					player.mute();
-					break;
-				case "setvolume":
-					player.setVolume(Integer.valueOf(q.get("vol")));
-					break;
-				case "add":
-					player.add(-1, translate(uri), title, null, true);
-					if (renderer != null)
-						renderer.notify(renderer.OK, "Added '" + title + "' to dynamic playlist");
-					break;
-				case "remove":
-					player.remove(translate(uri));
-					DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
-					PMS.get().getDynamicPls().remove(d);
-					if (renderer != null)
-						renderer.notify(renderer.INFO, "Removed '" + title + "' from playlist");
-					break;
-				case "clear":
-					player.clear();
-					PMS.get().getDynamicPls().clear();
-					if (renderer != null)
-						renderer.notify(renderer.INFO, "Cleared playlist");
-					break;
-				case "seturi":
-					player.setURI(translate(uri), title);
-					break;
-			}
-			json.add(getPlayerState(player));
-			json.add(getPlaylist(player));
-			selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
-		} else if (p.length == 2) {
+		if (p.length == 2) {
 			response = parent.getResources().read("bump/bump.html")
 				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
 		} else if (p[2].equals("bump.js")) {
@@ -160,6 +104,85 @@ public class PlayerControlHandler implements HttpHandler {
 		} else if (p[2].startsWith("skin.")) {
 			RemoteUtil.dumpFile(new File(skindir, p[2].substring(5)), x);
 			return;
+		} else {
+			if (player != null) {
+				switch (p[2]) {
+					case "status":
+						// limit status updates to one per second
+						UPNPHelper.sleep(1000);
+						log = false;
+						break;
+					case "play":
+						player.setURI(translate(uri), title);
+						player.pressPlay(translate(uri), title);
+						break;
+					case "stop":
+						player.pressStop();
+						break;
+					case "prev":
+						player.prev();
+						break;
+					case "next":
+						player.next();
+						break;
+					case "fwd":
+						player.forward();
+						break;
+					case "rew":
+						player.rewind();
+						break;
+					case "mute":
+						player.mute();
+						break;
+					case "setvolume":
+						player.setVolume(Integer.valueOf(q.get("vol")));
+						break;
+//					case "add":
+//						player.add(-1, translate(uri), title, null, true);
+//						if (renderer != null)
+//							renderer.notify(renderer.OK, "Added '" + title + "' to dynamic playlist");
+//						break;
+//					case "remove":
+//						player.remove(translate(uri));
+//						DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
+//						PMS.get().getDynamicPls().remove(d);
+//						if (renderer != null)
+//							renderer.notify(renderer.INFO, "Removed '" + title + "' from playlist");
+//						break;
+//					case "clear":
+//						player.clear();
+//						PMS.get().getDynamicPls().clear();
+//						if (renderer != null)
+//							renderer.notify(renderer.INFO, "Cleared playlist");
+//						break;
+					case "seturi":
+						player.setURI(translate(uri), title);
+						break;
+				}
+				json.add(getPlayerState(player));
+				json.add(getPlaylist(player));
+				selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
+			}
+			switch (p[2]) {
+			case "add":
+				if (renderer != null)
+					renderer.notify(renderer.OK, "Added '" + title + "' to dynamic playlist");
+				break;
+			case "remove":
+				DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
+				PMS.get().getDynamicPls().remove(d);
+				if (renderer != null)
+					renderer.notify(renderer.INFO, "Removed '" + title + "' from playlist");
+				break;
+			case "clear":
+				PMS.get().getDynamicPls().clear();
+				if (renderer != null)
+					renderer.notify(renderer.INFO, "Cleared playlist");
+				break;
+			case "playlist":
+				json.add(getPlaylist(player));
+				break;
+			}
 		}
 
 		if (json.size() > 0) {
@@ -236,15 +259,15 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public String getPlaylist(Logical player) {
 		List<String> json = new ArrayList();
-		Logical.Playlist playlist = player.playlist;
-		playlist.validate();
-		Logical.Playlist.Item selected = (Logical.Playlist.Item) playlist.getSelectedItem();
-		int i;
-		for (i = 0; i < playlist.getSize(); i++) {
-			Logical.Playlist.Item item = (Logical.Playlist.Item) playlist.getElementAt(i);
-			json.add(String.format("[\"%s\",%d,\"%s\"]",
-				item.toString().replace("\"", "\\\""), item == selected ? 1 : 0, "$i$" + i));
-		}
+//		Logical.Playlist playlist = player.playlist;
+//		playlist.validate();
+//		Logical.Playlist.Item selected = (Logical.Playlist.Item) playlist.getSelectedItem();
+//		int i;
+//		for (i = 0; i < playlist.getSize(); i++) {
+//			Logical.Playlist.Item item = (Logical.Playlist.Item) playlist.getElementAt(i);
+//			json.add(String.format("[\"%s\",%d,\"%s\"]",
+//				item.toString().replace("\"", "\\\""), item == selected ? 1 : 0, "$i$" + i));
+//		}
 		
 		// Add web playlist
 		json.addAll(getDynamicPlaylist());
@@ -257,7 +280,7 @@ public class PlayerControlHandler implements HttpHandler {
 		for (int i = 0; i < playlist.size(); i++) {
 			DLNAResource item = playlist.get(i);
 			json.add(String.format("[\"%s\",%d,\"%s\"]",
-				item.getName().replace("\"", "\\\""), 0, item.getURL("")));
+				item.getName().replace("\"", "\\\""), i == PMS.get().getDynamicPls().getIndex() ? 1 : 0, item.getURL("")));
 		}
 		return json;
 	}
