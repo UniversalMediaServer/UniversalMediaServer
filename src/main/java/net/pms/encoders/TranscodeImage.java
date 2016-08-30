@@ -44,7 +44,7 @@ public class TranscodeImage extends Player {
 	public TranscodeImage() {
 	}
 
-	public byte[] ConvertImageToJpeg(DLNAResource dlna) {
+	public byte[] convertImageToJpeg(DLNAResource dlna) {
 		File file = new File(dlna.getSystemName());
 		LOGGER.trace("The file \"{}\" is transcoded to the JPEG format.", file.getAbsolutePath());
 		try {
@@ -112,7 +112,7 @@ public class TranscodeImage extends Player {
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		params.waitbeforestart = 0;
-		byte[] image = ConvertImageToJpeg(dlna);
+		byte[] image = convertImageToJpeg(dlna);
 		dlna.getMedia().setSize(image.length);
 		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 		return pw;
