@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
 	protected UMSUtils.IOList list;
-	protected int maxSize, mode;
+	protected int maxSize, mode, index;
 
 	public Playlist(String name) {
 		this(name, null, 0, AUTOSAVE);
@@ -153,4 +153,23 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	public void save() {
 		list.save();
 	}
+	
+	public boolean next() {
+		if (index == list.size() - 1)
+			return false;
+		index++;
+		return true;
+	}
+	
+	public boolean previous() {
+		if (index == 0)
+			return false;
+		index--;
+		return true;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+	
 }

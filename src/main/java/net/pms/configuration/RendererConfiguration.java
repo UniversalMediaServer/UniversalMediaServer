@@ -1588,10 +1588,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public BasicPlayer getPlayer() {
 		/* Giving up performance for accurate play status */
-		if (player == null || (player instanceof PlaybackTimer && isUpnpControllable())) 
+		if (player == null && UPNPHelper.getDevice(getUUID()) != null) 
 		{
-			player = isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
-				new PlaybackTimer((DeviceConfiguration) this);
+			
+			player = new UPNPHelper.Player((DeviceConfiguration) this);
+//			player = isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
+//				new PlaybackTimer((DeviceConfiguration) this);
 		}
 		return player;
 	}
@@ -2684,11 +2686,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public void setPlayingRes(DLNAResource dlna) {
 		playingRes = dlna;
 		getPlayer();
+		player.reset();
 		if (dlna != null) {
 			player.getState().name = dlna.getDisplayName();
 			player.start();
-		} else {
-			player.reset();
+//		} else {
+//			player.reset();
 		}
 	}
 

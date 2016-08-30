@@ -7,6 +7,7 @@ var bump = (function() {
 	var PAUSED = 2;
 	var PLAYCONTROL = 1;
 	var VOLUMECONTROL = 2;
+	var REFRESH_INTERVAL = 10000;
 
 	var enabled = false;
 	var renderer = null;
@@ -55,7 +56,7 @@ var bump = (function() {
 		});
 		$('#bplaylist').on("focusout", function() {
 			console.log("playlist deselected");
-			poll = window.setInterval(status, 10000);
+			poll = window.setInterval(status, REFRESH_INTERVAL);
 		});
 
 
@@ -103,12 +104,13 @@ var bump = (function() {
 	}
 
 	function status() {
+//		if (enabled && renderer) {
 		if (enabled) {
 			$.get(addr+'status/'+renderer, refresh);
 		}
 	}
 	
-	var poll = window.setInterval(status, 10000);
+	var poll = window.setInterval(status, REFRESH_INTERVAL);
 
 	function refresh(data) {
 		var vars = $.parseJSON(data);
@@ -133,7 +135,7 @@ var bump = (function() {
 				found = 0;
 			}
 			setSelect('#bplaylist', vars['playlist'], selindex > -1 ? selindex:found);
-			tog('#baddbutton,#bremovebutton,#bclearbutton', $('#bplaylist > option').length < 1);
+			tog('#baddbutton,#bremovebutton,#bclearbutton,#bplaybutton', $('#bplaylist > option').length < 1);
 			if (editmode == 1) editmode++;
 		}
 	}

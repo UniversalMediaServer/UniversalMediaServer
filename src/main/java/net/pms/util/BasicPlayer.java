@@ -38,6 +38,8 @@ public interface BasicPlayer extends ActionListener {
 	final static int STOPPED = 0;
 	final static int PLAYING = 1;
 	final static int PAUSED = 2;
+	final static int NO_MEDIA_PRESENT = 3;
+
 	final static int PLAYCONTROL = 1;
 	final static int VOLUMECONTROL = 2;
 
@@ -299,9 +301,10 @@ public interface BasicPlayer extends ActionListener {
 					if (uri != null && !uri.equals(state.uri)) {
 						setURI(uri, metadata);
 					}
-					play();
-					state.playback = PLAYING;
 				}
+				// Outside "if" as media could be paused
+				play();
+				state.playback = PLAYING;
 			}
 		}
 
@@ -337,11 +340,11 @@ public interface BasicPlayer extends ActionListener {
 
 		@Override
 		public void alert() {
-//			boolean stopping = state.playback == STOPPED && lastPlayback != -1 && lastPlayback != STOPPED;
-//			boolean stopping = lastPlayback == STOPPED && "0:00:00".equals(state.position);
-//			lastPlayback = state.playback;
+//			boolean stopping = state.playback == NO_MEDIA_PRESENT && lastPlayback == STOPPED;
+			boolean stopping = state.playback == STOPPED && lastPlayback == NO_MEDIA_PRESENT;
+			lastPlayback = state.playback;
 			super.alert();
-			if (state.playback == STOPPED) {
+			if (stopping) {
 				next();
 			}
 		}
