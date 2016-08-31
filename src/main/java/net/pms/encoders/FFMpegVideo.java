@@ -179,7 +179,7 @@ public class FFMpegVideo extends Player {
 		 */
 		// Use min. width of renderer and media size
 		int width = dlna.getMedia().getWidth();
-		if (renderer.getMaxVideoWidth() < width) {
+		if (!renderer.isResolutionCompatibleWithRenderer(width)) {
 			int height = dlna.getMedia().getHeight();
 			int MAX_WIDTH = Math.min(renderer.getMaxVideoWidth(), width);
 			if (MAX_WIDTH <= 720)
@@ -432,7 +432,8 @@ public class FFMpegVideo extends Player {
 				}
 				transcodeOptions.add("-pix_fmt");
 				transcodeOptions.add("yuv420p");
-			} else if ("video/x-ms-wmv".equals(media.getMimeType())) {
+			} else if ("video/x-ms-wmv".equals(media.getMimeType())
+					|| "video/avi".equals(media.getMimeType())) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("msmpeg4");
 				transcodeOptions.add("-f");
@@ -1043,19 +1044,19 @@ public class FFMpegVideo extends Player {
 					cmdList.add(String.valueOf(channels));
 				}
 
-				if (!customFFmpegOptions.contains("-ab ")) {
-					cmdList.add("-ab");
-					if (renderer.isTranscodeToAAC()) {
-						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
-					} else {
-						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
-					}
-				}
+//				if (!customFFmpegOptions.contains("-ab ")) {
+//					cmdList.add("-ab");
+//					if (renderer.isTranscodeToAAC()) {
+//						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
+//					} else {
+//						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
+//					}
+//				}
 
-				if (!customFFmpegOptions.contains("-ar ")) {
-					cmdList.add("-ar");
-					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
-				}
+//				if (!customFFmpegOptions.contains("-ar ")) {
+//					cmdList.add("-ar");
+//					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
+//				}
 			}
 
 			// Add the output options (-f, -c:a, -c:v, etc.)

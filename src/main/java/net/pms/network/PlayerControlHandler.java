@@ -1,6 +1,5 @@
 package net.pms.network;
 
-import com.sun.net.httpserver.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -8,19 +7,33 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.Playlist;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsServer;
 
 public class PlayerControlHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlHandler.class);
@@ -76,55 +89,11 @@ public class PlayerControlHandler implements HttpHandler {
 
 		String uuid = p.length > 3 ? p[3] : null;
 		Logical player = uuid != null ? getPlayer(uuid) : null;
+		WebRender renderer = parent.getRenderer(RemoteUtil.userName(x), x);
+		String title = q.get("title");
+		String uri = q.get("uri");
 
-		if (player != null) {
-			switch (p[2]) {
-				case "status":
-					// limit status updates to one per second
-					UPNPHelper.sleep(1000);
-					log = false;
-					break;
-				case "play":
-					player.pressPlay(translate(q.get("uri")), q.get("title"));
-					break;
-				case "stop":
-					player.pressStop();
-					break;
-				case "prev":
-					player.prev();
-					break;
-				case "next":
-					player.next();
-					break;
-				case "fwd":
-					player.forward();
-					break;
-				case "rew":
-					player.rewind();
-					break;
-				case "mute":
-					player.mute();
-					break;
-				case "setvolume":
-					player.setVolume(Integer.valueOf(q.get("vol")));
-					break;
-				case "add":
-					player.add(-1, translate(q.get("uri")), q.get("title"), null, true);
-					break;
-				case "remove":
-					player.remove(translate(q.get("uri")));
-					break;
-				case "clear":
-					player.clear();
-					break;
-				case "seturi":
-					player.setURI(translate(q.get("uri")), q.get("title"));
-					break;
-			}
-			json.add(getPlayerState(player));
-			json.add(getPlaylist(player));
-			selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
-		} else if (p.length == 2) {
+		if (p.length == 2) {
 			response = parent.getResources().read("bump/bump.html")
 				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
 		} else if (p[2].equals("bump.js")) {
@@ -135,6 +104,96 @@ public class PlayerControlHandler implements HttpHandler {
 		} else if (p[2].startsWith("skin.")) {
 			RemoteUtil.dumpFile(new File(skindir, p[2].substring(5)), x);
 			return;
+		} else {
+			if (player != null) {
+				switch (p[2]) {
+					case "status":
+						// limit status updates to one per second
+						UPNPHelper.sleep(1000);
+						log = false;
+						break;
+					case "play":
+						player.setURI(translate(uri), title);
+						player.pressPlay(translate(uri), title);
+						break;
+					case "stop":
+						player.pressStop();
+						break;
+					case "pause":
+						player.pause();
+						break;	
+					case "prev":
+						player.prev();
+						break;
+					case "next":
+						player.next();
+						break;
+					case "fwd":
+						player.forward();
+						break;
+					case "rew":
+						player.rewind();
+						break;
+					case "mute":
+						player.mute();
+						break;
+					case "setvolume":
+						player.setVolume(Integer.valueOf(q.get("vol")));
+						break;
+//					case "add":
+//						player.add(-1, translate(uri), title, null, true);
+//						if (renderer != null)
+//							renderer.notify(renderer.OK, "Added '" + title + "' to dynamic playlist");
+//						break;
+//					case "remove":
+//						player.remove(translate(uri));
+//						DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
+//						PMS.get().getDynamicPls().remove(d);
+//						if (renderer != null)
+//							renderer.notify(renderer.INFO, "Removed '" + title + "' from playlist");
+//						break;
+//					case "clear":
+//						player.clear();
+//						PMS.get().getDynamicPls().clear();
+//						if (renderer != null)
+//							renderer.notify(renderer.INFO, "Cleared playlist");
+//						break;
+//					case "seturi":
+//						player.setURI(translate(uri), title);
+//						break;
+				}
+				json.add(getPlayerState(player));
+				json.add(getPlaylist(player));
+				selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
+			}
+			DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
+			Playlist dynamicPls = PMS.get().getDynamicPls();
+			
+			switch (p[2]) {
+			case "seturi":
+				if (d != null) {
+				int index = dynamicPls.getList().indexOf(d);
+				dynamicPls.setIndex(index);
+				}
+				break;
+			case "add":
+				if (renderer != null)
+					renderer.notify(renderer.OK, "Added '" + title + "' to dynamic playlist");
+				break;
+			case "remove":
+				dynamicPls.remove(d);
+				if (renderer != null)
+					renderer.notify(renderer.INFO, "Removed '" + title + "' from playlist");
+				break;
+			case "clear":
+				dynamicPls.clear();
+				if (renderer != null)
+					renderer.notify(renderer.INFO, "Cleared playlist");
+				break;
+			case "playlist":
+				json.add(getPlaylist(player));
+				break;
+			}
 		}
 
 		if (json.size() > 0) {
@@ -166,11 +225,14 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public Logical getPlayer(String uuid) {
 		Logical player = players.get(uuid);
-		if (player == null) {
+//		if (player == null) 
+		{
 			try {
 				RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);
-				player = (Logical)r.getPlayer();
-				players.put(uuid, player);
+				if (r != null)
+					player = (Logical)r.getPlayer();
+				// Don't cache - we want to be up-to-date when renderer goes offline
+//				players.put(uuid, player);
 			} catch (Exception e) {
 				LOGGER.debug("Error retrieving player " + uuid + ": " + e);
 			}
@@ -208,17 +270,31 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public String getPlaylist(Logical player) {
-		ArrayList<String> json = new ArrayList();
-		Logical.Playlist playlist = player.playlist;
-		playlist.validate();
-		Logical.Playlist.Item selected = (Logical.Playlist.Item) playlist.getSelectedItem();
-		int i;
-		for (i = 0; i < playlist.getSize(); i++) {
-			Logical.Playlist.Item item = (Logical.Playlist.Item) playlist.getElementAt(i);
-			json.add(String.format("[\"%s\",%d,\"%s\"]",
-				item.toString().replace("\"", "\\\""), item == selected ? 1 : 0, "$i$" + i));
-		}
+		List<String> json = new ArrayList();
+//		Logical.Playlist playlist = player.playlist;
+//		playlist.validate();
+//		Logical.Playlist.Item selected = (Logical.Playlist.Item) playlist.getSelectedItem();
+//		int i;
+//		for (i = 0; i < playlist.getSize(); i++) {
+//			Logical.Playlist.Item item = (Logical.Playlist.Item) playlist.getElementAt(i);
+//			json.add(String.format("[\"%s\",%d,\"%s\"]",
+//				item.toString().replace("\"", "\\\""), item == selected ? 1 : 0, "$i$" + i));
+//		}
+		
+		// Add web playlist
+		json.addAll(getDynamicPlaylist());
 		return "\"playlist\":[" + StringUtils.join(json, ",") + "]";
+	}
+	
+	public List<String> getDynamicPlaylist() {
+		List<String> json = new ArrayList();
+		List<DLNAResource> playlist = PMS.get().getDynamicPls().getList();
+		for (int i = 0; i < playlist.size(); i++) {
+			DLNAResource item = playlist.get(i);
+			json.add(String.format("[\"%s\",%d,\"%s\"]",
+				item.getName().replace("\"", "\\\""), i == PMS.get().getDynamicPls().getIndex() ? 1 : 0, item.getURL("")));
+		}
+		return json;
 	}
 
 	public String getBumpJS() {

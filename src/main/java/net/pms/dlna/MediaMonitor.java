@@ -118,12 +118,14 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	@Override
-	public void discoverChildren() {
-		if (dirs != null) {
+	public boolean refreshChildren() {
+		if (dirs != null && !isDiscovered()) {
 			for (File f : dirs) {
 				scanDir(f.listFiles(), this);
 			}
+			setDiscovered(true);
 		}
+		return isDiscovered();
 	}
 
 	@Override

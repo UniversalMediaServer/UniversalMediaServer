@@ -1,5 +1,8 @@
 package net.pms.util;
 
+import static net.pms.network.UPNPHelper.unescape;
+
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -8,14 +11,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingUtilities;
+
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import static net.pms.network.UPNPHelper.unescape;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +38,8 @@ public interface BasicPlayer extends ActionListener {
 	final static int STOPPED = 0;
 	final static int PLAYING = 1;
 	final static int PAUSED = 2;
+	final static int NO_MEDIA_PRESENT = 3;
+
 	final static int PLAYCONTROL = 1;
 	final static int VOLUMECONTROL = 2;
 
@@ -241,10 +248,10 @@ public interface BasicPlayer extends ActionListener {
 			playlist = new Playlist(this);
 			lastPlayback = STOPPED;
 			maxVol = renderer.getMaxVolume();
-			autoContinue = renderer.isAutoContinue();
+			autoContinue = true;//renderer.isAutoContinue();
 			addAllSiblings = renderer.isAutoAddAll();
 			forceStop = false;
-			alert();
+//			alert();
 			initAutoPlay(this);
 		}
 
@@ -279,8 +286,9 @@ public interface BasicPlayer extends ActionListener {
 				// unknown state, we assume it's stopped
 				state.playback = STOPPED;
 			}
-			if (state.playback == PLAYING) {
+			if (state.playback == PLAYING) {// && uri != null && uri.equals(state.uri)) {
 				pause();
+				state.playback = PAUSED;
 			} else {
 				if (state.playback == STOPPED) {
 					Playlist.Item item = playlist.resolve(uri);
@@ -288,12 +296,15 @@ public interface BasicPlayer extends ActionListener {
 						uri = item.uri;
 						metadata = item.metadata;
 						state.name = item.name;
-					}
-					if (uri != null && !uri.equals(state.uri)) {
-						setURI(uri, metadata);
+						state.duration = item.duration;
 					}
 				}
+				// Outside "if" as media could be paused
+				if (uri != null && !uri.equals(state.uri)) {
+					setURI(uri, metadata);
+				}
 				play();
+				state.playback = PLAYING;
 			}
 		}
 
@@ -301,6 +312,7 @@ public interface BasicPlayer extends ActionListener {
 		public void pressStop() {
 			forceStop = true;
 			stop();
+			state.playback = STOPPED;
 		}
 
 		@Override
@@ -314,20 +326,34 @@ public interface BasicPlayer extends ActionListener {
 		}
 
 		public void step(int n) {
-			if (state.playback != STOPPED) {
-				stop();
+			net.pms.dlna.Playlist playlist = PMS.get().getDynamicPls();
+			if (playlist == null || !playlist.step(n)
+					|| state.playback == STOPPED) {
+				return;
 			}
-			state.playback = STOPPED;
-			playlist.step(n);
-			pressPlay(null, null);
+			
+//			if (state.playback != STOPPED) {
+//				stop();
+//			}
+//			state.playback = STOPPED;
+//			playlist.step(n);
+			if (state.playback == PLAYING) {
+				stop();
+				state.playback = STOPPED;
+				DLNAResource r = playlist.getCurrent();
+				pressPlay(r.getURL(""), null);
+			}
 		}
 
 		@Override
 		public void alert() {
-			boolean stopping = state.playback == STOPPED && lastPlayback != -1 && lastPlayback != STOPPED;
-			lastPlayback = state.playback;
+//			boolean stopping = state.playback == NO_MEDIA_PRESENT && lastPlayback == STOPPED;
+			boolean stopping = state.playback == STOPPED && lastPlayback == NO_MEDIA_PRESENT;
+			lastPlayback = state.playback;	
 			super.alert();
-			if (stopping && autoContinue && !forceStop) {
+			if (stopping) {
+				// To play the next item in playlist, we must set status as playing
+				state.playback = PLAYING;
 				next();
 			}
 		}
@@ -467,6 +493,7 @@ public interface BasicPlayer extends ActionListener {
 					if (d != null) {
 						item.uri = d.getURL("", true);
 						item.metadata = d.getDidlString(renderer);
+						item.duration = d.getMedia().getDurationString();
 						return true;
 					}
 					return false;
@@ -489,8 +516,7 @@ public interface BasicPlayer extends ActionListener {
 
 			public void add(final int index, final String uri, final String name, final String metadata, final boolean select) {
 				if (!StringUtils.isBlank(uri)) {
-					// TODO: check headless mode (should work according to https://java.net/bugzilla/show_bug.cgi?id=2568)
-					SwingUtilities.invokeLater(new Runnable() {
+					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							Item item = resolve(uri);
 							if (item == null) {
@@ -507,8 +533,7 @@ public interface BasicPlayer extends ActionListener {
 
 			public void remove(final String uri) {
 				if (!StringUtils.isBlank(uri)) {
-					// TODO: check headless mode
-					SwingUtilities.invokeLater(new Runnable() {
+					EventQueue.invokeLater(new Runnable() {
 						public void run() {
 							Item item = resolve(uri);
 							if (item != null) {
@@ -519,11 +544,16 @@ public interface BasicPlayer extends ActionListener {
 				}
 			}
 
-			public void step(int n) {
-				if (getSize() > 0) {
-					int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
+			public boolean step(int n) {
+				int i = (getIndexOf(getSelectedItem()) + n);
+				boolean hasNext = false;
+				// Don't step beyond last item
+				if (i < getSize()) {
+//					int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
 					setSelectedItem(getElementAt(i));
+					hasNext = true;
 				}
+				return hasNext;
 			}
 
 			@Override
@@ -545,6 +575,7 @@ public interface BasicPlayer extends ActionListener {
 			}
 
 			public static class Item {
+				public String duration;
 				private static final Logger LOGGER = LoggerFactory.getLogger(Item.class);
 				public String name, uri, metadata;
 				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
@@ -571,10 +602,12 @@ public interface BasicPlayer extends ActionListener {
 
 				@Override
 				public boolean equals(Object other) {
-					return other == null ? false :
-						other == this ? true :
-						other instanceof Item ? ((Item)other).uri.equals(uri) :
-						other.toString().equals(uri);
+					// Playlist items can be duplicate	
+					return super.equals(other);
+//					return other == null ? false :
+//						other == this ? true :
+//						other instanceof Item ? ((Item)other).uri.equals(uri) :
+//						other.toString().equals(uri);
 				}
 
 				@Override

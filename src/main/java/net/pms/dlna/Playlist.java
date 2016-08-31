@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
 	protected UMSUtils.IOList list;
-	protected int maxSize, mode;
+	protected int maxSize, mode, index;
 
 	public Playlist(String name) {
 		this(name, null, 0, AUTOSAVE);
@@ -70,7 +70,8 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 		if (maxSize > 0 && list.size() == maxSize) {
 			list.remove(maxSize - 1);
 		}
-		list.add(0, res1);
+		// Add to last
+		list.add(res1);
 		update();
 	}
 
@@ -87,12 +88,14 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	}
 
 	public boolean isMode(int m) {
-		return (mode & m) == m;
+		return (mode == m);
 	}
 
 	@Override
-	public void discoverChildren() {
-		if (list.size() > 0) {
+	public boolean refreshChildren() {
+		int i = 1 + (isMode(AUTOSAVE) ? 0 : 1);
+		if (list.size() > getChildren().size() - i) { // less clear and save option
+			getChildren().clear();
 			final Playlist self = this;
 			// Save
 			if (! isMode(AUTOSAVE)) {
@@ -112,21 +115,23 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 					return true;
 				}
 			});
-		}
+//		}
 		for (DLNAResource r : list) {
 			// addchild might clear the masterparent
 			// so fetch it first and readd
 			ExternalListener master = r.getMasterParent();
 			addChild(r);
 			r.setMasterParent(master);
-			if (r.isResume()) {
-				// add this non resume after
-				DLNAResource clone = r.clone();
-				clone.setResume(null);
-				addChild(clone);
-				clone.setMasterParent(master);
-			}
+//			if (r.isResume()) {
+//				// add this non resume after
+//				DLNAResource clone = r.clone();
+//				clone.setResume(null);
+//				addChild(clone);
+//				clone.setMasterParent(master);
+//			}
 		}
+		}
+		return true;
 	}
 
 	public List<DLNAResource> getList() {
@@ -138,7 +143,8 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 			save();
 		}
 		getChildren().clear();
-		setDiscovered(false);
+//		setDiscovered(false);
+		refreshChildren();
 		if (list.size() < 1 && ! isMode(PERMANENT)) {
 			// Self-delete if empty
 			getParent().getChildren().remove(this);
@@ -147,5 +153,44 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 
 	public void save() {
 		list.save();
+	}
+	
+	public boolean next() {
+//		if (index == list.size() - 1)
+//			return false;
+//		index++;
+//		return true;
+		return step(1);
+	}
+	
+	public boolean previous() {
+//		if (index == 0)
+//			return false;
+//		index--;
+//		return true;
+		return step(-1);
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public boolean step(int n) {
+		int i = index + n;
+		boolean hasNext = false;
+		// Don't step beyond last item
+		if (i >= 0 && i < list.size()) {
+			index += n;
+			hasNext = true;
+		}
+		return hasNext;
+	}
+	
+	public DLNAResource getCurrent() {
+		return list.get(index);
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 }

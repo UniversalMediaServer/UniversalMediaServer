@@ -9,3 +9,7 @@ jdk:
   - openjdk7    
 install: mvn external:install 
 script: mvn install -Dmaven.javadoc.skip=true -B -V -DskipTests=true
+
+branches:
+  only:
+    - dev

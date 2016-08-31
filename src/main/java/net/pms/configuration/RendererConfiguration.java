@@ -56,7 +56,6 @@ import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.tika.mime.MimeTypes;
 import org.fourthline.cling.support.model.ProtocolInfo;
 import org.fourthline.cling.support.model.ProtocolInfos;
 import org.seamless.util.MimeType;
@@ -1588,9 +1587,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return a player or null.
 	 */
 	public BasicPlayer getPlayer() {
-		if (player == null) {
-			player = isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
-				new PlaybackTimer((DeviceConfiguration) this);
+		/* Giving up performance for accurate play status */
+		if (player == null && UPNPHelper.getDevice(getUUID()) != null) 
+		{
+			
+			player = new UPNPHelper.Player((DeviceConfiguration) this);
+//			player = isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
+//				new PlaybackTimer((DeviceConfiguration) this);
 		}
 		return player;
 	}
@@ -2016,6 +2019,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
 	}
 
+	public boolean isResolutionCompatibleWithRenderer(int width) {
+		return width <= getMaxVideoWidth();
+	}
+	
 	/**
 	 * Whether the resolution is compatible with the renderer.
 	 *
@@ -2679,11 +2686,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public void setPlayingRes(DLNAResource dlna) {
 		playingRes = dlna;
 		getPlayer();
+		if (player == null)
+			return;
+		player.reset();
 		if (dlna != null) {
 			player.getState().name = dlna.getDisplayName();
 			player.start();
-		} else {
-			player.reset();
+//		} else {
+//			player.reset();
 		}
 	}
 
@@ -2715,6 +2725,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			final DLNAResource res = renderer.getPlayingRes();
 			state.name = res.getDisplayName();
 			duration = 0;
+			final long startTime = System.currentTimeMillis();
 			if (res.getMedia() != null) {
 				duration = (long) res.getMedia().getDurationInSeconds() * 1000;
 				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
@@ -2726,7 +2737,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					while (res == renderer.getPlayingRes()) {
 						long elapsed;
 						if ((long) res.getLastStartPosition() == 0) {
-							elapsed = System.currentTimeMillis() - (long) res.getStartTime();
+							elapsed = System.currentTimeMillis() - (long) startTime;// res.getStartTime();
 						} else {
 							elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
 							elapsed += (long) (res.getLastStartPosition() * 1000);
@@ -2736,8 +2747,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							// Position is valid as far as we can tell
 							state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
 						} else {
+							renderer.setPlayingRes(null);
+							break;
 							// Position is invalid, blink instead
-							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
+//							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
 						}
 						alert();
 						try {
@@ -2746,9 +2759,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						}
 					}
 					// Reset only if another item hasn't already begun playing
-					if (renderer.getPlayingRes() == null) {
-						reset();
-					}
+//					if (renderer.getPlayingRes() == null) {
+//						reset();
+//					}
 				}
 			};
 			new Thread(r).start();

@@ -318,7 +318,8 @@ public class RequestV2 extends HTTPResource {
 				dlna = null;
 			}
 
-			if (dlna != null) {
+			// WMP uses SMIL for subtitiles. But we don't support it
+			if (dlna != null && !argument.endsWith(".smi")) {
 				// DLNAresource was found.
 
 				if (fileName.startsWith("thumbnail0000") || (queryStr != null && "albumArt=true".equals(queryStr))) {
@@ -368,7 +369,7 @@ public class RequestV2 extends HTTPResource {
 					DLNAResource.Rendering origRendering = null;
 					if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
 						// Adjust rendering details for this renderer
-						origRendering = dlna.updateRendering(mediaRenderer);
+//						origRendering = dlna.updateRendering(mediaRenderer);
 					}
 					// If range has not been initialized yet and the DLNAResource has its
 					// own start and end defined, initialize range with those values before
@@ -398,10 +399,19 @@ public class RequestV2 extends HTTPResource {
 						)
 					) {
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer, rendererMimeType);
-						if (dlna.isCompatible(rendererMimeType) && ("video/avi".equals(dlna.mimeType()) || dlna.mimeType().endsWith("mp4")))
-							setFile(((RealFile) dlna).getFile());
-						else if (inputStream == null) // Transcoding complete
-							setFile(dlna.getFile(mediaRenderer));
+//						if (dlna.isCompatible(rendererMimeType) && ("video/avi".equals(dlna.mimeType()) || dlna.mimeType().endsWith("mp4"))) {
+//							setFile(((RealFile) dlna).getFile());
+//							inputStream.close();
+//						} else 
+						if (inputStream == null) {
+							if (dlna.getFile(mediaRenderer) != null) {
+								// Transcoding complete
+								setFile(dlna.getFile(mediaRenderer));
+							} else {
+								setFile(((RealFile) dlna).getFile());	
+							}
+						}
+						
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
 //							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
@@ -465,21 +475,29 @@ public class RequestV2 extends HTTPResource {
 							// In chunked mode we try to avoid arbitrary values.
 							totalsize = -1;
 						}
+						
+						if (inputStream != null)
+							totalsize = inputStream.available();
+						else if (getFile() != null)
+							totalsize = getFile().length();
+						else
+							totalsize = dlna.getMedia().getSize();
+
 
 						long remaining = totalsize - lowRange;
 						long requested = highRange - lowRange;
 
 						if (requested != 0) {
 							// Determine the range (i.e. smaller of known or requested bytes)
-							long bytes = remaining > -1 ? remaining : dlna.getMedia().getSize();//inputStream.available();
+							long bytes = remaining > -1 ? remaining : totalsize;//dlna.getMedia().getSize();//inputStream.available();
 //							long bytes = remaining > -1 ? remaining : inputStream.available();
 
 							if (requested > 0 && bytes > requested) {
 								bytes = requested + 1;
 							}
 
-							// Calculate the corresponding highRange (this is usually redundant).
-//							highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
+							// Calculate the corresponding highRange (this is required).
+							highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
 
@@ -500,17 +518,18 @@ public class RequestV2 extends HTTPResource {
 						// Calculate the corresponding highRange (this is usually redundant).
 //						highRange = lowRange + CLoverride - (CLoverride > 0 ? 1 : 0);
 
-						if (contentFeatures != null) {
+//						if (contentFeatures != null) 
+						{
 							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
 						output.headers().set(HttpHeaderNames.ACCEPT_RANGES, "bytes");
 						output.headers().set(HttpHeaderNames.CONNECTION, "keep-alive");
 					}
-					if (origRendering != null) {
+//					if (origRendering != null) {
 						// Restore original rendering details
-						dlna.updateRendering(origRendering);
-					}
+//						dlna.updateRendering(origRendering);
+//					}
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {

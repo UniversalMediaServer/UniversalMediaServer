@@ -665,6 +665,9 @@ public class UMSUtils {
 			} else {
 				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			}
+			if (img == null)
+				return null;
+			
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 			if (renderer != null && renderer.isThumbnailPadding()) {

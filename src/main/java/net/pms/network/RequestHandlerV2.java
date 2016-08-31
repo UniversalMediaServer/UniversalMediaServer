@@ -75,6 +75,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	private static int BUFFER_SIZE = 8 * 1024;
 
 	private volatile FullHttpRequest nettyRequest;
+	private RendererConfiguration renderer = null;
+
 //	private final ChannelGroup group;
 //
 //	public RequestHandlerV2(ChannelGroup group) {
@@ -103,7 +105,6 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest e)
 		throws Exception {
 		RequestV2 request = null;
-		RendererConfiguration renderer = null;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
@@ -298,8 +299,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */
-	private boolean filterIp(InetAddress inetAddress) {
-		return !((inetAddress.getHostAddress().equals(PMS.get().getServer().getHost())) || PMS.getConfiguration().getIpFiltering().allowed(inetAddress));
+	public static boolean filterIp(InetAddress address) {
+		return (!address.isLoopbackAddress() && !PMS.getConfiguration().getIpFiltering().allowed(address)) || !PMS.isReady();
 	}
 
 	private void writeResponse(ChannelHandlerContext ctx, HttpRequest e, RequestV2 request, InetAddress ia) {
@@ -330,6 +331,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		final StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		startStopListenerDelegate.setRenderer(renderer);
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
 //		ctx.attr(startStopListenerDelegate);
 
@@ -356,6 +358,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 				// Stream avi
 				if (request.getFile() != null){// && !response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+					LOGGER.trace("Serving file");
 					File f = request.getFile();
 					if (end <= 0)
 						end = f.length() - 1;
@@ -367,6 +370,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 					ctx.write(response1);
 					chunkWriteFuture = ctx.write(new DefaultFileRegion(f, start, end + 1));
 				} else {
+					LOGGER.trace("Serving stream");
 					// WMP needs content length for smaller files
 					if (!request.getArgument().endsWith(".xml"))
 						response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
@@ -375,8 +379,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				}
 				ctx.write(LastHttpContent.EMPTY_LAST_CONTENT);
 
-				System.out.println(e);
-				System.out.println(response1);
+				LOGGER.info(e.toString());
+				LOGGER.info(response1.toString());
 
 				// Add a listener to clean up after sending the entire response body.
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
