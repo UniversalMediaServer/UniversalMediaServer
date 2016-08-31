@@ -119,6 +119,9 @@ public class PlayerControlHandler implements HttpHandler {
 					case "stop":
 						player.pressStop();
 						break;
+					case "pause":
+						player.pause();
+						break;	
 					case "prev":
 						player.prev();
 						break;
@@ -155,27 +158,35 @@ public class PlayerControlHandler implements HttpHandler {
 //						if (renderer != null)
 //							renderer.notify(renderer.INFO, "Cleared playlist");
 //						break;
-					case "seturi":
-						player.setURI(translate(uri), title);
-						break;
+//					case "seturi":
+//						player.setURI(translate(uri), title);
+//						break;
 				}
 				json.add(getPlayerState(player));
 				json.add(getPlaylist(player));
 				selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
 			}
+			DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
+			Playlist dynamicPls = PMS.get().getDynamicPls();
+			
 			switch (p[2]) {
+			case "seturi":
+				if (d != null) {
+				int index = dynamicPls.getList().indexOf(d);
+				dynamicPls.setIndex(index);
+				}
+				break;
 			case "add":
 				if (renderer != null)
 					renderer.notify(renderer.OK, "Added '" + title + "' to dynamic playlist");
 				break;
 			case "remove":
-				DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
-				PMS.get().getDynamicPls().remove(d);
+				dynamicPls.remove(d);
 				if (renderer != null)
 					renderer.notify(renderer.INFO, "Removed '" + title + "' from playlist");
 				break;
 			case "clear":
-				PMS.get().getDynamicPls().clear();
+				dynamicPls.clear();
 				if (renderer != null)
 					renderer.notify(renderer.INFO, "Cleared playlist");
 				break;
@@ -218,7 +229,8 @@ public class PlayerControlHandler implements HttpHandler {
 		{
 			try {
 				RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);
-				player = (Logical)r.getPlayer();
+				if (r != null)
+					player = (Logical)r.getPlayer();
 				// Don't cache - we want to be up-to-date when renderer goes offline
 //				players.put(uuid, player);
 			} catch (Exception e) {

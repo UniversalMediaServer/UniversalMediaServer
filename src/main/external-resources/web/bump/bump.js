@@ -36,6 +36,7 @@ var bump = (function() {
 
 	function hookup() {
 		$('#bplaylist').mousedown(function(){bump.getPlaylist(1);})
+			.change(function(){press("seturi");})
 			.click(function(){bump.edited(1);})
 			.blur(function(){bump.edited(0);});
 		$('#brenderers').change(function(){bump.setRenderer();});
@@ -51,14 +52,13 @@ var bump = (function() {
 		$('#bclose').attr('src',img['close']).attr('alt','x');
 		
 		$('#bplaylist').on("click", function() {
-			console.log("playlist selected");
+//			console.log("playlist selected");
 			clearInterval(poll);
 		});
 		$('#bplaylist').on("focusout", function() {
-			console.log("playlist deselected");
+//			console.log("playlist deselected");
 			poll = window.setInterval(status, REFRESH_INTERVAL);
 		});
-
 
 	}
 
@@ -113,6 +113,13 @@ var bump = (function() {
 	var poll = window.setInterval(status, REFRESH_INTERVAL);
 
 	function refresh(data) {
+		if (!data) {
+			enabled = false;
+			getRenderers();
+			setButtons();
+			return;
+		}
+		enabled = true;
 		var vars = $.parseJSON(data);
 		if ('uuid' in vars && vars['uuid'] !== renderer) return;
 		if ('state' in vars) {
@@ -121,6 +128,8 @@ var bump = (function() {
 		if ('renderers' in vars) {
 			setSelect('#brenderers', vars['renderers']);
 			setRenderer();
+		} else {
+			setButtons();
 		}
 		if (editmode < 2 && 'playlist' in vars) {
 			var found = 0;
@@ -134,8 +143,8 @@ var bump = (function() {
 				vars['playlist'].splice(0, 0, here);
 				found = 0;
 			}
-			setSelect('#bplaylist', vars['playlist'], selindex > -1 ? selindex:found);
-			tog('#baddbutton,#bremovebutton,#bclearbutton,#bplaybutton', $('#bplaylist > option').length < 1);
+			setSelect('#bplaylist', vars['playlist']);//, selindex > -1 ? selindex:found);
+			tog('#baddbutton,#bremovebutton,#bclearbutton', $('#bplaylist > option').length < 1);
 			if (editmode == 1) editmode++;
 		}
 	}
@@ -155,17 +164,20 @@ var bump = (function() {
 	}
 
 	function setSelect(select, opts, index) {
-		$(select).html('');
+		$(select + ' option').remove();
 		if (opts.length == 0)
 			return;
 		var override = index!==undefined && index>-1;
+		var list = "";
 		for (var i=0; i<opts.length; i++) {
 			var name = opts[i][0];
 			var marked = opts[i][1]==1;
 			var sel = override ? index==i:marked;
 			var val = opts[i][2];
-			$(select).append($('<option value="'+val+(sel ? '" selected="selected"':'"')+(marked ? ' class="bselected"':'')+'>'+name+'</option>'));
+//			$(select).append($('<option value="'+val+(sel ? '" selected="selected"':'"')+(marked ? ' class="bselected"':'')+'>'+name+'</option>'));
+			list +='<option value="'+val+(sel ? '" selected="selected"':'"')+(marked ? ' class="bselected"':'')+'>'+name+'</option>';
 		}
+		$(select).append(list);
 		setButtons();
 		if (!$(select+' option:selected')) {
 			$(select+' option[0]').attr('class','bmarked').attr('selected','selected');
@@ -175,11 +187,24 @@ var bump = (function() {
 	function setButtons() {
 		var stopped = state.playback == STOPPED;
 //		$('#brenderers').attr('disabled', !stopped);
-		tog('#brewbutton,#bstopbutton,#bfwdbutton', stopped);
-		tog('#bprevbutton,#bnextbutton', $('#bplaylist > option').length < 2);
-		$('#bplaybutton').css({
-			background:'url('+img[state.playback==PLAYING ? 'pause':'play']+') no-repeat center center'
-		});
+		tog('#brewbutton,#bstopbutton,#bfwdbutton', !enabled || stopped);
+		
+		var listSize = $('#bplaylist > option').length;
+		var selected = $('#bplaylist option:selected').index();
+		if ($('#bplaylist > option').length < 2)
+			tog('#bprevbutton,#bnextbutton', $('#bplaylist > option').length < 2);
+		else {
+			tog('#bprevbutton', selected == 0);
+			tog('#bnextbutton', selected == listSize - 1);
+		}
+//		console.log(listSize + " " + selected);
+		
+		tog('#bplaybutton', !enabled || state.playback == PLAYING);
+		tog('#bstopbutton', state.playback != PLAYING);
+		tog('#bpausebutton', state.playback != PLAYING);
+//		$('#bplaybutton').css({
+//			background:'url('+img[state.playback==PLAYING ? 'pause':'play']+') no-repeat center center'
+//		});
 		$('#bmutebutton').css({
 			background:'url('+img[state.mute === 'true' ? 'mute':'vol']+') no-repeat center center'
 		});

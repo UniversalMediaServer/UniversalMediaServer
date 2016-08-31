@@ -286,7 +286,7 @@ public interface BasicPlayer extends ActionListener {
 				// unknown state, we assume it's stopped
 				state.playback = STOPPED;
 			}
-			if (state.playback == PLAYING) {
+			if (state.playback == PLAYING) {// && uri != null && uri.equals(state.uri)) {
 				pause();
 				state.playback = PAUSED;
 			} else {
@@ -298,11 +298,11 @@ public interface BasicPlayer extends ActionListener {
 						state.name = item.name;
 						state.duration = item.duration;
 					}
-					if (uri != null && !uri.equals(state.uri)) {
-						setURI(uri, metadata);
-					}
 				}
 				// Outside "if" as media could be paused
+				if (uri != null && !uri.equals(state.uri)) {
+					setURI(uri, metadata);
+				}
 				play();
 				state.playback = PLAYING;
 			}
@@ -326,25 +326,34 @@ public interface BasicPlayer extends ActionListener {
 		}
 
 		public void step(int n) {
-			if (playlist == null || !playlist.step(n)) {
+			net.pms.dlna.Playlist playlist = PMS.get().getDynamicPls();
+			if (playlist == null || !playlist.step(n)
+					|| state.playback == STOPPED) {
 				return;
 			}
 			
-			if (state.playback != STOPPED) {
-				stop();
-			}
-			state.playback = STOPPED;
+//			if (state.playback != STOPPED) {
+//				stop();
+//			}
+//			state.playback = STOPPED;
 //			playlist.step(n);
-			pressPlay(null, null);
+			if (state.playback == PLAYING) {
+				stop();
+				state.playback = STOPPED;
+				DLNAResource r = playlist.getCurrent();
+				pressPlay(r.getURL(""), null);
+			}
 		}
 
 		@Override
 		public void alert() {
 //			boolean stopping = state.playback == NO_MEDIA_PRESENT && lastPlayback == STOPPED;
 			boolean stopping = state.playback == STOPPED && lastPlayback == NO_MEDIA_PRESENT;
-			lastPlayback = state.playback;
+			lastPlayback = state.playback;	
 			super.alert();
 			if (stopping) {
+				// To play the next item in playlist, we must set status as playing
+				state.playback = PLAYING;
 				next();
 			}
 		}
