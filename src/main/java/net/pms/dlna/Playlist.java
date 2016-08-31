@@ -70,7 +70,8 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 		if (maxSize > 0 && list.size() == maxSize) {
 			list.remove(maxSize - 1);
 		}
-		list.add(0, res1);
+		// Add to last
+		list.add(res1);
 		update();
 	}
 
@@ -155,21 +156,41 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	}
 	
 	public boolean next() {
-		if (index == list.size() - 1)
-			return false;
-		index++;
-		return true;
+//		if (index == list.size() - 1)
+//			return false;
+//		index++;
+//		return true;
+		return step(1);
 	}
 	
 	public boolean previous() {
-		if (index == 0)
-			return false;
-		index--;
-		return true;
+//		if (index == 0)
+//			return false;
+//		index--;
+//		return true;
+		return step(-1);
 	}
 
 	public int getIndex() {
 		return index;
 	}
+
+	public boolean step(int n) {
+		int i = index + n;
+		boolean hasNext = false;
+		// Don't step beyond last item
+		if (i >= 0 && i < list.size()) {
+			index += n;
+			hasNext = true;
+		}
+		return hasNext;
+	}
 	
+	public DLNAResource getCurrent() {
+		return list.get(index);
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
+	}
 }

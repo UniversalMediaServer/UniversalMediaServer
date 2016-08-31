@@ -50,11 +50,12 @@ $('body').append([
 bump.addButton('prev', '#bumpctrl');
 bump.addButton('rew', '#bumpctrl');
 bump.addButton('play', '#bumpctrl');
+bump.addButton('pause', '#bumpctrl');
 bump.addButton('stop', '#bumpctrl');
 bump.addButton('fwd', '#bumpctrl');
 bump.addButton('next', '#bumpctrl');
 bump.addButton('mute', '#bumpmute');
-bump.addButton('add', '#bplaylistctrl', 'Add to playlist');
+//bump.addButton('add', '#bplaylistctrl', 'Add to playlist');
 bump.addButton('remove', '#bplaylistctrl', 'Remove from playlist');
 bump.addButton('clear', '#bplaylistctrl', 'Clear playlist');
 

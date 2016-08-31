@@ -2686,6 +2686,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public void setPlayingRes(DLNAResource dlna) {
 		playingRes = dlna;
 		getPlayer();
+		if (player == null)
+			return;
 		player.reset();
 		if (dlna != null) {
 			player.getState().name = dlna.getDisplayName();
