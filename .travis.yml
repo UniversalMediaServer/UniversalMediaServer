@@ -8,7 +8,7 @@ jdk:
   - oraclejdk7
   - openjdk7    
 #install: mvn external:install 
-script: mvn install -Dmaven.javadoc.skip=true -B -V -DskipTests=true
+script: mvn package -Dmaven.javadoc.skip=true -B -V -DskipTests=true
 
 branches:
   only:

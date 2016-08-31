@@ -7,7 +7,7 @@ var bump = (function() {
 	var PAUSED = 2;
 	var PLAYCONTROL = 1;
 	var VOLUMECONTROL = 2;
-	var REFRESH_INTERVAL = 10000;
+	var REFRESH_INTERVAL = 1000;
 
 	var enabled = false;
 	var renderer = null;
