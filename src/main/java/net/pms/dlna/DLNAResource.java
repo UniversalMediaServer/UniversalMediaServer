@@ -4504,7 +4504,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// Only video files have duration info.
 			if ((!getMedia().isVideo() && file.length() > 0)
-					|| getMedia().getDuration().equals(info.getDuration())) {
+					|| getMedia().getDuration().compareTo(info.getDuration()) <= 0) {
 //					&& getMedia().getMimeType().equals(info.getMimeType())) {
 				result = file;
 			}
