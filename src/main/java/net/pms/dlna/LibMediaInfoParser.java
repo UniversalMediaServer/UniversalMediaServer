@@ -5,13 +5,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
+
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +83,11 @@ public class LibMediaInfoParser {
 				// set General
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
-				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
+//				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
+				String duration = MI.Get(general, 0, "Duration");
+				if (StringUtils.isEmpty(duration))
+					duration = "0";
+				media.setDuration(Double.valueOf(duration));
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
@@ -157,13 +166,19 @@ public class LibMediaInfoParser {
 				if (audioTracks > 0) {
 					for (int i = 0; i < audioTracks; i++) {
 						currentAudioTrack = new DLNAMediaAudio();
+						LOGGER.trace(MI.Inform());
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format"), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
 						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
-						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
+						
+						String channels = MI.Get(audio, i, "Channel(s)_Original");
+						if (StringUtils.isEmpty(channels))
+							channels = MI.Get(audio, i, "Channel(s)");
+						currentAudioTrack.getAudioProperties().setNumberOfChannels(channels);
+
 						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
 						currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));

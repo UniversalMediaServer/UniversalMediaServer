@@ -464,17 +464,16 @@ public class RequestV2 extends HTTPResource {
 
 						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 							output.headers().set(HttpHeaderNames.CONTENT_TYPE, rendererMimeType);
-							// Not necessary
-//							if ("audio/L16".equals(rendererMimeType)) {
-//								OutputParams params = new OutputParams(configuration);
-//								Player.setAudioAndSubs(dlna.getSystemName(), dlna.getMedia(), params);
-//
-//								output.headers().set(
-//										HttpHeaderNames.CONTENT_TYPE,
-//										String.format("%s;channels=%d;rate=%d", rendererMimeType, 
-//												params.aid.getAudioProperties().getNumberOfChannels(), 
-//												params.aid.getAudioProperties().getSampleFrequency()));
-//							}
+							if ("audio/L16".equals(rendererMimeType)) {
+								OutputParams params = new OutputParams(configuration);
+								Player.setAudioAndSubs(dlna.getSystemName(), dlna.getMedia(), params);
+
+								output.headers().set(
+										HttpHeaderNames.CONTENT_TYPE,
+										String.format("%s;channels=%d;rate=%d", rendererMimeType, 
+												params.aid.getAudioProperties().getNumberOfChannels(), 
+												params.aid.getAudioProperties().getSampleFrequency()));
+							}
 						}
 
 						// Response generation:
