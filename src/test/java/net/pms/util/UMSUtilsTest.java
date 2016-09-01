@@ -31,7 +31,7 @@ public class UMSUtilsTest {
 		PMS.setConfiguration(new PmsConfiguration(false));
 	}
 
-//	@Test
+	@Test
 	public void testPlayedDurationStr() throws Exception {
 		assertThat(UMSUtils.playedDurationStr("01:23:45:67.89", "01:23:45:67")).isEqualTo("23:45:67 / 23:45:67");
 		assertThat(UMSUtils.playedDurationStr("01:23", "01:23:45")).isEqualTo("1:23 / 1:23:45");

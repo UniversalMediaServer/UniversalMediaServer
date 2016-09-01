@@ -3041,6 +3041,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		OutputParams params = new OutputParams(configuration);
 		Player.setAudioAndSubs(getSystemName(), getMedia(), params);
 		setMediaSubtitle(params.sid);
+		setMediaAudio(params.aid);
 		
 		if (isCompatible(mimetype) 
 				&& mediarenderer.isResolutionCompatibleWithRenderer(getMedia().getWidth())
@@ -3095,7 +3096,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return null;
 			
 //			OutputParams params = new OutputParams(configuration);
-			params.aid = getMediaAudio();
+//			params.aid = getMediaAudio();
 //			params.sid = media_subtitle;
 			params.header = getHeaders();
 			params.mediaRenderer = mediarenderer;

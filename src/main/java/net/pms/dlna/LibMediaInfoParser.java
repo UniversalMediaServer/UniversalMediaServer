@@ -69,6 +69,8 @@ public class LibMediaInfoParser {
 	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type, RendererConfiguration renderer) {
 		File file = inputFile.getFile();
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.Open(file.getAbsolutePath()) > 0) {
+			LOGGER.trace(MI.Inform());
+
 			try {
 				StreamType general = StreamType.General;
 				StreamType video = StreamType.Video;
@@ -166,7 +168,6 @@ public class LibMediaInfoParser {
 				if (audioTracks > 0) {
 					for (int i = 0; i < audioTracks; i++) {
 						currentAudioTrack = new DLNAMediaAudio();
-						LOGGER.trace(MI.Inform());
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format"), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);

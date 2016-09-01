@@ -40,7 +40,7 @@ public class StringUtilTest {
 
 	@Test
 	public void fillStringTest() {
-		char[] chars = {};// { 'a', 'æ' };
+		char[] chars = { 'a', 'æ' };
 		assertEquals("fillStringCharArray", StringUtil.fillString(chars, 4), "aæaæaæaæ");
 		assertEquals("fillStringCharSpace", StringUtil.fillString(' ', 10), "          ");
 		assertEquals("fillStringCodePoint", StringUtil.fillString(1333 , 3), "\u0535\u0535\u0535");
