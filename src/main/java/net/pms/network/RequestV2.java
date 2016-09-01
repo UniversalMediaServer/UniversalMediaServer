@@ -52,8 +52,10 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
+import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
+import net.pms.io.OutputParams;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 
@@ -462,6 +464,17 @@ public class RequestV2 extends HTTPResource {
 
 						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 							output.headers().set(HttpHeaderNames.CONTENT_TYPE, rendererMimeType);
+							// Not necessary
+//							if ("audio/L16".equals(rendererMimeType)) {
+//								OutputParams params = new OutputParams(configuration);
+//								Player.setAudioAndSubs(dlna.getSystemName(), dlna.getMedia(), params);
+//
+//								output.headers().set(
+//										HttpHeaderNames.CONTENT_TYPE,
+//										String.format("%s;channels=%d;rate=%d", rendererMimeType, 
+//												params.aid.getAudioProperties().getNumberOfChannels(), 
+//												params.aid.getAudioProperties().getSampleFrequency()));
+//							}
 						}
 
 						// Response generation:

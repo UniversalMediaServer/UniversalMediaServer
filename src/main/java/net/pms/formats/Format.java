@@ -353,7 +353,7 @@ public abstract class Format implements Cloneable, Serializable {
 		} else if (mimetype.equalsIgnoreCase("audio/vnd.dlna.adts")) {
 			ext = ".m4a";
 		} else if (mimetype.equalsIgnoreCase("audio/l16")) {
-			ext = ".wav";
+			ext = ".l16";
 			
 		// Video	
 		} else if (mimetype.equalsIgnoreCase("video/mpeg") || mimetype.equalsIgnoreCase("video/mp4")) {
@@ -384,8 +384,8 @@ public abstract class Format implements Cloneable, Serializable {
 	public static String getMimetype(String filename) {
 		String mimetype = TIKA.detect(filename);
 		
-//		if (filename.endsWith(".l16"))
-//			mimetype = "audio/L16";
+		if (filename.endsWith(".l16"))
+			mimetype = "audio/L16";
 		if (filename.endsWith(".avi"))
 			mimetype = "video/avi";
 		return mimetype;
@@ -400,7 +400,7 @@ public abstract class Format implements Cloneable, Serializable {
 	public static boolean isSupportedMimetype(String mimetype) {
 		boolean supported = true;
 		
-		if ("audio/L16".equalsIgnoreCase(mimetype)
+		if ("audio/L24".equalsIgnoreCase(mimetype)
 				|| "video/vnd.dlna.mpeg-tts".equalsIgnoreCase(mimetype)
 				|| "video/mpeg2".equalsIgnoreCase(mimetype)
 				)
