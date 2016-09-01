@@ -114,8 +114,8 @@ var bump = (function() {
 
 	function refresh(data) {
 		if (!data) {
-			enabled = false;
 			getRenderers();
+			enabled = false;
 			setButtons();
 			return;
 		}
