@@ -19,7 +19,9 @@
 package net.pms.configuration;
 
 import ch.qos.logback.classic.Level;
+
 import com.sun.jna.Platform;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Frame;
@@ -33,11 +35,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
+import net.pms.encoders.FFmpegImage;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.CoverSupplier;
@@ -49,6 +54,7 @@ import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -2256,6 +2262,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		String defaultEngines = StringUtils.join(
 			new String[] {
 				"ffmpegvideo",
+				FFmpegImage.ID,
 				"mencoder",
 				"tsmuxer",
 				"ffmpegaudio",

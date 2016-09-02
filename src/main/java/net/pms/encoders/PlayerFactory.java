@@ -118,6 +118,7 @@ public final class PlayerFactory {
 		}
 
 		registerPlayer(new FFmpegAudio());
+		registerPlayer(new FFmpegImage());
 		registerPlayer(new MEncoderVideo());
 
 		if (Platform.isWindows()) {

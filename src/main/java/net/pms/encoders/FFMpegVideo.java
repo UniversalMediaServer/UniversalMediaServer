@@ -177,29 +177,10 @@ public class FFMpegVideo extends Player {
 		 * scale=iw*sar*min($MAX_WIDTH/(iw*sar)\,$MAX_HEIGHT/ih):ih*min($MAX_WIDTH/(iw*sar)\,$MAX_HEIGHT/ih)
 		 * pad=$MAX_WIDTH:$MAX_HEIGHT:(ow-iw)/2:(oh-ih)/2
 		 */
-		// Use min. width of renderer and media size
-		int width = dlna.getMedia().getWidth();
-		if (!renderer.isResolutionCompatibleWithRenderer(width)) {
-			int height = dlna.getMedia().getHeight();
-			int MAX_WIDTH = Math.min(renderer.getMaxVideoWidth(), width);
-			if (MAX_WIDTH <= 720)
-				deviceProfile = DeviceProfile.MOBILE;
-			// Maintain aspect ratio
-			int MAX_HEIGHT = (height * MAX_WIDTH) / width;
-
-			// Convert the dimensions to a factor of 4
-			MAX_WIDTH = convertToModX(MAX_WIDTH, 4);
-			MAX_HEIGHT = convertToModX(MAX_HEIGHT, 4);
-
-			String filter = "scale=" + MAX_WIDTH + ":" + MAX_HEIGHT;
-			scalePadFilterChain.add(filter);
-			// filter = "pad=" + MAX_WIDTH + ":" + MAX_HEIGHT +
-			// ":(ow-iw)/2:(oh-ih)/2";
-			// scalePadFilterChain.add(filter);
-
-			filterChain.addAll(scalePadFilterChain);
-		}
-
+		String filter = getScalingFilter(dlna, renderer);
+		if (filter != null)
+			filterChain.add(filter);
+		
 		boolean override = true;
 		if (renderer instanceof RendererConfiguration.OutputOverride) {
 			RendererConfiguration.OutputOverride or = (RendererConfiguration.OutputOverride)renderer;
@@ -312,6 +293,31 @@ public class FFMpegVideo extends Player {
 		}
 
 		return videoFilterOptions;
+	}
+
+	protected String getScalingFilter(DLNAResource dlna, final RendererConfiguration renderer) {
+		String filter = null;
+		// Use min. width of renderer and media size
+		int width = dlna.getMedia().getWidth();
+		if (!renderer.isResolutionCompatibleWithRenderer(width)) {
+			int height = dlna.getMedia().getHeight();
+			int MAX_WIDTH = Math.min(renderer.getMaxVideoWidth(), width);
+			if (MAX_WIDTH <= 720)
+				deviceProfile = DeviceProfile.MOBILE;
+			// Maintain aspect ratio
+			int MAX_HEIGHT = (height * MAX_WIDTH) / width;
+
+			// Convert the dimensions to a factor of 4
+			MAX_WIDTH = convertToModX(MAX_WIDTH, 4);
+			MAX_HEIGHT = convertToModX(MAX_HEIGHT, 4);
+
+			// filter = "pad=" + MAX_WIDTH + ":" + MAX_HEIGHT +
+			// ":(ow-iw)/2:(oh-ih)/2";
+			// scalePadFilterChain.add(filter);
+			filter = "scale=" + MAX_WIDTH + ":" + MAX_HEIGHT;
+
+		}
+		return filter;
 	}
 
 	/**
