@@ -97,6 +97,11 @@ public class UMSUtilsTest {
 		String str;
 		String sql;
 
+		// Image 
+		str = "upnp:class derivedfrom \"object.item.imageItem\"";
+		sql = UMSUtils.getSqlFromCriteria(str);
+		assertThat(sql).isEqualTo("f.type = 2");
+		
 		// Web search
 		str = "dc:title contains \"cap\"";
 		sql = UMSUtils.getSqlFromCriteria(str);
@@ -114,7 +119,7 @@ public class UMSUtilsTest {
 		
 		str = "upnp:class derivedfrom \"object.container.playlistContainer\" and @refID exists false";
 		sql = UMSUtils.getSqlFromCriteria(str);
-		assertThat(sql).isEqualTo("f.type = 4 and 1=1");
+		assertThat(sql).isEqualTo("f.type = 16 and 1=1");
 		
 		// BubbleUPnP tests
 		str = "(upnp:class derivedfrom \"object.item.audioItem\" and dc:title contains \"cap\")";

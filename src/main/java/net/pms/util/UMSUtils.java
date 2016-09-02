@@ -748,6 +748,10 @@ public class UMSUtils {
 				                sql.append("f.type = 1");
 			                } else if ("\"object.item.videoItem\"".equalsIgnoreCase(value)) {
 			                	sql.append("f.type = 4");
+			                } else if ("\"object.item.imageItem\"".equalsIgnoreCase(value)) {
+			                	sql.append("f.type = 2");
+			                } else if ("\"object.container.playlistContainer\"".equalsIgnoreCase(value)) {
+			                	sql.append("f.type = 16");
 			                } else {
 			                	sql.append("f.type = 4");
 			                }

@@ -1187,7 +1187,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		DLNAResource dlna = null;
 		if (searchStr != null) {
-			String sql = "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and ";
+			String sql = "SELECT f.* FROM FILES f where ";//, AUDIOTRACKS a where f.ID = a.FILEID and ";
 			resources = discoverWithRenderer(renderer, sql, start, count, searchStr, null);
 		} else {
 			dlna = PMS.getGlobalRepo().get(objectId);
@@ -1248,7 +1248,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (database != null) {
 			String sql = UMSUtils.getSqlFromCriteria(searchStr);
-			sql = sqlMain + sql + String.format(" order by f.id offset %d limit %d", start, count);
+			sql = String.format("%s %s order by f.id offset %d limit %d", sqlMain, sql, start, count);
 			// select * from test order by id desc limit 10 offset 11
 			// "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and filename like '%cap%'";
 			List<DLNAMediaInfo> medias = null;
@@ -4480,7 +4480,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} catch (IOException e) {
 			LOGGER.error("Pipe may not be in temporary directory", e);
 		}
-		name.append(encode(renderer.getRendererName()));
+		name.append(encode(renderer.getRendererName().replaceAll("\\W+", "")));
 		name.append("_").append(renderer.getMaxVideoWidth()).append("_");
 		name.append(getName()).append("_pipe");
 		return name.toString();
