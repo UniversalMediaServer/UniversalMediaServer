@@ -65,6 +65,17 @@ public class UMSUtilsTest {
 		mime = Format.getMimetype("as" + ext);
 		assertThat(mime).isEqualTo(mimeType);
 		
+		mimeType = "audio/x-wav";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".wav");
+		
+		mime = Format.getMimetype("as" + ext);
+		assertThat(mime).isEqualTo(mimeType);
+		
+		mimeType = "audio/wav";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".wav");
+		
 		// Denon
 		mimeType = "audio/L16";
 		ext = Format.getExtension(mimeType);

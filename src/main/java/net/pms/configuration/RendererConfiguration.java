@@ -2989,7 +2989,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					video = mimeString;
 				if (image == null && mimet.getType().equals("image"))
 					image = mimeString;
-				if (mimet.isCompatible(requestedMimeType)) {
+				// audio/wav and audio/x-wav are same
+				if (mimet.isCompatible(requestedMimeType) || Format.getExtension(mime).equals(Format.getExtension(mimeString))) {
 					// ... It's supported!
 					supported = true;
 					break;
