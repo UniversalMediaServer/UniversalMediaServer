@@ -219,7 +219,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		} else if (".wav".equals(ext)) {
 			cmdList.add("-f");
 			cmdList.add("wav");
-		} else if (".m4a".equals(ext)) {
+		} else if (".m4a".equals(ext) || ".mp4".equals(ext)) {
 			cmdList.add("-f");
 			cmdList.add("mp4");
 			cmdList.add("-c:a");
