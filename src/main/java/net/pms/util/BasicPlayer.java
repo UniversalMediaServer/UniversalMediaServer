@@ -13,13 +13,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.SwingUtilities;
 
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.network.UPNPControl;
+import net.pms.network.UPNPHelper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -286,10 +287,11 @@ public interface BasicPlayer extends ActionListener {
 				// unknown state, we assume it's stopped
 				state.playback = STOPPED;
 			}
-			if (state.playback == PLAYING) {// && uri != null && uri.equals(state.uri)) {
-				pause();
-				state.playback = PAUSED;
-			} else {
+//			if (state.playback == PLAYING) {// && uri != null && uri.equals(state.uri)) {
+//				pause();
+//				state.playback = PAUSED;
+//			} else 
+			{
 				if (state.playback == STOPPED) {
 					Playlist.Item item = playlist.resolve(uri);
 					if (item != null) {
@@ -304,7 +306,6 @@ public interface BasicPlayer extends ActionListener {
 					setURI(uri, metadata);
 				}
 				play();
-				state.playback = PLAYING;
 			}
 		}
 
@@ -332,14 +333,7 @@ public interface BasicPlayer extends ActionListener {
 				return;
 			}
 			
-//			if (state.playback != STOPPED) {
-//				stop();
-//			}
-//			state.playback = STOPPED;
-//			playlist.step(n);
-			if (state.playback == PLAYING) {
-				stop();
-				state.playback = STOPPED;
+			if (state.playback == PLAYING || state.playback == NO_MEDIA_PRESENT) {
 				DLNAResource r = playlist.getCurrent();
 				pressPlay(r.getURL(""), null);
 			}
@@ -347,7 +341,6 @@ public interface BasicPlayer extends ActionListener {
 
 		@Override
 		public void alert() {
-//			boolean stopping = state.playback == NO_MEDIA_PRESENT && lastPlayback == STOPPED;
 			boolean stopping = state.playback == STOPPED && lastPlayback == NO_MEDIA_PRESENT;
 			lastPlayback = state.playback;	
 			super.alert();
