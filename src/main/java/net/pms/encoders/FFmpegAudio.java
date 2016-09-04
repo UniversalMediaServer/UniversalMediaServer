@@ -123,7 +123,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	@Deprecated
 	public String[] args() {
 		// unused: kept for backwards compatibility
-		return new String[] {"-f", "s16be", "-ar", "48000"};
+		return new String[] {"-f", "s16be", "-acodec", "pcm_s16be", "-ar", "48000"};
 	}
 
 	@Override
@@ -211,6 +211,8 @@ public class FFmpegAudio extends FFMpegVideo {
 		} else { // default: LPCM
 			cmdList.add("-f");
 			cmdList.add("s16be");
+			cmdList.add("-acodec");
+			cmdList.add("pcm_s16be");
 		}
 
 		if (configuration.isAudioResample()) {
