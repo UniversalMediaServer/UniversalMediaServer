@@ -472,8 +472,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, localizationValue);
 		return (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") 
 //				+ getDlnaOrgOpFlags(mediaRenderer) 
-				// Time seek is tricky - as of now, don't support it
-				+ "DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
+				+ "DLNA.ORG_OP=11;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
 	public DLNAResource getPrimaryResource() {
@@ -3146,21 +3145,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
 				}
-			} else 
-				if (
-				params.timeseek > 0 &&
-				getMedia() != null &&
-//						getMedia().isMediaparsed() &&
-						getMedia().getDurationInSeconds() > 0
-			) 
-				{
+			} else if (params.timeseek > 0 && getMedia() != null && params.timeseek < getMedia().getDurationInSeconds())				{
 				// Time seek request => stop running transcode process and start a new one
 				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
 				params.minBufferSize = 1;
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
-						externalProcess.stopProcess();
+						if (externalProcess != null)
+							externalProcess.stopProcess();
 					}
 				};
 

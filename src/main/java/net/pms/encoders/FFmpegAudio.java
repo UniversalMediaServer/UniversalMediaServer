@@ -203,6 +203,9 @@ public class FFmpegAudio extends FFMpegVideo {
 		// Streaming support
 		cmdList.add("-movflags");
 		cmdList.add("+faststart");
+		// Support for ffmpeg Experimental features
+		cmdList.add("-strict");
+		cmdList.add("experimental");
 		
 		String ext = Format.getExtension(media.getMimeType());
 //		if (params.mediaRenderer.isTranscodeToMP3()) {

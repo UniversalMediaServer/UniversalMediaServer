@@ -2701,7 +2701,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public void setBuffer(long mb) {
 		buffer = mb < 0 ? 0 : mb;
-		getPlayer().setBuffer(mb);
+		if (getPlayer() != null)
+			getPlayer().setBuffer(mb);
 	}
 
 	public long getBuffer() {

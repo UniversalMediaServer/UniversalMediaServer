@@ -387,9 +387,6 @@ public class FFMpegVideo extends Player {
 				} else if (renderer.isTranscodeToAAC()) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("aac");
-
-					transcodeOptions.add("-strict");
-					transcodeOptions.add("experimental");
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
@@ -452,8 +449,12 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Move file info to the beginning for streaming
-//			transcodeOptions.add("-movflags");
-//			transcodeOptions.add("frag_keyframe+empty_moov");
+			transcodeOptions.add("-movflags");
+			transcodeOptions.add("frag_keyframe+empty_moov");
+			
+			// Support for ffmpeg Experimental features
+			transcodeOptions.add("-strict");
+			transcodeOptions.add("experimental");
 //			if (!customFFmpegOptions.contains("-f")) {
 //				// Output file format
 //				transcodeOptions.add("-f");
@@ -1097,7 +1098,8 @@ public class FFMpegVideo extends Player {
 			// Output file
 //			cmdList.add(pipe.getInputPipe());
 		}
-		cmdList.add(dlna.getFilename(params.mediaRenderer));
+//		cmdList.add(dlna.getFilename(params.mediaRenderer));
+		cmdList.add("pipe:");
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
 
