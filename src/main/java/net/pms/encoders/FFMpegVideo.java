@@ -1431,7 +1431,7 @@ public class FFMpegVideo extends Player {
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
-			"m3u8".equals(resource.getFormat().getMatchedExtension())
+			(resource.getFormat() != null && "m3u8".equals(resource.getFormat().getMatchedExtension()))
 		) {
 			return true;
 		}

@@ -3401,6 +3401,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public int getType() {
 		if (getFormat() != null) {
 			return getFormat().getType();
+		} else if (getMedia() != null && getMedia().getAudioTrackCount() > 0) {
+			return Format.AUDIO;
 		} else {
 			return Format.UNKNOWN;
 		}

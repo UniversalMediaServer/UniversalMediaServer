@@ -270,7 +270,8 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.MP3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.WAV) ||
-			PlayerUtil.isWebAudio(resource)
+			PlayerUtil.isWebAudio(resource) ||
+			resource.getType() == Format.AUDIO
 		) {
 			return true;
 		}

@@ -105,9 +105,9 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 
 		Format format =  r.getFormat();
-		boolean isImage = format.isImage();
-		boolean isVideo = format.isVideo();
-		boolean isAudio = format.isAudio();
+		boolean isImage = r.getType() == Format.IMAGE;
+		boolean isVideo = r.getType() == Format.VIDEO;
+		boolean isAudio = r.getType() == Format.AUDIO;
 		String query = t.getRequestURI().getQuery();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
 		boolean forcehtml5 = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "html5"));

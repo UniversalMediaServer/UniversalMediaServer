@@ -3659,6 +3659,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean getWebAutoCont(Format f) {
 		String key = KEY_WEB_CONT_VIDEO;
 		boolean def = false;
+		if (f != null) {
 		if (f.isAudio()) {
 			key = KEY_WEB_CONT_AUDIO;
 			def = true;
@@ -3667,16 +3668,19 @@ public class PmsConfiguration extends RendererConfiguration {
 			key = KEY_WEB_CONT_IMAGE;
 			def = false;
 		}
+		}
 		return getBoolean(key, def);
 	}
 
 	public boolean getWebAutoLoop(Format f) {
 		String key = KEY_WEB_LOOP_VIDEO;
+		if (f != null) {
 		if (f.isAudio()) {
 			key = KEY_WEB_LOOP_AUDIO;
 		}
 		if (f.isImage()) {
 			key = KEY_WEB_LOOP_IMAGE;
+		}
 		}
 		return getBoolean(key, false);
 	}
