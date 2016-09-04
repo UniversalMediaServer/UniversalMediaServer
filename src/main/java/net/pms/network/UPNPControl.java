@@ -218,7 +218,9 @@ public class UPNPControl {
 					String id = data.get("InstanceID");
 					String name = getMediaInfo(d, id);
 					data.put("AVTransportURI", name);
-					while (active && !"STOPPED".equals(data.get("TransportState"))) {
+					while (active && 
+							!("STOPPED".equals(data.get("TransportState"))
+									|| "NO_MEDIA_PRESENT".equals(data.get("TransportState")))) {
 						sleep(1000);
 //						if (DEBUG) LOGGER.debug("InstanceID: " + id);
 						for (ActionArgumentValue o : getPositionInfo(d, id)) {
@@ -865,7 +867,7 @@ public class UPNPControl {
 
 	public static String getTransportInfo(Device dev, String instanceID) {
 		return send(dev, instanceID, "AVTransport", "GetTransportInfo")
-			.getOutput("TransportInfo").toString();
+			.getOutput("CurrentTransportState").toString();
 	}
 
 	public static String getTransportSettings(Device dev, String instanceID) {
