@@ -22,6 +22,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -41,6 +42,7 @@ import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -547,11 +549,16 @@ public class DLNAMediaInfo implements Cloneable {
 			args[0] = configuration.getFfmpegAlternativePath();
 		}
 
-		args[1] = "-ss";
-		if (resume) {
-			args[2] = "" + (int) getDurationInSeconds();
+		if (getDurationInSeconds() == 0.0) {
+			args[1] = "";
+			args[2] = "";
 		} else {
-			args[2] = "" + configuration.getThumbnailSeekPos();
+			args[1] = "-ss";
+			if (resume) {
+				args[2] = "" + (int) getDurationInSeconds();
+			} else {
+				args[2] = "" + configuration.getThumbnailSeekPos();
+			}
 		}
 
 		args[3] = "-i";
@@ -584,6 +591,10 @@ public class DLNAMediaInfo implements Cloneable {
 			args[7] = "-vf";
 			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")'";
 		}
+		
+		// Keep the original image so that it can be resized when required.
+		args[7] = "";
+		args[8] = "";
 
 		args[9] = "-vframes";
 		args[10] = "1";
@@ -852,7 +863,7 @@ public class DLNAMediaInfo implements Cloneable {
 						}
 					} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
 						LOGGER.debug("Error parsing audio file: {} - {}", e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
-						ffmpeg_parsing = false;
+						ffmpeg_parsing = true;
 					}
 
 					if (audio.getSongname() != null && audio.getSongname().length() > 0) {
@@ -942,9 +953,14 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			if (ffmpeg_parsing) {
+			if (ffmpeg_parsing || thumb == null) {
 				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
 					pw = getFFmpegThumbnail(inputFile, resume, renderer);
+					// Seek param might cause ffmpeg to fail; try without it
+					if (!pw.isSuccess()) {
+						durationSec = 0.0;
+						pw = getFFmpegThumbnail(inputFile, resume, renderer);
+					}
 				}
 
 				boolean dvrms = false;
@@ -1012,7 +1028,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (type == Format.VIDEO && pw != null && thumb == null) {
+				if (pw != null && thumb == null) {
 					InputStream is;
 					int sz = 0;
 					try {
@@ -1025,6 +1041,11 @@ public class DLNAMediaInfo implements Cloneable {
 									is.read(thumb);
 								}
 							}
+							// Debugging code - helpful for debugging thumbnail output
+//							File f = new File("C:\\work\\UniversalMediaServer\\a.jpg");
+//							FileOutputStream os = new FileOutputStream(f);
+//							os.write(thumb);
+//							os.close();
 						} finally {
 							if (is != null) {
 								is.close();
@@ -1037,7 +1058,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Make sure the image fits in the renderer's bounds
 					boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-					thumb = UMSUtils.scaleImage(thumb, renderer.getThumbnailWidth(), renderer.getThumbnailHeight(), isFullyPlayedThumbnail, renderer);
+//					thumb = UMSUtils.scaleImage(thumb, renderer.getThumbnailWidth(), renderer.getThumbnailHeight(), isFullyPlayedThumbnail, renderer);
 
 					if (isFullyPlayedThumbnail) {
 						thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.VIDEO);

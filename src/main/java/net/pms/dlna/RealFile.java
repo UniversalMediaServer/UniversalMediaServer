@@ -285,7 +285,7 @@ public class RealFile extends MapFile implements Serializable {
 			}
 		}
 
-		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
+		boolean hasAlreadyEmbeddedCoverArt = getMedia() != null && getMedia().getThumb() != null;
 
 		if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
 			return new FileInputStream(cachedThumbnail);

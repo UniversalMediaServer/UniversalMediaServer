@@ -237,13 +237,14 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 //			stopProcess();
 		} finally {
-			try {
-				if (bo != null) {
-					bo.close();
-				}
-			} catch (IOException ioe) {
-				LOGGER.debug("Error closing buffered output file", ioe.getMessage());
-			}
+			// bo will be used even after the process is destryoed - don't close it here
+//			try {
+//				if (bo != null) {
+//					bo.close();
+//				}
+//			} catch (IOException ioe) {
+//				LOGGER.debug("Error closing buffered output file", ioe.getMessage());
+//			}
 
 			if (!destroyed && !params.noexitcheck) {
 				try {
@@ -340,7 +341,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			}
 			if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
-				stdoutConsumer.getBuffer().reset();
+//				stdoutConsumer.getBuffer().reset();
 			}
 		}
 	}
