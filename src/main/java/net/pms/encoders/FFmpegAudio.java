@@ -213,19 +213,17 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("s16be");
 			cmdList.add("-acodec");
 			cmdList.add("pcm_s16be");
+			cmdList.add("sample_fmt");
+			cmdList.add("s16");
 		}
 
 		if (configuration.isAudioResample()) {
 			if (params.mediaRenderer.isTranscodeAudioTo441()) {
 				cmdList.add("-ar");
 				cmdList.add("44100");
-				cmdList.add("-ab");
-				cmdList.add("1536000");
 			} else {
 				cmdList.add("-ar");
 				cmdList.add("48000");
-				cmdList.add("-ab");
-				cmdList.add("1536000");
 			}
 		}
 
