@@ -213,7 +213,7 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("s16be");
 			cmdList.add("-acodec");
 			cmdList.add("pcm_s16be");
-			cmdList.add("sample_fmt");
+			cmdList.add("-sample_fmt");
 			cmdList.add("s16");
 		}
 
