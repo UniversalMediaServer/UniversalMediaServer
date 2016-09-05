@@ -4494,7 +4494,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			DLNAMediaInfo info = new DLNAMediaInfo();
 			InputFile inputFile = new InputFile();
 			inputFile.setFile(file);
-			LibMediaInfoParser.parse(info, inputFile, getFormat().getType());
+			LibMediaInfoParser.parse(info, inputFile, getType());
 			LOGGER.trace("Original duration: {}, transcoded duration: {}", getMedia().getDuration(), info.getDuration());
 
 			// Only video files have duration info.

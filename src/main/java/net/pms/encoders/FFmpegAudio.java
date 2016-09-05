@@ -201,8 +201,9 @@ public class FFmpegAudio extends FFMpegVideo {
 		}
 
 		// Streaming support
-		cmdList.add("-movflags");
-		cmdList.add("+faststart");
+//		cmdList.add("-movflags");
+//		cmdList.add("frag_keyframe+empty_moov");
+		
 		// Support for ffmpeg Experimental features
 		cmdList.add("-strict");
 		cmdList.add("experimental");
@@ -212,6 +213,10 @@ public class FFmpegAudio extends FFMpegVideo {
 		if (".mp3".equals(ext)) {
 			cmdList.add("-f");
 			cmdList.add("mp3");
+			
+			// 2+ channels not supported for MP3
+			cmdList.add("-ac");
+			cmdList.add("2");
 			if (params.mediaRenderer.isXbox360()) {
 				cmdList.add("-ab");
 				cmdList.add("128000");
@@ -227,6 +232,10 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("mp4");
 			cmdList.add("-c:a");
 			cmdList.add("aac");
+			
+			// Lower sample rates don't play on WMP
+			cmdList.add("-ar");
+			cmdList.add("44100");
 		} else { // default: LPCM / L16
 			cmdList.add("-f");
 			cmdList.add("s16be"); // same as -f wav, but without a WAV header
@@ -243,6 +252,7 @@ public class FFmpegAudio extends FFMpegVideo {
 //		}
 
 		cmdList.add(dlna.getFilename(params.mediaRenderer));
+//		cmdList.add("pipe:");
 
 		String[] cmdArray = new String[ cmdList.size() ];
 		cmdList.toArray(cmdArray);
