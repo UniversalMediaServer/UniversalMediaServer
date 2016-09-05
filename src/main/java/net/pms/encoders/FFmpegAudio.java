@@ -221,13 +221,17 @@ public class FFmpegAudio extends FFMpegVideo {
 			if (params.mediaRenderer.isTranscodeAudioTo441()) {
 				cmdList.add("-ar");
 				cmdList.add("44100");
-				cmdList.Add("-ab");
-				cmdList.Add("1411200");
+				cmdList.add("-ac");
+				cmdList.add("2");
+				cmdList.add("-ab");
+				cmdList.add("1411200");
 			} else {
 				cmdList.add("-ar");
 				cmdList.add("48000");
-				cmdList.Add("-ab");
-				cmdList.Add("1536000");
+				cmdList.add("-ac");
+				cmdList.add("2");
+				cmdList.add("-ab");
+				cmdList.add("1536000");
 			}
 		}
 
