@@ -211,8 +211,6 @@ public class FFmpegAudio extends FFMpegVideo {
 		} else { // default: LPCM
 			cmdList.add("-f");
 			cmdList.add("s16be");
-			cmdList.add("-acodec");
-			cmdList.add("pcm_s16be");
 			cmdList.add("-sample_fmt");
 			cmdList.add("s16");
 		}
