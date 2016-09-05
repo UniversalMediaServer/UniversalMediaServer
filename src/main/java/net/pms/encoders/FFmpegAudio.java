@@ -224,7 +224,7 @@ public class FFmpegAudio extends FFMpegVideo {
 				cmdList.Add("-ac");
 				cmdList.Add("2");
 				cmdList.Add("-ab");
-				cmdList.Add("1411200")
+				cmdList.Add("1411200");
 			} else {
 				cmdList.add("-ar");
 				cmdList.add("48000");
