@@ -123,7 +123,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	@Deprecated
 	public String[] args() {
 		// unused: kept for backwards compatibility
-		return new String[] {"-f", "s16be", "-acodec", "pcm_s16be", "-ar", "48000"};
+		return new String[] {"-f", "s16be", "-ar", "48000"};
 	}
 
 	@Override
@@ -221,15 +221,11 @@ public class FFmpegAudio extends FFMpegVideo {
 			if (params.mediaRenderer.isTranscodeAudioTo441()) {
 				cmdList.add("-ar");
 				cmdList.add("44100");
-				cmdList.Add("-ac");
-				cmdList.Add("2");
 				cmdList.Add("-ab");
 				cmdList.Add("1411200");
 			} else {
 				cmdList.add("-ar");
 				cmdList.add("48000");
-				cmdList.Add("-ac");
-				cmdList.Add("2");
 				cmdList.Add("-ab");
 				cmdList.Add("1536000");
 			}
