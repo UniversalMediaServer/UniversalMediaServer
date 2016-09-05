@@ -190,6 +190,15 @@ public class StringUtil {
 		return sb.toString();
 	}
 
+	public static String convertTimeToString(long millis) {
+		long second = (millis / 1000) % 60;
+		long minute = (millis / (1000 * 60)) % 60;
+		long hour = (millis / (1000 * 60 * 60)) % 24;
+
+		String time = String.format("%02d:%02d:%02d", hour, minute, second, millis);
+		return time;
+	}
+	
 	/**
 	 * Removes leading zeros up to the nth char of an hh:mm:ss time string,
 	 * normalizing it first if necessary.

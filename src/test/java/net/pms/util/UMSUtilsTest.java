@@ -6,9 +6,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.tika.Tika;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypes;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -36,6 +33,10 @@ public class UMSUtilsTest {
 		assertThat(UMSUtils.playedDurationStr("01:23:45:67.89", "01:23:45:67")).isEqualTo("23:45:67 / 23:45:67");
 		assertThat(UMSUtils.playedDurationStr("01:23", "01:23:45")).isEqualTo("1:23 / 1:23:45");
 		assertThat(UMSUtils.playedDurationStr(":12", "59")).isEqualTo("0:12 / 0:59");
+		
+		long millis = 7489780;
+		String out = StringUtil.convertTimeToString(millis);
+		assertThat(out).isEqualTo("02:04:49");
 	}
 	
 	@Test
