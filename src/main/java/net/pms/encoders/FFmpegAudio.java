@@ -221,15 +221,11 @@ public class FFmpegAudio extends FFMpegVideo {
 				cmdList.add("44100");
 				cmdList.add("-ac");
 				cmdList.add("2");
-				cmdList.add("-ab");
-				cmdList.add("1411200");
 			} else {
 				cmdList.add("-ar");
 				cmdList.add("48000");
 				cmdList.add("-ac");
 				cmdList.add("2");
-				cmdList.add("-ab");
-				cmdList.add("1536000");
 			}
 		}
 
