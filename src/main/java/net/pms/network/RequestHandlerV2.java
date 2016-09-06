@@ -433,7 +433,10 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
-		if (cause != null) {
+		if (cause == null) {
+			cause = e;
+		}
+		{
 			if (cause.getClass().equals(IOException.class)) {
 				LOGGER.debug("Connection error: " + cause);
 //				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();

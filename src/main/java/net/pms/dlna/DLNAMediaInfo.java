@@ -582,7 +582,6 @@ public class DLNAMediaInfo implements Cloneable {
 			thumbnailHeight    = renderer.getThumbnailHeight();
 			thumbnailRatio     = renderer.getThumbnailRatio();
 			isThumbnailPadding = renderer.isThumbnailPadding();
-		}
 
 		if (isThumbnailPadding) {
 			args[7] = "-vf";
@@ -590,6 +589,7 @@ public class DLNAMediaInfo implements Cloneable {
 		} else {
 			args[7] = "-vf";
 			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")'";
+		}
 		}
 		
 		// Keep the original image so that it can be resized when required.
@@ -603,7 +603,7 @@ public class DLNAMediaInfo implements Cloneable {
 		args[13] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled
-		if (!configuration.isThumbnailGenerationEnabled() || !renderer.isThumbnails() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
+		if (!configuration.isThumbnailGenerationEnabled() || (renderer != null && !renderer.isThumbnails()) || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
 			args[2] = "0";
 			for (int i = 5; i <= 13; i++) {
 				args[i] = "-an";
