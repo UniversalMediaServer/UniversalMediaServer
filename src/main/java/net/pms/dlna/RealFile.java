@@ -97,7 +97,7 @@ public class RealFile extends MapFile implements Serializable {
 
 			// XXX isMediaInfoThumbnailGeneration is only true for the "default renderer"
 			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
-				checkThumbnail();
+//				checkThumbnail();
 			}
 		}
 
@@ -217,6 +217,8 @@ public class RealFile extends MapFile implements Serializable {
 						database.insertData(fileName, file.lastModified(), getType(), getMedia());
 					}
 				}
+				
+				checkThumbnail();
 			}
 		}
 	}

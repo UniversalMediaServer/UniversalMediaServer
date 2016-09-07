@@ -620,6 +620,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
+		PMS.getGlobalRepo().add(child);
+
 		child.parent = this;
 		child.masterParent = masterParent;
 
@@ -1129,7 +1131,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		/*setLastChildId(getLastChildId() + 1);
 		child.setIndexId(getLastChildId());*/
-		PMS.getGlobalRepo().add(child);
+//		PMS.getGlobalRepo().add(child);
 		if (defaultRenderer != null) {
 			defaultRenderer.cachePut(child);
 		}
@@ -1256,6 +1258,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// medias = database.searchData("fileName", searchStr);
 			for (int i = 0; i < medias.size(); i++) {
 				DLNAMediaInfo mediaInfo = medias.get(i);
+				mediaInfo.setMediaparsed(true);
 				DLNAResource resource = new RealFile(mediaInfo);
 				PMS.getGlobalRepo().add(resource);
 				resource.setPreferredMimeType(renderer);
@@ -3304,6 +3307,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (!isResume() && media.getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), media);
 			}
+			getMedia().setThumbready(true);
 		}
 	}
 

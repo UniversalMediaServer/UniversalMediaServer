@@ -510,7 +510,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public DLNAMediaInfo() {
-		thumbready = true; // this class manages thumbnails by default with the parser_v1 method
+//		thumbready = true; // this class manages thumbnails by default with the parser_v1 method
 		gen_thumb = false;
 	}
 
@@ -1041,11 +1041,13 @@ public class DLNAMediaInfo implements Cloneable {
 									is.read(thumb);
 								}
 							}
-							// Debugging code - helpful for debugging thumbnail output
-//							File f = new File("C:\\work\\UniversalMediaServer\\a.jpg");
-//							FileOutputStream os = new FileOutputStream(f);
-//							os.write(thumb);
-//							os.close();
+//							if (thumb != null) {
+//								// Debugging code - helpful for debugging thumbnail output
+//								File f = new File("C:\\work\\UniversalMediaServer\\a.jpg");
+//								FileOutputStream os = new FileOutputStream(f);
+//								os.write(thumb);
+//								os.close();
+//							}
 						} finally {
 							if (is != null) {
 								is.close();

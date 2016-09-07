@@ -113,7 +113,9 @@ public class GlobalIdRepo {
 		
 		if (id == null && resourcesMap.isValueInCache(d)) {
 			id = getId(filename);
+			DLNAResource existing = get(id);
 			d.setId(id);
+			d.setMedia(existing.getMedia());
 			return;
 		}
 
