@@ -62,7 +62,7 @@
 				}
 			}
 
-			$(window).bind('load resize', function(event) {
+			function resize(event) {
 				if (!img) {
 					img = $('#Image');
 					imgcontainer = $('#ImageContainer');
@@ -71,11 +71,14 @@
 				var top = $('#Menu').height();
 				imgcontainer.css({ top: '' + top + 'px' });
 				imgcontainer.height($('body').height() - top);
-				zoom();
-				if (event.type === 'load') {
+//				if (event.type === 'load') {
 					imgcontainer.show();
-				}
-			});
+//				}
+				zoom();
+			}
+			
+			$(document).ready(resize);
+			$(window).on('resize', resize);
 		</script>
 
 		<div id="Container">

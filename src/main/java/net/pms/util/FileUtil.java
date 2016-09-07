@@ -773,7 +773,7 @@ public class FileUtil {
 	}
 
 	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media) {
-		return isSubtitlesExists(file, media, true);
+		return isSubtitlesExists(file, media, false);
 	}
 
 	/**
