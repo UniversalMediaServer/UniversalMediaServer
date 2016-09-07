@@ -485,12 +485,12 @@ public class RequestV2 extends HTTPResource {
 							totalsize = -1;
 						}
 						
-						if (inputStream != null)
-							totalsize = inputStream.available();
-						else if (getFile() != null)
-							totalsize = getFile().length();
-						else
-							totalsize = dlna.getMedia().getSize();
+//						if (inputStream != null)
+//							totalsize = inputStream.available();
+//						else if (getFile() != null)
+//							totalsize = getFile().length();
+//						else
+//							totalsize = dlna.getMedia().getSize();
 
 
 						long remaining = totalsize - lowRange;

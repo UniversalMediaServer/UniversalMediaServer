@@ -19,15 +19,18 @@
 package net.pms.io;
 
 import com.sun.jna.Platform;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -322,7 +325,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	@Override
 	public synchronized void stopProcess() {
 		if (!destroyed) {
-			destroyed = true;
 			if (process != null) {
 				Integer pid = ProcessUtil.getProcessID(process);
 				if (pid != null) {
@@ -341,8 +343,13 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			}
 			if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
-//				stdoutConsumer.getBuffer().reset();
+				try {
+					stdoutConsumer.join();
+					stdoutConsumer.getBuffer().close();
+				} catch (InterruptedException | IOException e) {
+				}
 			}
+			destroyed = true;
 		}
 	}
 

@@ -199,10 +199,6 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("-t");
 			cmdList.add("" + params.timeend);
 		}
-
-		// Streaming support
-//		cmdList.add("-movflags");
-//		cmdList.add("frag_keyframe+empty_moov");
 		
 		// Support for ffmpeg Experimental features
 		cmdList.add("-strict");
@@ -251,8 +247,12 @@ public class FFmpegAudio extends FFMpegVideo {
 //			}
 //		}
 
-		cmdList.add(dlna.getFilename(params.mediaRenderer));
-//		cmdList.add("pipe:");
+//		cmdList.add(dlna.getFilename(params.mediaRenderer));
+
+		// Streaming support
+		cmdList.add("-movflags");
+		cmdList.add("frag_keyframe+empty_moov");
+		cmdList.add("pipe:");
 
 		String[] cmdArray = new String[ cmdList.size() ];
 		cmdList.toArray(cmdArray);

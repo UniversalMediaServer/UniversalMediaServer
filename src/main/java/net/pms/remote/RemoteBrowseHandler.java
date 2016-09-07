@@ -88,7 +88,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 //			UMSUtils.postSearch(res, search);
 //		}
 
-		boolean hasFile = false;
+		boolean hasFile = true;
 
 		ArrayList<String> folders = new ArrayList<>();
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();

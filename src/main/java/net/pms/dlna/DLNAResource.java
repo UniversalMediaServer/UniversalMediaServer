@@ -1131,7 +1131,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		/*setLastChildId(getLastChildId() + 1);
 		child.setIndexId(getLastChildId());*/
-//		PMS.getGlobalRepo().add(child);
+		PMS.getGlobalRepo().add(child);
 		if (defaultRenderer != null) {
 			defaultRenderer.cachePut(child);
 		}
@@ -2714,7 +2714,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 //			}
 //		}
 
-		if (!mimeType().equals(transcodedExtension)) {
+		// Filename might be misleading. Use the extension as recognized by UMS
+//		if (!mimeType().equals(transcodedExtension)) 
+		{
 			result.append("_transcoded_to").append(Format.getExtension(transcodedExtension));
 		}
 		

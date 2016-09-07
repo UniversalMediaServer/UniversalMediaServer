@@ -55,6 +55,17 @@ public class UMSUtilsTest {
 		mime = Format.getMimetype("as" + ext);
 		assertThat(mime).isEqualTo("audio/mp4");
 		
+		mimeType = "audio/x-flac";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".flac");
+		
+		mime = Format.getMimetype("as" + ext);
+		assertThat(mime).isEqualTo(mimeType);
+		
+		mimeType = "audio/flac";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".flac");
+		
 		mimeType = "audio/mpeg";
 		ext = Format.getExtension(mimeType);
 		assertThat(ext).isEqualTo(".mp3");
