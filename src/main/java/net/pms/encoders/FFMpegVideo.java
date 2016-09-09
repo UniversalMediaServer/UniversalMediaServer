@@ -1083,11 +1083,11 @@ public class FFMpegVideo extends Player {
 //			cmdList.add("pipe:");
 
 			// basename of the named pipe:
-			String fifoName = String.format(
-				"ffmpegvideo_%d_%d",
-				Thread.currentThread().getId(),
-				System.currentTimeMillis()
-			);
+//			String fifoName = String.format(
+//				"ffmpegvideo_%d_%d",
+//				Thread.currentThread().getId(),
+//				System.currentTimeMillis()
+//			);
 
 			// This process wraps the command that creates the named pipe
 //			pipe = new PipeProcess(fifoName);
@@ -1428,10 +1428,10 @@ public class FFMpegVideo extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (
-			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+		if (resource.getType() == Format.VIDEO &&
+			(PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
-			(resource.getFormat() != null && "m3u8".equals(resource.getFormat().getMatchedExtension()))
+			(resource.getFormat() != null && "m3u8".equals(resource.getFormat().getMatchedExtension())))
 		) {
 			return true;
 		}

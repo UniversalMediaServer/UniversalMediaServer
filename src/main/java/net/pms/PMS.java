@@ -900,12 +900,12 @@ public class PMS {
 		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
 		//     b) *after* mediaLibrary is initialized, if enabled (above)
 		RootFolder root = getRootFolder(RendererConfiguration.getDefaultConf());
+		getGlobalRepo().add(root);
 		if (scan) {
 			// We don't need scan on startup which delays the start process
 			root.reset();
 			root.scan();
 		}
-		getGlobalRepo().add(root);
 	}
 
 	private MediaLibrary mediaLibrary;

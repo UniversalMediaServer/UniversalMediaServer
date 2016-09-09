@@ -455,7 +455,8 @@ public class UPNPHelper extends UPNPControl {
 							multicastSocket.receive(receivePacket);
 
 							InetAddress address = receivePacket.getAddress();
-							if (!RequestHandlerV2.filterIp(address)) {
+							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost());
+							if (!isSelf && !RequestHandlerV2.filterIp(address)) {
 								String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
 								int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;

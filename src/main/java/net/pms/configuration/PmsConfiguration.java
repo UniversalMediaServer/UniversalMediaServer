@@ -2262,10 +2262,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		String defaultEngines = StringUtils.join(
 			new String[] {
 				"ffmpegvideo",
+				"ffmpegaudio",
 				FFmpegImage.ID,
 				"mencoder",
 				"tsmuxer",
-				"ffmpegaudio",
 				"tsmuxeraudio",
 				"ffmpegwebvideo",
 				"vlcwebvideo", // (VLCWebVideo)

@@ -858,7 +858,11 @@ public class UPNPControl {
 
 	public static String getMediaInfo(Device dev, String instanceID) {
 		ActionInvocation action = send(dev, instanceID, "AVTransport", "GetMediaInfo");
-		return action == null ? null: action.getOutput("CurrentURI").toString();
+		ActionArgumentValue uri = null;
+		if (action != null) {
+			uri = action.getOutput("CurrentURI");
+		}
+		return uri == null ? null: uri.toString();
 	}
 
 	public static ActionArgumentValue[] getPositionInfo(Device dev, String instanceID) {

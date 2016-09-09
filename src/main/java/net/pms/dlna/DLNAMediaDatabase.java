@@ -772,7 +772,8 @@ public class DLNAMediaDatabase implements Runnable {
 					String filename = rs.getString("FILENAME");
 					long modified = rs.getTimestamp("MODIFIED").getTime();
 					File file = new File(filename);
-					if (!file.exists() || file.lastModified() != modified) {
+//					if (!file.exists() || file.lastModified() != modified) 
+					{
 						rs.deleteRow();
 					}
 					i++;

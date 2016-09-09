@@ -953,7 +953,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			if (ffmpeg_parsing || thumb == null) {
+			if (ffmpeg_parsing) {
 				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
 					pw = getFFmpegThumbnail(inputFile, resume, renderer);
 					// Seek param might cause ffmpeg to fail; try without it
