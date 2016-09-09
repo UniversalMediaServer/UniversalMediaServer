@@ -48,12 +48,12 @@ public class UMSUtilsTest {
 		String mime = Format.getMimetype("as" + ext);
 		assertThat(mime).isEqualTo(mimeType);
 		
-		mimeType = "audio/vnd.dlna.adts";
-		ext = Format.getExtension(mimeType);
-		assertThat(ext).isEqualTo(".m4a");
+//		mimeType = "audio/vnd.dlna.adts";
+//		ext = Format.getExtension(mimeType);
+//		assertThat(ext).isEqualTo(".m4a");
 		
-		mime = Format.getMimetype("as" + ext);
-		assertThat(mime).isEqualTo("audio/mp4");
+//		mime = Format.getMimetype("as" + ext);
+//		assertThat(mime).isEqualTo("audio/mp4");
 		
 		mimeType = "audio/x-flac";
 		ext = Format.getExtension(mimeType);
@@ -69,6 +69,14 @@ public class UMSUtilsTest {
 		mimeType = "audio/mpeg";
 		ext = Format.getExtension(mimeType);
 		assertThat(ext).isEqualTo(".mp3");
+		
+		mimeType = "audio/x-mp4";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".m4a");
+		
+		mimeType = "audio/x-m4a";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".m4a");
 		
 		mimeType = "audio/mp4";
 		ext = Format.getExtension(mimeType);

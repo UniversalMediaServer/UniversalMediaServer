@@ -65,6 +65,9 @@ public class RealFile extends MapFile implements Serializable {
 	@Override
 	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse
 	public boolean isValid() {
+		if (getMedia() != null && getMedia().isMediaparsed())
+			return true;
+		
 		File file = this.getFile();
 		if (!file.isDirectory()) {
 			resolveFormat();

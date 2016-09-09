@@ -467,8 +467,8 @@ public class RequestV2 extends HTTPResource {
 							if ("audio/L16".equals(rendererMimeType)) {
 								output.headers().set(
 										HttpHeaderNames.CONTENT_TYPE,
-										String.format("%s;channels=%d;rate=%d", rendererMimeType, 
-												dlna.getMediaAudio().getAudioProperties().getNumberOfChannels(), 
+										String.format("%s;channels=%d;rate=%d", rendererMimeType, 2,
+//												dlna.getMediaAudio().getAudioProperties().getNumberOfChannels(), 
 												dlna.getMediaAudio().getAudioProperties().getSampleFrequency()));
 							}
 						}
@@ -485,12 +485,12 @@ public class RequestV2 extends HTTPResource {
 							totalsize = -1;
 						}
 						
-//						if (inputStream != null)
-//							totalsize = inputStream.available();
-//						else if (getFile() != null)
-//							totalsize = getFile().length();
-//						else
-//							totalsize = dlna.getMedia().getSize();
+						if (inputStream != null)
+							totalsize = inputStream.available();
+						else if (getFile() != null)
+							totalsize = getFile().length();
+						else
+							totalsize = dlna.getMedia().getSize();
 
 
 						long remaining = totalsize - lowRange;

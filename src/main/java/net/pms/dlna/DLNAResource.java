@@ -543,7 +543,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 	
 	public boolean isCompatible(String mimetype) {
-		return mimeType().equalsIgnoreCase(mimetype);
+		return mimeType().equalsIgnoreCase(mimetype) || Format.getExtension(mimeType()).equals(Format.getExtension(mimetype));
 	}
 
 	/**
@@ -3244,7 +3244,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String mimeType() {
-		return Format.getMimetype(getFileURL());
+		String result = null;
+		if (getMedia() != null)
+			result = getMedia().getMimeType();
+		else
+			result = Format.getMimetype(getFileURL());
+		return result;
 //		return mimeType(player);
 	}
 
