@@ -352,6 +352,8 @@ public abstract class Format implements Cloneable, Serializable {
 			ext = ".mp3";
 		} else if (mimetype.equalsIgnoreCase("audio/mp4") || mimetype.equalsIgnoreCase("audio/x-mp4") || mimetype.equalsIgnoreCase("audio/x-m4a")) {
 			ext = ".m4a";
+		} else if (mimetype.equalsIgnoreCase("audio/x-ogg") || mimetype.equalsIgnoreCase("audio/ogg")) {
+			ext = ".ogg";
 		} else if (mimetype.equalsIgnoreCase("audio/x-flac") || mimetype.equalsIgnoreCase("audio/flac")) {
 			ext = ".flac";
 		} else if (mimetype.equalsIgnoreCase("audio/wav")

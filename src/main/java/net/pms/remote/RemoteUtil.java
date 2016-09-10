@@ -204,7 +204,8 @@ public class RemoteUtil {
 				mime.equals(MIME_MP3) ||
 				mime.equals(MIME_PNG) ||
 				mime.equals(MIME_JPG) ||
-				Format.getExtension(mime).equals(Format.getExtension("audio/mp4"))
+				Format.getExtension(mime).equals(Format.getExtension("audio/mp4")) ||
+				Format.getExtension(mime).equals(Format.getExtension(MIME_AUDIO_OGG))
 			)
 		) {
 			return true;
