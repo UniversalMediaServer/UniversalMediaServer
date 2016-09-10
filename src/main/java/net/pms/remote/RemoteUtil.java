@@ -24,6 +24,7 @@ import net.pms.configuration.IpFilter;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
+import net.pms.formats.Format;
 import net.pms.network.RequestHandlerV2;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.FileWatcher;
@@ -202,7 +203,8 @@ public class RemoteUtil {
 				mime.equals(MIME_AUDIO_OGG) ||
 				mime.equals(MIME_MP3) ||
 				mime.equals(MIME_PNG) ||
-				mime.equals(MIME_JPG)
+				mime.equals(MIME_JPG) ||
+				Format.getExtension(mime).equals(Format.getExtension("audio/mp4"))
 			)
 		) {
 			return true;

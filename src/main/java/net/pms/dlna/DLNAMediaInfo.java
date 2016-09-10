@@ -540,37 +540,33 @@ public class DLNAMediaInfo implements Cloneable {
 		 * not use MediaInfo, so do not make any changes that remove or
 		 * minimize the amount of text given by FFmpeg here
 		 */
-		String args[] = new String[14];
-		args[0] = getFfmpegPath();
+		List<String> args = new ArrayList<>();
+		args.add(getFfmpegPath());
 		File file = media.getFile();
 		boolean dvrms = file != null && file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
 		if (dvrms && isNotBlank(configuration.getFfmpegAlternativePath())) {
-			args[0] = configuration.getFfmpegAlternativePath();
+			args.add(configuration.getFfmpegAlternativePath());
 		}
 
-		if (getDurationInSeconds() == 0.0) {
-			args[1] = "";
-			args[2] = "";
-		} else {
-			args[1] = "-ss";
+		if (getDurationInSeconds() > 0.0) {
+			args.add("-ss");
 			if (resume) {
-				args[2] = "" + (int) getDurationInSeconds();
+				args.add("" + (int) getDurationInSeconds());
 			} else {
-				args[2] = "" + configuration.getThumbnailSeekPos();
+				args.add("" + configuration.getThumbnailSeekPos());
 			}
 		}
 
-		args[3] = "-i";
+		args.add("-i");
 
 		if (file != null) {
-			args[4] = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
+			args.add(ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()));
 		} else {
-			args[4] = "-";
+			args.add("-");
 		}
 
-		args[5] = "-an";
-		args[6] = "-an";
+		args.add("-an");
 
 		// Thumbnail resolution
 		int thumbnailWidth  = 320;
@@ -584,31 +580,33 @@ public class DLNAMediaInfo implements Cloneable {
 			isThumbnailPadding = renderer.isThumbnailPadding();
 
 		if (isThumbnailPadding) {
-			args[7] = "-vf";
-			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")', pad=" + thumbnailWidth + ":" + thumbnailHeight + ":(" + thumbnailWidth + "-iw)/2:(" + thumbnailHeight + "-ih)/2";
+//			args[7] = "-vf";
+//			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")', pad=" + thumbnailWidth + ":" + thumbnailHeight + ":(" + thumbnailWidth + "-iw)/2:(" + thumbnailHeight + "-ih)/2";
 		} else {
-			args[7] = "-vf";
-			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")'";
+//			args[7] = "-vf";
+//			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")'";
 		}
 		}
 		
 		// Keep the original image so that it can be resized when required.
-		args[7] = "";
-		args[8] = "";
+//		args[7] = "";
+//		args[8] = "";
 
-		args[9] = "-vframes";
-		args[10] = "1";
-		args[11] = "-f";
-		args[12] = "image2";
-		args[13] = "pipe:";
+		args.add("-vframes");
+		args.add("1");
+		args.add("-f");
+		args.add("image2");
+		args.add("pipe:");
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled
-		if (!configuration.isThumbnailGenerationEnabled() || (renderer != null && !renderer.isThumbnails()) || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
-			args[2] = "0";
-			for (int i = 5; i <= 13; i++) {
-				args[i] = "-an";
-			}
-		}
+//		if (!configuration.isThumbnailGenerationEnabled() || (renderer != null && !renderer.isThumbnails()) || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
+//			args[2] = "0";
+//			for (int i = 5; i <= 13; i++) {
+//				args[i] = "-an";
+//			}
+//		}
+		String[] cmdArray = new String[ args.size() ];
+		args.toArray(cmdArray);
 
 		OutputParams params = new OutputParams(configuration);
 		params.maxBufferSize = 1;
@@ -616,7 +614,7 @@ public class DLNAMediaInfo implements Cloneable {
 		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
 
 		// true: consume stderr on behalf of the caller i.e. parse()
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, params, false, true);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params, false, true);
 
 		// FAILSAFE
 		synchronized (parsingLock) {

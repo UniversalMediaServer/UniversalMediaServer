@@ -248,10 +248,10 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 //			} catch (IOException ioe) {
 //				LOGGER.debug("Error closing buffered output file", ioe.getMessage());
 //			}
-
-			if (!destroyed && !params.noexitcheck) {
+			success = true;
+			if (!params.noexitcheck) {
+//			if (!destroyed && !params.noexitcheck) {
 				try {
-					success = true;
 					if (process != null && process.exitValue() != 0) {
 						LOGGER.info("Process {} has a return code of {}! Maybe an error occurred... check the log file", cmdArray[0], process.exitValue());
 						success = false;
