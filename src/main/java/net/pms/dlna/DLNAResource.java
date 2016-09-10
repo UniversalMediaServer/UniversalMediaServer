@@ -3413,7 +3413,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public int getType() {
 		int format = Format.UNKNOWN;
-		if (getMedia() != null) {
+		if (getMedia() != null && !"mjpeg".equals(getMedia().getCodecV())) {
 			if (getMedia().getVideoTrackCount() > 0)
 				return Format.VIDEO;
 			else if (getMedia().getAudioTrackCount() > 0)
