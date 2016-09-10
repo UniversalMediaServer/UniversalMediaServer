@@ -69,6 +69,11 @@ public class RealFile extends MapFile implements Serializable {
 			return true;
 		
 		File file = this.getFile();
+		
+		// Skip subtitles
+		if (Format.isSubtitle(file.getName()))
+			return false;
+		
 		if (!file.isDirectory()) {
 			resolveFormat();
 		}
