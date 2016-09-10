@@ -620,7 +620,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
-//		PMS.getGlobalRepo().add(child);
+		PMS.getGlobalRepo().add(child);
 
 		child.parent = this;
 		child.masterParent = masterParent;
@@ -3410,18 +3410,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public int getType() {
+		int format = Format.UNKNOWN;
 		if (getMedia() != null) {
 			if (getMedia().getVideoTrackCount() > 0)
 				return Format.VIDEO;
 			else if (getMedia().getAudioTrackCount() > 0)
 				return Format.AUDIO;
-			else
+			else if (getMedia().isImage())
 				return Format.IMAGE;
 		} else if (getFormat() != null) {
 			return getFormat().getType();
-		} else {
-			return Format.UNKNOWN;
 		}
+		return format;
 	}
 
 	/**

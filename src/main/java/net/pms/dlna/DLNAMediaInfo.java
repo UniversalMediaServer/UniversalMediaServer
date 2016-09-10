@@ -1446,6 +1446,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		}
 
+		// For the types that code is unaware of, use defaults based on whether video/audio track has been identified
 		if (mimeType == null) {
 			if (codecV != null) {
 				if (codecV.equals("mjpeg") || "jpg".equals(container)) {
@@ -1478,7 +1479,8 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 
 			if (mimeType == null) {
-				mimeType = HTTPResource.getDefaultMimeType(type);
+//				mimeType = HTTPResource.getDefaultMimeType(type);
+				mimeType = "application/octet-stream";
 			}
 		}
 
