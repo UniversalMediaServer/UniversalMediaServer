@@ -364,6 +364,8 @@ public abstract class Format implements Cloneable, Serializable {
 		// Video	
 		} else if (mimetype.equalsIgnoreCase("video/mpeg") || mimetype.equalsIgnoreCase("video/mp4")) {
 			ext = ".mp4";
+		} else if (mimetype.equalsIgnoreCase("video/x-matroska") || mimetype.equalsIgnoreCase("video/x-mkv") || mimetype.equalsIgnoreCase("video/mkv")) {
+			ext = ".mkv";
 		}
 		
 		if (ext != null)
@@ -392,8 +394,10 @@ public abstract class Format implements Cloneable, Serializable {
 		
 		if (filename.endsWith(".l16"))
 			mimetype = "audio/L16";
-		if (filename.endsWith(".avi"))
+		else if (filename.endsWith(".avi"))
 			mimetype = "video/avi";
+		else if (filename.endsWith(".mkv"))
+			mimetype = "video/mkv";
 		return mimetype;
 	}
 	

@@ -48,12 +48,20 @@ public class UMSUtilsTest {
 		String mime = Format.getMimetype("as" + ext);
 		assertThat(mime).isEqualTo(mimeType);
 		
-//		mimeType = "audio/vnd.dlna.adts";
-//		ext = Format.getExtension(mimeType);
-//		assertThat(ext).isEqualTo(".m4a");
+		mimeType = "video/x-matroska";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".mkv");
 		
-//		mime = Format.getMimetype("as" + ext);
-//		assertThat(mime).isEqualTo("audio/mp4");
+		mimeType = "video/x-mkv";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".mkv");
+
+		mimeType = "video/mkv";
+		ext = Format.getExtension(mimeType);
+		assertThat(ext).isEqualTo(".mkv");
+
+		mime = Format.getMimetype("as" + ext);
+		assertThat(mime).isEqualTo("video/mkv");
 		
 		mimeType = "audio/x-flac";
 		ext = Format.getExtension(mimeType);
