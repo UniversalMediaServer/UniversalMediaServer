@@ -344,7 +344,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 			if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
 				try {
-					stdoutConsumer.join();
+					stdoutConsumer.join(1000);
 					stdoutConsumer.getBuffer().close();
 				} catch (InterruptedException | IOException e) {
 				}
