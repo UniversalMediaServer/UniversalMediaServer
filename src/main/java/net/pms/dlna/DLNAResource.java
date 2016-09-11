@@ -109,7 +109,7 @@ import org.slf4j.LoggerFactory;
  * removed.
  */
 public abstract class DLNAResource extends HTTPResource implements Cloneable, Runnable, Serializable {
-	private final Map<String, Integer> requestIdToRefcount = new HashMap<>();
+	private transient final Map<String, Integer> requestIdToRefcount = new HashMap<>();
 	private boolean resolved;
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
@@ -290,7 +290,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	@Deprecated
 //	protected DLNAList children;
-	protected List<DLNAResource> children;
+	protected transient List<DLNAResource> children;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.

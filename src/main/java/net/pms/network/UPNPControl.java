@@ -266,6 +266,9 @@ public class UPNPControl {
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
 		try {
 			LOGGER.info(xml);
+			if (StringUtils.isBlank(xml))
+				return;
+			
 			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
 //			doc.getDocumentElement().normalize();
 			NodeList ids = doc.getElementsByTagName("InstanceID");
