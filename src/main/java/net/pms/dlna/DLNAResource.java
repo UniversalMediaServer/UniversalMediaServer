@@ -1861,8 +1861,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String dlnaOrgPnFlags = null;
 
 		if (mediaRenderer.isDLNAOrgPNUsed() || mediaRenderer.isAccurateDLNAOrgPN()) {
-			if (mime.equals(MPEG_TYPEMIME)) {
-				dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(localizationValue);
+				if (mime.equals(MPEG_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(localizationValue);
 
 					if (player != null) {
 						// VLC Web Video (Legacy) and tsMuxeR always output MPEG-TS
