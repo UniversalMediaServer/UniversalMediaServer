@@ -1861,13 +1861,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String dlnaOrgPnFlags = null;
 
 		if (mediaRenderer.isDLNAOrgPNUsed() || mediaRenderer.isAccurateDLNAOrgPN()) {
-			if (mediaRenderer.isPS3()) {
-				if (mime.equals(DIVX_TYPEMIME)) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
-				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.getHeight() > 700) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=WMVHIGH_PRO";
-				}
-			} else {
 				if (mime.equals(MPEG_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(localizationValue);
 
