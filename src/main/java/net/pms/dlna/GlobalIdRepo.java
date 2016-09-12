@@ -135,7 +135,7 @@ public class GlobalIdRepo {
 //		System.out.println(resourcesMap.isKeyInCache(el) + " :::: " + get(id));
 	}
 
-	public synchronized DLNAResource get(String id) {
+	public DLNAResource get(String id) {
 		Element el = resourcesMap.get(id);
 		if (el == null)
 			return null;
