@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class RarredFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RarredFile.class);
 	private File f;
-	private Archive rarFile;
+	private transient Archive rarFile;
 
 	public RarredFile(File f) {
 		this.f = f;

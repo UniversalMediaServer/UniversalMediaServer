@@ -41,7 +41,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private File file;
 	private String zeName;
 	private long length;
-	private ISevenZipInArchive arc;
+	private transient ISevenZipInArchive arc;
 
 	@Override
 	protected String getThumbnailURL() {

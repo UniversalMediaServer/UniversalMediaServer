@@ -277,7 +277,9 @@ public class RemoteWeb {
 				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
-			InputStream in = r.getMedia().getThumbnailInputStream();
+			InputStream in = null;
+			if (r.getMedia() != null)
+				in = r.getMedia().getThumbnailInputStream();
 			if (in == null) {
 				// we shouldn't show the thumbs for coded objects
 				// unless the code is entered

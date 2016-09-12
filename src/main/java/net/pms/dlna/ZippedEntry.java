@@ -34,7 +34,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	private File file;
 	private String zeName;
 	private long length;
-	private ZipFile zipFile;
+	private transient ZipFile zipFile;
 
 	@Override
 	protected String getThumbnailURL() {
