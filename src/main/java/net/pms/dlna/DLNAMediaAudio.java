@@ -18,9 +18,11 @@
  */
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -577,7 +579,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	public String getAudioTrackTitleFromMetadata() {
-		return audioTrackTitleFromMetadata;
+		return !StringUtils.isBlank(audioTrackTitleFromMetadata) ? audioTrackTitleFromMetadata : getSongname();
 	}
 
 	public void setAudioTrackTitleFromMetadata(String value) {

@@ -620,7 +620,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
-		PMS.getGlobalRepo().add(child);
+//		PMS.getGlobalRepo().add(child);
 
 		child.parent = this;
 		child.masterParent = masterParent;
@@ -1652,9 +1652,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			String audioTrackTitle = "";
 			if (
 				getMediaAudio().getAudioTrackTitleFromMetadata() != null &&
-				!"".equals(getMediaAudio().getAudioTrackTitleFromMetadata()) &&
-				mediaRenderer != null &&
-				mediaRenderer.isShowAudioMetadata()
+				!"".equals(getMediaAudio().getAudioTrackTitleFromMetadata()) 
+//				&& mediaRenderer != null &&
+//				mediaRenderer.isShowAudioMetadata()
 			) {
 				audioTrackTitle = " (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")";
 			}

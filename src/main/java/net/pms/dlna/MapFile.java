@@ -117,9 +117,9 @@ public class MapFile extends DLNAResource {
 			}
 
 			// FIXME this causes folder thumbnails to take precedence over file thumbnails
-			if (f.isFile() && (lcFilename.equals("folder.jpg") || lcFilename.equals("folder.png") || (lcFilename.contains("albumart") && lcFilename.endsWith(".jpg")))) {
-				potentialCover = f;
-			}
+//			if (f.isFile() && (lcFilename.equals("folder.jpg") || lcFilename.equals("folder.png") || (lcFilename.contains("albumart") && lcFilename.endsWith(".jpg")))) {
+//				potentialCover = f;
+//			}
 		}
 	}
 
