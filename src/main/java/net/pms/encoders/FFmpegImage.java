@@ -98,8 +98,11 @@ public class FFmpegImage extends FFMpegVideo {
 		}
 
 		cmdList.add("-i");
-		cmdList.add(filename);
-
+		if (params.stdin == null)
+			cmdList.add(filename);
+		else
+			cmdList.add("-");
+		
 		// Encoder threads
 		if (nThreads > 0) {
 			cmdList.add("-threads");

@@ -27,7 +27,6 @@ import static net.pms.util.StringUtil.encodeXML;
 import static net.pms.util.StringUtil.endTag;
 import static net.pms.util.StringUtil.openTag;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,7 +54,6 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
-import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -3050,10 +3048,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (isCompatible(mimetype) 
 				&& mediarenderer.isResolutionCompatibleWithRenderer(getMedia().getWidth())
 				&& getMediaSubtitle() == null) {
-			// No transcoding
-			if (true)
-				return null;
 			
+			// Archive browsing
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
 				InputStream fis = new PipedInputStream(out);
@@ -3067,6 +3063,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				lastStartSystemTime = System.currentTimeMillis();
 				return wrap(fis, high, low);
 			}
+
+			// No transcoding
+			if (true)
+				return null;
 
 			InputStream fis;
 			if (getFormat() != null && getFormat().isImage() && media != null && media.getOrientation() > 1 && mediarenderer.isAutoRotateBasedOnExif()) {
@@ -3418,7 +3418,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return Format.VIDEO;
 			else if (getMedia().getAudioTrackCount() > 0)
 				return Format.AUDIO;
-			else if (getMedia().isImage())
+			else if (getMedia().isImage() || "mjpeg".equals(getMedia().getCodecV()))
 				return Format.IMAGE;
 		} else if (getFormat() != null) {
 			return getFormat().getType();

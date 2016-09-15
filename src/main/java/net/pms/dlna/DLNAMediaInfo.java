@@ -560,7 +560,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args.add("-i");
 
-		if (file != null) {
+		if (media.getPush() == null) {
 			args.add(ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()));
 		} else {
 			args.add("-");
@@ -964,7 +964,7 @@ public class DLNAMediaInfo implements Cloneable {
 				boolean dvrms = false;
 				String input = "-";
 
-				if (file != null) {
+				if (inputFile.getPush() == null) {
 					input = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
 					dvrms = file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 				}

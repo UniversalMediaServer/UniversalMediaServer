@@ -22,14 +22,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import net.pms.formats.Format;
-import net.pms.util.FileUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZippedEntry extends DLNAResource implements IPushOutput {
+public class ZippedEntry extends RealFile implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedEntry.class);
 	private File file;
 	private String zeName;
@@ -47,6 +50,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	}
 
 	public ZippedEntry(File file, String zeName, long length) {
+		super(file);
 		this.zeName = zeName;
 		this.file = file;
 		this.length = length;
@@ -73,7 +77,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public boolean isFolder() {
-		return false;
+		return getName().endsWith("/");
 	}
 
 	// XXX unused
@@ -84,15 +88,16 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public String getSystemName() {
-		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
+		return (file.getAbsolutePath()) + "/" + (zeName);
+//		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
 	}
 
-	@Override
-	public boolean isValid() {
-		resolveFormat();
-		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
-		return getFormat() != null;
-	}
+//	@Override
+//	public boolean isValid() {
+//		resolveFormat();
+//		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
+//		return getFormat() != null;
+//	}
 
 	@Override
 	public boolean isUnderlyingSeekSupported() {
@@ -160,6 +165,17 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 				getFormat().parse(getMedia(), input, getType(), null);
 			}
 		}
+	}
+	
+	public void checkThumbnail() {
+		InputFile input = new InputFile();
+		input.setPush(this);
+		checkThumbnail(input, getDefaultRenderer());
+	}
+	
+	@Override
+	public boolean isValid() {
+		return isFolder() ? false : super.isValid();
 	}
 
 	@Override

@@ -882,9 +882,10 @@ public class FFMpegVideo extends Player {
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
 			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, configuration);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
-		} else {
+		} else if (params.stdin == null)
 			cmdList.add(filename);
-		}
+		else
+			cmdList.add("-");
 
 		/**
 		 * Defer to MEncoder for subtitles if:
