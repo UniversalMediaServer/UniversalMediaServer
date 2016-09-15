@@ -83,7 +83,7 @@ public class RealFile extends MapFile implements Serializable {
 		}
 
 		boolean valid = file.exists();// && (getType() != Format.UNKNOWN || getFormat() != null || file.isDirectory());
-		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
+		if (valid) {// && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
 			run();
 
@@ -104,9 +104,9 @@ public class RealFile extends MapFile implements Serializable {
 			}
 
 			// XXX isMediaInfoThumbnailGeneration is only true for the "default renderer"
-			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
+//			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
 //				checkThumbnail();
-			}
+//			}
 		}
 
 		return valid;

@@ -115,10 +115,14 @@ public class GlobalIdRepo {
 			id = getId(filename);
 			DLNAResource existing = get(id);
 			d.setId(id);
-//			d.setMedia(existing.getMedia());
+			d.setMedia(existing.getMedia());
 			return;
 		}
 
+		// If media is null, it has not been resolved yet. Don't add to cache.
+		if (d.getMedia() == null && !d.isFolder())
+			return;
+		
 		if ("0".equals(id)) {
 //			System.out.println("root folder");
 		} else {

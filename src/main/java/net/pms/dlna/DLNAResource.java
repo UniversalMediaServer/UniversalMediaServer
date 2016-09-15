@@ -620,7 +620,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
-//		PMS.getGlobalRepo().add(child);
+		PMS.getGlobalRepo().add(child);
 
 		child.parent = this;
 		child.masterParent = masterParent;
