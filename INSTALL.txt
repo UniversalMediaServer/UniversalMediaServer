@@ -2,22 +2,27 @@ Installers for Windows and Mac OS X and tarballs for Linux can be found at:
 
     http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
 
-To install UMS from the tarball on Linux, open a terminal and enter the
+To install UMS from the tarball on Linux, open a terminal and enter the 
 following commands (replace <version> with the version you're installing):
-Note: These instructions have been tested on Ubuntu 12.04, but something similar
-should work on most Unix distributions)
+Note: These instructions have been tested on Ubuntu 12.04, but something similar should work on most Unix distributions)
 
 1) Install the dependencies (this only needs to be done once):
 
-    # UMS requires a Java Virtual Machine to run. Which version depends on which binary package was downloaded. UMS for Java 7 would need version 7 or newer, UMS for Java 8 would need version 8 or newer. The most common JVM's to use on Linux is openjdk. Which, if any, of the packages that's available depends on your distro, it's version and what sources are enabled. 
+    # UMS requires a Java Virtual Machine to run. Which version depends on which binary package was downloaded. UMS for Java 7
+    would need version 7 or newer, UMS for Java 8 would need version 8 or newer. The most common JVM's to use on Linux is
+    openjdk. Which, if any, of the packages that's available depends on your distro, it's version and what sources are enabled.
 
-    # Install JVM on Debian/Ubuntu and derivates: Debian 8 need to use backports to install openjdk-8 at the time of writing. It's not possible to cover all the sources needed for the different versions in this document. If the package isn't found, make sure to run ```apt-get update``` to make sure the sources are refreshed. 
+    # Install JVM on Debian/Ubuntu and derivates:
+      Debian 8 need to use backports to install openjdk-8 at the time of writing. It's not possible to cover all the sources
+      needed for the different versions in this document. If the package isn't found, make sure to run ```apt-get update``` to
+      make sure the sources are refreshed.
       # To install openjdk-7 run:
       sudo apt-get install openjdk-7-jre
       # To install openjdk-8 run:
       sudo apt-get install openjdk-8-jre
 
-    # Install JVM on Fedora, OpenSUSE, Mandriva, Red Hat/Centos and derivates: The epel repo might be needed on some platforms. 
+    # Install JVM on Fedora, OpenSUSE, Mandriva, Red Hat/Centos and derivates: The epel repository might be needed on some
+    platforms. 
       # To install openjdk-7 run:
       sudo yum install java-1.7.0-openjdk
       # To install openjdk-8 run:
@@ -29,7 +34,8 @@ should work on most Unix distributions)
       # To install openjdk-8 run:
       sudo pacman -S jre8-openjdk
 
-    # UMS use MediaInfo to get information about media files. It can be run without it, but media handling will suffer as UMS won't have a detailed information available.
+    # UMS use MediaInfo to get information about media files. It can be run without it, but media handling will suffer as UMS
+    won't have a detailed information available.
     # Install MediaInfo on Debian/Ubuntu and derivates:
     sudo apt-get install mediainfo
     # Install MediaInfo on Fedora, OpenSUSE, Mandriva, Red Hat/Centos and derivates:
@@ -45,7 +51,8 @@ should work on most Unix distributions)
     # Install dcraw and VLC on Arch (extra repository must be enabled):
     sudo pacman -S dcraw vlc
 
-    # UMS uses tsMuxeR as a transcoding engine. tsMuxeR is 32 bit only, so installation of some 32 bit libraries are necessary on 64 bit platforms if you want to use tsMuxeR as a transcoding engine.
+    # UMS uses tsMuxeR as a transcoding engine. tsMuxeR is 32 bit only, so installation of some 32 bit libraries are necessary
+    on 64 bit platforms if you want to use tsMuxeR as a transcoding engine.
     # Install tsMuxeR dependencies on 64 bit Debian/Ubuntu and derivates:
     sudo dpkg --add-architecture i386
     sudo apt-get update
@@ -55,7 +62,7 @@ should work on most Unix distributions)
     # Install tsMuxeR dependencies on 64 bit Arch (multilib repo must be enabled):
     sudo pacman -S lib32-zlib lib32-ncurses lib32-bzip2 lib32-libstdc++5
     
-    # You can add P7Zip, UMS will use it for archives browsing on Linux.
+    # You can optionally install P7Zip, UMS will use it for archives browsing on Linux.
     # Install P7Zip on Debian/Ubuntu and derivates:
     sudo apt-get install p7zip
     # Install P7Zip on Fedora, OpenSUSE, Mandriva, Red Hat and derivates:
@@ -67,7 +74,8 @@ should work on most Unix distributions)
     # Install P7Zip on RHEL/CentOS:
     sudo yum install p7zip
 
-    # Other distros and/or package managers not covered here will need to have the same/corresponding packages installed. If a package isn't available, the binary must be downloaded and installed or built from source. 
+    # Other distros and/or package managers not covered here will need to have the same/corresponding packages installed.
+    If a package isn't available, the binary must be downloaded and installed or built from source. 
 
 2) Download the tarball e.g.:
 
