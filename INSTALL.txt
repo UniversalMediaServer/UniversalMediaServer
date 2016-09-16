@@ -62,7 +62,7 @@ Note: These instructions have been tested on Ubuntu 12.04, but something similar
     # Install tsMuxeR dependencies on 64 bit Arch (multilib repo must be enabled):
     sudo pacman -S lib32-zlib lib32-ncurses lib32-bzip2 lib32-libstdc++5
     
-    # You can optionally install P7Zip, UMS will use it for archives browsing on Linux.
+    # You can optionally install P7Zip, UMS will use it for archives browsing.
     # Install P7Zip on Debian/Ubuntu and derivates:
     sudo apt-get install p7zip
     # Install P7Zip on Fedora, OpenSUSE, Mandriva, Red Hat and derivates:
