@@ -296,6 +296,16 @@
 			<version>1.2.11</version>
 		</dependency>
 		<dependency>
+            <groupId>net.sf.sevenzipjbinding</groupId>
+            <artifactId>sevenzipjbinding</artifactId>
+            <version>9.20-2.00beta</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.sevenzipjbinding</groupId>
+            <artifactId>sevenzipjbinding-all-platforms</artifactId>
+            <version>9.20-2.00beta</version>
+        </dependency>
+		<!-- <dependency>
 			<groupId>sevenzip</groupId>
 			<artifactId>jbinding</artifactId>
 			<version>${sevenzip-version}</version>
@@ -304,7 +314,7 @@
 			<groupId>sevenzip-allplatforms</groupId>
 			<artifactId>jbinding-allplatforms</artifactId>
 			<version>${sevenzip-version}</version>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
