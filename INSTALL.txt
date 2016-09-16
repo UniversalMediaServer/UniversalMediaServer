@@ -83,7 +83,7 @@ should work on most Unix distributions)
     cd ums-<version>
     ./UMS.sh
 
-5) The user may have to manually copying these files to his profile folder:
+5) The user may have to manually copy these files to his profile folder:
 
     UMS.conf
     WEB.conf
