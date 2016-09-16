@@ -14,7 +14,7 @@ Note: These instructions have been tested on Ubuntu 12.04, but something similar
 
     # Install JVM on Debian/Ubuntu and derivates:
       Debian 8 need to use backports to install openjdk-8 at the time of writing. It's not possible to cover all the sources
-      needed for the different versions in this document. If the package isn't found, make sure to run ```apt-get update``` to
+      needed for the different versions in this document. If the package isn't found, make sure to run `apt-get update` to
       make sure the sources are refreshed.
       # To install openjdk-7 run:
       sudo apt-get install openjdk-7-jre
@@ -43,7 +43,8 @@ Note: These instructions have been tested on Ubuntu 12.04, but something similar
     # Install MediaInfo on Arch (community repository must be enabled):
     sudo pacman -S mediainfo
 
-    # You can optionally install dcraw (to decode raw images from digital cameras) and VLC (to use VLC as a transcoding engine). Just omit one if you don't want that.
+    # You can optionally install dcraw (to decode raw images from digital cameras) and VLC (to use as a transcoding engine).
+    Just omit one if you don't want that.
     # Install dcraw and VLC on Debian/Ubuntu and derivates:
     sudo apt-get install dcraw vlc
     # Install dcraw and VLC on Fedora, OpenSUSE, Mandriva, Red Hat/Centos and derivates:
