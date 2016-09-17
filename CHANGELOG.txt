@@ -1,7 +1,20 @@
-6.5.1 - 2016-08-??
+6.5.1 - 2016-09-??
 
 	General:
-		
+		Added Dolby Atmos detection
+		Config file fixes and improvements
+		Reduced CPU usage
+		Improved adherence to DLNA standards
+		Restart button changes to red when a restart is required
+		Fixed audio channel parsing
+		Fixed audio pitch when transcoding some files
+	Renderers:
+		Improved seeking support on AnyCast
+		Improved support for VLC on iOS
+		Improved support for Panasonic E6 TVs
+	Dependencies:
+		Updated jaudiotagger to 2.2.5
+		Updated MediaInfo to 0.7.88
 
 6.5.0 - 2016-08-01
 
