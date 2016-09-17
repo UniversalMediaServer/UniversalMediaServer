@@ -349,7 +349,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				} catch (InterruptedException | IOException e) {
 				}
 			}
-			destroyed = true;
+			if (isReadyToStop())
+				destroyed = true;
 		}
 	}
 

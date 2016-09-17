@@ -402,7 +402,6 @@ public class UPNPHelper extends UPNPControl {
 		};
 
 		aliveThread = new Thread(rAlive, "UPNP-AliveMessageSender");
-		aliveThread.start();
 
 		Runnable r = new Runnable() {
 			@Override
@@ -539,6 +538,7 @@ public class UPNPHelper extends UPNPControl {
 
 		listenerThread = new Thread(r, "UPNPHelper");
 		listenerThread.start();
+		aliveThread.start();
 	}
 
 	/**

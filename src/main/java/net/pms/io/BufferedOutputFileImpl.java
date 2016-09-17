@@ -798,6 +798,12 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			timer.schedule(new TimerTask() {
 				@Override
 				public void run() {
+					if (attachedThread.isDestroyed()) {
+						// The process is destroyed. Run the clean up routine and exit.
+						detachInputStream();
+						return;
+					}
+					
 					long rc = 0;
 
 					if (getCurrentInputStream() != null) {

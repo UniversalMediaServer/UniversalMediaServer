@@ -341,23 +341,25 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			if (request.getInputStream() != null || request.getFile() != null) {
 				final InputStream inputStream = request.getInputStream();
 				
-				// Partial content aka byte range seek support
-				DefaultHttpResponse response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-				if (response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
-					// Smaller files need not be served as partial content
-					response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.PARTIAL_CONTENT);
-				}
-				response1.headers().set(response.headers());
-				
 				long start = 0;
 				long end = 0;
+
+				// Partial content aka byte range seek support
+				HttpResponseStatus status = HttpResponseStatus.OK;
 				if (response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
 					start = request.getLowRange();
 					end = request.getHighRange();
-				}
-
+					if (inputStream != null && start > inputStream.available()) {
+						status = HttpResponseStatus.REQUESTED_RANGE_NOT_SATISFIABLE;
+					} else {
+						status = HttpResponseStatus.PARTIAL_CONTENT;
+					}
+				} 
+				DefaultHttpResponse response1 = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
+				response1.headers().set(response.headers());
+				
 				// Stream avi
-				if (request.getFile() != null){// && !response.status().equals(HttpResponseStatus.PARTIAL_CONTENT)) {
+				if (request.getFile() != null){
 					LOGGER.trace("Serving file");
 					File f = request.getFile();
 					if (end <= 0)
