@@ -483,11 +483,10 @@ public class UPNPHelper extends UPNPControl {
 										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
 									}
 
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
-
-									if (StringUtils.indexOf(s, "ssdp:all") > 0) {
+									if (
+										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
+										StringUtils.indexOf(s, "ssdp:all") > 0
+									) {
 										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
 									}
 
