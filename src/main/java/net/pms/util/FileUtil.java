@@ -273,7 +273,6 @@ public class FileUtil {
 
 	/**
 	 * Capitalize the first letter of each word if the string contains no capital letters
-	 *
 	 */
 	private static String convertFormattedNameToTitleCaseParts(String formattedName) {
 		if (formattedName.equals(formattedName.toLowerCase())) {

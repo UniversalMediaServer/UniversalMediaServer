@@ -210,16 +210,20 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("wav");
 		} else { // default: LPCM
 			cmdList.add("-f");
-			cmdList.add("s16be"); // same as -f wav, but without a WAV header
+			cmdList.add("s16be");
 		}
 
 		if (configuration.isAudioResample()) {
 			if (params.mediaRenderer.isTranscodeAudioTo441()) {
 				cmdList.add("-ar");
 				cmdList.add("44100");
+				cmdList.add("-ac");
+				cmdList.add("2");
 			} else {
 				cmdList.add("-ar");
 				cmdList.add("48000");
+				cmdList.add("-ac");
+				cmdList.add("2");
 			}
 		}
 
