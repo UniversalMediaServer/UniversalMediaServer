@@ -228,49 +228,64 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * {@link #enabledRendererConfs} doesn't normally need locking since
+	 * modification is rare and {@link #loadRendererConfigurations(PmsConfiguration)}
+	 * is only called during {@link PMS#init()} (To avoid any chance of a
+	 * race condition proper locking should be implemented though). During
+	 * build on the other hand the method is called repeatedly and it is random
+	 * if a {@link ConcurrentModificationException} is thrown as a result.
+	 *
+	 * To avoid build problems, this is used to make sure that calls to
+	 * {@link #loadRendererConfigurations(PmsConfiguration)} is serialized.
+	 */
+	public static final Object loadRendererConfigurationsLock = new Object();
+
+	/**
 	 * Load all renderer configuration files and set up the default renderer.
 	 *
 	 * @param pmsConf
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
-		_pmsConfiguration = pmsConf;
-		enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
+		synchronized(loadRendererConfigurationsLock) {
+			_pmsConfiguration = pmsConf;
+			enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
 
-		try {
-			defaultConf = new RendererConfiguration();
-		} catch (ConfigurationException e) {
-			LOGGER.debug("Caught exception", e);
-		}
+			try {
+				defaultConf = new RendererConfiguration();
+			} catch (ConfigurationException e) {
+				LOGGER.debug("Caught exception", e);
+			}
 
-		File renderersDir = getRenderersDir();
+			File renderersDir = getRenderersDir();
 
-		if (renderersDir != null) {
-			LOGGER.info("Loading renderer configurations from " + renderersDir.getAbsolutePath());
+			if (renderersDir != null) {
+				LOGGER.info("Loading renderer configurations from " + renderersDir.getAbsolutePath());
 
-			File[] confs = renderersDir.listFiles();
-			Arrays.sort(confs);
-			int rank = 1;
+				File[] confs = renderersDir.listFiles();
+				Arrays.sort(confs);
+				int rank = 1;
 
-			List<String> selectedRenderers = pmsConf.getSelectedRenderers();
-			for (File f : confs) {
-				if (f.getName().endsWith(".conf")) {
-					try {
-						RendererConfiguration r = new RendererConfiguration(f);
-						r.rank = rank++;
-						String rendererName = r.getConfName();
-						allRenderersNames.add(rendererName);
-						String renderersGroup = null;
-						if (rendererName.indexOf(' ') > 0) {
-							renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
+				List<String> selectedRenderers = pmsConf.getSelectedRenderers();
+				for (File f : confs) {
+					if (f.getName().endsWith(".conf")) {
+						try {
+							RendererConfiguration r = new RendererConfiguration(f);
+							r.rank = rank++;
+							String rendererName = r.getConfName();
+							allRenderersNames.add(rendererName);
+							String renderersGroup = null;
+							if (rendererName.indexOf(' ') > 0) {
+								renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
+							}
+
+							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
+								enabledRendererConfs.add(r);
+							} else {
+								LOGGER.debug("Ignored " + rendererName + " configuration");
+							}
+						} catch (ConfigurationException ce) {
+							LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 						}
-
-						if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
-							enabledRendererConfs.add(r);
-						} else {
-							LOGGER.debug("Ignored " + rendererName + " configuration");
-						}
-					} catch (ConfigurationException ce) {
-						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 					}
 				}
 			}
@@ -2074,8 +2089,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Some devices (e.g. Samsung) recognize a custom HTTP header for retrieving
 	 * the contents of a subtitles file. This method will return the name of that
 	 * custom HTTP header, or "" if no such header exists. The supported external
-	 * subtitles must be set by {@link #SupportedExternalSubtitlesFormats()}. 
-	 * 
+	 * subtitles must be set by {@link #SupportedExternalSubtitlesFormats()}.
+	 *
 	 * Default value is "".
 	 *
 	 * @return The name of the custom HTTP header.
@@ -2350,7 +2365,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * List of the renderer supported external subtitles formats
 	 * for streaming together with streaming (not transcoded) video.
-	 * 
+	 *
 	 * @return A comma-separated list of supported text-based external subtitles formats.
 	 */
 	public String getSupportedExternalSubtitles() {
@@ -2362,7 +2377,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * are set for streaming together with streaming (not transcoded) video.
 	 * If empty all subtitles listed in "SupportedExternalSubtitlesFormats" will be streamed.
 	 * When specified only for listed video formats subtitles will be streamed.
-	 * 
+	 *
 	 * @return A comma-separated list of supported video formats listed in "Supported" section.
 	 */
 	public String getVideoFormatsSupportingStreamedExternalSubtitles() {
@@ -2371,7 +2386,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	/**
 	 * List of the renderer supported embedded subtitles formats.
-	 * 
+	 *
 	 * @return A comma-separated list of supported embedded subtitles formats.
 	 */
 	public String getSupportedEmbeddedSubtitles() {
@@ -2399,8 +2414,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 *
 	 * @param subtitle Subtitles for checking
 	 * @param media Played media
-	 * 
-	 * @return True if the renderer specifies support for the subtitles and 
+	 *
+	 * @return True if the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
 	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAMediaInfo media) {
@@ -2413,7 +2428,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			if (StringUtils.isNotBlank(getVideoFormatsSupportingStreamedExternalSubtitles())) {
 				supportedFormats = getVideoFormatsSupportingStreamedExternalSubtitles().split(",");
 			}
-			
+
 			String[] supportedSubs = getSupportedExternalSubtitles().split(",");
 			for (String supportedSub : supportedSubs) {
 				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
@@ -2426,7 +2441,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					} else {
 						return true;
 					}
-					
+
 				}
 			}
 		}
@@ -2891,7 +2906,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Check if the given video bit depth is supported.
 	 *
 	 * @param videoBitDepth The video bit depth
-	 * 
+	 *
 	 * @return whether the video bit depth is supported.
 	 */
 	public boolean isVideoBitDepthSupported(int videoBitDepth) {
