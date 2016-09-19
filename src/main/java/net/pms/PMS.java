@@ -940,21 +940,35 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main PMS window or via
+	 * @deprecated
+	 * @see #reset(java.lang.Boolean)
+	 */
+	public void reset() {
+		reset(false);
+	}
+
+	/**
+	 * Restarts the server. The trigger is either a button on the main UMS window or via
 	 * an action item.
+	 *
+	 * @param quiet whether to broadcast the reset or do it quietly.
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
-	public void reset() {
+	public void reset(final Boolean quiet) {
 		TaskRunner.getInstance().submitNamed("restart", true, new Runnable() {
 			@Override
 			public void run() {
 				try {
 					LOGGER.trace("Waiting 1 second...");
-					UPNPHelper.sendByeBye();
+					if (!quiet) {
+						UPNPHelper.sendByeBye();
+					}
 					server.stop();
 					server = null;
-					RendererConfiguration.resetAllRenderers();
+					if (!quiet) {
+						RendererConfiguration.resetAllRenderers();
+					}
 
 					try {
 						Thread.sleep(1000);
