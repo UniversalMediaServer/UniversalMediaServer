@@ -753,6 +753,11 @@ public class RequestV2 extends HTTPResource {
 					requestCount = Integer.parseInt(rC);
 				}
 
+				// VLC makes a request for 0 objects!
+				if (requestCount == 0) {
+					requestCount = -1;
+				}
+
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
