@@ -83,7 +83,7 @@ public class WinUtils extends BasicSystemUtils {
 	public void disableGoToSleep() {
 		// Disable go to sleep (every 40s)
 		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
-			LOGGER.trace("Disable the PC sleeping mode");
+			LOGGER.trace("Enable Windows sleep mode prevention");
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
 			lastDontSleepCall = System.currentTimeMillis();
 		}
@@ -96,7 +96,7 @@ public class WinUtils extends BasicSystemUtils {
 	public void reenableGoToSleep() {
 		// Reenable go to sleep
 		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
-			LOGGER.trace("Re-enable the PC sleeping mode");
+			LOGGER.trace("Disable the Windows sleep mode prevention");
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
 			lastGoToSleepCall = System.currentTimeMillis();
 		}
