@@ -101,3 +101,6 @@ Note: These instructions have been tested on Ubuntu 12.04, but something similar
 
 UMS accesses some files in the ums-<version> directory (the working directory).
 Other files will be looked for in ~/.config/UMS
+
+Note: On a Linux 32-bit system, use files bigger than 2GB is generally not possible by the current default implementation even
+with a file system supporting bigger files size, you will need to add Large File Support (LFS).
