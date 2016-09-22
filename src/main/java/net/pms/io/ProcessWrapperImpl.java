@@ -304,9 +304,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	public InputStream getInputStream(long seek) throws IOException {
 		int timer = 0;
 		InputStream is = null;
-		while(bo == null || timer++ < 10) {
+		while(bo == null && timer++ < 10) {
 			try {
-				Thread.sleep(500);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 			}
 		}

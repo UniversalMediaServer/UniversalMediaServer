@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class IOTest {
 		List<String> cmd = new ArrayList<>();
 		cmd.add("bin\\win32\\ffmpeg64.exe");
 		cmd.add("-i");
-		cmd.add("C:\\Users\\IBM_ADMIN\\Downloads\\jungle\\example_wma.wma");
+		cmd.add("C:\\Users\\IBM_ADMIN\\Downloads\\jungle\\utbr.mp3");
 		cmd.add("-f");
 		cmd.add("mp3");
 		cmd.add("pipe:");
@@ -30,22 +31,23 @@ public class IOTest {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 		InputStream file = pw.getInputStream(0);
-		
-		int i = -1;
-		int j = 0;
-		byte[] buf = new byte[2];
-		while (i++ < 10 && j >= 0) {
-			j = file.read();
-			System.out.println(i + " " + j);
-			j = file.read(buf);
-			System.out.println(i + " " + j + " " + buf[0]);
-//			if (i == 3)
-//				file.detachInputStream();
-		}
+		PushbackInputStream pis = new PushbackInputStream(file);
 		
 		FileOutputStream os = new FileOutputStream("a.mp3");
-		while(file.available() != -1) {
-			os.write(file.read());
+		int read = file.read();
+//		while(read != -1) {
+//			os.write(read);
+//			read = file.read();
+//		}
+		
+		read = pis.read();
+		byte[] bytes = new byte[1024];
+		while (read != -1) {
+			pis.unread(read);
+			read = pis.read(bytes, 0, bytes.length);
+			System.out.println(read);
+			os.write(bytes);
+			read = pis.read();
 		}
 		file.close();
 		os.close();
