@@ -328,10 +328,14 @@ public class Request extends HTTPResource {
 						try {
 							// XXX external file is null if the first subtitle track is embedded:
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
-							if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
-								inputStream = new FileInputStream(SubtitleUtils.removeTagsFromSubs(sub.getExternalFile()));
+							if (sub.isExternal()) {
+								if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
+									inputStream = new FileInputStream(SubtitleUtils.removeTagsFromSubs(sub.getExternalFile()));
+								} else {
+									inputStream = new FileInputStream(sub.getExternalFile());
+								}
 							} else {
-								inputStream = new FileInputStream(sub.getExternalFile());
+								LOGGER.trace("Not loading external subtitles because they are not external: " + sub);
 							}
 						} catch (IOException npe) {
 							LOGGER.trace("Problem to load external subtitles: " + sub);
