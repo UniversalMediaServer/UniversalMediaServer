@@ -27,6 +27,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -34,9 +35,11 @@ import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.util.StringUtil;
+import net.pms.util.SubtitleUtils;
 import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -328,6 +331,10 @@ public class RequestV2 extends HTTPResource {
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 							if (sub.isExternal()) {
 								inputStream = new FileInputStream(sub.getExternalFile());
+								if (mediaRenderer.isRemoveTagsFromSRTsubs()) {
+									inputStream = SubtitleUtils.removeTagsFromSubsStream(inputStream);
+								}
+								
 								LOGGER.trace("Loading external subtitles: " + sub);
 							} else {
 								LOGGER.trace("Not loading external subtitles because they are not external: " + sub);

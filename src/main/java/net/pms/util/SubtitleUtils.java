@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -37,11 +38,14 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import static net.pms.util.Constants.*;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -622,4 +626,19 @@ public class SubtitleUtils {
 		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
 		return outputString.toString();
 	}
+
+	public static InputStream removeTagsFromSubsStream(InputStream stream) {
+		StringBuilder outputString = new StringBuilder();
+		OutputStreamWriter output; 
+//		try (BufferedReader input = new BufferedReader(new InputStreamReader(stream))) {
+//			output = new OutputStreamWriter(new OutputStream());
+			String line;
+//			while ((line = input.readLine()) != null) {
+				
+//				output.write(outputString.toString());
+//				}
+//			}
+		return stream;
+	}
+	
 }
