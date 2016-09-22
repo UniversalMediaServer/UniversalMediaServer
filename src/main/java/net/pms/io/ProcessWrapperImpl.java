@@ -62,7 +62,11 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	public boolean isSuccess() {
 		return success;
 	}
-
+	public ProcessWrapperImpl(List<String> cmd, OutputParams params) {
+		super();
+		init(cmd.toArray(new String[cmd.size()]), params, false, false);
+	}
+	
 	public ProcessWrapperImpl(String cmdArray[], OutputParams params) {
 		this(cmdArray, params, false, false);
 	}
@@ -73,6 +77,10 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepStdout, boolean keepStderr) {
 		super();
+		init(cmdArray, params, keepStdout, keepStderr);
+	}
+	
+	private void init(String cmdArray[], OutputParams params, boolean keepStdout, boolean keepStderr) {
 
 		// Determine a suitable thread name for this process:
 		// use the command name, but remove its path first.
@@ -294,12 +302,21 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 	@Override
 	public InputStream getInputStream(long seek) throws IOException {
-		if (bo != null) {
-			return bo.getInputStream(seek);
-		} else if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
-			return stdoutConsumer.getBuffer().getInputStream(seek);
+		int timer = 0;
+		InputStream is = null;
+		while(bo == null || timer++ < 10) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+			}
 		}
-		return null;
+		if (bo != null) {
+			is = bo.getInputStream(seek);
+		} 
+//		else if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
+//			return stdoutConsumer.getBuffer().getInputStream(seek);
+//		}
+		return is;
 	}
 
 	public List<String> getOtherResults() {
