@@ -91,16 +91,7 @@ public class InfoDb implements DbHandler {
 	public Object create(String[] args, int off) {
 		InfoDbData data = new InfoDbData();
 		data.imdb = FileDb.safeGetArg(args, off);
-
-		/**
-		 * Sometimes if IMDb doesn't have an episode title they call it
-		 * something like "Episode #1.4", so discard that.
-		 */
 		data.ep_name = FileDb.safeGetArg(args, off + 1);
-		if (data.ep_name.startsWith("Episode #")) {
-			data.ep_name = "";
-		}
-
 		data.title = FileDb.safeGetArg(args, off + 2);
 		data.season = FileDb.safeGetArg(args, off + 3);
 		data.episode = FileDb.safeGetArg(args, off + 4);

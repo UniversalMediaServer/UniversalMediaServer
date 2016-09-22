@@ -74,7 +74,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 	}
 
 	private String transformSQL(String sql) {
-
 		sql = sql.replace("${0}", transformName(getName()));
 		if (getParent() != null) {
 			sql = sql.replace("${1}", transformName(getParent().getName()));

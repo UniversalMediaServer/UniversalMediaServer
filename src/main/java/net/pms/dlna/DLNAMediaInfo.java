@@ -780,17 +780,17 @@ public class DLNAMediaInfo implements Cloneable {
 							audio.setSampleFrequency("" + rate);
 							durationSec = (double) length;
 							bitrate = (int) ah.getBitRateAsNumber();
-							audio.getAudioProperties().setNumberOfChannels(2);
-
-							if (ah.getChannels() != null && ah.getChannels().toLowerCase().contains("mono")) {
-								audio.getAudioProperties().setNumberOfChannels(1);
-							} else if (ah.getChannels() != null && ah.getChannels().toLowerCase().contains("stereo")) {
-								audio.getAudioProperties().setNumberOfChannels(2);
-							} else if (ah.getChannels() != null) {
-								try {
-									audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));
-								} catch (NumberFormatException e) {
-									LOGGER.debug("Could not parse number of audio channels from \"{}\"", ah.getChannels());
+							audio.getAudioProperties().setNumberOfChannels(2); // set default value of channels to 2
+							String channels = ah.getChannels().toLowerCase();
+							if (!channels.isEmpty()) {
+								if (channels.equals("1") || channels.contains("mono")) { // parse value "1" or "Mono"
+									audio.getAudioProperties().setNumberOfChannels(1);
+								} else if (!(channels.equals("2") || channels.contains("stereo"))){ // this value is default so try to parse the unknown value
+									try {
+										audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(channels));
+									} catch (NumberFormatException e) {
+										LOGGER.debug("Could not parse number of audio channels from \"{}\"", channels);
+									}
 								}
 							}
 

@@ -32,6 +32,8 @@
 ;   2008
 ;   7
 ;   2008R2
+;   8
+;   2012
 ;
 ; AtLeastServicePack checks if the installer is running on Windows service pack version at least as specified.
 ; IsServicePack checks if the installer is running on Windows service pack version exactly as specified.
@@ -134,10 +136,14 @@
 !define WINVER_VISTA     0x06000000 ;6.00.6000
 !define WINVER_2008_NT   0x86000001 ;6.00.6001
 !define WINVER_2008      0x06000001 ;6.00.6001
-!define WINVER_7_NT      0x86010000 ;6.01.????
-!define WINVER_7         0x06010000 ;6.01.????
-!define WINVER_2008R2_NT 0x86010001 ;6.01.????
-!define WINVER_2008R2    0x06010001 ;6.01.????
+!define WINVER_7_NT      0x86010000 ;6.01.7600
+!define WINVER_7         0x06010000 ;6.01.7600
+!define WINVER_2008R2_NT 0x86010001 ;6.01.7600
+!define WINVER_2008R2    0x06010001 ;6.01.7600
+!define WINVER_8_NT      0x86020000 ;6.02.9200
+!define WINVER_8         0x06020000 ;6.02.9200
+!define WINVER_2012_NT   0x86020001 ;6.02.9200
+!define WINVER_2012      0x06020001 ;6.02.9200
 
 
 # use this to make all nt > 9x
@@ -387,6 +393,8 @@
   !insertmacro __WinVer_DefineOSTest ${Test} 2008   '${Suffix}'
   !insertmacro __WinVer_DefineOSTest ${Test} 7      '${Suffix}'
   !insertmacro __WinVer_DefineOSTest ${Test} 2008R2 '${Suffix}'
+  !insertmacro __WinVer_DefineOSTest ${Test} 8      '${Suffix}'
+  !insertmacro __WinVer_DefineOSTest ${Test} 2012   '${Suffix}'
 !macroend
 
 !insertmacro __WinVer_DefineOSTests AtLeast ""

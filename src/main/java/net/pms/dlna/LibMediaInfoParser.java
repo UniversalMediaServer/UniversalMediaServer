@@ -416,6 +416,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MPEGTS;
 		} else if (value.contains("aiff")) {
 			format = FormatConfiguration.AIFF;
+		} else if (value.startsWith("atmos") || value.equals("131")) {
+			format = FormatConfiguration.ATMOS;
 		} else if (value.contains("ogg")) {
 			format = FormatConfiguration.OGG;
 		} else if (value.contains("opus")) {
@@ -639,6 +641,7 @@ public class LibMediaInfoParser {
 		if (value.contains("/")) {
 			value = value.substring(0, value.indexOf('/')).trim();
 		}
+
 		try {
 			return Integer.parseInt(value);
 		} catch (NumberFormatException e) {
