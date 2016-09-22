@@ -35,7 +35,9 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.util.StringUtil;
+import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
@@ -326,11 +328,13 @@ public class Request extends HTTPResource {
 						try {
 							// XXX external file is null if the first subtitle track is embedded:
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
-							if (sub.isExternal()) {
+							if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
+								inputStream = new FileInputStream(SubtitleUtils.removeTagsFromSubs(sub.getExternalFile()));
+							} else {
 								inputStream = new FileInputStream(sub.getExternalFile());
 							}
-						} catch (NullPointerException npe) {
-							LOGGER.trace("Could not find external subtitles: " + sub);
+						} catch (IOException npe) {
+							LOGGER.trace("Problem to load external subtitles: " + sub);
 						}
 					}
 				} else if (dlna.isCodeValid(dlna)) {

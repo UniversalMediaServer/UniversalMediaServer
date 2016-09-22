@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -38,14 +37,11 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import static net.pms.util.Constants.*;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -627,18 +623,27 @@ public class SubtitleUtils {
 		return outputString.toString();
 	}
 
-	public static InputStream removeTagsFromSubsStream(InputStream stream) {
-		StringBuilder outputString = new StringBuilder();
-		OutputStreamWriter output; 
-//		try (BufferedReader input = new BufferedReader(new InputStreamReader(stream))) {
-//			output = new OutputStreamWriter(new OutputStream());
-			String line;
-//			while ((line = input.readLine()) != null) {
-				
-//				output.write(outputString.toString());
-//				}
-//			}
-		return stream;
+	/**
+	 * Remove tags like <"b"> <"/b"> <"i"> <"/i"> <"u"> <"/u"> <"/font> <"font color="....">
+	 * from subtitles file for renderer not capable to show that tags correctly.
+	 *
+	 * @param file the source subtitles
+	 * @return Temporary file with the converted subtitles. This file will be deleted when the UMS will be stopped.
+	 */
+	public static File removeTagsFromSubs(File file) throws IOException {
+		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(file);
+		File tempSubs = new File(configuration.getTempFolder(), file.getName());
+		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempSubs), Charset.forName(CHARSET_UTF_8)));
+		String line;
+		while ((line = input.readLine()) != null) {
+			line = line.replaceAll("\\<.*?>","") + "\n";
+			output.write(line);
+		}
+
+		LOGGER.trace("Removed tags from subtitles file: " + file.getName());
+		output.flush();
+		output.close();
+		tempSubs.deleteOnExit();
+		return tempSubs;
 	}
-	
 }
