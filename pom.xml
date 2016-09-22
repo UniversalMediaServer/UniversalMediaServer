@@ -87,7 +87,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>58</binary-revision>
+		<binary-revision>59</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
@@ -698,7 +698,7 @@
 							<groupId>jwbroek.cuelib</groupId>
 							<artifactId>cuelib</artifactId>
 							<version>${cuelib-version}</version>
-							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
+							<downloadUrl>http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/cuelib/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
 						</artifactItem>
 						<artifactItem>
