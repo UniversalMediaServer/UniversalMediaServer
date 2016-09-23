@@ -220,6 +220,8 @@ public class RealFile extends MapFile implements Serializable {
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
 				}
 
+				checkThumbnail();
+
 				if (found && configuration.getUseCache()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
@@ -227,8 +229,6 @@ public class RealFile extends MapFile implements Serializable {
 						database.insertData(fileName, file.lastModified(), getType(), getMedia());
 					}
 				}
-				
-				checkThumbnail();
 			}
 		}
 	}

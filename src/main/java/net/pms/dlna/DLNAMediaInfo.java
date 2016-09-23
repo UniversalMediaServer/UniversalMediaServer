@@ -859,7 +859,7 @@ public class DLNAMediaInfo implements Cloneable {
 								thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.AUDIO);
 							}
 						}
-					} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
+					} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | KeyNotFoundException | IllegalArgumentException e) {
 						LOGGER.debug("Error parsing audio file: {} - {}", e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
 						ffmpeg_parsing = true;
 					}
@@ -955,9 +955,14 @@ public class DLNAMediaInfo implements Cloneable {
 				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
 					pw = getFFmpegThumbnail(inputFile, resume, renderer);
 					// Seek param might cause ffmpeg to fail; try without it
-					if (!pw.isSuccess()) {
-						durationSec = 0.0;
-						pw = getFFmpegThumbnail(inputFile, resume, renderer);
+					try {
+						if (pw.getInputStream(0) != null) {
+							durationSec = 0.0;
+							pw = getFFmpegThumbnail(inputFile, resume, renderer);
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
+						LOGGER.trace("", e);
 					}
 				}
 

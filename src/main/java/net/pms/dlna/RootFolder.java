@@ -206,6 +206,8 @@ public class RootFolder extends DLNAResource {
 			throw new IllegalStateException("Can't scan when cache is disabled");
 		}
 		running = true;
+		// Clean DB before scan
+		PMS.get().getDatabase().cleanup();
 
 		if (!isDiscovered()) {
 			discoverChildren();
@@ -219,7 +221,6 @@ public class RootFolder extends DLNAResource {
 		// Running might have been set false during scan
 		if (running) {
 			frame.setScanLibraryEnabled(true);
-			PMS.get().getDatabase().cleanup();
 		}
 		frame.setStatusLine(null);
 	}

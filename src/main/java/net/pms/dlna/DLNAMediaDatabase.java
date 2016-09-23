@@ -291,7 +291,8 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", DELAY             INT");
 				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 				sb.append(", BITRATE           INT");
-				sb.append(", constraint PKAUDIO primary key (FILEID, ID))");
+				sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
+				sb.append(", foreign key (FILEID) REFERENCES FILES(ID) ON DELETE CASCADE)");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
@@ -300,7 +301,8 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", TYPE     INT");
-				sb.append(", constraint PKSUB primary key (FILEID, ID))");
+				sb.append(", constraint PKSUB primary key (FILEID, ID)");
+				sb.append(", foreign key (FILEID) REFERENCES FILES(ID) ON DELETE CASCADE)");
 
 				executeUpdate(conn, sb.toString());
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
