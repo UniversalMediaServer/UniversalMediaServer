@@ -622,4 +622,28 @@ public class SubtitleUtils {
 		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
 		return outputString.toString();
 	}
+
+	/**
+	 * Remove tags like <"b"> <"/b"> <"i"> <"/i"> <"u"> <"/u"> <"/font> <"font color="....">
+	 * from subtitles file for renderer not capable to show that tags correctly.
+	 *
+	 * @param file the source subtitles
+	 * @return Temporary file with the converted subtitles. This file will be deleted when the UMS will be stopped.
+	 */
+	public static File removeTagsFromSubs(File file) throws IOException {
+		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(file);
+		File tempSubs = new File(configuration.getTempFolder(), file.getName());
+		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempSubs), Charset.forName(CHARSET_UTF_8)));
+		String line;
+		while ((line = input.readLine()) != null) {
+			line = line.replaceAll("\\<.*?>","") + "\n";
+			output.write(line);
+		}
+
+		LOGGER.trace("Removed tags from subtitles file: " + file.getName());
+		output.flush();
+		output.close();
+		tempSubs.deleteOnExit();
+		return tempSubs;
+	}
 }
