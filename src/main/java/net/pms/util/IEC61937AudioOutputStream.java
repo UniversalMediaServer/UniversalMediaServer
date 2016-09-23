@@ -1,5 +1,5 @@
 /**
- * Class used to embed HD Audio data (AC3, DTS, DTSHD?, TRUEHD?) into a LPCM stream, according to IEC-61937, used by S/PDIF
+ * Class used to embed HD Audio data (AC3, DTS, DTSHD, TRUEHD?) into a LPCM stream, according to IEC-61937, used by S/PDIF
  *
  * As of today (2011/07/15), only AC3 and DTS are working on my receiver, Denon AVR-1910
  * DTS-HD cannot work because it needs a LPCM stream of 2 channels sampled at 192kHz = 6.1Mbits/s. (8 channels for TrueHD, 24Mbit/s)
@@ -17,6 +17,7 @@ package net.pms.util;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.configuration.RendererConfiguration;
 
 public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IEC61937AudioOutputStream.class);
@@ -82,8 +83,7 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 				framesize = ((data[off + 5] & 0x03) << 12) + ((data[off + 6] & 0xff) << 4) + ((data[off + 7] & 0xf0) >> 4) + 1;
 				int framesize_sup = 0;
 				int dts_rate = 48000;
-				boolean skip_dtshd = true;
-				if (!skip_dtshd && off + framesize + 3 < data.length && data[off + framesize] == 100 && data[off + framesize + 1] == 88 && data[off + framesize + 2] == 32 && data[off + framesize + 3] == 37) {
+				if (!RendererConfiguration.isSkipDTSHDstereo() && off + framesize + 3 < data.length && data[off + framesize] == 100 && data[off + framesize + 1] == 88 && data[off + framesize + 2] == 32 && data[off + framesize + 3] == 37) {
 					dtsHD = true;
 					dts_rate = 192000;
 					framesize_sup = ((data[off + framesize + 6] & 0x0f) << 11) + ((data[off + framesize + 7] & 0xff) << 3) + ((data[off + framesize + 8] & 0xf0) >> 5) + 1;

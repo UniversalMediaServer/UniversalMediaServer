@@ -176,6 +176,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
+	protected static final String SKIP_DTS_HD = "SkipDTSHD";
 	protected static final String STREAM_EXT = "StreamExtensions";
 	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
@@ -2941,5 +2942,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isRemoveTagsFromSRTsubs() {
 		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
+	}
+	public boolean isSkipDTSHDst() {
+		return getBoolean(SKIP_DTS_HD, true);
+	}
+	public static boolean isSkipDTSHDstereo() {
+//		if (!isSkipDTSHDst()) {
+//			return false;
+//		}
+		return true;
 	}
 }
