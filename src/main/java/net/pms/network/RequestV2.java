@@ -330,7 +330,7 @@ public class RequestV2 extends HTTPResource {
 						if (sub.isExternal()) {
 							try {
 								if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
-									inputStream = SubtitleUtils.removeTagsFromSubsFile(sub.getExternalFile());
+									inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
 								} else {
 									inputStream = new FileInputStream(sub.getExternalFile());
 								}
