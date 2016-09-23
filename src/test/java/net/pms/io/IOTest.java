@@ -3,13 +3,16 @@ package net.pms.io;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.sevenzipjbinding.ExtractOperationResult;
 import net.sf.sevenzipjbinding.IInArchive;
+import net.sf.sevenzipjbinding.ISequentialOutStream;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
@@ -18,6 +21,11 @@ import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 
 public class IOTest {
 	public static void main(String[] args) throws Exception {
+		new IOTest().test7Zip();
+	}
+	
+	public void testFileConversion() throws Exception {
+		// Test file conversion
 		List<String> cmd = new ArrayList<>();
 		cmd.add("bin\\win32\\ffmpeg64.exe");
 		cmd.add("-i");
@@ -77,7 +85,7 @@ public class IOTest {
 	public void test7Zip() {
 
 		RandomAccessFile rf;
-		File file = new File("Image.7z");
+		File file = new File("Image_7z.7z");
 
 		IInArchive arc;
 		try {
@@ -88,7 +96,7 @@ public class IOTest {
 			ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 			ISimpleInArchiveItem realItem = null;
 
-			String zeName = "";
+			String zeName = "Image\\color_blind.jpg";
 			for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {
 				if (item.getPath().equals(zeName)) {
 					realItem = item;
@@ -101,22 +109,26 @@ public class IOTest {
 				return;
 			}
 
-			// ExtractOperationResult result = realItem.extractSlow(new
-			// ISequentialOutStream() {
-			// @Override
-			// public int write(byte[] data) throws SevenZipException {
-			// try {
-			// out.write(data);
-			// } catch (IOException e) {
-			// System.out.println("Caught exception", e);
-			// throw new SevenZipException();
-			// }
-			// return data.length;
-			// }
-			// });
-			// if (result != ExtractOperationResult.OK)
-			// System.out.println("Error extracting item: " + result);
-		} catch (FileNotFoundException | SevenZipException e) {
+			final FileOutputStream out = new FileOutputStream("a.jpg"); 
+			ExtractOperationResult result = realItem.extractSlow(new ISequentialOutStream() {
+				@Override
+				public int write(byte[] data) throws SevenZipException {
+					try {
+						out.write(data);
+					} catch (IOException e) {
+						System.out.println("Caught exception" + e);
+						throw new SevenZipException();
+					}
+					return data.length;
+				}
+			});
+			if (result != ExtractOperationResult.OK)
+				System.out.println("Error extracting item: " + result);
+			
+			out.close();
+			arc.close();
+			rf.close();
+		} catch (Exception e) {
 			System.out.println("Unpack error. Possibly harmless." + e.getMessage());
 		}
 	}
