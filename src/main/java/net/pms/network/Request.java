@@ -335,9 +335,9 @@ public class Request extends HTTPResource {
 									inputStream = new FileInputStream(sub.getExternalFile());
 								}
 							} else {
-								LOGGER.trace("Not loading external subtitles because they are not external: " + sub);
+								LOGGER.trace("Requested subtitles are not external: " + sub);
 							}
-						} catch (IOException npe) {
+						} catch (NullPointerException | IOException npe) {
 							LOGGER.trace("Problem to load external subtitles: " + sub);
 						}
 					}
