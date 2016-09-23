@@ -337,7 +337,7 @@ public class Request extends HTTPResource {
 							} else {
 								LOGGER.trace("Requested subtitles are not external: " + sub);
 							}
-						} catch (NullPointerException | IOException npe) {
+						} catch (IOException ioe) {
 							LOGGER.trace("Problem to load external subtitles: " + sub);
 						}
 					}

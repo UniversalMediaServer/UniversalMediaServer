@@ -624,7 +624,7 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Remove tags like <"b"> <"/b"> <"i"> <"/i"> <"u"> <"/u"> <"/font> <"font color="....">
+	 * Remove tags like <"b"> <"/b"> {b} {/b} <"i"> <"/i"> {i} {/i} <"u"> <"/u"> {u} {/u} <"/font> <"font color="....">
 	 * from subtitles file for renderer not capable to show that tags correctly.
 	 *
 	 * @param file the source subtitles
@@ -636,7 +636,7 @@ public class SubtitleUtils {
 		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempSubs), Charset.forName(CHARSET_UTF_8)));
 		String line;
 		while ((line = input.readLine()) != null) {
-			line = line.replaceAll("\\<.*?>","") + "\n";
+			line = line.replaceAll("\\<[bisu]>|\\<font.*?>|\\</.*?>|\\{[bisu]}|\\{\\\\an.*?}|\\{/.*?}","") + "\n";
 			output.write(line);
 		}
 
