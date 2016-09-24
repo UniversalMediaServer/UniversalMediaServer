@@ -2922,6 +2922,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isRemoveTagsFromSRTsubs() {
-		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, false);
+		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
 	}
 }
