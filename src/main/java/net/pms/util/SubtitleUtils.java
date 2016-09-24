@@ -628,22 +628,21 @@ public class SubtitleUtils {
 	 * from subtitles file for renderer not capable to show that tags correctly.
 	 *
 	 * @param file the source subtitles
-	 * @return Temporary file with the converted subtitles. This file will be deleted when the UMS will be stopped.
+	 * @return InputStream from converted subtitles.
 	 */
-	public static File removeTagsFromSubs(File file) throws IOException {
+	public static InputStream removeTagsFromSubsFile(File file) throws IOException {
 		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(file);
-		File tempSubs = new File(configuration.getTempFolder(), file.getName());
-		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempSubs), Charset.forName(CHARSET_UTF_8)));
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		Writer w = new OutputStreamWriter(os, Charset.forName(CHARSET_UTF_8));
 		String line;
 		while ((line = input.readLine()) != null) {
 			line = line.replaceAll("\\<[bisu]>|\\<font.*?>|\\</.*?>|\\{[bisu]}|\\{\\\\an.*?}|\\{/.*?}","") + "\n";
-			output.write(line);
+			w.write(line);
 		}
 
+		w.flush();
+		w.close();
 		LOGGER.trace("Removed tags from subtitles file: " + file.getName());
-		output.flush();
-		output.close();
-		tempSubs.deleteOnExit();
-		return tempSubs;
+		return new ByteArrayInputStream(os.toByteArray());
 	}
 }

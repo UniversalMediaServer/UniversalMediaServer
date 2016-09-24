@@ -330,7 +330,7 @@ public class Request extends HTTPResource {
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 							if (sub.isExternal()) {
 								if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
-									inputStream = new FileInputStream(SubtitleUtils.removeTagsFromSubs(sub.getExternalFile()));
+									inputStream = SubtitleUtils.removeTagsFromSubsFile(sub.getExternalFile());
 								} else {
 									inputStream = new FileInputStream(sub.getExternalFile());
 								}
