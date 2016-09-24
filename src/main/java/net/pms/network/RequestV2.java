@@ -320,7 +320,7 @@ public class RequestV2 extends HTTPResource {
 					}
 					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
-					// This is a request for a subtitle file
+					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
@@ -334,13 +334,13 @@ public class RequestV2 extends HTTPResource {
 								} else {
 									inputStream = new FileInputStream(sub.getExternalFile());
 								}
-								LOGGER.trace("Loading external subtitle file: {}", sub);
+								LOGGER.trace("Loading external subtitles file: {}", sub);
 							} catch (IOException ioe) {
-								LOGGER.debug("Couldn't load external subtitle file: {}\nCause: {}", sub, ioe.getMessage());
+								LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub, ioe.getMessage());
 								LOGGER.trace("", ioe);
 							}
 						} else {
-							LOGGER.trace("Not loading external subtitle file because it is embedded: {}", sub);
+							LOGGER.trace("Not loading external subtitles file because it is embedded: {}", sub);
 						}
 					} else {
 						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle() returned null");

@@ -639,9 +639,10 @@ public class SubtitleUtils {
 		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(file);
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		Writer writer = new OutputStreamWriter(os, Charset.forName(CHARSET_UTF_8));
+		Pattern pattern = Pattern.compile("\\</?(?:b|i|s|u|font[^\\>]*)\\>|\\{\\\\[^\\}]+\\}|\\\\h|\\\\N");
 		String line;
 		while ((line = input.readLine()) != null) {
-			line = line.replaceAll("\\</?(?:b|i|s|u|font[^\\>]*)\\>|\\{\\\\[^\\}]+\\}|\\\\h|\\\\N","") + "\n";
+			line = pattern.matcher(line).replaceAll("") + "\n";
 			writer.write(line);
 		}
 
