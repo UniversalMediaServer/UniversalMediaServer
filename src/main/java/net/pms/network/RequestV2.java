@@ -654,7 +654,7 @@ public class RequestV2 extends HTTPResource {
 
 				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren");
 
-				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction.contains("ContentDirectory:1#Search")) {
 					browseDirectChildren = true;
 				}
 
