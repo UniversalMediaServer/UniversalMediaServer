@@ -2327,8 +2327,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
-				} else if (subsAreValidForStreaming) {
-					LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
 				} else {
 					LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
 				}
