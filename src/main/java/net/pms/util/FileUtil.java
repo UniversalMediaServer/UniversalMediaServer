@@ -953,16 +953,11 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static CharsetMatch getFileCharsetMatch(File file) throws IOException {
-		CharsetMatch result = null;
-		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
-			CharsetDetector detector = new CharsetDetector();
-			detector.enableInputFilter(true);
-			detector.setText(in);
-			// Results are sorted on descending confidence, so we're only after the first one.
-			result = detector.detectAll()[0];
-		}
-
-		return result;
+		InputStream in = new BufferedInputStream(new FileInputStream(file));
+		CharsetDetector detector = new CharsetDetector();
+		detector.setText(in);
+		// Results are sorted on descending confidence, so we're only after the first one.
+		return detector.detectAll()[0];
 	}
 
 	/**
