@@ -415,6 +415,7 @@ public abstract class Format implements Cloneable, Serializable {
 		if ("audio/L24".equalsIgnoreCase(mimetype)
 				|| "video/vnd.dlna.mpeg-tts".equalsIgnoreCase(mimetype)
 				|| "video/mpeg2".equalsIgnoreCase(mimetype)
+				|| "audio/vnd.dlna.adts".equals(mimetype)
 				)
 				supported = false;
 		return supported;
