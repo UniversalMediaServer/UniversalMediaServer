@@ -378,7 +378,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 						response1.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
 					ctx.write(response1);
 					chunkWriteFuture = ctx.write(new ChunkedStream(inputStream, 64 * BUFFER_SIZE));
-					ctx.write(Unpooled.EMPTY_BUFFER);
+//					ctx.write(Unpooled.EMPTY_BUFFER);
 				}
 				ctx.write(LastHttpContent.EMPTY_LAST_CONTENT);
 
@@ -401,7 +401,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 						// a freeze at the end of video when the channel is not closed.
 						
 						// For Denon, there's a follow-up thumbnail request which finishes first and causes the connection to close.
-						future.channel().close();
+//						future.channel().close();
 						startStopListenerDelegate.stop();
 					}
 				});

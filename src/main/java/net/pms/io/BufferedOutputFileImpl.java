@@ -672,7 +672,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			this.bufferOverflowWarning = newMargin;
 		}
 
-		if (eof && readCount >= writeCount) {
+		if (eof && readCount > writeCount) {
 			return -1;
 		}
 
@@ -712,6 +712,8 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			if (cut < 0) {
 				cut = 0;
 			}
+			len = (int) (writeCount - readCount);
+			LOGGER.trace("writeCount - readCount: {}", writeCount - readCount);
 		}
 
 		if (mb >= endOF - len) {
@@ -727,7 +729,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 			return endOF - mb;
 		} else {
-			System.arraycopy(buffer, mb, buf, off, len - cut);
+			System.arraycopy(buffer, mb, buf, off, len);
 			return len;
 		}
 	}
@@ -747,7 +749,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			this.bufferOverflowWarning = newMargin;
 		}
 
-		if (eof && readCount >= writeCount) {
+		if (eof && readCount > writeCount) {
 			return -1;
 		}
 

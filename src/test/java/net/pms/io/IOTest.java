@@ -21,7 +21,7 @@ import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 
 public class IOTest {
 	public static void main(String[] args) throws Exception {
-		new IOTest().test7Zip();
+		new IOTest().testFileConversion();
 	}
 	
 	public void testFileConversion() throws Exception {
@@ -30,6 +30,7 @@ public class IOTest {
 		cmd.add("bin\\win32\\ffmpeg64.exe");
 		cmd.add("-i");
 		cmd.add("C:\\Users\\IBM_ADMIN\\Downloads\\jungle\\utbr.mp3");
+		cmd.add("-vn");
 		cmd.add("-f");
 		cmd.add("mp3");
 		cmd.add("pipe:");
@@ -49,13 +50,17 @@ public class IOTest {
 //		}
 		
 		read = pis.read();
-		byte[] bytes = new byte[1024];
+		byte[] bytes = new byte[1024 * 1024];
 		while (read != -1) {
+			read = pis.read();
 			pis.unread(read);
 			read = pis.read(bytes, 0, bytes.length);
 			System.out.println(read);
 			os.write(bytes);
+
 			read = pis.read();
+			pis.unread(read);
+			System.out.println(read);
 		}
 		file.close();
 		os.close();
