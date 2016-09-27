@@ -362,13 +362,13 @@ public class LibMediaInfoParser {
 				LOGGER.error("Error in MediaInfo parsing:", e);
 			} finally {
 				MI.Close();
-				if (media.getContainer() == null) {
-					media.setContainer(DLNAMediaLang.UND);
-				}
+//				if (media.getContainer() == null) {
+//					media.setContainer(DLNAMediaLang.UND);
+//				}
 
-				if (media.getCodecV() == null) {
-					media.setCodecV(DLNAMediaLang.UND);
-				}
+//				if (media.getCodecV() == null) {
+//					media.setCodecV(DLNAMediaLang.UND);
+//				}
 
 				media.setMediaparsed(true);
 			}

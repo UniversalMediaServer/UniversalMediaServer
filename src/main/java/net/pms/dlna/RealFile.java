@@ -240,9 +240,9 @@ public class RealFile extends MapFile implements Serializable {
 
 	@Override
 	public InputStream getThumbnailInputStream() throws IOException {
-		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder && (getMediaSubtitle() != null || getMediaAudio() != null)) {
-			return super.getThumbnailInputStream();
-		}
+//		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder && (getMediaSubtitle() != null || getMediaAudio() != null)) {
+//			return super.getThumbnailInputStream();
+//		}
 
 		File file = getFile();
 		File cachedThumbnail = null;
