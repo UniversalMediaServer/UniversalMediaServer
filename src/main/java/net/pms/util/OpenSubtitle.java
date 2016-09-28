@@ -408,15 +408,24 @@ public class OpenSubtitle {
 			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
 			String name = m.group(2);
 			Matcher m1 = re1.matcher(name);
-			String eptit = "";
+			String episodeName = "";
 			if (m1.find()) {
-				eptit = m1.group(2).trim();
+				episodeName = m1.group(2).trim();
 				name = m1.group(1).trim();
 			}
 
+			/**
+ 			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
+ 			 * something like "Episode #1.4", so discard that.
+ 			 */
+ 			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
+ 			if (episodeName.startsWith("Episode #")) {
+ 				episodeName = "";
+ 			}
+
 			return new String[]{
 				ImdbUtil.ensureTT(m.group(1).trim()),
-				StringEscapeUtils.unescapeHtml4(eptit),
+				episodeName,
 				StringEscapeUtils.unescapeHtml4(name),
 				m.group(3).trim(), // Season number
 				m.group(4).trim(), // Episode number
