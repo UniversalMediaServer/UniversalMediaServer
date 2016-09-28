@@ -18,13 +18,6 @@
  */
 package net.pms.network;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +39,14 @@ import net.pms.util.SubtitleUtils;
 import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.stream.ChunkedStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -235,7 +236,7 @@ public class RequestV2 extends HTTPResource {
 	 *
 	 * @param ctx
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
-	 * @param e The {@link io.netty.handler.codec.http.FullHttpRequest} object used to communicate with the client that sent
+	 * @param e The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
 	 * @param close Set to true to close the channel after sending the response. By default the
 	 * 			channel is not closed after sending.
@@ -245,9 +246,8 @@ public class RequestV2 extends HTTPResource {
 	 * @throws IOException
 	 */
 	public ChannelFuture answer(
-		final ChannelHandlerContext ctx,
 		HttpResponse output,
-		FullHttpRequest e,
+		MessageEvent e,
 		final boolean close,
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
@@ -265,7 +265,7 @@ public class RequestV2 extends HTTPResource {
 
 		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
 			// Request to output a page to the HTML console.
-			output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html");
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.append(HTMLConsole.servePage(argument.substring(8)));
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
 			// Request to retrieve a file
@@ -305,10 +305,10 @@ public class RequestV2 extends HTTPResource {
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
-					output.headers().set(HttpHeaderNames.CONTENT_TYPE, dlna.getThumbnailContentType());
-					output.headers().set(HttpHeaderNames.ACCEPT_RANGES, "bytes");
-					output.headers().set(HttpHeaderNames.EXPIRES, getFUTUREDATE() + " GMT");
-					output.headers().set(HttpHeaderNames.CONNECTION, "keep-alive");
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, dlna.getThumbnailContentType());
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
+					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						inputStream = dlna.getGenericThumbnailInputStream(null);
@@ -321,8 +321,8 @@ public class RequestV2 extends HTTPResource {
 					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitle file
-					output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
-					output.headers().set(HttpHeaderNames.EXPIRES, getFUTUREDATE() + " GMT");
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
+					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 					if (sub != null) {
 						try {
@@ -429,7 +429,7 @@ public class RequestV2 extends HTTPResource {
 						String rendererMimeType = getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia());
 
 						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
-							output.headers().set(HttpHeaderNames.CONTENT_TYPE, rendererMimeType);
+							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
 						}
 
 						// Response generation:
@@ -460,7 +460,7 @@ public class RequestV2 extends HTTPResource {
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
 
-							output.headers().set(HttpHeaderNames.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
+							output.headers().set(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
 							// Content-Length refers to the current chunk size here, though in chunked
 							// mode if the request is open-ended and totalsize is unknown we omit it.
@@ -481,8 +481,8 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
-						output.headers().set(HttpHeaderNames.ACCEPT_RANGES, "bytes");
-						output.headers().set(HttpHeaderNames.CONNECTION, "keep-alive");
+						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 					}
 					if (origRendering != null) {
 						// Restore original rendering details
@@ -492,21 +492,21 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
 			if (argument.toLowerCase().endsWith(".png")) {
-				output.headers().set(HttpHeaderNames.CONTENT_TYPE, "image/png");
+				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/png");
 			} else {
-				output.headers().set(HttpHeaderNames.CONTENT_TYPE, "image/jpeg");
+				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
 			}
 
-			output.headers().set(HttpHeaderNames.ACCEPT_RANGES, "bytes");
-			output.headers().set(HttpHeaderNames.CONNECTION, "keep-alive");
-			output.headers().set(HttpHeaderNames.EXPIRES, getFUTUREDATE() + " GMT");
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+			output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+			output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
-			output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			output.headers().set(HttpHeaderNames.CACHE_CONTROL, "no-cache");
-			output.headers().set(HttpHeaderNames.EXPIRES, "0");
-			output.headers().set(HttpHeaderNames.ACCEPT_RANGES, "bytes");
-			output.headers().set(HttpHeaderNames.CONNECTION, "keep-alive");
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+			output.headers().set(HttpHeaders.Names.CACHE_CONTROL, "no-cache");
+			output.headers().set(HttpHeaders.Names.EXPIRES, "0");
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+			output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
 
 			if (argument.equals("description/fetch")) {
@@ -538,7 +538,7 @@ public class RequestV2 extends HTTPResource {
 				inputStream = null;
 			}
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
-			output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(HTTPXMLHelper.XML_HEADER);
 			response.append(CRLF);
 			response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -557,7 +557,7 @@ public class RequestV2 extends HTTPResource {
 			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
-			output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
 			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
@@ -570,7 +570,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 			}
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
-			output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
@@ -832,7 +832,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.EVENT_FOOTER);
 			}
 		} else if (method.equals("NOTIFY")) {
-			output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/xml");
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
 			output.headers().set("NT", "upnp:event");
 			output.headers().set("NTS", "upnp:propchange");
 			output.headers().set("SID", PMS.get().usn());
@@ -855,19 +855,17 @@ public class RequestV2 extends HTTPResource {
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
 			byte responseData[] = response.toString().getBytes("UTF-8");
-			output.headers().set(HttpHeaderNames.CONTENT_LENGTH, "" + responseData.length);
+			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
 
 			// HEAD requests only require headers to be set, no need to set contents.
 			if (!method.equals("HEAD")) {
 				// Not a HEAD request, so set the contents of the response.
-				ByteBuf buf = Unpooled.copiedBuffer(responseData);
-				HttpResponse oldOutput = output;
-				output = new DefaultFullHttpResponse(output.protocolVersion(), output.status(), buf);
-				output.headers().add(oldOutput.headers());
+				ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
+				output.setContent(buf);
 			}
 
 			// Send the response to the client.
-			future = ctx.writeAndFlush(output);
+			future = e.getChannel().write(output);
 
 			if (close) {
 				// Close the channel after the response is sent.
@@ -882,12 +880,12 @@ public class RequestV2 extends HTTPResource {
 					// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 					// as the PS3 will display a network error and request the last seconds of the
 					// transcoded video. Better to send no Content-Length at all.
-					output.headers().set(HttpHeaderNames.CONTENT_LENGTH, "" + CLoverride);
+					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + CLoverride);
 				}
 			} else {
 				int cl = inputStream.available();
 				LOGGER.trace("Available Content-Length: " + cl);
-				output.headers().set(HttpHeaderNames.CONTENT_LENGTH, "" + cl);
+				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + cl);
 			}
 
 			if (range.isStartOffsetAvailable() && dlna != null) {
@@ -900,11 +898,11 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			// Send the response headers to the client.
-			future = ctx.write(output);
+			future = e.getChannel().write(output);
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
 				// Send the response body to the client in chunks.
-				ChannelFuture chunkWriteFuture = ctx.writeAndFlush(new ChunkedStream(inputStream, BUFFER_SIZE));
+				ChannelFuture chunkWriteFuture = e.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
 				// Add a listener to clean up after sending the entire response body.
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
@@ -919,13 +917,12 @@ public class RequestV2 extends HTTPResource {
 
 						// Always close the channel after the response is sent because of
 						// a freeze at the end of video when the channel is not closed.
-						future.channel().close();
+						future.getChannel().close();
 						startStopListenerDelegate.stop();
 					}
 				});
 			} else {
 				// HEAD method is being used, so simply clean up after the response was sent.
-				ctx.flush();
 				try {
 					PMS.get().getRegistry().reenableGoToSleep();
 					inputStream.close();
@@ -944,13 +941,13 @@ public class RequestV2 extends HTTPResource {
 			// No response data and no input stream. Seems we are merely serving up headers.
 			if (lowRange > 0 && highRange > 0) {
 				// FIXME: There is no content, so why set a length?
-				output.headers().set(HttpHeaderNames.CONTENT_LENGTH, "" + (highRange - lowRange + 1));
+				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + (highRange - lowRange + 1));
 			} else {
-				output.headers().set(HttpHeaderNames.CONTENT_LENGTH, "0");
+				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
 			}
 
 			// Send the response headers to the client.
-			future = ctx.writeAndFlush(output);
+			future = e.getChannel().write(output);
 
 			if (close) {
 				// Close the channel after the response is sent.
