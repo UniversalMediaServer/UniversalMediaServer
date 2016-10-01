@@ -1323,7 +1323,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							} else {
 								matchedMimeType += ";rate=48000;channels=2";
 							}
-						} else if (media != null) {
+						} else if (media != null && media.getFirstAudioTrack() != null) {
 							AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
 							if (audio.getSampleFrequency() > 0) {
 								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
@@ -2922,6 +2922,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isRemoveTagsFromSRTsubs() {
-		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, false);
+		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
 	}
 }
