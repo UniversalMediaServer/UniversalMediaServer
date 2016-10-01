@@ -392,16 +392,15 @@ public class UPNPHelper extends UPNPControl {
 				sleep(ALIVE_delay);
 				sendAlive();
 
-					// If getAliveDelay is 0, there is no custom alive delay
-					if (configuration.getAliveDelay() == 0) {
-						if (PMS.get().getFoundRenderers().size() > 0) {
-							ALIVE_delay = 30000;
-						} else {
-							ALIVE_delay = 10000;
-						}
+				// If getAliveDelay is 0, there is no custom alive delay
+				if (configuration.getAliveDelay() == 0) {
+					if (PMS.get().getFoundRenderers().size() > 0) {
+						ALIVE_delay = 30000;
 					} else {
-						ALIVE_delay = configuration.getAliveDelay();
+						ALIVE_delay = 10000;
 					}
+				} else {
+					ALIVE_delay = configuration.getAliveDelay();
 				}
 			}
 		};
@@ -468,7 +467,7 @@ public class UPNPHelper extends UPNPControl {
 								String remoteAddr = address.getHostAddress();
 								int remotePort = receivePacket.getPort();
 								if (!redundant) {
-									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
 								}
 								
 								if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -479,11 +478,10 @@ public class UPNPHelper extends UPNPControl {
 									sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
 								}
 								
-								if (StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0) {
-									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-								}
-								
-								if (StringUtils.indexOf(s, "ssdp:all") > 0) {
+								if (
+									StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
+									StringUtils.indexOf(s, "ssdp:all") > 0
+									) {
 									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
 								}
 								
@@ -491,58 +489,6 @@ public class UPNPHelper extends UPNPControl {
 									sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 								}
 							}
-						} catch (SocketException e) {
-							// Not setting the network interface will work just fine on Mac OS X.
-						}
-
-						multicastSocket.setTimeToLive(4);
-						multicastSocket.setReuseAddress(true);
-						InetAddress upnpAddress = getUPNPAddress();
-						multicastSocket.joinGroup(upnpAddress);
-
-						int M_SEARCH = 1, NOTIFY = 2;
-						InetAddress lastAddress = null;
-						int lastPacketType = 0;
-
-						while (true) {
-							byte[] buf = new byte[1024];
-							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
-							multicastSocket.receive(receivePacket);
-
-							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
-
-							InetAddress address = receivePacket.getAddress();
-							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
-
-							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
-
-							if (packetType == M_SEARCH) {
-								if (configuration.getIpFiltering().allowed(address)) {
-									String remoteAddr = address.getHostAddress();
-									int remotePort = receivePacket.getPort();
-									if (!redundant) {
-										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
-									}
-
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-									}
-
-									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
-										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
-									}
-
-									if (
-										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
-										StringUtils.indexOf(s, "ssdp:all") > 0
-									) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
-
-									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
-										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
-									}
-								}
 							// Don't log redundant notify messages
 						} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
 							LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
@@ -562,7 +508,7 @@ public class UPNPHelper extends UPNPControl {
 					bindErrorReported = true;
 					sleep(5000);
 				} catch (IOException e) {
-					LOGGER.error("UPNP network exception: ", e.getMessage());
+					LOGGER.error("UPnP network exception: ", e.getMessage());
 					LOGGER.trace("", e);
 					sleep(1000);
 				} finally {
@@ -572,28 +518,12 @@ public class UPNPHelper extends UPNPControl {
 							InetAddress upnpAddress = getUPNPAddress();
 							multicastSocket.leaveGroup(upnpAddress);
 						} catch (IOException e) {
+							LOGGER.trace("Final UPnP network exception: ", e.getMessage());
+							LOGGER.trace("", e);
 						}
 
-						bindErrorReported = true;
-						sleep(5000);
-					} catch (IOException e) {
-						LOGGER.error("UPnP network exception: ", e.getMessage());
-						LOGGER.trace("", e);
-						sleep(1000);
-					} finally {
-						if (multicastSocket != null) {
-							// Clean up the multicast socket nicely
-							try {
-								InetAddress upnpAddress = getUPNPAddress();
-								multicastSocket.leaveGroup(upnpAddress);
-							} catch (IOException e) {
-								LOGGER.trace("Final UPnP network exception: ", e.getMessage());
-								LOGGER.trace("", e);
-							}
-
-							multicastSocket.disconnect();
-							multicastSocket.close();
-						}
+						multicastSocket.disconnect();
+						multicastSocket.close();
 					}
 				}
 			}
