@@ -2,6 +2,7 @@
 
 	General:
 		Added Dolby Atmos detection
+		Added renderer config setting RemoveTagsFromSRTSubtitles
 		Config file fixes and improvements
 		Reduced CPU usage
 		Improved adherence to DLNA standards
@@ -9,12 +10,15 @@
 		Fixed audio channel parsing
 		Fixed audio pitch when transcoding some files
 	Renderers:
+		Added support for VLC for desktop
 		Improved seeking support on AnyCast
-		Improved support for VLC on iOS
+		Improved support for some filetypes on VLC for iOS
 		Improved support for Panasonic E6 TVs
+		Improved support for AVI files on XBMC
 	Dependencies:
 		Updated jaudiotagger to 2.2.5
 		Updated MediaInfo to 0.7.88
+		Updated NSIS to 2.5.1
 
 6.5.0 - 2016-08-01
 
