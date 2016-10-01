@@ -71,6 +71,20 @@ public class UPNPHelper extends UPNPControl {
 	// The Constant BYEBYE.
 	private static final String BYEBYE = "ssdp:byebye";
 
+	private static final String[] NT_LIST = {
+		"upnp:rootdevice",
+		"urn:schemas-upnp-org:device:MediaServer:1",
+		"urn:schemas-upnp-org:service:ContentDirectory:1",
+		"urn:schemas-upnp-org:service:ConnectionManager:1",
+		PMS.get().usn(),
+		"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1"
+	};
+
+	private static final String[] ST_LIST = {
+		"urn:schemas-upnp-org:device:MediaRenderer:1",
+		"urn:schemas-upnp-org:device:Basic:1"
+	};
+
 	// The listener.
 	private static Thread listenerThread;
 
@@ -141,7 +155,7 @@ public class UPNPHelper extends UPNPControl {
 		StringBuilder discovery = new StringBuilder();
 
 		discovery.append("HTTP/1.1 200 OK").append(CRLF);
-		discovery.append("CACHE-CONTROL: max-age=1200").append(CRLF);
+		discovery.append("CACHE-CONTROL: max-age=1800").append(CRLF);
 		discovery.append("DATE: ").append(sdf.format(new Date(System.currentTimeMillis()))).append(" GMT").append(CRLF);
 		discovery.append("LOCATION: http://").append(serverHost).append(':').append(serverPort).append("/description/fetch").append(CRLF);
 		discovery.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
@@ -159,6 +173,18 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		sendReply(host, port, msg);
+
+		for (String ST: ST_LIST) {
+			discovery = new StringBuilder();
+			discovery.append("M-SEARCH * HTTP/1.1").append(CRLF);
+			discovery.append("ST: ").append(ST).append(CRLF);
+			discovery.append("HOST: ").append(IPV4_UPNP_HOST).append(':').append(UPNP_PORT).append(CRLF);
+			discovery.append("MX: 3").append(CRLF);
+			discovery.append("MAN: \"ssdp:discover\"").append(CRLF).append(CRLF);
+			msg = discovery.toString();
+			sendReply(host, port, msg);
+		}
+
 		lastSearch = st;
 	}
 
@@ -193,11 +219,9 @@ public class UPNPHelper extends UPNPControl {
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
 
-			sendMessage(multicastSocket, "upnp:rootdevice", ALIVE);
-			sendMessage(multicastSocket, PMS.get().usn(), ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
+			for (String NT: NT_LIST) {
+				sendMessage(multicastSocket, NT, ALIVE);
+			}
 		} catch (IOException e) {
 			LOGGER.debug("Error sending ALIVE message", e);
 		} finally {
@@ -280,7 +304,7 @@ public class UPNPHelper extends UPNPControl {
 	 * Send the UPnP BYEBYE message.
 	 */
 	public static void sendByeBye() {
-		LOGGER.info("Sending BYEBYE...");
+		LOGGER.debug("Sending BYEBYE...");
 
 		MulticastSocket multicastSocket = null;
 
@@ -289,10 +313,9 @@ public class UPNPHelper extends UPNPControl {
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
 
-			sendMessage(multicastSocket, "upnp:rootdevice", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
-			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", BYEBYE);
+			for (String NT: NT_LIST) {
+				sendMessage(multicastSocket, NT, BYEBYE);
+			}
 		} catch (IOException e) {
 			LOGGER.debug("Error sending BYEBYE message", e);
 		} finally {
@@ -332,22 +355,27 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		String msg = buildMsg(nt, message);
-		//Random rand = new Random();
+		Random rand = new Random();
 
 		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
 
 		InetAddress upnpAddress = getUPNPAddress();
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
+
+		/**
+		 * Requirement [7.2.4.1]: UPnP endpoints (devices and control points) should
+		 * wait a random amount of time, between 0 and 100 milliseconds after acquiring
+		 * a new IP address, before sending advertisements or initiating searches on a
+		 * new IP interface.
+		 */
+		sleep(rand.nextInt(101));
 		socket.send(ssdpPacket);
 
-		// XXX Why is it necessary to sleep for this random time? What would happen when random equals 0?
-		//sleep(rand.nextInt(1800 / 2));
-
-		// XXX Why send the same packet twice?
-		//socket.send(ssdpPacket);
-
-		// XXX Why is it necessary to sleep for this random time (again)?
-		//sleep(rand.nextInt(1800 / 2));
+		// Send the message three times as recommended by the standard
+		sleep(100);
+		socket.send(ssdpPacket);
+		sleep(100);
+		socket.send(ssdpPacket);
 	}
 
 	private static int ALIVE_delay = 10000;
@@ -364,33 +392,16 @@ public class UPNPHelper extends UPNPControl {
 				sleep(ALIVE_delay);
 				sendAlive();
 
-				/**
-				 * The first delay for sending an ALIVE message is 10 seconds,
-				 * the second delay is for 20 seconds. From then on, all other
-				 * delays are for 30/180 seconds depending on whether there
-				 * are renderers connected. It can be customized with the
-				 * ALIVE_delay user configuration setting.
-				 */
-				switch (ALIVE_delay) {
-					case 10000:
-						ALIVE_delay = 20000;
-						break;
-					case 20000:
-					case 30000:
-					case 180000:
-						// If getAliveDelay is 0, there is no custom alive delay
-						if (configuration.getAliveDelay() == 0) {
-							if (PMS.get().getFoundRenderers().size() > 0) {
-								ALIVE_delay = 180000;
-							} else {
-								ALIVE_delay = 30000;
-							}
+					// If getAliveDelay is 0, there is no custom alive delay
+					if (configuration.getAliveDelay() == 0) {
+						if (PMS.get().getFoundRenderers().size() > 0) {
+							ALIVE_delay = 30000;
 						} else {
-							ALIVE_delay = configuration.getAliveDelay();
+							ALIVE_delay = 10000;
 						}
-						break;
-					default:
-						break;
+					} else {
+						ALIVE_delay = configuration.getAliveDelay();
+					}
 				}
 			}
 		};
@@ -480,6 +491,58 @@ public class UPNPHelper extends UPNPControl {
 									sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 								}
 							}
+						} catch (SocketException e) {
+							// Not setting the network interface will work just fine on Mac OS X.
+						}
+
+						multicastSocket.setTimeToLive(4);
+						multicastSocket.setReuseAddress(true);
+						InetAddress upnpAddress = getUPNPAddress();
+						multicastSocket.joinGroup(upnpAddress);
+
+						int M_SEARCH = 1, NOTIFY = 2;
+						InetAddress lastAddress = null;
+						int lastPacketType = 0;
+
+						while (true) {
+							byte[] buf = new byte[1024];
+							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
+							multicastSocket.receive(receivePacket);
+
+							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+							InetAddress address = receivePacket.getAddress();
+							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
+
+							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+
+							if (packetType == M_SEARCH) {
+								if (configuration.getIpFiltering().allowed(address)) {
+									String remoteAddr = address.getHostAddress();
+									int remotePort = receivePacket.getPort();
+									if (!redundant) {
+										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
+									}
+
+									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
+										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
+									}
+
+									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
+										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
+									}
+
+									if (
+										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
+										StringUtils.indexOf(s, "ssdp:all") > 0
+									) {
+										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+									}
+
+									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
+										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
+									}
+								}
 							// Don't log redundant notify messages
 						} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
 							LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
@@ -490,7 +553,7 @@ public class UPNPHelper extends UPNPControl {
 				} catch (BindException e) {
 					if (!bindErrorReported) {
 						LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
-							+ ", which means that PMS will not automatically appear on your renderer! "
+							+ ", which means that UMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
 							+ "UMS will keep trying to bind to it...[" + e.getMessage() + "]");
@@ -510,9 +573,27 @@ public class UPNPHelper extends UPNPControl {
 							multicastSocket.leaveGroup(upnpAddress);
 						} catch (IOException e) {
 						}
-						
-						multicastSocket.disconnect();
-						multicastSocket.close();
+
+						bindErrorReported = true;
+						sleep(5000);
+					} catch (IOException e) {
+						LOGGER.error("UPnP network exception: ", e.getMessage());
+						LOGGER.trace("", e);
+						sleep(1000);
+					} finally {
+						if (multicastSocket != null) {
+							// Clean up the multicast socket nicely
+							try {
+								InetAddress upnpAddress = getUPNPAddress();
+								multicastSocket.leaveGroup(upnpAddress);
+							} catch (IOException e) {
+								LOGGER.trace("Final UPnP network exception: ", e.getMessage());
+								LOGGER.trace("", e);
+							}
+
+							multicastSocket.disconnect();
+							multicastSocket.close();
+						}
 					}
 				}
 			}

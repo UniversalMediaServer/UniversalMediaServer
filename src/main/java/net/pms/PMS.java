@@ -816,6 +816,9 @@ public class PMS {
 		});
 
 		configuration.setAutoSave();
+		UPNPHelper.sendByeBye();
+		LOGGER.trace("Waiting 250 milliseconds...");
+		Thread.sleep(250);
 		UPNPHelper.sendAlive();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
@@ -1055,7 +1058,7 @@ public class PMS {
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
 			sb.append('-');
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
-			sb.append(", UPnP/1.0, UMS/").append(getVersion());
+			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(getVersion());
 			serverName = sb.toString();
 		}
 
@@ -1165,8 +1168,8 @@ public class PMS {
 		if (isHeadless() && denyHeadless) {
 			System.err.println(
 				"Either a graphics environment isn't available or headless " +
-			    "mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
-			    " can't start, exiting."
+				"mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
+				" can't start, exiting."
 			);
 			System.exit(1);
 		} else if (!isHeadless()) {
@@ -1899,7 +1902,7 @@ public class PMS {
 		return instance.credMgr.getTag(owner, username);
 	}
 
-	public static boolean verifyCred(String owner,String tag, String user, String pwd) {
+	public static boolean verifyCred(String owner, String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
 	}
 

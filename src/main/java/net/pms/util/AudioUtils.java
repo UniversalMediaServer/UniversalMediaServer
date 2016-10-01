@@ -66,17 +66,17 @@ public class AudioUtils {
 		// http://labs.divx.com/node/44
 		// http://lists.mplayerhq.hu/pipermail/mplayer-users/2006-October/063511.html
 		//
-		// Format				Chan 0	Chan 1	Chan 2	Chan 3	Chan 4	Chan 5
-		// 1.0 WAV/FLAC/MP3/WMA	FC
-		// 2.0 WAV/FLAC/MP3/WMA	FL		FR
-		// 4.0 WAV/FLAC/MP3/WMA	FL		FR		SL		SR
-		// 5.0 WAV/FLAC/MP3/WMA	FL		FR		FC		SL		SR
-		// 5.1 WAV/FLAC/MP3/WMA	FL		FR		FC		LFE		SL		SR
-		// 5.1 PCM (mencoder)	FL		FR		SR		FC		SL		LFE
-		// 7.1 PCM (mencoder)	FL		SL		RR		SR		FR		LFE		RL		FC
-		// 5.1 AC3				FL		FC		FR		SL		SR		LFE
-		// 5.1 DTS/AAC			FC		FL		FR		SL		SR		LFE
-		// 5.1 AIFF				FL		SL		FC		FR		SR		LFE
+		// Format			Ch.0	Ch.1	Ch.2	Ch.3	Ch.4	Ch.5	ch.6	ch.7
+		// 1.0 WAV/FLAC/MP3/WMA		FC
+		// 2.0 WAV/FLAC/MP3/WMA		FL	FR
+		// 4.0 WAV/FLAC/MP3/WMA		FL	FR	SL	SR
+		// 5.0 WAV/FLAC/MP3/WMA		FL	FR	FC	SL	SR
+		// 5.1 WAV/FLAC/MP3/WMA		FL	FR	FC	LFE	SL	SR
+		// 5.1 PCM (mencoder)		FL	FR	SR	FC	SL	LFE
+		// 7.1 PCM (mencoder)		FL	SL	RR	SR	FR	LFE	RL	FC
+		// 5.1 AC3			FL	FC	FR	SL	SR	LFE
+		// 5.1 DTS/AAC			FC	FL	FR	SL	SR	LFE
+		// 5.1 AIFF			FL	SL	FC	FR	SR	LFE
 		//
 		//  FL : Front Left
 		//  FC : Front Center

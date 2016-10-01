@@ -33,7 +33,9 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.util.StringUtil;
+import net.pms.util.SubtitleUtils;
 import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -318,25 +320,30 @@ public class RequestV2 extends HTTPResource {
 					}
 					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
-					// This is a request for a subtitle file
+					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 					if (sub != null) {
-						try {
-							// XXX external file is null if the first subtitle track is embedded:
-							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
-							if (sub.isExternal()) {
-								inputStream = new FileInputStream(sub.getExternalFile());
-								LOGGER.trace("Loading external subtitles: " + sub);
-							} else {
-								LOGGER.trace("Not loading external subtitles because they are not external: " + sub);
+						// XXX external file is null if the first subtitle track is embedded:
+						// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
+						if (sub.isExternal()) {
+							try {
+								if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
+									inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
+								} else {
+									inputStream = new FileInputStream(sub.getExternalFile());
+								}
+								LOGGER.trace("Loading external subtitles file: {}", sub);
+							} catch (IOException ioe) {
+								LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub, ioe.getMessage());
+								LOGGER.trace("", ioe);
 							}
-						} catch (NullPointerException npe) {
-							LOGGER.trace("Not loading external subtitles because we could not find them at " + sub);
+						} else {
+							LOGGER.trace("Not loading external subtitles file because it is embedded: {}", sub);
 						}
 					} else {
-						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle returned null");
+						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle() returned null");
 					}
 				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
@@ -647,7 +654,7 @@ public class RequestV2 extends HTTPResource {
 
 				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren");
 
-				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction.contains("ContentDirectory:1#Search")) {
 					browseDirectChildren = true;
 				}
 
@@ -770,7 +777,15 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());
-			output.headers().set("TIMEOUT", "Second-1800");
+
+			/**
+ 			 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
+ 			 * subscribed UPnP control points. The device must enforce a subscription
+ 			 * TIMEOUT value of 5 minutes.
+ 			 * The UPnP device behavior of enforcing this 5 minutes TIMEOUT value is
+ 			 * implemented by specifying "TIMEOUT: second-300" as an HTTP header/value pair.
+ 			 */
+			output.headers().set("TIMEOUT", "Second-300");
 
 			if (soapaction != null) {
 				String cb = soapaction.replace("<", "").replace(">", "");

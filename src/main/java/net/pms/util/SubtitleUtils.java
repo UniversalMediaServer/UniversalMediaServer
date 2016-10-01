@@ -622,4 +622,33 @@ public class SubtitleUtils {
 		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
 		return outputString.toString();
 	}
+
+	/**
+	 * Remove the (HTML) tags: {@code
+	 * <b> </b> <i> </i> <u> </u> <s> </s> <font *> </font>
+	 * } and any ASS tags <code>
+	 * {\*}
+	 * </code>
+	 * from subtitles file for renderers not capable of showing SubRip tags
+	 * correctly. * is used as a wildcard in the definition above.
+	 *
+	 * @param file the source subtitles
+	 * @return InputStream with converted subtitles.
+	 */
+	public static InputStream removeSubRipTags(File file) throws IOException {
+		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(file);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		Writer writer = new OutputStreamWriter(os, Charset.forName(CHARSET_UTF_8));
+		Pattern pattern = Pattern.compile("\\</?(?:b|i|s|u|font[^\\>]*)\\>|\\{\\\\.*?}|\\\\h|\\\\N");
+		String line;
+		while ((line = input.readLine()) != null) {
+			line = pattern.matcher(line).replaceAll("") + "\n";
+			writer.write(line);
+		}
+
+		writer.flush();
+		writer.close();
+		LOGGER.trace("Removed tags from subtitles file: \"{}\"", file.getName());
+		return new ByteArrayInputStream(os.toByteArray());
+	}
 }
