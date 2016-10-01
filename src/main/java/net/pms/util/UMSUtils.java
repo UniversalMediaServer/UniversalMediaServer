@@ -172,43 +172,26 @@ public class UMSUtils {
 	}
 
 	/**
-	 * Resizes a thumbnail based on the renderer configuration.
-	 *
-	 * JPEG_TN  size must not exceed 160x160 (horizontal * vertical)
-	 * JPEG_SM  size must not exceed 640x480
+	 * JPEG_TN   size must not exceed  160x160 (horizontal * vertical)
+	 * JPEG_SM   size must not exceed  640x480
 	 * JPEG_MED size must not exceed 1024x768
 	 * JPEG_LRG size must not exceed 4096x4096
-	 *
 	 * @param in
-	 * @param renderer
+	 * @param r
 	 * @return
 	 * @throws IOException
 	 */
-	public static InputStream scaleThumb(InputStream in, RendererConfiguration renderer) throws IOException {
-		return scaleThumb(in, renderer.getThumbSize(), renderer.getThumbBG());
+	@SuppressWarnings("deprecation")
+	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
+		return scaleThumb(in, r.getThumbSize(), r.getThumbBG());
 	}
-
-	/**
-	 * Resizes a thumbnail using the provided size and background.
-	 *
-	 * JPEG_TN  size must not exceed 160x160 (horizontal * vertical)
-	 * JPEG_SM  size must not exceed 640x480
-	 * JPEG_MED size must not exceed 1024x768
-	 * JPEG_LRG size must not exceed 4096x4096
-	 *
-	 * @param background
-	 * @param size
-	 * @param in
-	 * @return
-	 * @throws IOException
-	 */
 	public static InputStream scaleThumb(InputStream in, String size, String background) throws IOException {
 		if (in == null || (StringUtils.isEmpty(size) && StringUtils.isEmpty(background))) {
 			// no need to convert here
 			return in;
 		}
-		int outputWidth;
-		int outputHeight;
+		int w;
+		int h;
 		Color col = null;
 		BufferedImage img;
 		try {
@@ -222,31 +205,24 @@ public class UMSUtils {
 		if (img == null) {
 			return in;
 		}
-		outputWidth = img.getWidth();
-		outputHeight = img.getHeight();
+		w = img.getWidth();
+		h = img.getHeight();
 		if (StringUtils.isNotEmpty(size)) {
-			switch (size) {
-				case "TN":
-					size = "160x160";
-					break;
-				case "SM":
-					size = "640x480";
-					break;
-				case "MED":
-					size = "1024x768";
-					break;
-				case "LRG":
-					size = "4096x4096";
-					break;
-				default:
-					break;
-			}
-
+			if (size.equals("TN"))
+				size = "160x160";
+			else if (size.equals("SM"))
+				size = "640x480";
+			else if (size.equals("MED"))
+				size = "1024x768";
+			else if (size.equals("LRG"))
+				size = "4096x4096";
+			
 			// size limit thumbnail
-			outputWidth  = getHW(size.split("x"), 0);
-			outputHeight = getHW(size.split("x"), 1);
-			if (outputWidth == 0 || outputHeight == 0) {
+			w = getHW(size.split("x"), 0);
+			h = getHW(size.split("x"), 1);
+			if (w == 0 || h == 0) {
 				LOGGER.debug("bad thumb size {} skip scaling", size);
+//				w = h = 0; // just to make sure
 			}
 		}
 		if (StringUtils.isNotEmpty(background)) {
@@ -257,17 +233,17 @@ public class UMSUtils {
 				LOGGER.debug("bad color name " + background);
 			}
 		}
-		if (outputWidth == 0 || outputHeight == 0) {
+		if (w == 0 || h == 0) {
 			return in;
 		}
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		BufferedImage img1 = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_INT_RGB);
+		BufferedImage img1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = img1.createGraphics();
 		if (col != null) {
 			g.setColor(col);
 		}
-		g.fillRect(0, 0, outputWidth, outputHeight);
-		g.drawImage(img, 0, 0, outputWidth, outputHeight, null);
+		g.fillRect(0, 0, w, h);
+		g.drawImage(img, 0, 0, w, h, null);
 		ImageIO.write(img1, "jpeg", out);
 		out.flush();
 		return new ByteArrayInputStream(out.toByteArray());
