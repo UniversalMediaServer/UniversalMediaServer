@@ -183,10 +183,7 @@ public class RealFile extends MapFile implements Serializable {
 		File file = getFile();
 		if (file.isFile() && (getMedia() == null || !getMedia().isMediaparsed())) {
 			boolean found = false;
-			InputFile input = new InputFile();
-			input.setFile(file);
-			if (this instanceof IPushOutput)
-				input.setPush((IPushOutput) this);
+			InputFile input = getInputFile(file);
 			String fileName = getSystemName();//file.getAbsolutePath();
 			if (getSplitTrack() > 0) {
 				fileName += "#SplitTrack" + getSplitTrack();

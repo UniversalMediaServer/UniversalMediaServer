@@ -1256,8 +1256,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// medias = database.searchData("fileName", searchStr);
 			for (int i = 0; i < medias.size(); i++) {
 				DLNAMediaInfo mediaInfo = medias.get(i);
-				mediaInfo.setMediaparsed(true);
-				DLNAResource resource = new RealFile(mediaInfo);
+				File file = new File(mediaInfo.getFileName());
+				DLNAResource resource = new RealFile(file);
+				resource.setMedia(mediaInfo);
+				resource.getMedia().finalize(getType(), getInputFile(file));
+				
 				PMS.getGlobalRepo().add(resource);
 				resource.setPreferredMimeType(renderer);
 				resource.setParent(container);
@@ -4523,5 +4526,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 		return result;
+	}
+
+	protected InputFile getInputFile(File file) {
+		InputFile input = new InputFile();
+		input.setFile(file);
+		if (this instanceof IPushOutput)
+			input.setPush((IPushOutput) this);
+		return input;
 	}
 }
