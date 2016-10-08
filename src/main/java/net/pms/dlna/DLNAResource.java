@@ -2302,7 +2302,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *            Media Renderer for which to represent this information. Useful
 	 *            for some hacks.
 	 * @return String representing the item. An example would start like this:
-	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
+	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="1">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		// Use device-specific pms conf, if any
@@ -2357,7 +2357,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		addAttribute(sb, "parentID", id);
-		addAttribute(sb, "restricted", "true");
+		addAttribute(sb, "restricted", "1");
 		endTag(sb);
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
