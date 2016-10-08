@@ -703,7 +703,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(5, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
 				ps.setString(6, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
 				ps.setBoolean(7, media.isTVEpisode());
-				LOGGER.info("Inserting isTVEpisode to database: " + media.isTVEpisode() + " for: " + media.getMovieOrShowName() + " " + media.getTVEpisodeNumber());
+				LOGGER.trace("Inserting isTVEpisode to database: " + media.isTVEpisode() + " for: " + media.getMovieOrShowName() + " " + media.getTVEpisodeNumber());
 			} else {
 				ps.setString(1, null);
 				ps.setString(2, null);

@@ -673,7 +673,7 @@ public class FileUtil {
 			}
 			formattedName += " " + edition;
 		}
-		LOGGER.info("11: " + Arrays.toString(new String[] { movieOrShowName, year, edition, tvSeason, tvEpisodeNumber, tvEpisodeName }));
+
 		return new String[] { movieOrShowName, year, edition, tvSeason, tvEpisodeNumber, tvEpisodeName };
 	}
 
