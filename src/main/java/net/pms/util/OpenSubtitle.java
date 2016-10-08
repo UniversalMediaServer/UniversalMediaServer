@@ -454,7 +454,13 @@ public class OpenSubtitle {
 				public void run() {
 					String[] metadataFromOpenSubtitles;
 					try {
-						LOGGER.info("Looking up " + file.getName());
+						// Set this to true to get huge logspam in INFO mode to help with visibility of accuracy of OpenSubtitles data
+						boolean overTheTopLogging = false;
+
+						if (overTheTopLogging) {
+							LOGGER.info("Looking up " + file.getName());
+						}
+
 						metadataFromOpenSubtitles = getInfo(file, file.getName(), media);
 						boolean isMetadataSet = false;
 						String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
@@ -472,7 +478,9 @@ public class OpenSubtitle {
 							 * validate it against the data extracted from the filename.
 							 * This is because sometimes OpenSubtitles reports incorrect data.
 							 */
-							LOGGER.info("Found " + file.getName() + " : " + metadataFromOpenSubtitles[2]);
+							if (overTheTopLogging) {
+								LOGGER.info("Found " + file.getName() + " : " + metadataFromOpenSubtitles[2]);
+							}
 
 							String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
 							String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
@@ -533,7 +541,11 @@ public class OpenSubtitle {
 											if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
 												media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
 											}
-											LOGGER.info("1 Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
+
+											if (overTheTopLogging) {
+												LOGGER.info("Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
+											}
+
 											media.setIsTVEpisode(true);
 										}
 										isMetadataSet = true;
@@ -554,7 +566,11 @@ public class OpenSubtitle {
 								if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
 									media.setTVEpisodeName(tvEpisodeNameFromFilename);
 								}
-								LOGGER.info("2 Setting is TV episode true for " + titleFromFilename + " " + tvEpisodeNumberFromFilename);
+
+								if (overTheTopLogging) {
+									LOGGER.info("Setting is TV episode true for " + titleFromFilename + " " + tvEpisodeNumberFromFilename);
+								}
+
 								media.setIsTVEpisode(true);
 							}
 							if (yearFromFilename != null) {
@@ -564,7 +580,11 @@ public class OpenSubtitle {
 								media.setEdition(editionFromFilename);
 							}
 						}
-LOGGER.info("3 Getting is TV episode for " + titleFromFilename + " " + tvEpisodeNumberFromFilename + ": " + media.isTVEpisode());
+
+						if (overTheTopLogging) {
+							LOGGER.info("Getting is TV episode for " + titleFromFilename + " " + tvEpisodeNumberFromFilename + ": " + media.isTVEpisode());
+						}
+
 						PMS.get().storeOpenSubtitlesMetadataInCache(file, Format.VIDEO, media);
 					} catch (IOException ex) {
 						// This will happen regularly so just log it in trace mode
