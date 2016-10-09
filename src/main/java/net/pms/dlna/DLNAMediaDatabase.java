@@ -445,15 +445,6 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
 				media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
 				media.setIsTVEpisode(rs.getBoolean("ISTVEPISODE"));
-				LOGGER.info("Returning from database:");
-				LOGGER.info("IMDBID: " + rs.getString("IMDBID"));
-				LOGGER.info("YEAR: " + rs.getString("YEAR"));
-				LOGGER.info("MOVIEORSHOWNAME: " + rs.getString("MOVIEORSHOWNAME"));
-				LOGGER.info("TVSEASON: " + rs.getString("TVSEASON"));
-				LOGGER.info("TVEPISODENUMBER: " + rs.getString("TVEPISODENUMBER"));
-				LOGGER.info("TVEPISODENAME: " + rs.getString("TVEPISODENAME"));
-				LOGGER.info("ISTVEPISODE: " + rs.getBoolean("ISTVEPISODE"));
-				LOGGER.info("");
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
