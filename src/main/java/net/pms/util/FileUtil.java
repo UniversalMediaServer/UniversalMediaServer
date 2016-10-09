@@ -687,10 +687,11 @@ public class FileUtil {
 	 * @return the converted string
 	 */
 	public static String convertLowerCaseStringToTitleCase(String value) {
+		value = value.trim();
 		String convertedValue = "";
 		boolean loopedOnce = false;
 
-		for (String word : value.split(" ")) {
+		for (String word : value.split("\\s+")) {
 			if (loopedOnce) {
 				switch (word) {
 					case "a":
@@ -712,8 +713,8 @@ public class FileUtil {
 			} else {
 				// Always capitalize the first letter of the string
 				convertedValue += word.substring(0, 1).toUpperCase() + word.substring(1);
+				loopedOnce = true;
 			}
-			loopedOnce = true;
 		}
 
 		return convertedValue;
