@@ -506,7 +506,7 @@ public class OpenSubtitle {
 								 * This means we get proper case and special characters without worrying about
 								 * incorrect results being used.
 								 */
-								double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(metadataFromFilename[0], titleFromOpenSubtitles);
+								double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, titleFromOpenSubtitles);
 								LOGGER.trace("The similarity between '" + titleFromOpenSubtitles + "' and '" + titleFromFilename + "' is " + similarity);
 								if (similarity > 0.91) {
 									/**
@@ -559,8 +559,20 @@ public class OpenSubtitle {
 							 * We don't have a good match from OpenSubtitles, so apply the metadata from
 							 * the filename.
 							 */
-							media.setMovieOrShowName(titleFromFilename);
+							String titleToSave = titleFromFilename;
 							if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
+								String titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+								if (overTheTopLogging) {
+									LOGGER.info("titleFromDatabase: " + titleFromDatabase);
+									LOGGER.info("titleFromFilename: " + titleFromFilename);
+								}
+								if (!"".equals(titleFromDatabase)) {
+									double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, titleFromDatabase);
+									LOGGER.trace("The similarity between '" + titleFromDatabase + "' and '" + titleFromFilename + "' is " + similarity);
+									if (similarity > 0.91) {
+										titleToSave = titleFromDatabase;
+									}
+								}
 								media.setTVSeason(tvSeasonFromFilename);
 								media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
 								if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
@@ -573,6 +585,9 @@ public class OpenSubtitle {
 
 								media.setIsTVEpisode(true);
 							}
+
+							media.setMovieOrShowName(titleToSave);
+
 							if (yearFromFilename != null) {
 								media.setYear(yearFromFilename);
 							}

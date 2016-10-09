@@ -1320,6 +1320,26 @@ public class PMS {
 	}
 
 	/**
+	 * Returns a similar TV series name from the database.
+	 *
+	 * This prevents "Word of the Word" and "Word Of The Word" from being
+	 * seen as different shows.
+	 *
+	 * @param title
+	 * @return 
+	 */
+	public String getSimilarTVSeriesName(String title) {
+		if (getConfiguration().getUseCache()) {
+			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND LOWER(MOVIEORSHOWNAME) LIKE LOWER('%" + title + "%')");
+			if (titleList.size() > 0) {
+				return titleList.get(0);
+			}
+		}
+
+		return "";
+	}
+
+	/**
 	 * Retrieves the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
 	 * that contains all configured settings for PMS. The object provides getters for all
 	 * configurable PMS settings.
