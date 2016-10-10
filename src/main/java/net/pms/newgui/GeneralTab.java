@@ -540,7 +540,7 @@ public class GeneralTab {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						WindowsUtil.uninstallWin32Service();
-						LOGGER.info(Messages.getString("GeneralTab.3"));
+						LOGGER.info("Uninstalled UMS Windows service");
 
 						// Refresh the button state after it has been clicked
 						refreshInstallServiceButtonState();
@@ -568,7 +568,7 @@ public class GeneralTab {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (WindowsUtil.installWin32Service()) {
-							LOGGER.info(Messages.getString("PMS.41"));
+							LOGGER.info("Installed UMS Windows service");
 
 							// Refresh the button state after it has been clicked
 							refreshInstallServiceButtonState();

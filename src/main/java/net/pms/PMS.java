@@ -924,10 +924,16 @@ public class PMS {
 
 			if (file.exists()) {
 				if (!file.isDirectory()) {
-					LOGGER.warn("The file " + folder + " is not a directory! Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
+					LOGGER.warn(
+						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+						folder,  Messages.getString("LooksFrame.22")
+					);
 				}
 			} else {
-				LOGGER.warn("The directory " + folder + " does not exist. Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
+				LOGGER.warn(
+					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+					folder,  Messages.getString("LooksFrame.22")
+				);
 			}
 
 			// add the file even if there are problems so that the user can update the shared folders as required.
@@ -1381,7 +1387,7 @@ public class PMS {
 		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
-		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
+		LOGGER.info("Memory: {} MB", memoryInMB);
 		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("");
 
