@@ -905,6 +905,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
+				} else if (renderer.isH264Level41Limited() && media.isH264()) {
+					if (media.getAvcLevel() != null) {
+						double h264Level = 4.1;
+
+						try {
+							h264Level = Double.parseDouble(media.getAvcLevel());
+						} catch (NumberFormatException e) {
+							LOGGER.trace("Could not convert {} to double: {}", media.getAvcLevel(), e.getMessage());
+						}
+
+						if (h264Level > 4.1) {
+							isIncompatible = true;
+							LOGGER.trace(prependTraceReason + "the H.264 level ({}) is not supported.", getName(), h264Level);
+						}
+					} else {
+						isIncompatible = true;
+						LOGGER.trace(prependTraceReason + "the H.264 level is unknown.", getName());
+					}
 				}
 			}
 
@@ -2327,8 +2345,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
-				} else if (subsAreValidForStreaming) {
-					LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
 				} else {
 					LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
 				}

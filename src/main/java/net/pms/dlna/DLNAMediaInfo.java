@@ -1325,6 +1325,11 @@ public class DLNAMediaInfo implements Cloneable {
 		ffmpegparsed = true;
 	}
 
+	/**
+	 * Whether the file contains H.264 (AVC) video.
+	 *
+	 * @return {boolean}
+	 */
 	public boolean isH264() {
 		return codecV != null && codecV.startsWith("h264");
 	}
