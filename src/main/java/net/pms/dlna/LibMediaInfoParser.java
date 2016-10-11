@@ -148,6 +148,11 @@ public class LibMediaInfoParser {
 								LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
 							}
 						}
+
+						value = MI.Get(video, i, "Format_Profile");
+						if (!value.isEmpty()) {
+							media.setAvcLevel(getAvcLevel(value));
+						}
 					}
 				}
 				OpenSubtitle.backgroundLookupAndAdd(file, file.getName(), media);

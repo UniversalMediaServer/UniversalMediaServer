@@ -320,30 +320,30 @@ public class RequestV2 extends HTTPResource {
 					}
 					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
-					// This is a request for a subtitle file
+					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 					if (sub != null) {
-						try {
-							// XXX external file is null if the first subtitle track is embedded:
-							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
-							if (sub.isExternal()) {
+						// XXX external file is null if the first subtitle track is embedded:
+						// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
+						if (sub.isExternal()) {
+							try {
 								if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
-									inputStream = new FileInputStream(SubtitleUtils.removeTagsFromSubs(sub.getExternalFile()));
+									inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
 								} else {
 									inputStream = new FileInputStream(sub.getExternalFile());
 								}
-								
-								LOGGER.trace("Loading external subtitles: " + sub);
-							} else {
-								LOGGER.trace("Requested subtitles are not external: " + sub);
+								LOGGER.trace("Loading external subtitles file: {}", sub);
+							} catch (IOException ioe) {
+								LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub, ioe.getMessage());
+								LOGGER.trace("", ioe);
 							}
-						} catch (IOException ioe) {
-							LOGGER.trace("Problem to load external subtitles " + sub);
+						} else {
+							LOGGER.trace("Not loading external subtitles file because it is embedded: {}", sub);
 						}
 					} else {
-						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle returned null");
+						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle() returned null");
 					}
 				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
@@ -654,7 +654,7 @@ public class RequestV2 extends HTTPResource {
 
 				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren");
 
-				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction.contains("ContentDirectory:1#Search")) {
 					browseDirectChildren = true;
 				}
 

@@ -624,26 +624,31 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Remove tags like <"b"> <"/b"> {b} {/b} <"i"> <"/i"> {i} {/i} <"u"> <"/u"> {u} {/u} <"/font> <"font color="....">
-	 * from subtitles file for renderer not capable to show that tags correctly.
+	 * Remove the (HTML) tags: {@code
+	 * <b> </b> <i> </i> <u> </u> <s> </s> <font *> </font>
+	 * } and any ASS tags <code>
+	 * {\*}
+	 * </code>
+	 * from subtitles file for renderers not capable of showing SubRip tags
+	 * correctly. * is used as a wildcard in the definition above.
 	 *
 	 * @param file the source subtitles
-	 * @return Temporary file with the converted subtitles. This file will be deleted when the UMS will be stopped.
+	 * @return InputStream with converted subtitles.
 	 */
-	public static File removeTagsFromSubs(File file) throws IOException {
+	public static InputStream removeSubRipTags(File file) throws IOException {
 		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(file);
-		File tempSubs = new File(configuration.getTempFolder(), file.getName());
-		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempSubs), Charset.forName(CHARSET_UTF_8)));
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		Writer writer = new OutputStreamWriter(os, Charset.forName(CHARSET_UTF_8));
+		Pattern pattern = Pattern.compile("\\</?(?:b|i|s|u|font[^\\>]*)\\>|\\{\\\\.*?}|\\\\h|\\\\N");
 		String line;
 		while ((line = input.readLine()) != null) {
-			line = line.replaceAll("\\<[bisu]>|\\<font.*?>|\\</.*?>|\\{[bisu]}|\\{\\\\an.*?}|\\{/.*?}","") + "\n";
-			output.write(line);
+			line = pattern.matcher(line).replaceAll("") + "\n";
+			writer.write(line);
 		}
 
-		LOGGER.trace("Removed tags from subtitles file: " + file.getName());
-		output.flush();
-		output.close();
-		tempSubs.deleteOnExit();
-		return tempSubs;
+		writer.flush();
+		writer.close();
+		LOGGER.trace("Removed tags from subtitles file: \"{}\"", file.getName());
+		return new ByteArrayInputStream(os.toByteArray());
 	}
 }
