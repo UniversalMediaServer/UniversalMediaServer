@@ -25,7 +25,6 @@ public class SearchAction extends VirtualFolder {
 		return getResourceInputStream("images/Play1Hot_120.jpg");
 	}
 
-	@Override
 	public synchronized void resolve() {
 		setDiscovered(false);  // we can't clear this enough
 	}

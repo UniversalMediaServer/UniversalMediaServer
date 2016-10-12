@@ -84,69 +84,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * The suffix added to the name. Contains additional info about audio and subtitles.
 	 */
 	private String nameSuffix = "";
-
-	/**
-	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
-	 */
-	@Deprecated
-	protected static final String TRANSCODE_FOLDER = Messages.getString("TranscodeVirtualFolder.0"); // localized #--TRANSCODE--#
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected int specificType;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected String id;
+	private static final String TRANSCODE_FOLDER = Messages.getString("TranscodeVirtualFolder.0"); // localized #--TRANSCODE--#
+	private int specificType;
+	private String id;
 	protected String pathId;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected DLNAResource parent;
-
-	/**
-	 * @deprecated This field will be removed. Use {@link #getFormat()} and
-	 * {@link #setFormat(Format)} instead.
-	 */
-	@Deprecated
-	protected Format ext;
+	private DLNAResource parent;
+	private Format ext;
 
 	/**
 	 * The format of this resource.
 	 */
 	private Format format;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected DLNAMediaInfo media;
-
-	/**
-	 * @deprecated Use {@link #getMediaAudio()} and {@link
-	 * #setMediaAudio(DLNAMediaAudio)} to access this field.
-	 */
-	@Deprecated
-	protected DLNAMediaAudio media_audio;
-
-	/**
-	 * @deprecated Use {@link #getMediaSubtitle()} and {@link
-	 * #setMediaSubtitle(DLNAMediaSubtitle)} to access this field.
-	 */
-	@Deprecated
-	protected DLNAMediaSubtitle media_subtitle;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected long lastmodified; // TODO make private and rename lastmodified -> lastModified
+	private DLNAMediaInfo media;
+	private DLNAMediaAudio media_audio;
+	private DLNAMediaSubtitle media_subtitle;
+	private long lastmodified; // TODO make private and rename lastmodified -> lastModified
 
 	/**
 	 * Represents the transformation to be used to the file. If null, then
@@ -154,121 +106,35 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @see Player
 	 */
 	private Player player;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected boolean discovered = false;
-
+	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
-
-	/**
-	 * @deprecated Use #hasExternalSubtitles()
-	 */
-	@Deprecated
-	protected boolean srtFile;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected boolean hasExternalSubtitles;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected int updateId = 1;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	public static int systemUpdateId = 1;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected boolean noName;
-
+	private boolean srtFile;
+	private boolean hasExternalSubtitles;
+	private int updateId = 1;
+	private static int systemUpdateId = 1;
+	private boolean noName;
 	private int nametruncate;
 	private DLNAResource first;
 	private DLNAResource second;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 *
-	 * The time range for the file containing the start and end time in seconds.
-	 */
-	@Deprecated
-	protected Range.Time splitRange = new Range.Time();
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected int splitTrack;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected String fakeParentId;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	// Ditlew - needs this in one of the derived classes
-	@Deprecated
-	protected RendererConfiguration defaultRenderer;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected boolean avisynth;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 */
-	@Deprecated
-	protected boolean skipTranscode = false;
-
+	private Range.Time splitRange = new Range.Time();
+	private int splitTrack;
+	private String fakeParentId;
+	private RendererConfiguration defaultRenderer;
+	private boolean avisynth;
+	private boolean skipTranscode = false;
 	private boolean allChildrenAreFolders = true;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 *
-	 * List of children objects associated with this DLNAResource. This is only valid when the DLNAResource is of the container type.
-	 */
-	@Deprecated
-	protected DLNAList children;
+	private DLNAList children;
 	//protected List<DLNAResource> children;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 *
 	 * The numerical ID (1-based index) assigned to the last child of this folder. The next child is assigned this ID + 1.
 	 */
-	// FIXME should be lastChildId
-	@Deprecated
-	protected int lastChildrenId = 0; // XXX make private and rename lastChildrenId -> lastChildId
-
-	/**
-	 * @deprecated Use standard getter and setter to access this field.
-	 *
-	 * The last time refresh was called.
-	 */
-	@Deprecated
-	protected long lastRefreshTime;
+	private int lastChildId = 0;
+	private long lastRefreshTime;
 
 	@SuppressWarnings("unused")
 	private String lastSearch;
-
 	private VirtualFolder dynamicPls;
-
 	protected HashMap<String, Object> attachments = null;
 
 	/**
@@ -559,8 +425,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (cobj == null || !((CodeEnter) cobj).getCode().equals(code)) {
 					LOGGER.debug("Resource " + child + " is coded add code folder");
 					CodeEnter ce = new CodeEnter(child);
-					ce.parent = this;
-					ce.defaultRenderer = this.getDefaultRenderer();
+					ce.setParent(this);
+					ce.setDefaultRenderer(this.getDefaultRenderer());
 					ce.setCode(code);
 					addChildInternal(ce);
 					return;
@@ -1506,10 +1372,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		resolve();
 	}
 
-	/**
-	 * @deprecated Use {@link #syncResolve()} instead
-	 */
-	public void resolve() {
+	protected void resolve() {
 		if (!resolved) {
 			resolveOnce();
 			// if resolve() isn't overridden, this file/folder is immutable
@@ -3577,44 +3440,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @Deprecated use {@link #hasExternalSubtitles()} instead
-	 */
-	@Deprecated
-	protected boolean isSrtFile() {
-		return hasExternalSubtitles();
-	}
-
-	/**
-	 * @Deprecated use {@link #hasExternalSubtitles()} instead
-	 */
-	@Deprecated
-	protected boolean isSubsFile() {
-		return hasExternalSubtitles();
-	}
-
-	/**
 	 * Whether this resource has external subtitles.
 	 *
 	 * @return whether this resource has external subtitles
 	 */
 	protected boolean hasExternalSubtitles() {
 		return hasExternalSubtitles;
-	}
-
-	/**
-	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
-	 */
-	@Deprecated
-	protected void setSrtFile(boolean srtFile) {
-		setHasExternalSubtitles(srtFile);
-	}
-
-	/**
-	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
-	 */
-	@Deprecated
-	protected void setSubsFile(boolean srtFile) {
-		setHasExternalSubtitles(srtFile);
 	}
 
 	/**
@@ -3828,7 +3659,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.80.0
 	 */
 	protected int getLastChildId() {
-		return lastChildrenId;
+		return lastChildId;
 	}
 
 	/**
@@ -3846,7 +3677,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.80.0
 	 */
 	protected void setLastChildId(int lastChildId) {
-		this.lastChildrenId = lastChildId;
+		this.lastChildId = lastChildId;
 	}
 
 	/**

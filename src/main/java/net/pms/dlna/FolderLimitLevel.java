@@ -32,7 +32,6 @@ public class FolderLimitLevel extends VirtualFolder {
 		}
 	}
 
-	@Override
 	public synchronized void resolve() {
 		this.setDiscovered(false);
 		this.getChildren().clear();

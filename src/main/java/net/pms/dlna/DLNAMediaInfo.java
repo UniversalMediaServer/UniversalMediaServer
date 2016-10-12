@@ -89,81 +89,36 @@ public class DLNAMediaInfo implements Cloneable {
 
 	// Stored in database
 	private Double durationSec;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int bitrate;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int width;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int height;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public long size;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String codecV;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String frameRate;
-
+	private int bitrate;
+	private int width;
+	private int height;
+	private long size;
+	private String codecV;
+	private String frameRate;
 	private String frameRateMode;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String aspect;
-
+	private String aspect;
 	public String aspectRatioDvdIso;
 	public String aspectRatioContainer;
 	public String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
-
 	private byte thumb[];
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String mimeType;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int bitsPerPixel;
-
+	private String mimeType;
+	private int bitsPerPixel;
 	private final ReentrantReadWriteLock referenceFrameCountLock = new ReentrantReadWriteLock();
 	private byte referenceFrameCount = -1;
-
 	private final ReentrantReadWriteLock avcLevelLock = new ReentrantReadWriteLock();
 	private String avcLevel = null;
-
 	private final Object h264ProfileLock = new Object();
 	private String h264Profile = null;
-
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
+	private String model;
+	private int exposure;
+	private int orientation;
+	private int iso;
+	private String muxingMode;
+	private String muxingModeAudio;
+	private String container;
 
 	private boolean externalSubsExist = false;
 
@@ -185,124 +140,33 @@ public class DLNAMediaInfo implements Cloneable {
 		return externalSubsParsed;
 	}
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String model;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int exposure;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int orientation;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int iso;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String muxingMode;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String muxingModeAudio;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String container;
-
 	private final Object h264_annexBLock = new Object();
 	private byte[] h264_annexB;
-
-	/**
-	 * Not stored in database.
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public boolean mediaparsed;
+	private boolean mediaparsed;
 
 	public boolean ffmpegparsed;
 
 	/**
 	 * isUseMediaInfo-related, used to manage thumbnail management separated
 	 * from the main parsing process.
-	 *
-	 * @deprecated Use standard getter and setter to access this variable.
 	 */
-	@Deprecated
-	public boolean thumbready;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int dvdtrack;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public boolean secondaryFormatValid = true;
-
+	private boolean thumbready;
+	private int dvdtrack;
+	private boolean secondaryFormatValid = true;
 	private final Object parsingLock = new Object();
 	private boolean parsing = false;
-
 	private final Object ffmpeg_failureLock = new Object();
 	private boolean ffmpeg_failure = false;
-
 	private final Object ffmpeg_annexb_failureLock = new Object();
 	private boolean ffmpeg_annexb_failure;
 	private boolean muxable;
 	private Map<String, String> extras;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public boolean encrypted;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String matrixCoefficients;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String stereoscopy;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String fileTitleFromMetadata;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String videoTrackTitleFromMetadata;
-
+	private boolean encrypted;
+	private String matrixCoefficients;
+	private String stereoscopy;
+	private String fileTitleFromMetadata;
+	private String videoTrackTitleFromMetadata;
 	private boolean gen_thumb;
-
 	private int videoTrackCount = 0;
 	private int imageCount = 0;
 
