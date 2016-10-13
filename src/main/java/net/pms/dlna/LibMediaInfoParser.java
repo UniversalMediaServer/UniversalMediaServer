@@ -149,6 +149,11 @@ public class LibMediaInfoParser {
 								}
 							}
 						}
+
+						value = MI.Get(video, i, "Format_Profile");
+						if (!value.isEmpty()) {
+							media.setAvcLevel(getAvcLevel(value));
+						}
 					}
 				}
 
