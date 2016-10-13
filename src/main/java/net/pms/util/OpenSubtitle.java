@@ -473,18 +473,21 @@ public class OpenSubtitle {
 						String tvEpisodeNameFromFilename   = metadataFromFilename[5];
 
 						if (metadataFromOpenSubtitles != null) {
+							String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
+							String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
+							String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
+							if (tvEpisodeNumberFromOpenSubtitles.length() == 1) {
+								tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
+							}
+
 							/**
 							 * We have data from OpenSubtitles, but before storing it in our database we
 							 * validate it against the data extracted from the filename.
 							 * This is because sometimes OpenSubtitles reports incorrect data.
 							 */
 							if (overTheTopLogging) {
-								LOGGER.info("Found " + file.getName() + " : " + metadataFromOpenSubtitles[2]);
+								LOGGER.info("Found " + file.getName() + " : " + titleFromOpenSubtitles);
 							}
-
-							String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
-							String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
-							String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
 
 							/**
 							 * Proceed if the years match, or if there is no year then try the movie/show name.
