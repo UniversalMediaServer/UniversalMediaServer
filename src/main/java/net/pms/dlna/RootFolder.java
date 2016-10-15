@@ -153,8 +153,10 @@ public class RootFolder extends DLNAResource {
 		/**
 		 * Changes to monitored folders trigger a rescan
 		 */
-		for (DLNAResource r : getConfiguredFolders(tags)) {
-			FileWatcher.add(new FileWatcher.Watch(r.getSystemName(), LIBRARY_RESCANNER));
+		if (PMS.getConfiguration().getUseCache()) {
+			for (DLNAResource r : getConfiguredFolders(tags, true)) {
+				FileWatcher.add(new FileWatcher.Watch(r.getSystemName(), LIBRARY_RESCANNER));
+			}
 		}
 
 		for (DLNAResource r : getVirtualFolders(tags)) {
