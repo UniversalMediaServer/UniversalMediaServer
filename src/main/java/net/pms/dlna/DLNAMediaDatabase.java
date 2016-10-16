@@ -31,6 +31,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.h2.engine.Constants;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -712,6 +714,47 @@ public class DLNAMediaDatabase implements Runnable {
 			} else {
 				LOGGER.error(null, se);
 			}
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	/**
+	 * Updates a column in the FILES table.
+	 *
+	 * @param newValue the value to insert
+	 * @param oldValue the value to match
+	 * @param column   the column to update
+	 * @param size     the maximum size of the data
+	 */
+	public synchronized void updateColumnInFilesTable(String newValue, String oldValue, String column, int size) {
+		if (
+			StringUtils.isEmpty(newValue) ||
+			StringUtils.isEmpty(oldValue) ||
+			StringUtils.isEmpty(column) ||
+			size < 1
+		) {
+			return;
+		}
+
+		// Sanitize values
+		newValue = StringEscapeUtils.escapeSql(newValue);
+		oldValue = StringEscapeUtils.escapeSql(oldValue);
+
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = getConnection();
+			ps = conn.prepareStatement("UPDATE FILES SET ? = ? WHERE ? = ?");
+			ps.setString(1, column);
+			ps.setString(2, left(newValue, size));
+			ps.setString(3, column);
+			ps.setString(4, oldValue);
+			LOGGER.trace("Updating column " + column + " in database from: " + oldValue + " to: " + newValue);
+			ps.executeUpdate();
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
 		} finally {
 			close(ps);
 			close(conn);

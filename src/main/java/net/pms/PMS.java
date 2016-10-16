@@ -70,6 +70,7 @@ import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
@@ -1326,6 +1327,16 @@ public class PMS {
 	}
 
 	/**
+	 * Updates the name of a TV series for existing entries in the database.
+	 *
+	 * @param newName
+	 * @param oldName 
+	 */
+	public void updateTVSeriesName(String newName, String oldName) {
+		getDatabase().updateColumnInFilesTable(newName, oldName, "MOVIEORSHOWNAME", 255);
+	}
+
+	/**
 	 * Returns a similar TV series name from the database.
 	 *
 	 * This prevents "Word of the Word" and "Word Of The Word" from being
@@ -1335,6 +1346,8 @@ public class PMS {
 	 * @return 
 	 */
 	public String getSimilarTVSeriesName(String title) {
+		title = StringEscapeUtils.escapeSql(title);
+
 		if (getConfiguration().getUseCache()) {
 			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND LOWER(MOVIEORSHOWNAME) LIKE LOWER('%" + title + "%')");
 			if (titleList.size() > 0) {

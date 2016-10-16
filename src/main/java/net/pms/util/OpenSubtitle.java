@@ -27,6 +27,7 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -472,6 +473,9 @@ public class OpenSubtitle {
 						String tvEpisodeNumberFromFilename = metadataFromFilename[4];
 						String tvEpisodeNameFromFilename   = metadataFromFilename[5];
 
+						String titleToSave = titleFromFilename;
+						String titleFromDatabase;
+
 						if (metadataFromOpenSubtitles != null) {
 							String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
 							String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
@@ -479,6 +483,8 @@ public class OpenSubtitle {
 							if (tvEpisodeNumberFromOpenSubtitles.length() == 1) {
 								tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
 							}
+
+							titleToSave = titleFromOpenSubtitles;
 
 							/**
 							 * We have data from OpenSubtitles, but before storing it in our database we
@@ -510,7 +516,7 @@ public class OpenSubtitle {
 								 * incorrect results being used.
 								 */
 								double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, titleFromOpenSubtitles);
-								LOGGER.trace("The similarity between '" + titleFromOpenSubtitles + "' and '" + titleFromFilename + "' is " + similarity);
+								LOGGER.trace("The similarity between titleFromOpenSubtitles: '" + titleFromOpenSubtitles + "' and titleFromFilename: '" + titleFromFilename + "' is " + similarity);
 								if (similarity > 0.91) {
 									/**
 									 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
@@ -532,8 +538,31 @@ public class OpenSubtitle {
 											StringUtils.isBlank(tvEpisodeNumberFromFilename)
 										)
 									) {
+										titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+										if (overTheTopLogging) {
+											LOGGER.info("titleFromDatabase: " + titleFromDatabase);
+											LOGGER.info("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
+										}
+
+										/**
+										 * If there is a title from the database and it is not exactly the same as the
+										 * one from OpenSubtitles, continue to see if we want to change that to make
+										 * them all consistent.
+										 */
+										if (!"".equals(titleFromDatabase) && !titleFromOpenSubtitles.equals(titleFromDatabase)) {
+											similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromOpenSubtitles, titleFromDatabase);
+											LOGGER.trace("The similarity between titleFromDatabase: '" + titleFromDatabase + "' and titleFromOpenSubtitles: '" + titleFromOpenSubtitles + "' is " + similarity);
+											if (similarity > 0.91) {
+												/**
+												 * Replace our close-but-not-exact title in the database with the title from
+												 * OpenSubtitles.
+												 */
+												PMS.get().updateTVSeriesName(titleFromOpenSubtitles, titleFromDatabase);
+											}
+										}
+
 										media.setIMDbID(metadataFromOpenSubtitles[0]);
-										media.setMovieOrShowName(titleFromOpenSubtitles);
+										media.setMovieOrShowName(titleToSave);
 										media.setYear(metadataFromOpenSubtitles[5]);
 										media.setEdition(editionFromFilename);
 
@@ -562,9 +591,8 @@ public class OpenSubtitle {
 							 * We don't have a good match from OpenSubtitles, so apply the metadata from
 							 * the filename.
 							 */
-							String titleToSave = titleFromFilename;
 							if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
-								String titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
 								if (overTheTopLogging) {
 									LOGGER.info("titleFromDatabase: " + titleFromDatabase);
 									LOGGER.info("titleFromFilename: " + titleFromFilename);
@@ -600,7 +628,7 @@ public class OpenSubtitle {
 						}
 
 						if (overTheTopLogging) {
-							LOGGER.info("Getting is TV episode for " + titleFromFilename + " " + tvEpisodeNumberFromFilename + ": " + media.isTVEpisode());
+							LOGGER.info("Getting is TV episode for " + titleToSave + " " + tvEpisodeNumberFromFilename + ": " + media.isTVEpisode());
 						}
 
 						PMS.get().storeOpenSubtitlesMetadataInCache(file, Format.VIDEO, media);
