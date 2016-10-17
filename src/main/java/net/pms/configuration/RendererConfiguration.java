@@ -354,7 +354,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (result.toString().equals("")) {
 			result.append("None");
 		}
-		configuration.setProperty(key, result);
+		configuration.setProperty(key, result.toString());
 	}
 
 	public Color getColor(String key, String defaultValue) {
