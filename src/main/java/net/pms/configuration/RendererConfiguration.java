@@ -2190,25 +2190,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * 				otherwise.
 	 */
 	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format) {
+
+		PmsConfiguration configuration = PMS.getConfiguration(this);
+		if (configuration == null) {
+			LOGGER.error("Can't find configuration in isCompatible()");
+			return false;
+		}
+
+		if (format != null && format.skip(configuration.getDisableTranscodeForExtensions())) {
+			return true;
+		}
+
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
 		if (isUseMediaInfo() && mediainfo != null && getFormatConfiguration().match(mediainfo) != null) {
 			return true;
 		}
 
-		if (format != null) {
-			String noTranscode = "";
-
-			if (PMS.getConfiguration(this) != null) {
-				noTranscode = PMS.getConfiguration(this).getDisableTranscodeForExtensions();
-			}
-
-			// Is the format among the ones to be streamed?
-			return format.skip(noTranscode, getStreamedExtensions());
-		} else {
-			// Not natively supported.
-			return false;
-		}
+		return format != null ? format.skip(getStreamedExtensions()) : false;
 	}
 
 	public int getAutoPlayTmo() {
