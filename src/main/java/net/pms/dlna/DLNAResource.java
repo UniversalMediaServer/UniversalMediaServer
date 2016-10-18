@@ -605,21 +605,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (child.format != null) {
-					String configurationSkipExtensions = configuration.getDisableTranscodeForExtensions();
-					String rendererSkipExtensions = null;
-
-					if (defaultRenderer != null) {
-						rendererSkipExtensions = defaultRenderer.getStreamedExtensions();
-					}
-
-					// Should transcoding be skipped for this format?
-					boolean skip = child.format.skip(configurationSkipExtensions, rendererSkipExtensions);
-					skipTranscode = skip;
-
-					if (skip) {
-						LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", child.getName());
-					}
-
 					// Determine transcoding possibilities if either
 					//    - the format is known to be transcodable
 					//    - we have media info (via parserV2, playback info, or a plugin)
@@ -809,6 +794,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return resolvedPlayer;
 		}
 
+		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
+		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
+
+		// Should transcoding be skipped for this format?
+		boolean skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
+		setSkipTranscode(skipTranscode); // Hard to see the point in doing this, but assuming some plugins rely on this information.
+
+		if (skipTranscode) {
+			LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", getName());
+			return null;
+		}
+
+
 		// Try to match a player based on media information and format.
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
@@ -852,7 +850,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								media_subtitle.setSubsStreamable(true);
 								LOGGER.trace("This video has external subtitles that should be streamed");
 							} else {
-								forceTranscode = true;
 								hasSubsToTranscode = true;
 								LOGGER.trace("This video has external subtitles that should be transcoded");
 							}
@@ -860,7 +857,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
 								LOGGER.trace("This video has embedded subtitles that should be streamed");
 							} else {
-								forceTranscode = true;
 								hasSubsToTranscode = true;
 								LOGGER.trace("This video has embedded subtitles that should be transcoded");
 							}
