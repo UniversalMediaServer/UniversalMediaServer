@@ -282,7 +282,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
 								enabledRendererConfs.add(r);
 							} else {
-								LOGGER.debug("Ignored " + rendererName + " configuration");
+								LOGGER.debug("Ignored \"{}\" configuration", rendererName);
 							}
 						} catch (ConfigurationException ce) {
 							LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
@@ -2192,12 +2192,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format) {
 
 		PmsConfiguration configuration = PMS.getConfiguration(this);
-		if (configuration == null) {
-			LOGGER.error("Can't find configuration in isCompatible()");
-			return false;
-		}
 
-		if (format != null && format.skip(configuration.getDisableTranscodeForExtensions())) {
+		if (
+			configuration != null &&
+			(configuration.getDisableTranscoding() ||
+			(format != null &&
+			format.skip(configuration.getDisableTranscodeForExtensions())))
+		) {
 			return true;
 		}
 
