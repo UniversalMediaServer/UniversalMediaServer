@@ -794,6 +794,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return resolvedPlayer;
 		}
 
+		if (configurationSpecificToRenderer.getDisableTranscoding()) {
+			LOGGER.trace("File \"{}\" will be streamed since transcoding is disabled", getName());
+			return null;
+		}
+
 		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
 		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
 
@@ -802,7 +807,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setSkipTranscode(skipTranscode); // Hard to see the point in doing this, but assuming some plugins rely on this information.
 
 		if (skipTranscode) {
-			LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", getName());
+			LOGGER.trace("File \"{}\" will be forced to be streamed by configuration", getName());
 			return null;
 		}
 
