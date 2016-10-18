@@ -128,6 +128,17 @@
 			<id>jaudiotagger-repository</id>
 			<url>https://dl.bintray.com/ijabz/maven</url>
 		</repository>
+		<repository>
+  			<id>apache.snapshots</id>
+  			<name>Apache Development Snapshot Repository</name>
+  			<url>https://repository.apache.org/content/repositories/snapshots/</url>
+  			<releases>
+    			<enabled>false</enabled>
+  			</releases>
+  			<snapshots>
+    			<enabled>true</enabled>
+  			</snapshots>
+		</repository>  
 	</repositories>
 	<dependencies>
 		<!-- TODO this can be removed when MEncoder is removed -->
@@ -191,9 +202,9 @@
 			<version>1.1.7</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.sanselan</groupId>
-			<artifactId>sanselan</artifactId>
-			<version>0.97-incubator</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-imaging</artifactId>
+			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -241,6 +252,16 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-tiff</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-bmp</artifactId>
 			<version>3.2.1</version>
 		</dependency>
 		<dependency>

@@ -609,7 +609,7 @@ public class UMSUtils {
 	 * @return the scaled image
 	 */
 	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
-		ByteArrayInputStream in = null;
+		InputStream in = null;
 		if (image == null && !outputBlank) {
 			return null;
 		} else if (image != null) {
@@ -645,7 +645,7 @@ public class UMSUtils {
 			}
 
 			return out.toByteArray();
-		} catch (IOException e) {
+		} catch (IOException | NullPointerException e) {
 			LOGGER.debug("Failed to resize image: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
