@@ -2197,7 +2197,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return false;
 		}
 
-		if (format != null && format.skip(configuration.getDisableTranscodeForExtensions())) {
+		if (configuration.getDisableTranscoding() || (format != null && format.skip(configuration.getDisableTranscodeForExtensions()))) {
 			return true;
 		}
 
