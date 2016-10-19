@@ -538,9 +538,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
-	 * @throws org.apache.commons.configuration.ConfigurationException
 	 */
-	public PmsConfiguration(boolean loadFile) throws ConfigurationException {
+	public PmsConfiguration(boolean loadFile) {
 		super(0);
 
 		if (loadFile) {
