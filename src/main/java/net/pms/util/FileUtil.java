@@ -380,30 +380,31 @@ public class FileUtil {
 		boolean isTVEpisode = false;
 
 		// Populate the variables from the data if we can, otherwise from the filename
-		if (media != null && file != null && getConfiguration().getUseCache() && PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
-			title           = media.getMovieOrShowName();
-			year            = media.getYear();
-			edition         = media.getEdition();
-			tvSeason        = media.getTVSeason();
-			tvEpisodeNumber = media.getTVEpisodeNumber();
-			tvEpisodeName   = media.getTVEpisodeName();
-			isTVEpisode     = media.isTVEpisode();
+		if (media != null && getConfiguration().getUseCache() && StringUtils.isNotBlank(media.getMovieOrShowName())) {
+			title = media.getMovieOrShowName();
+
+			year            = StringUtils.isNotBlank(media.getYear())            ? media.getYear()            : "";
+			edition         = StringUtils.isNotBlank(media.getEdition())         ? media.getEdition()         : "";
+			tvSeason        = StringUtils.isNotBlank(media.getTVSeason())        ? media.getTVSeason()        : "";
+			tvEpisodeNumber = StringUtils.isNotBlank(media.getTVEpisodeNumber()) ? media.getTVEpisodeNumber() : "";
+			tvEpisodeName   = StringUtils.isNotBlank(media.getTVEpisodeName())   ? media.getTVEpisodeName()   : "";
+			isTVEpisode     = StringUtils.isNotBlank(media.getTVSeason());
 		} else {
 			String[] metadataFromFilename = getFileNameMetadata(f);
 
-			title           = metadataFromFilename[0];
-			year            = metadataFromFilename[1];
-			edition         = metadataFromFilename[2];
-			tvSeason        = metadataFromFilename[3];
-			tvEpisodeNumber = metadataFromFilename[4];
-			tvEpisodeName   = metadataFromFilename[5];
+			title           = StringUtils.isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
+			year            = StringUtils.isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
+			edition         = StringUtils.isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
+			tvSeason        = StringUtils.isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
+			tvEpisodeNumber = StringUtils.isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
+			tvEpisodeName   = StringUtils.isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
 
-			if (tvSeason != null) {
+			if (StringUtils.isNotBlank(tvSeason)) {
 				isTVEpisode = true;
 			}
 		}
 
-		if (title == null) {
+		if (StringUtils.isBlank(title)) {
 			return basicPrettify(f);
 		}
 
@@ -415,7 +416,7 @@ public class FileUtil {
 			}
 
 			// If the season is a year, anticipate a "/" for a date
-			if (tvSeason != null && tvEpisodeNumber != null) {
+			if (StringUtils.isNotBlank(tvSeason) && StringUtils.isNotBlank(tvEpisodeNumber)) {
 				if (tvSeason.matches("(19|20)\\d{2}")) {
 					tvSeason += "/";
 				}
@@ -427,12 +428,12 @@ public class FileUtil {
 			}
 		} else {
 			formattedName = title;
-			if (year != null) {
+			if (StringUtils.isNotBlank(year)) {
 				formattedName += " (" + year + ")";
 			}
 		}
 
-		if (edition != null) {
+		if (StringUtils.isNotBlank(edition)) {
 			formattedName += " " + edition;
 		}
 

@@ -27,7 +27,6 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -40,6 +39,7 @@ import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.Format;
+import net.pms.util.StringUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -484,8 +484,6 @@ public class OpenSubtitle {
 								tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
 							}
 
-							titleToSave = titleFromOpenSubtitles;
-
 							/**
 							 * We have data from OpenSubtitles, but before storing it in our database we
 							 * validate it against the data extracted from the filename.
@@ -509,15 +507,12 @@ public class OpenSubtitle {
 								)
 							) {
 								/**
-								 * We use the Jaro Winkler similarity algorithm to validate the movie or show
-								 * name. If the name returned from OpenSubtitles has greater than 91% similarity
+								 * If the name returned from OpenSubtitles has greater than 91% similarity
 								 * to the one from the filename, we regard it as a correct match.
 								 * This means we get proper case and special characters without worrying about
 								 * incorrect results being used.
 								 */
-								double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, titleFromOpenSubtitles);
-								LOGGER.trace("The similarity between titleFromOpenSubtitles: '" + titleFromOpenSubtitles + "' and titleFromFilename: '" + titleFromFilename + "' is " + similarity);
-								if (similarity > 0.91) {
+								if (StringUtil.isSimilarEnough(titleFromFilename, titleFromOpenSubtitles)) {
 									/**
 									 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
 									 * number, so we validate those as well.
@@ -538,6 +533,7 @@ public class OpenSubtitle {
 											StringUtils.isBlank(tvEpisodeNumberFromFilename)
 										)
 									) {
+										titleToSave = titleFromOpenSubtitles;
 										titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
 										if (overTheTopLogging) {
 											LOGGER.info("titleFromDatabase: " + titleFromDatabase);
@@ -550,9 +546,7 @@ public class OpenSubtitle {
 										 * them all consistent.
 										 */
 										if (!"".equals(titleFromDatabase) && !titleFromOpenSubtitles.equals(titleFromDatabase)) {
-											similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromOpenSubtitles, titleFromDatabase);
-											LOGGER.trace("The similarity between titleFromDatabase: '" + titleFromDatabase + "' and titleFromOpenSubtitles: '" + titleFromOpenSubtitles + "' is " + similarity);
-											if (similarity > 0.91) {
+											if (StringUtil.isSimilarEnough(titleFromOpenSubtitles, titleFromDatabase)) {
 												/**
 												 * Replace our close-but-not-exact title in the database with the title from
 												 * OpenSubtitles.
@@ -598,9 +592,7 @@ public class OpenSubtitle {
 									LOGGER.info("titleFromFilename: " + titleFromFilename);
 								}
 								if (!"".equals(titleFromDatabase)) {
-									double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, titleFromDatabase);
-									LOGGER.trace("The similarity between '" + titleFromDatabase + "' and '" + titleFromFilename + "' is " + similarity);
-									if (similarity > 0.91) {
+									if (StringUtil.isSimilarEnough(titleFromFilename, titleFromDatabase)) {
 										titleToSave = titleFromDatabase;
 									}
 								}

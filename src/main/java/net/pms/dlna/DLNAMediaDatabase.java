@@ -745,13 +745,11 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		try {
-			conn = getConnection();
-			ps = conn.prepareStatement("UPDATE FILES SET ? = ? WHERE ? = ?");
-			ps.setString(1, column);
-			ps.setString(2, left(newValue, size));
-			ps.setString(3, column);
-			ps.setString(4, oldValue);
 			LOGGER.trace("Updating column " + column + " in database from: " + oldValue + " to: " + newValue);
+			conn = getConnection();
+			ps = conn.prepareStatement("UPDATE FILES SET " + column + " = ? WHERE " + column + " = ?");
+			ps.setString(1, left(newValue, size));
+			ps.setString(2, oldValue);
 			ps.executeUpdate();
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
