@@ -32,15 +32,15 @@ public class MediaLibrary extends VirtualFolder {
 				"SELECT DISTINCT TVSEASON FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON ASC",
 				"TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER ASC"
 			},
-			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES}
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES_NOSORT}
 		);
 		vfVideo.addChild(tvShowsFolder);
-		MediaLibraryFolder movies = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), "TYPE = 4 AND NOT ISTVEPISODE ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		vfVideo.addChild(movies);
-		MediaLibraryFolder movies3D = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), "TYPE = 4 AND NOT ISTVEPISODE AND STEREOSCOPY != '' ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		vfVideo.addChild(movies3D);
-		MediaLibraryFolder mlfVideo01 = new MediaLibraryFolder(Messages.getString("PMS.35"), "TYPE = 4 ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		vfVideo.addChild(mlfVideo01);
+		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), "TYPE = 4 AND NOT ISTVEPISODE ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		vfVideo.addChild(moviesFolder);
+		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), "TYPE = 4 AND NOT ISTVEPISODE AND STEREOSCOPY != '' ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		vfVideo.addChild(movies3DFolder);
+		MediaLibraryFolder allVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"), "TYPE = 4 ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		vfVideo.addChild(allVideosFolder);
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{

@@ -6,6 +6,8 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES = 0;
@@ -13,9 +15,11 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int PLAYLISTS = 2;
 	public static final int ISOS = 3;
 	public static final int SEASONS = 4;
+	public static final int FILES_NOSORT = 5;
 	private String sqls[];
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
@@ -52,7 +56,14 @@ public class MediaLibraryFolder extends VirtualFolder {
 				if (expectedOutput == FILES) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+						for (File f : list) {
+							addChild(new RealFile(f));
+						}
+					}
+				} else if (expectedOutput == FILES_NOSORT) {
+					ArrayList<File> list = database.getFiles(sql);
+					if (list != null) {
 						for (File f : list) {
 							addChild(new RealFile(f));
 						}
@@ -60,7 +71,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				} else if (expectedOutput == PLAYLISTS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
 						for (File f : list) {
 							addChild(new PlaylistFolder(f));
 						}
@@ -68,7 +79,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				} else if (expectedOutput == ISOS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
 						for (File f : list) {
 							addChild(new DVDISOFile(f));
 						}
@@ -146,7 +157,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			expectedOutput = expectedOutputs[0];
 			if (sql != null) {
 				sql = transformSQL(sql);
-				if (expectedOutput == FILES || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
+				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					list = database.getFiles(sql);
 				} else if (expectedOutput == TEXTS) {
 					strings = database.getStrings(sql);

@@ -2500,6 +2500,15 @@ public class PmsConfiguration extends RendererConfiguration {
 		return -1;
 	}
 
+	/**
+	 * @see #getSortMethod(java.io.File)
+	 * @deprecated
+	 * @return 
+	 */
+	public int mediaLibrarySort() {
+		return getSortMethod(null);
+	}
+
 	public int getSortMethod(File path) {
 		int cnt = 0;
 		String raw = getString(KEY_SORT_PATHS, null);
@@ -3687,10 +3696,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getAutoDiscover() {
 		return getBoolean(KEY_AUTOMATIC_DISCOVER, false);
-	}
-
-	public int mediaLibrarySort() {
-		return getInt(KEY_MEDIA_LIB_SORT, UMSUtils.SORT_NO_SORT);
 	}
 
 	public boolean getWebAutoCont(Format f) {
