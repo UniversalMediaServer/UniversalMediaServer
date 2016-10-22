@@ -50,9 +50,9 @@
 		Appender for the default logfile that will roll the logfile after 10 MBytes
 		and will keep a maximum of 5 old and compressed logs.
 	-->
+	<!--
 	<appender name="default.log.10MB" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<!-- No threshold filtering, log everything the root logger allows -->
-		<file>${logFilePath}${file.separator}${logFileName}</file>
+		<file>${logFilePath}${file.separator}${logFileName}.rolling</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
 			<fileNamePattern>${logFilePath}${logFileName}.%i.zip</fileNamePattern>
 			<minIndex>1</minIndex>
@@ -66,6 +66,7 @@
 			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
+	-->
 
 	<!--
 		For debugging purposes it can be handy to define custom levels for
