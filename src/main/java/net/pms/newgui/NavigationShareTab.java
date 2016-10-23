@@ -791,10 +791,12 @@ public class NavigationShareTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (FList.getSelectedRow() > -1) {
-					((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
 					if (FList.getModel().getRowCount() == 0) {
 						folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
+					} else {
+						PMS.get().deleteFileEntriesInDirectory((String) FList.getValueAt(FList.getSelectedRow(), 0));
 					}
+					((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
 					updateModel();
 				}
 			}

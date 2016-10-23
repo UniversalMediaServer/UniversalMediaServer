@@ -721,14 +721,14 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Updates a column in the FILES table.
+	 * Updates a row or rows in the FILES table.
 	 *
 	 * @param newValue the value to insert
 	 * @param oldValue the value to match
 	 * @param column   the column to update
 	 * @param size     the maximum size of the data
 	 */
-	public synchronized void updateColumnInFilesTable(String newValue, String oldValue, String column, int size) {
+	public synchronized void updateRowsInFilesTable(String newValue, String oldValue, String column, int size) {
 		if (
 			StringUtils.isEmpty(newValue) ||
 			StringUtils.isEmpty(oldValue) ||
@@ -745,11 +745,51 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		try {
-			LOGGER.trace("Updating column " + column + " in database from: " + oldValue + " to: " + newValue);
+			LOGGER.trace("Updating rows in database where the value in column " + column + " is " + oldValue + " to: " + newValue);
 			conn = getConnection();
 			ps = conn.prepareStatement("UPDATE FILES SET " + column + " = ? WHERE " + column + " = ?");
 			ps.setString(1, left(newValue, size));
 			ps.setString(2, oldValue);
+			ps.executeUpdate();
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	/**
+	 * Deletes a row or rows in the FILES table.
+	 * Will automatically use LIKE if a wildcard (%) is detected.
+	 *
+	 * @param value  the value to insert
+	 * @param column the column to update
+	 */
+	public synchronized void deleteRowsInFilesTable(String value, String column) {
+		if (
+			StringUtils.isEmpty(value) ||
+			StringUtils.isEmpty(column)
+		) {
+			return;
+		}
+
+		// Sanitize values
+		value = StringEscapeUtils.escapeSql(value);
+
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			LOGGER.trace("Deleting rows in database where the value in column " + column + " is " + value);
+			conn = getConnection();
+
+			String compareMethod = "=";
+			if (value.contains("%")) {
+				compareMethod = "LIKE";
+			}
+
+			ps = conn.prepareStatement("DELETE FROM FILES WHERE " + column + " " + compareMethod + " ?");
+			ps.setString(1, value);
 			ps.executeUpdate();
 		} catch (SQLException se) {
 			LOGGER.error(null, se);

@@ -1334,10 +1334,19 @@ public class PMS {
 	 * Updates the name of a TV series for existing entries in the database.
 	 *
 	 * @param newName
-	 * @param oldName 
+	 * @param oldName
 	 */
 	public void updateTVSeriesName(String newName, String oldName) {
-		getDatabase().updateColumnInFilesTable(newName, oldName, "MOVIEORSHOWNAME", 255);
+		getDatabase().updateRowsInFilesTable(newName, oldName, "MOVIEORSHOWNAME", 255);
+	}
+
+	/**
+	 * Deletes all files in the database within a directory.
+	 *
+	 * @param directory
+	 */
+	public void deleteFileEntriesInDirectory(String directory) {
+		getDatabase().deleteRowsInFilesTable(directory + "%", "FILENAME");
 	}
 
 	/**
