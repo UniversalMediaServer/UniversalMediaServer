@@ -45,7 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -121,7 +120,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.WordUtils;
-import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -307,13 +305,6 @@ public class PMS {
 	 * @see net.pms.io.WinUtils
 	 */
 	private SystemUtils registry;
-
-	/**
-	 * @see net.pms.io.WinUtils
-	 */
-	public SystemUtils getRegistry() {
-		return registry;
-	}
 
 	/**
 	 * @see System#err
@@ -918,7 +909,7 @@ public class PMS {
 		return mediaLibrary;
 	}
 
-	private SystemUtils createSystemUtils() {
+	public static SystemUtils createSystemUtils() {
 		if (Platform.isWindows()) {
 			return new WinUtils();
 		} else {
@@ -1498,7 +1489,8 @@ public class PMS {
 		try {
 			File logFile = new File(newLogFileName);
 			if (logFile.exists()) {
-				Files.delete(logFile);
+				logFile.delete();
+//				Files.delete(logFile);
 			}
 			logFile = new File(fullLogFileName);
 			if (logFile.exists()) {
@@ -1993,5 +1985,16 @@ public class PMS {
 
 	public static void setKey(String key, String val) {
 		instance.keysDb.set(key, val);
+	}
+
+	/**
+	 * @see net.pms.io.WinUtils
+	 */
+	public SystemUtils getRegistry() {
+		return registry;
+	}
+
+	public void setRegistry(SystemUtils registry) {
+		this.registry = registry;
 	}
 }

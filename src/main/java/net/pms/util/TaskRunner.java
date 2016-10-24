@@ -45,7 +45,7 @@ public class TaskRunner {
 		return instance;
 	}
 	
-	private final ExecutorService executors = Executors.newCachedThreadPool(new ThreadFactory() {
+	private final ExecutorService executors = Executors.newFixedThreadPool(2, new ThreadFactory() {
 		int counter = 0;
 
 		@Override
@@ -74,7 +74,7 @@ public class TaskRunner {
 	 * @param runnable
 	 */
 	public void submitNamed(final String name, final Runnable runnable) {
-		submitNamed(name, false, runnable);
+		submitNamed(name, true, runnable);
 	}
 	
 	/**

@@ -18,7 +18,10 @@
  */
 package net.pms.dlna;
 
+import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
+
 import com.sun.jna.Platform;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -26,9 +29,15 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
@@ -47,12 +56,15 @@ import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.ProcessUtil;
+import net.pms.util.TaskRunner;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import xmlwise.Plist;
 import xmlwise.XmlParseException;
 
@@ -147,7 +159,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (DLNAResource r : getConfiguredFolders(tags)) {
-			addChild(r);
+			scanDir(r);
 		}
 
 		for (DLNAResource r : getVirtualFolders(tags)) {
@@ -195,6 +207,27 @@ public class RootFolder extends DLNAResource {
 		setDiscovered(true);
 	}
 
+	private void scanDir(DLNAResource r) {
+		addChild(r);
+		if (!(r instanceof RealFile))
+			return;
+		
+		try {
+			Files.walkFileTree(((RealFile)r).getFile().toPath(), EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult visitFile(Path dir, BasicFileAttributes attrs) throws IOException {
+					DLNAResource resource = new RealFile(dir.toFile());
+					resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					TaskRunner.getInstance().submit(resource);
+					
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			LOGGER.error("Scanning failed: {}", e);
+		}
+	}
+
 	public void setFolderLim(DLNAResource r) {
 		if (lim != null) {
 			lim.setStart(r);
@@ -215,7 +248,7 @@ public class RootFolder extends DLNAResource {
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		LOGGER.trace("Starting scan of: {}", this.getName());
-		scan(this);
+//		scan(this);
 		IFrame frame = PMS.get().getFrame();
 
 		// Running might have been set false during scan

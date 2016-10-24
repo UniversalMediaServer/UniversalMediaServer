@@ -211,10 +211,10 @@ public class RealFile extends MapFile implements Serializable {
 				found = !getMedia().isMediaparsed() && !getMedia().isParsing();
 
 				if (getFormat() != null) {
-					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
+					getFormat().parse(getMedia(), input, getType(), getDefaultRenderer());
 				} else {
 					// Don't think that will ever happen
-					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
+					getMedia().parse(input, getFormat(), getType(), false, isResume(), getDefaultRenderer());
 				}
 
 				checkThumbnail();
@@ -309,7 +309,7 @@ public class RealFile extends MapFile implements Serializable {
 	public void checkThumbnail() {
 		InputFile input = new InputFile();
 		input.setFile(getFile());
-		checkThumbnail(input, getParent().getDefaultRenderer());
+		checkThumbnail(input, getDefaultRenderer());
 	}
 
 	@Override

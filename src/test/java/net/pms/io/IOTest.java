@@ -1,15 +1,30 @@
 package net.pms.io;
 
+import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.io.RandomAccessFile;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RealFile;
+import net.pms.util.FileWatcher;
+import net.pms.util.TaskRunner;
 import net.sf.sevenzipjbinding.ExtractOperationResult;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
@@ -21,7 +36,46 @@ import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 
 public class IOTest {
 	public static void main(String[] args) throws Exception {
-		new IOTest().testFileConversion();
+		new IOTest().testMediaScan();
+	}
+	
+	public void testMediaScan() throws Exception {
+		String dir = "C:/Users/IBM_ADMIN/Downloads/jungle/" ;
+		String db = "C:/ProgramData/UMS/database/medias.mv.db";
+		
+		File database = new File(db);
+		database.delete();
+		
+		PmsConfiguration conf = new PmsConfiguration();
+		RendererConfiguration.loadRendererConfigurations(conf);
+		PMS.get().setConfiguration(conf);
+		PMS.get().setRegistry(PMS.createSystemUtils());
+		
+		Files.walkFileTree(new File(dir).toPath(), EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path dir, BasicFileAttributes attrs) throws IOException {
+				DLNAResource resource = new RealFile(dir.toFile());
+				resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+				TaskRunner.getInstance().submit(resource);
+				
+				return FileVisitResult.CONTINUE;
+			}
+		});
+		
+		FileWatcher.Listener reloader = new FileWatcher.Listener() {
+			@Override
+			public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+				File f = new File(filename);
+				DLNAResource resource = new RealFile(f);
+				resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+				TaskRunner.getInstance().submit(resource);
+				System.out.println(filename);
+			}
+		};
+//		PMS.getFileWatcher().add(new FileWatcher.Watch(dir, reloader));
+		
+		TaskRunner.getInstance().awaitTermination(5, TimeUnit.SECONDS);
+		System.exit(0);
 	}
 	
 	public void testFileConversion() throws Exception {
@@ -29,7 +83,7 @@ public class IOTest {
 		List<String> cmd = new ArrayList<>();
 		cmd.add("bin\\win32\\ffmpeg64.exe");
 		cmd.add("-i");
-		cmd.add("C:\\Users\\IBM_ADMIN\\Downloads\\jungle\\utbr.mp3");
+		cmd.add("utbr.mp3");
 		cmd.add("-vn");
 		cmd.add("-f");
 		cmd.add("mp3");
