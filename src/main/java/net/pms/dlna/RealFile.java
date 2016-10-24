@@ -203,7 +203,11 @@ public class RealFile extends MapFile implements Serializable {
 				}
 			}
 
-			if (!found) {
+			if (!found && !Format.isSubtitle(file.getName())) {
+				if (!file.isDirectory()) {
+					resolveFormat();
+				}
+
 				if (getMedia() == null) {
 					setMedia(new DLNAMediaInfo());
 				}
