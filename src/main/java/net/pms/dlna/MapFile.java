@@ -76,23 +76,24 @@ public class MapFile extends DLNAResource {
 		forcedName = null;
 	}
 
-	private void manageFile(File f) {
+	public DLNAResource manageFile(File f) {
+		DLNAResource r = null;
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
 
 			if (!f.isHidden()) {
 				if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
-					addChild(new ZippedFile(f));
+					r = (new ZippedFile(f));
 				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
-					addChild(new RarredFile(f));
+					r = (new RarredFile(f));
 				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".tar") || lcFilename.endsWith(".gzip") || lcFilename.endsWith(".gz") || lcFilename.endsWith(".7z"))) {
-					addChild(new SevenZipFile(f));
+					r = (new SevenZipFile(f));
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
-					addChild(new DVDISOFile(f));
+					r = (new DVDISOFile(f));
 				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") || lcFilename.endsWith(".pls") || lcFilename.endsWith(".cue") || lcFilename.endsWith(".ups")) {
 					DLNAResource d = PlaylistFolder.getPlaylist(lcFilename, f.getAbsolutePath(), 0);
 					if (d != null) {
-						addChild(d);
+						r = (d);
 					}
 				} else {
 					/* Optionally ignore empty directories */
@@ -111,7 +112,7 @@ public class MapFile extends DLNAResource {
 						if (searchList != null) {
 							searchList.add(rf);
 						}
-						addChild(rf);
+						r = (rf);
 					}
 				}
 			}
@@ -121,6 +122,7 @@ public class MapFile extends DLNAResource {
 //				potentialCover = f;
 //			}
 		}
+		return r;
 	}
 
 	private List<File> getFileList() {
@@ -168,7 +170,7 @@ public class MapFile extends DLNAResource {
 				if (discoverable.isEmpty()) {
 					break;
 				}
-				manageFile(discoverable.remove(0));
+				addChild(manageFile(discoverable.remove(0)));
 			}
 		}
 		if (fs != null) {

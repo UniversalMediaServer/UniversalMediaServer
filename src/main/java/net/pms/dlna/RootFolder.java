@@ -207,7 +207,7 @@ public class RootFolder extends DLNAResource {
 		setDiscovered(true);
 	}
 
-	private void scanDir(DLNAResource r) {
+	private void scanDir(final DLNAResource r) {
 		addChild(r);
 		if (!(r instanceof RealFile))
 			return;
@@ -216,9 +216,11 @@ public class RootFolder extends DLNAResource {
 			Files.walkFileTree(((RealFile)r).getFile().toPath(), EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path dir, BasicFileAttributes attrs) throws IOException {
-					DLNAResource resource = new RealFile(dir.toFile());
-					resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
-					TaskRunner.getInstance().submit(resource);
+					DLNAResource resource = ((RealFile)r).manageFile(dir.toFile());
+					if (resource != null) {
+						resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+						TaskRunner.getInstance().submit(resource);
+					}
 					
 					return FileVisitResult.CONTINUE;
 				}

@@ -618,7 +618,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
-		PMS.getGlobalRepo().add(child);
+		if (PMS.getGlobalRepo() != null)
+			PMS.getGlobalRepo().add(child);
 
 		child.parent = this;
 		child.masterParent = masterParent;
@@ -1129,7 +1130,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		/*setLastChildId(getLastChildId() + 1);
 		child.setIndexId(getLastChildId());*/
-		PMS.getGlobalRepo().add(child);
+		if (PMS.getGlobalRepo() != null)
+			PMS.getGlobalRepo().add(child);
 		if (defaultRenderer != null) {
 			defaultRenderer.cachePut(child);
 		}
@@ -3417,11 +3419,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public int getType() {
 		int format = Format.UNKNOWN;
 		if (getMedia() != null) {
-			if (getMedia().getVideoTrackCount() > 0  && !"mjpeg".equals(getMedia().getCodecV()))
+			String codecV = getMedia().getCodecV();
+			if (getMedia().getVideoTrackCount() > 0  && 
+					// Audio Cover art is an image in video track
+					!("mjpeg".equals(codecV) || "jpeg".equals(codecV) || "png".equals(codecV)))
 				format = Format.VIDEO;
 			else if (getMedia().getAudioTrackCount() > 0)
 				format = Format.AUDIO;
-			else if (getMedia().isImage() || "mjpeg".equals(getMedia().getCodecV()))
+			else if (getMedia().isImage() || "mjpeg".equals(codecV))
 				format = Format.IMAGE;
 		} 
 		if (format == Format.UNKNOWN && getFormat() != null) {

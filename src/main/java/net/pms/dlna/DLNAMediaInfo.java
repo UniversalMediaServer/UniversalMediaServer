@@ -848,12 +848,12 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 
-							int thumbnailWidth = renderer.isSquareAudioThumbnails() ? renderer.getThumbnailHeight() : renderer.getThumbnailWidth();
-							int thumbnailHeight = renderer.getThumbnailHeight();
+//							int thumbnailWidth = renderer.isSquareAudioThumbnails() ? renderer.getThumbnailHeight() : renderer.getThumbnailWidth();
+//							int thumbnailHeight = renderer.getThumbnailHeight();
 
 							// Make sure the image fits in the renderer's bounds
 							boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
+//							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
 
 							if (isFullyPlayedThumbnail) {
 								thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.AUDIO);
@@ -922,6 +922,7 @@ public class DLNAMediaInfo implements Cloneable {
 						codecV = "gif";
 					} else if (formatName.startsWith("TIF")) {
 						codecV = "tiff";
+						ffmpeg_parsing = true; // We need JPEG thumbnail
 					}
 
 					container = codecV;
@@ -929,17 +930,17 @@ public class DLNAMediaInfo implements Cloneable {
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 				}
-				if (configuration.getImageThumbnailsEnabled()) {// && gen_thumb) {
+				if (configuration.getImageThumbnailsEnabled() && !ffmpeg_parsing) {// && gen_thumb) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
 					try {
-						int thumbnailWidth = renderer.isSquareImageThumbnails() ? renderer.getThumbnailHeight() : renderer.getThumbnailWidth();
-						int thumbnailHeight = renderer.getThumbnailHeight();
+//						int thumbnailWidth = renderer.isSquareImageThumbnails() ? renderer.getThumbnailHeight() : renderer.getThumbnailWidth();
+//						int thumbnailHeight = renderer.getThumbnailHeight();
 
 						// Make sure the image fits in the renderer's bounds
 						boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
+						thumb = Files.readAllBytes(file.toPath());//UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
 
 						if (isFullyPlayedThumbnail) {
 							thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.IMAGE);
@@ -1449,12 +1450,15 @@ public class DLNAMediaInfo implements Cloneable {
 				case "mov":
 					mimeType = HTTPResource.MOV_TYPEMIME;
 					break;
+				case "tiff":
+					mimeType = HTTPResource.TIFF_TYPEMIME;
+					break;
 			}
 		}
 
 		// For the types that code is unaware of, use defaults based on whether video/audio track has been identified
 		if (mimeType == null) {
-			if (codecV != null) {
+			if (codecV != null && type != Format.AUDIO) {
 				if (codecV.equals("mjpeg") || "jpg".equals(container)) {
 					mimeType = HTTPResource.JPEG_TYPEMIME;
 				} else if ("png".equals(codecV) || "png".equals(container)) {
@@ -1468,7 +1472,7 @@ public class DLNAMediaInfo implements Cloneable {
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
 					mimeType = HTTPResource.MPEG_TYPEMIME;
 				}
-			} else if (codecV == null && codecA != null) {
+			} else if ((codecV == null || type == Format.AUDIO) && codecA != null) {
 				if (codecA.contains("mp3")) {
 					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
 				} else if (codecA.contains("aac")) {

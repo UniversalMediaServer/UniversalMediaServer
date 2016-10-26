@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.util.FileWatcher;
@@ -55,12 +56,27 @@ public class IOTest {
 			@Override
 			public FileVisitResult visitFile(Path dir, BasicFileAttributes attrs) throws IOException {
 				DLNAResource resource = new RealFile(dir.toFile());
-				resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
-				TaskRunner.getInstance().submit(resource);
+				resource = ((RealFile)resource).manageFile(dir.toFile());
+				if (resource != null) {
+//					resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					TaskRunner.getInstance().submit(resource);
+				}
 				
 				return FileVisitResult.CONTINUE;
 			}
+			@Override
+			public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+				System.out.println("Failed: " + file);
+				return FileVisitResult.CONTINUE;
+			}
 		});
+		
+		TaskRunner.getInstance().awaitTermination(35, TimeUnit.SECONDS);
+
+		List<DLNAMediaInfo> files = PMS.get().getDatabase().query("select * from files", null);
+		System.out.println(files.size());
+		for(DLNAMediaInfo f : files)
+			System.out.println(f);
 		
 		FileWatcher.Listener reloader = new FileWatcher.Listener() {
 			@Override
@@ -74,7 +90,6 @@ public class IOTest {
 		};
 //		PMS.getFileWatcher().add(new FileWatcher.Watch(dir, reloader));
 		
-		TaskRunner.getInstance().awaitTermination(5, TimeUnit.SECONDS);
 		System.exit(0);
 	}
 	
