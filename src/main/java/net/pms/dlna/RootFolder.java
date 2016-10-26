@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
+import static java.nio.file.StandardWatchEventKinds.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
@@ -212,6 +213,7 @@ public class RootFolder extends DLNAResource {
 
 	private IFrame frame = PMS.get().getFrame();
 
+	@Override
 	public void scan() {
 		if (!configuration.getUseCache()) {
 			throw new IllegalStateException("Can't scan when cache is disabled");
@@ -249,36 +251,9 @@ public class RootFolder extends DLNAResource {
 	private void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
-				if (running && child.allowScan()) {
-					child.setDefaultRenderer(resource.getDefaultRenderer());
-
-					// Display and log which folder is being scanned
-					String childName = child.getName();
-					if (child instanceof RealFile) {
-						LOGGER.debug("Scanning folder: " + childName);
-						frame.setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName);
-					}
-
-					if (child.isDiscovered()) {
-						child.refreshChildren();
-					} else {
-						if (child instanceof DVDISOFile || child instanceof DVDISOTitle) { // ugly hack
-							child.syncResolve();
-						}
-						child.discoverChildren();
-						child.analyzeChildren(-1);
-						child.setDiscovered(true);
-					}
-
-					int count = child.getChildren().size();
-
-					if (count == 0) {
-						continue;
-					}
-
-					scan(child);
-					child.getChildren().clear();
-				} else if (!running){
+				if (running) {
+					child.scan();
+				} else {
 					break;
 				}
 			}
@@ -1465,10 +1440,15 @@ public class RootFolder extends DLNAResource {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			if (PMS.getConfiguration().getUseCache()) {
-				DLNAMediaDatabase database = PMS.get().getDatabase();
+				if (ENTRY_DELETE.toString().equals(event)) {
+					//TODO: Handle deletion
+				} else {
+					DLNAMediaDatabase database = PMS.get().getDatabase();
 
-				if (database != null && !database.isScanLibraryRunning()) {
-					database.scanLibrary();
+					if (database != null && !database.isScanLibraryRunning()) { //TODO: Frankly it's irrelevant if a scan is already running
+						RealFile file = new RealFile(new File(filename));
+						file.scan();
+					}
 				}
 			}
 		}
