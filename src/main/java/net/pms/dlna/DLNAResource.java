@@ -4363,4 +4363,40 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		scaleHeight = Player.convertToModX(scaleHeight, 4);
 		return scaleWidth + "x" + scaleHeight;
 	}
+
+	public void scan() {
+		//TODO This method must be rewritten to scan the current resource if it's a file and its children recursively if it's a folder
+		for (DLNAResource child : getChildren()) {
+			if (child.allowScan()) {
+				child.setDefaultRenderer(getDefaultRenderer());
+
+				// Display and log which folder is being scanned
+				String childName = child.getName();
+				if (child instanceof RealFile) {
+					LOGGER.debug("Scanning folder: \"{}\"", childName);
+					PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName); //TODO - needs resetting
+				}
+
+				if (child.isDiscovered()) {
+					child.refreshChildren();
+				} else {
+					if (child instanceof DVDISOFile || child instanceof DVDISOTitle) { // ugly hack
+						child.syncResolve();
+					}
+					child.discoverChildren();
+					child.analyzeChildren(-1);
+					child.setDiscovered(true);
+				}
+
+				int count = child.getChildren().size();
+
+				if (count == 0) {
+					continue;
+				}
+
+				child.scan();
+				child.getChildren().clear();
+			}
+		}
+	}
 }

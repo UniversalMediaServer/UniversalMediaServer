@@ -243,7 +243,8 @@ public class FileWatcher {
 						try {
 							// Wait a bit in case there are a few repeats
 							Thread.sleep(100);
-						} catch (InterruptedException e) { }
+						} catch (InterruptedException e) { } //TODO: This is a bug, the method should quit ASAP when receiving InterruptedException - never ignore
+						                                     // It isn't needed either as InterruptedException should already has to be handled in the outer try.
 						// Filter the received directory event(s)
 						for (WatchEvent<?> e : key.pollEvents()) {
 							final WatchEvent.Kind<?> kind = e.kind();
@@ -282,7 +283,8 @@ public class FileWatcher {
 							keys.remove(key);
 						}
 					} while (!keys.isEmpty());
-				} catch (Exception e) {
+				} catch (Exception e) { //TODO: This will catch the InterruptedException for watchService.take().
+					                    //      Although it will quit, no cleanup is done and it is logged as an error - this it isn't.
 					LOGGER.debug("Event process error: " + e);
 					e.printStackTrace();
 				}
