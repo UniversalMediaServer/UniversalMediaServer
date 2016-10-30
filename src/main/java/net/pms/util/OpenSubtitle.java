@@ -405,15 +405,18 @@ public class OpenSubtitle {
 		Pattern re = Pattern.compile(
 				".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" + "" +
 				"MovieName</name>.*?<string>([^<]+)</string>.*?" +
+				"MovieYear</name>.*?<string>([^<]+)</string>.*?" +
 				"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
-				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?" +
-				"MovieYear</name>.*?<string>([^<]+)</string>.*?",
+				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?",
 				Pattern.DOTALL
 		);
 		String page = postPage(url.openConnection(), req);
+
+		// LOGGER.trace("opensubs page: " + page);
+
 		Matcher m = re.matcher(page);
 		if (m.find()) {
-			LOGGER.debug("match " + m.group(1) + "," + m.group(2) + "," + m.group(3) + "," + m.group(4) + "," + m.group(5));
+			LOGGER.debug("Matched OpenSubtitles entry: " + m.group(1) + "," + m.group(2) + "," + m.group(3) + "," + m.group(4) + "," + m.group(5));
 			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
 			String name = m.group(2);
 			Matcher m1 = re1.matcher(name);
@@ -440,9 +443,9 @@ public class OpenSubtitle {
 				imdbId,
 				episodeName,
 				movieOrShowName,
-				m.group(3).trim(), // Season number
-				m.group(4).trim(), // Episode number
-				m.group(5).trim()  // Year
+				m.group(4).trim(), // Season number
+				m.group(5).trim(), // Episode number
+				m.group(3).trim()  // Year
 			};
 		}
 		return null;
