@@ -287,7 +287,7 @@ public class UPNPHelper extends UPNPControl {
 		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
 		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
 		ssdpSocket.setReuseAddress(true);
-		ssdpSocket.getSoTimeout(30);
+		ssdpSocket.setSoTimeout(30);
 		ssdpSocket.setTimeToLive(2);
 
 		if (multicastLog) {
