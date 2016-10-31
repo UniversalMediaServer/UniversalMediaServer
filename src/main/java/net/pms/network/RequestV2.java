@@ -637,6 +637,9 @@ public class RequestV2 extends HTTPResource {
 					requestCount = Integer.parseInt(rC);
 				}
 
+				if (requestCount == 0)
+					requestCount = 10;
+				
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
