@@ -1472,6 +1472,8 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.MP4_TYPEMIME;
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
 					mimeType = HTTPResource.MPEG_TYPEMIME;
+				} else if ("webp".equals(codecV) || "webp".equals(container)) {
+					mimeType = HTTPResource.WEBP_TYPEMIME;
 				}
 			} else if ((codecV == null || type == Format.AUDIO) && codecA != null) {
 				if (codecA.contains("mp3")) {

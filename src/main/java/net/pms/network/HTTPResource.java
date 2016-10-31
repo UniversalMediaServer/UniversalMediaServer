@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.Authenticator;
 import java.net.URL;
 import java.net.URLConnection;
+
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -29,6 +30,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
 import static net.pms.util.StringUtil.convertURLToFileName;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +68,7 @@ public class HTTPResource {
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
 	public static final String THREEGPP2_TYPEMIME = "video/3gpp2";
 	public static final String MOV_TYPEMIME = "video/quicktime";
+	public static final String WEBP_TYPEMIME = "image/webp";
 	public HTTPResource() { }
 
 	/**

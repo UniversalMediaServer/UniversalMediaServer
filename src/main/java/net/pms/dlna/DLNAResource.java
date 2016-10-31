@@ -2328,11 +2328,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String transcodedExtension = null;
 		if (getMedia() != null) {
 			// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
-			if (getMedia().isVideo()) {
+			if (getType() == Format.VIDEO) {
 				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.VIDEO_INT, result);
-			} else if (getMedia().isAudio()) {
+			} else if (getType() == Format.AUDIO) {
 				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.AUDIO_INT, result);
-			} else if (getMedia().isImage()) {
+			} else if (getType() == Format.IMAGE) {
 				transcodedExtension = mediaRenderer.getPreferredFormat(MediaType.IMAGE_INT, result);
 			}
 		}
@@ -3429,11 +3429,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			String codecV = getMedia().getCodecV();
 			if (getMedia().getVideoTrackCount() > 0  && 
 					// Audio Cover art is an image in video track
-					!("mjpeg".equals(codecV) || "jpeg".equals(codecV) || "png".equals(codecV)))
+					!("mjpeg".equals(codecV) || "jpeg".equals(codecV) || "png".equals(codecV) || "webp".equals(codecV)))
 				format = Format.VIDEO;
 			else if (getMedia().getAudioTrackCount() > 0)
 				format = Format.AUDIO;
-			else if (getMedia().isImage() || "mjpeg".equals(codecV))
+			else if (getMedia().isImage() || "mjpeg".equals(codecV) || "webp".equals(codecV))
 				format = Format.IMAGE;
 		} 
 		if (format == Format.UNKNOWN && getFormat() != null) {

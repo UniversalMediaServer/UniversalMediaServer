@@ -370,6 +370,11 @@ public abstract class Format implements Cloneable, Serializable {
 			ext = ".mkv";
 		}
 		
+		// Image
+		else if (mimetype.equalsIgnoreCase("image/webp")) {
+			ext = ".webp";
+		}
+		
 		if (ext != null)
 			return ext;
 		
@@ -400,6 +405,8 @@ public abstract class Format implements Cloneable, Serializable {
 			mimetype = "video/avi";
 		else if (filename.endsWith(".mkv"))
 			mimetype = "video/mkv";
+		else if (filename.endsWith(".webp"))
+			mimetype = "image/webp";
 		return mimetype;
 	}
 	
