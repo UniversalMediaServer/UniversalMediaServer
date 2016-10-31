@@ -1188,8 +1188,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		DLNAResource dlna = null;
 		if (searchStr != null) {
+			VirtualFolder container = new unattachedFolder("0");
 			String sql = "SELECT f.* FROM FILES f where ";//, AUDIOTRACKS a where f.ID = a.FILEID and ";
-			resources = discoverWithRenderer(renderer, sql, start, count, searchStr, null);
+			resources = discoverWithRenderer(container, sql, start, count, searchStr, null);
 		} else {
 			dlna = PMS.getGlobalRepo().get(objectId);
 
@@ -1201,7 +1202,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					sql = String.format("SELECT f.* FROM FILES f where filename = '%s'", filename);
 				else
 					sql = String.format("SELECT f.* FROM FILES f where id = %s", objectId);
-				resources = discoverWithRenderer(renderer, sql, start, count, searchStr, null);
+				resources = discoverWithRenderer(null, sql, start, count, searchStr, null);
 
 			}
 		}
@@ -1242,14 +1243,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		updateId += 1;
 		systemUpdateId += 1;
 	}
-	final protected List<DLNAResource> discoverWithRenderer(RendererConfiguration renderer, String sqlMain, int start, int count, String searchStr, String sortStr) {
+	final protected List<DLNAResource> discoverWithRenderer(DLNAResource container, String sqlMain, int start, int count, String searchStr, String sortStr) {
 		List<DLNAResource> resources = new ArrayList<>();
-		VirtualFolder container = new unattachedFolder("0");
+//		VirtualFolder container = new unattachedFolder("0");
 		DLNAMediaDatabase database = PMS.get().getDatabase();
 
 		if (database != null) {
-			String sql = UMSUtils.getSqlFromCriteria(searchStr);
-			sql = String.format("%s %s order by f.id offset %d limit %d", sqlMain, sql, start, count);
+			String sql = null;
+			if (searchStr == null) {
+				sql = String.format("%s offset %d limit %d", sqlMain, start, count);
+			} else {
+				sql = UMSUtils.getSqlFromCriteria(searchStr);
+				sql = String.format("%s %s order by f.id offset %d limit %d", sqlMain, sql, start, count);
+			}
 			// select * from test order by id desc limit 10 offset 11
 			// "SELECT f.* FROM FILES f, AUDIOTRACKS a where f.ID = a.FILEID and filename like '%cap%'";
 			List<DLNAMediaInfo> medias = null;
@@ -1264,8 +1270,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				resource.getMedia().finalize(getType(), getInputFile(file));
 				
 //				resource.setPreferredMimeType(renderer);
-				resource.setParent(container);
-				PMS.getGlobalRepo().add(resource);
+//				resource.setParent(this);
+//				PMS.getGlobalRepo().add(resource);
+				container.addChild(resource);
 
 				resources.add(resource);
 			}

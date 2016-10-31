@@ -2,6 +2,8 @@ package net.pms.dlna.virtual;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+
 import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
@@ -27,20 +29,23 @@ public class MediaLibraryFolder extends VirtualFolder {
 	}
 
 	@Override
-	public void discoverChildren() {
+	public void doRefreshChildren() {
 		if (sqls.length > 0) {
 			String sql = sqls[0];
 			int expectedOutput = expectedOutputs[0];
 			if (sql != null) {
+				getChildren().clear();
 				sql = transformSQL(sql);
+
 				if (expectedOutput == FILES) {
-					ArrayList<File> list = database.getFiles(sql);
-					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
-						for (File f : list) {
-							addChild(new RealFile(f));
-						}
-					}
+//					ArrayList<File> list = database.getFiles(sql);
+//					if (list != null) {
+//						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+//						for (File f : list) {
+//							addChild(new RealFile(f));
+//						}
+//					}
+					discoverWithRenderer(this, sql, 0, -1, null, null);
 				} else if (expectedOutput == PLAYLISTS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
@@ -104,8 +109,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 		return true;
 	}
 
-	@Override
-	public void doRefreshChildren() {
+//	@Override
+	public void doRefreshChildren1() {
 		ArrayList<File> list = null;
 		ArrayList<String> strings = null;
 		int expectedOutput = 0;
@@ -204,5 +209,15 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 		setUpdateId(this.getIntId());
 		//return removedFiles.size() != 0 || addedFiles.size() != 0 || removedString.size() != 0 || addedString.size() != 0;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		boolean result = false;
+		if (o instanceof MediaLibraryFolder) {
+			MediaLibraryFolder k = (MediaLibraryFolder) o;
+			result = k.sqls == this.sqls;
+		}
+		return result;
 	}
 }
