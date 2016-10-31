@@ -30,7 +30,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 	@Override
 	public void doRefreshChildren() {
-		if (sqls.length > 0) {
+		if (!isDiscovered() && sqls.length > 0) {
 			String sql = sqls[0];
 			int expectedOutput = expectedOutputs[0];
 			if (sql != null) {
@@ -46,6 +46,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 //						}
 //					}
 					discoverWithRenderer(this, sql, 0, -1, null, null);
+					setDiscovered(true);
 				} else if (expectedOutput == PLAYLISTS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {

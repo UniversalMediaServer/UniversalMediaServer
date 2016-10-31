@@ -739,7 +739,7 @@ public class RequestV2 extends HTTPResource {
 					searchCriteria = getEnclosingValue(content, "<SearchCriteria", "</SearchCriteria>");
 				}
 
-				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
+				List<DLNAResource> files = PMS.get().getRootFolder(null).getDLNAResources(
 					objectID,
 					browseDirectChildren,
 					startingIndex,

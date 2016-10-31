@@ -1267,7 +1267,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				File file = new File(mediaInfo.getFileName());
 				DLNAResource resource = new RealFile(file);
 				resource.setMedia(mediaInfo);
-				resource.getMedia().finalize(getType(), getInputFile(file));
+				resource.getMedia().finalize(resource.getType(), getInputFile(file));
 				
 //				resource.setPreferredMimeType(renderer);
 //				resource.setParent(this);
