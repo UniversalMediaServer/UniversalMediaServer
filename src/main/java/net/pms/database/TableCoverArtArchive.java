@@ -19,7 +19,6 @@
  */
 package net.pms.database;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,6 +28,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is responsible for managing the Cover Art Archive table. It
@@ -83,7 +83,7 @@ public final class TableCoverArtArchive extends Tables{
 	}
 
 	private static String contructMBIDWhere(final String mBID) {
-		return " WHERE MBID" + nullIfBlank(mBID);
+		return " WHERE MBID" + sqlNullIfBlank(mBID, true, false);
 	}
 
 	/**
