@@ -162,7 +162,6 @@ public class UPNPHelper extends UPNPControl {
 		discovery.append("ST: ").append(st).append(CRLF);
 		discovery.append("EXT: ").append(CRLF);
 		discovery.append("USN: ").append(usn).append(st).append(CRLF);
-		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
 
 		String msg = discovery.toString();
 
@@ -288,7 +287,8 @@ public class UPNPHelper extends UPNPControl {
 		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
 		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
 		ssdpSocket.setReuseAddress(true);
-		ssdpSocket.setTimeToLive(32);
+		ssdpSocket.getSoTimeout(30);
+		ssdpSocket.setTimeToLive(2);
 
 		if (multicastLog) {
 			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
@@ -425,7 +425,6 @@ public class UPNPHelper extends UPNPControl {
 		};
 
 		aliveThread = new Thread(rAlive, "UPNP-AliveMessageSender");
-		aliveThread.start();
 
 		Runnable r = new Runnable() {
 			@Override
@@ -553,6 +552,7 @@ public class UPNPHelper extends UPNPControl {
 
 		listenerThread = new Thread(r, "UPNPHelper");
 		listenerThread.start();
+		aliveThread.start();
 	}
 
 	/**
