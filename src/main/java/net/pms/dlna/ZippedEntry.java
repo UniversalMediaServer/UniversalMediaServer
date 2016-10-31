@@ -86,7 +86,7 @@ public class ZippedEntry extends RealFile implements IPushOutput {
 
 	@Override
 	public String getSystemName() {
-		return (file.getAbsolutePath()) + "/" + (zeName);
+		return (file.getAbsolutePath()) + File.separator + (zeName);
 //		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
 	}
 

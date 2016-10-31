@@ -1263,9 +1263,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				resource.setMedia(mediaInfo);
 				resource.getMedia().finalize(getType(), getInputFile(file));
 				
-				PMS.getGlobalRepo().add(resource);
-				resource.setPreferredMimeType(renderer);
+//				resource.setPreferredMimeType(renderer);
 				resource.setParent(container);
+				PMS.getGlobalRepo().add(resource);
 
 				resources.add(resource);
 			}
@@ -3101,8 +3101,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			// Pipe transcoding result
 			// We have result from previous transcoding attempt. Let's use it.
-			if (getFile(mediarenderer) != null)
-				return null;
+//			if (getFile(mediarenderer) != null)
+//				return null;
 			
 //			OutputParams params = new OutputParams(configuration);
 //			params.aid = getMediaAudio();
