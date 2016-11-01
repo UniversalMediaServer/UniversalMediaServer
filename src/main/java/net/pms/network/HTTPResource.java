@@ -66,6 +66,7 @@ public class HTTPResource {
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
 	public static final String THREEGPP2_TYPEMIME = "video/3gpp2";
 	public static final String MOV_TYPEMIME = "video/quicktime";
+	public static final String VIDEO_OGG_TYPEMIME = "video/x-ogg";
 	public HTTPResource() { }
 
 	/**
