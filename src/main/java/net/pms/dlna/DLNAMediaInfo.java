@@ -1358,16 +1358,6 @@ public class DLNAMediaInfo implements Cloneable {
 				case "wmv":
 					mimeType = HTTPResource.WMV_TYPEMIME;
 					break;
-				case "matroska":
-				case "mkv":
-					mimeType = HTTPResource.MATROSKA_TYPEMIME;
-					break;
-				case "3gp":
-					mimeType = HTTPResource.THREEGPP_TYPEMIME;
-					break;
-				case "3g2":
-					mimeType = HTTPResource.THREEGPP2_TYPEMIME;
-					break;
 				case "mov":
 					mimeType = HTTPResource.MOV_TYPEMIME;
 					break;
@@ -1376,7 +1366,17 @@ public class DLNAMediaInfo implements Cloneable {
 
 		if (mimeType == null) {
 			if (codecV != null) {
-				if (codecV.equals("mjpeg") || "jpg".equals(container)) {
+				if ("matroska".equals(container) || "mkv".equals(container)) {
+					mimeType = HTTPResource.MATROSKA_TYPEMIME;
+				} else if ("ogg".equals(container)) { 
+					mimeType = HTTPResource.OGG_TYPEMIME;
+				} else if ("3gp".equals(container)) {
+					mimeType = HTTPResource.THREEGPP_TYPEMIME;
+				} else if ("3g2".equals(container)) {
+					mimeType = HTTPResource.THREEGPP2_TYPEMIME;
+				} else if ("webm".equals(container)) {
+					mimeType = HTTPResource.WEBM_TYPEMIME;
+				} else if (codecV.equals("mjpeg") || "jpg".equals(container)) {
 					mimeType = HTTPResource.JPEG_TYPEMIME;
 				} else if ("png".equals(codecV) || "png".equals(container)) {
 					mimeType = HTTPResource.PNG_TYPEMIME;
@@ -1392,14 +1392,24 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.MPEG_TYPEMIME;
 				}
 			} else if (codecV == null && codecA != null) {
-				if (codecA.contains("mp3")) {
+				if ("ogg".equals(container)) {
+					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+				} else if ("3gp".equals(container)) {
+					mimeType = HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
+				} else if ("3g2".equals(container)) {
+					mimeType = HTTPResource.AUDIO_THREEGPP2A_TYPEMIME;
+				} else if ("adts".equals(container)) {	
+					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
+				} else if ("matroska".equals(container) || "mkv".equals(container)) {
+					mimeType = HTTPResource.AUDIO_MATROSKA_TYPEMIME;
+				} else if ("webm".equals(container)) {
+					mimeType = HTTPResource.AUDIO_WEBM_TYPEMIME;
+				} else if (codecA.contains("mp3")) {
 					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
 				} else if (codecA.contains("aac")) {
 					mimeType = HTTPResource.AUDIO_MP4_TYPEMIME;
 				} else if (codecA.contains("flac")) {
 					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
-				} else if (codecA.contains("vorbis")) {
-					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
 				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
 				} else if (codecA.contains("pcm") || codecA.contains("wav") || codecA.contains("dts")) {

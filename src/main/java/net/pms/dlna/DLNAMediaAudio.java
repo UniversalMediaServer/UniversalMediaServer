@@ -239,8 +239,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "TrueHD";
 		} else if (isPCM()) {
 			return "LPCM";
-		} else if (isVorbis()) {
-			return "OGG";
+//		} else if (isVorbis()) {
+//			return "OGG";
 		} else if (isAAC()) {
 			return "AAC";
 		} else if (isMP3()) {
