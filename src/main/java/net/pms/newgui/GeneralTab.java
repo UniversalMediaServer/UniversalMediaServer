@@ -260,7 +260,7 @@ public class GeneralTab {
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
 		if (allConfs != null) {
-			sortRendererConfiurationsByName(allConfs);
+			sortRendererConfigurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
 					keyValues.add(renderer.getRendererName());
@@ -617,7 +617,7 @@ public class GeneralTab {
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
 		if (allConfs != null) {
-			sortRendererConfiurationsByName(allConfs);
+			sortRendererConfigurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
 					keyValues.add(renderer.getRendererName());
@@ -654,7 +654,7 @@ public class GeneralTab {
 		});
 	}
 
-	private void sortRendererConfiurationsByName(ArrayList<RendererConfiguration> rendererConfigurations){
+	private void sortRendererConfigurationsByName(ArrayList<RendererConfiguration> rendererConfigurations){
 		Collections.sort(rendererConfigurations , new Comparator<RendererConfiguration>() {
 
 			@Override

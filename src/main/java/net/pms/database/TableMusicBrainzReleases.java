@@ -19,7 +19,6 @@
  */
 package net.pms.database;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,6 +31,7 @@ import net.pms.util.StringUtil;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is responsible for managing the MusicBrainz releases table. It
@@ -90,25 +90,25 @@ public final class TableMusicBrainzReleases extends Tables{
 
 	private static String constructTagWhere(final CoverArtArchiveTagInfo tagInfo, final boolean includeAll) {
 		StringBuilder where = new StringBuilder(" WHERE ");
-		final String AND = "AND ";
+		final String AND = " AND ";
 		boolean added = false;
 
 		if (includeAll || StringUtil.hasValue(tagInfo.album)) {
-			where.append("ALBUM").append(nullIfBlank(tagInfo.album));
+			where.append("ALBUM").append(sqlNullIfBlank(tagInfo.album, true, false));
 			added = true;
 		}
 		if (includeAll || StringUtil.hasValue(tagInfo.artistId)) {
 			if (added) {
 				where.append(AND);
 			}
-			where.append("ARTIST_ID").append(nullIfBlank(tagInfo.artistId));
+			where.append("ARTIST_ID").append(sqlNullIfBlank(tagInfo.artistId, true, false));
 			added = true;
 		}
 		if (includeAll || (!StringUtil.hasValue(tagInfo.artistId) && StringUtil.hasValue(tagInfo.artist))) {
 			if (added) {
 				where.append(AND);
 			}
-			where.append("ARTIST").append(nullIfBlank(tagInfo.artist));
+			where.append("ARTIST").append(sqlNullIfBlank(tagInfo.artist, true, false));
 			added = true;
 		}
 
@@ -125,7 +125,7 @@ public final class TableMusicBrainzReleases extends Tables{
 			if (added) {
 				where.append(AND);
 			}
-			 where.append("TRACK_ID").append(nullIfBlank(tagInfo.trackId));
+			 where.append("TRACK_ID").append(sqlNullIfBlank(tagInfo.trackId, true, false));
 			 added = true;
 		}
 		if (
@@ -143,7 +143,7 @@ public final class TableMusicBrainzReleases extends Tables{
 			if (added) {
 				where.append(AND);
 			}
-			where.append("TITLE").append(nullIfBlank(tagInfo.title));
+			where.append("TITLE").append(sqlNullIfBlank(tagInfo.title, true, false));
 			added = true;
 		}
 
@@ -151,7 +151,7 @@ public final class TableMusicBrainzReleases extends Tables{
 			if (added) {
 				where.append(AND);
 			}
-			where.append("YEAR").append(nullIfBlank(tagInfo.year));
+			where.append("YEAR").append(sqlNullIfBlank(tagInfo.year, true, false));
 			added = true;
 		}
 
