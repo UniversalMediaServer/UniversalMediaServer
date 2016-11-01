@@ -596,6 +596,8 @@ public class DLNAMediaInfo implements Cloneable {
 		args.add("1");
 		args.add("-f");
 		args.add("image2");
+		args.add("-c:v");
+		args.add("png");
 		args.add("pipe:");
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled

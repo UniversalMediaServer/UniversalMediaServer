@@ -654,7 +654,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 	
 	public String getPreferredFormat(int type, final String mime) {
-		String audio = RemoteUtil.MIME_MP3, video = RemoteUtil.MIME_MP4, image = RemoteUtil.MIME_JPG;
+		String audio = RemoteUtil.MIME_MP3, video = RemoteUtil.MIME_MP4, image = RemoteUtil.MIME_PNG;
 		String result = null;
 		boolean supported = RemoteUtil.directmime(mime);
 

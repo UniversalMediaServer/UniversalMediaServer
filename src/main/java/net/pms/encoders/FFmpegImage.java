@@ -116,6 +116,8 @@ public class FFmpegImage extends FFMpegVideo {
 		}
 		cmdList.add("-f");
 		cmdList.add("image2");
+		cmdList.add("-c:v");
+		cmdList.add("png");
 
 //		cmdList.add(dlna.getFilename(params.mediaRenderer));
 		cmdList.add("pipe:");
