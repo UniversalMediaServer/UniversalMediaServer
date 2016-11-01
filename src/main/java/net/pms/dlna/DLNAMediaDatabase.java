@@ -30,6 +30,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.database.Tables;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -775,7 +776,7 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		// Sanitize values
-		value = StringEscapeUtils.escapeSql(value);
+		value = Tables.sqlQuote(Tables.sqlLikeEscape(value));
 
 		Connection conn = null;
 		PreparedStatement ps = null;
