@@ -51,7 +51,6 @@ public class MKV extends MPG {
 			"3g2",
 			"3gp",
 			"3gp2",
-			"asf",
 			"asx",
 			"dv",
 			"evo",
