@@ -884,7 +884,8 @@ public class PMS {
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			mediaLibrary = new MediaLibrary();
-			LOGGER.info("A tiny cache admin interface is available at: http://" + server.getHost() + ":" + server.getPort() + "/console/home");
+			if (getServer() != null)
+				LOGGER.info("A tiny cache admin interface is available at: http://" + server.getHost() + ":" + server.getPort() + "/console/home");
 		}
 
 		// XXX: this must be called:
@@ -1996,5 +1997,9 @@ public class PMS {
 
 	public void setRegistry(SystemUtils registry) {
 		this.registry = registry;
+	}
+
+	public void setGlobalRepo(GlobalIdRepo globalRepo) {
+		this.globalRepo = globalRepo;
 	}
 }

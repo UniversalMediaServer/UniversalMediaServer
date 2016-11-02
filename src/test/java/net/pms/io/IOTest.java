@@ -23,6 +23,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.RealFile;
 import net.pms.util.FileWatcher;
 import net.pms.util.TaskRunner;
@@ -35,9 +36,57 @@ import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
 import net.sf.sevenzipjbinding.simple.ISimpleInArchive;
 import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 
+import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.IsNot;
+import org.junit.Assert;
+import org.junit.Test;
+
 public class IOTest {
 	public static void main(String[] args) throws Exception {
-		new IOTest().testMediaScan();
+//		new IOTest().testMediaScan();
+		new IOTest().testMediaLibraryFolder();
+	}
+	
+//	@Test
+	public void testMediaLibraryFolder() throws Exception {
+		PmsConfiguration conf = new PmsConfiguration();
+		RendererConfiguration.loadRendererConfigurations(conf);
+		PMS.get().setConfiguration(conf);
+		PMS.get().setRegistry(PMS.createSystemUtils());
+		PMS.get().setGlobalRepo(new GlobalIdRepo());
+		PMS.get().refreshLibrary(false);
+
+		String objectID = "1";
+		boolean browseDirectChildren = true;
+		int startingIndex = 0;
+		int requestCount = 2;
+		RendererConfiguration mediaRenderer = RendererConfiguration.getDefaultConf();
+		List<DLNAResource> files = PMS.get().getRootFolder(null).getDLNAResources(
+				objectID,
+				browseDirectChildren,
+				startingIndex,
+				requestCount,
+				mediaRenderer,
+				null
+			);
+		for(DLNAResource f : files)
+			System.out.println(f);
+		
+		startingIndex = 2;
+		List<DLNAResource> files1 = PMS.get().getRootFolder(null).getDLNAResources(
+				objectID,
+				browseDirectChildren,
+				startingIndex,
+				requestCount,
+				mediaRenderer,
+				null
+			);
+		for(DLNAResource f : files1)
+			System.out.println(f);
+		Assert.assertThat(files, IsNot.not(IsEqual.equalTo(files1)));
+//		TaskRunner.getInstance().awaitTermination(5, TimeUnit.SECONDS);
+//		PMS.get().getGlobalRepo().shutdown();
+		System.exit(0);
 	}
 	
 	public void testMediaScan() throws Exception {
@@ -71,7 +120,7 @@ public class IOTest {
 			}
 		});
 		
-		TaskRunner.getInstance().awaitTermination(35, TimeUnit.SECONDS);
+		TaskRunner.getInstance().awaitTermination(15, TimeUnit.SECONDS);
 
 		List<DLNAMediaInfo> files = PMS.get().getDatabase().query("select * from files", null);
 		System.out.println(files.size());
