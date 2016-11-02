@@ -1354,10 +1354,6 @@ public class DLNAMediaInfo implements Cloneable {
 				case "avi":
 					mimeType = HTTPResource.AVI_TYPEMIME;
 					break;
-				case "asf":
-				case "wmv":
-					mimeType = HTTPResource.WMV_TYPEMIME;
-					break;
 				case "mov":
 					mimeType = HTTPResource.MOV_TYPEMIME;
 					break;
@@ -1368,6 +1364,8 @@ public class DLNAMediaInfo implements Cloneable {
 			if (codecV != null) {
 				if ("matroska".equals(container) || "mkv".equals(container)) {
 					mimeType = HTTPResource.MATROSKA_TYPEMIME;
+				} else if ("wmv".equals(container) || "asf".equals(container)) { 
+					mimeType = HTTPResource.WMV_TYPEMIME;
 				} else if ("ogg".equals(container)) { 
 					mimeType = HTTPResource.OGG_TYPEMIME;
 				} else if ("3gp".equals(container)) {
