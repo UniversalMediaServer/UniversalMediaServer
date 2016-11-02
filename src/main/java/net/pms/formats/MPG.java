@@ -42,6 +42,7 @@ public class MPG extends Format {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
+			"asf",
 			"avi",
 			"div",
 			"divx",
