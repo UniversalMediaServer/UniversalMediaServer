@@ -107,8 +107,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		// FIXME: These are just preliminary
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
-		configuration.addProperty(SUPPORTED, "f:flac m:audio/x-flac");
-		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac m:video/flash");
+		configuration.addProperty(SUPPORTED, "f:flac m:audio/flac");
+		configuration.addProperty(SUPPORTED, "f:flv v:h263|h264|mp4 a:aac|mp3 m:video/flash");
+		configuration.addProperty(SUPPORTED, "f:flv v:hls a:aac|aac-he|ac3|mp3 m:video/flash");
 		configuration.addProperty(SUPPORTED, "f:mp4 v:h264 a:aac|mp3 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp4 a:aac|mp3 m:audio/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
@@ -290,7 +291,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		boolean slow = false;
 		try {
 			// note here if we get a low speed then calcspeed
-			// will return -1 which will ALWAYS be less that the configed value.
+			// will return -1 which will ALWAYS be less that the configured value.
 			slow = getInt(calculatedSpeed(), 0) < pmsConfiguration.getWebLowSpeed();
 		} catch (Exception e) {
 		}
