@@ -49,13 +49,16 @@ public class OGG extends MP3 {
 			"amr",
 			"ape",
 			"at3",
+			"au"
 			"dts",
+			"l16",
 			"mka",
 			"mp2",
 			"mpc",
 			"oga",
 			"ogg",
 			"oma",
+			"pcm"
 			"ra",
 			"shn",
 			"tta",
