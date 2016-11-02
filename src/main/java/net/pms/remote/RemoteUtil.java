@@ -192,7 +192,7 @@ public class RemoteUtil {
 				mime.equals(MIME_JPG) ||
 				mime.equals(MIME_GIF) ||
 				mime.equals(MIME_BMP) ||
-				mime.equals(MIME_TIFF) ||
+				mime.equals(MIME_TIFF)
 			)
 		) {
 			return true;
