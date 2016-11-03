@@ -41,7 +41,6 @@ public class OGG extends MP3 {
 			"3g2a",
 			"3ga",
 			"3gpa",
-			"3gppa",
 			"aa3",
 			"ac3",
 			"aif",
