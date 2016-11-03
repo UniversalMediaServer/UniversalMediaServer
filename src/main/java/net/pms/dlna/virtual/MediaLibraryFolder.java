@@ -215,9 +215,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 	@Override
 	public boolean equals(Object o) {
 		boolean result = false;
-		if (o instanceof MediaLibraryFolder) {
+		if (o instanceof MediaLibraryFolder && getName() != null) {
 			MediaLibraryFolder k = (MediaLibraryFolder) o;
-			result = k.sqls == this.sqls;
+			result = getName().equals(k.getName()) && this.sqls[0].equals(k.sqls[0]);
 		}
 		return result;
 	}
