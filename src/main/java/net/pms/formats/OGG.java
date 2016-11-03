@@ -50,6 +50,8 @@ public class OGG extends MP3 {
 			"ape",
 			"at3",
 			"au",
+			"dff",
+			"dsf",
 			"dts",
 			"l16",
 			"mka",
@@ -61,6 +63,7 @@ public class OGG extends MP3 {
 			"pcm",
 			"ra",
 			"shn",
+			"sw",
 			"tta",
 			"wv"
 		};
