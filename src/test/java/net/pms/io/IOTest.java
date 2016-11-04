@@ -107,7 +107,7 @@ public class IOTest {
 				DLNAResource resource = new RealFile(dir.toFile());
 				resource = ((RealFile)resource).manageFile(dir.toFile());
 				if (resource != null) {
-//					resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 					TaskRunner.getInstance().submit(resource);
 				}
 				

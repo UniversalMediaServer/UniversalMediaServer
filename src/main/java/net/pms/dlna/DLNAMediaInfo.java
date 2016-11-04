@@ -924,7 +924,7 @@ public class DLNAMediaInfo implements Cloneable {
 						codecV = "gif";
 					} else if (formatName.startsWith("TIF")) {
 						codecV = "tiff";
-						ffmpeg_parsing = true; // We need JPEG thumbnail
+						gen_thumb = false; // We need JPEG thumbnail
 					}
 
 					container = codecV;
@@ -933,7 +933,7 @@ public class DLNAMediaInfo implements Cloneable {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 					ffmpeg_parsing = true;
 				}
-				if (configuration.getImageThumbnailsEnabled() && !ffmpeg_parsing) {// && gen_thumb) {
+				if (configuration.getImageThumbnailsEnabled() && gen_thumb) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
@@ -955,16 +955,15 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			if (ffmpeg_parsing || thumb == null) {
+			if (ffmpeg_parsing || (thumbOnly && thumb == null)) {
 				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
-					pw = getFFmpegThumbnail(inputFile, resume, renderer);
-					// Seek param might cause ffmpeg to fail; try without it
 					try {
-						if (pw.getInputStream(0) != null) {
+						// Seek param might cause ffmpeg to fail; try without it
+						if (type != Format.VIDEO) {
 							durationSec = 0.0;
-							pw = getFFmpegThumbnail(inputFile, resume, renderer);
 						}
-					} catch (IOException e) {
+						pw = getFFmpegThumbnail(inputFile, resume, renderer);
+					} catch (Exception e) {
 						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
 						LOGGER.trace("", e);
 					}
@@ -1042,11 +1041,20 @@ public class DLNAMediaInfo implements Cloneable {
 						is = pw.getInputStream(0);
 						try {
 							if (is != null) {
-								sz = is.available();
-								if (sz > 0) {
-									thumb = new byte[sz];
-									is.read(thumb);
+								ByteArrayOutputStream baos = new ByteArrayOutputStream();
+								int read = is.read();
+								while(read != -1) {
+									baos.write(read);
+									read = is.read();
 								}
+								if (baos.toByteArray().length > 0)
+									thumb = baos.toByteArray();
+								
+//								sz = is.available();
+//								if (sz > 0) {
+//									thumb = new byte[sz];
+//									is.read(thumb);
+//								}
 							}
 //							if (thumb != null) {
 //								// Debugging code - helpful for debugging thumbnail output

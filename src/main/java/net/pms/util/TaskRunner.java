@@ -51,7 +51,7 @@ public class TaskRunner {
 		@Override
 		public Thread newThread(Runnable r) {
 			Thread t = new Thread(r, "background-task-" + (counter++));
-			t.setDaemon(true);
+//			t.setDaemon(true);
 			return t;
 		}
 	});

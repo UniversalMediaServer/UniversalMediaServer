@@ -275,7 +275,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE AUDIOTRACKS (");
 				sb.append("  FILEID            INT              NOT NULL");
-				sb.append(", ID                INT              NOT NULL");
+				sb.append(", ID                INT              AUTO_INCREMENT");
 				sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE             VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", NRAUDIOCHANNELS   NUMERIC");
@@ -297,7 +297,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
 				sb.append("  FILEID   INT              NOT NULL");
-				sb.append(", ID       INT              NOT NULL");
+				sb.append(", ID       INT              AUTO_INCREMENT");
 				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", TYPE     INT");
@@ -618,26 +618,27 @@ public class DLNAMediaDatabase implements Runnable {
 			if (media != null && id > -1) {
 				PreparedStatement insert = null;
 				if (media.getAudioTracksList().size() > 0) {
-					insert = conn.prepareStatement("INSERT INTO AUDIOTRACKS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+					insert = conn.prepareStatement("INSERT INTO AUDIOTRACKS (FILEID,LANG,TITLE,NRAUDIOCHANNELS,SAMPLEFREQ,CODECA,BITSPERSAMPLE,ALBUM,ARTIST,SONGNAME,GENRE,YEAR,TRACK,DELAY,MUXINGMODE,BITRATE) "
+							+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 					for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 						insert.clearParameters();
 						insert.setInt(1, id);
-						insert.setInt(2, audio.getId());
-						insert.setString(3, left(audio.getLang(), SIZE_LANG));
-						insert.setString(4, left(audio.getAudioTrackTitleFromMetadata(), SIZE_TITLE));
-						insert.setInt(5, audio.getAudioProperties().getNumberOfChannels());
-						insert.setString(6, left(audio.getSampleFrequency(), SIZE_SAMPLEFREQ));
-						insert.setString(7, left(audio.getCodecA(), SIZE_CODECA));
-						insert.setInt(8, audio.getBitsperSample());
-						insert.setString(9, left(trimToEmpty(audio.getAlbum()), SIZE_ALBUM));
-						insert.setString(10, left(trimToEmpty(audio.getArtist()), SIZE_ARTIST));
-						insert.setString(11, left(trimToEmpty(audio.getSongname()), SIZE_SONGNAME));
-						insert.setString(12, left(trimToEmpty(audio.getGenre()), SIZE_GENRE));
-						insert.setInt(13, audio.getYear());
-						insert.setInt(14, audio.getTrack());
-						insert.setInt(15, audio.getAudioProperties().getAudioDelay());
-						insert.setString(16, left(trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
-						insert.setInt(17, audio.getBitRate());
+//						insert.setInt(2, audio.getId());
+						insert.setString(2, left(audio.getLang(), SIZE_LANG));
+						insert.setString(3, left(audio.getAudioTrackTitleFromMetadata(), SIZE_TITLE));
+						insert.setInt(4, audio.getAudioProperties().getNumberOfChannels());
+						insert.setString(5, left(audio.getSampleFrequency(), SIZE_SAMPLEFREQ));
+						insert.setString(6, left(audio.getCodecA(), SIZE_CODECA));
+						insert.setInt(7, audio.getBitsperSample());
+						insert.setString(8, left(trimToEmpty(audio.getAlbum()), SIZE_ALBUM));
+						insert.setString(9, left(trimToEmpty(audio.getArtist()), SIZE_ARTIST));
+						insert.setString(10, left(trimToEmpty(audio.getSongname()), SIZE_SONGNAME));
+						insert.setString(11, left(trimToEmpty(audio.getGenre()), SIZE_GENRE));
+						insert.setInt(12, audio.getYear());
+						insert.setInt(13, audio.getTrack());
+						insert.setInt(14, audio.getAudioProperties().getAudioDelay());
+						insert.setString(15, left(trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
+						insert.setInt(16, audio.getBitRate());
 
 						try {
 							insert.executeUpdate();
@@ -653,15 +654,15 @@ public class DLNAMediaDatabase implements Runnable {
 				}
 
 				if (media.getSubtitleTracksList().size() > 0) {
-					insert = conn.prepareStatement("INSERT INTO SUBTRACKS VALUES (?, ?, ?, ?, ?)");
+					insert = conn.prepareStatement("INSERT INTO SUBTRACKS (FILEID,LANG,TITLE,TYPE) VALUES (?, ?, ?, ?)");
 					for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
 						if (sub.getExternalFile() == null) { // no save of external subtitles
 							insert.clearParameters();
 							insert.setInt(1, id);
-							insert.setInt(2, sub.getId());
-							insert.setString(3, left(sub.getLang(), SIZE_LANG));
-							insert.setString(4, left(sub.getSubtitlesTrackTitleFromMetadata(), SIZE_TITLE));
-							insert.setInt(5, sub.getType().getStableIndex());
+//							insert.setInt(2, sub.getId());
+							insert.setString(2, left(sub.getLang(), SIZE_LANG));
+							insert.setString(3, left(sub.getSubtitlesTrackTitleFromMetadata(), SIZE_TITLE));
+							insert.setInt(4, sub.getType().getStableIndex());
 							try {
 								insert.executeUpdate();
 							} catch (SQLException e) {
