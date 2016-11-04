@@ -47,6 +47,7 @@ import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
+import static net.pms.database.Tables.sqlLikeEscape;
 import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
@@ -1346,7 +1347,7 @@ public class PMS {
 	 * @param directory
 	 */
 	public void deleteFileEntriesInDirectory(String directory) {
-		getDatabase().deleteRowsInFilesTable(directory + "%", "FILENAME");
+		getDatabase().deleteRowsInFilesTable(sqlLikeEscape(directory) + "%", "FILENAME");
 	}
 
 	/**
