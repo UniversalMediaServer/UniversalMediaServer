@@ -490,6 +490,10 @@ public class UPNPHelper extends UPNPControl {
 										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
 									}
 
+									if (StringUtils.indexOf(s, "ssdp:all") > 0) {
+										sendDiscover(remoteAddr, remotePort, "ssdp:all");
+									}
+									
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
 										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
 									}
@@ -497,11 +501,9 @@ public class UPNPHelper extends UPNPControl {
 									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
 										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
 									}
-
+									
 									if (
-										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
-										StringUtils.indexOf(s, "ssdp:all") > 0
-									) {
+										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0) {
 										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
 									}
 
