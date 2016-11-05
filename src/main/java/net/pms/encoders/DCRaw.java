@@ -34,7 +34,7 @@ public class DCRaw extends ImagePlayer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DCRaw.class);
 
 	protected String[] getDefaultArgs() {
-		return new String[]{ "-e", "-c" };
+		return new String[] { "-e", "-c" };
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class DCRaw extends ImagePlayer {
 	}
 
 	@Override
-	public String executable() {
+	public String getExecutable() {
 		return configuration.getDCRawPath();
 	}
 
@@ -124,7 +124,7 @@ public class DCRaw extends ImagePlayer {
 				(int) imageInfo.getSize() : 5000000;
 
 		// First try to get the embedded thumbnail
-		String cmdArray[] = new String[5];
+		String[] cmdArray = new String[5];
 		cmdArray[0] = configuration.getDCRawPath();
 		cmdArray[1] = "-c";
 		cmdArray[2] = "-M";
@@ -174,7 +174,7 @@ public class DCRaw extends ImagePlayer {
 		params.outputByteArrayStreamBufferSize = 150000;
 
 		// First try to get the embedded thumbnail
-		String cmdArray[] = new String[6];
+		String[] cmdArray = new String[6];
 		cmdArray[0] = configuration.getDCRawPath();
 		cmdArray[1] = "-e";
 		cmdArray[2] = "-c";
@@ -234,9 +234,9 @@ public class DCRaw extends ImagePlayer {
 							imageAspect = (double) imageInfo.getWidth() / imageInfo.getHeight();
 						}
 						if (ImagesUtil.isExifAxesSwapNeeded(thumbnailOrientation)) {
-							thumbnailAspect = (double) jpegResolution.getHeight() / jpegResolution.getWidth();
+							thumbnailAspect = jpegResolution.getHeight() / jpegResolution.getWidth();
 						} else {
-							thumbnailAspect = (double) jpegResolution.getWidth() / jpegResolution.getHeight();
+							thumbnailAspect = jpegResolution.getWidth() / jpegResolution.getHeight();
 						}
 
 						if (Math.abs(imageAspect - thumbnailAspect) > 0.001d) {
@@ -300,19 +300,19 @@ public class DCRaw extends ImagePlayer {
 	 *            results in.
 	 * @param file the {@link File} to parse.
 	 */
-    @Override
+	@Override
 	public void parse(DLNAMediaInfo media, File file) {
-    	if (media == null) {
-    		throw new NullPointerException("media cannot be null");
-    	}
-    	if (file == null) {
-    		throw new NullPointerException("file cannot be null");
-    	}
+		if (media == null) {
+			throw new NullPointerException("media cannot be null");
+		}
+		if (file == null) {
+			throw new NullPointerException("file cannot be null");
+		}
 
 		OutputParams params = new OutputParams(configuration);
 		params.log = true;
 
-		String cmdArray[] = new String[4];
+		String[] cmdArray = new String[4];
 		cmdArray[0] = configuration.getDCRawPath();
 		cmdArray[1] = "-i";
 		cmdArray[2] = "-v";
@@ -340,7 +340,7 @@ public class DCRaw extends ImagePlayer {
 				break;
 			}
 		}
-    }
+	}
 
 	/**
 	 * {@inheritDoc}

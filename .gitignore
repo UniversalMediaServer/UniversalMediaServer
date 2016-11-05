@@ -20,6 +20,11 @@ target/
 /web/
 win32/
 .vscode/settings.json
+/src/main/pascal/ctrlsender/lib/
+/src/main/pascal/ctrlsender/backup/
+/src/main/pascal/ctrlsender/*.exe
+*.eclipse-pmd
+/src/main/java/net/pms/Test.java
 .recommenders/
 .metadata/
 docker/renderers
