@@ -108,6 +108,7 @@ public class FormatConfiguration {
 	public static final String WAVPACK = "wavpack";
 	public static final String WAV = "wav";
 	public static final String WEBM = "webm";
+	public static final String WEBP = "webp";
 	public static final String WMA = "wma";
 	public static final String WMV = "wmv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
