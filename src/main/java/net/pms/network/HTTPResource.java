@@ -42,13 +42,18 @@ public class HTTPResource {
 	public static final String UNKNOWN_VIDEO_TYPEMIME = "video/mpeg";
 	public static final String UNKNOWN_IMAGE_TYPEMIME = "image/jpeg";
 	public static final String UNKNOWN_AUDIO_TYPEMIME = "audio/mpeg";
+	public static final String AUDIO_ADTS_TYPEMIME = "audio/vnd.dlna.adts";
 	public static final String AUDIO_MP3_TYPEMIME = "audio/mpeg";
 	public static final String AUDIO_MP4_TYPEMIME = "audio/x-m4a";
-	public static final String AUDIO_WAV_TYPEMIME = "audio/wav";
+	public static final String AUDIO_WAV_TYPEMIME = "audio/x-wav";
 	public static final String AUDIO_WMA_TYPEMIME = "audio/x-ms-wma";
 	public static final String AUDIO_FLAC_TYPEMIME = "audio/x-flac";
-	public static final String AUDIO_OGG_TYPEMIME = "audio/x-ogg";
+	public static final String AUDIO_OGG_TYPEMIME = "audio/ogg";
 	public static final String AUDIO_LPCM_TYPEMIME = "audio/L16";
+	public static final String AUDIO_THREEGPPA_TYPEMIME = "audio/3gpp";
+	public static final String AUDIO_THREEGPP2A_TYPEMIME = "audio/3gpp2";
+	public static final String AUDIO_MATROSKA_TYPEMIME = "audio/x-matroska";
+	public static final String AUDIO_WEBM_TYPEMIME = "audio/webm";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String AVI_TYPEMIME = "video/avi";
@@ -66,6 +71,8 @@ public class HTTPResource {
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
 	public static final String THREEGPP2_TYPEMIME = "video/3gpp2";
 	public static final String MOV_TYPEMIME = "video/quicktime";
+	public static final String OGG_TYPEMIME = "video/ogg";
+	public static final String WEBM_TYPEMIME = "video/webm";
 	public HTTPResource() { }
 
 	/**
