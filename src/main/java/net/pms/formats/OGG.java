@@ -52,6 +52,7 @@ public class OGG extends MP3 {
 			"dff",
 			"dsf",
 			"dts",
+			"f4a",
 			"l16",
 			"mka",
 			"mp2",
