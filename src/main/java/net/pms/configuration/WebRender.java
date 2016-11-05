@@ -124,6 +124,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:png m:image/png");
 		configuration.addProperty(SUPPORTED, "f:gif m:image/gif");
 		configuration.addProperty(SUPPORTED, "f:tiff m:image/tiff");
+		configuration.addProperty(SUPPORTED, "f:webp m:image/webp");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
 		return true;
 	}
