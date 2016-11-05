@@ -56,10 +56,13 @@ public class FormatConfiguration {
 	public static final String CINEPACK = "cvid";
 	public static final String COOK = "cook";
 	public static final String DIVX = "divx";
+	public static final String DFF = "dff";
+	public static final String DSF = "dsf";
 	public static final String DTS = "dts";
 	public static final String DTSHD = "dtshd";
 	public static final String DV = "dv";
 	public static final String EAC3 = "eac3";
+	public static final String F4V = "f4v";
 	public static final String FLAC = "flac";
 	public static final String FLV = "flv";
 	public static final String GIF = "gif";
@@ -68,6 +71,7 @@ public class FormatConfiguration {
 	public static final String H265 = "h265";
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
+	public static final String M4V = "m4v";
 	public static final String MATROSKA = "mkv";
 	public static final String MI_GMC = "gmc";
 	public static final String MI_GOP = "gop";
