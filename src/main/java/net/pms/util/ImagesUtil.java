@@ -1,10 +1,17 @@
 package net.pms.util;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import javax.imageio.ImageIO;
 import mediautil.gen.Log;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.filters.Canvas;
+import net.coobird.thumbnailator.geometry.Positions;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.ImageReadException;
@@ -92,13 +99,13 @@ public class ImagesUtil {
 	}
 
 	/**
-	 * This method populates the supplied {@link DLNAMediaInfo} object with some of the image data 
+	 * This method populates the supplied {@link DLNAMediaInfo} object with some of the image data
 	 * (WIDTH, HEIGHT, BITSPERPIXEL, COLORTYPE, MODEL, EXPOSURE TIME, ORIENTATION and ISO).
 	 *
 	 * @param file The image file to be parsed
 	 * @param media The Imaging metadata which will be populated
-	 * @throws ImageReadException 
-	 * @throws IOException 
+	 * @throws ImageReadException
+	 * @throws IOException
 	 */
 	public static void parseImageByImaging(File file, DLNAMediaInfo media) throws ImageReadException, IOException {
 		ImageInfo info = Imaging.getImageInfo(file);
@@ -144,5 +151,63 @@ public class ImagesUtil {
 		} else if (formatName.startsWith("TIF")) {
 			media.setCodecV(FormatConfiguration.TIFF);
 		}
+	}
+
+	/**
+	 * Creates a black background with the exact dimensions specified, then
+	 * centers the image on the background, preserving the aspect ratio.
+	 *
+	 * @param image
+	 * @param width
+	 * @param height
+	 * @param outputBlank whether to return null or a black image when the
+	 *                    image parameter is null.
+	 * @param renderer the {@link RendererConfiguration} for which to scale.
+	 *
+	 * @return The scaled image
+	 */
+	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
+		ByteArrayInputStream in = null;
+		if (image == null && !outputBlank) {
+			return null;
+		} else if (image != null) {
+			in = new ByteArrayInputStream(image);
+		}
+
+		try {
+			BufferedImage img;
+			if (in != null) {
+				img = ImageIO.read(in);
+			} else {
+				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			}
+
+			if (img == null) { // ImageIO doesn't support the image format
+				return null;
+			}
+
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			if (renderer != null && renderer.isThumbnailPadding()) {
+				Thumbnails.of(img)
+					.size(width, height)
+					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
+					.outputFormat("JPEG")
+					.outputQuality(1.0f)
+					.toOutputStream(out);
+			} else {
+				Thumbnails.of(img)
+					.size(width, height)
+					.outputFormat("JPEG")
+					.outputQuality(1.0f)
+					.toOutputStream(out);
+			}
+
+			return out.toByteArray();
+		} catch (IOException e) {
+			LOGGER.debug("Failed to resize image: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
 	}
 }
