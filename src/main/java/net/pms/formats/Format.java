@@ -61,6 +61,7 @@ public abstract class Format implements Cloneable {
 		TIF,
 		WAV,
 		WEB,
+		WEBP,
 		CUSTOM,
 		PLAYLIST
 	}
