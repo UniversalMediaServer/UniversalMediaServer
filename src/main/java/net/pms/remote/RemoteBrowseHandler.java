@@ -211,13 +211,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
-		if (RemoteUtil.deny(t)) {
-			throw new IOException("Access denied");
+		try {
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			String id = RemoteUtil.getId("browse/", t);
+			LOGGER.debug("Got a browse request found id " + id);
+			String response = mkBrowsePage(id, t);
+			LOGGER.trace("Browse page:\n{}", response);
+			RemoteUtil.respond(t, response, 200, "text/html");
+		} catch (IOException e) {
+			throw e;
+		} catch (Exception e) {
+			// Nothing should get here, this is just to avoid crashing the thread
+			LOGGER.error("Unexpected error in RemoteBrowseHandler.handle(): {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
-		String id = RemoteUtil.getId("browse/", t);
-		LOGGER.debug("Got a browse request, found id {}", id);
-		String response = mkBrowsePage(id, t);
-		LOGGER.trace("Browse page:\n{}", response);
-		RemoteUtil.respond(t, response, 200, "text/html");
 	}
 }
