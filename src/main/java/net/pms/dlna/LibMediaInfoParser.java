@@ -577,6 +577,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
+		} else if (value.equals("webp")) {
+			format = FormatConfiguration.WEBP;	
 		} else if (containsIgnoreCase(value, "@l") && streamType == StreamType.Video) {
 			media.setAvcLevel(getAvcLevel(value));
 			media.setH264Profile(getAvcProfile(value));
