@@ -21,6 +21,7 @@ package net.pms.dlna;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,7 +160,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is DTS.
 	 */
 	public boolean isDTS() {
-		return getCodecA() != null && (getCodecA().toLowerCase.contains("dts") || getCodecA().toLowerCase.contains("dca"));
+		return getCodecA() != null && (getCodecA().containsIgnoreCase("dts") || getCodecA().containsIgnoreCase("dca"));
 	}
 
 	/**
