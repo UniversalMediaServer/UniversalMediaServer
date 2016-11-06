@@ -198,9 +198,9 @@ public class PMS {
 	 */
 	public RootFolder getRootFolder(RendererConfiguration renderer) {
 		// something to do here for multiple directories views for each renderer
-		if (renderer == null) {
+//		if (renderer == null) {
 			renderer = RendererConfiguration.getDefaultConf();
-		}
+//		}
 		RootFolder root = renderer.getRootFolder();
 		root.setDefaultRenderer(renderer);
 
