@@ -786,7 +786,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 
-							audio.setCodecA(ah.getEncodingType().toLowerCase());
+							audio.setCodecA(ah.getEncodingType());
 
 							if (audio.getCodecA().contains("(windows media")) {
 								audio.setCodecA(audio.getCodecA().substring(0, audio.getCodecA().indexOf("(windows media")).trim());
@@ -1386,7 +1386,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.TIFF_TYPEMIME;
 				} else if ("bmp".equals(codecV) || "bmp".equals(container)) {
 					mimeType = HTTPResource.BMP_TYPEMIME;
-				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4")) {
+				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.equals("mpeg4") || codecV.equals("mp4")) {
 					mimeType = HTTPResource.MP4_TYPEMIME;
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
 					mimeType = HTTPResource.MPEG_TYPEMIME;
@@ -1940,7 +1940,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public void setCodecV(String codecV) {
-		this.codecV = codecV;
+		this.codecV = codecV.toLowerCase();
 	}
 
 	/**
