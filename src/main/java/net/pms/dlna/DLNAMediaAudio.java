@@ -145,7 +145,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is AC-3.
 	 */
 	public boolean isAC3() {
-		return getCodecA() != null && (getCodecA().equals("ac3") || getCodecA().contains("a52"));
+		return getCodecA() != null && ("ac3".equals(getCodecA()) || "a52".contains(getCodecA()));
 	}
 
 	/**
@@ -159,7 +159,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is DTS.
 	 */
 	public boolean isDTS() {
-		return getCodecA() != null && (getCodecA().contains("dts") || getCodecA().contains("dca"));
+		return getCodecA() != null && ("dts".contains(getCodecA()) || "dca".contains(getCodecA()));
 	}
 
 	/**
@@ -173,21 +173,21 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is MP3.
 	 */
 	public boolean isMP3() {
-		return getCodecA() != null && getCodecA().equals(FormatConfiguration.MP3);
+		return getCodecA() != null && FormatConfiguration.MP3.equals(getCodecA());
 	}
 
 	/**
 	 * @return True if the audio codec is AAC.
 	 */
 	public boolean isAAC() {
-		return getCodecA() != null && getCodecA().equals(FormatConfiguration.AAC);
+		return getCodecA() != null && FormatConfiguration.AAC.equals(getCodecA());
 	}
 
 	/**
 	 * @return True if the audio codec is Ogg Vorbis.
 	 */
 	public boolean isVorbis() {
-		return getCodecA() != null && getCodecA().equals(FormatConfiguration.VORBIS);
+		return getCodecA() != null && FormatConfiguration.VORBIS.equals(getCodecA());
 	}
 
 	/**
@@ -201,14 +201,14 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is MPEG-2.
 	 */
 	public boolean isMpegAudio() {
-		return getCodecA() != null && getCodecA().equals("mp2");
+		return getCodecA() != null && "mp2".equals(getCodecA());
 	}
 
 	/**
 	 * @return True if the audio codec is PCM.
 	 */
 	public boolean isPCM() {
-		return getCodecA() != null && (getCodecA().startsWith("pcm") || getCodecA().equals("LPCM"));
+		return getCodecA() != null && (getCodecA().startsWith("pcm") || "lpcm".equals(getCodecA()));
 	}
 
 	/**
@@ -222,7 +222,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is lossless.
 	 */
 	public boolean isLossless() {
-		return getCodecA() != null && (isPCM() || getCodecA().startsWith("fla") || getCodecA().equals("mlp") || getCodecA().equals("wv") || getCodecA().equals("alac"));
+		return getCodecA() != null && (isPCM() || getCodecA().startsWith("fla") || "mlp".equals(getCodecA()) || "wv".equals(getCodecA()) || "alac".equals(getCodecA()));
 	}
 
 	/**
@@ -412,7 +412,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @since 1.50
 	 */
 	public void setCodecA(String codecA) {
-		this.codecA = codecA;
+		this.codecA = codecA.toLowerCase();
 	}
 
 	/**
