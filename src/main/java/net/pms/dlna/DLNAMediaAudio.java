@@ -214,9 +214,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @return True if the audio codec is FLAC.
 	 */
-	public boolean isFLAC() {
-		return getCodecA() != null && getCodecA().startsWith("fla");
-	}
+//	public boolean isFLAC() {
+//		return getCodecA() != null && getCodecA().startsWith("fla");
+//	}
 
 	/**
 	 * @return True if the audio codec is lossless.
@@ -243,10 +243,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 //			return "OGG";
 		} else if (isAAC()) {
 			return "AAC";
-		} else if (isMP3()) {
-			return "MP3";
-		} else if (isWMA()) {
-			return "WMA";
+//		} else if (isMP3()) {
+//			return "MP3";
+//		} else if (isWMA()) {
+//			return "WMA";
 		} else if (isMpegAudio()) {
 			return "Mpeg Audio";
 		}
