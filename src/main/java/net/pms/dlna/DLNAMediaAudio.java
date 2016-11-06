@@ -21,7 +21,6 @@ package net.pms.dlna;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,21 +145,21 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is AC-3.
 	 */
 	public boolean isAC3() {
-		return getCodecA() != null && (getCodecA().equalsIgnoreCase("ac3") || getCodecA().equalsIgnoreCase("a52") || getCodecA().equalsIgnoreCase("liba52"));
+		return getCodecA() != null && (getCodecA().equals("ac3") || getCodecA().contains("a52"));
 	}
 
 	/**
 	 * @return True if the audio codec is TrueHD.
 	 */
 	public boolean isTrueHD() {
-		return getCodecA() != null && getCodecA().equalsIgnoreCase("truehd");
+		return getCodecA() != null && getCodecA().equals("truehd");
 	}
 
 	/**
 	 * @return True if the audio codec is DTS.
 	 */
 	public boolean isDTS() {
-		return getCodecA() != null && (StringUtils.containsIgnoreCase(getCodecA(), "dts") || getCodecA().equalsIgnoreCase("dca"));
+		return getCodecA() != null && (getCodecA().contains("dts") || getCodecA().contains("dca"));
 	}
 
 	/**
@@ -174,21 +173,21 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is MP3.
 	 */
 	public boolean isMP3() {
-		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.MP3);
+		return getCodecA() != null && getCodecA().equals(FormatConfiguration.MP3);
 	}
 
 	/**
 	 * @return True if the audio codec is AAC.
 	 */
 	public boolean isAAC() {
-		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.AAC);
+		return getCodecA() != null && getCodecA().equals(FormatConfiguration.AAC);
 	}
 
 	/**
 	 * @return True if the audio codec is Ogg Vorbis.
 	 */
 	public boolean isVorbis() {
-		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.VORBIS);
+		return getCodecA() != null && getCodecA().equals(FormatConfiguration.VORBIS);
 	}
 
 	/**
@@ -202,7 +201,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is MPEG-2.
 	 */
 	public boolean isMpegAudio() {
-		return getCodecA() != null && getCodecA().equalsIgnoreCase("mp2");
+		return getCodecA() != null && getCodecA().equals("mp2");
 	}
 
 	/**
