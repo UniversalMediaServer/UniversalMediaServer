@@ -788,8 +788,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 							audio.setCodecA(ah.getEncodingType().toLowerCase());
 
-							if (audio.getCodecA().contains("(windows media")) {
-								audio.setCodecA(audio.getCodecA().substring(0, audio.getCodecA().indexOf("(windows media")).trim());
+							if (audio.getCodecA().contains("windows media")) {
+								audio.setCodecA(audio.getCodecA().substring(0, audio.getCodecA().indexOf("windows media")).trim());
 							}
 						}
 
