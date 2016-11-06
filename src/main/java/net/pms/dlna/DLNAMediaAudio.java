@@ -145,7 +145,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is AC-3.
 	 */
 	public boolean isAC3() {
-		return getCodecA() != null && ("ac3".equals(getCodecA()) || "a52".equals(getCodecA()) || "liba52".equals(getCodecA()));
+		return getCodecA() != null && ("ac3".equals(getCodecA()) || getCodecA().contains("a52"));
 	}
 
 	/**
@@ -159,7 +159,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is DTS.
 	 */
 	public boolean isDTS() {
-		return getCodecA() != null && (getCodecA().startsWith("dts") || "dca".equals(getCodecA()) || "dca (dts)".equals(getCodecA()));
+		return getCodecA() != null && (getCodecA().contains("dts") || getCodecA().contains("dca"));
 	}
 
 	/**
