@@ -160,7 +160,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is DTS.
 	 */
 	public boolean isDTS() {
-		return getCodecA() != null && (getCodecA().containsIgnoreCase("dts") || getCodecA().containsIgnoreCase("dca"));
+		return getCodecA() != null && (StringUtils.containsIgnoreCase(getCodecA(), "dts") || getCodecA().equalsIgnoreCase("dca"));
 	}
 
 	/**
