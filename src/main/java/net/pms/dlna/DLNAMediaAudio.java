@@ -20,7 +20,8 @@ package net.pms.dlna;
 
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
-import static org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
