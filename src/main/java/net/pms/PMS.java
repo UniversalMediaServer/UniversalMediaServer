@@ -46,6 +46,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableFilesStatus;
 import net.pms.database.Tables;
 import static net.pms.database.Tables.sqlLikeEscape;
 import net.pms.dlna.*;
@@ -1373,6 +1374,24 @@ public class PMS {
 		}
 
 		return "";
+	}
+
+	/**
+	 * Sets whether the file has been fully played in the database, and in
+	 * the DLNAMediaInfo if that is passed.
+	 *
+	 * @param fullPathToFile
+	 * @param isFullyPlayed
+	 * @param media
+	 */
+	public void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, DLNAMediaInfo media) {
+		if (getConfiguration().getUseCache()) {
+			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
+		}
+
+		if (media != null) {
+			media.setFullyPlayed(isFullyPlayed);
+		}
 	}
 
 	/**

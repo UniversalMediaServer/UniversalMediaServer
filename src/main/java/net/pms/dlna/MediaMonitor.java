@@ -10,6 +10,8 @@ import java.util.Set;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.database.TableFilesStatus;
+import net.pms.database.TableFilesStatus.FilesStatusResult;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
@@ -65,7 +67,11 @@ public class MediaMonitor extends VirtualFolder {
 						if (!new File(entry.trim()).exists()) {
 							continue;
 						}
-						fullyPlayedEntries.add(entry.trim());
+
+						entry = entry.trim();
+						fullyPlayedEntries.add(entry);
+
+						PMS.get().setFullyPlayed(entry, true, null);
 					}
 				}
 			}
@@ -201,7 +207,17 @@ public class MediaMonitor extends VirtualFolder {
 						return;
 					}
 
+					if (res.getMedia() != null && res.getMedia().isFullyPlayed()) {
+						return;
+					}
+
+					// TODO: Remove when the database is used for this feature
 					fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+
+					if (res.getMedia() != null) {
+						PMS.get().setFullyPlayed(rf.getFile().getAbsolutePath(), true, res.getMedia());
+					}
+
 					setDiscovered(false);
 					getChildren().clear();
 
@@ -257,7 +273,18 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public static boolean isFullyPlayed(String str) {
-		return fullyPlayedEntries != null && fullyPlayedEntries.contains(str);
+		// Checks if it's in the SQL database
+		FilesStatusResult result = TableFilesStatus.isFullyPlayed(str);
+		if (result.found) {
+			return result.isFullyPlayed;
+		}
+
+		// Checks if it's in the old CSV database
+		// if (fullyPlayedEntries != null && fullyPlayedEntries.contains(str)) {
+		// 	return true;
+		// }
+
+		return false;
 	}
 
 	/**

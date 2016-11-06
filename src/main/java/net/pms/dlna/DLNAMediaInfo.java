@@ -147,6 +147,8 @@ public class DLNAMediaInfo implements Cloneable {
 	private String edition;
 	private boolean isTVEpisode;
 
+	private boolean isFullyPlayed = false;
+
 	private byte thumb[];
 
 	/**
@@ -2055,6 +2057,22 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setIsTVEpisode(boolean value) {
 		this.isTVEpisode = value;
+	}
+
+	/**
+	 * @return whether the file has been fully played.
+	 */
+	public boolean isFullyPlayed() {
+		return isFullyPlayed;
+	}
+
+	/**
+	 * Sets whether the file has been fully played.
+	 *
+	 * @param value whether the file has been fully played.
+	 */
+	public void setFullyPlayed(boolean value) {
+		this.isFullyPlayed = value;
 	}
 
 	public String getEdition() {
