@@ -786,7 +786,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 
-							audio.setCodecA(ah.getEncodingType().toLowerCase());
+							audio.setCodecA(ah.getEncodingType());
 
 							if (audio.getCodecA().contains("windows media")) {
 								audio.setCodecA(audio.getCodecA().substring(0, audio.getCodecA().indexOf("windows media")).trim());
@@ -1938,7 +1938,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public void setCodecV(String codecV) {
-		this.codecV = codecV;
+		this.codecV = codecV.toLowerCase();
 	}
 
 	/**
