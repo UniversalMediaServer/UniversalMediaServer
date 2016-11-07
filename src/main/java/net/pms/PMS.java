@@ -1386,11 +1386,23 @@ public class PMS {
 	 */
 	public void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, DLNAMediaInfo media) {
 		if (getConfiguration().getUseCache()) {
-			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
+			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed, 0);
 		}
 
 		if (media != null) {
 			media.setFullyPlayed(isFullyPlayed);
+		}
+	}
+
+	/**
+	 * Sets whether the directory has been fully played.
+	 *
+	 * @param fullPathToFile
+	 * @param isFullyPlayed
+	 */
+	public void setDirectoryFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
+		if (getConfiguration().getUseCache()) {
+			TableFilesStatus.setDirectoryFullyPlayed(sqlLikeEscape(fullPathToFile) + "%", isFullyPlayed);
 		}
 	}
 

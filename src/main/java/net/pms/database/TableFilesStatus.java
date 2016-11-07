@@ -85,30 +85,33 @@ public final class TableFilesStatus extends Tables{
 	}
 
 	/**
-	 * Stores the MBID with information from this {@link Tag} in the database
+	 * Sets whether the file has been fully played.
 	 *
 	 * @param fullPathToFile
 	 * @param isFullyPlayed
+	 * @param fileId
 	 */
-	public static void setFullyPlayed(final String fullPathToFile, final boolean isFullyPlayed) {
+	public static void setFullyPlayed(final String fullPathToFile, final boolean isFullyPlayed, int fileId) {
 		boolean trace = LOGGER.isTraceEnabled();
-		int fileId = 0;
+		String query;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ID FROM FILES WHERE FILENAME = " + sqlQuote(fullPathToFile);
-			if (trace) {
-				LOGGER.trace("Searching for file with \"{}\" before update", query);
-			}
-
-			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						fileId = result.getInt("ID");
-					}
+			if (fileId == 0) {
+				query = "SELECT ID FROM FILES WHERE FILENAME = " + sqlQuote(fullPathToFile);
+				if (trace) {
+					LOGGER.trace("Searching for file with \"{}\" before update", query);
 				}
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
+
+				TABLE_LOCK.writeLock().lock();
+				try (Statement statement = connection.createStatement()) {
+					try (ResultSet result = statement.executeQuery(query)) {
+						if (result.next()) {
+							fileId = result.getInt("ID");
+						}
+					}
+				} finally {
+					TABLE_LOCK.writeLock().unlock();
+				}
 			}
 
 			// If the entry exists in the FILES table
@@ -151,6 +154,41 @@ public final class TableFilesStatus extends Tables{
 			} else {
 				if (trace) {
 					LOGGER.trace("Found no match in FILES for {}", fullPathToFile);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Database error while writing file status \"{}\" for \"{}\": {}",
+				isFullyPlayed,
+				fullPathToFile,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Sets whether each file within the directory is fully played.
+	 *
+	 * @param fullPathToFile
+	 * @param isFullyPlayed
+	 */
+	public static void setDirectoryFullyPlayed(final String fullPathToFile, final boolean isFullyPlayed) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(fullPathToFile);
+			if (trace) {
+				LOGGER.trace("Searching for file with \"{}\" before update", query);
+			}
+
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet result = statement.executeQuery(query)) {
+					TABLE_LOCK.writeLock().unlock();
+					while (result.next()) {
+						setFullyPlayed(result.getString("FILENAME"), isFullyPlayed, result.getInt("ID"));
+					}
 				}
 			}
 		} catch (SQLException e) {

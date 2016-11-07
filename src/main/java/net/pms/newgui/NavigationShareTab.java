@@ -28,6 +28,7 @@ import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Point;
 import java.awt.event.*;
 import java.io.File;
 import java.util.Vector;
@@ -753,6 +754,32 @@ public class NavigationShareTab {
 		TableColumn column = FList.getColumnModel().getColumn(0);
 		column.setMinWidth(650);
 
+		JPopupMenu popupMenu = new JPopupMenu();
+		JMenuItem menuItemMarkPlayed = new JMenuItem(Messages.getString("FoldTab.75"));
+		JMenuItem menuItemMarkUnplayed = new JMenuItem(Messages.getString("FoldTab.76"));
+
+		menuItemMarkPlayed.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String path = (String) FList.getValueAt(FList.getSelectedRow(), 0);
+				PMS.get().setDirectoryFullyPlayed(path, true);
+			}
+		});
+
+		menuItemMarkUnplayed.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String path = (String) FList.getValueAt(FList.getSelectedRow(), 0);
+				PMS.get().setDirectoryFullyPlayed(path, false);
+			}
+		});
+
+		popupMenu.add(menuItemMarkPlayed);
+		popupMenu.add(menuItemMarkUnplayed);
+		
+		FList.setComponentPopupMenu(popupMenu);
+		FList.addMouseListener(new TableMouseListener(FList));
+
 		/* An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text. */
@@ -967,6 +994,22 @@ public class NavigationShareTab {
 			}
 			fireTableCellUpdated(row, column);
 			updateModel();
+		}
+	}
+
+	public class TableMouseListener extends MouseAdapter {
+		private JTable table;
+
+		public TableMouseListener(JTable table) {
+			this.table = table;
+		}
+
+		@Override
+		public void mousePressed(MouseEvent event) {
+			// selects the row at which point the mouse is clicked
+			Point point = event.getPoint();
+			int currentRow = table.rowAtPoint(point);
+			table.setRowSelectionInterval(currentRow, currentRow);
 		}
 	}
 }
