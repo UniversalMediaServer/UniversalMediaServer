@@ -869,7 +869,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (configuration.getImageThumbnailsEnabled() && thumbOnly) {
+				if (configuration.isThumbnailGenerationEnabled() && configuration.getImageThumbnailsEnabled() && thumbOnly) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
