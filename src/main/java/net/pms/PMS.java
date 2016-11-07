@@ -254,12 +254,6 @@ public class PMS {
 	}
 
 	/**
-	 * @see System#err
-	 */
-	@SuppressWarnings("unused")
-	private final PrintStream stderr = System.err;
-
-	/**
 	 * Main resource database that supports search capabilities. Also known as media cache.
 	 * @see net.pms.dlna.DLNAMediaDatabase
 	 */
