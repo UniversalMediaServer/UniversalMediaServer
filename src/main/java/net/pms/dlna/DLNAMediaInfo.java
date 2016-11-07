@@ -1384,7 +1384,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.BMP_TYPEMIME;
 				} else if ("webp".equals(codecV) || "webp".equals(container)) {
 					mimeType = HTTPResource.WEBP_TYPEMIME;	
-				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV().equals("mpeg4") || codecV().equals("mp4")) {
+				} else if (codecV.startsWith("h264") || "h263".equals(codecV) || "mpeg4".equals(codecV) || "mp4".equals(codecV)) {
 					mimeType = HTTPResource.MP4_TYPEMIME;
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
 					mimeType = HTTPResource.MPEG_TYPEMIME;
