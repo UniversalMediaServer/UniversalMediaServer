@@ -398,6 +398,10 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("-f");
 				if (dtsRemux) {
 					transcodeOptions.add("mpeg2video");
+				} else if (renderer.isTranscodeToMP4H264AAC()) {
+					transcodeOptions.add("mp4");
+					transcodeOptions.add("-movflags");
+					transcodeOptions.add("frag_keyframe+empty_moov");
 				} else if (renderer.isTranscodeToMPEGTS()) {
 					transcodeOptions.add("mpegts");
 				} else {

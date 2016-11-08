@@ -111,6 +111,7 @@ public class MEncoderVideo extends Player {
 	protected boolean pcm;
 	protected boolean ovccopy;
 	protected boolean ac3Remux;
+	protected boolean isTranscodeToMP4;
 	protected boolean isTranscodeToMPEGTS;
 	protected boolean isTranscodeToH264;
 	protected boolean isTranscodeToAAC;
@@ -555,7 +556,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		defaultArgsList.add("-of");
-		if (wmv || isTranscodeToMPEGTS) {
+		if (wmv || isTranscodeToMPEGTS || isTranscodeToMP4) {
 			defaultArgsList.add("lavf");
 		} else if (pcm && avisynth()) {
 			defaultArgsList.add("avi");
@@ -571,6 +572,9 @@ public class MEncoderVideo extends Player {
 		} else if (isTranscodeToMPEGTS) {
 			defaultArgsList.add("-lavfopts");
 			defaultArgsList.add("format=mpegts");
+		} else if (isTranscodeToMP4) {
+			defaultArgsList.add("-lavfopts");
+			defaultArgsList.add("format=mp4");
 		}
 
 		defaultArgsList.add("-mpegopts");
@@ -985,6 +989,7 @@ public class MEncoderVideo extends Player {
 		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
 		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265();
 		isTranscodeToAAC    = params.mediaRenderer.isTranscodeToAAC();
+		isTranscodeToMP4    = params.mediaRenderer.isTranscodeToMP4H264AAC();
 
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 

@@ -152,6 +152,9 @@ public class VLCVideo extends Player {
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
+		} else if (renderer.isTranscodeToH264()) {
+			codecConfig.videoCodec = "h264";
+			videoRemux = true;
 		} else {
 			/**
 			 * VLC does not support H.265 encoding as of VLC 2.1.5.
@@ -164,8 +167,14 @@ public class VLCVideo extends Player {
 			}
 
 			if (renderer.isTranscodeToAC3()) {
+				codecConfig.container = "ts";
 				codecConfig.audioCodec = "a52";
+			} else if (renderer.isTranscodeToMP4H264AAC()) {
+				LOGGER.debug("Using H.264 and AAC with MP4 container");
+				codecConfig.container = "mp4";
+				codecConfig.audioCodec = "mp4a";
 			} else {
+				codecConfig.container = "ts";
 				codecConfig.audioCodec = "mp4a";
 			}
 
