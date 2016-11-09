@@ -1,11 +1,24 @@
 package net.pms.util;
 
+import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
+
 import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.nio.file.*;
-import static java.nio.file.FileVisitOption.*;
-import static java.nio.file.StandardWatchEventKinds.*;
-import java.nio.file.attribute.*;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -14,6 +27,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +56,8 @@ public class FileWatcher {
 	 */
 	public static class Watch {
 		public String fspec;
-		private WeakReference<Listener> listener;
-		private WeakReference<Object> item;
+		private Reference<Listener> listener;
+		private Reference<Object> item;
 		public int flag;
 		private PathMatcher matcher;
 
@@ -82,10 +96,12 @@ public class FileWatcher {
 		 *    and will not persist if anonymously inlined in the constructor call.
 		 */
 		public Watch(String fspec, Listener listener, Object item, int flag) {
+			if (fspec == null)
+				fspec = "";
 			// Make sure we have double-backslashes in Windows paths
 			this.fspec = fspec.replace("\\\\", "\\").replace("\\", "\\\\");
-			this.listener = new WeakReference<>(listener);
-			this.item = (item != null) ? new WeakReference<>(item) : null;
+			this.listener = new SoftReference<>(listener);
+			this.item = (item != null) ? new SoftReference<>(item) : null;
 			this.flag = flag;
 		}
 
@@ -264,10 +280,12 @@ public class FileWatcher {
 									if (w.matcher.matches(filename)) {
 										// We have an event of interest
 										LOGGER.debug("{} (ct={}): {}", kind, event.count(), filename);
-										if (isDir && kind == ENTRY_CREATE && Watch.isRecursive(w)) {
-											// It's a new directory in a recursive scope,
-											// traverse it to include any subdirs
-											addRecursive(w, filename);
+										if (isDir) {
+											if (kind == ENTRY_CREATE && Watch.isRecursive(w)) {
+												// It's a new directory in a recursive scope,
+												// traverse it to include any subdirs
+												addRecursive(w, filename);
+											}
 										} else {
 											// It's a regular event, schedule a notice
 											notifier.schedule(new Notice(filename.toString(), kind.toString(), w, isDir),
@@ -334,7 +352,7 @@ public class FileWatcher {
 		HashMap<Notice, ScheduledFuture<?>> queue = new HashMap<>();
 
 		public Notifier(final String name) {
-			super(5, new ThreadFactory() {
+			super(2, new ThreadFactory() {
 				@Override
 				public Thread newThread(Runnable r) {
 					return new Thread(r, name);
