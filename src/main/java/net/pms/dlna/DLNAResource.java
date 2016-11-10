@@ -3260,8 +3260,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String result = null;
 		if (getMedia() != null) {
 			result = getMedia().getMimeType();
-			// audio/x-ogg is same as audio/ogg
-			result = Format.getMimetype(Format.getExtension(result));
+			// For web streams, result will be null
+			if (result != null) {
+				// audio/x-ogg is same as audio/ogg
+				result = Format.getMimetype(Format.getExtension(result));
+			}
 		} else
 			result = Format.getMimetype(getFileURL());
 		return result;

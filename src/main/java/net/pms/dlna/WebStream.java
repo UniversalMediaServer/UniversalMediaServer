@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import net.pms.configuration.RendererConfiguration;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.util.FileUtil;
 
@@ -176,5 +178,9 @@ public class WebStream extends DLNAResource {
 	@Override
 	public boolean isSubSelectable() {
 		return true;
+	}
+	
+	public String getTranscodedFileURL(RendererConfiguration mediaRenderer) {
+		return getUrl();
 	}
 }
