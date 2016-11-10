@@ -55,7 +55,6 @@ public final class FormatFactory {
 		new WAV(),
 		new WEB(),
 		new WEBP(),
-		new WMV(),
 		new PLAYLIST(),
 	};
 
