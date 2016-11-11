@@ -905,6 +905,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
+				} else if (renderer.isH264Level41Limited() && media.isH264()) {
+					if (media.getAvcLevel() != null) {
+						double h264Level = 4.1;
+
+						try {
+							h264Level = Double.parseDouble(media.getAvcLevel());
+						} catch (NumberFormatException e) {
+							LOGGER.trace("Could not convert {} to double: {}", media.getAvcLevel(), e.getMessage());
+						}
+
+						if (h264Level > 4.1) {
+							isIncompatible = true;
+							LOGGER.trace(prependTraceReason + "the H.264 level ({}) is not supported.", getName(), h264Level);
+						}
+					} else {
+						isIncompatible = true;
+						LOGGER.trace(prependTraceReason + "the H.264 level is unknown.", getName());
+					}
 				}
 			}
 
@@ -2240,7 +2258,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					// patters - on Sony BDP m2ts clips aren't listed without this
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
 				} else if (mime.equals(JPEG_TYPEMIME)) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_LRG";
+					int width = media.getWidth();
+					int height = media.getHeight();
+					if (width > 1024 || height > 768) { // 1024 * 768
+						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_LRG";
+					} else if (width > 640 || height > 480) { // 640 * 480
+						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_MED";
+					} else if (width > 160 || height > 160) { // 160 * 160
+						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_SM";
+					} else {
+						dlnaOrgPnFlags = "DLNA.ORG_PN=JPEG_TN";
+					}
+
 				} else if (mime.equals(AUDIO_MP3_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=MP3";
 				} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME) || mime.equals(AUDIO_WAV_TYPEMIME)) {
@@ -2316,8 +2345,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
-				} else if (subsAreValidForStreaming) {
-					LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
 				} else {
 					LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
 				}

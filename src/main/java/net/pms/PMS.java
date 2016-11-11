@@ -413,7 +413,11 @@ public class PMS {
 	 */
 	private boolean init() throws IOException, SQLException, InterruptedException {
 		// Show the language selection dialog before displayBanner();
-		if (configuration.getLanguageRawString() == null || !Languages.isValid(configuration.getLanguageRawString())) {
+		if (
+			!isHeadless() &&
+			(configuration.getLanguageRawString() == null ||
+			!Languages.isValid(configuration.getLanguageRawString()))
+		) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
 			if (languageDialog != null) {
 				languageDialog.show();
@@ -931,10 +935,16 @@ public class PMS {
 
 			if (file.exists()) {
 				if (!file.isDirectory()) {
-					LOGGER.warn("The file " + folder + " is not a directory! Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
+					LOGGER.warn(
+						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+						folder,  Messages.getString("LooksFrame.22")
+					);
 				}
 			} else {
-				LOGGER.warn("The directory " + folder + " does not exist. Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
+				LOGGER.warn(
+					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+					folder,  Messages.getString("LooksFrame.22")
+				);
 			}
 
 			// add the file even if there are problems so that the user can update the shared folders as required.
