@@ -465,11 +465,15 @@ public class RequestV2 extends HTTPResource {
 						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 							output.headers().set(HttpHeaderNames.CONTENT_TYPE, rendererMimeType);
 							if ("audio/L16".equals(rendererMimeType)) {
+								int rate = 44100;
+								int channels = 2;
+								if (dlna.getMediaAudio() != null) {
+									channels = dlna.getMediaAudio().getAudioProperties().getNumberOfChannels();
+									rate = dlna.getMediaAudio().getAudioProperties().getSampleFrequency();
+								}
 								output.headers().set(
 										HttpHeaderNames.CONTENT_TYPE,
-										String.format("%s;channels=%d;rate=%d", rendererMimeType, 2,
-//												dlna.getMediaAudio().getAudioProperties().getNumberOfChannels(), 
-												dlna.getMediaAudio().getAudioProperties().getSampleFrequency()));
+										String.format("%s;channels=%d;rate=%d", rendererMimeType, channels, rate));
 							}
 						}
 

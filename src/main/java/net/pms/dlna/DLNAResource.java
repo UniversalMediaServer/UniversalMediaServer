@@ -618,8 +618,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
-		if (PMS.getGlobalRepo() != null)
-			PMS.getGlobalRepo().add(child);
+//		if (PMS.getGlobalRepo() != null)
+//			PMS.getGlobalRepo().add(child);
 
 		child.parent = this;
 		child.masterParent = masterParent;
@@ -633,224 +633,231 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
-		if (configuration.useCode() && !PMS.get().masterCodeValid()) {
-			String code = PMS.get().codeDb().getCode(child);
-			if (StringUtils.isNotEmpty(code)) {
-				DLNAResource cobj = child.isCoded();
-				if (cobj == null || !((CodeEnter) cobj).getCode().equals(code)) {
-					LOGGER.debug("Resource " + child + " is coded add code folder");
-					CodeEnter ce = new CodeEnter(child);
-					ce.parent = this;
-					ce.defaultRenderer = this.getDefaultRenderer();
-					ce.setCode(code);
-					addChildInternal(ce);
-					return;
-				}
-			}
-		}
+//		if (configuration.useCode() && !PMS.get().masterCodeValid()) {
+//			String code = PMS.get().codeDb().getCode(child);
+//			if (StringUtils.isNotEmpty(code)) {
+//				DLNAResource cobj = child.isCoded();
+//				if (cobj == null || !((CodeEnter) cobj).getCode().equals(code)) {
+//					LOGGER.debug("Resource " + child + " is coded add code folder");
+//					CodeEnter ce = new CodeEnter(child);
+//					ce.parent = this;
+//					ce.defaultRenderer = this.getDefaultRenderer();
+//					ce.setCode(code);
+//					addChildInternal(ce);
+//					return;
+//				}
+//			}
+//		}
 
 		try {
 			if (child.isValid()) {
-				if (child.format != null) {
-					// Do not add unsupported media formats to the list
-					if (defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
-						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
-						children.remove(child);
-						return;
-					}
-
-					// Hide watched videos depending user preference
-					if (FullyPlayed.isHideFullyPlayed(child)) {
-						LOGGER.trace("Ignoring video file \"{}\" because it has been watched", child.getName());
-						return;
-					}
+				if (child.getMedia() != null) {
+					OutputParams params = new OutputParams(configuration);
+					Player.setAudioAndSubs(child.getSystemName(), child.getMedia(), params);
+					child.setMediaSubtitle(params.sid);
+					child.setMediaAudio(params.aid);
+				}
+				
+//				if (child.format != null) {
+//					// Do not add unsupported media formats to the list
+//					if (defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
+//						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
+//						children.remove(child);
+//						return;
+//					}
+//
+//					// Hide watched videos depending user preference
+//					if (FullyPlayed.isHideFullyPlayed(child)) {
+//						LOGGER.trace("Ignoring video file \"{}\" because it has been watched", child.getName());
+//						return;
+//					}
+//				}
+//
+//				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
+//
+//				if (allChildrenAreFolders && !child.isFolder()) {
+//					allChildrenAreFolders = false;
+//				}
+//
+//				child.resHash = Math.abs(child.getSystemName().hashCode() + resumeHash());
+//
+//				DLNAResource resumeRes = null;
+//
+//				boolean addResumeFile = false;
+//				ResumeObj r = ResumeObj.create(child);
+//				if (r != null) {
+//					resumeRes = child.clone();
+//					resumeRes.resume = r;
+//					resumeRes.resHash = child.resHash;
+//					addResumeFile = true;
+//				}
+//
+//				if (child.format != null) {
+//					String configurationSkipExtensions = configuration.getDisableTranscodeForExtensions();
+//					String rendererSkipExtensions = null;
+//
+//					if (defaultRenderer != null) {
+//						rendererSkipExtensions = defaultRenderer.getStreamedExtensions();
+//					}
+//
+//					// Should transcoding be skipped for this format?
+//					boolean skip = child.format.skip(configurationSkipExtensions, rendererSkipExtensions);
+//					skipTranscode = skip;
+//
+//					if (skip) {
+//						LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", child.getName());
+//					}
+//
+//					// Determine transcoding possibilities if either
+//					//    - the format is known to be transcodable
+//					//    - we have media info (via parserV2, playback info, or a plugin)
+//					if (child.format.transcodable() || child.media != null) {
+//						if (child.media == null) {
+//							child.media = new DLNAMediaInfo();
+//						}
+//
+//						// Try to determine a player to use for transcoding.
+//						Player player = null;
+//
+//						// First, try to match a player from recently played folder or based on the name of the DLNAResource
+//						// or its parent. If the name ends in "[unique player id]", that player
+//						// is preferred.
+//						String name = getName();
+//
+//						if (!configuration.isHideRecentlyPlayedFolder()) {
+//							player = child.player;
+//						} else {
+//							for (Player p : PlayerFactory.getPlayers()) {
+//								String end = "[" + p.id() + "]";
+//
+//								if (name.endsWith(end)) {
+//									nametruncate = name.lastIndexOf(end);
+//									player = p;
+//									LOGGER.trace("Selecting player based on name end");
+//									break;
+//								} else if (parent != null && parent.getName().endsWith(end)) {
+//									parent.nametruncate = parent.getName().lastIndexOf(end);
+//									player = p;
+//									LOGGER.trace("Selecting player based on parent name end");
+//									break;
+//								}
+//							}
+//						}
+//
+//						// If no preferred player could be determined from the name, try to
+//						// match a player based on media information and format.
+//						if (player == null || (hasExternalSubtitles() && defaultRenderer.isSubtitlesStreamingSupported())) {
+//							player = child.resolvePlayer(defaultRenderer);
+//						}
+//						child.setPlayer(player);
+//						child.setPreferredMimeType(defaultRenderer);
+//
+//						if (resumeRes != null) {
+//							resumeRes.player = player;
+//						}
+//
+//						if (!allChildrenAreFolders) {
+//							child.setDefaultRenderer(defaultRenderer);
+//
+//							// Should the child be added to the #--TRANSCODE--# folder?
+//							if ((child.format.isVideo() || child.format.isAudio()) && child.isTranscodeFolderAvailable()) {
+//								// true: create (and append) the #--TRANSCODE--# folder to this
+//								// folder if supported/enabled and if it doesn't already exist
+//								VirtualFolder transcodeFolder = getTranscodeFolder(true);
+//								if (transcodeFolder != null) {
+//									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
+//
+//									DLNAResource newChild = child.clone();
+//									newChild.player = player;
+//									newChild.media = child.media;
+//									fileTranscodeFolder.addChildInternal(newChild);
+//									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player);
+//
+//									transcodeFolder.updateChild(fileTranscodeFolder);
+//								}
+//							}
+//
+//							if (child.format.isVideo() && child.isSubSelectable() && !(this instanceof SubSelFile)) {
+//								VirtualFolder vf = getSubSelector(true);
+//								if (vf != null) {
+//									DLNAResource newChild = child.clone();
+//									newChild.player = player;
+//									newChild.media = child.media;
+//									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player);
+//
+//									vf.addChild(new SubSelFile(newChild));
+//								}
+//							}
+//
+//							if (configuration.isDynamicPls() &&
+//								!child.isFolder() &&
+//								defaultRenderer != null &&
+//								!defaultRenderer.isNoDynPlsFolder()) {
+//								addDynamicPls(child);
+//							}
+//
+//							for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
+//								if (listener instanceof AdditionalResourceFolderListener) {
+//									try {
+//										((AdditionalResourceFolderListener) listener).addAdditionalFolder(this, child);
+//									} catch (Throwable t) {
+//										LOGGER.error("Failed to add additional folder for listener of type: \"{}\"", listener.getClass(), t);
+//									}
+//								}
+//							}
+//						} else if (!child.format.isCompatible(child.media, defaultRenderer) && !child.isFolder()) {
+//							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
+//							children.remove(child);
+//						}
+//					}
+//
+//					if (resumeRes != null && resumeRes.media != null) {
+//						resumeRes.media.setThumbready(false);
+//					}
+//
+//					/**
+//					 * Secondary format is currently only used to provide 24-bit FLAC to PS3 by
+//					 * sending it as a fake video. This can be made more reusable with a renderer
+//					 * config setting like Mux24BitFlacToVideo if we ever have another purpose
+//					 * for it, which I doubt we will have.
+//					 */
+//					if (
+//						child.format.getSecondaryFormat() != null &&
+//						child.media != null &&
+//						defaultRenderer != null &&
+//						defaultRenderer.supportsFormat(child.format.getSecondaryFormat()) &&
+//						defaultRenderer.isPS3()
+//					) {
+//						DLNAResource newChild = child.clone();
+//						newChild.setFormat(newChild.format.getSecondaryFormat());
+//						LOGGER.trace("Detected secondary format \"{}\" for \"{}\"", newChild.format.toString(), newChild.getName());
+//						newChild.first = child;
+//						child.second = newChild;
+//
+//						if (!newChild.format.isCompatible(newChild.media, defaultRenderer)) {
+//							Player player = PlayerFactory.getPlayer(newChild);
+//							newChild.setPlayer(player);
+//							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.format.toString(), newChild.getPlayer().name(), newChild.getName());
+//						}
+//
+//						if (child.media != null && child.media.isSecondaryFormatValid()) {
+//							addChild(newChild);
+//							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.format.toString(), newChild.getName());
+//						} else {
+//							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.format.toString(), newChild.getName());
+//						}
+//					}
 				}
 
-				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
-
-				if (allChildrenAreFolders && !child.isFolder()) {
-					allChildrenAreFolders = false;
-				}
-
-				child.resHash = Math.abs(child.getSystemName().hashCode() + resumeHash());
-
-				DLNAResource resumeRes = null;
-
-				boolean addResumeFile = false;
-				ResumeObj r = ResumeObj.create(child);
-				if (r != null) {
-					resumeRes = child.clone();
-					resumeRes.resume = r;
-					resumeRes.resHash = child.resHash;
-					addResumeFile = true;
-				}
-
-				if (child.format != null) {
-					String configurationSkipExtensions = configuration.getDisableTranscodeForExtensions();
-					String rendererSkipExtensions = null;
-
-					if (defaultRenderer != null) {
-						rendererSkipExtensions = defaultRenderer.getStreamedExtensions();
-					}
-
-					// Should transcoding be skipped for this format?
-					boolean skip = child.format.skip(configurationSkipExtensions, rendererSkipExtensions);
-					skipTranscode = skip;
-
-					if (skip) {
-						LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", child.getName());
-					}
-
-					// Determine transcoding possibilities if either
-					//    - the format is known to be transcodable
-					//    - we have media info (via parserV2, playback info, or a plugin)
-					if (child.format.transcodable() || child.media != null) {
-						if (child.media == null) {
-							child.media = new DLNAMediaInfo();
-						}
-
-						// Try to determine a player to use for transcoding.
-						Player player = null;
-
-						// First, try to match a player from recently played folder or based on the name of the DLNAResource
-						// or its parent. If the name ends in "[unique player id]", that player
-						// is preferred.
-						String name = getName();
-
-						if (!configuration.isHideRecentlyPlayedFolder()) {
-							player = child.player;
-						} else {
-							for (Player p : PlayerFactory.getPlayers()) {
-								String end = "[" + p.id() + "]";
-
-								if (name.endsWith(end)) {
-									nametruncate = name.lastIndexOf(end);
-									player = p;
-									LOGGER.trace("Selecting player based on name end");
-									break;
-								} else if (parent != null && parent.getName().endsWith(end)) {
-									parent.nametruncate = parent.getName().lastIndexOf(end);
-									player = p;
-									LOGGER.trace("Selecting player based on parent name end");
-									break;
-								}
-							}
-						}
-
-						// If no preferred player could be determined from the name, try to
-						// match a player based on media information and format.
-						if (player == null || (hasExternalSubtitles() && defaultRenderer.isSubtitlesStreamingSupported())) {
-							player = child.resolvePlayer(defaultRenderer);
-						}
-						child.setPlayer(player);
-						child.setPreferredMimeType(defaultRenderer);
-
-						if (resumeRes != null) {
-							resumeRes.player = player;
-						}
-
-						if (!allChildrenAreFolders) {
-							child.setDefaultRenderer(defaultRenderer);
-
-							// Should the child be added to the #--TRANSCODE--# folder?
-							if ((child.format.isVideo() || child.format.isAudio()) && child.isTranscodeFolderAvailable()) {
-								// true: create (and append) the #--TRANSCODE--# folder to this
-								// folder if supported/enabled and if it doesn't already exist
-								VirtualFolder transcodeFolder = getTranscodeFolder(true);
-								if (transcodeFolder != null) {
-									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
-
-									DLNAResource newChild = child.clone();
-									newChild.player = player;
-									newChild.media = child.media;
-									fileTranscodeFolder.addChildInternal(newChild);
-									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player);
-
-									transcodeFolder.updateChild(fileTranscodeFolder);
-								}
-							}
-
-							if (child.format.isVideo() && child.isSubSelectable() && !(this instanceof SubSelFile)) {
-								VirtualFolder vf = getSubSelector(true);
-								if (vf != null) {
-									DLNAResource newChild = child.clone();
-									newChild.player = player;
-									newChild.media = child.media;
-									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player);
-
-									vf.addChild(new SubSelFile(newChild));
-								}
-							}
-
-							if (configuration.isDynamicPls() &&
-								!child.isFolder() &&
-								defaultRenderer != null &&
-								!defaultRenderer.isNoDynPlsFolder()) {
-								addDynamicPls(child);
-							}
-
-							for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-								if (listener instanceof AdditionalResourceFolderListener) {
-									try {
-										((AdditionalResourceFolderListener) listener).addAdditionalFolder(this, child);
-									} catch (Throwable t) {
-										LOGGER.error("Failed to add additional folder for listener of type: \"{}\"", listener.getClass(), t);
-									}
-								}
-							}
-						} else if (!child.format.isCompatible(child.media, defaultRenderer) && !child.isFolder()) {
-							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
-							children.remove(child);
-						}
-					}
-
-					if (resumeRes != null && resumeRes.media != null) {
-						resumeRes.media.setThumbready(false);
-					}
-
-					/**
-					 * Secondary format is currently only used to provide 24-bit FLAC to PS3 by
-					 * sending it as a fake video. This can be made more reusable with a renderer
-					 * config setting like Mux24BitFlacToVideo if we ever have another purpose
-					 * for it, which I doubt we will have.
-					 */
-					if (
-						child.format.getSecondaryFormat() != null &&
-						child.media != null &&
-						defaultRenderer != null &&
-						defaultRenderer.supportsFormat(child.format.getSecondaryFormat()) &&
-						defaultRenderer.isPS3()
-					) {
-						DLNAResource newChild = child.clone();
-						newChild.setFormat(newChild.format.getSecondaryFormat());
-						LOGGER.trace("Detected secondary format \"{}\" for \"{}\"", newChild.format.toString(), newChild.getName());
-						newChild.first = child;
-						child.second = newChild;
-
-						if (!newChild.format.isCompatible(newChild.media, defaultRenderer)) {
-							Player player = PlayerFactory.getPlayer(newChild);
-							newChild.setPlayer(player);
-							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.format.toString(), newChild.getPlayer().name(), newChild.getName());
-						}
-
-						if (child.media != null && child.media.isSecondaryFormatValid()) {
-							addChild(newChild);
-							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.format.toString(), newChild.getName());
-						} else {
-							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.format.toString(), newChild.getName());
-						}
-					}
-				}
-
-				if (addResumeFile) {
-					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
-					addChildInternal(resumeRes);
-				}
+//				if (addResumeFile) {
+//					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
+//					addChildInternal(resumeRes);
+//				}
 
 				if (isNew) {
 					addChildInternal(child);
 				}
-			}
+//			}
 		} catch (Throwable t) {
 			LOGGER.error("Error adding child: \"{}\"", child.getName(), t);
 
@@ -1667,11 +1674,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 //				&& mediaRenderer != null &&
 //				mediaRenderer.isShowAudioMetadata()
 			) {
-				audioTrackTitle = " (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")";
-			}
+				audioTrackTitle = getMediaAudio().getAudioTrackTitleFromMetadata();
+				displayName = audioTrackTitle;
+			} else {
 
-			displayName += player != null ? ("[" + player.name() + "]") : "";
-			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + audioTrackTitle + "}";
+				displayName += player != null ? ("[" + player.name() + "]") : "";
+				nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + "}";
+			}
 		}
 
 		if (
@@ -3054,9 +3063,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Be careful of getMedia().isExternalSubsParsed() flag while debugging
 		OutputParams params = new OutputParams(configuration);
-		Player.setAudioAndSubs(getSystemName(), getMedia(), params);
-		setMediaSubtitle(params.sid);
-		setMediaAudio(params.aid);
+//		Player.setAudioAndSubs(getSystemName(), getMedia(), params);
+//		setMediaSubtitle(params.sid);
+//		setMediaAudio(params.aid);
 		
 		if (isCompatible(mimetype) 
 				&& mediarenderer.isResolutionCompatibleWithRenderer(getMedia().getWidth())
