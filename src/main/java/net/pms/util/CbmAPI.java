@@ -9,6 +9,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import net.pms.PMS;
 
 /*
 Copyright (c) 2015 yakka34
@@ -38,6 +41,8 @@ THE SOFTWARE.
  * @author yakka34
  */
 public class CbmAPI {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CbmAPI.class);
 
     //Folowing 3 methods are the only ones that can be called outside of the class.
     //getCpuByUrl takes a complete cpubenchmark.net url and passes it forward as it is.
@@ -118,8 +123,17 @@ public class CbmAPI {
         Element table = html.select("table.desc").first();
         //<span> containing the name is clearly labeled as cpuname.
         String cpuName = table.select("span.cpuname").text();
-        //Score is the last one to use <span> tag and will be parsed to int.
-        int cpuScore = Integer.parseInt(table.select("span").last().text());
+        //Score is the last but one to use <span> tag and will be parsed to int.
+        int cpuScoreTagPosition = table.select("span").size() - 2;
+        int cpuScore = 0;
+        String cpuScoreString = null;
+        try {
+        	cpuScoreString = table.select("span").get(cpuScoreTagPosition).text();
+        	cpuScore = Integer.parseInt(cpuScoreString);
+        } catch (NumberFormatException e) {
+			LOGGER.debug("Retrieved CPU score format '{}' is wrong.", cpuScoreString);
+		}
+
         //There are 2 <em> tags containing information. First one has description and second one has "Other names" eg.alternative name.
         String description = table.select("em").first().text();
         String altName = table.select("em").last().text();
