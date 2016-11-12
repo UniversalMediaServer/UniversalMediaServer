@@ -270,7 +270,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", VIDEOTRACKCOUNT         INT");
 				sb.append(", IMAGECOUNT              INT");
 				sb.append(", BITDEPTH                INT");
-				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
+				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE AUDIOTRACKS (");
@@ -882,5 +882,24 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+	
+	public void deleteFile(String filename) {
+		String sql = "DELETE FROM FILES WHERE FILENAME = ?";
+
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = getConnection();
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, filename);
+			ps.executeUpdate();
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	
 	}
 }

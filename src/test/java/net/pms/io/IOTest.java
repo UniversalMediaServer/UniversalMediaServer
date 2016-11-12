@@ -43,8 +43,8 @@ import org.junit.Test;
 
 public class IOTest {
 	public static void main(String[] args) throws Exception {
-//		new IOTest().testMediaScan();
-		new IOTest().testMediaLibraryFolder();
+		new IOTest().testMediaScan();
+//		new IOTest().testMediaLibraryFolder();
 	}
 	
 //	@Test
@@ -94,12 +94,13 @@ public class IOTest {
 		String db = "C:/ProgramData/UMS/database/medias.mv.db";
 		
 		File database = new File(db);
-		database.delete();
+//		database.delete();
 		
 		PmsConfiguration conf = new PmsConfiguration();
 		RendererConfiguration.loadRendererConfigurations(conf);
 		PMS.get().setConfiguration(conf);
 		PMS.get().setRegistry(PMS.createSystemUtils());
+		PMS.get().setGlobalRepo(new GlobalIdRepo());
 		
 		Files.walkFileTree(new File(dir).toPath(), EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
 			@Override
@@ -120,7 +121,7 @@ public class IOTest {
 			}
 		});
 		
-		TaskRunner.getInstance().awaitTermination(15, TimeUnit.SECONDS);
+//		TaskRunner.getInstance().awaitTermination(15, TimeUnit.SECONDS);
 
 		List<DLNAMediaInfo> files = PMS.get().getDatabase().query("select * from files", null);
 		System.out.println(files.size());
@@ -132,14 +133,14 @@ public class IOTest {
 			public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 				File f = new File(filename);
 				DLNAResource resource = new RealFile(f);
-				resource.setDefaultRenderer(RendererConfiguration.getDefaultConf());
-				TaskRunner.getInstance().submit(resource);
-				System.out.println(filename);
+				System.out.println(String.format("%s %s", filename, event));
+				resource.isValid();
 			}
 		};
-//		PMS.getFileWatcher().add(new FileWatcher.Watch(dir, reloader));
+//		PMS.getFileWatcher().add(new FileWatcher.Watch(dir + "**", reloader));
+		PMS.get().refreshLibrary(false);
 		
-		System.exit(0);
+//		System.exit(0);
 	}
 	
 	public void testFileConversion() throws Exception {

@@ -94,7 +94,7 @@ public class RealFile extends MapFile implements Serializable {
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
-			if (getType() != Format.IMAGE && getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
+			if (getType() == Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
 				valid = false;
 				if (getMedia().isEncrypted()) {
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
@@ -107,9 +107,20 @@ public class RealFile extends MapFile implements Serializable {
 //			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
 //				checkThumbnail();
 //			}
+		} else {
+			delete();
 		}
 
 		return valid;
+	}
+
+	private void delete() {
+		// File has been deleted. Remove from DB so that it doesn't show up in library view
+		DLNAMediaDatabase database = PMS.get().getDatabase();
+
+		if (database != null) {
+			database.deleteFile(getSystemName());
+		}
 	}
 
 	@Override
@@ -199,6 +210,8 @@ public class RealFile extends MapFile implements Serializable {
 						setMedia(medias.get(0));
 						getMedia().finalize(getType(), input);
 						found = true;
+					} else {
+						delete();
 					}
 				}
 			}

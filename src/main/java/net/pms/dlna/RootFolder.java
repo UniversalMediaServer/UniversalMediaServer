@@ -76,6 +76,15 @@ public class RootFolder extends DLNAResource {
 	private Playlist last;
 	private ArrayList<String> tags;
 	private ArrayList<DLNAResource> webFolders;
+	private static final transient FileWatcher.Listener reloader = new FileWatcher.Listener() {
+		@Override
+		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+			File f = new File(filename);
+			DLNAResource resource = new RealFile(f);
+			LOGGER.trace("%s %s", filename, event);
+			resource.isValid();
+		}
+	};
 
 	public RootFolder(ArrayList<String> tags) {
 		setIndexId(0);
@@ -224,7 +233,14 @@ public class RootFolder extends DLNAResource {
 					
 					return FileVisitResult.CONTINUE;
 				}
+				@Override
+				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+					PMS.getFileWatcher().add(new FileWatcher.Watch(dir.toString() + "/*.*", reloader));
+					LOGGER.trace("Monitoring folder: {}", dir);
+					return FileVisitResult.CONTINUE;
+				}
 			});
+			
 		} catch (IOException e) {
 			LOGGER.error("Scanning failed: {}", e);
 		}
