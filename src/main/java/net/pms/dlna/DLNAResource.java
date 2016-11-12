@@ -3407,29 +3407,38 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public InputStream getThumbnailInputStream() throws IOException {
-		String id = null;
-		if (media_audio != null) {
-			id = media_audio.getLang();
+		InputStream in = null;
+		if (getMedia() != null) {
+			in = getMedia().getThumbnailInputStream();
 		}
-
-		if (media_subtitle != null && media_subtitle.getId() != -1) {
-			id = media_subtitle.getLang();
+		if (in == null) {
+			in = getGenericThumbnailInputStream(null);
 		}
-
-		if ((media_subtitle != null || media_audio != null) && StringUtils.isBlank(id)) {
-			id = DLNAMediaLang.UND;
-		}
-
-		if (id != null) {
-			String code = Iso639.getISO639_2Code(id.toLowerCase());
-			return getResourceInputStream("/images/codes/" + code + ".png");
-		}
-
-		if (isAvisynth()) {
-			return getResourceInputStream("/images/logo-avisynth.png");
-		}
-
-		return getGenericThumbnailInputStream(null);
+		
+		return in;
+//		String id = null;
+//		if (media_audio != null) {
+//			id = media_audio.getLang();
+//		}
+//
+//		if (media_subtitle != null && media_subtitle.getId() != -1) {
+//			id = media_subtitle.getLang();
+//		}
+//
+//		if ((media_subtitle != null || media_audio != null) && StringUtils.isBlank(id)) {
+//			id = DLNAMediaLang.UND;
+//		}
+//
+//		if (id != null) {
+//			String code = Iso639.getISO639_2Code(id.toLowerCase());
+//			return getResourceInputStream("/images/codes/" + code + ".png");
+//		}
+//
+//		if (isAvisynth()) {
+//			return getResourceInputStream("/images/logo-avisynth.png");
+//		}
+//
+//		return getGenericThumbnailInputStream(null);
 	}
 
 	public String getThumbnailContentType() {
