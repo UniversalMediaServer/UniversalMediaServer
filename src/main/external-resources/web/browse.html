@@ -11,6 +11,8 @@
 			if ((' ' + document.cookie).indexOf(' UMSINFO=') == -1) {
 				document.cookie = 'UMSINFO=platform=' + navigator.platform + '&width=' + screen.width + '&height=' + screen.height + '&isTouchDevice=' + (window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window)) + ';Path=/';
 			}
+			function prev() {document.forms.SearchForm["page"].value--; document.forms.SearchForm.submit();}
+			function next() {document.forms.SearchForm["page"].value++; document.forms.SearchForm.submit();}
 		</script>
 		<meta charset="utf-8">
 		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
@@ -30,6 +32,8 @@
 				<div id="OptionsMenu">
 					<form id="SearchForm" method="get">
 						<input type="text" id="SearchInput" name="str">
+						<input type="hidden" name="page" value="{{page}}">
+						<input type="hidden" name="count" value="{{count}}">
 						<input type="submit" id="SearchSubmit" title="Search" value="&nbsp;">
 					</form>
 
@@ -64,6 +68,10 @@
 				</li>
 {{/media}}
 			</ul>
+			<div id="toolbar">
+					<button id="prev" onclick="prev()" {{prevAttr}}><<</button>
+					<button id="next" onclick="next()" {{nextAttr}}>>></button>
+			</div>
 {{/hasFile}}
 		</div>
 	</body>

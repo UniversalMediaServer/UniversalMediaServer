@@ -37,10 +37,24 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
-		if (search != null)
+		String page = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "page");
+		String countStr = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "count");
+		int pageNumber = 0;
+		int count = 20;
+		if (search != null) {
 			search = String.format("dc:title contains \"%s\"", search);
+		}
+		try {
+			if (page != null) {
+				pageNumber = Integer.parseInt(page);
+			}
+			if (countStr != null) {
+				count = Integer.parseInt(countStr);
+			}
+		} catch (NumberFormatException e) {
+		}
 
-		List<DLNAResource> res = root.getDLNAResources(id, true, 0, -1, root.getDefaultRenderer(), search);
+		List<DLNAResource> res = root.getDLNAResources(id, true, pageNumber * count, count, root.getDefaultRenderer(), search);
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		
@@ -221,6 +235,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 		if (configuration.useWebControl()) {
 			vars.put("push", true);
 		}
+		vars.put("page", pageNumber);
+		vars.put("count", count);
+		vars.put("prevAttr", pageNumber > 0 ? "" : " disabled");
+		vars.put("nextAttr", res.size() < count ? " disabled" : "");
 
 		return parent.getResources().getTemplate("browse.html").execute(vars);
 	}
