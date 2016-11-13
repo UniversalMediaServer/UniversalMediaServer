@@ -16,6 +16,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private String sqls[];
 	private int expectedOutputs[];
 	private transient DLNAMediaDatabase database;
+	private int childLength = -1;
+	private int start, count;
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
@@ -45,8 +47,17 @@ public class MediaLibraryFolder extends VirtualFolder {
 //							addChild(new RealFile(f));
 //						}
 //					}
-					discoverWithRenderer(this, sql, 0, -1, null, null);
-					setDiscovered(true);
+					discoverWithRenderer(this, sql, getStart(), getCount(), null, null);
+					
+					String count = sql.replace("*", "count(*)");
+					int end = count.indexOf("ORDER BY");
+					count = count.substring(0, end);
+					
+					ArrayList<String> list = database.getStrings(count);
+					if (list != null) {
+						childLength = Integer.parseInt(list.get(0));
+					}
+					// Don't set discovered flag as we want the most updated view 
 				} else if (expectedOutput == PLAYLISTS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
@@ -55,6 +66,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 							addChild(new PlaylistFolder(f));
 						}
 					}
+					setDiscovered(true);
 				} else if (expectedOutput == ISOS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
@@ -63,6 +75,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 							addChild(new DVDISOFile(f));
 						}
 					}
+					setDiscovered(true);
 				} else if (expectedOutput == TEXTS) {
 					ArrayList<String> list = database.getStrings(sql);
 					if (list != null) {
@@ -74,6 +87,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
 						}
 					}
+					setDiscovered(true);
 				}
 			}
 		}
@@ -220,5 +234,29 @@ public class MediaLibraryFolder extends VirtualFolder {
 			result = getName().equals(k.getName()) && this.sqls[0].equals(k.sqls[0]);
 		}
 		return result;
+	}
+	
+	@Override
+	public int childrenNumber() {
+		if (childLength == -1)
+			return super.childrenNumber();
+		else
+			return childLength;
+	}
+
+	public int getStart() {
+		return start;
+	}
+
+	public void setStart(int start) {
+		this.start = start;
+	}
+
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
 	}
 }

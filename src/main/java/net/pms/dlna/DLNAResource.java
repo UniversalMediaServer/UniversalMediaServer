@@ -54,6 +54,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -1215,8 +1216,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (dlna != null && searchStr == null) {
+			if (dlna instanceof MediaLibraryFolder) {
+				MediaLibraryFolder libraryFolder = (MediaLibraryFolder) dlna;
+				libraryFolder.setStart(start);
+				libraryFolder.setCount(count);
+			}
 			dlna.refreshChildren();
-//			TaskRunner.getInstance().submit(resource);
 			if (returnChildren) {
 				int size = dlna.getChildren().size();
 				int index = start + count;
@@ -1226,7 +1231,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (start > size) {
 					start = size;
 				}
-				resources.addAll(dlna.getChildren().subList(start, index));
+				if (dlna instanceof MediaLibraryFolder) {
+					resources.addAll(dlna.getChildren());
+				} else {
+					resources.addAll(dlna.getChildren().subList(start, index));
+				}
 			} else {
 				resources.add(dlna);
 			}
