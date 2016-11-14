@@ -24,7 +24,7 @@ public class MediaLibrary extends VirtualFolder {
 
 	private void init() {
 		VirtualFolder vfAudio = new VirtualFolder(Messages.getString("PMS.1"), null);
-		allFolder = new MediaLibraryFolder(Messages.getString("PMS.11"), "select * from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 ORDER BY F.FILENAME ASC", MediaLibraryFolder.FILES);
+		allFolder = new MediaLibraryFolder(Messages.getString("PMS.11"), "select * from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 ORDER BY A.TITLE ASC", MediaLibraryFolder.FILES);
 		vfAudio.addChild(allFolder);
 		playlistFolder = new MediaLibraryFolder(Messages.getString("PMS.9"), "select * from FILES F WHERE F.TYPE = 16 ORDER BY F.FILENAME ASC", MediaLibraryFolder.PLAYLISTS);
 		vfAudio.addChild(playlistFolder);
@@ -45,7 +45,7 @@ public class MediaLibrary extends VirtualFolder {
 				"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 AND A.GENRE = '${1}' AND A.ARTIST = '${0}' ORDER BY A.ALBUM ASC",
 				"select * from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND A.GENRE = '${2}' AND A.ARTIST = '${1}' AND A.ALBUM = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(mlf7);
-		MediaLibraryFolder mlfAudioDate = new MediaLibraryFolder(Messages.getString("PMS.12"), new String[]{"SELECT FORMATDATETIME(MODIFIED, 'MMM yyyy') AS MONTH FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 GROUP BY MONTH", "select * from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND FORMATDATETIME(MODIFIED, 'MMM yyyy') = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		MediaLibraryFolder mlfAudioDate = new MediaLibraryFolder(Messages.getString("PMS.12"), new String[]{"SELECT FORMATDATETIME(MODIFIED, 'MMM yyyy') AS MONTH FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 GROUP BY MONTH", "select * from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND FORMATDATETIME(MODIFIED, 'MMM yyyy') = '${0}' ORDER BY A.TRACK ASC, A.TITLE ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(mlfAudioDate);
 
 		MediaLibraryFolder mlf8 = new MediaLibraryFolder(Messages.getString("PMS.28"), new String[]{
