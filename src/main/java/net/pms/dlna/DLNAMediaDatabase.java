@@ -28,6 +28,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import static net.pms.dlna.MediaMonitor.fullyPlayedEntries;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FileUtils;
@@ -395,6 +396,13 @@ public class DLNAMediaDatabase implements Runnable {
 		return found;
 	}
 
+	/**
+	 * Creates instances of DLNAMediaInfo from the database.
+	 *
+	 * @param name
+	 * @param modified
+	 * @return 
+	 */
 	public ArrayList<DLNAMediaInfo> getData(String name, long modified) {
 		ArrayList<DLNAMediaInfo> list = new ArrayList<>();
 		Connection conn = null;
@@ -402,7 +410,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement stmt = null;
 		try {
 			conn = getConnection();
-			stmt = conn.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ?");
+			stmt = conn.prepareStatement("SELECT * FROM FILES LEFT JOIN FILES_STATUS ON FILES.ID = FILES_STATUS.FILEID WHERE FILENAME = ? AND FILES.MODIFIED = ?");
 			stmt.setString(1, name);
 			stmt.setTimestamp(2, new Timestamp(modified));
 			rs = stmt.executeQuery();
@@ -443,10 +451,23 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setIMDbID(rs.getString("IMDBID"));
 				media.setYear(rs.getString("YEAR"));
 				media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
-				media.setTVSeason(rs.getString("TVSEASON"));
-				media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
-				media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
-				media.setIsTVEpisode(rs.getBoolean("ISTVEPISODE"));
+
+				if (rs.getBoolean("ISTVEPISODE") == true) {
+					media.setTVSeason(rs.getString("TVSEASON"));
+					media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
+					media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
+					media.setIsTVEpisode(true);
+				} else {
+					media.setIsTVEpisode(false);
+				}
+
+				if (rs.getBoolean("ISFULLYPLAYED")) {
+					media.setFullyPlayed(true);
+					fullyPlayedEntries.add(name);
+				} else {
+					media.setFullyPlayed(false);
+				}
+
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {

@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static Set<String> fullyPlayedEntries;
+	public static Set<String> fullyPlayedEntries;
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -273,16 +273,16 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public static boolean isFullyPlayed(String str) {
+		// Checks if it's in the old CSV database
+		if (fullyPlayedEntries != null && fullyPlayedEntries.contains(str)) {
+			return true;
+		}
+
 		// Checks if it's in the SQL database
 		FilesStatusResult result = TableFilesStatus.isFullyPlayed(str);
 		if (result.found) {
 			return result.isFullyPlayed;
 		}
-
-		// Checks if it's in the old CSV database
-		// if (fullyPlayedEntries != null && fullyPlayedEntries.contains(str)) {
-		// 	return true;
-		// }
 
 		return false;
 	}
