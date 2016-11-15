@@ -1598,6 +1598,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (
+			!configurationSpecificToRenderer.getDisableTranscoding() &&
 			hasExternalSubtitles() &&
 			!isNamedNoEncoding &&
 			media_audio == null &&
