@@ -448,7 +448,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
-		if (!configuration.getDisableTranscoding()) {
+		if (!configuration.isDisableTranscoding()) {
 			tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		} else {
 			tr.build();
