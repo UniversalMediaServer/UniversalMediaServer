@@ -13,6 +13,7 @@ import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -54,9 +55,20 @@ public class RemoteBrowseHandler implements HttpHandler {
 		} catch (NumberFormatException e) {
 		}
 
-		List<DLNAResource> res = root.getDLNAResources(id, true, pageNumber * count, count, root.getDefaultRenderer(), search);
-		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
-		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		DLNAResource object = root.getDLNAResource(id, root.getDefaultRenderer());
+		List<DLNAResource> res = null;
+		boolean nextAttr = false;
+		/*
+		 * Media library has lot of files. However, web has a combination of files and folders. Hence, have to be
+		 * treated separately
+		 */
+		if (object instanceof MediaLibraryFolder) {
+			res = root.getDLNAResources(id, true, pageNumber * count, count, root.getDefaultRenderer(), search);
+			nextAttr = res.size() == count;
+		} else {
+			res = root.getDLNAResources(id, true, 0, -1, root.getDefaultRenderer(), search);
+			nextAttr = res.size() > count;
+		}
 		
 		if (res.isEmpty()) {
 			if ("0".equals(id)) {
@@ -71,6 +83,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			RemoteUtil.respond(t, "", 302, "text/html");
 			return null;
 		}
+		
 		if (!res.isEmpty() &&
 			res.get(0).getParent() != null &&
 			(res.get(0).getParent() instanceof CodeEnter)) {
@@ -103,7 +116,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 //		}
 
 		boolean hasFile = false;
-
+		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
+		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		
 		ArrayList<String> folders = new ArrayList<>();
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();
 		StringBuilder sb = new StringBuilder();
@@ -115,6 +130,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		folders.add(sb.toString());
 
 		// Generate innerHtml snippets for folders and media items
+		int start = pageNumber * count;
+		int end = start + count;
+		int i = 0;
 		for (DLNAResource r : res) {
 			String newId = r.getResourceId();
 			String idForWeb = URLEncoder.encode(newId, "UTF-8");
@@ -166,6 +184,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("</a>");
 				folders.add(sb.toString());
 			} else {
+				if (!(object instanceof MediaLibraryFolder) && (i++ < start || i > end)) {
+					continue;
+				}
 				// The resource is a media file
 				sb.setLength(0);
 				HashMap<String, String> item = new HashMap<>();
@@ -237,8 +258,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 		vars.put("page", pageNumber);
 		vars.put("count", count);
-		vars.put("prevAttr", pageNumber > 0 ? "" : " disabled");
-		vars.put("nextAttr", res.size() < count ? " disabled" : "");
+		vars.put("prevAttr", hasFile && pageNumber > 0 ? "" : null);
+		vars.put("nextAttr", hasFile && nextAttr ? "" : null);
 
 		return parent.getResources().getTemplate("browse.html").execute(vars);
 	}

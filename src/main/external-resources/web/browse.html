@@ -56,6 +56,12 @@
 {{#folders}}
 					<li>{{this}}</li>
 {{/folders}}
+{{#prevAttr}}
+ 					<li><a onclick="prev()"><<</a></li>
+{{/prevAttr}} 					
+{{#nextAttr}}
+					<li><a onclick="next()">>></a></li>
+{{/nextAttr}}					
 				</ul>
 			</div>
 {{#hasFile}}
@@ -68,10 +74,6 @@
 				</li>
 {{/media}}
 			</ul>
-			<div id="toolbar">
-					<button id="prev" onclick="prev()" {{prevAttr}}><<</button>
-					<button id="next" onclick="next()" {{nextAttr}}>>></button>
-			</div>
 {{/hasFile}}
 		</div>
 	</body>
