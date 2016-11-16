@@ -117,8 +117,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
-		String filename = dlna.getFileName();
-		setAudioAndSubs(filename, media, params);
+		String filename = dlna.getSystemName();
+//		setAudioAndSubs(filename, media, params);
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (filename.startsWith("mms:")) {
