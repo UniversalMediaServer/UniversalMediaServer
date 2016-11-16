@@ -302,6 +302,10 @@ public abstract class Player {
 			}
 		}
 
+		if (!media.hasSubtitles()) { // There aren't subs for this media so skip checking for languages
+			return;
+		}
+
 		StringTokenizer st = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
 
 		/**

@@ -25,8 +25,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import net.pms.PMS;
+import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.io.OutputParams;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -210,6 +212,11 @@ public class RealFile extends MapFile {
 					if (getMedia() != null && getMedia().isSLS()) {
 						setFormat(getMedia().getAudioVariantFormat());
 					}
+
+					OutputParams params = new OutputParams(configuration);
+					Player.setAudioAndSubs(input.toString(), media, params);
+					setMediaAudio(params.aid);
+					setMediaSubtitle(params.sid);
 				} else {
 					// Don't think that will ever happen
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
