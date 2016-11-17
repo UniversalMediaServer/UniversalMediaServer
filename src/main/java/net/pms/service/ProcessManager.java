@@ -50,7 +50,7 @@ import com.sun.jna.platform.win32.WinDef.WPARAM;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
 import com.sun.jna.ptr.IntByReference;
-import net.pms.PMS;
+import net.pms.configuration.PlatformProgramPaths;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
@@ -524,7 +524,7 @@ public class ProcessManager {
 		 *             during the operation.
 		 */
 		protected boolean stopWindowsProcessCtrlEvent(@Nonnull ProcessInfo processInfo, int ctrlEvent) throws InterruptedException {
-			if (PMS.getConfiguration().getCtrlSenderPath() == null) {
+			if (PlatformProgramPaths.get().getCtrlSender() == null) {
 				return false;
 			}
 			if (LOGGER.isTraceEnabled()) {
@@ -533,7 +533,7 @@ public class ProcessManager {
 				);
 			}
 			ProcessBuilder processBuilder = new ProcessBuilder(
-				PMS.getConfiguration().getCtrlSenderPath().toString(),
+				PlatformProgramPaths.get().getCtrlSender().toString(),
 				Integer.toString(processInfo.getPID()),
 				Integer.toString(ctrlEvent)
 			);
@@ -585,7 +585,7 @@ public class ProcessManager {
 		 *             during the operation.
 		 */
 		protected boolean stopWindowsProcessTaskKill(@Nonnull ProcessInfo processInfo) throws InterruptedException {
-			if (PMS.getConfiguration().getTaskKillPath() == null) {
+			if (PlatformProgramPaths.get().getTaskKill() == null) {
 				return false;
 			}
 			if (LOGGER.isTraceEnabled()) {
@@ -596,7 +596,7 @@ public class ProcessManager {
 				);
 			}
 			ProcessBuilder processBuilder = new ProcessBuilder(
-				PMS.getConfiguration().getTaskKillPath().toString(),
+				PlatformProgramPaths.get().getTaskKill().toString(),
 				"/PID",
 				Integer.toString(processInfo.getPID())
 			);
@@ -721,7 +721,7 @@ public class ProcessManager {
 					processInfo.getState() == ProcessState.WM_CLOSED ||
 					processInfo.getState() == ProcessState.CTRL_C
 				) &&
-				PMS.getConfiguration().getTaskKillPath() != null
+				PlatformProgramPaths.get().getTaskKill() != null
 			) {
 				if (stopWindowsProcessTaskKill(processInfo)) {
 					processInfo.setState(ProcessState.TASKKILL);

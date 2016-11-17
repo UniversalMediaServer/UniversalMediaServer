@@ -672,7 +672,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume) throws IOException {
 		File file = media.getFile();
 		String args[] = new String[14];
-		args[0] = configuration.getMPlayerPath();
+		args[0] = configuration.getMPlayerDefaultPath();
 		args[1] = "-ss";
 		if (resume) {
 			args[2] = "" + (int) getDurationInSeconds();

@@ -30,10 +30,17 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -61,15 +68,22 @@ import org.slf4j.LoggerFactory;
  */
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
+	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO;
+
+	/** The {@link Configuration} key for the custom VLC path. */
+	public static final String KEY_VLC_PATH = "vlc_path";
+
+	/** The {@link Configuration} key for the VLC executable type. */
+	public static final String KEY_VLC_EXECUTABLE_TYPE = "vlc_executable_type";
+	public static final String NAME = "VLC Video";
+
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
-	public static final String ID = "VLCTranscoder";
 	protected JTextField scale;
 	protected JCheckBox experimentalCodecs;
 	protected JCheckBox audioSyncEnabled;
 	protected JTextField sampleRate;
 	protected JCheckBox sampleRateOverride;
-	SystemUtils registry = PMS.get().getRegistry();
 
 	protected boolean videoRemux;
 
@@ -87,8 +101,18 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getConfigurablePathKey() {
+		return KEY_VLC_PATH;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_VLC_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -113,7 +137,7 @@ public class VLCVideo extends Player {
 
 	@Override
 	public String name() {
-		return "VLC";
+		return NAME;
 	}
 
 	@Override
@@ -128,8 +152,8 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public String getExecutable() {
-		return configuration.getVLCPath();
+	protected ExternalProgramInfo programInfo() {
+		return configuration.getVLCPaths();
 	}
 
 	/**
@@ -471,18 +495,19 @@ public class VLCVideo extends Player {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		if (registry.getVlcVersion() != null) {
-			String vlcVersion = registry.getVlcVersion();
-			Version currentVersion = new Version(vlcVersion);
+		if (BasicSystemUtils.INSTANCE.getVlcVersion() != null) {
 			Version requiredVersion = new Version("2.1.4");
 
-			if (currentVersion.compareTo(requiredVersion) > 0) {
+			if (BasicSystemUtils.INSTANCE.getVlcVersion().compareTo(requiredVersion) > 0) {
 				if (!configuration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
 				}
 			} else if (!configuration.isGPUAcceleration()) {
-				LOGGER.trace("Version " + vlcVersion + " of VLC is too low to handle the way we disable hardware acceleration.");
+				LOGGER.debug(
+					"Version {} of VLC is too low to handle the way we disable hardware acceleration.",
+					BasicSystemUtils.INSTANCE.getVlcVersion()
+				);
 			}
 		}
 
@@ -673,6 +698,81 @@ public class VLCVideo extends Player {
 			return true;
 		}
 
+		return false;
+	}
+
+	@Override
+	public boolean excludeFormat(Format extension) {
+		return false;
+	}
+
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+		return true;
+	}
+
+	@Override
+	public @Nullable ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		executableInfo = testExecutableFile(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		ExecutableInfoBuilder result = executableInfo.modify();
+		if (Platform.isWindows()) {
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.INSTANCE.getVlcPath())) {
+				result.version(BasicSystemUtils.INSTANCE.getVlcVersion());
+			}
+			result.available(Boolean.TRUE);
+		} else {
+			final String arg = "--version";
+			try {
+				ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+					30000,
+					1000,
+					executableInfo.getPath().toString(),
+					arg
+				);
+				if (output.getError() != null) {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+					result.available(Boolean.FALSE);
+					LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
+					return result.build();
+				}
+				if (output.getExitCode() == 0) {
+					if (output.getOutput() != null && output.getOutput().size() > 0) {
+						Pattern pattern = Pattern.compile("VLC version\\s+[^\\(]*\\(([^\\)]*)", Pattern.CASE_INSENSITIVE);
+						Matcher matcher = pattern.matcher(output.getOutput().get(0));
+						if (matcher.find() && isNotBlank(matcher.group(1))) {
+							result.version(new Version(matcher.group(1)));
+						}
+					}
+					result.available(Boolean.TRUE);
+				} else {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.available(Boolean.FALSE);
+				}
+			} catch (InterruptedException e) {
+				return null;
+			}
+		}
+		if (result.version() != null) {
+			Version requiredVersion = new Version("2.0.2");
+			if (result.version().compareTo(requiredVersion) <= 0) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.VersionTooLow"), requiredVersion, this));
+				result.available(Boolean.FALSE);
+				LOGGER.warn(String.format(Messages.getRootString("Engine.VersionTooLow"), requiredVersion, this));
+			}
+		} else if (result.available() != null && result.available().booleanValue()) {
+			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");
+		}
+		return result.build();
+	}
+
+	@Override
+	protected boolean isSpecificTest() {
 		return false;
 	}
 }

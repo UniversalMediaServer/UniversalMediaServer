@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -32,11 +33,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.*;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.configuration.ExternalProgramInfo;
+import net.pms.configuration.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -49,11 +57,13 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.GuiUtil;
+import net.pms.platform.windows.NTStatus;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
+import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -84,6 +94,14 @@ import org.slf4j.LoggerFactory;
  */
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
+	public static final PlayerId ID = StandardPlayerId.FFMPEG_VIDEO;
+
+	/** The {@link Configuration} key for the custom FFmpeg path. */
+	public static final String KEY_FFMPEG_PATH = "ffmpeg_path";
+
+	/** The {@link Configuration} key for the FFmpeg executable type. */
+	public static final String KEY_FFMPEG_EXECUTABLE_TYPE = "ffmpeg_executable_type";
+	public static final String NAME = "FFmpeg Video";
 	private static final String DEFAULT_QSCALE = "3";
 
 	public FFMpegVideo() {
@@ -93,8 +111,6 @@ public class FFMpegVideo extends Player {
 	public FFMpegVideo(PmsConfiguration configuration) {
 		this();
 	}
-
-	public static final String ID = "FFmpegVideo";
 
 	/**
 	 * Returns a list of strings representing the rescale options for this transcode i.e. the ffmpeg -vf
@@ -272,7 +288,7 @@ public class FFMpegVideo extends Player {
 			stereoLayout = media.get3DLayout().toString().toLowerCase(Locale.ROOT);
 			renderer3DOutputFormat = params.mediaRenderer.getOutput3DFormat();
 		}
-		
+
 		if (
 			is3D &&
 			stereoLayout != null &&
@@ -633,8 +649,18 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getConfigurablePathKey() {
+		return KEY_FFMPEG_PATH;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_FFMPEG_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -661,7 +687,7 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public String name() {
-		return "FFmpeg";
+		return NAME;
 	}
 
 	@Override
@@ -715,8 +741,8 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	public String getExecutable() {
-		return configuration.getFFmpegPath();
+	protected ExternalProgramInfo programInfo() {
+		return configuration.getFFmpegPaths();
 	}
 
 	@Override
@@ -870,6 +896,7 @@ public class FFMpegVideo extends Player {
 
 		/**
 		 * Defer to MEncoder for subtitles if:
+		 * - MEncoder is enabled and available
 		 * - The setting is enabled
 		 * - There are subtitles to transcode
 		 * - The file is not being played via the transcode folder
@@ -951,8 +978,12 @@ public class FFMpegVideo extends Player {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
 			}
+			if (deferToTsmuxer && !PlayerFactory.isPlayerAvailable(StandardPlayerId.TSMUXER_VIDEO)) {
+				deferToTsmuxer = false;
+				LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
+			}
 			if (deferToTsmuxer) {
-				TsMuxeRVideo tv = new TsMuxeRVideo();
+				TsMuxeRVideo tv = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV() != null) {
@@ -1131,8 +1162,8 @@ public class FFMpegVideo extends Player {
 		} else {
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TsMuxeRVideo ts = new TsMuxeRVideo();
-			File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
+			TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+			File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
 			String cmd[] = new String[]{ ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);
 
@@ -1458,11 +1489,6 @@ public class FFMpegVideo extends Player {
 		return configuration.isDisableSubtitles() || (params.sid == null) || avisynth();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
@@ -1530,5 +1556,96 @@ public class FFMpegVideo extends Player {
 				break;
 			}
 		}
+	}
+
+	@Override
+	public boolean excludeFormat(Format extension) {
+		return false;
+	}
+
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+		return true;
+	}
+
+	@Override
+	@Nullable
+	public ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		executableInfo = testExecutableFile(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		final String arg = "-version";
+		ExecutableInfoBuilder result = executableInfo.modify();
+		try {
+			ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+				30000,
+				1000,
+				executableInfo.getPath().toString(),
+				arg
+			);
+			if (output.getError() != null) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.available(Boolean.FALSE);
+				LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
+				return result.build();
+			}
+			if (output.getExitCode() == 0) {
+				if (output.getOutput() != null && output.getOutput().size() > 0) {
+					Pattern pattern = Pattern.compile("^ffmpeg version\\s+(.*?)\\s+Copyright", Pattern.CASE_INSENSITIVE);
+					Matcher matcher = pattern.matcher(output.getOutput().get(0));
+					if (matcher.find() && isNotBlank(matcher.group(1))) {
+						result.version(new Version(matcher.group(1)));
+					}
+				}
+				result.available(Boolean.TRUE);
+
+				if (result instanceof FFmpegExecutableInfoBuilder) {
+					List<String> protocols = FFmpegOptions.getSupportedProtocols(executableInfo.getPath());
+					((FFmpegExecutableInfoBuilder) result).protocols(protocols);
+					if (protocols.size() == 0) {
+						LOGGER.warn("Couldn't parse any supported protocols for \"{}\"", executableInfo.getPath());
+					} else {
+						LOGGER.debug("{} supported protocols: {}", executableInfo.getPath(), protocols);
+					}
+				} else {
+					LOGGER.error("Could not store FFmpeg supported protocols because of an internal error");
+				}
+			} else {
+				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
+				if (ntStatus != null) {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+				} else {
+					if (output.getOutput().size() > 2) {
+						result.errorType(ExecutableErrorType.GENERAL);
+						result.errorText(
+							String.format(Messages.getString("Engine.Error"), this) + " \n" +
+							output.getOutput().get(output.getOutput().size() - 2) + " " +
+							output.getOutput().get(output.getOutput().size() - 1)
+						);
+					} else if (output.getOutput().size() > 1) {
+						result.errorType(ExecutableErrorType.GENERAL);
+						result.errorText(
+							String.format(Messages.getString("Engine.Error"), this) + " \n" +
+							output.getOutput().get(output.getOutput().size() - 1)
+						);
+					} else {
+						result.errorType(ExecutableErrorType.GENERAL);
+						result.errorText(String.format(Messages.getString("Engine.Error"), this) + Messages.getString("General.3"));
+					}
+				}
+				result.available(Boolean.FALSE);
+			}
+		} catch (InterruptedException e) {
+			return null;
+		}
+		return result.build();
+	}
+
+	@Override
+	protected boolean isSpecificTest() {
+		return false;
 	}
 }

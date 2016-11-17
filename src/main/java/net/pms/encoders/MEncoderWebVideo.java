@@ -24,7 +24,6 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
@@ -32,7 +31,11 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
 
 public class MEncoderWebVideo extends MEncoderVideo {
-	public static final String ID = "MEncoderWebVideo";
+	public static final PlayerId ID = StandardPlayerId.MENCODER_WEB_VIDEO;
+
+	/** The {@link Configuration} key for the DCRaw executable type. */
+	public static final String KEY_MENCODER_WEB_EXECUTABLE_TYPE = "mencoder_web_executable_type";
+	public static final String NAME = "MEncoder Web Video";
 
 	@Override
 	public JComponent config() {
@@ -40,8 +43,13 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_MENCODER_WEB_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -140,7 +148,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 
 	@Override
 	public String name() {
-		return "MEncoder Web";
+		return NAME;
 	}
 
 	@Override
@@ -148,19 +156,6 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		return getDefaultArgs();
 	}
 
-	@Override
-	public String getExecutable() {
-		return configuration.getMEncoderPath();
-	}
-
-	@Override
-	public int type() {
-		return Format.VIDEO;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isWebVideo(resource);

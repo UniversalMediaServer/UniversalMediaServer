@@ -35,6 +35,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.util.FilePermissions.FileFlag;
 import static net.pms.util.Constants.*;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.Fail;
@@ -43,14 +44,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
 
 public class FileUtilTest {
 	private final Class<?> CLASS = FileUtilTest.class;
 
 	@BeforeClass
-	public static void SetUPClass() {
-		PMS.configureJNA();
+	public static void SetUPClass() throws ConfigurationException, InterruptedException {
 		// Silence all log messages from the DMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);;
@@ -384,7 +383,7 @@ public class FileUtilTest {
 
 	@Test
 	public void testFindInPath() {
-		Path executable = Platform.isWindows() ? Paths.get("java.exe") : Paths.get("java");
+		Path executable = Paths.get("java");
 		assertNotNull(FileUtil.findExecutableInOSPath(executable));
 		assertNotNull(FileUtil.findInOSPath(executable, true, FileFlag.FILE, FileFlag.EXECUTE));
 		assertNotNull(FileUtil.findInOSPath(executable, true, FileFlag.READ));

@@ -250,19 +250,6 @@ public class PMS {
 	private IFrame frame;
 
 	/**
-	 * Interface to Windows-specific functions, like Windows Registry. registry is set by {@link #init()}.
-	 * @see net.pms.io.WinUtils
-	 */
-	private SystemUtils registry;
-
-	/**
-	 * @see net.pms.io.WinUtils
-	 */
-	public SystemUtils getRegistry() {
-		return registry;
-	}
-
-	/**
 	 * Main resource database that supports search capabilities. Also known as media cache.
 	 * @see net.pms.dlna.DLNAMediaDatabase
 	 */
@@ -487,8 +474,6 @@ public class PMS {
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
 
-		registry = createSystemUtils();
-
 		if (!isHeadless()) {
 			frame = new LooksFrame(autoUpdater, configuration, windowConfiguration);
 		} else {
@@ -564,7 +549,7 @@ public class PMS {
 			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
 			//TODO: Rewrite fontconfig generation
-			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, configuration.getMPlayerPath(), "dummy");
+			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, configuration.getMPlayerDefaultPath(), "dummy");
 
 			/**
 			 * Note: Different versions of fontconfig and bitness require
@@ -577,7 +562,7 @@ public class PMS {
 					5,
 					TimeUnit.MINUTES,
 					2000,
-					configuration.getFFmpegPath(),
+					configuration.getFFmpegPaths().getDefaultPath().toString(),
 					"-y",
 					"-f",
 					"lavfi",
@@ -598,13 +583,13 @@ public class PMS {
 		frame.setConnectionState(ConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (registry.isAviSynthAvailable() && registry.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + registry.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(registry.getAvsPluginsDir(), "VSFilter.dll");
+		if (BasicSystemUtils.INSTANCE.isAviSynthAvailable() && BasicSystemUtils.INSTANCE.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(BasicSystemUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(registry.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(BasicSystemUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -613,28 +598,15 @@ public class PMS {
 			}
 		}
 
-		// Check if VLC is found
-		String vlcVersion = registry.getVlcVersion();
-		String vlcPath = registry.getVlcPath();
-
-		if (vlcVersion != null && vlcPath != null) {
-			LOGGER.info("Found VLC version " + vlcVersion + " at: " + vlcPath);
-
-			Version vlc = new Version(vlcVersion);
-			Version requiredVersion = new Version("2.0.2");
-
-			if (vlc.compareTo(requiredVersion) <= 0) {
-				LOGGER.error("Only VLC versions 2.0.2 and above are supported");
-			}
-		}
-
 		// Check if Kerio is installed
-		if (registry.isKerioFirewall()) {
+		if (BasicSystemUtils.INSTANCE.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
 		// Disable jaudiotagger logging
-		LogManager.getLogManager().readConfiguration(new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes(StandardCharsets.US_ASCII)));
+		LogManager.getLogManager().readConfiguration(
+			new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes(StandardCharsets.US_ASCII))
+		);
 
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
@@ -771,19 +743,6 @@ public class PMS {
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
-	}
-
-	private static SystemUtils createSystemUtils() {
-		if (Platform.isWindows()) {
-			return new WinUtils();
-		}
-		if (Platform.isMac()) {
-			return new MacSystemUtils();
-		}
-		if (Platform.isSolaris()) {
-			return new SolarisUtils();
-		}
-		return new BasicSystemUtils();
 	}
 
 	/**
@@ -1131,6 +1090,8 @@ public class PMS {
 					JOptionPane.ERROR_MESSAGE
 				);
 			}
+		} catch (InterruptedException e) {
+			// Interrupted during startup
 		}
 	}
 

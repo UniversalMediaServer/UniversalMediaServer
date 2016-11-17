@@ -284,7 +284,7 @@ public class TranscodingTab {
 					path.getLastPathComponent() instanceof TreeNodeSettings &&
 					((TreeNodeSettings) path.getLastPathComponent()).getPlayer() != null)
 				{
-					((TreeNodeSettings) path.getLastPathComponent()).getPlayer().toggleEnabled();
+					((TreeNodeSettings) path.getLastPathComponent()).getPlayer().toggleEnabled(true);
 					tree.updateUI();
 					setButtonsState();
 				}

@@ -24,6 +24,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import com.sun.jna.Platform;
+import net.pms.platform.windows.NTStatus;
 
 
 /**
@@ -77,7 +79,12 @@ public class ListProcessWrapperResult implements ProcessWrapperResult<List<Strin
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Process exited with code ").append(exitCode).append(":\n");
+		NTStatus ntStatus = NTStatus.typeOf(exitCode);
+		if (exitCode > 10 && Platform.isWindows() && ntStatus != null) {
+			sb.append("Process exited with error ").append(ntStatus).append("\n");
+		} else {
+			sb.append("Process exited with code ").append(exitCode).append(":\n");
+		}
 		for (String line : output) {
 			sb.append(line).append("\n");
 		}

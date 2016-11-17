@@ -32,10 +32,12 @@ import javax.annotation.Nullable;
 import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.WindowsProgramPaths;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.io.BasicSystemUtils;
 import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
@@ -233,82 +235,38 @@ public class FileUtil {
 		return getExtension(substringBefore(u, "?"));
 	}
 
-	/**
-	 * Returns the file extension from the specified {@link File} or
-	 * {@code null} if it has no extension.
-	 *
-	 * @param file the {@link File} from which to extract the extension.
-	 * @return The extracted extension or {@code null}.
-	 */
-	public static String getExtension(File file) {
-		return getExtension(file, null, null);
-	}
-
-	/**
-	 * Returns the file extension from the specified {@link File} or
-	 * {@code null} if it has no extension.
-	 *
-	 * @param file the {@link File} from which to extract the extension.
-	 * @param convertTo if {@code null} makes no letter case change to the
-	 *            returned {@link String}, otherwise converts the extracted
-	 *            extension (if any) to the corresponding letter case.
-	 * @param locale the {@link Locale} to use for letter case conversion.
-	 *            Defaults to {@link Locale#ROOT} if {@code null}.
-	 * @return The extracted and potentially letter case converted extension or
-	 *         {@code null}.
-	 */
-	public static String getExtension(File file, LetterCase convertTo, Locale locale) {
-		if (file == null || file.getName() == null) {
+	@Nullable
+	public static String getExtension(@Nullable File file) {
+		if (file == null || isBlank(file.getName())) {
 			return null;
 		}
-		return getExtension(file.getName(), convertTo, locale);
+		return getExtension(file.getName());
 	}
 
-	/**
-	 * Returns the file extension from {@code fileName} or {@code null} if
-	 * {@code fileName} has no extension.
-	 *
-	 * @param fileName the file name from which to extract the extension.
-	 * @return The extracted extension or {@code null}.
-	 */
-	public static String getExtension(String fileName) {
-		return getExtension(fileName, null, null);
-	}
-
-	/**
-	 * Returns the file extension from {@code fileName} or {@code null} if
-	 * {@code fileName} has no extension.
-	 *
-	 * @param fileName the file name from which to extract the extension.
-	 * @param convertTo if {@code null} makes no letter case change to the
-	 *            returned {@link String}, otherwise converts the extracted
-	 *            extension (if any) to the corresponding letter case.
-	 * @param locale the {@link Locale} to use for letter case conversion.
-	 *            Defaults to {@link Locale#ROOT} if {@code null}.
-	 * @return The extracted and potentially letter case converted extension or
-	 *         {@code null}.
-	 */
-	public static String getExtension(String fileName, LetterCase convertTo, Locale locale) {
-		if (fileName == null) {
+	@Nullable
+	public static String getExtension(@Nullable Path path) {
+		if (path == null) {
 			return null;
 		}
+		Path fileName = path.getFileName();
+		if (fileName == null || isBlank(fileName.toString())) {
+			return null;
+		}
+		return getExtension(fileName.toString());
+	}
 
+	@Nullable
+	public static String getExtension(@Nullable String fileName) {
+		if (isBlank(fileName)) {
+			return null;
+		}
 		int point = fileName.lastIndexOf('.');
+
 		if (point == -1) {
 			return null;
 		}
-		if (convertTo != null && locale == null) {
-			locale = Locale.ROOT;
-		}
 
-		String extension = fileName.substring(point + 1);
-		if (convertTo == LetterCase.UPPER) {
-			return extension.toUpperCase(locale);
-		}
-		if (convertTo == LetterCase.LOWER) {
-			return extension.toLowerCase(locale);
-		}
-		return extension;
+		return fileName.substring(point + 1);
 	}
 
 	public static String getFileNameWithoutExtension(String f) {
@@ -1270,9 +1228,9 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The detected <code>Charset</code> or <code>null</code> if not detected
-	 * @throws IOException
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The detected {@link Charset} or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	@Nullable
 	public static Charset getFileCharset(@Nullable File file) throws IOException {
@@ -1302,9 +1260,9 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The name of the detected charset or <code>null</code> if not detected
-	 * @throws IOException
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The name of the detected charset or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	@Nullable
 	public static String getFileCharsetName(@Nullable File file) throws IOException {
@@ -1373,41 +1331,45 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset <code>Charset</code> to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charset the {@link Charset} to test.
+	 * @return {@code true} if {@code charset} is {@code UTF-16}, {@code false}
+	 *         otherwise.
 	 */
 	public static boolean isCharsetUTF16(Charset charset) {
 		return charset != null && (charset.equals(StandardCharsets.UTF_16) || charset.equals(StandardCharsets.UTF_16BE) || charset.equals(StandardCharsets.UTF_16LE));
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset charset name to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charsetName the charset name to test
+	 * @return {@code true} if {@code charsetName} is {@code UTF-16},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF16(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
 	}
 
 	/**
-	 * Tests if charset is UTF-32.
+	 * Tests if {@code charsetName} is {@code UTF-32}.
 	 *
-	 * @param charsetName charset name to test
-	 * @return True if charset is UTF-32, false otherwise.
+	 * @param charsetName the charset name to test.
+	 * @return {@code true} if {@code charsetName} is {@code UTF-32},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF32(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
-	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
+	 * Converts an {@code UTF-16} input file to an {@code UTF-8} output file.
+	 * Does not overwrite an existing output file.
 	 *
-	 * @param inputFile UTF-16 file
-	 * @param outputFile UTF-8 file after conversion
-	 * @throws IOException
+	 * @param inputFile an {@code UTF-16} {@link File}.
+	 * @param outputFile the {@code UTF-8} {@link File} after conversion.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
 		Charset charset;
@@ -1427,6 +1389,7 @@ public class FileUtil {
 				 * For some reason creating a FileInputStream with UTF_16 produces
 				 * an UTF-8 outputfile without BOM, while using UTF_16LE or
 				 * UTF_16BE produces an UTF-8 outputfile with BOM.
+				 *
 				 * @author Nadahar
 				 */
 				try (BufferedReader reader =
@@ -1752,7 +1715,7 @@ public class FileUtil {
 				return isAdmin;
 			}
 			if (Platform.isWindows()) {
-				Double version = PMS.get().getRegistry().getWindowsVersion();
+				Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
 				if (version == null) {
 					LOGGER.error(
 						"Could not determine Windows version from {}. Administrator privileges is undetermined.",
@@ -1993,6 +1956,13 @@ public class FileUtil {
 		Path result = null;
 		List<String> extensions = new ArrayList<>();
 		extensions.add(null);
+		if (Platform.isWindows() && getExtension(relativePath) == null) {
+			for (String s : WindowsProgramPaths.getWindowsPathExtensions()) {
+				if (isNotBlank(s)) {
+					extensions.add("." + s);
+				}
+			}
+		}
 		for (String extension : extensions) {
 			for (Path path : osPath) {
 				if (path == null) {

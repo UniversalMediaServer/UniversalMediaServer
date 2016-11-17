@@ -58,7 +58,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 	public String id() {
 		if (player != null) {
-			return player.id();
+			return player.id().toString();
 		} else if (otherConfigPanel != null) {
 			return "" + otherConfigPanel.hashCode();
 		} else {
@@ -108,8 +108,8 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 			builder.add(warningLabel, cc.xy(4, 2, CellConstraints.LEFT, CellConstraints.CENTER));
 			warningLabel.setFont(warningLabel.getFont().deriveFont(Font.BOLD));
 
-			if (StringUtil.hasValue(player.getStatusText(true))) {
-				JTextArea stateText = new JTextArea(player.getStatusText(true));
+			if (StringUtil.hasValue(player.getStatusTextFull())) {
+				JTextArea stateText = new JTextArea(player.getStatusTextFull());
 				stateText.setPreferredSize(new Dimension());
 				stateText.setEditable(false);
 				stateText.setLineWrap(true);

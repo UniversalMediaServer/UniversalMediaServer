@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 public class MacSystemUtils extends BasicSystemUtils {
 	private final static Logger LOGGER = LoggerFactory.getLogger(MacSystemUtils.class);
 
-	public MacSystemUtils() { }
+	/** Only to be instantiated by {@link BasicSystemUtils#createInstance()}. */
+	protected MacSystemUtils() {
+	}
 
 	@Override
 	public void browseURI(String uri) {

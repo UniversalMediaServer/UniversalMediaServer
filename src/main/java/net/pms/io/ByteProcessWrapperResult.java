@@ -22,6 +22,8 @@ package net.pms.io;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import com.sun.jna.Platform;
+import net.pms.platform.windows.NTStatus;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 
@@ -77,7 +79,12 @@ public class ByteProcessWrapperResult implements ProcessWrapperResult<byte[]> {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Process exited with code ").append(exitCode).append(":\n");
+		NTStatus ntStatus = NTStatus.typeOf(exitCode);
+		if (exitCode > 10 && Platform.isWindows() && ntStatus != null) {
+			sb.append("Process exited with error ").append(ntStatus).append("\n");
+		} else {
+			sb.append("Process exited with code ").append(exitCode).append(":\n");
+		}
 		sb.append("Captured {} bytes of output").append(output.length);
 		return sb.toString();
 	}
