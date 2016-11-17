@@ -915,6 +915,8 @@ public class FileUtil {
 												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
 												forcedLang = flavorLang;
 											}
+										} else {
+											sub = null;
 										}
 									}
 								} else {
@@ -923,16 +925,15 @@ public class FileUtil {
 									forcedLang = code;
 								}
 
-								try {
-									sub.setExternalFile(f, forcedLang);
-								} catch (FileNotFoundException ex) {
-									LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
-									LOGGER.trace("", ex);
-								}
-
 								found = true;
-								if (media != null) {
-									media.getSubtitleTracksList().add(sub);
+								if (media != null && sub != null) {
+									try {
+										sub.setExternalFile(f, forcedLang);
+										media.getSubtitleTracksList().add(sub);
+									} catch (FileNotFoundException ex) {
+										LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
+										LOGGER.trace("", ex);
+									}
 								}
 							}
 						}

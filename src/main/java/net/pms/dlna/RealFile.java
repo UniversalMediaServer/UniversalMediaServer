@@ -199,8 +199,8 @@ public class RealFile extends MapFile {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 					OutputParams params = new OutputParams(configuration);
 					Player.setAudioAndSubs(input.toString(), media, params);
-					media_audio = params.aid;
-					media_subtitle = params.sid;
+					setMediaAudio(params.aid);
+					setMediaSubtitle(params.sid);
 				} else {
 					// Don't think that will ever happen
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
