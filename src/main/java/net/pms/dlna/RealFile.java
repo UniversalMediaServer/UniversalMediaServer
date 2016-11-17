@@ -159,6 +159,7 @@ public class RealFile extends MapFile {
 	@Override
 	public synchronized void resolve() {
 		File file = getFile();
+		int databaseFileId = -1;
 		if (file.isFile() && (getMedia() == null || !getMedia().isMediaparsed())) {
 			boolean found = false;
 			InputFile input = new InputFile();
@@ -177,7 +178,17 @@ public class RealFile extends MapFile {
 					if (medias != null && medias.size() == 1) {
 						setMedia(medias.get(0));
 						getMedia().finalize(getType(), input);
-						found = true;
+
+						/**
+						 * If this passes, we only have the fileId to use, not the file info.
+						 * This allows us to keep the FILES and FILES_STATUS tables synchronized when the
+						 * FILES table is recreated.
+						 */
+						if (getMedia().getContainer() == null && getMedia().getDatabaseFileId() > -1) {
+							databaseFileId = getMedia().getDatabaseFileId();
+						} else {
+							found = true;
+						}
 					}
 				}
 			}
@@ -200,6 +211,10 @@ public class RealFile extends MapFile {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
+						if (databaseFileId > -1) {
+							getMedia().setDatabaseFileId(databaseFileId);
+						}
+
 						database.insertData(fileName, file.lastModified(), getType(), getMedia());
 					}
 				}

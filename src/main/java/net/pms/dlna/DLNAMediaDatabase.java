@@ -417,97 +417,103 @@ public class DLNAMediaDatabase implements Runnable {
 			while (rs.next()) {
 				DLNAMediaInfo media = new DLNAMediaInfo();
 				int id = rs.getInt("ID");
-				media.setDuration(toDouble(rs, "DURATION"));
-				media.setBitrate(rs.getInt("BITRATE"));
-				media.setWidth(rs.getInt("WIDTH"));
-				media.setHeight(rs.getInt("HEIGHT"));
-				media.setSize(rs.getLong("SIZE"));
-				media.setCodecV(rs.getString("CODECV"));
-				media.setFrameRate(rs.getString("FRAMERATE"));
-				media.setAspectRatioDvdIso(rs.getString("ASPECT"));
-				media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
-				media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
-				media.setReferenceFrameCount(rs.getByte("REFRAMES"));
-				media.setAvcLevel(rs.getString("AVCLEVEL"));
-				media.setBitsPerPixel(rs.getInt("BITSPERPIXEL"));
-				media.setThumb(rs.getBytes("THUMB"));
-				media.setContainer(rs.getString("CONTAINER"));
-				media.setModel(rs.getString("MODEL"));
-				if (media.getModel() != null && !FormatConfiguration.JPG.equals(media.getContainer())) {
-					media.setExtrasAsString(media.getModel());
-				}
-				media.setExposure(rs.getInt("EXPOSURE"));
-				media.setOrientation(rs.getInt("ORIENTATION"));
-				media.setIso(rs.getInt("ISO"));
-				media.setMuxingMode(rs.getString("MUXINGMODE"));
-				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
-				media.setStereoscopy(rs.getString("STEREOSCOPY"));
-				media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
-				media.setFileTitleFromMetadata(rs.getString("TITLECONTAINER"));
-				media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
-				media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
-				media.setImageCount(rs.getInt("IMAGECOUNT"));
-				media.setVideoBitDepth(rs.getInt("BITDEPTH"));
-				media.setIMDbID(rs.getString("IMDBID"));
-				media.setYear(rs.getString("YEAR"));
-				media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
 
-				if (rs.getBoolean("ISTVEPISODE") == true) {
-					media.setTVSeason(rs.getString("TVSEASON"));
-					media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
-					media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
-					media.setIsTVEpisode(true);
-				} else {
-					media.setIsTVEpisode(false);
-				}
-
-				if (rs.getBoolean("ISFULLYPLAYED")) {
-					media.setFullyPlayed(true);
-					fullyPlayedEntries.add(name);
-				} else {
-					media.setFullyPlayed(false);
-				}
-
-				media.setMediaparsed(true);
-				ResultSet subrs;
-				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
-					audios.setInt(1, id);
-					subrs = audios.executeQuery();
-					while (subrs.next()) {
-						DLNAMediaAudio audio = new DLNAMediaAudio();
-						audio.setId(subrs.getInt("ID"));
-						audio.setLang(subrs.getString("LANG"));
-						audio.setAudioTrackTitleFromMetadata(subrs.getString("TITLE"));
-						audio.getAudioProperties().setNumberOfChannels(subrs.getInt("NRAUDIOCHANNELS"));
-						audio.setSampleFrequency(subrs.getString("SAMPLEFREQ"));
-						audio.setCodecA(subrs.getString("CODECA"));
-						audio.setBitsperSample(subrs.getInt("BITSPERSAMPLE"));
-						audio.setAlbum(subrs.getString("ALBUM"));
-						audio.setArtist(subrs.getString("ARTIST"));
-						audio.setSongname(subrs.getString("SONGNAME"));
-						audio.setGenre(subrs.getString("GENRE"));
-						audio.setYear(subrs.getInt("YEAR"));
-						audio.setTrack(subrs.getInt("TRACK"));
-						audio.getAudioProperties().setAudioDelay(subrs.getInt("DELAY"));
-						audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
-						audio.setBitRate(subrs.getInt("BITRATE"));
-						media.getAudioTracksList().add(audio);
+				// If there is no container then this is just an old isFullyPlayed entry
+				if (StringUtils.isNotEmpty(rs.getString("CONTAINER"))) {
+					LOGGER.info("1 " + rs.getString("MOVIEORSHOWNAME") + " 2 " + rs.getString("FILENAME"));
+					media.setDuration(toDouble(rs, "DURATION"));
+					media.setBitrate(rs.getInt("BITRATE"));
+					media.setWidth(rs.getInt("WIDTH"));
+					media.setHeight(rs.getInt("HEIGHT"));
+					media.setSize(rs.getLong("SIZE"));
+					media.setCodecV(rs.getString("CODECV"));
+					media.setFrameRate(rs.getString("FRAMERATE"));
+					media.setAspectRatioDvdIso(rs.getString("ASPECT"));
+					media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
+					media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
+					media.setReferenceFrameCount(rs.getByte("REFRAMES"));
+					media.setAvcLevel(rs.getString("AVCLEVEL"));
+					media.setBitsPerPixel(rs.getInt("BITSPERPIXEL"));
+					media.setThumb(rs.getBytes("THUMB"));
+					media.setContainer(rs.getString("CONTAINER"));
+					media.setModel(rs.getString("MODEL"));
+					if (media.getModel() != null && !FormatConfiguration.JPG.equals(media.getContainer())) {
+						media.setExtrasAsString(media.getModel());
 					}
-					subrs.close();
-				}
-				try (PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?")) {
-					subs.setInt(1, id);
-					subrs = subs.executeQuery();
-					while (subrs.next()) {
-						DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-						sub.setId(subrs.getInt("ID"));
-						sub.setLang(subrs.getString("LANG"));
-						sub.setSubtitlesTrackTitleFromMetadata(subrs.getString("TITLE"));
-						sub.setType(SubtitleType.valueOfStableIndex(subrs.getInt("TYPE")));
-						media.getSubtitleTracksList().add(sub);
+					media.setExposure(rs.getInt("EXPOSURE"));
+					media.setOrientation(rs.getInt("ORIENTATION"));
+					media.setIso(rs.getInt("ISO"));
+					media.setMuxingMode(rs.getString("MUXINGMODE"));
+					media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
+					media.setStereoscopy(rs.getString("STEREOSCOPY"));
+					media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
+					media.setFileTitleFromMetadata(rs.getString("TITLECONTAINER"));
+					media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
+					media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
+					media.setImageCount(rs.getInt("IMAGECOUNT"));
+					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
+					media.setIMDbID(rs.getString("IMDBID"));
+					media.setYear(rs.getString("YEAR"));
+					media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
+
+					if (rs.getBoolean("ISTVEPISODE") == true) {
+						media.setTVSeason(rs.getString("TVSEASON"));
+						media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
+						media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
+						media.setIsTVEpisode(true);
+					} else {
+						media.setIsTVEpisode(false);
 					}
-					subrs.close();
+
+					if (rs.getBoolean("ISFULLYPLAYED")) {
+						media.setFullyPlayed(true);
+						fullyPlayedEntries.add(name);
+					} else {
+						media.setFullyPlayed(false);
+					}
+
+					media.setMediaparsed(true);
+					ResultSet subrs;
+					try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
+						audios.setInt(1, id);
+						subrs = audios.executeQuery();
+						while (subrs.next()) {
+							DLNAMediaAudio audio = new DLNAMediaAudio();
+							audio.setId(subrs.getInt("ID"));
+							audio.setLang(subrs.getString("LANG"));
+							audio.setAudioTrackTitleFromMetadata(subrs.getString("TITLE"));
+							audio.getAudioProperties().setNumberOfChannels(subrs.getInt("NRAUDIOCHANNELS"));
+							audio.setSampleFrequency(subrs.getString("SAMPLEFREQ"));
+							audio.setCodecA(subrs.getString("CODECA"));
+							audio.setBitsperSample(subrs.getInt("BITSPERSAMPLE"));
+							audio.setAlbum(subrs.getString("ALBUM"));
+							audio.setArtist(subrs.getString("ARTIST"));
+							audio.setSongname(subrs.getString("SONGNAME"));
+							audio.setGenre(subrs.getString("GENRE"));
+							audio.setYear(subrs.getInt("YEAR"));
+							audio.setTrack(subrs.getInt("TRACK"));
+							audio.getAudioProperties().setAudioDelay(subrs.getInt("DELAY"));
+							audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
+							audio.setBitRate(subrs.getInt("BITRATE"));
+							media.getAudioTracksList().add(audio);
+						}
+						subrs.close();
+					}
+					try (PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?")) {
+						subs.setInt(1, id);
+						subrs = subs.executeQuery();
+						while (subrs.next()) {
+							DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+							sub.setId(subrs.getInt("ID"));
+							sub.setLang(subrs.getString("LANG"));
+							sub.setSubtitlesTrackTitleFromMetadata(subrs.getString("TITLE"));
+							sub.setType(SubtitleType.valueOfStableIndex(subrs.getInt("TYPE")));
+							media.getSubtitleTracksList().add(sub);
+						}
+						subrs.close();
+					}
 				}
+				media.setDatabaseFileId(id);
 
 				list.add(media);
 			}
@@ -533,14 +539,31 @@ public class DLNAMediaDatabase implements Runnable {
 	public synchronized void insertData(String name, long modified, int type, DLNAMediaInfo media) {
 		Connection conn = null;
 		PreparedStatement ps = null;
+
+		boolean existingId = false;
+		if (media != null && media.getDatabaseFileId() > -1) {
+			existingId = true;
+		}
+
 		try {
 			conn = getConnection();
-			ps = conn.prepareStatement(
-				"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
-				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
-				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
-				"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
-				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+			if (existingId) {
+				ps = conn.prepareStatement(
+					"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
+					"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
+					"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
+					"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, ID) VALUES "+
+					"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				ps.setInt(32, media.getDatabaseFileId());
+			} else {
+				ps = conn.prepareStatement(
+					"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
+					"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
+					"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
+					"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
+					"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			}
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);

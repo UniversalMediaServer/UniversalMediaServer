@@ -146,6 +146,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private String tvEpisodeName;
 	private String edition;
 	private boolean isTVEpisode;
+	private int databaseFileId = -1;
 
 	private boolean isFullyPlayed = false;
 
@@ -2057,6 +2058,14 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setIsTVEpisode(boolean value) {
 		this.isTVEpisode = value;
+	}
+
+	public int getDatabaseFileId() {
+		return databaseFileId;
+	}
+
+	public void setDatabaseFileId(int value) {
+		this.databaseFileId = value;
 	}
 
 	/**
