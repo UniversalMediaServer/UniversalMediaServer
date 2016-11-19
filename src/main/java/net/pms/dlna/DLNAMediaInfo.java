@@ -30,6 +30,8 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
@@ -592,7 +594,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFmpegThumbnail(InputFile media, boolean resume) {
-		/**
+		/*
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
 		 * minimize the amount of text given by FFmpeg here
@@ -600,7 +602,12 @@ public class DLNAMediaInfo implements Cloneable {
 		ArrayList<String> args = new ArrayList<>();
 		boolean generateThumbnail = configuration.isThumbnailGenerationEnabled() && !configuration.isUseMplayerForVideoThumbs();
 
-		args.add(getFfmpegPath());
+		args.add(PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO));
+		if (args.get(0) == null) {
+			LOGGER.warn("Cannot generate thumbnail for {} since the FFmpeg executable is undefined");
+			return null;
+		}
+
 		if (generateThumbnail) {
 			args.add("-ss");
 			if (resume) {
@@ -672,7 +679,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume) throws IOException {
 		File file = media.getFile();
 		String args[] = new String[14];
-		args[0] = configuration.getMPlayerDefaultPath();
+		args[0] = configuration.getMPlayerPath();
 		args[1] = "-ss";
 		if (resume) {
 			args[2] = "" + (int) getDurationInSeconds();
@@ -733,16 +740,6 @@ public class DLNAMediaInfo implements Cloneable {
 			parsing = false;
 		}
 		return pw;
-	}
-
-	private static String getFfmpegPath() {
-		String value = configuration.getFFmpegPath();
-
-		if (value == null) {
-			LOGGER.info("No FFmpeg - unable to thumbnail");
-			throw new RuntimeException("No FFmpeg - unable to thumbnail");
-		}
-		return value;
 	}
 
 	@Deprecated
@@ -2042,7 +2039,11 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public byte[][] getAnnexBFrameHeader(InputFile f) {
 		String[] cmdArray = new String[14];
-		cmdArray[0] = configuration.getFFmpegPath();
+		cmdArray[0] = PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO);
+		if (cmdArray[0] == null) {
+			LOGGER.warn("Cannot process Annex B Frame Header is FFmpeg executable is undefined");
+			return null;
+		}
 		cmdArray[1] = "-i";
 
 		if (f.getPush() == null && f.getFilename() != null) {

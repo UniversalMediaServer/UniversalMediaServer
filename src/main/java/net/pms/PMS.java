@@ -549,7 +549,7 @@ public class PMS {
 			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
 			//TODO: Rewrite fontconfig generation
-			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, configuration.getMPlayerDefaultPath(), "dummy");
+			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, configuration.getMPlayerPath(), "dummy");
 
 			/**
 			 * Note: Different versions of fontconfig and bitness require
