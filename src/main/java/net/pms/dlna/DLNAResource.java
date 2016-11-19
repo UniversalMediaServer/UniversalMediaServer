@@ -807,28 +807,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * player. However, other details about the media can change this, such as
 		 * whether it has subtitles that match this user's language settings, so here we
 		 * perform those checks.
-		 */
+		*/
 		if (format.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
-			if (hasEmbeddedSubs || hasExternalSubtitles()) {
-				OutputParams params = new OutputParams(configurationSpecificToRenderer);
-				Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
-				if (params.sid != null) {
-					if (params.sid.isExternal()) {
-						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
-							media_subtitle = params.sid;
-							media_subtitle.setSubsStreamable(true);
-							LOGGER.trace("This video has external subtitles that could be streamed");
-						} else {
-							hasSubsToTranscode = true;
-							LOGGER.trace("This video has external subtitles that should be transcoded");
-						}
-					} else if (params.sid.isEmbedded()) {
-						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
-							LOGGER.trace("This video has embedded subtitles that could be streamed");
-						} else {
-							hasSubsToTranscode = true;
-							LOGGER.trace("This video has embedded subtitles that should be transcoded");
-						}
+			if (media_subtitle != null) {
+				if (media_subtitle.isExternal()) {
+					if (renderer != null && renderer.isExternalSubtitlesFormatSupported(media_subtitle, media)) {
+						media_subtitle.setSubsStreamable(true);
+						LOGGER.trace("This video has external subtitles that could be streamed");
+					} else {
+						hasSubsToTranscode = true;
+						LOGGER.trace("This video has external subtitles that should be transcoded");
+					}
+				} else if (media_subtitle.isEmbedded()) {
+					if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(media_subtitle)) {
+						LOGGER.trace("This video has embedded subtitles that could be streamed");
+					} else {
+						hasSubsToTranscode = true;
+						LOGGER.trace("This video has embedded subtitles that should be transcoded");
 					}
 				}
 			} else {
@@ -1598,6 +1593,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (
+			!configurationSpecificToRenderer.isDisableTranscoding() &&
 			hasExternalSubtitles() &&
 			!isNamedNoEncoding &&
 //			media_audio == null &&
@@ -2394,10 +2390,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String title;
 		if (
 			firstAudioTrack != null &&
-			media.isAudio() &&
-			StringUtils.isNotBlank(firstAudioTrack.getSongname())
+			StringUtils.isNotBlank(firstAudioTrack.getSongname()) &&
+			getFormat() != null &&
+			getFormat().isAudio()
 		) {
-			title = firstAudioTrack.getSongname();
+			title = firstAudioTrack.getSongname() + (player != null && !configurationSpecificToRenderer.isHideEngineNames() ? (" [" + player.name() + "]") : "");
 		} else { // Ditlew - org
 			title = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 		}

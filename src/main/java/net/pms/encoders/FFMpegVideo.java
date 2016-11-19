@@ -771,7 +771,7 @@ public class FFMpegVideo extends Player {
 		}
 
 //		setAudioAndSubs(filename, media, params);
-		dlna.setMediaSubtitle(params.sid);
+//		dlna.setMediaSubtitle(params.sid);
 		cmdList.add(executable());
 
 		// Prevent FFmpeg timeout
