@@ -878,25 +878,6 @@ public class FileUtil {
 							}
 
 							boolean exists = false;
-							if (media != null) {
-								for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-									if (f.equals(sub.getExternalFile())) {
-										exists = true;
-									} else if (equalsIgnoreCase(ext, "idx") && sub.getType() == SubtitleType.MICRODVD) { // sub+idx => VOBSUB
-										sub.setType(SubtitleType.VOBSUB);
-										exists = true;
-									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
-										try {
-											sub.setExternalFile(f, null);
-										} catch (FileNotFoundException ex) {
-											LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
-											LOGGER.trace("", ex);
-										}
-
-										exists = true;
-									}
-								}
-							}
 
 							if (!exists) {
 								String forcedLang = null;
