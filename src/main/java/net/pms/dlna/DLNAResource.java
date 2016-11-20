@@ -3288,15 +3288,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String languageCode = null;
 		if (media_audio != null) {
 			languageCode = media_audio.getLang();
-		}
-
-		if (media_audio != null && StringUtils.isBlank(languageCode)) {
-			languageCode = DLNAMediaLang.UND;
+			if (StringUtils.isBlank(languageCode)) {
+				languageCode = DLNAMediaLang.UND;
+			}
 		}
 
 		if (languageCode != null) {
 			String code = Iso639.getISO639_2Code(languageCode.toLowerCase());
-			return getResourceInputStream("/images/codes/" + code + ".png");
+			InputStream is = getResourceInputStream("/images/codes/" + code + ".png");
+			if (is != null) {
+				return is;
+			} else {
+				LOGGER.trace("Flag is missing for language '{}' so use undefined flag", code);
+				return getResourceInputStream("/images/codes/und.png");
+			}
 		}
 
 		if (isAvisynth()) {
