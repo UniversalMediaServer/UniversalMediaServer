@@ -3286,7 +3286,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public InputStream getThumbnailInputStream() throws IOException {
 		String languageCode = null;
-		if (media_audio != null) {
+		if (media_audio != null && format.isVideo()) { // show audio language flags in the TRANSCODE folder only for video files
 			languageCode = media_audio.getLang();
 			if (StringUtils.isBlank(languageCode)) {
 				languageCode = DLNAMediaLang.UND;
