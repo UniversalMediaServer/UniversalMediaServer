@@ -198,7 +198,7 @@ public class RealFile extends MapFile {
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 					OutputParams params = new OutputParams(configuration);
-					Player.setAudioAndSubs(input.toString(), media, params);
+					Player.setAudioAndSubs(input.toString(), getMedia(), params);
 					setMediaAudio(params.aid);
 					setMediaSubtitle(params.sid);
 				} else {
