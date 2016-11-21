@@ -1705,7 +1705,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			subtitleLanguage = "/" + media_subtitle.getLangFullName();
 			if ("/Undetermined".equals(subtitleLanguage)) {
-				subtitleLanguage = "";
+				subtitleLanguage = "/" + Messages.getString("SubTitles.UnknownShort");
 			}
 
 			String subtitlesTrackTitle = "";
@@ -1718,7 +1718,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitlesTrackTitle = " (" + media_subtitle.getSubtitlesTrackTitleFromMetadata() + ")";
 			}
 
-			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + subtitlesTrackTitle;
+			String subsType = null;
+			if (media_subtitle.isExternal()) {
+				subsType = Messages.getString("SubTitles.ExternalShort") + " ";
+			} else if (media_subtitle.isEmbedded()) {
+				subsType = Messages.getString("SubTitles.InternalShort") + " ";
+			}
+
+			String subsDescription = subsType + Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + subtitlesTrackTitle;
 			if (subsAreValidForStreaming) {
 				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription + "}";
 			} else {
