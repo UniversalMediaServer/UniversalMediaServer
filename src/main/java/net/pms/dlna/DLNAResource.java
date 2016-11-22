@@ -1644,7 +1644,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			subtitleLanguage = "/" + media_subtitle.getLangFullName();
 			if ("/Undetermined".equals(subtitleLanguage)) {
-				subtitleLanguage = "UND";
+				subtitleLanguage = "/UND";
 			}
 
 			String subtitlesTrackTitle = "";
