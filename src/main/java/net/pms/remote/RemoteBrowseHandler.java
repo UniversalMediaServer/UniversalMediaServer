@@ -58,6 +58,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		DLNAResource object = root.getDLNAResource(id, root.getDefaultRenderer());
 		List<DLNAResource> res = null;
 		boolean nextAttr = false;
+		int start = pageNumber * count;
+		int end = start + count;
 		/*
 		 * Media library has lot of files. However, web has a combination of files and folders. Hence, have to be
 		 * treated separately
@@ -67,7 +69,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			nextAttr = res.size() == count;
 		} else {
 			res = root.getDLNAResources(id, true, 0, -1, root.getDefaultRenderer(), search);
-			nextAttr = res.size() > count;
+			nextAttr = res.size() > end;
 		}
 		
 		if (res.isEmpty()) {
@@ -130,8 +132,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		folders.add(sb.toString());
 
 		// Generate innerHtml snippets for folders and media items
-		int start = pageNumber * count;
-		int end = start + count;
 		int i = 0;
 		for (DLNAResource r : res) {
 			String newId = r.getResourceId();
@@ -271,8 +271,13 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 		String id = RemoteUtil.getId("browse/", t);
 		LOGGER.debug("Got a browse request found id " + id);
-		String response = mkBrowsePage(id, t);
-		LOGGER.trace("Browse page " + response);
-		RemoteUtil.respond(t, response, 200, "text/html");
+		try {
+			String response = mkBrowsePage(id, t);
+			LOGGER.trace("Browse page " + response);
+			RemoteUtil.respond(t, response, 200, "text/html");
+		} catch (Exception e) {
+			LOGGER.error("{}", e);
+			throw e;
+		}
 	}
 }
