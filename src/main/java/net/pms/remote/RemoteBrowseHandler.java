@@ -135,6 +135,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 		int i = 0;
 		for (DLNAResource r : res) {
 			String newId = r.getResourceId();
+			// Playlists might have references to deleted items. Ignore.
+			if (newId == null)
+				continue;
+			
 			String idForWeb = URLEncoder.encode(newId, "UTF-8");
 			String thumb = "/thumb/" + idForWeb;
 			String name = StringEscapeUtils.escapeHtml(r.resumeName());
