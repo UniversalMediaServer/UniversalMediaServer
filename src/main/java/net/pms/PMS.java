@@ -762,7 +762,7 @@ public class PMS {
 		}
 
 		if (web != null && web.getServer() != null) {
-			LOGGER.info("WEB interface is available at: " + web.getUrl());
+			LOGGER.info("Web interface is available at: " + web.getUrl());
 		}
 
 		// initialize the cache
@@ -785,6 +785,10 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					if (web != null) {
+						web.stop();
+					}
+
 					for (ExternalListener l : ExternalFactory.getExternalListeners()) {
 						l.shutdown();
 					}
@@ -960,6 +964,9 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					if (web != null) {
+						web.stop();
+					}
 					LOGGER.trace("Waiting 1 second...");
 					UPNPHelper.sendByeBye();
 					server.stop();
@@ -975,6 +982,9 @@ public class PMS {
 					server = new HTTPServer(configuration.getServerPort());
 					server.start();
 					UPNPHelper.sendAlive();
+					if (configuration.useWebInterface()) {
+						web = new RemoteWeb(configuration.getWebPort());
+					}
 					frame.setReloadable(false);
 				} catch (IOException e) {
 					LOGGER.error("error during restart :" +e.getMessage(), e);
@@ -1740,7 +1750,7 @@ public class PMS {
 		setLocale(language, "", "");
 	}
 
-	private RemoteWeb web;
+	private volatile RemoteWeb web;
 
 	public RemoteWeb getWebInterface() {
 		return web;

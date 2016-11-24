@@ -12,7 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import javax.net.ssl.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -22,6 +24,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
 import net.pms.network.NetworkConfiguration;
+import net.pms.network.NetworkConfiguration.InterfaceAssociation;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -33,24 +36,20 @@ public class RemoteWeb {
 	private KeyStore ks;
 	private KeyManagerFactory kmf;
 	private TrustManagerFactory tmf;
-	private HttpServer server;
+	private final HttpServer server;
+	private final ExecutorService threadPool;
 	private SSLContext sslContext;
 	private Map<String, RootFolder> roots;
-	private RemoteUtil.ResourceManager resources;
+	private final RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	private static final int defaultPort = configuration.getWebPort();
-
-	private InetAddress iafinal;
-	private String hostname;
-	private NetworkInterface networkInterface;
 
 	public RemoteWeb() throws IOException {
-		this(defaultPort);
+		this(configuration.getWebPort());
 	}
 
 	public RemoteWeb(int port) throws IOException {
-		if (port <= 0) {
-			port = defaultPort;
+		if (port < 1 || port > 65535) {
+			throw new IllegalArgumentException("port outside of range 1-65535");
 		}
 
 		roots = new HashMap<>();
@@ -70,49 +69,70 @@ public class RemoteWeb {
 
 		// Setup the socket address
 
-		hostname = configuration.getServerHostname();
-		InetSocketAddress address;
+		String hostname = configuration.getServerHostname();
+		InetSocketAddress socketAddress = null;
 
 		if (StringUtils.isNotBlank(hostname)) {
-			LOGGER.info("WEB: Using forced address " + hostname);
-			InetAddress tempIA = InetAddress.getByName(hostname);
-
-			if (tempIA != null && networkInterface != null && networkInterface.equals(NetworkInterface.getByInetAddress(tempIA))) {
-				address = new InetSocketAddress(tempIA, port);
-			} else {
-				address = new InetSocketAddress(hostname, port);
+			LOGGER.info("Web interface: Using forced address \"{}\"", hostname);
+			InetAddress inetAddress = null;
+			try {
+				inetAddress = InetAddress.getByName(hostname);
+			} catch (UnknownHostException e) {
+				LOGGER.error("Web interface: Hostname {} cannot be resolved, ignoring parameter: {}", hostname, e.getMessage());
+				LOGGER.trace("", e);
 			}
-		} else if (isAddressFromInterfaceFound(configuration.getNetworkInterface())) { // sets iafinal and networkInterface
-			LOGGER.info("WEB: Using address {} found on network interface: {}", iafinal, networkInterface.toString().trim().replace('\n', ' '));
-			address = new InetSocketAddress(iafinal, port);
-		} else {
-			LOGGER.info("WEB: Using localhost address");
-			address = new InetSocketAddress(port);
+
+			if (inetAddress != null) {
+				LOGGER.info("Web interface: Using address {} resolved from \"{}\"", inetAddress.getHostAddress(), hostname);
+				socketAddress = new InetSocketAddress(inetAddress, port);
+			}
+		}
+		if (socketAddress == null) {
+			InterfaceAssociation interfaceAssociation = null;
+			if (StringUtils.isNotEmpty(configuration.getNetworkInterface())) {
+				interfaceAssociation = NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(configuration.getNetworkInterface());
+			}
+
+			if (interfaceAssociation != null) {
+				InetAddress inetAddress = interfaceAssociation.getAddr();
+				LOGGER.info(
+					"Web interface: Using address {} found on network interface: {}",
+					inetAddress,
+					interfaceAssociation.getIface().toString().trim().replace('\n', ' ')
+				);
+				socketAddress = new InetSocketAddress(inetAddress, port);
+			} else {
+				LOGGER.info("Web interface: Using all addresses");
+				socketAddress = new InetSocketAddress(port);
+			}
 		}
 
-		LOGGER.info("WEB: Created socket: " + address);
-
+		LOGGER.info("Web interface: Creating socket: {}", socketAddress);
 
 		// Initialize the HTTP(S) server
 		if (configuration.getWebHttps()) {
+			HttpServer tempServer;
 			try {
-				server = httpsServer(address);
+				tempServer = httpsServer(socketAddress);
 			} catch (IOException e) {
-				LOGGER.error("Failed to start WEB interface on HTTPS: {}", e.getMessage());
+				LOGGER.error("Failed to start web interface on HTTPS: {}", e.getMessage());
 				LOGGER.trace("", e);
 				if (e.getMessage().contains("UMS.jks")) {
 					LOGGER.info("To enable HTTPS please generate a self-signed keystore file called \"UMS.jks\" using the java 'keytool' commandline utility.");
 				}
+				tempServer = null;
 			} catch (GeneralSecurityException e) {
-				LOGGER.error("Failed to start WEB interface on HTTPS due to a security error: {}", e.getMessage());
+				LOGGER.error("Failed to start web interface on HTTPS due to a security error: {}", e.getMessage());
 				LOGGER.trace("", e);
+				tempServer = null;
 			}
+			server = tempServer;
 		} else {
-			server = HttpServer.create(address, 0);
+			server = HttpServer.create(socketAddress, 0);
 		}
 
 		if (server != null) {
-			int threads = configuration.getWebThreads();
+			threadPool = Executors.newFixedThreadPool(configuration.getWebThreads());
 
 			// Add context handlers
 			addCtx("/", new RemoteStartHandler(this));
@@ -128,8 +148,10 @@ public class RemoteWeb {
 			addCtx("/files", new RemoteFileHandler(this));
 			addCtx("/doc", new RemoteDocHandler(this));
 			addCtx("/poll", new RemotePollHandler(this));
-			server.setExecutor(Executors.newFixedThreadPool(threads));
+			server.setExecutor(threadPool);
 			server.start();
+		} else {
+			threadPool = null;
 		}
 	}
 
@@ -173,21 +195,6 @@ public class RemoteWeb {
 			}
 		});
 		return server;
-	}
-
-
-	// this sets iafinal and networkInterface
-	private boolean isAddressFromInterfaceFound(String networkInterfaceName) {
-		NetworkConfiguration.InterfaceAssociation ia = StringUtils.isNotEmpty(networkInterfaceName) ?
-				NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(networkInterfaceName) :
-					NetworkConfiguration.getInstance().getDefaultNetworkInterfaceAddress();
-
-		if (ia != null) {
-			iafinal = ia.getAddr();
-			networkInterface = ia.getIface();
-		}
-
-		return ia != null;
 	}
 
 	public String getTag(String user) {
@@ -528,6 +535,27 @@ public class RemoteWeb {
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			String json = renderer.getPushData();
 			RemoteUtil.respond(t, json, 200, "text");
+		}
+	}
+
+	/**
+	 * Stops the web server
+	 */
+	public void stop() {
+		final long TIMEOUT = 20;
+		if (server != null) {
+			LOGGER.info("Shutting down web interface on {}", getAddress());
+			server.stop(0);
+		}
+		if (threadPool != null) {
+			threadPool.shutdown();
+			try {
+				if (!threadPool.awaitTermination(TIMEOUT, TimeUnit.SECONDS)) {
+					LOGGER.error("Could not terminate web interface within {} seconds.", TIMEOUT);
+				}
+			} catch (InterruptedException e) {
+				LOGGER.warn("Interrupted while waiting for web interface to terminate");
+			}
 		}
 	}
 }
