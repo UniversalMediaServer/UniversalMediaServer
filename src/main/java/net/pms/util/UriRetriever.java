@@ -23,8 +23,8 @@ package net.pms.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.*;
+import org.apache.http.client.methods.HttpGet;
 
 /**
  * Downloads URLs
@@ -37,7 +37,7 @@ public class UriRetriever {
 	private HttpClient client = new HttpClient();
 
 	public byte[] get(String uri) throws IOException {
-		HttpMethod method = new GetMethod(uri);
+		HttpMethod method = new HttpGet(uri);
 		try {
 			int statusCode = client.executeMethod(method);
 			if (statusCode != HttpStatus.SC_OK) {
@@ -52,20 +52,20 @@ public class UriRetriever {
 	}
 
 	public byte[] getWithCallback(String uri, UriRetrieverCallback callback) throws IOException {
-		HttpMethod getMethod = null;
+		HttpMethod HttpGet = null;
 
 		try {
-			getMethod = startGetRequest(uri, callback);
-			int totalBytes = getContentSize(uri, getMethod);
-			byte[] data = pullData(uri, getMethod, callback, totalBytes);
+			HttpGet = startGetRequest(uri, callback);
+			int totalBytes = getContentSize(uri, HttpGet);
+			byte[] data = pullData(uri, HttpGet, callback, totalBytes);
 			return data;
 		} catch (HttpException e) {
 			throw new IOException("Unable to download via HTTP: " + uri + ": " + e.getMessage());
 		} catch (IOException e) {
 			throw new IOException("Unable to download via HTTP: " + uri + ": " + e.getMessage());
 		} finally {
-			if (getMethod != null) {
-				getMethod.releaseConnection();
+			if (HttpGet != null) {
+				HttpGet.releaseConnection();
 			}
 		}
 	}
