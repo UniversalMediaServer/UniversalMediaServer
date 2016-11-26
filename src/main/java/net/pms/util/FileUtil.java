@@ -521,6 +521,54 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s\\d[xX]\\d\\d.*")) {
+			// This matches older scene and most p2p TV episodes within the first 9 seasons
+			pattern = Pattern.compile("\\s(\\d)[xX](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "0" + matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Rename the season/episode numbers. For example, "1x01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d)x(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\s(\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s\\d\\d[xX]\\d\\d.*")) {
+			// This matches older scene and most p2p TV episodes after the first 9 seasons
+			pattern = Pattern.compile("\\s(\\d\\d)[xX](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Rename the season/episode numbers. For example, "12x01" changes to " - 1201"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d)x(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\s(\\d\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 			pattern = Pattern.compile("\\s((?:19|20)\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s");
