@@ -60,13 +60,13 @@ public class UPNPHelper extends UPNPControl {
 	 * IPv4 Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
 	 * MUST be 239.255.255.250.
 	 */
-	private static final String IPV4_UPNP_HOST = "239.255.255.250";
+	public static final String IPV4_UPNP_HOST = "239.255.255.250";
 
 	/**
 	 * Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
 	 * MUST be 1900.
 	 */
-	private static final int UPNP_PORT = 1900;
+	public static final int UPNP_PORT = 1900;
 
 	// The Constant BYEBYE.
 	private static final String BYEBYE = "ssdp:byebye";
@@ -436,11 +436,10 @@ public class UPNPHelper extends UPNPControl {
 					MulticastSocket multicastSocket = null;
 
 					try {
-						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
-						multicastSocket = new MulticastSocket(configuration.getUpnpPort());
+						multicastSocket = new MulticastSocket(UPNP_PORT);
 
 						if (bindErrorReported) {
-							LOGGER.warn("Finally, acquiring port " + configuration.getUpnpPort() + " was successful!");
+							LOGGER.warn("Finally, acquiring port " + UPNP_PORT + " was successful!");
 						}
 
 						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
@@ -519,7 +518,7 @@ public class UPNPHelper extends UPNPControl {
 						}
 					} catch (BindException e) {
 						if (!bindErrorReported) {
-							LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
+							LOGGER.error("Unable to bind to " + UPNP_PORT
 							+ ", which means that UMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
