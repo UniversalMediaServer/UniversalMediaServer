@@ -420,7 +420,6 @@ public class DLNAMediaDatabase implements Runnable {
 
 				// If there is no container then this is just an old isFullyPlayed entry
 				if (StringUtils.isNotEmpty(rs.getString("CONTAINER"))) {
-					LOGGER.info("1 " + rs.getString("MOVIEORSHOWNAME") + " 2 " + rs.getString("FILENAME"));
 					media.setDuration(toDouble(rs, "DURATION"));
 					media.setBitrate(rs.getInt("BITRATE"));
 					media.setWidth(rs.getInt("WIDTH"));
