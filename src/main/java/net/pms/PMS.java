@@ -841,6 +841,11 @@ public class PMS {
 			java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 		}
 
+		// Initiate a library scan in case files were added to folders while UMS was closed.
+		if (getConfiguration().getUseCache()) {
+			getDatabase().scanLibrary();
+		}
+
 		return true;
 	}
 
