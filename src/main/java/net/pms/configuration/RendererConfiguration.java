@@ -282,7 +282,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
 								enabledRendererConfs.add(r);
 							} else {
-								LOGGER.debug("Ignored " + rendererName + " configuration");
+								LOGGER.debug("Ignored \"{}\" configuration", rendererName);
 							}
 						} catch (ConfigurationException ce) {
 							LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
@@ -2186,29 +2186,48 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param mediainfo The {@link DLNAMediaInfo} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
+	 * @param configuration The {@link PmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format) {
+	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format, PmsConfiguration configuration) {
+
+		if (configuration == null) {
+			configuration = PMS.getConfiguration(this);
+		}
+
+		if (
+			configuration != null &&
+			(configuration.isDisableTranscoding() ||
+			(format != null &&
+			format.skip(configuration.getDisableTranscodeForExtensions())))
+		) {
+			return true;
+		}
+
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
 		if (isUseMediaInfo() && mediainfo != null && getFormatConfiguration().match(mediainfo) != null) {
 			return true;
 		}
 
-		if (format != null) {
-			String noTranscode = "";
+		return format != null ? format.skip(getStreamedExtensions()) : false;
+	}
 
-			if (PMS.getConfiguration(this) != null) {
-				noTranscode = PMS.getConfiguration(this).getDisableTranscodeForExtensions();
-			}
-
-			// Is the format among the ones to be streamed?
-			return format.skip(noTranscode, getStreamedExtensions());
-		} else {
-			// Not natively supported.
-			return false;
-		}
+	/**
+	 * Returns whether or not the renderer can handle the given format
+	 * natively, based on its configuration in the renderer.conf. If it can
+	 * handle a format natively, content can be streamed to the renderer. If
+	 * not, content should be transcoded before sending it to the renderer.
+	 *
+	 * @param mediainfo The {@link DLNAMediaInfo} information parsed from the
+	 * 				media file.
+	 * @param format The {@link Format} to test compatibility for.
+	 * @return True if the renderer natively supports the format, false
+	 * 				otherwise.
+	 */
+	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format) {
+		return isCompatible(mediainfo, format, null);
 	}
 
 	public int getAutoPlayTmo() {
@@ -2435,7 +2454,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
 					if (supportedFormats != null) {
 						for (String supportedFormat : supportedFormats) {
-							if (media.getCodecV() != null && media.getCodecV().equals(supportedFormat.trim().toLowerCase())) {
+							if (media.getCodecV() != null && media.getCodecV().equals(supportedFormat.trim())) {
 								return true;
 							}
 						}

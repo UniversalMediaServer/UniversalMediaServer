@@ -605,21 +605,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (child.format != null) {
-					String configurationSkipExtensions = configuration.getDisableTranscodeForExtensions();
-					String rendererSkipExtensions = null;
-
-					if (defaultRenderer != null) {
-						rendererSkipExtensions = defaultRenderer.getStreamedExtensions();
-					}
-
-					// Should transcoding be skipped for this format?
-					boolean skip = child.format.skip(configurationSkipExtensions, rendererSkipExtensions);
-					skipTranscode = skip;
-
-					if (skip) {
-						LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", child.getName());
-					}
-
 					// Determine transcoding possibilities if either
 					//    - the format is known to be transcodable
 					//    - we have media info (via parserV2, playback info, or a plugin)
@@ -809,6 +794,64 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return resolvedPlayer;
 		}
 
+		boolean hasSubsToTranscode = false;
+
+		boolean hasEmbeddedSubs = false;
+		for (DLNAMediaSubtitle s : media.getSubtitleTracksList()) {
+			hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
+		}
+
+		/**
+		 * At this stage, we know the media is compatible with the renderer based on its
+		 * "Supported" lines, and can therefore be streamed to the renderer without a
+		 * player. However, other details about the media can change this, such as
+		 * whether it has subtitles that match this user's language settings, so here we
+		 * perform those checks.
+		 */
+		if (format.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
+			if (hasEmbeddedSubs || hasExternalSubtitles()) {
+				OutputParams params = new OutputParams(configurationSpecificToRenderer);
+				Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
+				if (params.sid != null) {
+					if (params.sid.isExternal()) {
+						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
+							media_subtitle = params.sid;
+							media_subtitle.setSubsStreamable(true);
+							LOGGER.trace("This video has external subtitles that could be streamed");
+						} else {
+							hasSubsToTranscode = true;
+							LOGGER.trace("This video has external subtitles that should be transcoded");
+						}
+					} else if (params.sid.isEmbedded()) {
+						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
+							LOGGER.trace("This video has embedded subtitles that could be streamed");
+						} else {
+							hasSubsToTranscode = true;
+							LOGGER.trace("This video has embedded subtitles that should be transcoded");
+						}
+					}
+				}
+			} else {
+				LOGGER.trace("This video does not have subtitles");
+			}
+		}
+
+		if (configurationSpecificToRenderer.isDisableTranscoding()) {
+			LOGGER.trace("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
+			return null;
+		}
+
+		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
+		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
+
+		// Should transcoding be skipped for this format?
+		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
+
+		if (skipTranscode) {
+			LOGGER.trace("Final verdict: \"{}\" will be streamed since it is forced by configuration", getName());
+			return null;
+		}
+
 		// Try to match a player based on media information and format.
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
@@ -822,60 +865,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// Should transcoding be forced for this format?
 			boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
-
-			if (forceTranscode) {
-				LOGGER.trace("File \"{}\" will be forced to be transcoded by configuration", getName());
-			}
-
-			boolean hasSubsToTranscode = false;
-
-			boolean hasEmbeddedSubs = false;
-			for (DLNAMediaSubtitle s : media.getSubtitleTracksList()) {
-				hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
-			}
-
-			/**
-			 * At this stage, we know the media is compatible with the renderer based on its
-			 * "Supported" lines, and can therefore be streamed to the renderer without a
-			 * player. However, other details about the media can change this, such as
-			 * whether it has subtitles that match this user's language settings, so here we
-			 * perform those checks.
-			 */
-			if (format.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
-				if (hasEmbeddedSubs || hasExternalSubtitles()) {
-					OutputParams params = new OutputParams(configurationSpecificToRenderer);
-					Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
-					if (params.sid != null) {
-						if (params.sid.isExternal()) {
-							if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
-								media_subtitle = params.sid;
-								media_subtitle.setSubsStreamable(true);
-								LOGGER.trace("This video has external subtitles that should be streamed");
-							} else {
-								forceTranscode = true;
-								hasSubsToTranscode = true;
-								LOGGER.trace("This video has external subtitles that should be transcoded");
-							}
-						} else if (params.sid.isEmbedded()) {
-							if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
-								LOGGER.trace("This video has embedded subtitles that should be streamed");
-							} else {
-								forceTranscode = true;
-								hasSubsToTranscode = true;
-								LOGGER.trace("This video has embedded subtitles that should be transcoded");
-							}
-						}
-					}
-				} else {
-					LOGGER.trace("This video does not have subtitles");
-				}
-			}
-
 			boolean isIncompatible = false;
 			String audioTracksList = getName() + media.getAudioTracksList().toString();
 
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
-			if (!format.isCompatible(media, renderer)) {
+			if (forceTranscode) {
+				LOGGER.trace(prependTraceReason + "transcoding is forced by configuration", getName());
+			} else if (!format.isCompatible(media, renderer)) {
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "it is not supported by the renderer", getName());
 			} else if (
@@ -944,6 +940,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				resolvedPlayer = null;
 				LOGGER.trace("Final verdict: \"{}\" will be streamed", getName());
 			}
+		} else {
+			LOGGER.trace("Final verdict: \"{}\" will be streamed because no compatible player was found");
 		}
 		return resolvedPlayer;
 	}

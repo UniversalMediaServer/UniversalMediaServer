@@ -151,7 +151,7 @@ public class LibMediaInfoParser {
 						}
 
 						value = MI.Get(video, i, "Format_Profile");
-						if (!value.isEmpty()) {
+						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
 							media.setAvcLevel(getAvcLevel(value));
 						}
 					}
@@ -407,6 +407,18 @@ public class LibMediaInfoParser {
 		getFormat(streamType, media, audio, value, null);
 	}
 
+	/**
+	 * Sends the correct information to media.setContainer(),
+	 * media.setCodecV() or media.setCodecA, depending on streamType.
+	 *
+	 * TODO: Rename to something like setFormat - this is not a getter.
+	 *
+	 * @param streamType
+	 * @param media
+	 * @param audio
+	 * @param value
+	 * @param file 
+	 */
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		if (value.isEmpty()) {
 			return;
