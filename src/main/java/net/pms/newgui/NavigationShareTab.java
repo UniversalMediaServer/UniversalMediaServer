@@ -886,19 +886,7 @@ public class NavigationShareTab {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
-						if (!database.isScanLibraryRunning()) {
-							int option = JOptionPane.showConfirmDialog(
-								looksFrame,
-								Messages.getString("FoldTab.3") + Messages.getString("FoldTab.4"),
-								Messages.getString("Dialog.Question"),
-								JOptionPane.YES_NO_OPTION);
-							if (option == JOptionPane.YES_OPTION) {
-								database.scanLibrary();
-								but5.setIcon(LooksFrame.readImageIcon("button-scan-busy.gif"));
-								but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan-cancel.png"));
-								but5.setToolTipText(Messages.getString("FoldTab.40"));
-							}
-						} else {
+						if (database.isScanLibraryRunning()) {
 							int option = JOptionPane.showConfirmDialog(
 								looksFrame,
 								Messages.getString("FoldTab.10"),
@@ -910,6 +898,11 @@ public class NavigationShareTab {
 								setScanLibraryEnabled(false);
 								but5.setToolTipText(Messages.getString("FoldTab.41"));
 							}
+						} else {
+							database.scanLibrary();
+							but5.setIcon(LooksFrame.readImageIcon("button-scan-busy.gif"));
+							but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan-cancel.png"));
+							but5.setToolTipText(Messages.getString("FoldTab.40"));
 						}
 					}
 				}
@@ -917,8 +910,7 @@ public class NavigationShareTab {
 		});
 
 		/**
-		 * Hide the scan button in basic mode since it's better to let it be done in
-		 * realtime.
+		 * Hide the scan button in basic mode since we do it automatically now.
 		 */
 		if (!configuration.isHideAdvancedOptions()) {
 			builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
