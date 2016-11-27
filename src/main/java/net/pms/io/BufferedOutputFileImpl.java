@@ -22,9 +22,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import net.pms.PMS;
@@ -80,7 +81,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private boolean shiftScr;
 	private FileOutputStream debugOutput = null;
 	private boolean buffered = false;
-	private DecimalFormat formatter = new DecimalFormat("#,###");
+	private NumberFormat formatter = NumberFormat.getInstance(Locale.US);
 	private double timeseek;
 	private double timeend;
 	private long packetpos = 0;
@@ -188,7 +189,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		// FIXME: Better to relate margin directly to maxMemorySize instead of using arbitrary fixed values
 
 		int margin = MARGIN_LARGE; // Issue 220: extends to 20Mb : readCount is wrongly set cause of the ps3's
-		// 2nd request with a range like 44-xxx, causing the end of buffer margin to be first sent 
+		// 2nd request with a range like 44-xxx, causing the end of buffer margin to be first sent
 		if (this.maxMemorySize < margin) {// for thumbnails / small buffer usage
 			margin = MARGIN_MEDIUM; // margin must be superior to the buffer size of OutputBufferConsumer or direct buffer size from WindowsNamedPipe class
 			if (this.maxMemorySize < margin) {

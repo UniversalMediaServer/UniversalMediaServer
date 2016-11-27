@@ -314,7 +314,7 @@ public class UPNPHelper extends UPNPControl {
 			multicastSocket.joinGroup(upnpAddress);
 
 			for (String NT: NT_LIST) {
-				sendMessage(multicastSocket, NT, BYEBYE);
+				sendMessage(multicastSocket, NT, BYEBYE, true);
 			}
 		} catch (IOException e) {
 			LOGGER.debug("Error sending BYEBYE message", e);
@@ -346,14 +346,28 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
+	 * Send the provided message to the socket three times.
+	 *
+	 * @see #sendMessage(java.net.DatagramSocket, java.lang.String, java.lang.String, boolean)
+	 * @param socket the socket
+	 * @param nt the nt
+	 * @param message the message
+	 * @throws IOException 
+	 */
+	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
+		sendMessage(socket, nt, message, false);
+	}
+
+	/**
 	 * Send the provided message to the socket.
 	 *
 	 * @param socket the socket
 	 * @param nt the nt
 	 * @param message the message
+	 * @param sendOnce send the message only once
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
+	private static void sendMessage(DatagramSocket socket, String nt, String message, boolean sendOnce) throws IOException {
 		String msg = buildMsg(nt, message);
 		Random rand = new Random();
 
@@ -372,10 +386,12 @@ public class UPNPHelper extends UPNPControl {
 		socket.send(ssdpPacket);
 
 		// Send the message three times as recommended by the standard
-		sleep(100);
-		socket.send(ssdpPacket);
-		sleep(100);
-		socket.send(ssdpPacket);
+		if (!sendOnce) {
+			sleep(100);
+			socket.send(ssdpPacket);
+			sleep(100);
+			socket.send(ssdpPacket);
+		}
 	}
 
 	private static int ALIVE_delay = 10000;

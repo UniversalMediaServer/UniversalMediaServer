@@ -24,6 +24,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
+import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -280,42 +281,29 @@ public abstract class Format implements Cloneable {
 	 * the list of supplied extensions.
 	 *
 	 * @param extensions String of comma-separated extensions
-	 * @param moreExtensions String of comma-separated extensions
 	 *
 	 * @return True if this format matches an extension in the supplied lists,
 	 * false otherwise.
 	 *
 	 * @see #match(String)
 	 */
-	public boolean skip(String extensions, String moreExtensions) {
-		if ("*".equals(extensions)) {
-			return true;
-		}
+	public boolean skip(String... extensions) {
+		for (String extensionsString : extensions) {
+			if (extensionsString == null) {
+				continue;
+			}
 
-		if (extensions != null && extensions.length() > 0) {
-			StringTokenizer st = new StringTokenizer(extensions, ",");
+			if ("*".equals(extensionsString)) {
+				return true;
+			}
 
-			while (st.hasMoreTokens()) {
-				String id = st.nextToken().toLowerCase();
-
-				if (matchedExtension != null && matchedExtension.toLowerCase().equals(id)) {
+			String[] extensionsArray = extensionsString.split(",");
+			for (String extension : extensionsArray) {
+				if (StringUtil.hasValue(extension) && extension.equalsIgnoreCase(matchedExtension)) {
 					return true;
 				}
 			}
 		}
-
-		if (moreExtensions != null && moreExtensions.length() > 0) {
-			StringTokenizer st = new StringTokenizer(moreExtensions, ",");
-
-			while (st.hasMoreTokens()) {
-				String id = st.nextToken().toLowerCase();
-
-				if (matchedExtension != null && matchedExtension.toLowerCase().equals(id)) {
-					return true;
-				}
-			}
-		}
-
 		return false;
 	}
 

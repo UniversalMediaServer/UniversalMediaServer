@@ -49,7 +49,7 @@ public class ProcessUtil {
 	private static final int ALRM_TIMEOUT = 2000;
 
 	// work around a Java bug
-	// see: http://kylecartmell.com/?p=9
+	// see: http://www.cnblogs.com/abnercai/archive/2012/12/27/2836008.html
 	public static int waitFor(Process p) {
 		int exit = -1;
 

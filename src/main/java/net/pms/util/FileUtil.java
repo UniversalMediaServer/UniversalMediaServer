@@ -808,7 +808,7 @@ public class FileUtil {
 			}
 
 			if (subFolder.exists()) {
-				found = found || browseFolderForSubtitles(subFolder, file, media, usecache);
+				found = browseFolderForSubtitles(subFolder, file, media, usecache) || found;
 			}
 		}
 

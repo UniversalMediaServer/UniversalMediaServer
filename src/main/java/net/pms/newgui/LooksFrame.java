@@ -442,7 +442,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
+		if (!configuration.isDisableTranscoding()) {
+			tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
+		} else {
+			tr.build();
+		}
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
 
@@ -511,7 +515,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void append(final String msg) {
-		tt.append(msg);
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				tt.append(msg);
+			}
+		});
 	}
 
 	@Override
