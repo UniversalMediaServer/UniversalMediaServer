@@ -9,7 +9,6 @@ import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
-import static net.pms.network.UPNPHelper.sleep;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
@@ -194,7 +193,11 @@ public class UPNPControl {
 				public void run() {
 					String id = data.get("InstanceID");
 					while (active && !"STOPPED".equals(data.get("TransportState"))) {
-						sleep(1000);
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							return;
+						}
 //						if (DEBUG) LOGGER.debug("InstanceID: " + id);
 						for (ActionArgumentValue o : getPositionInfo(d, id)) {
 							data.put(o.getArgument().getName(), o.toString());

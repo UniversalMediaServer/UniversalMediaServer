@@ -334,25 +334,13 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
-	 * Utility method to call {@link Thread#sleep(long)} without having to
-	 * catch the InterruptedException.
-	 *
-	 * @param delay the delay
-	 */
-	public static void sleep(int delay) {
-		try {
-			Thread.sleep(delay);
-		} catch (InterruptedException e) { }
-	}
-
-	/**
 	 * Send the provided message to the socket three times.
 	 *
 	 * @see #sendMessage(java.net.DatagramSocket, java.lang.String, java.lang.String, boolean)
 	 * @param socket the socket
 	 * @param nt the nt
 	 * @param message the message
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		sendMessage(socket, nt, message, false);
@@ -366,6 +354,7 @@ public class UPNPHelper extends UPNPControl {
 	 * @param message the message
 	 * @param sendOnce send the message only once
 	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws InterruptedException
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message, boolean sendOnce) throws IOException {
 		String msg = buildMsg(nt, message);
@@ -382,15 +371,34 @@ public class UPNPHelper extends UPNPControl {
 		 * a new IP address, before sending advertisements or initiating searches on a
 		 * new IP interface.
 		 */
-		sleep(rand.nextInt(101));
+		boolean interrupted = false;
+		try {
+			Thread.sleep(rand.nextInt(101));
+		} catch (InterruptedException e) {
+			interrupted = true;
+			Thread.interrupted();
+		}
 		socket.send(ssdpPacket);
 
 		// Send the message three times as recommended by the standard
 		if (!sendOnce) {
-			sleep(100);
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				interrupted = true;
+				Thread.interrupted();
+			}
 			socket.send(ssdpPacket);
-			sleep(100);
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				interrupted = true;
+				Thread.interrupted();
+			}
 			socket.send(ssdpPacket);
+			if (interrupted) {
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 
@@ -407,7 +415,12 @@ public class UPNPHelper extends UPNPControl {
 			@Override
 			public void run() {
 				while (true) {
-					sleep(ALIVE_delay);
+					try {
+						Thread.sleep(ALIVE_delay);
+					} catch (InterruptedException e) {
+						Thread.interrupted();
+						return;
+					}
 					sendAlive();
 
 					// If getAliveDelay is 0, there is no custom alive delay
@@ -526,11 +539,11 @@ public class UPNPHelper extends UPNPControl {
 						}
 
 						bindErrorReported = true;
-						sleep(5000);
+						Thread.sleep(5000);
 					} catch (IOException e) {
 						LOGGER.error("UPnP network exception: ", e.getMessage());
 						LOGGER.trace("", e);
-						sleep(1000);
+						Thread.sleep(1000);
 					} finally {
 						if (multicastSocket != null) {
 							// Clean up the multicast socket nicely

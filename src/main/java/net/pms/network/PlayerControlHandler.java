@@ -81,7 +81,12 @@ public class PlayerControlHandler implements HttpHandler {
 			switch (p[2]) {
 				case "status":
 					// limit status updates to one per second
-					UPNPHelper.sleep(1000);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						Thread.interrupted();
+						return;
+					}
 					log = false;
 					break;
 				case "play":
