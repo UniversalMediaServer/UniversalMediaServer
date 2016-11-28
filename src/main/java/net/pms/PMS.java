@@ -611,8 +611,6 @@ public class PMS {
 		masterCode = null;
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
-		// Now that renderer confs are all loaded, we can start searching for renderers
-		UPNPHelper.getInstance().init();
 
 		// launch ChromecastMgr
 		jmDNS = null;
@@ -696,6 +694,9 @@ public class PMS {
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
 		server = new HTTPServer();
+
+		// Now that renderer configurations are all loaded, and the server is created we can start searching for renderers
+		UPNPHelper.getInstance().init();
 
 		/*
 		 * XXX: keep this here (i.e. after registerExtensions and before registerPlayers) so that plugins
@@ -793,7 +794,7 @@ public class PMS {
 						l.shutdown();
 					}
 
-					UPNPHelper.shutDownListener();
+					UPNPHelper.shutDown();
 					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");
 
@@ -830,7 +831,7 @@ public class PMS {
 		UPNPHelper.sendByeBye();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
-		UPNPHelper.sendAlive();
+		UPNPHelper.sendAlive(null);
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
@@ -968,6 +969,8 @@ public class PMS {
 						LOGGER.trace("Restart: Stopping web interface");
 						web.stop();
 					}
+					LOGGER.trace("Restart: Stopping UPnP");
+					UPNPHelper.shutDown();
 					LOGGER.trace("Restart: Sending BYEBYE message");
 					UPNPHelper.sendByeBye();
 					LOGGER.trace("Restart: Stopping HTTP server");
@@ -989,7 +992,11 @@ public class PMS {
 					server = new HTTPServer();
 					LOGGER.trace("Restart: Starting HTTP server");
 					server.start();
-					UPNPHelper.sendAlive();
+					LOGGER.trace("Restart: Starting UPnP");
+					UPNPHelper.getInstance().init();
+					UPNPHelper.listen();
+					LOGGER.trace("Restart: Sending Alive message");
+					UPNPHelper.sendAlive(null);
 					if (configuration.useWebInterface()) {
 						LOGGER.trace("Restart: Starting web interface");
 						web = new RemoteWeb(configuration.getWebPort());

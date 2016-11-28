@@ -31,11 +31,13 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
+import net.pms.network.cling.CustomNetworkAddressFactoryImpl;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.transport.spi.NetworkAddressFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,8 +87,8 @@ public class UPNPHelper extends UPNPControl {
 		"urn:schemas-upnp-org:device:Basic:1"
 	};
 
-	// The listener.
-	private static Thread listenerThread;
+	// The listeners.
+	private static UPnPListener[] listenerThreads = null;
 
 	// The alive thread.
 	private static Thread aliveThread;
@@ -142,7 +144,7 @@ public class UPNPHelper extends UPNPControl {
 	 * @param st The search target string
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private static void sendDiscover(String host, int port, String st) throws IOException {
+	public static void sendDiscover(String host, int port, String st) throws IOException {
 		String usn = PMS.get().usn();
 		String serverHost = PMS.get().getServer().getHost();
 		int serverPort = PMS.get().getServer().getPort();
@@ -211,73 +213,118 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	/**
-	 * Send alive.
-	 */
-	public static void sendAlive() {
-		LOGGER.debug("Sending ALIVE...");
-		MulticastSocket multicastSocket = null;
-
+	private static MulticastSocket[] createOutgoingMulticastSocket() {
+		MulticastSocket[] multicastSockets = null;
 		try {
-			multicastSocket = getNewMulticastSocket();
+			multicastSockets = getNewMulticastSockets();
+			if (multicastSockets == null) {
+				return null;
+			}
 			InetAddress upnpAddress = getUPNPAddress();
-			multicastSocket.joinGroup(upnpAddress);
-
-			for (String NT: NT_LIST) {
-				sendMessage(multicastSocket, NT, ALIVE);
+			for (MulticastSocket multicastSocket : multicastSockets) {
+				multicastSocket.joinGroup(upnpAddress);
 			}
 		} catch (IOException e) {
-			LOGGER.debug("Error sending ALIVE message", e);
-		} finally {
-			if (multicastSocket != null) {
-				// Clean up the multicast socket nicely
-				try {
-					InetAddress upnpAddress = getUPNPAddress();
-					multicastSocket.leaveGroup(upnpAddress);
-				} catch (IOException e) {
+			LOGGER.error("Can't create multicast socket: {}", e.getMessage());
+			LOGGER.trace("", e);
+			if (multicastSockets != null) {
+				for (MulticastSocket multicastSocket : multicastSockets) {
+					if (multicastSocket != null) {
+						multicastSocket.close();
+					}
 				}
+			}
+		}
+		return multicastSockets;
 
-				multicastSocket.disconnect();
-				multicastSocket.close();
+	}
+
+	private static void closeOutgoingMulticastSocket(MulticastSocket[] multicastSockets) {
+		if (multicastSockets != null) {
+			// Clean up the multicast sockets nicely
+			for (MulticastSocket multicastSocket : multicastSockets) {
+				if (multicastSocket != null) {
+					try {
+						InetAddress upnpAddress = getUPNPAddress();
+						multicastSocket.leaveGroup(upnpAddress);
+					} catch (IOException e) {
+						LOGGER.error("Error while leaving multicast group: {}", e.getMessage());
+						LOGGER.trace("", e);
+					}
+
+					multicastSocket.disconnect();
+					multicastSocket.close();
+				}
 			}
 		}
 	}
 
-	static boolean multicastLog = true;
-
 	/**
-	 * Gets the new multicast socket.
+	 * Send UPnP alive message.
 	 *
-	 * @return the new multicast socket
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @param multicastSocket A {@link MulticastSocket} to use for sending. If
+	 *                        {@code null} one will be created for this message
+	 *                        only.
 	 */
-	private static MulticastSocket getNewMulticastSocket() throws IOException {
-		NetworkInterface networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+	public static void sendAlive(MulticastSocket[] multicastSockets) {
+		LOGGER.debug("Sending ALIVE...");
 
-		if (networkInterface == null) {
-			try {
-				networkInterface = PMS.get().getServer().getNetworkInterface();
-			} catch (NullPointerException e) {
-				LOGGER.debug("Couldn't get server network interface. Trying again in 5 seconds.");
+		boolean selfInit = multicastSockets == null;
 
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e2) { }
-
-				try {
-					networkInterface = PMS.get().getServer().getNetworkInterface();
-				} catch (NullPointerException e3) {
-					LOGGER.debug("Couldn't get server network interface.");
-				}
+		if (selfInit) {
+			multicastSockets = createOutgoingMulticastSocket();
+			if (multicastSockets == null) {
+				LOGGER.error("Couldn't get a multicast socket for sending ALIVE message");
+				return;
 			}
 		}
+		try {
+			for (String NT: NT_LIST) {
+				for (MulticastSocket multicastSocket : multicastSockets) {
+					if (multicastSocket != null) {
+						sendMessage(multicastSocket, NT, ALIVE);
+					}
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.debug("Error sending ALIVE message: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
 
-		if (networkInterface == null) {
-			throw new IOException("No usable network interface found for UPnP multicast");
+		if (selfInit) {
+			closeOutgoingMulticastSocket(multicastSockets);
+		}
+	}
+
+	static boolean multicastLog = LOGGER.isTraceEnabled();
+
+	/**
+	 * Gets a new {@link MulticastSocket}.
+	 *
+	 * @return the new {@link MulticastSocket}.
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	private static MulticastSocket[] getNewMulticastSockets() throws IOException {
+		if (PMS.get().getServer() == null) {
+			throw new IllegalStateException("HTTP server instance must exist before retrieving multicast socket");
+		}
+		List<NetworkInterface> networkInterfaces = PMS.get().getServer().getNetworkInterfaces();
+
+		if (networkInterfaces == null) {
+			LOGGER.error("Couldn't get server network interfaces while creating multicast socket");
+			return null;
+		}
+
+		if (networkInterfaces.size() < 1) {
+			LOGGER.error("No usable network interface found for UPnP multicast");
+			return null;
 		}
 
 		List<InetAddress> usableAddresses = new ArrayList<>();
-		List<InetAddress> networkInterfaceAddresses = Collections.list(networkInterface.getInetAddresses());
+		List<InetAddress> networkInterfaceAddresses = new ArrayList<>();
+		for (NetworkInterface networkInterface : networkInterfaces) {
+			networkInterfaceAddresses.addAll(Collections.list(networkInterface.getInetAddresses()));
+		}
 
 		for (InetAddress inetAddress : networkInterfaceAddresses) {
 			if (inetAddress != null && inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
@@ -286,22 +333,29 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		if (usableAddresses.isEmpty()) {
-			throw new IOException("No usable addresses found for UPnP multicast");
+			LOGGER.error("No usable addresses found for UPnP multicast");
+			return null;
 		}
 
-		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
-		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
-		ssdpSocket.setReuseAddress(true);
-		ssdpSocket.setTimeToLive(32);
+		List<MulticastSocket> ssdpSockets = new ArrayList<>();
+		for (InetAddress inetAddress : usableAddresses) {
+			// Use ephemeral port since some bugged DLNA implementations won't answer if 1900 is used.
+			MulticastSocket socket = new MulticastSocket(new InetSocketAddress(inetAddress, 0));
+			socket.setReuseAddress(true);
+			socket.setTimeToLive(32);
+			ssdpSockets.add(socket);
+		}
 
 		if (multicastLog) {
-			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
-			LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
-			LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
-			LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+			for (MulticastSocket socket : ssdpSockets) {
+				LOGGER.trace("Sending message from multicast socket on network interface: " + socket.getNetworkInterface());
+				LOGGER.trace("Multicast socket is on interface: " + socket.getInterface());
+				LOGGER.trace("Socket Timeout: " + socket.getSoTimeout());
+				LOGGER.trace("Socket TTL: " + socket.getTimeToLive());
+			}
 			multicastLog = false;
 		}
-		return ssdpSocket;
+		return ssdpSockets.toArray(new MulticastSocket[ssdpSockets.size()]);
 	}
 
 	/**
@@ -310,30 +364,25 @@ public class UPNPHelper extends UPNPControl {
 	public static void sendByeBye() {
 		LOGGER.debug("Sending BYEBYE...");
 
-		MulticastSocket multicastSocket = null;
+		MulticastSocket[] multicastSockets = createOutgoingMulticastSocket();
+		if (multicastSockets == null) {
+			LOGGER.error("Couldn't get a multicast socket for sending BYEBYE message");
+			return;
+		}
 
 		try {
-			multicastSocket = getNewMulticastSocket();
-			InetAddress upnpAddress = getUPNPAddress();
-			multicastSocket.joinGroup(upnpAddress);
-
 			for (String NT: NT_LIST) {
-				sendMessage(multicastSocket, NT, BYEBYE, true);
+				for (MulticastSocket multicastSocket : multicastSockets) {
+					if (multicastSocket != null) {
+						sendMessage(multicastSocket, NT, BYEBYE, true);
+					}
+				}
 			}
 		} catch (IOException e) {
-			LOGGER.debug("Error sending BYEBYE message", e);
+			LOGGER.debug("Error sending BYEBYE message", e.getMessage());
+			LOGGER.trace("", e);
 		} finally {
-			if (multicastSocket != null) {
-				// Clean up the multicast socket nicely
-				try {
-					InetAddress upnpAddress = getUPNPAddress();
-					multicastSocket.leaveGroup(upnpAddress);
-				} catch (IOException e) {
-				}
-
-				multicastSocket.disconnect();
-				multicastSocket.close();
-			}
+			closeOutgoingMulticastSocket(multicastSockets);
 		}
 	}
 
@@ -418,14 +467,21 @@ public class UPNPHelper extends UPNPControl {
 		Runnable rAlive = new Runnable() {
 			@Override
 			public void run() {
+				MulticastSocket[] multicastSockets = createOutgoingMulticastSocket();
+				if (multicastSockets == null) {
+					LOGGER.error("Aborting UPnP ALIVE thread because a multicast socket could not be created");
+					return;
+				}
+
 				while (true) {
 					try {
 						Thread.sleep(ALIVE_delay);
 					} catch (InterruptedException e) {
 						Thread.interrupted();
+						closeOutgoingMulticastSocket(multicastSockets);
 						return;
 					}
-					sendAlive();
+					sendAlive(multicastSockets);
 
 					// If getAliveDelay is 0, there is no custom alive delay
 					if (configuration.getAliveDelay() == 0) {
@@ -444,143 +500,45 @@ public class UPNPHelper extends UPNPControl {
 		aliveThread = new Thread(rAlive, "UPNP-AliveMessageSender");
 		aliveThread.start();
 
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				boolean bindErrorReported = false;
-
-				while (true) {
-					MulticastSocket multicastSocket = null;
-
-					try {
-						multicastSocket = new MulticastSocket(UPNP_PORT);
-
-						if (bindErrorReported) {
-							LOGGER.warn("Finally, acquiring port " + UPNP_PORT + " was successful!");
-						}
-
-						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-
-						try {
-							/**
-							 * Setting the network interface will throw a SocketException on Mac OS X
-							 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
-							 * configurations will not listen at all.
-							 */
-							if (ni != null) {
-								multicastSocket.setNetworkInterface(ni);
-								LOGGER.trace("Setting multicast network interface: {}", ni);
-							} else if (PMS.get().getServer().getNetworkInterface() != null) {
-								multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
-								LOGGER.trace("Setting multicast network interface: {}", PMS.get().getServer().getNetworkInterface());
-							}
-						} catch (SocketException e) {
-							// Not setting the network interface will work just fine on Mac OS X.
-						}
-
-						multicastSocket.setTimeToLive(4);
-						multicastSocket.setReuseAddress(true);
-						InetAddress upnpAddress = getUPNPAddress();
-						multicastSocket.joinGroup(upnpAddress);
-
-						int M_SEARCH = 1, NOTIFY = 2;
-						InetAddress lastAddress = null;
-						int lastPacketType = 0;
-
-						while (true) {
-							byte[] buf = new byte[1024];
-							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
-							multicastSocket.receive(receivePacket);
-
-							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
-
-							InetAddress address = receivePacket.getAddress();
-							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
-
-							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
-
-							if (packetType == M_SEARCH) {
-								if (configuration.getIpFiltering().allowed(address)) {
-									String remoteAddr = address.getHostAddress();
-									int remotePort = receivePacket.getPort();
-									if (!redundant) {
-										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
-									}
-
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-									}
-
-									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
-										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
-									}
-
-									if (
-										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
-										StringUtils.indexOf(s, "ssdp:all") > 0
-									) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
-
-									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
-										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
-									}
-								}
-							// Don't log redundant notify messages
-							} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
-							}
-							lastAddress = address;
-							lastPacketType = packetType;
-						}
-					} catch (BindException e) {
-						if (!bindErrorReported) {
-							LOGGER.error("Unable to bind to " + UPNP_PORT
-							+ ", which means that UMS will not automatically appear on your renderer! "
-							+ "This usually means that another program occupies the port. Please "
-							+ "stop the other program and free up the port. "
-							+ "UMS will keep trying to bind to it...[" + e.getMessage() + "]");
-						}
-
-						bindErrorReported = true;
-						Thread.sleep(5000);
-					} catch (IOException e) {
-						LOGGER.error("UPnP network exception: ", e.getMessage());
-						LOGGER.trace("", e);
-						Thread.sleep(1000);
-					} finally {
-						if (multicastSocket != null) {
-							// Clean up the multicast socket nicely
-							try {
-								InetAddress upnpAddress = getUPNPAddress();
-								multicastSocket.leaveGroup(upnpAddress);
-							} catch (IOException e) {
-								LOGGER.trace("Final UPnP network exception: ", e.getMessage());
-								LOGGER.trace("", e);
-							}
-
-							multicastSocket.disconnect();
-							multicastSocket.close();
-						}
-					}
-				}
+		NetworkAddressFactory networkAddressFactory = new CustomNetworkAddressFactoryImpl(UPNP_PORT);
+		List<NetworkInterface> interfaceList = NetworkConfiguration.getInstance().getRelevantNetworkInterfaces();
+		if (interfaceList.size() > 0) {
+			listenerThreads = new UPnPListener[interfaceList.size()];
+			for (int i = 0; i < interfaceList.size(); i++) {
+				listenerThreads[i] = new UPnPListener(networkAddressFactory, interfaceList.get(i));
+				listenerThreads[i].start();
 			}
-		};
-
-		listenerThread = new Thread(r, "UPNPHelper");
-		listenerThread.start();
+		} else {
+			LOGGER.error("Can't listen for UPnP multicast packets because no network interface with a valid address was found");
+		}
 	}
 
 	/**
-	 * Shut down the threads that send ALIVE messages and listen to responses.
+	 * Shuts down the instance, the UPnP listener and "alive" messaging threads
+	 * and invalidates the HTTP control handler. Effectively "undoes" both
+	 * {@link #init()} and {@link #listen()}.
 	 */
-	public static void shutDownListener() {
+	public static void shutDown() {
 		instance.shutdown();
-		if (listenerThread != null) {
-			listenerThread.interrupt();
-		}
 		if (aliveThread != null) {
 			aliveThread.interrupt();
+			try {
+				aliveThread.join(2000);
+			} catch (InterruptedException e) {
+				LOGGER.debug("Interrupted while waiting for ALIVE thread to terminate");
+			}
+		}
+		if (listenerThreads != null) {
+			for (UPnPListener listener : listenerThreads) {
+				listener.closeSocket();
+			}
+			for (UPnPListener listener : listenerThreads) {
+				try {
+					listener.join(2000);
+				} catch (InterruptedException e) {
+					LOGGER.debug("Interrupted while waiting for thread \"{}\" to terminate", listener.getName());
+				}
+			}
 		}
 	}
 
@@ -627,7 +585,7 @@ public class UPNPHelper extends UPNPControl {
 	 * @return the UPnP address
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private static InetAddress getUPNPAddress() throws IOException {
+	public static InetAddress getUPNPAddress() throws IOException {
 		return InetAddress.getByName(IPV4_UPNP_HOST);
 	}
 
