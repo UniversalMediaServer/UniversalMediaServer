@@ -6,9 +6,11 @@ import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
+import net.pms.network.cling.CustomUpnpServiceConfiguration;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
@@ -49,6 +51,10 @@ public class UPNPControl {
 		new UDADeviceType("Basic", 1)
 	};
 
+	private static final ReentrantReadWriteLock upnpServiceLock = new ReentrantReadWriteLock();
+	/**
+	 * All access to upnpService must be protected by {@link #upnpServiceLock}.
+	 */
 	private static UpnpService upnpService;
 	private static UpnpHeaders UMSHeaders;
 	private static DocumentBuilder db;
@@ -236,7 +242,12 @@ public class UPNPControl {
 	}
 
 	public static Device getDevice(String uuid) {
-		return uuid != null && upnpService != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
+		upnpServiceLock.readLock().lock();
+		try {
+			return uuid != null && upnpService != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
+		} finally {
+			upnpServiceLock.readLock().unlock();
+		}
 	}
 
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
@@ -282,7 +293,7 @@ public class UPNPControl {
 			UMSHeaders = new UpnpHeaders();
 			UMSHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
 
-			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration() {
+			CustomUpnpServiceConfiguration sc = new CustomUpnpServiceConfiguration() {
 				@Override
 				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
 					return UMSHeaders;
@@ -323,9 +334,14 @@ public class UPNPControl {
 				}
 			};
 
-			upnpService = new UpnpServiceImpl(sc, rl);
-			for (DeviceType t : mediaRendererTypes) {
-				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
+			upnpServiceLock.writeLock().lock();
+			try {
+				upnpService = new UpnpServiceImpl(sc, rl);
+				for (DeviceType t : mediaRendererTypes) {
+					upnpService.getControlPoint().search(new DeviceTypeHeader(t));
+				}
+			} finally {
+				upnpServiceLock.writeLock().unlock();
 			}
 
 			LOGGER.debug("UPNP Services are online, listening for media renderers");
@@ -335,15 +351,16 @@ public class UPNPControl {
 	}
 
 	public void shutdown() {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				if (upnpService != null) {
-					LOGGER.debug("Stopping UPNP Services...");
-					upnpService.shutdown();
-				}
+		upnpServiceLock.writeLock().lock();
+		try {
+			if (upnpService != null) {
+				LOGGER.debug("Stopping UPNP Services...");
+				upnpService.shutdown();
+				upnpService = null;
 			}
-		}).start();
+		} finally {
+			upnpServiceLock.writeLock().unlock();
+		}
 	}
 
 	public static boolean isMediaRenderer(Device d) {
@@ -492,7 +509,12 @@ public class UPNPControl {
 			} else if (sid.contains("RenderingControl")) {
 				ctrl |= RC;
 			}
-			upnpService.getControlPoint().execute(new SubscriptionCB(s));
+			upnpServiceLock.readLock().lock();
+			try {
+				upnpService.getControlPoint().execute(new SubscriptionCB(s));
+			} finally {
+				upnpServiceLock.readLock().unlock();
+			}
 		}
 		rendererMap.mark(uuid, RENEW, false);
 		rendererMap.mark(uuid, CONTROLS, ctrl);
@@ -543,24 +565,10 @@ public class UPNPControl {
 
 	// Returns the first device regardless of type at the given address, if any
 	public static Device getAnyDevice(InetAddress socket) {
-		if (upnpService != null) {
-			for (Device d : upnpService.getRegistry().getDevices()) {
-				try {
-					InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
-					if (devsocket.equals(socket)) {
-						return d;
-					}
-				} catch (Exception e) {}
-			}
-		}
-		return null;
-	}
-
-	// Returns the first renderer at the given address, if any
-	public static Device getDevice(InetAddress socket) {
-		if (upnpService != null) {
-			for (DeviceType r : mediaRendererTypes) {
-				for (Device d : upnpService.getRegistry().getDevices(r)) {
+		upnpServiceLock.readLock().lock();
+		try {
+			if (upnpService != null) {
+				for (Device d : upnpService.getRegistry().getDevices()) {
 					try {
 						InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
 						if (devsocket.equals(socket)) {
@@ -569,8 +577,32 @@ public class UPNPControl {
 					} catch (Exception e) {}
 				}
 			}
+			return null;
+		} finally {
+			upnpServiceLock.readLock().unlock();
 		}
-		return null;
+	}
+
+	// Returns the first renderer at the given address, if any
+	public static Device getDevice(InetAddress socket) {
+		upnpServiceLock.readLock().lock();
+		try {
+			if (upnpService != null) {
+				for (DeviceType r : mediaRendererTypes) {
+					for (Device d : upnpService.getRegistry().getDevices(r)) {
+						try {
+							InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
+							if (devsocket.equals(socket)) {
+								return d;
+							}
+						} catch (Exception e) {}
+					}
+				}
+			}
+			return null;
+		} finally {
+			upnpServiceLock.readLock().unlock();
+		}
 	}
 
 	public static Renderer getRenderer(String uuid) {
@@ -595,10 +627,6 @@ public class UPNPControl {
 
 	public static Map<String, String> getData(String uuid, String instanceID) {
 		return rendererMap.get(uuid, instanceID).data;
-	}
-
-	public UpnpService getService() {
-		return upnpService;
 	}
 
 	public static class SubscriptionCB extends SubscriptionCallback {
@@ -668,18 +696,25 @@ public class UPNPControl {
 				if (log) {
 					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
 				}
-				new ActionCallback(a, upnpService.getControlPoint()) {
-					@Override
-					public void success(ActionInvocation invocation) {
-						rendererMap.mark(uuid, ACTIVE, true);
-					}
+				upnpServiceLock.readLock().lock();
+				try {
+					if (upnpService != null) {
+						new ActionCallback(a, upnpService.getControlPoint()) {
+							@Override
+							public void success(ActionInvocation invocation) {
+								rendererMap.mark(uuid, ACTIVE, true);
+							}
 
-					@Override
-					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						LOGGER.debug("Action failed: {}", defaultMsg);
-						rendererMap.mark(uuid, ACTIVE, false);
+							@Override
+							public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
+								LOGGER.debug("Action failed: {}", defaultMsg);
+								rendererMap.mark(uuid, ACTIVE, false);
+							}
+						}.run();
 					}
-				}.run();
+				} finally {
+					upnpServiceLock.readLock().unlock();
+				}
 
 				if (log) {
 					for (ActionArgumentValue arg : a.getOutput()) {
