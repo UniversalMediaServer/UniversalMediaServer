@@ -44,6 +44,7 @@ public class HTTPServer implements Runnable {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private final int port;
 	private final String hostname;
+	private final String hostAddress;
 	private final InetSocketAddress socketAddress;
 	private final List<NetworkInterface> networkInterfaces = new ArrayList<>();
 	private ServerSocketChannel serverSocketChannel;
@@ -134,13 +135,38 @@ public class HTTPServer implements Runnable {
 			}
 		}
 		hostname = tmpHostname;
+
+		String tmpHostAddress;
+		if (configuration.isNetworkNameResolution()) {
+			tmpHostAddress = hostname;
+		} else if (socketAddress.getAddress().isAnyLocalAddress()) {
+			try {
+				tmpHostAddress = InetAddress.getLocalHost().getHostAddress();
+			} catch (UnknownHostException e) {
+				// Getting desperate, just pick one valid address if one exists
+				InetAddress tmpInetAddress = NetworkConfiguration.getInstance().getRelevantInterfaceAddresses()[0];
+				if (tmpInetAddress != null) {
+					tmpHostAddress = tmpInetAddress.getHostAddress();
+				} else {
+					// Out of options, this address won't work for renderers but it's at least an address
+					tmpHostAddress = InetAddress.getLoopbackAddress().getHostAddress();
+				}
+			}
+		} else {
+			tmpHostAddress = socketAddress.getAddress().getHostAddress();
+		}
+		hostAddress = tmpHostAddress;
 	}
 
 	public String getURL() {
-		return "http://" + hostname + ":" + port;
+		return "http://" + hostAddress + ":" + port;
 	}
 
 	public String getHost() {
+		return hostAddress;
+	}
+
+	public String getHostName() {
 		return hostname;
 	}
 

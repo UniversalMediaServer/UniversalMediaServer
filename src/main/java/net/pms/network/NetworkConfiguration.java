@@ -444,7 +444,27 @@ public class NetworkConfiguration {
 
 		List<InetAddress> inetAddresses = new ArrayList<>();
 		for (InterfaceAssociation interfaceAssociation : interfaces) {
-			if (interfaceAssociation.getIface().equals(networkInterface)) {
+			if (interfaceAssociation.getAddr() != null && interfaceAssociation.getIface().equals(networkInterface)) {
+				inetAddresses.add(interfaceAssociation.getAddr());
+			}
+		}
+
+		if (inetAddresses.size() > 0) {
+			return inetAddresses.toArray(new InetAddress[inetAddresses.size()]);
+		}
+
+		return null;
+	}
+
+	/**
+	 * @return An array of relevant (as defined by {@link #isRelevantAddress(InetAddress)})
+	 *         addresses for the all {@link NetworkInterface}s or {@code null}
+	 *         if none is found.
+	 */
+	public InetAddress[] getRelevantInterfaceAddresses() {
+		List<InetAddress> inetAddresses = new ArrayList<>();
+		for (InterfaceAssociation interfaceAssociation : interfaces) {
+			if (interfaceAssociation.getAddr() != null) {
 				inetAddresses.add(interfaceAssociation.getAddr());
 			}
 		}

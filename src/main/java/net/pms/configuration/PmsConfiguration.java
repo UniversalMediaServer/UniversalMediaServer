@@ -231,6 +231,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	protected static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	protected static final String KEY_NETWORK_INTERFACE = "network_interface";
+	protected static final String KEY_NETWORK_NAME_RESOLUTION = "network_name_resolution";
 	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
@@ -2345,6 +2346,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setNetworkInterface(String value) {
 		configuration.setProperty(KEY_NETWORK_INTERFACE, value);
+	}
+
+	public boolean isNetworkNameResolution() {
+		return getBoolean(KEY_NETWORK_NAME_RESOLUTION, false);
 	}
 
 	public boolean isHideEngineNames() {
