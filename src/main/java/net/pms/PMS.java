@@ -695,7 +695,7 @@ public class PMS {
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
-		server = new HTTPServer(configuration.getServerPort());
+		server = new HTTPServer();
 
 		/*
 		 * XXX: keep this here (i.e. after registerExtensions and before registerPlayers) so that plugins
@@ -965,29 +965,39 @@ public class PMS {
 			public void run() {
 				try {
 					if (web != null) {
+						LOGGER.trace("Restart: Stopping web interface");
 						web.stop();
 					}
-					LOGGER.trace("Waiting 1 second...");
+					LOGGER.trace("Restart: Sending BYEBYE message");
 					UPNPHelper.sendByeBye();
+					LOGGER.trace("Restart: Stopping HTTP server");
 					server.stop();
 					server = null;
+					LOGGER.trace("Restart: Resetting renderers");
 					RendererConfiguration.resetAllRenderers();
 
+					LOGGER.trace("Waiting 1 second...");
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						LOGGER.trace("Caught exception", e);
 					}
+					// HTTP control handler must be invalidated so that a new one is created during UPNPHelper.init()
+					UPNPHelper.invalidateHttpControlHandler();
 
-					server = new HTTPServer(configuration.getServerPort());
+					LOGGER.trace("Restart: Creating HTTP server");
+					server = new HTTPServer();
+					LOGGER.trace("Restart: Starting HTTP server");
 					server.start();
 					UPNPHelper.sendAlive();
 					if (configuration.useWebInterface()) {
+						LOGGER.trace("Restart: Starting web interface");
 						web = new RemoteWeb(configuration.getWebPort());
 					}
 					frame.setReloadable(false);
 				} catch (IOException e) {
-					LOGGER.error("error during restart :" +e.getMessage(), e);
+					LOGGER.error("Error during restart : {}", e.getMessage());
+					LOGGER.trace("", e);
 				}
 			}
 		});

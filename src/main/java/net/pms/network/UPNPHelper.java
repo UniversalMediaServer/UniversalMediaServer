@@ -127,6 +127,10 @@ public class UPNPHelper extends UPNPControl {
 		return httpControlHandler;
 	}
 
+	public static void invalidateHttpControlHandler() {
+		httpControlHandler = null;
+	}
+
 	private static String lastSearch = null;
 
 	/**

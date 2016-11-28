@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
 public class PmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
 	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
-	protected static final int DEFAULT_SERVER_PORT = 5001;
+	public static final int DEFAULT_SERVER_PORT = 5001;
 	// 90000 lines is approximately 10 MiB depending on locale and message length
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
