@@ -822,8 +822,8 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 2500;
 		}
 
-		setAudioAndSubs(filename, media, params);
-		dlna.setMediaSubtitle(params.sid);
+//		setAudioAndSubs(filename, media, params);
+//		dlna.setMediaSubtitle(params.sid);
 		cmdList.add(executable());
 
 		// Prevent FFmpeg timeout
@@ -992,14 +992,18 @@ public class FFMpegVideo extends Player {
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Map the output streams if necessary
-		if (media.getAudioTracksList().size() > 1) {
+		if (dlna.getMedia().getAudioTracksList().size() > 1) {
 			// Set the video stream
 			cmdList.add("-map");
 			cmdList.add("0:v");
 
 			// Set the proper audio stream
 			cmdList.add("-map");
-			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
+			cmdList.add("0:a:" + (dlna.getMedia().getAudioTracksList().indexOf(params.aid)));
+			
+			// Set the proper subtitle stream
+//			cmdList.add("-map");
+//			cmdList.add("0:s:" + (dlna.getMedia().getSubtitleTracksList().indexOf(params.sid)));
 		}
 
 		// Now configure the output streams

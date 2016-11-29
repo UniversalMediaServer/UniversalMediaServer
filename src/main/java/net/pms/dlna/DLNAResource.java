@@ -3133,8 +3133,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 //				return null;
 			
 //			OutputParams params = new OutputParams(configuration);
-//			params.aid = getMediaAudio();
-//			params.sid = media_subtitle;
+			params.aid = getMediaAudio();
+			params.sid = getMediaSubtitle();
 			params.header = getHeaders();
 			params.mediaRenderer = mediarenderer;
 			timeRange.limit(getSplitRange());
