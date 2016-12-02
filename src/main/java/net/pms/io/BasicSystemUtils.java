@@ -245,4 +245,9 @@ public class BasicSystemUtils implements SystemUtils {
 		}
 		return Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/resources/images/" + icon));
 	}
+
+	@Override
+	public void resetSleepTimer() {
+		// TODO Auto-generated method stub		
+	}
 }

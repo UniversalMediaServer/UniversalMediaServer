@@ -2749,6 +2749,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (!quietPlay()) {
 								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
 								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+								PMS.get().getRegistry().disableGoToSleep();
 							}
 						} catch (UnknownHostException ex) {
 							LOGGER.debug("" + ex);
@@ -2835,6 +2836,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									if (!quietPlay()) {
 										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
 										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+										PMS.get().getRegistry().reenableGoToSleep();
 									}
 								} catch (UnknownHostException ex) {
 									LOGGER.debug("" + ex);

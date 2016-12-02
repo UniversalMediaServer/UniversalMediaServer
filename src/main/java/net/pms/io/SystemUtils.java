@@ -7,8 +7,19 @@ import net.pms.newgui.LooksFrame;
 
 public interface SystemUtils {
 
+	/**
+	 * Use this to reset sleep timer while browsing.
+	 */
+	void resetSleepTimer();
+
+	/**
+	 * Call to prevent going to sleep
+	 */
 	public abstract void disableGoToSleep();
 
+	/**
+	 * Re enable sleep when there is no streaming activity
+	 */
 	public abstract void reenableGoToSleep();
 
 	public abstract File getAvsPluginsDir();

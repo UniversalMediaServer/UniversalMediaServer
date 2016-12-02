@@ -26,6 +26,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.CharBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -40,6 +41,9 @@ import org.slf4j.LoggerFactory;
 public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	//count the number of files playing. Increment when a file starts playing, decrement when a file stops playing. 
+	//Enable sleep when a files stops playing and this is zero.
+	private static AtomicInteger playing = new AtomicInteger(0);	
 
 	public interface Kernel32 extends Library {
 		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
@@ -64,6 +68,7 @@ public class WinUtils extends BasicSystemUtils {
 		int ES_DISPLAY_REQUIRED = 0x00000002;
 		int ES_SYSTEM_REQUIRED = 0x00000001;
 		int ES_CONTINUOUS = 0x80000000;
+		int ES_AWAYMODE_REQUIRED = 0x00000040;
 
 		int GetACP();
 		int GetOEMCP();
@@ -73,32 +78,59 @@ public class WinUtils extends BasicSystemUtils {
 	private boolean kerio;
 	private String avsPluginsDir;
 	private String kLiteFiltersDir;
-	public long lastDontSleepCall = 0;
-	public long lastGoToSleepCall = 0;
+	private long lastDontSleepCall = 0;
 
 	/* (non-Javadoc)
 	 * @see net.pms.io.SystemUtils#disableGoToSleep()
 	 */
 	@Override
 	public void disableGoToSleep() {
-		// Disable go to sleep (every 40s)
-		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
-			lastDontSleepCall = System.currentTimeMillis();
+		//Disable sleep
+		if (configuration.isPreventsSleep() && playing.incrementAndGet() == 1) {
+			new KeepAwakeThread().start();
 		}
+		LOGGER.info("Streaming {} resources.", playing.get());
 	}
 
 	/* (non-Javadoc)
 	 * @see net.pms.io.SystemUtils#reenableGoToSleep()
 	 */
 	@Override
-	public void reenableGoToSleep() {
+	public synchronized void reenableGoToSleep() {
 		// Reenable go to sleep
-		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
-			lastGoToSleepCall = System.currentTimeMillis();
+		if (configuration.isPreventsSleep() && playing.decrementAndGet() < 0) {			
+			playing.set(0);
+		}
+		LOGGER.info("Streaming {} resources.", playing.get());
+	}
+
+	/* (non-Javadoc)
+	 * +	 * @see net.pms.io.BasicSystemUtils#resetSleepTimer()
+	 */
+	@Override
+	public void resetSleepTimer() {
+		//Rester sleep timer. Don't call more then once every 30 seconds
+		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 30000) {		
+			int result = Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
+			lastDontSleepCall = System.currentTimeMillis();
+			LOGGER.info("Reset sleep counter. Result {}", result);
+		}
+	}
+
+	public class KeepAwakeThread extends Thread{
+		@Override
+		public void run() {
+			while(playing.get() > 0){
+				try {
+					int result = Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
+					LOGGER.info("Disable sleep. Result {}", result);
+					sleep(30000);
+				} catch (InterruptedException e) {
+					LOGGER.warn("keep awake thread encountered and exception", e);
+				}			
+			}
+			int result = Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
+			LOGGER.info("Enable sleep. Result {}", result);
 		}
 	}
 
