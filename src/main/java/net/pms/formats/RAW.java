@@ -12,6 +12,8 @@ import net.pms.dlna.InputFile;
 import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+
+import org.jdom2.output.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,20 +117,25 @@ public class RAW extends JPG {
 			ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params, true, false);
 			pw.runInSameThread();
 
+			boolean hasEmbeddedThumbnail = false;
 			List<String> list = pw.getOtherResults();
 			for (String s : list) {
 				if (s.startsWith("Thumb size:  ")) {
 					String sz = s.substring(13);
 					media.setWidth(Integer.parseInt(sz.substring(0, sz.indexOf('x')).trim()));
 					media.setHeight(Integer.parseInt(sz.substring(sz.indexOf('x') + 1).trim()));
+					hasEmbeddedThumbnail = true;
 					break;
 				}
 			}
 
-			if (media.getWidth() > 0) {
+			if (hasEmbeddedThumbnail) {
 				byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath());
+				// Set the image size of the embedded thumbnail in the raw image because there is not
+				// any renderer which can show the original raw image. Only embedded JPEG thumbnails are supported.
+				// For the PPM format the image will be hidden because now we don't have support for that format.
 				media.setSize(image.length);
-				// XXX why the image size is set to thumbnail size and the codecV and container is set to RAW when thumbnail is in the JPEG format
+				// the codec and container is set to the RAW format to force transcoding to JPEG when RAW image is not supported by renderer.
 				media.setCodecV("raw");
 				media.setContainer("raw");
 
@@ -136,7 +143,7 @@ public class RAW extends JPG {
 					// Resize the thumbnail image using the Thumbnailator library
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
 					Thumbnails.of(new ByteArrayInputStream(image))
-								.size(320, 180)
+								.size(configuration.getThumbnailWidth(), configuration.getThumbnailHeight())
 								.outputFormat("JPEG")
 								.outputQuality(1.0f)
 								.toOutputStream(out);

@@ -100,6 +100,13 @@ public class RAWThumbnailer extends Player {
 
 	// Called from net.pms.formats.RAW.parse XXX even if the engine is disabled
 	// May also be called from launchTranscode
+	/**
+	 * Extract the embedded thumbnail image from the original raw file
+	 *
+	 * @param params Parameters to be used for Process Wrapper 
+	 * @param fileName Name of the RAW image from which the thumbnail is to be extracted
+	 * @return The Byte Array of the embedded thumbnail
+	 */
 	public static byte[] getThumbnail(OutputParams params, String fileName) throws IOException {
 		// Use device-specific pms conf
 		PmsConfiguration configuration = PMS.getConfiguration(params);
@@ -121,6 +128,7 @@ public class RAWThumbnailer extends Player {
 				baos.write(buffer, 0, n);
 			}
 		}
+
 		byte b[] = baos.toByteArray();
 		baos.close();
 		return b;
