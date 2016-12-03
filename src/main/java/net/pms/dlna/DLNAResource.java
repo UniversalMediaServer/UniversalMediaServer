@@ -4099,7 +4099,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private void internalStop() {
 		DLNAResource res = resumeStop();
-		final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
+		RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
+		if (root == null) {
+			root = PMS.get().getRootFolder(null);
+		}
 		if (root != null) {
 			if (res == null) {
 				res = this.clone();

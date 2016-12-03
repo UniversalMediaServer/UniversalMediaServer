@@ -67,7 +67,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 			}
 		}
 		list.remove(res1);
-		if (maxSize > 0 && list.size() == maxSize) {
+		if (maxSize > 0 && list.size() >= maxSize) {
 			list.remove(maxSize - 1);
 		}
 		// Add to last

@@ -32,7 +32,7 @@ public class StartStopListenerDelegate {
 		this.dlna = dlna;
 		Format ext = dlna.getFormat();
 		// only trigger the start/stop events for audio and video
-		if (!started && ext != null && (ext.isVideo() || ext.isAudio())) {
+		if (!started && (dlna.getType() == Format.VIDEO || dlna.getType() == Format.AUDIO)) {
 			dlna.startPlaying(rendererId, renderer);
 			renderer.setPlayingRes(dlna);
 			started = true;

@@ -339,7 +339,7 @@ public class UMSUtils {
 
 		@Override
 		public boolean add(DLNAResource d) {
-			super.add(d);
+			super.add(0, d);
 			if (isMode(AUTOSAVE)) {
 				save();
 			}
@@ -410,6 +410,11 @@ public class UMSUtils {
 				sb.append(now.toString());
 				sb.append("\n");
 				for (DLNAResource r : playlist) {
+					String newId = r.getResourceId();
+					// Playlists might have references to deleted items. Ignore.
+					if (newId == null)
+						continue;
+
 					String data = r.write();
 					if (!org.apache.commons.lang.StringUtils.isEmpty(data) && sb.indexOf(data) == -1) {
 						ExternalListener external = r.getMasterParent();
