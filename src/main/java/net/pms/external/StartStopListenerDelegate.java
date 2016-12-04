@@ -9,6 +9,7 @@ public class StartStopListenerDelegate {
 	private final String rendererId;
 	private DLNAResource dlna;
 	private boolean started = false;
+	private boolean stopped = false;
 	private RendererConfiguration renderer;
 
 	public StartStopListenerDelegate(String rendererId) {
@@ -38,8 +39,9 @@ public class StartStopListenerDelegate {
 	}
 
 	public synchronized void stop() {
-		if (started) {
+		if (started && !stopped) {
 			dlna.stopPlaying(rendererId, renderer);
+			stopped = true;
 		}
 	}
 }
