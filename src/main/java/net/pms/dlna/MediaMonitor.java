@@ -71,7 +71,7 @@ public class MediaMonitor extends VirtualFolder {
 						entry = entry.trim();
 						fullyPlayedEntries.add(entry);
 
-						PMS.get().setFullyPlayed(entry, true, null);
+						PMS.get().setFullyPlayed(entry, true);
 					}
 				}
 			}
@@ -95,10 +95,10 @@ public class MediaMonitor extends VirtualFolder {
 					}
 					mm.setDiscovered(false);
 					mm.getChildren().clear();
-					try {
-						dumpFile();
-					} catch (IOException e) {
-					}
+//					try {
+//						dumpFile();
+//					} catch (IOException e) {
+//					}
 					return true;
 				}
 			});
@@ -207,25 +207,20 @@ public class MediaMonitor extends VirtualFolder {
 						return;
 					}
 
-					if (res.getMedia() != null && res.getMedia().isFullyPlayed()) {
-						return;
-					}
-
-					// TODO: Remove when the database is used for this feature
 					fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
 
 					if (res.getMedia() != null) {
-						PMS.get().setFullyPlayed(rf.getFile().getAbsolutePath(), true, res.getMedia());
+						PMS.get().setFullyPlayed(rf.getFile().getAbsolutePath(), true);
 					}
 
 					setDiscovered(false);
 					getChildren().clear();
 
-					try {
-						dumpFile();
-					} catch (IOException e) {
-						LOGGER.debug("An error occurred when dumping monitor file: " + e);
-					}
+//					try {
+//						dumpFile();
+//					} catch (IOException e) {
+//						LOGGER.debug("An error occurred when dumping monitor file: " + e);
+//					}
 
 					File playedFile = new File(rf.getFile().getAbsolutePath());
 
@@ -273,15 +268,8 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public static boolean isFullyPlayed(String str) {
-		// Checks if it's in the old CSV database
 		if (fullyPlayedEntries != null && fullyPlayedEntries.contains(str)) {
 			return true;
-		}
-
-		// Checks if it's in the SQL database
-		FilesStatusResult result = TableFilesStatus.isFullyPlayed(str);
-		if (result.found) {
-			return result.isFullyPlayed;
 		}
 
 		return false;
@@ -304,13 +292,13 @@ public class MediaMonitor extends VirtualFolder {
 			sb.append("## Generated: ");
 			sb.append(now.toString());
 			sb.append("\n");
-			for (String str : fullyPlayedEntries) {
-				if (sb.indexOf(str) == -1) {
-					sb.append("entry=");
-					sb.append(str);
-					sb.append("\n");
-				}
-			}
+//			for (String str : fullyPlayedEntries) {
+//				if (sb.indexOf(str) == -1) {
+//					sb.append("entry=");
+//					sb.append(str);
+//					sb.append("\n");
+//				}
+//			}
 			out.write(sb.toString());
 			out.flush();
 		}

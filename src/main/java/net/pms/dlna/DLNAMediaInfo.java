@@ -2068,22 +2068,6 @@ public class DLNAMediaInfo implements Cloneable {
 		this.databaseFileId = value;
 	}
 
-	/**
-	 * @return whether the file has been fully played.
-	 */
-	public boolean isFullyPlayed() {
-		return isFullyPlayed;
-	}
-
-	/**
-	 * Sets whether the file has been fully played.
-	 *
-	 * @param value whether the file has been fully played.
-	 */
-	public void setFullyPlayed(boolean value) {
-		this.isFullyPlayed = value;
-	}
-
 	public String getEdition() {
 		return edition;
 	}

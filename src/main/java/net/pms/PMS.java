@@ -50,6 +50,7 @@ import net.pms.database.TableFilesStatus;
 import net.pms.database.Tables;
 import static net.pms.database.Tables.sqlLikeEscape;
 import net.pms.dlna.*;
+import static net.pms.dlna.MediaMonitor.fullyPlayedEntries;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -1387,15 +1388,16 @@ public class PMS {
 	 *
 	 * @param fullPathToFile
 	 * @param isFullyPlayed
-	 * @param media
 	 */
-	public void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, DLNAMediaInfo media) {
+	public void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
 		if (getConfiguration().getUseCache()) {
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed, 0);
 		}
 
-		if (media != null) {
-			media.setFullyPlayed(isFullyPlayed);
+		if (isFullyPlayed) {
+			fullyPlayedEntries.add(fullPathToFile);
+		} else {
+			fullyPlayedEntries.remove(fullPathToFile);
 		}
 	}
 

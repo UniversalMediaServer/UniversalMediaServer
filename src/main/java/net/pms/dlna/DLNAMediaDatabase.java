@@ -464,11 +464,8 @@ public class DLNAMediaDatabase implements Runnable {
 						media.setIsTVEpisode(false);
 					}
 
-					if (rs.getBoolean("ISFULLYPLAYED")) {
-						media.setFullyPlayed(true);
+					if (rs.getBoolean("ISFULLYPLAYED") == true) {
 						fullyPlayedEntries.add(name);
-					} else {
-						media.setFullyPlayed(false);
 					}
 
 					media.setMediaparsed(true);
