@@ -8,10 +8,25 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
+/**
+ * Implements a {@link TreeSelectionListener} that support {@link JCheckBox} nodes.
+ * <p>
+ * Based on <a href="http://www.jroller.com/santhosh/entry/jtree_with_checkboxes">JTree with checkboxes</a>.
+ *
+ * @author Santhosh Kumar T - santhosh@in.fiorano.com
+ * @author valib
+ * @author Nadahar
+ */
 public class CheckTreeManager extends MouseAdapter implements TreeSelectionListener {
 	private CheckTreeSelectionModel selectionModel;
 	private JTree tree = new JTree();
 	int hotspot = new JCheckBox().getPreferredSize().width;
+
+	/**
+	 * Does not initialize the class, only to be used by subclasses.
+	 */
+	protected CheckTreeManager() {
+	}
 
 	public CheckTreeManager(JTree tree) {
 		this.tree = tree;

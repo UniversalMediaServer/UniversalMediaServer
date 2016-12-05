@@ -60,7 +60,7 @@ public class CustomMulticastReceiverImpl extends MulticastReceiverImpl {
 			// Trying to bind according to http://stackoverflow.com/a/5484657/363791
 			// (interface address for Windows, multicast address for others)
 			if (Platform.isWindows()) {
-				InetAddress[] interfaceAddresses = NetworkConfiguration.getInstance().getRelevantInterfaceAddresses(multicastInterface);
+				InetAddress[] interfaceAddresses = NetworkConfiguration.get().getRelevantInterfaceAddresses(multicastInterface);
 				if (interfaceAddresses == null) {
 					throw new InitializationException(
 						"Found no relevant addresses to bind multicast socket to for interface \"" + multicastInterface.getDisplayName() + "\""

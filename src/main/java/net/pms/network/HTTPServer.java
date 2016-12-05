@@ -95,27 +95,27 @@ public class HTTPServer implements Runnable {
 			if (inetAddress != null) {
 				LOGGER.info("Using address {} resolved from \"{}\"", inetAddress.getHostAddress(), tmpHostname);
 				tmpSocketAddress = new InetSocketAddress(inetAddress, port);
-				networkInterfaces.addAll(NetworkConfiguration.getInstance().getNetworkInterfaces(inetAddress));
+				networkInterfaces.addAll(NetworkConfiguration.get().getNetworkInterfaces(inetAddress));
 			}
 		}
 
 		if (tmpSocketAddress == null) {
 			InterfaceAssociation interfaceAssociation = null;
 			if (StringUtils.isNotEmpty(configuration.getNetworkInterface())) {
-				interfaceAssociation = NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(configuration.getNetworkInterface());
+				interfaceAssociation = NetworkConfiguration.get().getAddressForNetworkInterfaceName(configuration.getNetworkInterface());
 			}
 
 			if (interfaceAssociation != null) {
-				InetAddress inetAddress = interfaceAssociation.getAddr();
-				networkInterfaces.add(interfaceAssociation.getIface());
+				InetAddress inetAddress = interfaceAssociation.getAddress();
+				networkInterfaces.add(interfaceAssociation.getInterface());
 				LOGGER.info(
 					"Using address {} found on network interface: {}",
 					inetAddress,
-					interfaceAssociation.getIface().toString().trim().replace('\n', ' ')
+					interfaceAssociation.getInterface().toString().trim().replace('\n', ' ')
 				);
 				socketAddress = new InetSocketAddress(inetAddress, port);
 			} else {
-				networkInterfaces.addAll(NetworkConfiguration.getInstance().getRelevantNetworkInterfaces());
+				networkInterfaces.addAll(NetworkConfiguration.get().getRelevantNetworkInterfaces());
 				LOGGER.info("Using all addresses");
 				socketAddress = new InetSocketAddress(port);
 			}
@@ -144,7 +144,7 @@ public class HTTPServer implements Runnable {
 				tmpHostAddress = InetAddress.getLocalHost().getHostAddress();
 			} catch (UnknownHostException e) {
 				// Getting desperate, just pick one valid address if one exists
-				InetAddress tmpInetAddress = NetworkConfiguration.getInstance().getRelevantInterfaceAddresses()[0];
+				InetAddress tmpInetAddress = NetworkConfiguration.get().getRelevantInterfaceAddresses()[0];
 				if (tmpInetAddress != null) {
 					tmpHostAddress = tmpInetAddress.getHostAddress();
 				} else {
@@ -253,8 +253,6 @@ public class HTTPServer implements Runnable {
 				factory.releaseExternalResources();
 			}
 		}
-
-		NetworkConfiguration.forgetConfiguration();
 	}
 
 	// XXX only used by HTTP Engine V1

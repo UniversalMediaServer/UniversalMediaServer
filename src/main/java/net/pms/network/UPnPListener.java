@@ -65,7 +65,7 @@ public class UPnPListener extends Thread {
 			// Trying to bind according to http://stackoverflow.com/a/5484657/363791
 			// (interface address for Windows, multicast address for others)
 			if (Platform.isWindows()) {
-				InetAddress[] interfaceAddresses = NetworkConfiguration.getInstance().getRelevantInterfaceAddresses(multicastInterface);
+				InetAddress[] interfaceAddresses = NetworkConfiguration.get().getRelevantInterfaceAddresses(multicastInterface);
 				if (interfaceAddresses == null) {
 					throw new InitializationException(
 						"Found no relevant addresses to bind multicast socket to for interface \"" + multicastInterface.getDisplayName() + "\""
@@ -106,7 +106,7 @@ public class UPnPListener extends Thread {
 			LOGGER.debug("Joining multicast group \"{}\" on network interface \"{}\"", multicastAddress, multicastInterface.getDisplayName());
 			multicastSocket.joinGroup(multicastAddress, multicastInterface);
 
-			interfaceAddresses.addAll(Arrays.asList(NetworkConfiguration.getInstance().getRelevantInterfaceAddresses(multicastInterface)));
+			interfaceAddresses.addAll(Arrays.asList(NetworkConfiguration.get().getRelevantInterfaceAddresses(multicastInterface)));
 		} catch (IOException e) {
 			throw new InitializationException("Could not initialize " + getClass().getSimpleName() + ": " + e);
 		}

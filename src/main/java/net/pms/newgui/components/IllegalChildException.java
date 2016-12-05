@@ -19,7 +19,7 @@
  */
 package net.pms.newgui.components;
 
-public class IllegalChildException extends Exception {
+public class IllegalChildException extends RuntimeException {
 
 	private static final long serialVersionUID = 1152260088011461750L;
 

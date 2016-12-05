@@ -1,16 +1,32 @@
 package net.pms.util.tree;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Stack;
+import java.util.Deque;
+import javax.swing.JCheckBox;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-// @author Santhosh Kumar T - santhosh@in.fiorano.com 
+/**
+ * Implements a {@link TreeSelectionModel} that support {@link JCheckBox} nodes.
+ * <p>
+ * Based on <a href="http://www.jroller.com/santhosh/entry/jtree_with_checkboxes">JTree with checkboxes</a>.
+ *
+ * @author Santhosh Kumar T - santhosh@in.fiorano.com
+ * @author valib
+ * @author Nadahar
+ */
 public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	private static final long serialVersionUID = 6785975582865715495L;
-	private TreeModel model;
+	protected TreeModel model;
+
+	/**
+	 * Only to be used by subclasses, class is not initialized
+	 */
+	protected CheckTreeSelectionModel() {
+	}
 
 	public CheckTreeSelectionModel(TreeModel model) {
 		this.model = model;
@@ -18,7 +34,7 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	}
 
 	/**
-	 * Whether there is any unselected node in the subtree of given path.
+	 * @return Whether there is any unselected node in the subtree of given path
 	 */
 	public boolean isPartiallySelected(TreePath path) {
 		if (isPathSelected(path, true)) {
@@ -34,9 +50,10 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	}
 
 	/**
-	 * Whether given path is selected. 
-	 * If dig is true, then a path is assumed to be selected, if one of its
-	 * ancestors is selected.
+	 * @param path the {@link TreePath} to check.
+	 * @param dig if true, a path is assumed to be selected, if one of its ancestors are selected.
+	 *
+	 * @return Whether the given {@link TreePath} is selected.
 	 */
 	public boolean isPathSelected(TreePath path, boolean dig) {
 		if (!dig) {
@@ -49,11 +66,14 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	}
 
 	/**
-	 * Whether path1 is a descendant of path2.
+	 * @return whether {@code path1} is a descendant of {@code path2}.
 	 */
-	private boolean isDescendant(TreePath path1, TreePath path2) {
-		Object obj1[] = path1.getPath();
-		Object obj2[] = path2.getPath();
+	protected boolean isDescendant(TreePath path1, TreePath path2) {
+		Object[] obj1 = path1.getPath();
+		Object[] obj2 = path2.getPath();
+		if (obj1.length <= obj2.length) {
+			return false;
+		}
 		for (int i = 0; i < obj2.length; i++) {
 			if (obj1[i] != obj2[i]) {
 				return false;
@@ -63,19 +83,23 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	}
 
 	@Override
-	public void setSelectionPaths(TreePath[] pPaths) {
+	public void setSelectionPaths(TreePath[] paths) {
 		clearSelection();
-		for (TreePath pPath : pPaths) {
-			addSelectionPath(pPath);
+		for (TreePath path : paths) {
+			addSelectionPath(path);
 		}
 	}
 
 	@Override
 	public void addSelectionPaths(TreePath[] paths) {
+		if (paths == null) {
+			return;
+		}
+
 		// unselect all descendants of paths[]
 		for (TreePath path : paths) {
 			TreePath[] selectionPaths = getSelectionPaths();
-			if (selectionPaths == null) {
+			if (selectionPaths == null || selectionPaths.length == 0) {
 				break;
 			}
 			ArrayList<TreePath> toBeRemoved = new ArrayList<>();
@@ -87,7 +111,7 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 			super.removeSelectionPaths(toBeRemoved.toArray(new TreePath[0]));
 		}
 
-		/**
+		/*
 		 * If all siblings are selected then unselect them and select parent
 		 * recursively, otherwise just select that path.
 		 */
@@ -116,7 +140,7 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	}
 
 	/**
-	 * Whether all siblings of given path are selected.
+	 * @return Whether all siblings of given path are selected.
 	 */
 	private boolean areSiblingsSelected(TreePath path) {
 		TreePath parent = path.getParentPath();
@@ -126,8 +150,7 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 		Object node = path.getLastPathComponent();
 		Object parentNode = parent.getLastPathComponent();
 
-		int childCount = model.getChildCount(parentNode);
-		for (int i = 0; i < childCount; i++) {
+		for (int i = 0; i < model.getChildCount(parentNode); i++) {
 			Object childNode = model.getChild(parentNode, i);
 			if (childNode == node) {
 				continue;
@@ -151,31 +174,30 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	}
 
 	/**
-	 * If any ancestor node of given path is selected then unselect it 
-	 * and selection all its descendants except given path and descendants. 
+	 * If any ancestor node of given path is selected then unselect it
+	 * and selection all its descendants except given path and descendants.
 	 * Otherwise just unselect the given path.
 	 */
 	private void toggleRemoveSelection(TreePath path) {
-		Stack<TreePath> stack = new Stack<>();
+		Deque<TreePath> deque = new ArrayDeque<>();
 		TreePath parent = path.getParentPath();
 		while (parent != null && !isPathSelected(parent)) {
-			stack.push(parent);
+            deque.push(parent);
 			parent = parent.getParentPath();
 		}
 		if (parent != null) {
-			stack.push(parent);
+            deque.push(parent);
 		} else {
 			super.removeSelectionPaths(new TreePath[]{path});
 			return;
 		}
 
-		while (!stack.isEmpty()) {
-			TreePath temp = stack.pop();
-			TreePath peekPath = stack.isEmpty() ? path : (TreePath) stack.peek();
+        while (!deque.isEmpty()){
+            TreePath temp = deque.pop();
+            TreePath peekPath = deque.isEmpty() ? path : deque.peek();
 			Object node = temp.getLastPathComponent();
 			Object peekNode = peekPath.getLastPathComponent();
-			int childCount = model.getChildCount(node);
-			for (int i = 0; i < childCount; i++) {
+			for (int i = 0; i < model.getChildCount(node); i++) {
 				Object childNode = model.getChild(node, i);
 				if (childNode != peekNode) {
 					super.addSelectionPaths(new TreePath[]{temp.pathByAddingChild(childNode)});

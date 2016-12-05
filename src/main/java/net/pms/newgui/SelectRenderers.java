@@ -32,7 +32,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.newgui.components.IllegalChildException;
 import net.pms.newgui.components.SearchableMutableTreeNode;
 import net.pms.util.tree.CheckTreeManager;
 import org.slf4j.Logger;
@@ -42,9 +41,8 @@ public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
 	private static PmsConfiguration configuration = PMS.getConfiguration();
-	private static List<String> selectedRenderers = configuration.getSelectedRenderers();
 	private CheckTreeManager checkTreeManager;
-	private JTree SrvTree;
+	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
 	private static final String allRenderersTreeName = configuration.ALL_RENDERERS;
 	private boolean init = false;
@@ -59,25 +57,19 @@ public class SelectRenderers extends JPanel {
 		add(checkPanel, BorderLayout.LINE_START);
 		allRenderers = new SearchableMutableTreeNode(Messages.getString("GeneralTab.13"));
 
-		Pattern pattern = Pattern.compile("^\\s*([^\\s]*) ?([^\\s].*?)?\\s*$");
+		Pattern pattern = Pattern.compile("^\\s*(\\S*) ?(\\S.*?)?\\s*$");
 		for (String renderer : RendererConfiguration.getAllRenderersNames()) {
 			Matcher match = pattern.matcher(renderer);
 			if (match.find()) {
 				// Find or create group or single name renderer
-				SearchableMutableTreeNode node = null;
-				try {
-					 node = allRenderers.findChild(match.group(1));
-				} catch (IllegalChildException e) {}
+				SearchableMutableTreeNode node = allRenderers.findChild(match.group(1));
 				if (node == null) {
 					node = new SearchableMutableTreeNode(match.group(1));
 					allRenderers.add(node);
 				}
 				// Find or create subgroup/name
 				if (match.groupCount() > 1 && match.group(2) != null) {
-					SearchableMutableTreeNode subNode = null;
-					try {
-						subNode = node.findChild(match.group(2));
-					} catch (IllegalChildException e) {}
+					SearchableMutableTreeNode subNode = node.findChild(match.group(2));
 					if (subNode != null) {
 						LOGGER.warn("Renderer {} found twice, ignoring repeated entry", renderer);
 					} else {
@@ -90,9 +82,9 @@ public class SelectRenderers extends JPanel {
 			}
 		}
 
-		SrvTree = new JTree(new DefaultTreeModel(allRenderers));
-		checkTreeManager = new CheckTreeManager(SrvTree);
-		checkPanel.add(new JScrollPane(SrvTree));
+		srvTree = new JTree(new DefaultTreeModel(allRenderers));
+		checkTreeManager = new CheckTreeManager(srvTree);
+		checkPanel.add(new JScrollPane(srvTree));
 		checkPanel.setSize(400, 500);
 	}
 
@@ -105,9 +97,9 @@ public class SelectRenderers extends JPanel {
 			build();
 			init = true;
 		}
-		SrvTree.validate();
+		srvTree.validate();
 		// Refresh setting if modified
-		selectedRenderers = configuration.getSelectedRenderers();
+		List<String> selectedRenderers = configuration.getSelectedRenderers();
 		TreePath root = new TreePath(allRenderers);
 		if (selectedRenderers.isEmpty() || (selectedRenderers.size() == 1 && selectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
@@ -119,9 +111,7 @@ public class SelectRenderers extends JPanel {
 				SearchableMutableTreeNode node = null;
 				List<TreePath> selectedRenderersPath = new ArrayList<>(selectedRenderers.size());
 				for (String selectedRenderer : selectedRenderers) {
-					try {
-						node = rootNode.findInBranch(selectedRenderer, true);
-					} catch (IllegalChildException e) {}
+					node = rootNode.findInBranch(selectedRenderer, true);
 					if (node != null) {
 						selectedRenderersPath.add(new TreePath(node.getPath()));
 					}
@@ -153,22 +143,22 @@ public class SelectRenderers extends JPanel {
 			) {
 				configuration.setSelectedRenderers(allRenderersTreeName);
 			} else {
-				List<String> selectedRenderers = new ArrayList<>();
+				selectedRenderers = new ArrayList<>();
 				for (TreePath path : selected) {
-					String rendererName = "";
+					StringBuilder rendererName = new StringBuilder();
 					if (path.getPathComponent(0).equals(allRenderers)) {
 						for (int i = 1; i < path.getPathCount(); i++) {
 							if (path.getPathComponent(i) instanceof SearchableMutableTreeNode) {
-								if (!rendererName.isEmpty()) {
-									rendererName += " ";
+								if (rendererName.length() > 0) {
+									rendererName.append(" ");
 								}
-								rendererName += ((SearchableMutableTreeNode) path.getPathComponent(i)).getNodeName();
+								rendererName.append(((SearchableMutableTreeNode) path.getPathComponent(i)).getNodeName());
 							} else {
 								LOGGER.error("Invalid tree node component class {}", path.getPathComponent(i).getClass().getSimpleName());
 							}
 						}
-						if (!rendererName.isEmpty()) {
-							selectedRenderers.add(rendererName);
+						if (rendererName.length() > 0) {
+							selectedRenderers.add(rendererName.toString());
 						}
 					} else {
 						LOGGER.warn("Invalid renderer treepath encountered: {}", path.toString());

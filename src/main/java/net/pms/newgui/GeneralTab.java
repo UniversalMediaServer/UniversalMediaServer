@@ -21,14 +21,33 @@ package net.pms.newgui;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.FormSpecs;
+import com.jgoodies.forms.layout.RowSpec;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.Document;
+import javax.swing.text.PlainDocument;
+import javax.swing.tree.DefaultTreeModel;
+import static javax.swing.ScrollPaneConstants.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
@@ -36,6 +55,11 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.DefaultTextField;
+import net.pms.newgui.components.IntegerDocumentFilter;
+import net.pms.newgui.components.NICTreeManager;
+import net.pms.newgui.components.NICTreeNode;
+import net.pms.newgui.components.SearchableMutableTreeNode;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.WindowsUtil;
@@ -55,10 +79,11 @@ public class GeneralTab {
 	private JCheckBox hideAdvancedOptions;
 	private JCheckBox newHTTPEngine;
 	private JCheckBox preventSleep;
-	private JTextField host;
-	private JTextField port;
+	private JCheckBox networkNameResolution;
+	private DefaultTextField hostname;
+	private DefaultTextField port;
+	private DefaultTextField webPort;
 	private JTextField serverName;
-	private JComboBox<String> networkinterfacesCBX;
 	private JTextField ip_filter;
 	public JTextField maxbitrate;
 	private JCheckBox adaptBitrate;
@@ -333,99 +358,7 @@ public class GeneralTab {
 			builder.add(confEdit, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			ypos += 2;
 
-			host = new JTextField(configuration.getServerHostname());
-			host.addKeyListener(new KeyAdapter() {
-				@Override
-				public void keyReleased(KeyEvent e) {
-					configuration.setHostname(host.getText());
-				}
-			});
-
-			port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
-			port.setToolTipText(Messages.getString("NetworkTab.64"));
-			port.addKeyListener(new KeyAdapter() {
-				@Override
-				public void keyReleased(KeyEvent e) {
-					try {
-						String p = port.getText();
-						if (StringUtils.isEmpty(p)) {
-							p = "5001";
-						}
-						int ab = Integer.parseInt(p);
-						configuration.setServerPort(ab);
-					} catch (NumberFormatException nfe) {
-						LOGGER.debug("Could not parse port from \"" + port.getText() + "\"");
-					}
-
-				}
-			});
-
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.22"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
-			ypos += 2;
-			cmp = (JComponent) cmp.getComponent(0);
-			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
-			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
-			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
-			networkinterfacesCBX.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					if (e.getStateChange() == ItemEvent.SELECTED) {
-						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
-					}
-				}
-			});
-
-			ip_filter = new JTextField(configuration.getIpFilter());
-			ip_filter.addKeyListener(new KeyAdapter() {
-				@Override
-				public void keyReleased(KeyEvent e) {
-					configuration.setIpFilter(ip_filter.getText());
-				}
-			});
-
-			maxbitrate = new JTextField(configuration.getMaximumBitrateDisplay());
-			maxbitrate.setToolTipText(Messages.getString("NetworkTab.65"));
-			maxbitrate.addKeyListener(new KeyAdapter() {
-				@Override
-				public void keyReleased(KeyEvent e) {
-					configuration.setMaximumBitrate(maxbitrate.getText());
-				}
-			});
-			if (configuration.isAutomaticMaximumBitrate()) {
-				maxbitrate.setEnabled(false);
-			} else {
-				maxbitrate.setEnabled(true);
-			}
-
-			adaptBitrate = new JCheckBox(Messages.getString("GeneralTab.12"), configuration.isAutomaticMaximumBitrate());
-			adaptBitrate.setContentAreaFilled(false);
-			adaptBitrate.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
-					maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
-				}
-			});
-
-			builder.addLabel(Messages.getString("NetworkTab.20"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			builder.add(networkinterfacesCBX, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
-			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.23"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			builder.add(host, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
-			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.24"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			builder.add(port, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
-			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
-			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(adaptBitrate), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
-			ypos += 2;
-
+			ypos = buildNetworkConfiguration(builder, ypos, colSpec, orientation);
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.31"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 			ypos += 2;
 			cmp = (JComponent) cmp.getComponent(0);
@@ -501,6 +434,11 @@ public class GeneralTab {
 		// Apply the orientation to the panel and all components in it
 		panel.applyComponentOrientation(orientation);
 
+		// Make "Enter" move to the next field
+		Set<AWTKeyStroke> forwardKeys = new HashSet<>(panel.getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS));
+		forwardKeys.add(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+		panel.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, forwardKeys);
+
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -508,6 +446,244 @@ public class GeneralTab {
 		);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
+	}
+
+	private int buildNetworkConfiguration(PanelBuilder builder, int ypos, String colSpec, ComponentOrientation orientation) {
+		CellConstraints cc = new CellConstraints();
+
+		JPanel networkPanel = new JPanel(new FormLayout(
+			FormLayoutUtil.getColSpec("fill:p:noGrow, fill:4dlu:noGrow, fill:p:grow", orientation),
+			"pref, fill:3dlu:noGrow, fill:min:grow"
+		));
+		TitledBorder titledBorder = new TitledBorder(new EtchedBorder(), Messages.getString("NetworkTab.22"), TitledBorder.LEADING, TitledBorder.CENTER);
+		titledBorder.setTitleFont(networkPanel.getFont().deriveFont(Font.BOLD));
+		CompoundBorder compoundBorder = new CompoundBorder(titledBorder, new EmptyBorder(5, 5, 5, 5));
+		networkPanel.setBorder(compoundBorder);
+
+		NICTreeNode rootNode = new NICTreeNode(Messages.getString("General.All"));
+
+		for (NetworkInterface networkInterface : NetworkConfiguration.get().getRelevantNetworkInterfaces()) {
+			SearchableMutableTreeNode node = rootNode.findChild(networkInterface.getName());
+			if (node == null) {
+				NICTreeNode newNode = new NICTreeNode(networkInterface);
+				rootNode.add(newNode);
+				// Add IP address leaves
+				/*for (InetAddress address : NetworkConfiguration.get().getRelevantInterfaceAddresses(networkInterface)) {
+					newNode.add(new NICTreeNode(address, false));
+				}*/
+
+				//TEMP Test
+				for (InetAddress address : NetworkConfiguration.get().getRelevantInterfaceAddresses(networkInterface)) {
+					NICTreeNode newSubNode = new NICTreeNode(address, true);
+					newNode.add(newSubNode);
+					int to = 1 + (int) Math.round(Math.random() * 4);
+					for (int i = 0; i < to; i++) {
+						try {
+							newSubNode.add(new NICTreeNode(InetAddress.getByName("192.168.31." + Integer.toString(1 + (int) Math.round(Math.random() * 254))), false));
+						} catch (UnknownHostException e1) {
+						}
+					}
+				}
+				//
+			} else {
+				LOGGER.warn("Network interface \"{}\" found twice, ignoring repeated entry", networkInterface.getDisplayName());
+			}
+		}
+
+		JTree addressTree = new JTree(new DefaultTreeModel(rootNode));
+		addressTree.setRowHeight(0);
+		addressTree.setShowsRootHandles(true);
+		NICTreeManager nicTreeManager = new NICTreeManager(addressTree);
+		nicTreeManager.getSelectionModel().clearSelection();
+		for (int i = 0; i < addressTree.getRowCount(); i++) {
+			addressTree.expandRow(i);
+		}
+		addressTree.validate();
+
+		JPanel networkLeftPanel = new JPanel();
+		networkLeftPanel.setLayout(new FormLayout(
+			FormLayoutUtil.getColSpec("fill:p:noGrow, fill:3dlu:noGrow, left:[50dlu,p]:noGrow", orientation),
+			"center:p:noGrow, center:3dlu:noGrow, " +
+			"center:p:noGrow, center:3dlu:noGrow, " +
+			"center:p:noGrow, center:3dlu:noGrow, " +
+			"center:p:noGrow, center:3dlu:noGrow, " +
+			"center:p:noGrow, center:3dlu:noGrow, " +
+			"center:p:noGrow, center:3dlu:noGrow, " +
+			"center:p:noGrow"
+		));
+
+		// Use name instead of IP?
+		JLabel networkNameResolutionLabel = new JLabel(Messages.getString("NetworkConfiguration.UseNameResolution"));
+		networkNameResolutionLabel.setToolTipText(Messages.getString("NetworkConfiguration.UseNameResolutionHint"));
+		networkLeftPanel.add(networkNameResolutionLabel, "1, 1");
+		networkNameResolution = new JCheckBox();
+		networkNameResolution.setToolTipText(Messages.getString("NetworkConfiguration.UseNameResolutionHint"));
+		networkNameResolution.setSelected(configuration.isNetworkNameResolution()); //TODO: handle in method
+		//TODO: Listener
+		networkLeftPanel.add(networkNameResolution, "3, 1");
+
+		// Override hostname
+		networkLeftPanel.add(new JLabel(Messages.getString("NetworkConfiguration.Hostname")), "1, 3");
+		hostname = new DefaultTextField(configuration.getServerHostname(), NetworkConfiguration.getDefaultHostName());
+		hostname.setColumns(10);
+		hostname.setEnabled(configuration.isNetworkNameResolution()); //TODO: handle in method
+		//TODO: ChangeListener?
+		hostname.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setHostname(hostname.getText());
+			}
+		});
+		networkLeftPanel.add(hostname, "3, 3");
+
+		// Override port
+		JLabel portLabel = new JLabel(Messages.getString("NetworkConfiguration.Port"));
+		//portLabel.setToolTipText(Messages.getString(""));
+		networkLeftPanel.add(portLabel, "1, 5");
+		port = new DefaultTextField(configuration.getServerPortString(), 10, Integer.toString(configuration.getServerDefaultPort()), true);
+		AbstractDocument document = (AbstractDocument) port.getDocument();
+		document.setDocumentFilter(new IntegerDocumentFilter(1, 65536, true, port));
+		port.setToolTipText(Messages.getString("NetworkTab.64"));
+		/*port.addKeyListener(new KeyAdapter() {
+			@Override
+			//TODO: ChangeListener?
+			public void keyReleased(KeyEvent e) {
+				try {
+					String p = port.getText();
+					if (StringUtils.isEmpty(p)) {
+						p = "5001";
+					}
+					int ab = Integer.parseInt(p);
+					configuration.setServerPort(ab);
+				} catch (NumberFormatException nfe) {
+					LOGGER.debug("Could not parse port from \"" + port.getText() + "\"");
+				}
+
+			}
+		});*/
+		port.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				LOGGER.error("Text changed to: {}", ((DefaultTextField) e.getSource()).getText());
+
+			}
+		});
+		networkLeftPanel.add(port, "3, 5");
+
+		// Override web interface port
+		JLabel webPortLabel = new JLabel(Messages.getString("NetworkConfiguration.WebPort"));
+		//webPortLabel.setToolTipText(Messages.getString(""));
+		networkLeftPanel.add(webPortLabel, "1, 7");
+		webPort = new DefaultTextField(configuration.getWebPortString(), Integer.toString(configuration.getWebDefaultPort()));
+		webPort.setColumns(10);
+		document = (AbstractDocument) webPort.getDocument();
+		document.setDocumentFilter(new IntegerDocumentFilter(1, 65536, true));
+		document.addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				LOGGER.info("Update: {}", e.getDocument());
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				LOGGER.info("Update: {}", e.getDocument());
+
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				LOGGER.info("Update: {}", e.getDocument());
+
+			}
+		});
+		//webPort.setToolTipText(Messages.getString("NetworkTab.64"));
+		webPort.addKeyListener(new KeyAdapter() {
+			@Override
+			//TODO: ChangeListener?
+			public void keyReleased(KeyEvent e) {
+				try {
+					String p = webPort.getText();
+					if (StringUtils.isEmpty(p)) {
+						p = "9001";
+					}
+					int ab = Integer.parseInt(p);
+					//configuration.setWebPort(ab);
+				} catch (NumberFormatException nfe) {
+					LOGGER.debug("Could not parse web interface port from \"{}\"", webPort.getText());
+				}
+
+			}
+		});
+		networkLeftPanel.add(webPort, "3, 7");
+
+		networkLeftPanel.add(new JLabel(Messages.getString("GeneralTab.12")), "1, 9");
+		adaptBitrate = new JCheckBox();
+		adaptBitrate.setSelected(configuration.isAutomaticMaximumBitrate());
+		adaptBitrate.setContentAreaFilled(false);
+		adaptBitrate.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
+				maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
+			}
+		});
+		networkLeftPanel.add(adaptBitrate, "3, 9");
+
+		networkLeftPanel.add(new JLabel(Messages.getString("NetworkTab.35")), "1, 11");
+		maxbitrate = new JTextField(configuration.getMaximumBitrateDisplay());
+		maxbitrate.setColumns(10);
+		maxbitrate.setToolTipText(Messages.getString("NetworkTab.65"));
+		maxbitrate.addKeyListener(new KeyAdapter() {
+			//TODO: ChangeListener?
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMaximumBitrate(maxbitrate.getText());
+			}
+		});
+		if (configuration.isAutomaticMaximumBitrate()) {
+			maxbitrate.setEnabled(false);
+		} else {
+			maxbitrate.setEnabled(true);
+		}
+		networkLeftPanel.add(maxbitrate, "3, 11");
+
+		networkLeftPanel.add(new JLabel(Messages.getString("NetworkTab.30")), "1, 13");
+		ip_filter = new JTextField(configuration.getIpFilter());
+		ip_filter.setColumns(10);
+		ip_filter.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setIpFilter(ip_filter.getText());
+			}
+		});
+		networkLeftPanel.add(ip_filter, "3, 13");
+
+		networkPanel.add(networkLeftPanel, "1, 1, 1, 3");
+		networkPanel.add(new JLabel(Messages.getString("NetworkConfiguration.BindTo")), "3, 1");
+
+		JScrollPane addressPane = new JScrollPane(addressTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		networkPanel.add(addressPane, "3, 3");
+
+		builder.add(networkPanel, cc.xyw(1, ypos, 9));
+
+		//builder.addLabel(Messages.getString("NetworkTab.23"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		//builder.add(hostname, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+		ypos += 2;
+		//builder.addLabel(Messages.getString("NetworkTab.24"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		//builder.add(port, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+		ypos += 2;
+		//builder.addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		//builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+		ypos += 2;
+		//builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		//builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
+		//builder.add(GuiUtil.getPreferredSizeComponent(adaptBitrate), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
+		return ypos + 2;
 	}
 
 	/**
@@ -594,17 +770,6 @@ public class GeneralTab {
 		}
 	}
 
-	private KeyedComboBoxModel<String, String> createNetworkInterfacesModel() {
-		List<String> keys = NetworkConfiguration.getInstance().getKeys();
-		List<String> names = NetworkConfiguration.getInstance().getDisplayNames();
-		keys.add(0, "");
-		names.add(0, "");
-		final KeyedComboBoxModel<String, String> networkInterfaces = new KeyedComboBoxModel<>(
-			keys.toArray(new String[keys.size()]), names.toArray(new String[names.size()])
-		);
-		return networkInterfaces;
-	}
-
 	/**
 	 * Add the renderer configuration selection after they have been
 	 * initialized.
@@ -659,18 +824,15 @@ public class GeneralTab {
 
 			@Override
 			public int compare(RendererConfiguration o1, RendererConfiguration o2) {
-				if(o1 == null && o2 == null){
+				if(o1 == null && o2 == null) {
 					return 0;
 				}
-
 				if(o1 == null) {
 					return 1;
 				}
-
 				if(o2 == null) {
 					return -1;
 				}
-
 				return o1.getRendererName().toLowerCase().compareTo(o2.getRendererName().toLowerCase());
 			}
 		});

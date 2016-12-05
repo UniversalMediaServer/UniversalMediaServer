@@ -26,6 +26,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
@@ -61,6 +62,7 @@ import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
+import net.pms.network.NetworkConfiguration;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.*;
@@ -988,6 +990,9 @@ public class PMS {
 					// HTTP control handler must be invalidated so that a new one is created during UPNPHelper.init()
 					UPNPHelper.invalidateHttpControlHandler();
 
+					LOGGER.trace("Rebuilding network configuration");
+					NetworkConfiguration.reinitialize();
+
 					LOGGER.trace("Restart: Creating HTTP server");
 					server = new HTTPServer();
 					LOGGER.trace("Restart: Starting HTTP server");
@@ -1699,12 +1704,33 @@ public class PMS {
 	 */
 
 	public static void setLocale(Locale aLocale) {
+		Locale oldLocale;
 		localeLock.writeLock().lock();
 		try {
+			oldLocale = locale;
 			locale = (Locale) aLocale.clone();
 			Messages.setLocaleBundle(locale);
 		} finally {
 			localeLock.writeLock().unlock();
+		}
+		if (aLocale != null && (oldLocale == null || !ComponentOrientation.getOrientation(oldLocale).equals(ComponentOrientation.getOrientation(aLocale)))) {
+			final IFrame frame = get().getFrame();
+			if (frame instanceof JFrame) {
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
+
+						@Override
+						public void run() {
+							((JFrame) frame).applyComponentOrientation(ComponentOrientation.getOrientation(PMS.getLocale()));
+						}
+					});
+				} catch (InterruptedException e) {
+					LOGGER.warn("Interrupted while applying component orientation");
+				} catch (InvocationTargetException e) {
+					LOGGER.error("Unexpected error while applying component orientation: {}", e.getCause());
+					LOGGER.trace("", e.getCause());
+				}
+			}
 		}
 	}
 
@@ -1730,12 +1756,7 @@ public class PMS {
 		if (variant == null) {
 			variant = "";
 		}
-		localeLock.writeLock().lock();
-		try {
-			locale = new Locale(language, country, variant);
-		} finally {
-			localeLock.writeLock().unlock();
-		}
+		setLocale(new Locale(language, country, variant));
 	}
 
 	/**

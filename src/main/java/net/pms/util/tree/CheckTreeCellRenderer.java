@@ -2,16 +2,25 @@ package net.pms.util.tree;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 
+ /**
+ * Implements a {@link TreeCellRenderer} that support {@link JCheckBox} nodes.
+ * <p>
+ * Based on <a href="http://www.jroller.com/santhosh/entry/jtree_with_checkboxes">JTree with checkboxes</a>.
+ *
+ * @author Santhosh Kumar T - santhosh@in.fiorano.com
+ * @author valib
+ */
 public class CheckTreeCellRenderer extends JPanel implements TreeCellRenderer {
 	private static final long serialVersionUID = 5762499761493341720L;
-	private CheckTreeSelectionModel selectionModel;
-	private TreeCellRenderer delegate;
-	private TristateCheckBox checkBox = new TristateCheckBox();
+	protected CheckTreeSelectionModel selectionModel;
+	protected TreeCellRenderer delegate;
+	protected TristateCheckBox checkBox = new TristateCheckBox();
 
 	public CheckTreeCellRenderer(TreeCellRenderer delegate, CheckTreeSelectionModel selectionModel) {
 		this.delegate = delegate;
@@ -30,11 +39,11 @@ public class CheckTreeCellRenderer extends JPanel implements TreeCellRenderer {
 			if (selectionModel.isPathSelected(path, true)) {
 				checkBox.setState(TristateCheckBox.SELECTED);
 			} else {
-				checkBox.setState(selectionModel.isPartiallySelected(path) ? null : TristateCheckBox.NOT_SELECTED);
+				checkBox.setState(selectionModel.isPartiallySelected(path) ? TristateCheckBox.DONT_CARE : TristateCheckBox.NOT_SELECTED);
 			}
 		}
 		removeAll();
-		add(checkBox, BorderLayout.WEST);
+		add(checkBox, BorderLayout.LINE_START);
 		add(renderer, BorderLayout.CENTER);
 		return this;
 	}

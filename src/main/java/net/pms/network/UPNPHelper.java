@@ -501,7 +501,7 @@ public class UPNPHelper extends UPNPControl {
 		aliveThread.start();
 
 		NetworkAddressFactory networkAddressFactory = new CustomNetworkAddressFactoryImpl(UPNP_PORT);
-		List<NetworkInterface> interfaceList = NetworkConfiguration.getInstance().getRelevantNetworkInterfaces();
+		List<NetworkInterface> interfaceList = NetworkConfiguration.get().getRelevantNetworkInterfaces();
 		if (interfaceList.size() > 0) {
 			listenerThreads = new UPnPListener[interfaceList.size()];
 			for (int i = 0; i < interfaceList.size(); i++) {

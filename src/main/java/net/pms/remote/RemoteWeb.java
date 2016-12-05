@@ -90,15 +90,15 @@ public class RemoteWeb {
 		if (socketAddress == null) {
 			InterfaceAssociation interfaceAssociation = null;
 			if (StringUtils.isNotEmpty(configuration.getNetworkInterface())) {
-				interfaceAssociation = NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(configuration.getNetworkInterface());
+				interfaceAssociation = NetworkConfiguration.get().getAddressForNetworkInterfaceName(configuration.getNetworkInterface());
 			}
 
 			if (interfaceAssociation != null) {
-				InetAddress inetAddress = interfaceAssociation.getAddr();
+				InetAddress inetAddress = interfaceAssociation.getAddress();
 				LOGGER.info(
 					"Web interface: Using address {} found on network interface: {}",
 					inetAddress,
-					interfaceAssociation.getIface().toString().trim().replace('\n', ' ')
+					interfaceAssociation.getInterface().toString().trim().replace('\n', ' ')
 				);
 				socketAddress = new InetSocketAddress(inetAddress, port);
 			} else {
