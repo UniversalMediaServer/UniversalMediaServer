@@ -86,7 +86,6 @@ public class LibMediaInfoParser {
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
 					media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
-					media.setThumbready(true);
 				}
 				value = MI.Get(general, 0, "Title");
 				if (!value.isEmpty()) {
@@ -246,7 +245,7 @@ public class LibMediaInfoParser {
 						media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 						media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 					}
-					
+
 //					media.setImageCount(media.getImageCount() + 1);
 				}
 
@@ -417,7 +416,7 @@ public class LibMediaInfoParser {
 	 * @param media
 	 * @param audio
 	 * @param value
-	 * @param file 
+	 * @param file
 	 */
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		if (value.isEmpty()) {
