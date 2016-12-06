@@ -1,8 +1,13 @@
 package net.pms.formats;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.List;
+
+import javax.imageio.ImageIO;
+
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -12,6 +17,7 @@ import net.pms.dlna.InputFile;
 import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.UMSUtils;
 
 import org.jdom2.output.Format;
 import org.slf4j.Logger;
@@ -100,11 +106,7 @@ public class RAW extends JPG {
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		try {
 			OutputParams params = new OutputParams(configuration);
-			params.waitbeforestart = 1;
-			params.minBufferSize = 1;
-			params.maxBufferSize = 6;
-			params.hidebuffer = true;
-
+			params.waitbeforestart = 0;
 			String cmdArray[] = new String[4];
 			cmdArray[0] = configuration.getDCRawPath();
 			cmdArray[1] = "-i";
@@ -121,28 +123,38 @@ public class RAW extends JPG {
 			List<String> list = pw.getOtherResults();
 			for (String s : list) {
 				if (s.startsWith("Thumb size:  ")) {
-					String sz = s.substring(13);
-					media.setWidth(Integer.parseInt(sz.substring(0, sz.indexOf('x')).trim()));
-					media.setHeight(Integer.parseInt(sz.substring(sz.indexOf('x') + 1).trim()));
 					hasEmbeddedThumbnail = true;
 					break;
 				}
 			}
 
+			InputStream image;
 			if (hasEmbeddedThumbnail) {
-				byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath());
-				// Set the image size of the embedded thumbnail in the raw image because there is not
-				// any renderer which can show the original raw image. Only embedded JPEG thumbnails are supported.
-				// For the PPM format the image will be hidden because now we don't have support for that format.
-				media.setSize(image.length);
+				image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath());
+			} else {
+				image = RAWThumbnailer.convertRAWtoPPM(params, file.getFile().getAbsolutePath());
+			}
+
+			if (image != null) {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				BufferedImage bi;
+				if (!hasEmbeddedThumbnail) {
+					// resize the converted RAW image and convert to the JPEG format with the max resolution supported by renderer to 
+					out = (ByteArrayOutputStream) UMSUtils.scaleImage(image, configuration.getMaxVideoWidth(), configuration.getMaxVideoHeight(), false, configuration); //convert image to JPEG
+					bi = ImageIO.read(new ByteArrayInputStream(out.toByteArray()));
+				} else {
+					bi = ImageIO.read(image);
+				}
+				// Set the image resolution of the embedded thumbnail or the converted and resized PPM image
+				media.setWidth(bi.getWidth());
+				media.setHeight(bi.getHeight());
 				// the codec and container is set to the RAW format to force transcoding to JPEG when RAW image is not supported by renderer.
 				media.setCodecV("raw");
 				media.setContainer("raw");
 
 				if (configuration.getImageThumbnailsEnabled()) {
 					// Resize the thumbnail image using the Thumbnailator library
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					Thumbnails.of(new ByteArrayInputStream(image))
+					Thumbnails.of(bi)
 								.size(configuration.getThumbnailWidth(), configuration.getThumbnailHeight())
 								.outputFormat("JPEG")
 								.outputQuality(1.0f)

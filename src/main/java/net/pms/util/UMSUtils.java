@@ -591,7 +591,7 @@ public class UMSUtils {
 	 * @see #scaleImage(byte[], int, int, boolean)
 	 * @deprecated
 	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank) {
+	public static OutputStream scaleImage(InputStream image, int width, int height, boolean outputBlank) {
 		return scaleImage(image, width, height, outputBlank, null);
 	}
 
@@ -608,12 +608,12 @@ public class UMSUtils {
 	 *
 	 * @return the scaled image
 	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
-		ByteArrayInputStream in = null;
+	public static OutputStream scaleImage(InputStream image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
+		InputStream in = null;
 		if (image == null && !outputBlank) {
 			return null;
 		} else if (image != null) {
-			in = new ByteArrayInputStream(image);
+			in = image;
 		}
 
 		try {
@@ -644,12 +644,28 @@ public class UMSUtils {
 					.toOutputStream(out);
 			}
 
-			return out.toByteArray();
+			return out;
 		} catch (IOException e) {
 			LOGGER.debug("Failed to resize image: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
 		return null;
+	}
+
+	private static final int BUFFER_SIZE = 2 * 1024 * 1024;
+	public static void copy(InputStream input, OutputStream output) throws IOException {
+	    try {
+	        byte[] buffer = new byte[BUFFER_SIZE];
+	        int bytesRead = input.read(buffer);
+	        while (bytesRead != -1) {
+	            output.write(buffer, 0, bytesRead);
+	            bytesRead = input.read(buffer);
+	        }
+	    //If needed, close streams.
+	    } finally {
+	        input.close();
+	        output.close();
+	    }
 	}
 }

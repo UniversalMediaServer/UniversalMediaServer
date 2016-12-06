@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+
 import javax.swing.JComponent;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
@@ -16,6 +18,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
+import net.pms.util.UMSUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,14 +70,18 @@ public class RAWThumbnailer extends Player {
 			return null;
 		}
 
-		byte image[] = null;
+		InputStream image = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			image = getThumbnail(params, filename);
+			out = (ByteArrayOutputStream) UMSUtils.scaleImage(image, media.getWidth(), media.getHeight(), false, configuration); //convert image to JPEG
 		} catch (IOException e) {
 			LOGGER.error("Error extracting thumbnail", e);
 		}
 
-		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
+		byte[] ba = out.toByteArray();
+		media.setSize(ba.length);
+		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(ba));
 		configuration = prev;
 		return pw;
 	}
@@ -107,7 +115,7 @@ public class RAWThumbnailer extends Player {
 	 * @param fileName Name of the RAW image from which the thumbnail is to be extracted
 	 * @return The Byte Array of the embedded thumbnail
 	 */
-	public static byte[] getThumbnail(OutputParams params, String fileName) throws IOException {
+	public static InputStream getThumbnail(OutputParams params, String fileName) throws IOException {
 		// Use device-specific pms conf
 		PmsConfiguration configuration = PMS.getConfiguration(params);
 		params.log = false;
@@ -119,19 +127,7 @@ public class RAWThumbnailer extends Player {
 		cmdArray[3] = fileName;
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInSameThread();
-		ByteArrayOutputStream baos;
-		try (InputStream is = pw.getInputStream(0)) {
-			baos = new ByteArrayOutputStream();
-			int n = -1;
-			byte buffer[] = new byte[4096];
-			while ((n = is.read(buffer)) > -1) {
-				baos.write(buffer, 0, n);
-			}
-		}
-
-		byte b[] = baos.toByteArray();
-		baos.close();
-		return b;
+		return pw.getInputStream(0);
 	}
 
 	/**
@@ -140,5 +136,23 @@ public class RAWThumbnailer extends Player {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isImage(resource, Format.Identifier.RAW);
+	}
+
+	/**
+	 * Convert the RAW image to PPM format
+	 *
+	 * @param params Parameters to be used for Process Wrapper 
+	 * @param fileName Name of the RAW image to be converted
+	 * @return The Byte Array of the PPM format
+	 */
+	public static InputStream convertRAWtoPPM(OutputParams params, String fileName) throws IOException {
+		params.log = false;
+		String cmdArray[] = new String[3];
+		cmdArray[0] = PMS.getConfiguration().getDCRawPath();
+		cmdArray[1] = "-c";
+		cmdArray[2] = fileName;
+		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
+		pw.runInSameThread();
+		return pw.getInputStream(0);
 	}
 }

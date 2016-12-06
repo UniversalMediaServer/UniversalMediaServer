@@ -265,6 +265,11 @@
 			<version>3.2.1</version>
 		</dependency>
 		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pnm</artifactId>
+			<version>3.3.1</version>
+		</dependency>
+		<dependency>
 			<groupId>net.jthink</groupId>
 			<artifactId>jaudiotagger</artifactId>
 			<version>2.2.5</version>
