@@ -136,7 +136,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 
-	private byte thumb[];
+	private volatile byte[] thumb = null;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -243,7 +243,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public boolean thumbready;
+	public volatile boolean thumbready;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -494,10 +494,6 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public DLNAMediaInfo() {
-		thumbready = true; // this class manages thumbnails by default with the parser_v1 method
-	}
-
 	@Deprecated
 	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume) {
 		generateThumbnail(input, ext, type, seekPosition, resume, null);
@@ -515,6 +511,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 		forThumbnail.parse(input, ext, type, true, resume, renderer);
 		thumb = forThumbnail.thumb;
+		thumbready = true;
 	}
 
 	private ProcessWrapperImpl getFFmpegThumbnail(InputFile media, boolean resume, RendererConfiguration renderer) {
@@ -801,10 +798,11 @@ public class DLNAMediaInfo implements Cloneable {
 						if (t != null) {
 							if (t.getArtworkList().size() > 0) {
 								thumb = t.getArtworkList().get(0).getBinaryData();
-							} else {
-								if (!configuration.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
+							} else if (!configuration.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
 									thumb = CoverUtil.get().getThumbnail(t);
-								}
+							}
+							if (thumb != null) {
+								thumbready = true;
 							}
 
 							if (!thumbOnly) {
@@ -1721,7 +1719,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public InputStream getThumbnailInputStream() {
 		return new ByteArrayInputStream(thumb);
-	}
+		}
 
 	public String getValidFps(boolean ratios) {
 		String validFrameRate = null;
@@ -2209,6 +2207,7 @@ public class DLNAMediaInfo implements Cloneable {
 		} else {
 			this.thumb = new byte[thumb.length];
 			System.arraycopy(thumb, 0, this.thumb, 0, thumb.length);
+			thumbready = true;
 		}
 	}
 

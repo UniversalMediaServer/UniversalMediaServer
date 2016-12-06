@@ -1706,7 +1706,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Transforms a String to UTF-8.
+	 * Transforms a String to URL encoded UTF-8.
 	 *
 	 * @param s
 	 * @return Transformed string s in UTF-8 encoding.
@@ -1715,7 +1715,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			return URLEncoder.encode(s, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.debug("Caught exception", e);
+			LOGGER.debug("Error while URL encoding \"{}\": {}", s, e.getMessage());
+			LOGGER.trace("", e);
 		}
 
 		return "";
