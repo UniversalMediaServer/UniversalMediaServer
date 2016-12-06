@@ -55,7 +55,7 @@ public class RealFile extends MapFile {
 		if (!file.isDirectory()) {
 			resolveFormat();
 		}
-		
+
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
 			return false;
@@ -68,10 +68,6 @@ public class RealFile extends MapFile {
 		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
 			run();
-
-			if (getMedia() != null && getMedia().getThumb() == null && getType() != Format.AUDIO) { // MediaInfo retrieves cover art now
-				getMedia().setThumbready(false);
-			}
 
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
@@ -225,10 +221,6 @@ public class RealFile extends MapFile {
 		File file = getFile();
 		File cachedThumbnail = null;
 
-		if (getParent() != null && getParent() instanceof RealFile) {
-			cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
-		}
-
 		File thumbFolder = null;
 		boolean alternativeCheck = false;
 
@@ -239,19 +231,29 @@ public class RealFile extends MapFile {
 
 			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
 
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
+			if (cachedThumbnail != null) {
+				break;
+			}
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
+
+			if (cachedThumbnail != null) {
+				break;
+			}
+			cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
+
+			if (cachedThumbnail != null) {
+				break;
+			}
+			cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
+
+			if (cachedThumbnail != null) {
+				break;
+			}
+			if (getParent() != null && getParent() instanceof RealFile) {
+				cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
 			}
 
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
-			}
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
-			}
-
-			if (alternativeCheck) {
+			if (cachedThumbnail != null || alternativeCheck) {
 				break;
 			}
 
@@ -296,17 +298,6 @@ public class RealFile extends MapFile {
 	@Override
 	protected String getThumbnailURL() {
 		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
-			return null;
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
-		sb.append('/');
-		if (getMedia() != null && getMedia().getThumb() != null) {
-			return super.getThumbnailURL();
-		} else if (getType() == Format.AUDIO) {
-			if (getParent() != null && getParent() instanceof RealFile && ((RealFile) getParent()).getPotentialCover() != null) {
-				return super.getThumbnailURL();
-			}
 			return null;
 		}
 		return super.getThumbnailURL();
