@@ -5,9 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.List;
-
 import javax.imageio.ImageIO;
-
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -18,13 +16,16 @@ import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.UMSUtils;
-
-import org.jdom2.output.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RAW extends JPG {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
+	private boolean hasEmbeddedThumbnail = false;
+
+	public boolean isEmbeddedThumbnail() {
+		return hasEmbeddedThumbnail;
+	}
 
 	/**
 	 * {@inheritDoc} 
@@ -119,7 +120,6 @@ public class RAW extends JPG {
 			ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params, true, false);
 			pw.runInSameThread();
 
-			boolean hasEmbeddedThumbnail = false;
 			List<String> list = pw.getOtherResults();
 			for (String s : list) {
 				if (s.startsWith("Thumb size:  ")) {
@@ -139,7 +139,7 @@ public class RAW extends JPG {
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				BufferedImage bi;
 				if (!hasEmbeddedThumbnail) {
-					// resize the converted RAW image and convert to the JPEG format with the max resolution supported by renderer to 
+					// resize the converted RAW image and convert to the JPEG format with the max resolution supported by renderer
 					out = (ByteArrayOutputStream) UMSUtils.scaleImage(image, configuration.getMaxVideoWidth(), configuration.getMaxVideoHeight(), false, configuration); //convert image to JPEG
 					bi = ImageIO.read(new ByteArrayInputStream(out.toByteArray()));
 				} else {
@@ -148,7 +148,6 @@ public class RAW extends JPG {
 				// Set the image resolution of the embedded thumbnail or the converted and resized PPM image
 				media.setWidth(bi.getWidth());
 				media.setHeight(bi.getHeight());
-				// the codec and container is set to the RAW format to force transcoding to JPEG when RAW image is not supported by renderer.
 				media.setCodecV("raw");
 				media.setContainer("raw");
 
