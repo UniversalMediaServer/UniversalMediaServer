@@ -652,20 +652,4 @@ public class UMSUtils {
 
 		return null;
 	}
-
-	private static final int BUFFER_SIZE = 2 * 1024 * 1024;
-	public static void copy(InputStream input, OutputStream output) throws IOException {
-	    try {
-	        byte[] buffer = new byte[BUFFER_SIZE];
-	        int bytesRead = input.read(buffer);
-	        while (bytesRead != -1) {
-	            output.write(buffer, 0, bytesRead);
-	            bytesRead = input.read(buffer);
-	        }
-	    //If needed, close streams.
-	    } finally {
-	        input.close();
-	        output.close();
-	    }
-	}
 }
