@@ -170,8 +170,9 @@ public class DVDISOTitle extends DLNAResource {
 						int sz = is.available();
 
 						if (sz > 0) {
-							getMedia().setThumb(new byte[sz]);
-							is.read(getMedia().getThumb());
+							byte[] thumb = new byte[sz];
+							is.read(thumb);
+							getMedia().setThumb(thumb);
 						}
 					}
 
