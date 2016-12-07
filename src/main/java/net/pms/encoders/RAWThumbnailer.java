@@ -74,7 +74,7 @@ public class RAWThumbnailer extends Player {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			image = getThumbnail(params, filename);
-			out = (ByteArrayOutputStream) UMSUtils.scaleImage(image, media.getWidth(), media.getHeight(), false, configuration); //convert image to JPEG
+			out = UMSUtils.scaleImage(image, media.getWidth(), media.getHeight(), false, configuration); //convert image to JPEG
 		} catch (IOException e) {
 			LOGGER.error("Error extracting thumbnail", e);
 		}

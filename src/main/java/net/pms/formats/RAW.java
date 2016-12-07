@@ -132,7 +132,7 @@ public class RAW extends JPG {
 			if (hasEmbeddedThumbnail) {
 				image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath());
 			} else {
-				image = RAWThumbnailer.convertRAWtoPPM(params, file.getFile().getAbsolutePath());
+				image = RAWThumbnailer.convertRAWtoPPM(params, file.getFile().getAbsolutePath());// there is not an embedded thumbnail so convert RAW to PPM which can be handled by ImageiO
 			}
 
 			if (image != null) {
@@ -140,7 +140,7 @@ public class RAW extends JPG {
 				BufferedImage bi;
 				if (!hasEmbeddedThumbnail) {
 					// resize the converted RAW image and convert to the JPEG format with the max resolution supported by renderer
-					out = (ByteArrayOutputStream) UMSUtils.scaleImage(image, configuration.getMaxVideoWidth(), configuration.getMaxVideoHeight(), false, configuration); //convert image to JPEG
+					out = UMSUtils.scaleImage(image, configuration.getMaxVideoWidth(), configuration.getMaxVideoHeight(), false, configuration); //convert image to JPEG
 					bi = ImageIO.read(new ByteArrayInputStream(out.toByteArray()));
 				} else {
 					bi = ImageIO.read(image);
@@ -152,7 +152,7 @@ public class RAW extends JPG {
 				media.setContainer("raw");
 
 				if (configuration.getImageThumbnailsEnabled()) {
-					// Resize the thumbnail image using the Thumbnailator library
+					// Make the thumbnail image using the Thumbnailator library
 					Thumbnails.of(bi)
 								.size(configuration.getThumbnailWidth(), configuration.getThumbnailHeight())
 								.outputFormat("JPEG")

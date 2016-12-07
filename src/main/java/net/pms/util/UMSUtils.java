@@ -608,7 +608,7 @@ public class UMSUtils {
 	 *
 	 * @return the scaled image
 	 */
-	public static OutputStream scaleImage(InputStream image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
+	public static ByteArrayOutputStream scaleImage(InputStream image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
 		InputStream in = null;
 		if (image == null && !outputBlank) {
 			return null;
