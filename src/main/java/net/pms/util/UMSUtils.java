@@ -609,17 +609,14 @@ public class UMSUtils {
 	 * @return the scaled image
 	 */
 	public static ByteArrayOutputStream scaleImage(InputStream image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
-		InputStream in = null;
 		if (image == null && !outputBlank) {
 			return null;
-		} else if (image != null) {
-			in = image;
 		}
 
 		try {
 			BufferedImage img;
-			if (in != null) {
-				img = ImageIO.read(in);
+			if (image != null) {
+				img = ImageIO.read(image);
 			} else {
 				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			}
