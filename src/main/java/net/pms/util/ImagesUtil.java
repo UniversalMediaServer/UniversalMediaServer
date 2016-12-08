@@ -3,7 +3,6 @@ package net.pms.util;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import javax.imageio.ImageIO;
 import mediautil.gen.Log;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
@@ -13,6 +12,8 @@ import net.coobird.thumbnailator.geometry.Positions;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.util.CustomImageReader.ImageInputFormat;
+import net.pms.util.CustomImageReader.ImageReaderResult;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
@@ -174,30 +175,42 @@ public class ImagesUtil {
 			in = new ByteArrayInputStream(image);
 		}
 
+		ImageInputFormat inputFormat = null;
 		try {
-			BufferedImage img;
+			BufferedImage bufferedImage;
 			if (in != null) {
-				img = ImageIO.read(in);
+				ImageReaderResult imageResult = CustomImageReader.read(in);
+				bufferedImage = imageResult.bufferedImage;
+				inputFormat = imageResult.imageFormat;
 			} else {
-				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+				bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			}
 
-			if (img == null) { // ImageIO doesn't support the image format
-				return null;
+			if (inputFormat == null) {
+				if (renderer == null || renderer.isForceJPGThumbnails()) {
+					// If we don't know, stick to the old default
+					inputFormat = ImageInputFormat.JPEG;
+				} else {
+					inputFormat = ImageInputFormat.PNG;
+				}
+			}
+
+			if (bufferedImage == null) { // ImageIO doesn't support the image format
+				return image;
 			}
 
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			if (renderer != null && renderer.isThumbnailPadding()) {
-				Thumbnails.of(img)
+				Thumbnails.of(bufferedImage)
 					.size(width, height)
 					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
-					.outputFormat("JPEG")
+					.outputFormat(inputFormat.toString())
 					.outputQuality(1.0f)
 					.toOutputStream(out);
 			} else {
-				Thumbnails.of(img)
+				Thumbnails.of(bufferedImage)
 					.size(width, height)
-					.outputFormat("JPEG")
+					.outputFormat(inputFormat.toString())
 					.outputQuality(1.0f)
 					.toOutputStream(out);
 			}
