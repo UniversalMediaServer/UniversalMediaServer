@@ -989,7 +989,7 @@ public class MEncoderVideo extends Player {
 		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
 		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265();
 		isTranscodeToAAC    = params.mediaRenderer.isTranscodeToAAC();
-		isTranscodeToMP4    = params.mediaRenderer.isTranscodeToMP4H264AAC();
+		isTranscodeToMP4    = params.mediaRenderer.isTranscodeToMP4();
 
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
