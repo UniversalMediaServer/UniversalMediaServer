@@ -17,7 +17,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private int expectedOutputs[];
 	private transient DLNAMediaDatabase database;
 	private int childLength = -1;
-	private int start, count;
+	private int start, count = -1;
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
@@ -38,56 +38,60 @@ public class MediaLibraryFolder extends VirtualFolder {
 			if (sql != null) {
 				getChildren().clear();
 				sql = transformSQL(sql);
+				setDiscovered(true);
+
+				sql = String.format("%s offset %d limit %d", sql, getStart(), getCount());
+				String count = sql.replaceFirst("SELECT (.*) FROM", "SELECT COUNT($1) FROM");
+				int end = count.indexOf("ORDER BY");
+				count = count.substring(0, end);
+				
+				List<String> children = database.getStrings(count);
+				if (children != null) {
+					childLength = Integer.parseInt(children.get(0));
+				}
 
 				if (expectedOutput == FILES) {
-//					ArrayList<File> list = database.getFiles(sql);
-//					if (list != null) {
+					List<File> list = database.getFiles(sql);
+					if (list != null) {
 //						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
-//						for (File f : list) {
-//							addChild(new RealFile(f));
-//						}
-//					}
-					discoverWithRenderer(this, sql, getStart(), getCount(), null, null);
-					
-					String count = sql.replace("*", "count(*)");
-					int end = count.indexOf("ORDER BY");
-					count = count.substring(0, end);
-					
-					ArrayList<String> list = database.getStrings(count);
-					if (list != null) {
-						childLength = Integer.parseInt(list.get(0));
+						for (File f : list) {
+							addChild(new RealFile(f));
+						}
 					}
+//					discoverWithRenderer(this, sql, getStart(), getCount(), null, null);
+					
 					// Don't set discovered flag as we want the most updated view 
+					setDiscovered(false);
 				} else if (expectedOutput == PLAYLISTS) {
-					ArrayList<File> list = database.getFiles(sql);
+					List<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+//						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
 						for (File f : list) {
 							addChild(new PlaylistFolder(f));
 						}
 					}
-					setDiscovered(true);
 				} else if (expectedOutput == ISOS) {
-					ArrayList<File> list = database.getFiles(sql);
+					List<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+//						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
 						for (File f : list) {
 							addChild(new DVDISOFile(f));
 						}
 					}
-					setDiscovered(true);
 				} else if (expectedOutput == TEXTS) {
-					ArrayList<String> list = database.getStrings(sql);
+					List<String> list = database.getStrings(sql);
 					if (list != null) {
 						for (String s : list) {
 							String sqls2[] = new String[sqls.length - 1];
 							int expectedOutputs2[] = new int[expectedOutputs.length - 1];
 							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
-							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
+							
+							MediaLibraryFolder child = new MediaLibraryFolder(s, sqls2, expectedOutputs2);
+							child.setStart(getStart());
+							addChild(child);
 						}
 					}
-					setDiscovered(true);
 				}
 			}
 		}
@@ -231,7 +235,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 		boolean result = false;
 		if (o instanceof MediaLibraryFolder && getName() != null) {
 			MediaLibraryFolder k = (MediaLibraryFolder) o;
-			result = getName().equals(k.getName()) && this.sqls[0].equals(k.sqls[0]);
+			result = getName().equals(k.getName()) && this.sqls[0].equals(k.sqls[0]) 
+					&& getStart() == k.getStart();
 		}
 		return result;
 	}
@@ -249,7 +254,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 	}
 
 	public void setStart(int start) {
-		this.start = start;
+		if (this.start != start) {
+			this.start = start;
+			setDiscovered(false);
+		}
 	}
 
 	public int getCount() {
