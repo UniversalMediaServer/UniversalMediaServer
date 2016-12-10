@@ -267,4 +267,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public void setCount(int count) {
 		this.count = count;
 	}
+
+	public int getExpectedOutput() {
+		return expectedOutputs[0];
+	}
 }

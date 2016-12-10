@@ -147,14 +147,14 @@ public class GlobalIdRepo {
 	}
 
 	public void remove(DLNAResource d) {
-		remove(d.getId());
+		String id = d.getId();
+		if (id == null)
+			id = getId(d.getSystemName());
+		remove(id);
 	}
 
-	public void remove(String id) {
-		/* Once discovered, don't remove from cache so that it can be reused.
-		 * 
-		 */
-//		resourcesMap.remove(id);
+	private void remove(String id) {
+		resourcesMap.remove(id);
 //		filenameMap.remove(idMap.get(id));
 //		idMap.remove(id);
 	}

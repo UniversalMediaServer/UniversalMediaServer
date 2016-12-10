@@ -64,9 +64,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		 * Media library has lot of files. However, web has a combination of files and folders. Hence, have to be
 		 * treated separately
 		 */
-		if (object instanceof MediaLibraryFolder) {
+		if (object instanceof MediaLibraryFolder && ((MediaLibraryFolder) object).getExpectedOutput() == MediaLibraryFolder.FILES) {
 			res = root.getDLNAResources(id, true, pageNumber * count, count, root.getDefaultRenderer(), search);
-			nextAttr = res.size() == count;
+			nextAttr = object.childrenNumber() > end;
 		} else {
 			res = root.getDLNAResources(id, true, 0, -1, root.getDefaultRenderer(), search);
 			nextAttr = res.size() > end;
