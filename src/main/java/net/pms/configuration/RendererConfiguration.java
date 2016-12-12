@@ -140,7 +140,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
-	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
@@ -177,8 +176,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
-	protected static final String SQUARE_AUDIO_THUMBNAILS = "SquareAudioThumbnails";
-	protected static final String SQUARE_IMAGE_THUMBNAILS = "SquareImageThumbnails";
 	protected static final String STREAM_EXT = "StreamExtensions";
 	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
@@ -187,7 +184,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
 	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	protected static final String TEXTWRAP = "TextWrap";
-	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
 	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
 	protected static final String THUMBNAIL_PADDING = "ThumbnailPadding";
@@ -835,21 +831,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public int getRank() {
 		return rank;
-	}
-
-	/**
-	 * @see #getThumbnailWidth()
-	 * @see #getThumbnailHeight()
-	 * @deprecated
-	 */
-	@Deprecated
-	public String getThumbSize() {
-		return getString(THUMBNAIL_SIZE, "");
-	}
-
-	@Deprecated
-	public String getThumbBG() {
-		return getString(THUMBNAIL_BG, "");
 	}
 
 	public int getThumbnailWidth() {
@@ -2044,17 +2025,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns whether or not to use the "res" element instead of the "albumArtURI"
-	 * element for thumbnails in DLNA reponses. E.g. Samsung 2012 models do not
-	 * recognize the "albumArtURI" element. Default value is <code>false</code>.
-	 *
-	 * @return True if the "res" element should be used, false otherwise.
-	 */
-	public boolean getThumbNailAsResource() {
-		return getBoolean(THUMBNAIL_AS_RESOURCE, false);
-	}
-
-	/**
 	 * Returns the comma separated list of file extensions that are forced to
 	 * be transcoded and never streamed, as defined in the renderer
 	 * configuration. Default value is "".
@@ -2124,10 +2094,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isMediaInfoThumbnailGeneration() {
 		return getBoolean(MEDIAPARSERV2_THUMB, false) && LibMediaInfoParser.isValid();
-	}
-
-	public boolean isForceJPGThumbnails() {
-		return getBoolean(FORCE_JPG_THUMBNAILS, false) && LibMediaInfoParser.isValid();
 	}
 
 	public boolean isShowAudioMetadata() {
@@ -2884,24 +2850,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isThumbnailPadding() {
 		return getBoolean(THUMBNAIL_PADDING, false);
-	}
-
-	/**
-	 * Whether to use ThumbnailHeight as ThumbnailWidth for audio thumbnails.
-	 *
-	 * @return whether to use ThumbnailHeight as ThumbnailWidth for audio thumbnails
-	 */
-	public boolean isSquareAudioThumbnails() {
-		return getBoolean(SQUARE_AUDIO_THUMBNAILS, false);
-	}
-
-	/**
-	 * Whether to use ThumbnailHeight as ThumbnailWidth for image thumbnails.
-	 *
-	 * @return whether to use ThumbnailHeight as ThumbnailWidth for image thumbnails
-	 */
-	public boolean isSquareImageThumbnails() {
-		return getBoolean(SQUARE_IMAGE_THUMBNAILS, false);
 	}
 
 	/**

@@ -25,13 +25,12 @@ import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.FormatFactory;
-import net.pms.network.HTTPResource;
 
 /**
  * Implements a container that when browsed, an action will be performed.
  * The class assumes that the action to be performed is to toggle a boolean value.
  * Because of this, the thumbnail is either a green tick mark or a red cross. Equivalent
- * videos are shown after the value is toggled.<p> 
+ * videos are shown after the value is toggled.<p>
  * However this is just cosmetic. Any action can be performed.
  */
 public abstract class VirtualVideoAction extends DLNAResource {
@@ -39,7 +38,6 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	protected String name;
 	private String thumbnailIconOK;
 	private String thumbnailIconKO;
-	private String thumbnailContentType;
 	private String videoOk;
 	private String videoKo;
 	private long timer1;
@@ -47,7 +45,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	/**
 	 * Constructor for this class. Recommended instantiation includes overriding
 	 * the {@link #enable()} function (example shown in the link).
-	 * @param name Name that is shown via the UPNP ContentBrowser service. 
+	 * @param name Name that is shown via the UPNP ContentBrowser service.
 	 *             This field cannot be changed after the instantiation.
 	 * @param enabled If true, a green tick mark is shown as thumbnail.
 	 *                If false, a red cross is shown. This initial value
@@ -55,7 +53,6 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 */
 	public VirtualVideoAction(String name, boolean enabled) {
 		this.name = name;
-		thumbnailContentType = HTTPResource.PNG_TYPEMIME;
 		thumbnailIconOK = "images/icon-videothumbnail-ok.png";
 		thumbnailIconKO = "images/icon-videothumbnail-cancel.png";
 		this.videoOk = "videos/action_success-512.mpg";
@@ -92,7 +89,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * the user tries to play this item. This function calls instead the enable()
 	 * function in order to execute an action.
 	 * As the client expects to play an item, a really short video (less than
-	 * 1s) is shown with  the results of the action. 
+	 * 1s) is shown with  the results of the action.
 	 *
 	 * @see #enable()
 	 * @see net.pms.dlna.DLNAResource#getInputStream()
@@ -114,7 +111,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 
 	/**
 	 * Prototype. This function is called by {@link #getInputStream()} and is the core of this class.
-	 * The main purpose of this function is toggle a boolean variable somewhere. 
+	 * The main purpose of this function is toggle a boolean variable somewhere.
 	 * The value of that boolean variable is shown then as either a green tick mark or a red cross.
 	 * However, this is just a cosmetic thing. Any Java code can be executed in this function, not only toggling a boolean variable.
 	 * Recommended way to instantiate this class is as follows:
@@ -147,7 +144,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	}
 
 	/**
-	 * Returns an invalid length as this item is not 
+	 * Returns an invalid length as this item is not
 	 * TODO: (botijo) VirtualFolder returns 0 instead of -1.
 	 * @return -1, an invalid length for an item.
 	 * @see net.pms.dlna.DLNAResource#length()
@@ -177,18 +174,6 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	@Override
 	public InputStream getThumbnailInputStream() {
 		return getResourceInputStream(enabled ? thumbnailIconOK : thumbnailIconKO);
-	}
-
-	/**
-	 * @return PNG type, as the thumbnail can only be either a green tick
-	 * mark or a red cross.
-	 *
-	 * @see #getThumbnailInputStream()
-	 * @see net.pms.dlna.DLNAResource#getThumbnailContentType()
-	 */
-	@Override
-	public String getThumbnailContentType() {
-		return thumbnailContentType;
 	}
 
 	/**

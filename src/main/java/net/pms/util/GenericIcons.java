@@ -38,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 
 /**
@@ -60,13 +59,8 @@ public enum GenericIcons {
 	private final Map<ImageFormat, Map<IconType, Map<String, byte[]>>> cache = new HashMap<>();
 	private static final Logger LOGGER = LoggerFactory.getLogger(GenericIcons.class);
 
-	public InputStream getGenericIcon(DLNAMediaInfo media, RendererConfiguration renderer) {
-		ImageFormat imageFormat;
-		if (renderer != null && renderer.isForceJPGThumbnails()) {
-			imageFormat = ImageFormat.JPG;
-		} else {
-			imageFormat = ImageFormat.PNG;
-		}
+	public InputStream getGenericIcon(DLNAMediaInfo media) {
+		ImageFormat imageFormat = ImageFormat.PNG;
 
 		IconType iconType = IconType.UNKNOWN;
 		if (media != null) {
@@ -109,7 +103,7 @@ public enum GenericIcons {
 			try {
 				image = addFormatLabelToImage(label, imageFormat, iconType);
 			} catch (IOException e) {
-				LOGGER.warn("Unexpected error while generating generic thumbnail for {} ({}): {}", media, renderer, e.getMessage());
+				LOGGER.warn("Unexpected error while generating generic thumbnail for \"{}\": {}", media, e.getMessage());
 				LOGGER.trace("", e);
 			}
 

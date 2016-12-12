@@ -31,13 +31,17 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
+import net.pms.dlna.DLNAResource.ImageProfile;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.FullyPlayed;
+import net.pms.util.ImagesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
+import net.pms.util.ImagesUtil.ImageFormat;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -305,7 +309,8 @@ public class RequestV2 extends HTTPResource {
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
-					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, dlna.getThumbnailContentType());
+					ImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, (ImageFormat.PNG.equals(ImageFormat.fromImageProfile(imageProfile)) ? HTTPResource.PNG_TYPEMIME: HTTPResource.JPEG_TYPEMIME));
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
@@ -318,7 +323,10 @@ public class RequestV2 extends HTTPResource {
 						}
 						inputStream = dlna.getThumbnailInputStream();
 					}
-					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
+					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
+						inputStream = FullyPlayed.addFullyPlayedOverlay(inputStream);
+					}
+					inputStream = ImagesUtil.scaleThumb(inputStream, imageProfile, mediaRenderer);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");

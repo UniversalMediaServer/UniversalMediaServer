@@ -21,7 +21,6 @@ package net.pms.dlna.virtual;
 import java.io.IOException;
 import java.io.InputStream;
 import net.pms.dlna.DLNAResource;
-import net.pms.network.HTTPResource;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -30,7 +29,6 @@ import org.codehaus.plexus.util.StringUtils;
 public class VirtualFolder extends DLNAResource {
 	protected String name;
 	protected String thumbnailIcon;
-	protected String thumbnailContentType;
 
 	/**
 	 * Constructor for this class. The constructor does not add any child to
@@ -45,12 +43,6 @@ public class VirtualFolder extends DLNAResource {
 	public VirtualFolder(String name, String thumbnailIcon) {
 		this.name = name;
 		this.thumbnailIcon = thumbnailIcon;
-
-		if (thumbnailIcon != null && thumbnailIcon.toLowerCase().endsWith(".png")) {
-			thumbnailContentType = HTTPResource.PNG_TYPEMIME;
-		} else {
-			thumbnailContentType = HTTPResource.JPEG_TYPEMIME;
-		}
 	}
 
 	/**
@@ -131,18 +123,6 @@ public class VirtualFolder extends DLNAResource {
 	}
 
 	/**
-	 * Returns the thumbnailContentType associated to the thumbnail associated
-	 * to this container.
-	 *
-	 * @see net.pms.dlna.DLNAResource#getThumbnailContentType()
-	 * @see #thumbnailContentType
-	 */
-	@Override
-	public String getThumbnailContentType() {
-		return thumbnailContentType;
-	}
-
-	/**
 	 * Returns true, as a container is always a valid item to add to another
 	 * container.
 	 *
@@ -155,12 +135,5 @@ public class VirtualFolder extends DLNAResource {
 
 	public void setThumbnail(String thumbnailIcon) {
 		this.thumbnailIcon = thumbnailIcon;
-
-		if (thumbnailIcon != null && thumbnailIcon.toLowerCase().endsWith(".png")) {
-			thumbnailContentType = HTTPResource.PNG_TYPEMIME;
-		} else {
-			thumbnailContentType = HTTPResource.JPEG_TYPEMIME;
-		}
-
 	}
 }

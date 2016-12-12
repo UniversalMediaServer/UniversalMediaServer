@@ -18,7 +18,6 @@
  */
 package net.pms.formats;
 
-import java.util.StringTokenizer;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
