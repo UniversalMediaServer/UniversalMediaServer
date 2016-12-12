@@ -208,11 +208,6 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	public String getThumbnailContentType() {
-		return super.getThumbnailContentType();
-	}
-
-	@Override
 	public InputStream getThumbnailInputStream() throws IOException {
 		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder && (getMediaSubtitle() != null || getMediaAudio() != null)) {
 			return super.getThumbnailInputStream();
@@ -296,11 +291,11 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(ImageProfile profile) {
 		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
 			return null;
 		}
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	@Override

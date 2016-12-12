@@ -44,13 +44,13 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private ISevenZipInArchive arc;
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(ImageProfile profile) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) {
 			// no thumbnail support for now for zipped videos
 			return null;
 		}
 
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	public SevenZipEntry(File file, String zeName, long length) {
