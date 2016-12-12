@@ -38,7 +38,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.imageio.ImageIO;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
@@ -122,8 +121,6 @@ public class PMS {
 	private NameFilter filter;
 
 	private JmDNS jmDNS;
-
-	public static BufferedImage thumbnailOverlayImage;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -824,13 +821,6 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
-
-		// Load the fully played overlay image, in case it's needed later
-		try {
-			thumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
-		} catch (IOException ex) {
-			java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		}
 
 		return true;
 	}

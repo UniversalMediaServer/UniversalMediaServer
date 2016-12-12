@@ -12,6 +12,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageInputStreamSpi;
 import javax.imageio.stream.ImageInputStream;
+import net.pms.util.ImagesUtil.ImageFormat;
 
 /**
  * This is a hack of a utility class created because whoever wrote {@link ImageIO}
@@ -59,27 +60,27 @@ public class CustomImageReader {
             return null;
         }
 
-        ImageInputFormat inputFormat = null;
+        ImageFormat inputFormat = null;
         ImageReader reader = (ImageReader) iter.next();
         String formatName = reader.getFormatName().toUpperCase(Locale.ROOT);
         // Store the parsing result
         if (formatName != null) {
         	if (formatName.contains("BMP")) {
-        		inputFormat = ImageInputFormat.BMP;
+        		inputFormat = ImageFormat.BMP;
         	} else if (formatName.contains("GIF")) {
-        		inputFormat = ImageInputFormat.GIF;
+        		inputFormat = ImageFormat.GIF;
         	} else if (formatName.contains("CUR")) {
-        		inputFormat = ImageInputFormat.CUR;
+        		inputFormat = ImageFormat.CUR;
         	} else if (formatName.contains("ICO")) {
-        		inputFormat = ImageInputFormat.ICO;
+        		inputFormat = ImageFormat.ICO;
         	} else if (formatName.contains("JPEG")) {
-        		inputFormat = ImageInputFormat.JPEG;
+        		inputFormat = ImageFormat.JPEG;
         	} else if (formatName.contains("TIFF")) {
-        		inputFormat = ImageInputFormat.TIFF;
+        		inputFormat = ImageFormat.TIFF;
         	} else if (formatName.contains("PNG")) {
-        		inputFormat = ImageInputFormat.PNG;
+        		inputFormat = ImageFormat.PNG;
         	} else if (formatName.contains("WBMP")) {
-        		inputFormat = ImageInputFormat.WBMP;
+        		inputFormat = ImageFormat.WBMP;
         	}
         }
 
@@ -136,20 +137,11 @@ public class CustomImageReader {
      */
     public static class ImageReaderResult {
     	public final BufferedImage bufferedImage;
-    	public final ImageInputFormat imageFormat;
+    	public final ImageFormat imageFormat;
 
-    	public ImageReaderResult(BufferedImage bufferedImage, ImageInputFormat imageFormat) {
+    	public ImageReaderResult(BufferedImage bufferedImage, ImageFormat imageFormat) {
     		this.bufferedImage = bufferedImage;
     		this.imageFormat = imageFormat;
     	}
-    }
-
-    /**
-     * Definition of the different image format supported by the ImageIO parser
-     * with the currently installed plugins. If more plugins are added, more
-     * entries should be added here and in {@link CustomImageReader#read(ImageInputStream)}.
-     */
-    public enum ImageInputFormat {
-    	BMP, GIF, CUR, ICO, JPEG, TIFF, PNG, WBMP
     }
 }
