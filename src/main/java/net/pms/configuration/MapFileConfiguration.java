@@ -27,16 +27,11 @@ public class MapFileConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFileConfiguration.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private String name;
-	private String thumbnailIcon;
 	private List<MapFileConfiguration> children;
 	private List<File> files;
 
 	public String getName() {
 		return name;
-	}
-
-	public String getThumbnailIcon() {
-		return thumbnailIcon;
 	}
 
 	public List<MapFileConfiguration> getChildren() {
@@ -49,10 +44,6 @@ public class MapFileConfiguration {
 
 	public void setName(String n) {
 		name = n;
-	}
-
-	public void setThumbnailIcon(String t) {
-		thumbnailIcon = t;
 	}
 
 	public void setFiles(List<File> f) {

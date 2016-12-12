@@ -1,8 +1,15 @@
 package net.pms.util;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.Field;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import mediautil.gen.Log;
 import mediautil.image.jpeg.LLJTran;
 import mediautil.image.jpeg.LLJTranException;
@@ -12,7 +19,7 @@ import net.coobird.thumbnailator.geometry.Positions;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.util.CustomImageReader.ImageInputFormat;
+import net.pms.dlna.DLNAResource.ImageProfile;
 import net.pms.util.CustomImageReader.ImageReaderResult;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.ImageReadException;
@@ -22,6 +29,7 @@ import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.tiff.TiffField;
 import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,72 +163,333 @@ public class ImagesUtil {
 	}
 
 	/**
-	 * Creates a black background with the exact dimensions specified, then
-	 * centers the image on the background, preserving the aspect ratio.
-	 *
-	 * @param image
-	 * @param width
-	 * @param height
-	 * @param outputBlank whether to return null or a black image when the
-	 *                    image parameter is null.
-	 * @param renderer the {@link RendererConfiguration} for which to scale.
-	 *
-	 * @return The scaled image
+	 * This attempts to get the underlying byte array directly from the
+	 * {@link InputStream} if it is backed by a byte array, otherwise the
+	 * {@link InputStream} is copied into a new byte array with
+	 * {@link IOUtils#toByteArray(InputStream)}.
+	 * <p><b>
+	 * This method consumes and closes {@code inputStream}.
+	 * </b>
+	 * @param inputStream the <code>InputStream</code> to read.
+     * @return The resulting byte array.
+     * @throws IOException if an I/O error occurs
 	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
-		ByteArrayInputStream in = null;
-		if (image == null && !outputBlank) {
+	public static byte[] toByteArray(InputStream inputStream) throws IOException {
+		if (inputStream == null) {
 			return null;
-		} else if (image != null) {
-			in = new ByteArrayInputStream(image);
 		}
 
-		ImageInputFormat inputFormat = null;
+		// Avoid copying the data if it's already a byte array
+		if (inputStream instanceof ByteArrayInputStream) {
+			Field f;
+			try {
+				f = ByteArrayInputStream.class.getDeclaredField("buf");
+				f.setAccessible(true);
+				return (byte[]) f.get(inputStream);
+			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+				// Reflection failed, use IOUtils instead
+				LOGGER.debug("Unexpected reflection failure in toByteArray(): {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
 		try {
+			return IOUtils.toByteArray(inputStream);
+		} finally {
+			inputStream.close();
+		}
+	}
+
+	/**
+	 * Converts image to a different {@link ImageFormat}. Format support is
+	 * limited to that of {@link ImageIO}.
+	 * <p><b>
+	 * This method consumes and closes {@code inputStream}.
+	 * </b>
+	 *
+	 * @param imageInputStream the source image in a supported format.
+	 * @param outputFormat the {@link ImageFormat} to generate. If this is
+	 *                     {@link ImageFormat#SOURCE} or {@code null} this has
+	 *                     no effect.
+	 * @return The converted image, {@code null} if the source is {@code null}
+	 *         or the source image if the operation fails.
+	 */
+	public static InputStream convertImage(InputStream imageInputStream, ImageFormat outputFormat) {
+		if (imageInputStream == null) {
+			return null;
+		}
+
+		byte[] imageByteArray = null;
+		try {
+			imageByteArray = toByteArray(imageInputStream);
+		} catch (IOException e) {
+			LOGGER.warn("Converting image failed: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
+
+		byte[] result = scaleImage(imageByteArray, 0, 0, null, outputFormat, false);
+		return result == null ? null : new ByteArrayInputStream(result);
+	}
+
+	/**
+	 * Converts image to a different {@link ImageFormat}. Format support is
+	 * limited to that of {@link ImageIO}.
+	 *
+	 * @param imageByteArray the source image in a supported format.
+	 * @param outputFormat the {@link ImageFormat} to generate. If this is
+	 *                     {@link ImageFormat#SOURCE} or {@code null} this has
+	 *                     no effect.
+	 * @return The converted image, {@code null} if the source is {@code null}
+	 *         or the source image if the operation fails.
+	 */
+	public static byte[] convertImage(byte[] imageByteArray, ImageFormat outputFormat) {
+		if (outputFormat == null || outputFormat.equals(ImageFormat.SOURCE)) {
+			return imageByteArray;
+		}
+		return scaleImage(imageByteArray, 0, 0, null, outputFormat, false);
+	}
+
+	/**
+	 * Convert and scales an image for use as a thumbnail for a specific
+	 * {@code RendererConfiguration} .Preserves aspect ratio. Format support is
+	 * limited to that of {@link ImageIO}.
+	 * <p><b>
+	 * This method consumes and closes {@code inputStream}.
+	 * </b>
+	 *
+	 * @param imageInputStream the source image in a supported format.
+	 * @param imageProfile the DLNA media profile to adhere to for the output.
+	 * @param renderer the {@link RendererConfiguration} to get output settings
+	 *                 from.
+	 * @return The scaled and/or converted thumbnail, {@code null} if the
+	 *         source is {@code null} or the source image if the operation fails.
+	 *
+	 * XXX Ideally all internal thumb handling should be done using byte arrays
+	 *     instead of streams, and this overload could be removed.
+	 */
+	public static InputStream scaleThumb(InputStream imageInputStream, ImageProfile imageProfile, RendererConfiguration renderer) {
+		if (imageInputStream == null) {
+			return null;
+		}
+
+		byte[] imageByteArray = null;
+		try {
+			imageByteArray = toByteArray(imageInputStream);
+		} catch (IOException e) {
+			LOGGER.warn("Renderer scaling failed: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
+
+		byte[] result = scaleThumb(imageByteArray, imageProfile, renderer);
+		return result == null ? null : new ByteArrayInputStream(result);
+	}
+
+	/**
+	 *
+	 * @param fileName the "file name" part of the HTTP request.
+	 * @return The "decoded" {@link ImageProfile} or {@link ImageProfile#JPEG_TN}
+	 *         if the parsing fails.
+	 */
+	public static ImageProfile parseThumbRequest(String fileName) {
+		Matcher matcher = Pattern.compile("^thumbnail0000(\\w+_\\w+)_").matcher(fileName);
+		if (matcher.find()) {
+			try {
+				return ImageProfile.valueOf(matcher.group(1).toUpperCase(Locale.ROOT));
+			} catch (IllegalArgumentException e) {
+				return ImageProfile.JPEG_TN;
+			}
+		}
+		return ImageProfile.JPEG_TN;
+	}
+
+	/**
+	 * Convert and scales an image for use as a thumbnail for a specific
+	 * {@code RendererConfiguration} .Preserves aspect ratio. Format support is
+	 * limited to that of {@link ImageIO}.
+	 *
+	 * @param imageByteArray the source image in a supported format.
+	 * @param imageProfile the DLNA media profile to adhere to for the output.
+	 * @param renderer the {@link RendererConfiguration} to get output settings
+	 *                 from.
+	 * @return The scaled and/or converted thumbnail, {@code null} if the
+	 *         source is {@code null} or the source image if the operation fails.
+	 */
+	public static byte[] scaleThumb(byte[] imageByteArray, ImageProfile imageProfile, RendererConfiguration renderer) {
+		switch (imageProfile) {
+			case JPEG_LRG:
+				return scaleImage(imageByteArray, 4096, 4096, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case JPEG_MED:
+				return scaleImage(imageByteArray, 1024, 768, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case JPEG_SM:
+				return scaleImage(imageByteArray, 640, 480, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case JPEG_TN:
+				return scaleImage(imageByteArray, 160, 160, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case PNG_LRG:
+				return scaleImage(imageByteArray, 4096, 4096, ScaleType.MAX, ImageFormat.PNG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case PNG_TN:
+				return scaleImage(imageByteArray, 160, 160, ScaleType.MAX, ImageFormat.PNG, renderer != null ? renderer.isThumbnailPadding() : false);
+			default:
+				return scaleImage(imageByteArray, 160, 160, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+		}
+	}
+
+	/**
+	 * Scales an image to the given dimensions. Scaling can be with or without
+	 * padding. Preserves aspect ratio. Format support is limited to
+	 * that of {@link ImageIO}.
+	 *
+	 * @param imageByteArray the source image in a supported format.
+	 * @param fitTo the {@link Rectangle} to fit the image to.
+	 * @param padToSize Whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The scaled, {@code null} if the source is {@code null} or the
+	 *         source image if the operation fails.
+	 */
+	public static byte[] scaleImage(byte[] imageByteArray, Rectangle fitTo, boolean padToSize) {
+		if (fitTo.isEmpty()) {
+			return imageByteArray;
+		}
+		return scaleImage(imageByteArray, fitTo.width, fitTo.height, ScaleType.EXACT, ImageFormat.SOURCE, padToSize);
+	}
+
+	/**
+	 * Scales an image to the given dimensions. Scaling can be with or without
+	 * padding. Preserves aspect ratio. Format support is limited to
+	 * that of {@link ImageIO}.
+	 *
+	 * @param imageByteArray the source image in a supported format.
+	 * @param width the new width.
+	 * @param height the new height.
+	 * @param padToSize Whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The scaled, {@code null} if the source is {@code null} or the
+	 *         source image if the operation fails.
+	 */
+
+	public static byte[] scaleImage(byte[] imageByteArray, int width, int height, boolean padToSize) {
+		if (width == 0 || height == 0) {
+			return imageByteArray;
+		}
+		return scaleImage(imageByteArray, width, height, ScaleType.EXACT, ImageFormat.SOURCE, padToSize);
+	}
+
+	/**
+	 * Converts and scales an image in one operation. Scaling can be with or
+	 * without padding. Preserves aspect ratio. Format support is limited to
+	 * that of {@link ImageIO}.
+	 *
+	 * @param imageByteArray the source image in a supported format.
+	 * @param width the new width or 0 to disable scaling.
+	 * @param height the new height or 0 to disable scaling.
+	 * @param scaleType the {@link ScaleType} to use when scaling.
+	 * @param outputFormat the {@link ImageFormat} to generate or
+	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param padToSize Whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The scaled and/or converted image, {@code null} if the source is
+	 *         {@code null} or the source image if the operation fails.
+	 */
+	public static byte[] scaleImage(byte[] imageByteArray, int width, int height, ScaleType scaleType, ImageFormat outputFormat, boolean padToSize) {
+		if (imageByteArray == null) {
+			return null;
+		}
+		if (outputFormat == null) {
+			outputFormat = ImageFormat.SOURCE;
+		}
+
+		try {
+			ImageFormat inputFormat = null;
 			BufferedImage bufferedImage;
-			if (in != null) {
-				ImageReaderResult imageResult = CustomImageReader.read(in);
-				bufferedImage = imageResult.bufferedImage;
-				inputFormat = imageResult.imageFormat;
-			} else {
-				bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			ImageReaderResult imageResult = CustomImageReader.read(new ByteArrayInputStream(imageByteArray));
+			bufferedImage = imageResult.bufferedImage;
+			inputFormat = imageResult.imageFormat;
+
+			if (bufferedImage == null || inputFormat == null) { // ImageIO doesn't support the image format
+				LOGGER.warn("Failed to resize image because the source format is unknown");
+				return imageByteArray;
 			}
 
-			if (inputFormat == null) {
-				if (renderer == null || renderer.isForceJPGThumbnails()) {
-					// If we don't know, stick to the old default
-					inputFormat = ImageInputFormat.JPEG;
-				} else {
-					inputFormat = ImageInputFormat.PNG;
-				}
-			}
-
-			if (bufferedImage == null) { // ImageIO doesn't support the image format
-				return image;
+			if (outputFormat.equals(ImageFormat.SOURCE)) {
+				outputFormat = inputFormat;
 			}
 
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			if (renderer != null && renderer.isThumbnailPadding()) {
-				Thumbnails.of(bufferedImage)
-					.size(width, height)
-					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
-					.outputFormat(inputFormat.toString())
-					.outputQuality(1.0f)
-					.toOutputStream(out);
+			if (width == 0 ||
+				height == 0 ||
+				(
+					ScaleType.MAX.equals(scaleType) &&
+					bufferedImage.getWidth() <= width &&
+					bufferedImage.getHeight() <= height
+				)
+			) {
+				//No resize, just convert
+				if (inputFormat.equals(outputFormat)) {
+					// Nothing to do, just return source
+					return imageByteArray;
+				}
+				ImageIO.write(bufferedImage, outputFormat.toString(),out);
 			} else {
-				Thumbnails.of(bufferedImage)
-					.size(width, height)
-					.outputFormat(inputFormat.toString())
-					.outputQuality(1.0f)
-					.toOutputStream(out);
-			}
+				if (padToSize) {
+					Thumbnails.of(bufferedImage)
+						.size(width, height)
+						.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
+						.outputFormat(outputFormat.toString())
+						.outputQuality(1.0f)
+						.toOutputStream(out);
+				} else {
+					Thumbnails.of(bufferedImage)
+						.size(width, height)
+						.outputFormat(outputFormat.toString())
+						.outputQuality(1.0f)
+						.toOutputStream(out);
+				}
 
-			return out.toByteArray();
+			}
+			if (out != null) {
+				return out.toByteArray();
+			}
 		} catch (IOException e) {
-			LOGGER.debug("Failed to resize image: {}", e.getMessage());
+			LOGGER.warn("Failed to resize image: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
-		return null;
+		return imageByteArray;
 	}
+
+	/**
+	 * Defines how image scaling is done, if the given resolution is the exact
+	 * resolution of the output or the maximum the output can be, If set to
+	 * maximum, no upscale will occur.
+	 */
+	public enum ScaleType {
+		EXACT, MAX
+	}
+
+    /**
+     * Definition of the different image format supported by the ImageIO parser
+     * with the currently installed plugins plus the special value {@code SOURCE}.
+     * If more plugins are added, more entries should be added here and in
+     * {@link CustomImageReader#read(ImageInputStream)}.
+     */
+    public enum ImageFormat {
+    	BMP, CUR, GIF, ICO, JPEG, PNG, SOURCE, TIFF, WBMP;
+
+    	public static ImageFormat fromImageProfile(ImageProfile imageProfile) {
+    		switch (imageProfile) {
+				case JPEG_LRG:
+				case JPEG_MED:
+				case JPEG_SM:
+				case JPEG_TN:
+					return ImageFormat.JPEG;
+				case PNG_LRG:
+				case PNG_TN:
+					return ImageFormat.PNG;
+				default:
+					return null;
+
+    		}
+    	}
+    }
+
 }

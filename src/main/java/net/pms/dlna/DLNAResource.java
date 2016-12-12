@@ -1667,8 +1667,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return Returns a URL pointing to an image representing the item. If
 	 * none is available, "thumbnail0000.png" is used.
 	 */
-	protected String getThumbnailURL() {
-		return getURL("thumbnail0000");
+	protected String getThumbnailURL(ImageProfile profile) {
+		return getURL("thumbnail0000" + profile + "_");
 	}
 
 	/**
@@ -2585,9 +2585,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
+		MediaType mediaType = media != null ? media.getMediaType() : MediaType.UNKNOWN;
 		if (!(isFolder() && !mediaRenderer.isSendFolderThumbnails())) {
-			appendThumbnail(mediaRenderer, sb, "JPEG_TN");
-			appendThumbnail(mediaRenderer, sb, "JPEG_SM");
+			if (!mediaType.equals(MediaType.UNKNOWN)) {
+				appendThumbnail(sb, mediaType);
+			}
 		}
 
 		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
@@ -2616,11 +2618,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							break;
 					}
 				}
-			} else if (getFormat() != null && getFormat().isVideo()) {
-				uclass = "object.item.videoItem";
-			} else if (getFormat() != null && getFormat().isImage()) {
+			} else if (MediaType.IMAGE.equals(mediaType)) {
 				uclass = "object.item.imageItem.photo";
-			} else if (getFormat() != null && getFormat().isAudio()) {
+			} else if (MediaType.AUDIO.equals(mediaType)) {
 				uclass = "object.item.audioItem.musicTrack";
 			} else {
 				uclass = "object.item.videoItem";
@@ -2644,39 +2644,119 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param mediaRenderer The renderer configuration.
 	 * @param sb The StringBuilder to append the response to.
 	 */
-	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb, String format) {
-		final String thumbURL = getThumbnailURL();
+	private void appendThumbnail(StringBuilder sb, MediaType mediaType) {
+
+		/*
+		 * JPEG_TN = Max 160 x 160; EXIF Ver.1.x or later or JFIF 1.02; SRGB or uncalibrated
+		 * JPEG_SM = Max 640 x 480; EXIF Ver.1.x or later or JFIF 1.02; SRGB or uncalibrated
+		 * PNG_TN = Max 160 x 160; Greyscale 8/16 bit, Truecolor 24 bit, Indexed-color 24 bit, Greyscale with alpha 8/16 bit or Truecolor with alpha 24 bit;
+		 * PNG_SM doesn't exist!
+		 *
+		 * The standard dictates that thumbnails for images and videos should
+		 * be given as a <res> element:
+		 * > If a UPnP AV MediaServer exposes a CDS object with a <upnp:class>
+		 * > designation of object.item.imageItem or object.item.videoItem (or
+		 * > any class derived from them), then the UPnP AV MediaServer should
+		 * > provide a <res> element for the thumbnail resource. (Multiple
+		 * > thumbnail <res> elements are also allowed.)
+		 *
+		 * It also dictates that if a <res> thumbnail is available, it HAS to
+		 * be offered as JPEG_TN (although not exclusively):
+		 * > If a UPnP AV MediaServer exposes thumbnail images for image or video
+		 * > content, then a UPnP AV MediaServer shall provide a thumbnail that
+		 * > conforms to guideline 7.1.7 (GUN 6SXDY) in IEC 62481-2:2013 media
+		 * > format profile and be declared with the JPEG_TN designation in the
+		 * > fourth field of the res@protocolInfo attribute.
+		 * >
+		 * > When thumbnails are provided, the minimal expectation is to provide
+		 * > JPEG thumbnails. However, vendors can also provide additional
+		 * > thumbnails using the JPEG_TN or PNG_TN profiles.
+		 *
+		 * For videos content additional related images can be offered:
+		 * > UPnP AV MediaServers that expose a video item can include in the
+		 * > <item> element zero or more <res> elements referencing companion
+		 * > images that provide additional descriptive information. Examples
+		 * > of companion images include larger versions of thumbnails, posters
+		 * > describing a movie, and others.
+		 *
+		 * For audio content, and ONLY for audio content, >upnp:albumArtURI>
+		 * should be used:
+		 * > If a UPnP AV MediaServer exposes a CDS object with a <upnp:class>
+		 * > designation of object.item.audioItem or object.container.album.musicAlbum
+		 * > (or any class derived from either class), then the UPnP AV MediaServer
+		 * > should provide a <upnp:albumArtURI> element to present the URI for
+		 * > the album art
+		 * >
+		 * > Unlike image or video content, thumbnails for audio content will
+		 * > preferably be presented through the <upnp:albumArtURI> element.
+		 *
+		 * There's a difference between a thumbnail and album art. A thumbnail
+		 * is a miniature still image of visual content, since audio isn't
+		 * visual the concept is invalid. Album art is an image "tied to" that
+		 * audio, but doesn't represent the audio itself.
+		 *
+		 * The same requirement of always providing a JPEG_TN applies to
+		 * <upnp:albumArtURI> although formulated somewhat vaguer:
+		 * > If album art thumbnails are provided, the desired expectation is
+		 * > to have JPEG thumbnails. Additional thumbnails can also be provided.
+		 */
+		switch (mediaType.MediaTypeInt) {
+			case MediaType.AUDIO_INT:
+				addAlbumArt(sb, ImageProfile.JPEG_TN);
+				addAlbumArt(sb, ImageProfile.PNG_TN);
+				break;
+			case MediaType.IMAGE_INT:
+				addThumbnailResource(sb, ImageProfile.JPEG_TN);
+				addThumbnailResource(sb, ImageProfile.PNG_TN);
+				// The line below breaks the standard, but some renderers need it
+				addAlbumArt(sb, ImageProfile.JPEG_TN);
+				break;
+			case MediaType.VIDEO_INT:
+				addThumbnailResource(sb, ImageProfile.JPEG_TN);
+				addThumbnailResource(sb, ImageProfile.PNG_TN);
+				// XXX The JPEG specification below is wrong, we should offer
+				// the correct profile depending on the actual resolution
+				// we have available. That information isn't available
+				// here, and would require significant refactoring
+				// to make available.
+				addThumbnailResource(sb, ImageProfile.JPEG_MED);
+				addThumbnailResource(sb, ImageProfile.JPEG_LRG);
+				addThumbnailResource(sb, ImageProfile.PNG_LRG);
+				// The line below breaks the standard, but some renderers need it
+				addAlbumArt(sb, ImageProfile.JPEG_TN);
+				break;
+		}
+	}
+
+	private void addThumbnailResource(StringBuilder sb, ImageProfile thumbnailProfile) {
+		String thumbURL = getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(thumbURL)) {
-			if (mediaRenderer.getThumbNailAsResource()) {
-				// Samsung 2012 (ES and EH) models do not recognize the "albumArtURI" element. Instead,
-				// the "res" element should be used.
-				// Also use "res" when faking JPEG thumbs.
-				openTag(sb, "res");
-
-				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
-					addAttribute(sb, "protocolInfo", "http-get:*:image/png:DLNA.ORG_PN=PNG_TN");
-				} else {
-					addAttribute(sb, "protocolInfo", "http-get:*:image/jpeg:DLNA.ORG_PN=" + format);
-				}
-
-				endTag(sb);
-				sb.append(thumbURL);
-				closeTag(sb, "res");
-			} else {
-				// Renderers that can handle the "albumArtURI" element.
-				openTag(sb, "upnp:albumArtURI");
-				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
-
-				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
-					addAttribute(sb, "dlna:profileID", "PNG_TN");
-				} else {
-					addAttribute(sb, "dlna:profileID", format);
-				}
-
-				endTag(sb);
-				sb.append(thumbURL);
-				closeTag(sb, "upnp:albumArtURI");
+			String mimeType;
+			switch (thumbnailProfile) {
+				case PNG_LRG:
+				case PNG_TN:
+					mimeType = HTTPResource.PNG_TYPEMIME;
+					break;
+				default:
+					mimeType = HTTPResource.JPEG_TYPEMIME;
 			}
+			openTag(sb, "res");
+			addAttribute(sb, "protocolInfo", "http-get:*:" + mimeType + ":DLNA.ORG_PN=" + thumbnailProfile + ";DLNA.ORG_FLAGS=00900000000000000000000000000000");
+			endTag(sb);
+			sb.append(thumbURL);
+			closeTag(sb, "res");
+		}
+	}
+
+	private void addAlbumArt(StringBuilder sb, ImageProfile thumbnailProfile) {
+		String albumArtURL = getThumbnailURL(thumbnailProfile);
+		if (StringUtils.isNotBlank(albumArtURL)) {
+			openTag(sb, "upnp:albumArtURI");
+			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
+			addAttribute(sb, "dlna:profileID", thumbnailProfile);
+			endTag(sb);
+			sb.append(albumArtURL);
+			closeTag(sb, "upnp:albumArtURI");
 		}
 	}
 
@@ -3178,10 +3258,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		if (
 			media != null &&
-			(
-				!media.isThumbready() ||
-				FullyPlayed.isFullyPlayedThumbnail(inputFile.getFile())
-			) &&
+			!media.isThumbready() &&
 			configurationSpecificToRenderer.isThumbnailGenerationEnabled() &&
 			renderer.isThumbnails()
 		) {
@@ -3241,13 +3318,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Or none of the above
 		if (!isFolder()) {
-			return GenericIcons.INSTANCE.getGenericIcon(media, defaultRenderer);
+			return GenericIcons.INSTANCE.getGenericIcon(media);
 		} else {
 			String defaultThumbnailImage = null;
 			defaultThumbnailImage = "images/thumbnail-folder-256.png";
-			if (defaultRenderer != null && defaultRenderer.isForceJPGThumbnails()) {
-				defaultThumbnailImage = "images/thumbnail-folder-120.jpg";
-			}
 			LOGGER.trace("Using default thumbnail {}", defaultThumbnailImage);
 			return getResourceInputStream(defaultThumbnailImage);
 		}
@@ -3285,10 +3359,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return getGenericThumbnailInputStream(null);
-	}
-
-	public String getThumbnailContentType() {
-		return HTTPResource.JPEG_TYPEMIME;
 	}
 
 	public int getType() {
@@ -4336,5 +4406,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		scaleWidth  = Player.convertToModX(scaleWidth, 4);
 		scaleHeight = Player.convertToModX(scaleHeight, 4);
 		return scaleWidth + "x" + scaleHeight;
+	}
+
+	/**
+	 * Definition of the different DLNA media profiles for images. If more
+	 * are added, corresponding changes need to be made in
+	 * {@link ImageFormat#fromImageProfile}.
+	 */
+
+	public enum ImageProfile {
+		JPEG_LRG, JPEG_MED, JPEG_SM, JPEG_TN, PNG_LRG, PNG_TN
 	}
 }

@@ -33,9 +33,14 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAResource.ImageProfile;
 import net.pms.dlna.Range;
+import net.pms.dlna.RealFile;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.FullyPlayed;
+import net.pms.util.ImagesUtil;
+import net.pms.util.ImagesUtil.ImageFormat;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
@@ -306,7 +311,8 @@ public class Request extends HTTPResource {
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
-					output(output, "Content-Type: " + dlna.getThumbnailContentType());
+					ImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
+					output(output, "Content-Type: " + (ImageFormat.PNG.equals(ImageFormat.fromImageProfile(imageProfile)) ? HTTPResource.PNG_TYPEMIME: HTTPResource.JPEG_TYPEMIME));
 					output(output, "Accept-Ranges: bytes");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
 					output(output, "Connection: keep-alive");
@@ -318,7 +324,10 @@ public class Request extends HTTPResource {
 						}
 						inputStream = dlna.getThumbnailInputStream();
 					}
-					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
+					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
+						inputStream = FullyPlayed.addFullyPlayedOverlay(inputStream);
+					}
+					inputStream = ImagesUtil.scaleThumb(inputStream, imageProfile, mediaRenderer);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output(output, "Content-Type: text/plain");

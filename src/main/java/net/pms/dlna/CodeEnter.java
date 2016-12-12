@@ -33,7 +33,7 @@ public class CodeEnter extends VirtualFolder {
 	}
 
 	public CodeEnter(DLNAResource r) {
-		super(r.getName(), r.getThumbnailURL());
+		super(r.getName(), r.getThumbnailURL(ImageProfile.JPEG_TN));
 		resource = r;
 		code = "";
 		enteredCode = "";

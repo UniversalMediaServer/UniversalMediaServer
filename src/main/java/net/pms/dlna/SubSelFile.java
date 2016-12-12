@@ -16,7 +16,7 @@ public class SubSelFile extends VirtualFolder {
 	private DLNAResource orig;
 
 	public SubSelFile(DLNAResource r) {
-		super(r.getDisplayName(), r.getThumbnailURL());
+		super(r.getDisplayName(), r.getThumbnailURL(ImageProfile.JPEG_TN));
 		orig = r;
 	}
 
