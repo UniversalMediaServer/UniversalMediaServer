@@ -21,7 +21,10 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.network.HTTPResource;
 import net.pms.newgui.DbgPacker;
+import net.pms.util.ImagesUtil;
+import net.pms.util.ImagesUtil.ImageFormat;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -293,8 +296,9 @@ public class RemoteWeb {
 				r.checkThumbnail();
 				in = r.getThumbnailInputStream();
 			}
+			in = ImagesUtil.convertImage(in, ImageFormat.PNG);
 			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type", r.getThumbnailContentType());
+			hdr.add("Content-Type", HTTPResource.PNG_TYPEMIME);
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
 			t.sendResponseHeaders(200, in.available());

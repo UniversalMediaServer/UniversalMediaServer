@@ -26,8 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.io.InputStream;
 import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -36,7 +35,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.MediaMonitor;
-import net.pms.dlna.MediaType;
 import net.pms.dlna.RealFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,31 +42,21 @@ import org.slf4j.LoggerFactory;
 public class FullyPlayed {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FullyPlayed.class);
 	private static PmsConfiguration configuration = PMS.getConfiguration();
-	private static int thumbnailOverlayResolution = 108;
-	private static int thumbnailOverlayHorizontalPositionVideo;
-	private static int thumbnailOverlayVerticalPositionVideo;
-	private static int thumbnailOverlayHorizontalPositionAudio;
-	private static int thumbnailOverlayVerticalPositionAudio;
-	private static int thumbnailOverlayHorizontalPositionImage;
-	private static int thumbnailOverlayVerticalPositionImage;
+	private static final String THUMBNAIL_OVERLAY_RESOURCE_PATH = "/resources/images/icon-fullyplayed.png";
 	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.5f);
+	private static final int BLANK_IMAGE_RESOLUTION = 256;
+	public static final BufferedImage thumbnailOverlayImage;
 
-	/**
-	 * This lock is responsible for all audio class variables.
-	 */
-	private static ReadWriteLock audioThumbnailsLock = new ReentrantReadWriteLock();
-	private static boolean audioThumbnailsInitialized = false;
-	/**
-	 * This lock is responsible for all image class variables.
-	 */
-	private static ReadWriteLock imageThumbnailsLock = new ReentrantReadWriteLock();
-	private static boolean imageThumbnailsInitialized = false;
-	/**
-	 * This lock is responsible for all video class variables.
-	 */
-	private static ReadWriteLock videoThumbnailsLock = new ReentrantReadWriteLock();
-	private static boolean videoThumbnailsInitialized = false;
-
+	static {
+		BufferedImage tmpThumbnailOverlayImage = null;
+		try {
+			tmpThumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream(THUMBNAIL_OVERLAY_RESOURCE_PATH));
+		} catch (IOException e) {
+			LOGGER.error("Error reading fully played overlay image \"{}\": {}", THUMBNAIL_OVERLAY_RESOURCE_PATH, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		thumbnailOverlayImage = tmpThumbnailOverlayImage;
+	}
 
 	// Hide the constructor
 	private FullyPlayed() {
@@ -103,87 +91,6 @@ public class FullyPlayed {
 			MediaMonitor.isFullyPlayed(resource.getSystemName());
 	}
 
-	private static void initializeThumbnails(BufferedImage image, MediaType mediaType) {
-		switch (mediaType.toInt()) {
-			case MediaType.AUDIO_INT:
-				audioThumbnailsLock.readLock().lock();
-				try{
-					if (audioThumbnailsInitialized) {
-						return;
-					}
-				} finally {
-					audioThumbnailsLock.readLock().unlock();
-				}
-				break;
-			case MediaType.IMAGE_INT:
-				imageThumbnailsLock.readLock().lock();
-				try{
-					if (imageThumbnailsInitialized) {
-						return;
-					}
-				} finally {
-					imageThumbnailsLock.readLock().unlock();
-				}
-				break;
-			case MediaType.VIDEO_INT:
-				videoThumbnailsLock.readLock().lock();
-				try{
-					if (videoThumbnailsInitialized) {
-						return;
-					}
-				} finally {
-					videoThumbnailsLock.readLock().unlock();
-				}
-				break;
-			default:
-				throw new IllegalArgumentException("mediaType cannot be of type unknown");
-		}
-
-		// Calculate the overlay resolution and position
-		double maximumOverlayResolution = (Math.min(image.getWidth(), image.getHeight())) * 0.6;
-		if (thumbnailOverlayResolution > maximumOverlayResolution) {
-			thumbnailOverlayResolution = (int) maximumOverlayResolution;
-		}
-		int thumbnailOverlayHorizontalPosition = (image.getWidth() - thumbnailOverlayResolution) / 2;
-		int thumbnailOverlayVerticalPosition = (int) (image.getHeight() - thumbnailOverlayResolution) / 2;
-
-		// Store the results
-		switch (mediaType.toInt()) {
-			case MediaType.AUDIO_INT:
-				audioThumbnailsLock.writeLock().lock();
-				try{
-					thumbnailOverlayHorizontalPositionAudio = thumbnailOverlayHorizontalPosition;
-					thumbnailOverlayVerticalPositionAudio = thumbnailOverlayVerticalPosition;
-					audioThumbnailsInitialized = true;
-				} finally {
-					audioThumbnailsLock.writeLock().unlock();
-				}
-				break;
-			case MediaType.IMAGE_INT:
-				imageThumbnailsLock.writeLock().lock();
-				try{
-					thumbnailOverlayHorizontalPositionImage = thumbnailOverlayHorizontalPosition;
-					thumbnailOverlayVerticalPositionImage = thumbnailOverlayVerticalPosition;
-					imageThumbnailsInitialized = true;
-				} finally {
-					imageThumbnailsLock.writeLock().unlock();
-				}
-				break;
-			case MediaType.VIDEO_INT:
-				videoThumbnailsLock.writeLock().lock();
-				try{
-					thumbnailOverlayHorizontalPositionVideo = thumbnailOverlayHorizontalPosition;
-					thumbnailOverlayVerticalPositionVideo = thumbnailOverlayVerticalPosition;
-					videoThumbnailsInitialized = true;
-				} finally {
-					videoThumbnailsLock.writeLock().unlock();
-				}
-				break;
-			default:
-				throw new IllegalStateException("Should not get here");
-		}
-	}
-
 	/**
 	 * Adds a text overlay to the given thumbnail and returns it.
 	 *
@@ -191,76 +98,45 @@ public class FullyPlayed {
 	 * @param mediaType the type of media the thumbnail is for
 	 * @return The modified thumbnail
 	 */
-	public static byte[] addFullyPlayedOverlay(byte[] thumb, MediaType mediaType) {
-		if (thumb == null) {
-			return null;
-		}
-		if (mediaType == MediaType.UNKNOWN) {
-			throw new IllegalArgumentException("Can't generate fully played overlay for unknown media type");
+	public static InputStream addFullyPlayedOverlay(InputStream thumb) {
+		if (thumbnailOverlayImage == null) {
+			return thumb;
 		}
 
-		BufferedImage image;
-		try {
-			image = ImageIO.read(new ByteArrayInputStream(thumb));
-		} catch (IOException e) {
-			LOGGER.error("Could not read thumbnail byte array: {}", e.getMessage());
-			LOGGER.trace("",e);
-			image = null;
-		}
-		if (image != null) {
-			initializeThumbnails(image, mediaType);
-
-			final int thumbnailOverlayHorizontalPosition;
-			final int thumbnailOverlayVerticalPosition;
-			switch (mediaType.toInt()) {
-				case MediaType.AUDIO_INT:
-					audioThumbnailsLock.readLock().lock();
-					try {
-						thumbnailOverlayHorizontalPosition = thumbnailOverlayHorizontalPositionAudio;
-						thumbnailOverlayVerticalPosition = thumbnailOverlayVerticalPositionAudio;
-					} finally {
-						audioThumbnailsLock.readLock().unlock();
-					}
-					break;
-				case MediaType.IMAGE_INT:
-					imageThumbnailsLock.readLock().lock();
-					try {
-						thumbnailOverlayHorizontalPosition = thumbnailOverlayHorizontalPositionImage;
-						thumbnailOverlayVerticalPosition = thumbnailOverlayVerticalPositionImage;
-					} finally {
-						imageThumbnailsLock.readLock().unlock();
-					}
-					break;
-				case MediaType.VIDEO_INT:
-					videoThumbnailsLock.readLock().lock();
-					try {
-						thumbnailOverlayHorizontalPosition = thumbnailOverlayHorizontalPositionVideo;
-						thumbnailOverlayVerticalPosition = thumbnailOverlayVerticalPositionVideo;
-					} finally {
-						videoThumbnailsLock.readLock().unlock();
-					}
-					break;
-				default:
-					throw new IllegalStateException("Should not get here");
-			}
-
-			Graphics2D g = image.createGraphics();
-			g.drawImage(image, 0, 0, null);
-			g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
-			g.fillRect(0, 0, image.getWidth(), image.getHeight());
-			if (PMS.thumbnailOverlayImage != null) {
-				g.drawImage(PMS.thumbnailOverlayImage, thumbnailOverlayHorizontalPosition, thumbnailOverlayVerticalPosition, thumbnailOverlayResolution, thumbnailOverlayResolution, null);
-			}
-
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
+		BufferedImage image = null;
+		if (thumb != null) {
 			try {
-				ImageIO.write(image, "jpeg", out);
-				thumb = out.toByteArray();
+				image = ImageIO.read(thumb);
 			} catch (IOException e) {
-				LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
+				LOGGER.error("Could not read thumbnail input stream: {}", e.getMessage());
 				LOGGER.trace("", e);
 			}
 		}
+
+		// Create a blank image if input is missing
+		if (image == null) {
+			image = new BufferedImage(BLANK_IMAGE_RESOLUTION, BLANK_IMAGE_RESOLUTION, BufferedImage.TYPE_INT_ARGB);
+		}
+
+		int overlayResolution = (int) Math.round((Math.min(image.getWidth(), image.getHeight())) * 0.6);
+		int overlayHorizontalPosition = (image.getWidth() - overlayResolution) / 2;
+		int overlayVerticalPosition = (image.getHeight() - overlayResolution) / 2;
+
+		Graphics2D g = image.createGraphics();
+		g.drawImage(image, 0, 0, null);
+		g.setPaint(THUMBNAIL_OVERLAY_BACKGROUND_COLOR);
+		g.fillRect(0, 0, image.getWidth(), image.getHeight());
+		g.drawImage(thumbnailOverlayImage, overlayHorizontalPosition, overlayVerticalPosition, overlayResolution, overlayResolution, null);
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try {
+			ImageIO.write(image, "png", out);
+			thumb = new ByteArrayInputStream(out.toByteArray());
+		} catch (IOException e) {
+			LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+
 		return thumb;
 	}
 

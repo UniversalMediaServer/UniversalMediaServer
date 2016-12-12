@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import net.pms.configuration.MapFileConfiguration;
-import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -310,22 +309,6 @@ public class MapFile extends DLNAResource {
 	@Override
 	public String getSystemName() {
 		return getName();
-	}
-
-	@Override
-	public String getThumbnailContentType() {
-		String thumbnailIcon = this.getConf().getThumbnailIcon();
-		if (thumbnailIcon != null && thumbnailIcon.toLowerCase().endsWith(".png")) {
-			return HTTPResource.PNG_TYPEMIME;
-		}
-		return super.getThumbnailContentType();
-	}
-
-	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
-		return this.getConf().getThumbnailIcon() != null
-			? getResourceInputStream(this.getConf().getThumbnailIcon())
-			: super.getThumbnailInputStream();
 	}
 
 	@Override
