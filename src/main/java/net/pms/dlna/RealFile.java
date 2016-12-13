@@ -215,53 +215,53 @@ public class RealFile extends MapFile {
 
 		File file = getFile();
 		File cachedThumbnail = null;
+		MediaType mediaType = getMedia() != null ? getMedia().getMediaType() : MediaType.UNKNOWN;
 
-		File thumbFolder = null;
+		File thumbFolder = file.getParentFile();
 		boolean alternativeCheck = false;
 
-		while (cachedThumbnail == null) {
-			if (thumbFolder == null && getType() != Format.IMAGE) {
-				thumbFolder = file.getParentFile();
-			}
+		if (!MediaType.IMAGE.equals(mediaType)) {
+			while (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
 
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
-
-			if (cachedThumbnail != null) {
-				break;
-			}
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
-
-			if (cachedThumbnail != null) {
-				break;
-			}
-			cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
-
-			if (cachedThumbnail != null) {
-				break;
-			}
-			cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
-
-			if (cachedThumbnail != null) {
-				break;
-			}
-			if (getParent() != null && getParent() instanceof RealFile) {
-				cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
-			}
-
-			if (cachedThumbnail != null || alternativeCheck) {
-				break;
-			}
-
-			if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
-				thumbFolder = new File(configuration.getAlternateThumbFolder());
-
-				if (!thumbFolder.isDirectory()) {
-					thumbFolder = null;
+				if (cachedThumbnail != null) {
 					break;
 				}
-			}
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
 
-			alternativeCheck = true;
+				if (cachedThumbnail != null) {
+					break;
+				}
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
+
+				if (cachedThumbnail != null) {
+					break;
+				}
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
+
+				if (cachedThumbnail != null) {
+					break;
+				}
+
+				if (MediaType.AUDIO.equals(mediaType) && getParent() != null && getParent() instanceof RealFile) {
+					cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
+				}
+
+				if (cachedThumbnail != null || alternativeCheck) {
+					break;
+				}
+
+				if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
+					thumbFolder = new File(configuration.getAlternateThumbFolder());
+
+					if (!thumbFolder.isDirectory()) {
+						thumbFolder = null;
+						break;
+					}
+				}
+
+				alternativeCheck = true;
+			}
 		}
 
 		if (file.isDirectory()) {
