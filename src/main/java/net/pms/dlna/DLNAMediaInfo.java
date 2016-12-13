@@ -36,6 +36,8 @@ import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
+import net.pms.util.ImagesUtil.ImageFormat;
+import net.pms.util.ImagesUtil.ScaleType;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
@@ -878,7 +880,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Create the thumbnail image using the Thumbnailator library
 					try {
-						thumb = Files.readAllBytes(file.toPath());
+						thumb = ImagesUtil.scaleImage(Files.readAllBytes(file.toPath()), 320, 320, ScaleType.MAX, ImageFormat.JPEG, false);
 					} catch (IOException e) {
 						LOGGER.debug("Error generating thumbnail for \"{}\": {}", file.getName(), e.getMessage());
 						LOGGER.trace("", e);
