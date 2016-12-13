@@ -877,6 +877,7 @@ public class DLNAMediaInfo implements Cloneable {
 					// Create the thumbnail image using the Thumbnailator library
 					try {
 						thumb = ImagesUtil.scaleImage(Files.readAllBytes(file.toPath()), 320, 320, ScaleType.MAX, ImageFormat.JPEG, false);
+						ffmpeg_parsing = false;
 					} catch (IOException e) {
 						LOGGER.debug("Error generating thumbnail for \"{}\": {}", file.getName(), e.getMessage());
 						LOGGER.trace("", e);
