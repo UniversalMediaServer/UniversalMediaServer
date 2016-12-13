@@ -296,9 +296,9 @@ public class RemoteWeb {
 				r.checkThumbnail();
 				in = r.getThumbnailInputStream();
 			}
-			in = ImagesUtil.convertImage(in, ImageFormat.PNG);
+			in = ImagesUtil.convertImage(in, ImageFormat.JPEG);
 			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type", HTTPResource.PNG_TYPEMIME);
+			hdr.add("Content-Type", HTTPResource.JPEG_TYPEMIME);
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
 			t.sendResponseHeaders(200, in.available());
