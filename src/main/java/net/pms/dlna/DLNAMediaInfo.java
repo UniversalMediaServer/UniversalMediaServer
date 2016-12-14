@@ -556,9 +556,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args[1] = "-ss";
 		if (resume) {
-			args[2] = "" + (int) getDurationInSeconds();
+			args[2] = Integer.toString((int) getDurationInSeconds());
 		} else {
-			args[2] = "" + configuration.getThumbnailSeekPos();
+			args[2] = Integer.toString((int) Math.min(configuration.getThumbnailSeekPos(), getDurationInSeconds()));
 		}
 
 		args[3] = "-i";
@@ -902,6 +902,7 @@ public class DLNAMediaInfo implements Cloneable {
 					// Create the thumbnail image using the Thumbnailator library
 					try {
 						thumb = ImagesUtil.scaleImage(Files.readAllBytes(file.toPath()), 320, 320, ScaleType.MAX, ImageFormat.JPEG, false);
+						thumbready = true;
 					} catch (IOException e) {
 						LOGGER.debug("Error generating thumbnail for \"{}\": {}", file.getName(), e.getMessage());
 						LOGGER.trace("", e);
@@ -910,7 +911,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 
 			if (ffmpeg_parsing) {
-				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
+				if (!thumbOnly || (type == Format.VIDEO && !configuration.isUseMplayerForVideoThumbs())) {
 					pw = getFFmpegThumbnail(inputFile, resume, renderer);
 				}
 
@@ -962,6 +963,7 @@ public class DLNAMediaInfo implements Cloneable {
 								if (sz > 0) {
 									thumb = new byte[sz];
 									is.read(thumb);
+									thumbready = true;
 								}
 							}
 
@@ -990,6 +992,7 @@ public class DLNAMediaInfo implements Cloneable {
 								if (sz > 0) {
 									thumb = new byte[sz];
 									is.read(thumb);
+									thumbready = true;
 								}
 							}
 						} finally {
