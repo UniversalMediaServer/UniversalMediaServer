@@ -3,6 +3,7 @@ package net.pms.util;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.Locale;
@@ -428,7 +429,12 @@ public class ImagesUtil {
 					// Nothing to do, just return source
 					return imageByteArray;
 				}
-				ImageIO.write(bufferedImage, outputFormat.toString(),out);
+
+				if (outputFormat.equals(ImageFormat.JPEG)) { // The ImageIO JPEG format doesn't support the CMYK color type or transparency than it is converted to RGB
+					bufferedImage = convertToRGBFormat(bufferedImage);
+				}
+
+				ImageIO.write(bufferedImage, outputFormat.toString(), out);
 			} else {
 				if (padToSize) {
 					Thumbnails.of(bufferedImage)
@@ -492,4 +498,15 @@ public class ImagesUtil {
     	}
     }
 
+	/**
+	 * Converts a source image to the image in the RGB color type.
+	 *
+	 * @param inputImage the source image.
+	 * @return The converted image in the RGB color type.
+	 */
+    public static BufferedImage convertToRGBFormat(BufferedImage inputImage) {
+    	BufferedImage rgbImage = new BufferedImage(inputImage.getWidth(), inputImage.getHeight(), BufferedImage.TYPE_INT_RGB);;
+    	new ColorConvertOp(null).filter(inputImage, rgbImage);
+    	return rgbImage;
+    }
 }
