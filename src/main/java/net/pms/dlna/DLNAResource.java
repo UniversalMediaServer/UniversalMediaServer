@@ -48,6 +48,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.*;
+import net.pms.util.ImagesUtil.ImageFormat;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +70,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+	private volatile ImageMetaData thumbnailMetaData = null;
 	protected PmsConfiguration configuration = PMS.getConfiguration();
 //	private boolean subsAreValidForStreaming = false;
 
@@ -1690,7 +1692,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return Returns a URL pointing to an image representing the item. If
 	 * none is available, "thumbnail0000.png" is used.
 	 */
-	protected String getThumbnailURL(ImageProfile profile) {
+	protected String getThumbnailURL(String profile) {
 		return getURL("thumbnail0000" + profile + "_");
 	}
 
@@ -1870,6 +1872,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param localizationValue
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
+	@SuppressWarnings("deprecation")
 	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
@@ -2724,56 +2727,165 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * > If album art thumbnails are provided, the desired expectation is
 		 * > to have JPEG thumbnails. Additional thumbnails can also be provided.
 		 */
+
+		// Copy the reference for consistent results
+		ImageMetaData metaData = thumbnailMetaData;
 		switch (mediaType.MediaTypeInt) {
 			case MediaType.AUDIO_INT:
-				addAlbumArt(sb, ImageProfile.JPEG_TN);
-				addAlbumArt(sb, ImageProfile.PNG_TN);
+				addAlbumArt(sb, DLNAImageProfile.PNG_TN);
+				addAlbumArt(sb, DLNAImageProfile.JPEG_TN);
+				addImageResource(sb, DLNAImageProfile.PNG_TN, metaData);
+				addImageResource(sb, DLNAImageProfile.JPEG_TN, metaData);
+				if (metaData != null) {
+					if (metaData.width > 160 || metaData.height > 160) {
+						addAlbumArt(sb, DLNAImageProfile.JPEG_SM);
+						addAlbumArt(sb, DLNAImageProfile.PNG_LRG);
+						addImageResource(sb, DLNAImageProfile.JPEG_SM, metaData);
+						addImageResource(sb, DLNAImageProfile.PNG_LRG, metaData);
+						// Offer exact resolution from 640 x 640 and below.
+						if (metaData.width <= 640 && metaData.height <= 640) {
+							addImageResource(sb, DLNAImageProfile.getJPEG_RES_H_V(metaData.width, metaData.height), metaData);
+						}
+					}
+					if (metaData.width > 640 || metaData.height > 480) {
+						addAlbumArt(sb, DLNAImageProfile.JPEG_MED);
+						addImageResource(sb, DLNAImageProfile.JPEG_MED, metaData);
+					}
+					if (metaData.width > 1024 || metaData.height > 768) {
+						addAlbumArt(sb, DLNAImageProfile.JPEG_LRG);
+						addImageResource(sb, DLNAImageProfile.JPEG_LRG, metaData);
+					}
+				}
 				break;
 			case MediaType.IMAGE_INT:
-				addThumbnailResource(sb, ImageProfile.JPEG_TN);
-				addThumbnailResource(sb, ImageProfile.PNG_TN);
-				// The line below breaks the standard, but some renderers need it
-				addAlbumArt(sb, ImageProfile.JPEG_TN);
+				// Offering AlbumArt here breaks the standard, but some renderers need it
+				addImageResource(sb, DLNAImageProfile.PNG_TN, metaData);
+				addImageResource(sb, DLNAImageProfile.JPEG_TN, metaData);
+				if (metaData != null) {
+					if (metaData.width > 160 || metaData.height > 160) {
+						addImageResource(sb, DLNAImageProfile.JPEG_SM, metaData);
+						addImageResource(sb, DLNAImageProfile.PNG_LRG, metaData);
+						addAlbumArt(sb, DLNAImageProfile.JPEG_SM);
+						addAlbumArt(sb, DLNAImageProfile.PNG_LRG);
+						// Offer exact resolution from 640 x 640 and below.
+						if (metaData.width <= 640 && metaData.height <= 640) {
+							addImageResource(sb, DLNAImageProfile.getJPEG_RES_H_V(metaData.width, metaData.height), metaData);
+						}
+					}
+					if (metaData.width > 640 || metaData.height > 480) {
+						addImageResource(sb, DLNAImageProfile.JPEG_MED, metaData);
+						addAlbumArt(sb, DLNAImageProfile.JPEG_MED);
+					}
+					if (metaData.width > 1024 || metaData.height > 768) {
+						addImageResource(sb, DLNAImageProfile.JPEG_LRG, metaData);
+						addAlbumArt(sb, DLNAImageProfile.JPEG_LRG);
+					}
+				}
+				addAlbumArt(sb, DLNAImageProfile.PNG_TN);
+				addAlbumArt(sb, DLNAImageProfile.JPEG_TN);
 				break;
 			case MediaType.VIDEO_INT:
-				addThumbnailResource(sb, ImageProfile.JPEG_TN);
-				addThumbnailResource(sb, ImageProfile.PNG_TN);
-				// XXX The JPEG specification below is wrong, we should offer
-				// the correct profile depending on the actual resolution
-				// we have available. That information isn't available
-				// here, and would require significant refactoring
-				// to make available.
-				addThumbnailResource(sb, ImageProfile.JPEG_MED);
-				addThumbnailResource(sb, ImageProfile.JPEG_LRG);
-				addThumbnailResource(sb, ImageProfile.PNG_LRG);
-				// The line below breaks the standard, but some renderers need it
-				addAlbumArt(sb, ImageProfile.JPEG_TN);
+				// Offering AlbumArt here breaks the standard, but some renderers need it
+				addImageResource(sb, DLNAImageProfile.PNG_TN, metaData);
+				addImageResource(sb, DLNAImageProfile.JPEG_TN, metaData);
+				if (metaData != null) {
+					if (metaData.width > 160 || metaData.height > 160) {
+						addImageResource(sb, DLNAImageProfile.JPEG_SM, metaData);
+						addImageResource(sb, DLNAImageProfile.PNG_LRG, metaData);
+						addAlbumArt(sb, DLNAImageProfile.JPEG_SM);
+						addAlbumArt(sb, DLNAImageProfile.PNG_LRG);
+						// Offer exact resolution from 640 x 640 and below.
+						if (metaData.width <= 640 && metaData.height <= 640) {
+							addImageResource(sb, DLNAImageProfile.getJPEG_RES_H_V(metaData.width, metaData.height), metaData);
+						}
+					}
+					if (metaData.width > 640 || metaData.height > 480) {
+						addImageResource(sb, DLNAImageProfile.JPEG_MED, metaData);
+						addAlbumArt(sb, DLNAImageProfile.JPEG_MED);
+					}
+					if (metaData.width > 1024 || metaData.height > 768) {
+						addImageResource(sb, DLNAImageProfile.JPEG_LRG, metaData);
+						addAlbumArt(sb, DLNAImageProfile.JPEG_LRG);
+					}
+				} else {
+					addImageResource(sb, DLNAImageProfile.PNG_LRG, null);
+					addImageResource(sb, DLNAImageProfile.JPEG_MED, null);
+					addImageResource(sb, DLNAImageProfile.JPEG_LRG, null);
+				}
+				addAlbumArt(sb, DLNAImageProfile.PNG_TN);
+				addAlbumArt(sb, DLNAImageProfile.JPEG_TN);
+				break;
+			default:
 				break;
 		}
 	}
 
-	private void addThumbnailResource(StringBuilder sb, ImageProfile thumbnailProfile) {
-		String thumbURL = getThumbnailURL(thumbnailProfile);
+	private void addImageResource(StringBuilder sb, DLNAImageProfile imageProfile, ImageMetaData metaData) {
+		if (metaData == null && DLNAImageProfile.JPEG_RES_H_V.equals(imageProfile)) {
+			// Impossible: Need to know the thumbnail resolution to use this profile
+			return;
+		}
+		String thumbURL = DLNAImageProfile.JPEG_RES_H_V.equals(imageProfile) ?
+			getThumbnailURL("JPEG_RES" + metaData.width + "x" + metaData.height) :
+			getThumbnailURL(imageProfile.toString());
 		if (StringUtils.isNotBlank(thumbURL)) {
-			String mimeType;
-			switch (thumbnailProfile) {
-				case PNG_LRG:
-				case PNG_TN:
-					mimeType = HTTPResource.PNG_TYPEMIME;
-					break;
-				default:
-					mimeType = HTTPResource.JPEG_TYPEMIME;
+			String ciFlag;
+			if (metaData == null) {
+				ciFlag = "";
+			} else if (metaData.getFormat().equals(ImageFormat.toImageFormat(imageProfile))){
+				boolean conversionIndicator;
+				switch (imageProfile.toInt()) {
+					case DLNAImageProfile.GIF_LRG_INT:
+						conversionIndicator = metaData.width > 1600 || metaData.height > 1200;
+						break;
+					case DLNAImageProfile.JPEG_LRG_INT:
+						conversionIndicator = metaData.width > 4096 || metaData.height > 4096;
+						break;
+					case DLNAImageProfile.JPEG_MED_INT:
+						conversionIndicator = metaData.width > 1024 || metaData.height > 768;
+						break;
+					case DLNAImageProfile.JPEG_RES_H_V_INT:
+						conversionIndicator = false;
+						break;
+					case DLNAImageProfile.JPEG_SM_INT:
+						conversionIndicator = metaData.width > 640 || metaData.height > 480;
+						break;
+					case DLNAImageProfile.JPEG_TN_INT:
+						conversionIndicator = metaData.width > 160 || metaData.height > 160;
+						break;
+					case DLNAImageProfile.PNG_LRG_INT:
+						conversionIndicator = metaData.width > 4096 || metaData.height > 4096;
+						break;
+					case DLNAImageProfile.PNG_TN_INT:
+						conversionIndicator = metaData.width > 160 || metaData.height > 160;
+						break;
+					default:
+						conversionIndicator = true;
+				}
+				ciFlag = conversionIndicator ? ";DLNA.ORG_CI=1" : ";DLNA.ORG_CI=0";
+			} else {
+				ciFlag = ";DLNA.ORG_CI=1";
 			}
 			openTag(sb, "res");
-			addAttribute(sb, "protocolInfo", "http-get:*:" + mimeType + ":DLNA.ORG_PN=" + thumbnailProfile + ";DLNA.ORG_FLAGS=00900000000000000000000000000000");
+			if (metaData != null) {
+				addAttribute(sb, "size", Integer.toString(metaData.size));
+				addAttribute(sb, "resolution", Integer.toString(metaData.width) + "x" + Integer.toString(metaData.height));
+			}
+
+			addAttribute(sb,
+				"protocolInfo",
+				"http-get:*:" + imageProfile.getMimeType() + ":DLNA.ORG_PN=" +
+				imageProfile +
+				ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000"
+			);
 			endTag(sb);
 			sb.append(thumbURL);
 			closeTag(sb, "res");
 		}
 	}
 
-	private void addAlbumArt(StringBuilder sb, ImageProfile thumbnailProfile) {
-		String albumArtURL = getThumbnailURL(thumbnailProfile);
+	private void addAlbumArt(StringBuilder sb, DLNAImageProfile thumbnailProfile) {
+		String albumArtURL = getThumbnailURL(thumbnailProfile.toString());
 		if (StringUtils.isNotBlank(albumArtURL)) {
 			openTag(sb, "upnp:albumArtURI");
 			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
@@ -3305,17 +3417,39 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Returns the input stream for this resource's generic thumbnail,
 	 * which is the first of:
-	 *          - its Format icon, if any
-	 *          - the fallback image, if any
-	 *          - the default video icon
+	 *      <li> its Format icon, if any
+	 *      <li> the fallback image, if any
+	 *      <li> the {@link GenericIcons} icon
+	 * <br><br>
+	 * This is a wrapper around {@link #getGenericThumbnailInputStream0()} that
+	 * stores the {@link ImageMetaData} before returning the
+	 * {@link InputStream}.
 	 *
 	 * @param fallback
-	 *            the fallback image, or null.
-	 *
-	 * @return The InputStream
+	 *            the fallback image, or {@code null}.
+	 * @return The {@link DLNAThumbnailInputStream}.
 	 * @throws IOException
 	 */
-	public InputStream getGenericThumbnailInputStream(String fallback) throws IOException {
+	public final DLNAThumbnailInputStream getGenericThumbnailInputStream(String fallback) throws IOException {
+		DLNAThumbnailInputStream inputStream = getGenericThumbnailInputStreamInternal(fallback);
+		thumbnailMetaData = ImageMetaData.toThumbnailMetaData(inputStream);
+		return inputStream;
+	}
+
+	/**
+	 * Returns the input stream for this resource's generic thumbnail,
+	 * which is the first of:
+	 *      <li> its Format icon, if any
+	 *      <li> the fallback image, if any
+	 *      <li> the {@link GenericIcons} icon
+	 * <br><br>
+	 * @param fallback
+	 *            the fallback image, or {@code null}.
+	 *
+	 * @return The {@link DLNAThumbnailInputStream}.
+	 * @throws IOException
+	 */
+	protected DLNAThumbnailInputStream getGenericThumbnailInputStreamInternal(String fallback) throws IOException {
 		String thumb = fallback;
 		if (format != null && format.getIcon() != null) {
 			thumb = format.getIcon();
@@ -3325,30 +3459,44 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (thumb != null && isCodeValid(this)) {
 			// A local file
 			if (new File(thumb).exists()) {
-				return new FileInputStream(thumb);
+				return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumb));
 			}
 
 			// A jar resource
 			InputStream is;
 			if ((is = getResourceInputStream(thumb)) != null) {
-				return is;
+				return DLNAThumbnailInputStream.toThumbnailInputStream(is);
 			}
 
 			// A URL
 			try {
-				return downloadAndSend(thumb, true);
+				return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumb, true));
 			} catch (Exception e) {}
 		}
 
 		// Or none of the above
-		if (!isFolder()) {
-			return GenericIcons.INSTANCE.getGenericIcon(media);
+		if (isFolder()) {
+			return GenericIcons.INSTANCE.getGenericFolderIcon();
 		} else {
-			String defaultThumbnailImage = null;
-			defaultThumbnailImage = "images/thumbnail-folder-256.png";
-			LOGGER.trace("Using default thumbnail {}", defaultThumbnailImage);
-			return getResourceInputStream(defaultThumbnailImage);
+			return GenericIcons.INSTANCE.getGenericIcon(media);
 		}
+	}
+
+	/**
+	 * Returns the input stream for this resource's thumbnail
+	 * (or a default image if a thumbnail can't be found).
+	 * Typically overridden by a subclass.<br>
+	 * <br>
+	 * This is a wrapper around {@link #getThumbnailInputStream()} that stores
+	 * the {@link ImageMetaData} before returning the {@link InputStream}.
+	 *
+	 * @return The {@link DLNAThumbnailInputStream}.
+	 * @throws IOException
+	 */
+	public final DLNAThumbnailInputStream fetchThumbnailInputStream() throws IOException {
+		DLNAThumbnailInputStream inputStream = getThumbnailInputStream();
+		thumbnailMetaData = ImageMetaData.toThumbnailMetaData(inputStream);
+		return inputStream;
 	}
 
 	/**
@@ -3356,10 +3504,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * (or a default image if a thumbnail can't be found).
 	 * Typically overridden by a subclass.
 	 *
-	 * @return The InputStream
+	 * @return The {@link DLNAThumbnailInputStream}.
 	 * @throws IOException
 	 */
-	public InputStream getThumbnailInputStream() throws IOException {
+	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		String languageCode = null;
 		if (media_audio != null) {
 			languageCode = media_audio.getLang();
@@ -3375,11 +3523,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (languageCode != null) {
 			String code = Iso639.getISO639_2Code(languageCode.toLowerCase());
-			return getResourceInputStream("/images/codes/" + code + ".png");
+			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/codes/" + code + ".png"));
 		}
 
 		if (isAvisynth()) {
-			return getResourceInputStream("/images/logo-avisynth.png");
+			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo-avisynth.png"));
 		}
 
 		return getGenericThumbnailInputStream(null);
@@ -4309,7 +4457,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public static String getValidResourceURL(String uri, String name, RendererConfiguration r) {
 		if (isResourceUrl(uri)) {
 			// Check existence
-			return PMS.get().getGlobalRepo().exists(parseResourceId(uri)) ? uri : null; // TODO: attempt repair
+			return PMS.getGlobalRepo().exists(parseResourceId(uri)) ? uri : null; // TODO: attempt repair
 		} else {
 			DLNAResource d = Temp.add(uri, name, r);
 			if (d != null) {
@@ -4432,13 +4580,59 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return scaleWidth + "x" + scaleHeight;
 	}
 
-	/**
-	 * Definition of the different DLNA media profiles for images. If more
-	 * are added, corresponding changes need to be made in
-	 * {@link ImageFormat#fromImageProfile}.
-	 */
+	public static class ImageMetaData {
+		private final int width;
+		private final int height;
+		private final ImageFormat format;
+		private final int size;
 
-	public enum ImageProfile {
-		JPEG_LRG, JPEG_MED, JPEG_SM, JPEG_TN, PNG_LRG, PNG_TN
+		public ImageMetaData(int width, int height, ImageFormat format, int size) {
+			this.width = width;
+			this.height = height;
+			this.format = format;
+			this.size = size;
+		}
+
+		public int getWidth() {
+			return width;
+		}
+
+		public int getHeight() {
+			return height;
+		}
+
+		public ImageFormat getFormat() {
+			return format;
+		}
+
+		public int getSize() {
+			return size;
+		}
+
+		/**
+		 * @param thumbnail the {@linkplain DLNAThumbnail} to retrieve metadata
+		 *                  from.
+		 * @return A new {@link ImageMetaData} instance with metadata from
+		 *         the given {@link DLNAThumbnail}.
+		 */
+		public static ImageMetaData toThumbnailMetaData(DLNAThumbnail thumbnail) {
+			if (thumbnail == null) {
+				return null;
+			}
+			return new ImageMetaData(thumbnail.getWidth(), thumbnail.getHeight(), thumbnail.getFormat(), thumbnail.getSize());
+		}
+
+		/**
+		 * @param thumbnail the {@linkplain DLNAThumbnail} to retrieve metadata
+		 *                  from.
+		 * @return A new {@link ImageMetaData} instance with metadata from
+		 *         the given {@link DLNAThumbnailInputStream}.
+		 */
+		public static ImageMetaData toThumbnailMetaData(DLNAThumbnailInputStream thumbnail) {
+			if (thumbnail == null) {
+				return null;
+			}
+			return new ImageMetaData(thumbnail.getWidth(), thumbnail.getHeight(), thumbnail.getFormat(), thumbnail.getSize());
+		}
 	}
 }

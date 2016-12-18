@@ -43,57 +43,63 @@ public class CustomImageReader {
 
         ImageInputStream stream = createImageInputStream(input);
         ImageReaderResult result = read(stream);
-        if (result.bufferedImage == null) {
-            stream.close();
+        return result;
+    }
+
+    protected static ImageFormat parseFormatName(String formatName) {
+    	ImageFormat result = null;
+        if (formatName != null) {
+        	if (formatName.contains("BMP")) {
+        		result = ImageFormat.BMP;
+        	} else if (formatName.contains("GIF")) {
+        		result = ImageFormat.GIF;
+        	} else if (formatName.contains("CUR")) {
+        		result = ImageFormat.CUR;
+        	} else if (formatName.contains("ICO")) {
+        		result = ImageFormat.ICO;
+        	} else if (formatName.contains("JPEG")) {
+        		result = ImageFormat.JPEG;
+        	} else if (formatName.contains("TIFF")) {
+        		result = ImageFormat.TIFF;
+        	} else if (formatName.contains("PNG")) {
+        		result = ImageFormat.PNG;
+        	} else if (formatName.contains("WBMP")) {
+        		result = ImageFormat.WBMP;
+        	}
         }
         return result;
     }
 
-    public static ImageReaderResult read(ImageInputStream stream)
-        throws IOException {
+    /**
+     * <b>Closes {@code stream}</b>
+     */
+    public static ImageReaderResult read(ImageInputStream stream) throws IOException {
         if (stream == null) {
             throw new IllegalArgumentException("stream == null!");
         }
 
-        Iterator<?> iter = ImageIO.getImageReaders(stream);
-        if (!iter.hasNext()) {
-            return null;
-        }
-
-        ImageFormat inputFormat = null;
-        ImageReader reader = (ImageReader) iter.next();
-        String formatName = reader.getFormatName().toUpperCase(Locale.ROOT);
-        // Store the parsing result
-        if (formatName != null) {
-        	if (formatName.contains("BMP")) {
-        		inputFormat = ImageFormat.BMP;
-        	} else if (formatName.contains("GIF")) {
-        		inputFormat = ImageFormat.GIF;
-        	} else if (formatName.contains("CUR")) {
-        		inputFormat = ImageFormat.CUR;
-        	} else if (formatName.contains("ICO")) {
-        		inputFormat = ImageFormat.ICO;
-        	} else if (formatName.contains("JPEG")) {
-        		inputFormat = ImageFormat.JPEG;
-        	} else if (formatName.contains("TIFF")) {
-        		inputFormat = ImageFormat.TIFF;
-        	} else if (formatName.contains("PNG")) {
-        		inputFormat = ImageFormat.PNG;
-        	} else if (formatName.contains("WBMP")) {
-        		inputFormat = ImageFormat.WBMP;
-        	}
-        }
-
-        ImageReadParam param = reader.getDefaultReadParam();
-        reader.setInput(stream, true, true);
-        BufferedImage bi;
         try {
-            bi = reader.read(0, param);
+	        Iterator<?> iter = ImageIO.getImageReaders(stream);
+	        if (!iter.hasNext()) {
+	        	throw new UnknownFormatException("Could not find a suitable reader for: " + stream);
+	        }
+
+	        ImageReader reader = (ImageReader) iter.next();
+	        // Store the parsing result
+	        ImageFormat inputFormat = parseFormatName(reader.getFormatName().toUpperCase(Locale.ROOT));
+
+	        BufferedImage bi;
+	        ImageReadParam param = reader.getDefaultReadParam();
+	        reader.setInput(stream, true, true);
+	        try {
+	            bi = reader.read(0, param);
+	        } finally {
+	            reader.dispose();
+	        }
+	        return new ImageReaderResult(bi, inputFormat);
         } finally {
-            reader.dispose();
-            stream.close();
+        	stream.close();
         }
-        return new ImageReaderResult(bi, inputFormat);
     }
 
     /**
@@ -143,5 +149,25 @@ public class CustomImageReader {
     		this.bufferedImage = bufferedImage;
     		this.imageFormat = imageFormat;
     	}
+    }
+
+    public static class UnknownFormatException extends IOException {
+		private static final long serialVersionUID = -3779357403392039811L;
+
+		public UnknownFormatException() {
+            super();
+        }
+
+        public UnknownFormatException(String message) {
+            super(message);
+        }
+
+        public UnknownFormatException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public UnknownFormatException(Throwable cause) {
+            super(cause);
+        }
     }
 }

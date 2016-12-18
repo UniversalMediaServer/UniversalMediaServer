@@ -50,6 +50,7 @@ import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
@@ -135,7 +136,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 
-	private volatile byte[] thumb = null;
+	private volatile DLNAThumbnail thumb = null;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -772,7 +773,12 @@ public class DLNAMediaInfo implements Cloneable {
 
 				if (file != null) {
 					try {
-						AudioFile af = AudioFileIO.read(file);
+						AudioFile af;
+						if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
+							af = AudioFileIO.readAs(file, "mp3");
+						} else {
+							af = AudioFileIO.read(file);
+						}
 						AudioHeader ah = af.getAudioHeader();
 
 						if (ah != null && !thumbOnly) {
@@ -811,9 +817,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 						if (t != null) {
 							if (t.getArtworkList().size() > 0) {
-								thumb = t.getArtworkList().get(0).getBinaryData();
+								thumb = DLNAThumbnail.toThumbnail(t.getArtworkList().get(0).getBinaryData());
 							} else if (!configuration.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
-									thumb = CoverUtil.get().getThumbnail(t);
+								thumb = DLNAThumbnail.toThumbnail(CoverUtil.get().getThumbnail(t));
 							}
 							if (thumb != null) {
 								thumbready = true;
@@ -838,8 +844,17 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 						}
-					} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
-						LOGGER.debug("Error parsing audio file: {} - {}", e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
+					} catch (CannotReadException e) {
+						if (e.getMessage().startsWith(
+							ErrorMessage.NO_READER_FOR_THIS_FORMAT.getMsg().substring(0, ErrorMessage.NO_READER_FOR_THIS_FORMAT.getMsg().indexOf("{"))
+						)) {
+							LOGGER.debug("No audio tag support for audio file \"{}\"", file.getName());
+						} else {
+							LOGGER.error("Error reading audio tag for \"{}\": {}", file.getName(), e.getMessage());
+							LOGGER.trace("", e);
+						}
+					} catch (IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
+						LOGGER.debug("Error parsing audio file tag for \"{}\": {}", file.getName(), e.getMessage());
 						LOGGER.trace("", e);
 						ffmpeg_parsing = false;
 					}
@@ -874,9 +889,10 @@ public class DLNAMediaInfo implements Cloneable {
 				if (configuration.isThumbnailGenerationEnabled() && configuration.getImageThumbnailsEnabled() && thumbOnly) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
-					// Create the thumbnail image using the Thumbnailator library
+					// Create the thumbnail image
 					try {
-						thumb = ImagesUtil.scaleImage(Files.readAllBytes(file.toPath()), 320, 320, ScaleType.MAX, ImageFormat.JPEG, false);
+						// This will fail for any image formats not supported by ImageIO
+						thumb = DLNAThumbnail.toThumbnail(Files.newInputStream(file.toPath()), 320, 320, ScaleType.MAX, ImageFormat.SOURCE);
 						thumbready = true;
 					} catch (IOException e) {
 						LOGGER.debug("Error generating thumbnail for \"{}\": {}", file.getName(), e.getMessage());
@@ -936,8 +952,9 @@ public class DLNAMediaInfo implements Cloneable {
 								int sz = is.available();
 
 								if (sz > 0) {
-									thumb = new byte[sz];
-									is.read(thumb);
+									byte[] bytes = new byte[sz];
+									is.read(bytes);
+									thumb = DLNAThumbnail.toThumbnail(bytes);
 									thumbready = true;
 								}
 							}
@@ -965,8 +982,9 @@ public class DLNAMediaInfo implements Cloneable {
 							if (is != null) {
 								sz = is.available();
 								if (sz > 0) {
-									thumb = new byte[sz];
-									is.read(thumb);
+									byte[] bytes = new byte[sz];
+									is.read(bytes);
+									thumb = DLNAThumbnail.toThumbnail(bytes);
 									thumbready = true;
 								}
 							}
@@ -1580,9 +1598,9 @@ public class DLNAMediaInfo implements Cloneable {
 		result.append(", frame rate: ");
 		result.append(frameRate);
 
-		if (thumb != null) {
+		if (thumb != null && thumb.getBytes(false) != null) {
 			result.append(", thumb size: ");
-			result.append(thumb.length);
+			result.append(thumb.getBytes(false).length);
 		}
 		if (isNotBlank(muxingMode)) {
 			result.append(", muxing mode: ");
@@ -1619,9 +1637,9 @@ public class DLNAMediaInfo implements Cloneable {
 		return result.toString();
 	}
 
-	public InputStream getThumbnailInputStream() {
-		return new ByteArrayInputStream(thumb);
-		}
+	public DLNAThumbnailInputStream getThumbnailInputStream() {
+		return thumb != null ? new DLNAThumbnailInputStream(thumb) : null;
+	}
 
 	public String getValidFps(boolean ratios) {
 		String validFrameRate = null;
@@ -2090,25 +2108,17 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the thumb
 	 * @since 1.50.0
 	 */
-	public byte[] getThumb() {
-		if (thumb == null) {
-			return null;
-		}
-		byte[] result = new byte[thumb.length];
-		System.arraycopy(thumb, 0, result, 0, thumb.length);
-		return result;
+	public DLNAThumbnail getThumb() {
+		return thumb;
 	}
 
 	/**
 	 * @param thumb the thumb to set
 	 * @since 1.50.0
 	 */
-	public void setThumb(byte[] thumb) {
-		if (thumb == null) {
-			this.thumb = null;
-		} else {
-			this.thumb = new byte[thumb.length];
-			System.arraycopy(thumb, 0, this.thumb, 0, thumb.length);
+	public void setThumb(DLNAThumbnail thumb) {
+		this.thumb = thumb;
+		if (thumb != null) {
 			thumbready = true;
 		}
 	}

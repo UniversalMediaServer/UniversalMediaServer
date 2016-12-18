@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.FormatFactory;
 
 /**
@@ -172,8 +173,8 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * @see net.pms.dlna.DLNAResource#getThumbnailInputStream()
 	 */
 	@Override
-	public InputStream getThumbnailInputStream() {
-		return getResourceInputStream(enabled ? thumbnailIconOK : thumbnailIconKO);
+	public DLNAThumbnailInputStream getThumbnailInputStream() {
+		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream(enabled ? thumbnailIconOK : thumbnailIconKO));
 	}
 
 	/**

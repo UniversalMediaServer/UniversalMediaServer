@@ -23,6 +23,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
+import net.pms.util.GenericIcons;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,6 +185,11 @@ public abstract class Format implements Cloneable {
 		return HTTPResource.getDefaultMimeType(type);
 	}
 
+	/**
+	 * Not in use, handled by {@link GenericIcons}
+	 *
+	 * @deprecated
+	 */
 	public void setIcon(String filename) {
 		icon = filename;
 	}

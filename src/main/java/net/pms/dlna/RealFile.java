@@ -204,7 +204,7 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder && (getMediaSubtitle() != null || getMediaAudio() != null)) {
 			return super.getThumbnailInputStream();
 		}
@@ -271,7 +271,7 @@ public class RealFile extends MapFile {
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
 
 		if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
-			return new FileInputStream(cachedThumbnail);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {
@@ -287,7 +287,7 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	protected String getThumbnailURL(ImageProfile profile) {
+	protected String getThumbnailURL(String profile) {
 		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
 			return null;
 		}

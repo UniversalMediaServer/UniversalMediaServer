@@ -8,6 +8,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.InputFile;
 import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
@@ -19,7 +20,7 @@ public class RAW extends JPG {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
 
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
@@ -79,7 +80,7 @@ public class RAW extends JPG {
 	 * Returns whether or not a format can be handled by the PS3 natively.
 	 * This means the format can be streamed to PS3 instead of having to be
 	 * transcoded.
-	 * 
+	 *
 	 * @return True if the format can be handled by PS3, false otherwise.
 	 */
 	@Deprecated
@@ -140,7 +141,7 @@ public class RAW extends JPG {
 								.outputFormat("JPEG")
 								.outputQuality(1.0f)
 								.toOutputStream(out);
-					media.setThumb(out.toByteArray());
+					media.setThumb(DLNAThumbnail.toThumbnail(out.toByteArray()));
 				}
 			}
 

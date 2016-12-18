@@ -2,10 +2,9 @@ package net.pms.util;
 
 import java.awt.Color;
 import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.*;
 import java.lang.reflect.Field;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -18,8 +17,10 @@ import net.coobird.thumbnailator.filters.Canvas;
 import net.coobird.thumbnailator.geometry.Positions;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAResource.ImageProfile;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.util.CustomImageReader.ImageReaderResult;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.ImageReadException;
@@ -253,11 +254,8 @@ public class ImagesUtil {
 	 * Convert and scales an image for use as a thumbnail for a specific
 	 * {@code RendererConfiguration} .Preserves aspect ratio. Format support is
 	 * limited to that of {@link ImageIO}.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
 	 *
-	 * @param imageInputStream the source image in a supported format.
+	 * @param thumbnailInputStream the source image in a supported format.
 	 * @param imageProfile the DLNA media profile to adhere to for the output.
 	 * @param renderer the {@link RendererConfiguration} to get output settings
 	 *                 from.
@@ -267,22 +265,49 @@ public class ImagesUtil {
 	 * XXX Ideally all internal thumb handling should be done using byte arrays
 	 *     instead of streams, and this overload could be removed.
 	 */
-	public static InputStream scaleThumb(InputStream imageInputStream, ImageProfile imageProfile, RendererConfiguration renderer) {
-		if (imageInputStream == null) {
+	public static InputStream scaleThumb(DLNAThumbnailInputStream thumbnailInputStream, DLNAImageProfile imageProfile, RendererConfiguration renderer) {
+		if (thumbnailInputStream == null) {
 			return null;
 		}
 
-		byte[] imageByteArray = null;
 		try {
-			imageByteArray = toByteArray(imageInputStream);
-		} catch (IOException e) {
-			LOGGER.warn("Renderer scaling failed: {}", e.getMessage());
-			LOGGER.trace("", e);
-			return null;
+			return new ByteArrayInputStream(scaleThumb(thumbnailInputStream.getThumbnail(), imageProfile, renderer));
+		} finally {
+			thumbnailInputStream.fullReset();
 		}
+	}
 
-		byte[] result = scaleThumb(imageByteArray, imageProfile, renderer);
-		return result == null ? null : new ByteArrayInputStream(result);
+	/**
+	 * Convert and scales a thumbnail for use for a specific
+	 * {@code RendererConfiguration} .Preserves aspect ratio. Format support is
+	 * limited to that of {@link ImageIO}.
+	 *
+	 * @param thumbnail the source thumbnail in a supported format.
+	 * @param imageProfile the DLNA media profile to adhere to for the output.
+	 * @param renderer the {@link RendererConfiguration} to get output settings
+	 *                 from.
+	 * @return The scaled and/or converted thumbnail, {@code null} if the
+	 *         source is {@code null} or the source image if the operation fails.
+	 */
+	public static byte[] scaleThumb(DLNAThumbnail thumbnail, DLNAImageProfile imageProfile, RendererConfiguration renderer) {
+		switch (imageProfile.toInt()) {
+			case DLNAImageProfile.JPEG_LRG_INT:
+				return scaleImage(thumbnail.getBytes(false), 4096, 4096, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case DLNAImageProfile.JPEG_MED_INT:
+				return scaleImage(thumbnail.getBytes(false), 1024, 768, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case DLNAImageProfile.JPEG_RES_H_V_INT:
+				return scaleImage(thumbnail.getBytes(false), imageProfile.getH(), imageProfile.getV(), ScaleType.EXACT, ImageFormat.JPEG, false);
+			case DLNAImageProfile.JPEG_SM_INT:
+				return scaleImage(thumbnail.getBytes(false), 640, 480, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case DLNAImageProfile.JPEG_TN_INT:
+				return scaleImage(thumbnail.getBytes(false), 160, 160, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case DLNAImageProfile.PNG_LRG_INT:
+				return scaleImage(thumbnail.getBytes(false), 4096, 4096, ScaleType.MAX, ImageFormat.PNG, renderer != null ? renderer.isThumbnailPadding() : false);
+			case DLNAImageProfile.PNG_TN_INT:
+				return scaleImage(thumbnail.getBytes(false), 160, 160, ScaleType.MAX, ImageFormat.PNG, renderer != null ? renderer.isThumbnailPadding() : false);
+			default:
+				return scaleImage(thumbnail.getBytes(false), 160, 160, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
+		}
 	}
 
 	/**
@@ -291,47 +316,17 @@ public class ImagesUtil {
 	 * @return The "decoded" {@link ImageProfile} or {@link ImageProfile#JPEG_TN}
 	 *         if the parsing fails.
 	 */
-	public static ImageProfile parseThumbRequest(String fileName) {
+	public static DLNAImageProfile parseThumbRequest(String fileName) {
 		Matcher matcher = Pattern.compile("^thumbnail0000(\\w+_\\w+)_").matcher(fileName);
 		if (matcher.find()) {
-			try {
-				return ImageProfile.valueOf(matcher.group(1).toUpperCase(Locale.ROOT));
-			} catch (IllegalArgumentException e) {
-				return ImageProfile.JPEG_TN;
+			DLNAImageProfile imageProfile = DLNAImageProfile.toDLNAImageProfile(matcher.group(1));
+			if (imageProfile == null) {
+				LOGGER.warn("Could not parse DLNAImageProfile from \"{}\"", matcher.group(1));
+			} else {
+				return imageProfile;
 			}
 		}
-		return ImageProfile.JPEG_TN;
-	}
-
-	/**
-	 * Convert and scales an image for use as a thumbnail for a specific
-	 * {@code RendererConfiguration} .Preserves aspect ratio. Format support is
-	 * limited to that of {@link ImageIO}.
-	 *
-	 * @param imageByteArray the source image in a supported format.
-	 * @param imageProfile the DLNA media profile to adhere to for the output.
-	 * @param renderer the {@link RendererConfiguration} to get output settings
-	 *                 from.
-	 * @return The scaled and/or converted thumbnail, {@code null} if the
-	 *         source is {@code null} or the source image if the operation fails.
-	 */
-	public static byte[] scaleThumb(byte[] imageByteArray, ImageProfile imageProfile, RendererConfiguration renderer) {
-		switch (imageProfile) {
-			case JPEG_LRG:
-				return scaleImage(imageByteArray, 4096, 4096, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
-			case JPEG_MED:
-				return scaleImage(imageByteArray, 1024, 768, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
-			case JPEG_SM:
-				return scaleImage(imageByteArray, 640, 480, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
-			case JPEG_TN:
-				return scaleImage(imageByteArray, 160, 160, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
-			case PNG_LRG:
-				return scaleImage(imageByteArray, 4096, 4096, ScaleType.MAX, ImageFormat.PNG, renderer != null ? renderer.isThumbnailPadding() : false);
-			case PNG_TN:
-				return scaleImage(imageByteArray, 160, 160, ScaleType.MAX, ImageFormat.PNG, renderer != null ? renderer.isThumbnailPadding() : false);
-			default:
-				return scaleImage(imageByteArray, 160, 160, ScaleType.MAX, ImageFormat.JPEG, renderer != null ? renderer.isThumbnailPadding() : false);
-		}
+		return DLNAImageProfile.JPEG_TN;
 	}
 
 	/**
@@ -394,51 +389,45 @@ public class ImagesUtil {
 		if (imageByteArray == null) {
 			return null;
 		}
-		if (outputFormat == null) {
-			outputFormat = ImageFormat.SOURCE;
-		}
 
 		try {
-			ImageFormat inputFormat = null;
-			BufferedImage bufferedImage;
 			ImageReaderResult imageResult = CustomImageReader.read(new ByteArrayInputStream(imageByteArray));
-			bufferedImage = imageResult.bufferedImage;
-			inputFormat = imageResult.imageFormat;
 
-			if (bufferedImage == null || inputFormat == null) { // ImageIO doesn't support the image format
+			if (imageResult.bufferedImage == null || imageResult.imageFormat == null) { // ImageIO doesn't support the image format
 				LOGGER.warn("Failed to resize image because the source format is unknown");
 				return imageByteArray;
 			}
 
-			if (outputFormat.equals(ImageFormat.SOURCE)) {
-				outputFormat = inputFormat;
+			if (outputFormat == null || outputFormat.equals(ImageFormat.SOURCE)) {
+				outputFormat = imageResult.imageFormat;
 			}
 
+			ImageIO.setUseCache(false);
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			if (width == 0 ||
 				height == 0 ||
 				(
 					ScaleType.MAX.equals(scaleType) &&
-					bufferedImage.getWidth() <= width &&
-					bufferedImage.getHeight() <= height
+					imageResult.bufferedImage.getWidth() <= width &&
+					imageResult.bufferedImage.getHeight() <= height
 				)
 			) {
 				//No resize, just convert
-				if (inputFormat.equals(outputFormat)) {
+				if (imageResult.imageFormat.equals(outputFormat)) {
 					// Nothing to do, just return source
 					return imageByteArray;
 				}
-				ImageIO.write(bufferedImage, outputFormat.toString(),out);
+				imageIOWrite(imageResult.bufferedImage, outputFormat.toString(), out);
 			} else {
 				if (padToSize) {
-					Thumbnails.of(bufferedImage)
+					Thumbnails.of(imageResult.bufferedImage)
 						.size(width, height)
 						.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
 						.outputFormat(outputFormat.toString())
 						.outputQuality(1.0f)
 						.toOutputStream(out);
 				} else {
-					Thumbnails.of(bufferedImage)
+					Thumbnails.of(imageResult.bufferedImage)
 						.size(width, height)
 						.outputFormat(outputFormat.toString())
 						.outputQuality(1.0f)
@@ -455,6 +444,23 @@ public class ImagesUtil {
 		}
 
 		return imageByteArray;
+	}
+
+	/**
+	 * This is a wrapper around
+	 * {@link ImageIO#write(RenderedImage, String, OutputStream)}
+	 * that translate any thrown {@link RuntimeException} to an
+	 * {@link IOUtilsRuntimeException} because {@link IOUtils} has the nasty
+	 * habit of throwing {@link RuntimeException}s when something goes wrong.
+	 *
+	 * @see ImageIO#write(RenderedImage, String, OutputStream)
+	 */
+	public static boolean imageIOWrite(RenderedImage im, String formatName, OutputStream output) throws IOException {
+		try {
+			return ImageIO.write(im, formatName, output);
+		} catch (RuntimeException e) {
+			throw new IOUtilsRuntimeException(e.getMessage(), e);
+		}
 	}
 
 	/**
@@ -475,15 +481,18 @@ public class ImagesUtil {
     public enum ImageFormat {
     	BMP, CUR, GIF, ICO, JPEG, PNG, SOURCE, TIFF, WBMP;
 
-    	public static ImageFormat fromImageProfile(ImageProfile imageProfile) {
-    		switch (imageProfile) {
-				case JPEG_LRG:
-				case JPEG_MED:
-				case JPEG_SM:
-				case JPEG_TN:
+    	public static ImageFormat toImageFormat(DLNAImageProfile imageProfile) {
+    		switch (imageProfile.toInt()) {
+    			case DLNAImageProfile.GIF_LRG_INT:
+    				return ImageFormat.GIF;
+				case DLNAImageProfile.JPEG_LRG_INT:
+				case DLNAImageProfile.JPEG_MED_INT:
+				case DLNAImageProfile.JPEG_RES_H_V_INT:
+				case DLNAImageProfile.JPEG_SM_INT:
+				case DLNAImageProfile.JPEG_TN_INT:
 					return ImageFormat.JPEG;
-				case PNG_LRG:
-				case PNG_TN:
+				case DLNAImageProfile.PNG_LRG_INT:
+				case DLNAImageProfile.PNG_TN_INT:
 					return ImageFormat.PNG;
 				default:
 					return null;
@@ -492,4 +501,23 @@ public class ImagesUtil {
     	}
     }
 
+    public static class IOUtilsRuntimeException extends IOException {
+		private static final long serialVersionUID = -96661084610576312L;
+
+		public IOUtilsRuntimeException() {
+	        super();
+	    }
+
+	    public IOUtilsRuntimeException(String message) {
+	        super(message);
+	    }
+
+	    public IOUtilsRuntimeException(String message, Throwable cause) {
+	        super(message, cause);
+	    }
+
+	    public IOUtilsRuntimeException(Throwable cause) {
+	        super(cause);
+	    }
+    }
 }
