@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -373,7 +373,7 @@ public class StringUtil {
 
 	/**
 	 * Escapes {@link org.apache.lucene} special characters with backslash
-	 * 
+	 *
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */
@@ -412,7 +412,7 @@ public class StringUtil {
 
 	/**
 	 * Escapes special characters with backslashes for FFmpeg subtitles
-	 * 
+	 *
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */

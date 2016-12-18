@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * Helper class to combine several iterators or lists into one iterator
- * 
+ *
  * @author Nadahar
  */
 public class Iterators<E> {
@@ -34,19 +34,19 @@ public class Iterators<E> {
 
 	/**
 	 * Add all the elements of an iterator
-	 * @param iterator the iterator 
+	 * @param iterator the iterator
 	 */
 	public void addIterator(Iterator<E> iterator) {
 		if (iterator != null) {
 			while (iterator.hasNext()) {
-				iterators.add(iterator.next()); 
-			} 
+				iterators.add(iterator.next());
+			}
 		}
 	}
 
 	/**
 	 * Add all the elements of a list
-	 * @param list the list 
+	 * @param list the list
 	 */
 	public void addList(List<E> list) {
 		if (list != null) {
