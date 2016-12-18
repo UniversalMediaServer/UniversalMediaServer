@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -30,7 +30,7 @@ import net.pms.util.ImagesUtil.ImageFormat;
  * are added, corresponding changes need to be made in
  * {@link ImageFormat#fromImageProfile}.
  *
- * Please not: Only the profile constant (e.g {@code JPEG_TN} is taken into
+ * Please note: Only the profile constant (e.g {@code JPEG_TN} is taken into
  * consideration in {@link #equals(Object)} and {@link #hashCode()}, metadata
  * like {@code H} and {@code V} aren't taken into account.
  */
