@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -45,14 +45,14 @@ public class Splash extends JFrame implements MouseListener {
 	 * <p>
 	 * When the GUI started call the {@code .dispose()} to release all resources used by this
      * {@code Splash} class and return all memory they consume to the OS.
-	 * @return 
+	 * @return
 	 */
 	public Splash(PmsConfiguration config) {
 		this.configuration = config;
 		if (!configuration.isShowSplashScreen()) {
 			return;
 		}
-			
+
 		img = new ImageIcon(getClass().getResource("/resources/images/splash.png"));
 		imglabel = new JLabel(img);
 		imglabel.setBounds(0, 0, img.getIconWidth(), img.getIconHeight());
