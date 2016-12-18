@@ -12,6 +12,8 @@ import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
+import net.pms.util.ImagesUtil.ImageFormat;
+import net.pms.util.ImagesUtil.ScaleType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.imaging.ImageReadException;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -85,7 +87,13 @@ public class LibMediaInfoParser {
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
-					media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
+					media.setThumb(DLNAThumbnail.toThumbnail(
+						new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)),
+						640,
+						480,
+						ScaleType.MAX,
+						ImageFormat.SOURCE
+					));
 				}
 				value = MI.Get(general, 0, "Title");
 				if (!value.isEmpty()) {

@@ -28,6 +28,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FileUtils;
@@ -60,7 +61,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "7";
+	private final String latestVersion = "8";
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -236,7 +237,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", REFRAMES                TINYINT");
 				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(')');
 				sb.append(", BITSPERPIXEL            INT");
-				sb.append(", THUMB                   BINARY");
+				sb.append(", THUMB                   OTHER");
 				sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(')');
 				sb.append(", MODEL                   VARCHAR2(").append(SIZE_MODEL).append(')');
 				sb.append(", EXPOSURE                INT");
@@ -374,7 +375,7 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setReferenceFrameCount(rs.getByte("REFRAMES"));
 				media.setAvcLevel(rs.getString("AVCLEVEL"));
 				media.setBitsPerPixel(rs.getInt("BITSPERPIXEL"));
-				media.setThumb(rs.getBytes("THUMB"));
+				media.setThumb((DLNAThumbnail) rs.getObject("THUMB"));
 				media.setContainer(rs.getString("CONTAINER"));
 				media.setModel(rs.getString("MODEL"));
 				if (media.getModel() != null && !FormatConfiguration.JPG.equals(media.getContainer())) {
@@ -495,7 +496,11 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setByte(14, media.getReferenceFrameCount());
 				ps.setString(15, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
 				ps.setInt(16, media.getBitsPerPixel());
-				ps.setBytes(17, media.getThumb());
+				if (media.getThumb() != null) {
+					ps.setObject(17, media.getThumb());
+				} else {
+					ps.setNull(17, Types.OTHER);
+				}
 				ps.setString(18, left(media.getContainer(), SIZE_CONTAINER));
 				if (media.getExtras() != null) {
 					ps.setString(19, left(media.getExtrasAsString(), SIZE_MODEL));
@@ -528,7 +533,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setByte(14, (byte) -1);
 				ps.setString(15, null);
 				ps.setInt(16, 0);
-				ps.setBytes(17, null);
+				ps.setNull(17, Types.OTHER);
 				ps.setString(18, null);
 				ps.setString(19, null);
 				ps.setInt(20, 0);
@@ -635,10 +640,10 @@ public class DLNAMediaDatabase implements Runnable {
 			ps = conn.prepareStatement("UPDATE FILES SET THUMB = ? WHERE FILENAME = ? AND MODIFIED = ?");
 			ps.setString(2, name);
 			ps.setTimestamp(3, new Timestamp(modified));
-			if (media != null) {
-				ps.setBytes(1, media.getThumb());
+			if (media != null && media.getThumb() != null) {
+				ps.setObject(1, media.getThumb());
 			} else {
-				ps.setNull(1, Types.BINARY);
+				ps.setNull(1, Types.OTHER);
 			}
 			ps.executeUpdate();
 		} catch (SQLException se) {

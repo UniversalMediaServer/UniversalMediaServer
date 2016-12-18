@@ -25,7 +25,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.util.ImagesUtil.ImageFormat;
 
 /**
  * This is an singleton class for providing and caching generic file extension
@@ -52,14 +54,15 @@ public enum GenericIcons {
 	private final BufferedImage genericImageIcon = readBufferedImage("formats/image.png");
 	private final BufferedImage genericVideoIcon = readBufferedImage("formats/video.png");
 	private final BufferedImage genericUnknownIcon = readBufferedImage("formats/unknown.png");
+	private final DLNAThumbnail genericFolderThumbnail = DLNAThumbnail.toThumbnail(getResourceAsStream("thumbnail-folder-256.png"));
 	private final ReentrantLock cacheLock = new ReentrantLock();
 	/**
 	 * All access to {@link #cache} must be protected with {@link #cacheLock}.
 	 */
-	private final Map<ImageFormat, Map<IconType, Map<String, byte[]>>> cache = new HashMap<>();
+	private final Map<ImageFormat, Map<IconType, Map<String, DLNAThumbnail>>> cache = new HashMap<>();
 	private static final Logger LOGGER = LoggerFactory.getLogger(GenericIcons.class);
 
-	public InputStream getGenericIcon(DLNAMediaInfo media) {
+	public DLNAThumbnailInputStream getGenericIcon(DLNAMediaInfo media) {
 		ImageFormat imageFormat = ImageFormat.PNG;
 
 		IconType iconType = IconType.UNKNOWN;
@@ -73,18 +76,18 @@ public enum GenericIcons {
 			}
 		}
 
-		byte[] image = null;
+		DLNAThumbnail image = null;
 		cacheLock.lock();
 		try {
 			if (!cache.containsKey(imageFormat)) {
-				cache.put(imageFormat, new HashMap<IconType, Map<String,byte[]>>());
+				cache.put(imageFormat, new HashMap<IconType, Map<String,DLNAThumbnail>>());
 			}
-			Map<IconType, Map<String,byte[]>> typeCache = cache.get(imageFormat);
+			Map<IconType, Map<String,DLNAThumbnail>> typeCache = cache.get(imageFormat);
 
 			if (!typeCache.containsKey(iconType)) {
-				typeCache.put(iconType, new HashMap<String, byte[]>());
+				typeCache.put(iconType, new HashMap<String, DLNAThumbnail>());
 			}
-			Map<String, byte[]> imageCache = typeCache.get(iconType);
+			Map<String, DLNAThumbnail> imageCache = typeCache.get(iconType);
 
 			String label = media != null ? media.getContainer() : null;
 			if (label != null && label.length() < 5) {
@@ -93,7 +96,7 @@ public enum GenericIcons {
 				label = StringUtils.capitalize(label);
 			}
 			if (imageCache.containsKey(label)) {
-				return imageCache.get(label) != null ? new ByteArrayInputStream(imageCache.get(label)) : null;
+				return DLNAThumbnailInputStream.toThumbnailInputStream(imageCache.get(label));
 			}
 
 			if (LOGGER.isTraceEnabled()) {
@@ -112,7 +115,11 @@ public enum GenericIcons {
 			cacheLock.unlock();
 		}
 
-		return image != null ? new ByteArrayInputStream(image) : null;
+		return DLNAThumbnailInputStream.toThumbnailInputStream(image);
+	}
+
+	public DLNAThumbnailInputStream getGenericFolderIcon() {
+		return DLNAThumbnailInputStream.toThumbnailInputStream(genericFolderThumbnail);
 	}
 
 	/**
@@ -124,7 +131,7 @@ public enum GenericIcons {
 	 *
 	 * @return the generic icon with the container label added and scaled in accordance with renderer setting
 	 */
-	private byte[] addFormatLabelToImage(String label, ImageFormat imageFormat, IconType iconType) throws IOException {
+	private DLNAThumbnail addFormatLabelToImage(String label, ImageFormat imageFormat, IconType iconType) throws IOException {
 
 		BufferedImage image;
 		switch (iconType) {
@@ -169,16 +176,13 @@ public enum GenericIcons {
 				g.setFont(font);
 				g.drawString(label, x, y);
 
-				if (imageFormat == ImageFormat.JPG) {
-					ImageIO.write(image, "jpeg", out);
-				} else {
-					ImageIO.write(image, "png", out);
-				}
+				ImageIO.setUseCache(false);
+				ImagesUtil.imageIOWrite(image, imageFormat.toString(), out);
 			} finally {
 				g.dispose();
 			}
 		}
-		return out != null ? out.toByteArray() : null;
+		return out != null ? new DLNAThumbnail(out.toByteArray(), image.getWidth(), image.getHeight(), imageFormat, false)  : null;
 	}
 
 	/**
@@ -192,28 +196,25 @@ public enum GenericIcons {
 	 * @return The {@link BufferedImage} created from the specified resource or
 	 *         {@code null} if the path is invalid.
 	 */
-	private BufferedImage readBufferedImage(String resourcePath) {
-		InputStream inputStream;
-		inputStream = PMS.class.getResourceAsStream("/resources/images/" + resourcePath);
+	protected BufferedImage readBufferedImage(String resourcePath) {
+		InputStream inputStream = getResourceAsStream(resourcePath);
 		if (inputStream != null) {
 			try {
 				return ImageIO.read(inputStream);
 			} catch (IOException e) {
-				/*
-				 *  Logging is not available at static initialization where this
-				 *  is being called, so any attempt at logging is futile.
-				 */
+				LOGGER.error("Could not read resource \"{}\": {}", resourcePath, e.getMessage());
+				LOGGER.trace("", e);
 				return null;
 			}
 		}
 		return null;
 	}
 
-	private static enum IconType {
-		AUDIO, IMAGE, UNKNOWN, VIDEO
+	protected InputStream getResourceAsStream(String resourcePath) {
+		return PMS.class.getResourceAsStream("/resources/images/" + resourcePath);
 	}
 
-	private static enum ImageFormat {
-		JPG, PNG
+	protected static enum IconType {
+		AUDIO, IMAGE, UNKNOWN, VIDEO
 	}
 }

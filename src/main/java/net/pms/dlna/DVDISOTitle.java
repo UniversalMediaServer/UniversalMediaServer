@@ -31,6 +31,8 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.FileUtil;
+import net.pms.util.ImagesUtil.ImageFormat;
+import net.pms.util.ImagesUtil.ScaleType;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -169,10 +171,16 @@ public class DVDISOTitle extends DLNAResource {
 					try (InputStream is = new FileInputStream(jpg)) {
 						int sz = is.available();
 
-						if (sz > 0) {
-							byte[] thumb = new byte[sz];
-							is.read(thumb);
-							getMedia().setThumb(thumb);
+						if (sz > 0 && getMedia() != null) {
+							byte[] bytes = new byte[sz];
+							is.read(bytes);
+							getMedia().setThumb(DLNAThumbnail.toThumbnail(
+								bytes,
+								640,
+								480,
+								ScaleType.MAX,
+								ImageFormat.SOURCE
+							));
 						}
 					}
 
@@ -282,7 +290,7 @@ public class DVDISOTitle extends DLNAResource {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File cachedThumbnail = null;
 		File thumbFolder = null;
 		boolean alternativeCheck = false;
@@ -322,7 +330,7 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		if (cachedThumbnail != null) {
-			return new FileInputStream(cachedThumbnail);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {

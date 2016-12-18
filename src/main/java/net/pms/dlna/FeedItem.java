@@ -23,7 +23,7 @@ import java.io.InputStream;
 
 public class FeedItem extends DLNAResource {
 	@Override
-	protected String getThumbnailURL(ImageProfile profile) {
+	protected String getThumbnailURL(String profile) {
 		if (thumbURL == null) {
 			return null;
 		}
@@ -31,9 +31,10 @@ public class FeedItem extends DLNAResource {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
-		return downloadAndSend(thumbURL, true);
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumbURL, true));
 	}
+
 	private String title;
 	private String itemURL;
 	private String thumbURL;
