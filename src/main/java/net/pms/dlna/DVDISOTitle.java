@@ -169,10 +169,10 @@ public class DVDISOTitle extends DLNAResource {
 					try (InputStream is = new FileInputStream(jpg)) {
 						int sz = is.available();
 
-						if (sz > 0) {
-							byte[] thumb = new byte[sz];
-							is.read(thumb);
-							getMedia().setThumb(thumb);
+						if (sz > 0 && getMedia() != null) {
+							byte[] bytes = new byte[sz];
+							is.read(bytes);
+							getMedia().setThumb(DLNAThumbnail.toThumbnail(bytes));
 						}
 					}
 
@@ -282,7 +282,7 @@ public class DVDISOTitle extends DLNAResource {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File cachedThumbnail = null;
 		File thumbFolder = null;
 		boolean alternativeCheck = false;
@@ -322,7 +322,7 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		if (cachedThumbnail != null) {
-			return new FileInputStream(cachedThumbnail);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {

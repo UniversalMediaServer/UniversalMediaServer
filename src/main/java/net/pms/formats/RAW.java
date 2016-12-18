@@ -8,6 +8,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.InputFile;
 import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
@@ -19,7 +20,7 @@ public class RAW extends JPG {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
 
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
@@ -125,7 +126,7 @@ public class RAW extends JPG {
 								.outputFormat("JPEG")
 								.outputQuality(1.0f)
 								.toOutputStream(out);
-					media.setThumb(out.toByteArray());
+					media.setThumb(DLNAThumbnail.toThumbnail(out.toByteArray()));
 				}
 			}
 

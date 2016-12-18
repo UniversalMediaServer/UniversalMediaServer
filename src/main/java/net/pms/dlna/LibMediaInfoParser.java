@@ -85,7 +85,7 @@ public class LibMediaInfoParser {
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
-					media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
+					media.setThumb(DLNAThumbnail.toThumbnail(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII))));
 				}
 				value = MI.Get(general, 0, "Title");
 				if (!value.isEmpty()) {

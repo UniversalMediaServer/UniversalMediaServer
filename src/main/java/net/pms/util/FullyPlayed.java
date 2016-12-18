@@ -22,11 +22,9 @@ package net.pms.util;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -34,6 +32,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.MediaMonitor;
 import net.pms.dlna.RealFile;
 import org.slf4j.Logger;
@@ -98,11 +97,12 @@ public class FullyPlayed {
 	 * @param mediaType the type of media the thumbnail is for
 	 * @return The modified thumbnail
 	 */
-	public static InputStream addFullyPlayedOverlay(InputStream thumb) {
+	public static DLNAThumbnailInputStream addFullyPlayedOverlay(DLNAThumbnailInputStream thumb) {
 		if (thumbnailOverlayImage == null) {
 			return thumb;
 		}
 
+		ImageIO.setUseCache(false);
 		BufferedImage image = null;
 		if (thumb != null) {
 			try {
@@ -130,13 +130,14 @@ public class FullyPlayed {
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
-			ImageIO.write(image, "png", out);
-			thumb = new ByteArrayInputStream(out.toByteArray());
+			ImagesUtil.imageIOWrite(image, thumb != null ? thumb.getFormat().toString() : "jpg", out);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
 		} catch (IOException e) {
 			LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
+		thumb.fullReset();
 		return thumb;
 	}
 
