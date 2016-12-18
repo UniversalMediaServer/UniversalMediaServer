@@ -1,6 +1,5 @@
 package net.pms.dlna;
 
-import java.io.*;
 import net.pms.dlna.virtual.*;
 
 public class SearchAction extends VirtualFolder {
@@ -20,8 +19,8 @@ public class SearchAction extends VirtualFolder {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() {
-		return getResourceInputStream("images/Play1Hot_120.jpg");
+	public DLNAThumbnailInputStream getThumbnailInputStream() {
+		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("images/Play1Hot_120.jpg"));
 	}
 
 	@Override

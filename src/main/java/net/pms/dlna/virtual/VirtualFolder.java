@@ -21,6 +21,7 @@ package net.pms.dlna.virtual;
 import java.io.IOException;
 import java.io.InputStream;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -108,10 +109,10 @@ public class VirtualFolder extends DLNAResource {
 	/**
 	 * Returns a {@link InputStream} that represents the thumbnail used.
 	 *
-	 * @see net.pms.dlna.DLNAResource#getThumbnailInputStream()
+	 * @see DLNAResource#getThumbnailInputStream()
 	 */
 	@Override
-	public InputStream getThumbnailInputStream() {
+	public DLNAThumbnailInputStream getThumbnailInputStream() {
 		if (StringUtils.isEmpty(thumbnailIcon)) {
 			try {
 				return super.getThumbnailInputStream();
@@ -119,7 +120,7 @@ public class VirtualFolder extends DLNAResource {
 				return null;
 			}
 		}
-		return getResourceInputStream(thumbnailIcon);
+		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream(thumbnailIcon));
 	}
 
 	/**

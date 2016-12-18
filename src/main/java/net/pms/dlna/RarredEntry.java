@@ -38,7 +38,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	private long length;
 
 	@Override
-	protected String getThumbnailURL(ImageProfile profile) {
+	protected String getThumbnailURL(String profile) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) { // no thumbnail support for now for rarred videos
 			return null;
 		}
@@ -160,7 +160,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {
