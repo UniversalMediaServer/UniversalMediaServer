@@ -59,6 +59,7 @@ public class DLNAThumbnail extends DLNAImage {
      *                adheres to.
 	 * @param copy whether this instance should be copied or shared.
 	 */
+
 	public DLNAThumbnail(
 		byte[] bytes,
 		ImageInfo imageInfo,

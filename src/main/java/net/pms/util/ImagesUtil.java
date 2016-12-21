@@ -411,6 +411,7 @@ public class ImagesUtil {
 	 * @return The converted image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
+
 	public static Image convertImage(
 		Image inputImage,
 		ImageFormat outputFormat,
