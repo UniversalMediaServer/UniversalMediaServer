@@ -413,6 +413,10 @@ public class Request extends HTTPResource {
 							totalsize = -1;
 						}
 
+						if (dlna.getTranscodedImageLength() != 0) {
+							totalsize = dlna.getTranscodedImageLength();
+						}
+
 						long remaining = totalsize - lowRange;
 						long requested = highRange - lowRange;
 
