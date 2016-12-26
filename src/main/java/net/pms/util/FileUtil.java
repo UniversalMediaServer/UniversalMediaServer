@@ -355,6 +355,9 @@ public class FileUtil {
 	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d)(?:[\\s']|v\\d)";
 	private static final Pattern COMMON_ANIME_EPISODE_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_EPISODE_NUMBERS);
 
+	private static final String COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d-\\d\\d)(?:[\\s']|v\\d)";
+	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_EPISODE_NUMBERS);
+
 	/**
 	 * Returns the filename after being "prettified", which involves
 	 * attempting to strip away certain things like information about the
@@ -620,7 +623,7 @@ public class FileUtil {
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
-			// This matches anime with a hash at the end of the name
+			// This matches a single episode anime with a hash at the end of the name
 			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
 			if (matcher.find()) {
 				tvSeason = "1";
@@ -630,7 +633,18 @@ public class FileUtil {
 				if (showNameIndex != -1) {
 					movieOrShowName = formattedName.substring(0, showNameIndex);
 				}
+			} else {
+				// This matches a multiple episode anime with a hash at the end of the name
+				matcher = COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN.matcher(formattedName);
+				if (matcher.find()) {
+					tvSeason = "1";
+					tvEpisodeNumber = matcher.group(1);
 
+					int showNameIndex = indexOf(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN, formattedName);
+					if (showNameIndex != -1) {
+						movieOrShowName = formattedName.substring(0, showNameIndex);
+					}
+				}
 			}
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
