@@ -91,6 +91,7 @@
 
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.1</git-commit-id-plugin-version>
+		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -912,7 +913,7 @@
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>${maven-assembly-plugin-version}</version>
 							<configuration>
 								<descriptors>
 									<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
@@ -1123,7 +1124,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
@@ -1346,7 +1347,7 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
@@ -1523,7 +1524,7 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
@@ -1594,7 +1595,7 @@
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>make-jar-with-dependencies-win</id>
