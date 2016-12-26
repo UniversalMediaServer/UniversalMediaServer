@@ -2377,7 +2377,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS, value);
 	}
 
-	public boolean getDisableTranscoding() {
+	public boolean isDisableTranscoding() {
 		return getBoolean(KEY_DISABLE_TRANSCODING, false);
 	}
 
