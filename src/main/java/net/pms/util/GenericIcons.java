@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.io.ByteArrayOutputStream;
@@ -159,6 +160,9 @@ public enum GenericIcons {
 		if (label != null && image != null) {
 			out = new ByteArrayOutputStream();
 			Graphics2D g = image.createGraphics();
+			g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
 			try {
 				int size = 40;
 				Font font = new Font(Font.SANS_SERIF, Font.BOLD, size);
