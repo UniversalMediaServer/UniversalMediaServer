@@ -209,6 +209,7 @@ public class MediaMonitor extends VirtualFolder {
 						fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
 						if (res.getMedia() != null) {
 							PMS.get().setFullyPlayed(rf.getFile().getAbsolutePath(), true);
+							res.getMedia().setThumbready(false);
 						}
 					}
 

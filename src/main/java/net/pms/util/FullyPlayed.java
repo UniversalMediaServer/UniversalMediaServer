@@ -69,7 +69,6 @@ public class FullyPlayed {
 	private static ReadWriteLock videoThumbnailsLock = new ReentrantReadWriteLock();
 	private static boolean videoThumbnailsInitialized = false;
 
-
 	// Hide the constructor
 	private FullyPlayed() {
 	}
