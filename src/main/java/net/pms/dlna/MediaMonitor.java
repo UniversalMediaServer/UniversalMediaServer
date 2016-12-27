@@ -10,8 +10,6 @@ import java.util.Set;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.database.TableFilesStatus;
-import net.pms.database.TableFilesStatus.FilesStatusResult;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
@@ -207,29 +205,26 @@ public class MediaMonitor extends VirtualFolder {
 						return;
 					}
 
-					fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
-
-					if (res.getMedia() != null) {
-						PMS.get().setFullyPlayed(rf.getFile().getAbsolutePath(), true);
+					if (fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER) {
+						fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+						if (res.getMedia() != null) {
+							PMS.get().setFullyPlayed(rf.getFile().getAbsolutePath(), true);
+						}
 					}
 
 					setDiscovered(false);
 					getChildren().clear();
-
-//					try {
-//						dumpFile();
-//					} catch (IOException e) {
-//						LOGGER.debug("An error occurred when dumping monitor file: " + e);
-//					}
 
 					File playedFile = new File(rf.getFile().getAbsolutePath());
 
 					if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER) {
 						// Move the video to a different folder
 						String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
+						boolean moved = false;
 
 						if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
 							LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+							moved = true;
 						} else {
 							LOGGER.debug("Moving {} failed, trying again in 3 seconds", playedFile.getName());
 
@@ -238,6 +233,7 @@ public class MediaMonitor extends VirtualFolder {
 
 								if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
 									LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+									moved = true;
 								} else {
 									LOGGER.info("Failed to move {}", playedFile.getName());
 								}
@@ -245,6 +241,13 @@ public class MediaMonitor extends VirtualFolder {
 								LOGGER.warn("Abandoning moving of {} because the thread was interrupted, probably due to UMS shutdown", e.getMessage());
 								LOGGER.trace("", e);
 								Thread.currentThread().interrupt();
+							}
+						}
+
+						if (moved) {
+							fullyPlayedEntries.add(newDirectory + playedFile.getName());
+							if (res.getMedia() != null) {
+								PMS.get().setFullyPlayed(newDirectory + playedFile.getName(), true);
 							}
 						}
 					} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
