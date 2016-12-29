@@ -20,244 +20,421 @@
 package net.pms.dlna;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import javax.imageio.ImageIO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.coobird.thumbnailator.Thumbnails;
-import net.pms.util.CustomImageReader;
-import net.pms.util.CustomImageReader.ImageReaderResult;
+import com.drew.metadata.Metadata;
+import net.pms.formats.ImageFormat;
+import net.pms.util.Image;
 import net.pms.util.ImagesUtil;
-import net.pms.util.ImagesUtil.ImageFormat;
 import net.pms.util.ImagesUtil.ScaleType;
 
 /**
  * This class is simply a byte array for holding an {@link ImageIO} supported
- * image with some additional metadata.
+ * image with some additional metadata restricted to the DLNA image media
+ * format profiles {@code JPEG_*} and {@code PNG_*}.
  *
  * @see DLNAThumbnailInputStream
+ *
+ * @author Nadahar
  */
-public class DLNAThumbnail implements Serializable {
+public class DLNAThumbnail extends DLNAImage {
 
+	/*
+	 * Please note: This class is packed and stored in the database. Any changes
+	 * to the data structure (fields) will invalidate any instances already
+	 * stored, and will require a wipe of all rows with a stored instance.
+	 */
 	private static final long serialVersionUID = 8014825365045944137L;
-	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAThumbnail.class);
-	private final byte[] bytes;
-	private final int width;
-	private final int height;
-	private final ImageFormat format;
 
 	/**
 	 * Creates a new {@link DLNAThumbnail} instance.
 	 *
-	 * @param bytes the source image in a supported format. Format support is
-	 * limited to that of {@link ImageIO}.
-	 *
-	 * @param width the width of the source image.
-	 * @param height the height of the source image.
-	 * @param format the {@link ImageFormat} of the source image.
-	 * @param copy whether the source image should be copied or shared.
+	 * @param bytes the image in either JPEG or PNG format adhering to the DLNA
+	 * restrictions for color space and compression.
+	 * @param imageInfo the {@link ImageInfo} to store with this
+	 *                  {@link DLNAThumbnail}.
+     * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
+     *                adheres to.
+	 * @param copy whether this instance should be copied or shared.
 	 */
-	@SuppressFBWarnings("EI_EXPOSE_REP2")
-	public DLNAThumbnail(byte[] bytes, int width, int height, ImageFormat format, boolean copy) {
-		if (copy && bytes != null) {
-			this.bytes = new byte[bytes.length];
-			System.arraycopy(bytes, 0, this.bytes, 0, bytes.length);
-		} else {
-			this.bytes = bytes;
+	public DLNAThumbnail(
+		byte[] bytes,
+		ImageInfo imageInfo,
+		DLNAImageProfile profile,
+		boolean copy
+	) {
+		super(bytes, imageInfo, profile, copy);
+	}
+
+	/**
+	 * Creates a new {@link DLNAThumbnail} instance.
+	 *
+	 * @param bytes the image in either JPEG or PNG format adhering to the DLNA
+	 * restrictions for color space and compression.
+	 * @param width the width of the image.
+	 * @param height the height of the image.
+	 * @param format the {@link ImageFormat} of the image.
+	 * @param colorModel the {@link ColorModel} of the image.
+	 * @param metadata the {@link Metadata} instance describing the image.
+     * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
+     *                adheres to.
+	 * @param copy whether this instance should be copied or shared.
+	 */
+	public DLNAThumbnail(
+		byte[] bytes,
+		int width,
+		int height,
+		ImageFormat format,
+		ColorModel colorModel,
+		Metadata metadata,
+		DLNAImageProfile profile,
+		boolean copy)
+	{
+		super(bytes, width, height, format, colorModel, metadata, profile, copy);
+	}
+
+	/**
+	 * Creates a new {@link DLNAThumbnail} instance.
+	 *
+	 * @param bytes the image in either JPEG or PNG format adhering to the DLNA
+	 * restrictions for color space and compression.
+	 * @param format the {@link ImageFormat} of the image.
+	 * @param bufferedImage the {@link BufferedImage} to get
+	 *                      non-{@link Metadata} metadata from.
+	 * @param metadata the {@link Metadata} instance describing the image.
+     * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
+     *                adheres to.
+	 * @param copy whether this instance should be copied or shared.
+	 */
+	public DLNAThumbnail(
+		byte[] bytes,
+		ImageFormat format,
+		BufferedImage bufferedImage,
+		Metadata metadata,
+		DLNAImageProfile profile,
+		boolean copy)
+	{
+		super(bytes, format, bufferedImage, metadata, profile, copy);
+	}
+
+	/**
+	 * Converts an {@link Image} to a {@link DLNAThumbnail}. Output format will
+	 * be the same as the source if the source is either JPEG or PNG. Further
+	 * restrictions on color space and compression is imposed and conversion
+	 * done if necessary. All other formats will be converted to a DLNA
+	 * compliant JPEG.
+	 *
+	 * @param inputImage the source {@link Image}.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
+	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAThumbnail toThumbnail(Image inputImage) throws IOException {
+		return toThumbnail(inputImage, 0, 0, null, ImageFormat.SOURCE, false);
+	}
+
+	/**
+	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
+	 * to that of {@link ImageIO}. Output format will be the same as source
+	 * if the source is either JPEG or PNG. Further restrictions on color space
+	 * and compression is imposed and conversion done if necessary. All other
+	 * formats will be converted to a DLNA compliant JPEG.
+	 * <p><b>
+	 * This method consumes and closes {@code inputStream}.
+	 * </b>
+	 *
+	 * @param inputStream the source image in a supported format.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
+	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAThumbnail toThumbnail(InputStream inputStream) throws IOException {
+		return toThumbnail(inputStream, 0, 0, null, ImageFormat.SOURCE, false);
+	}
+
+	/**
+	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
+	 * to that of {@link ImageIO}. Output format will be the same as source
+	 * if the source is either JPEG or PNG. Further restrictions on color space
+	 * and compression is imposed and conversion done if necessary. All other
+	 * formats will be converted to a DLNA compliant JPEG.
+	 *
+	 * @param inputByteArray the source image in a supported format.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
+	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAThumbnail toThumbnail(byte[] inputByteArray) throws IOException {
+		return toThumbnail(inputByteArray, 0, 0, null, ImageFormat.SOURCE, false);
+	}
+
+	/**
+	 * Converts an {@link Image} to a {@link DLNAThumbnail} adhering to
+	 * {@code outputProfile}. {@code outputProfile} is limited to JPEG or PNG
+	 * profiles. If {@code outputProfile} is a GIF profile, the image will
+	 * be converted to {@link DLNAImageProfile#JPEG_LRG}.
+	 *
+	 * @param inputImage the source {@link Image}.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
+	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAThumbnail toThumbnail(
+		Image inputImage,
+		DLNAImageProfile outputProfile,
+		boolean padToSize
+	) throws IOException {
+		if (inputImage == null) {
+			return null;
 		}
-		this.width = width;
-		this.height = height;
-		this.format = format;
+
+		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+			inputImage,
+			outputProfile,
+			true,
+			true,
+			padToSize);
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}.
-	 *
-	 * @param imageByteArray the source image in a supported format.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
-	 */
-	public static DLNAThumbnail toThumbnail(byte[] imageByteArray) {
-		return toThumbnail(imageByteArray, 0, 0, null, ImageFormat.SOURCE);
-	}
-
-	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}.
-	 *
-	 * @param imageByteArray the source image in a supported format.
-	 * @param width the new width or 0 to disable scaling.
-	 * @param height the new height or 0 to disable scaling.
-	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
-	 */
-	public static DLNAThumbnail toThumbnail(byte[] imageByteArray, int width, int height, ScaleType scaleType, ImageFormat outputFormat) {
-		return imageByteArray != null ? toThumbnail(new ByteArrayInputStream(imageByteArray), width, height, scaleType, outputFormat) : null;
-	}
-
-	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
-	 *
-	 * @param inputStream the source image in a supported format.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
-	 */
-	public static DLNAThumbnail toThumbnail(InputStream inputStream) {
-		return toThumbnail(inputStream, 0, 0, null, ImageFormat.SOURCE);
-	}
-
-	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}.
+	 * Converts an image to a {@link DLNAThumbnail} adhering to
+	 * {@code outputProfile}. Format support is limited
+	 * to that of {@link ImageIO}. {@code outputProfile} is limited to JPEG or
+	 * PNG profiles. If {@code outputProfile} is a GIF profile, the image will
+	 * be converted to {@link DLNAImageProfile#JPEG_LRG}.
 	 *
 	 * <p><b>
 	 * This method consumes and closes {@code inputStream}.
 	 * </b>
 	 * @param inputStream the source image in a supported format.
-	 * @param width the new width or 0 to disable scaling.
-	 * @param height the new height or 0 to disable scaling.
-	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
 	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
 	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(InputStream inputStream, int width, int height, ScaleType scaleType, ImageFormat outputFormat) {
+	public static DLNAThumbnail toThumbnail(
+		InputStream inputStream,
+		DLNAImageProfile outputProfile,
+		boolean padToSize
+	) throws IOException {
 		if (inputStream == null) {
 			return null;
 		}
-		try {
-			// A little optimization that saves us from recreating an image that
-			// is already in the correct format/size and is a byte array.
-			byte[] bytes = null;
-			if (inputStream instanceof ByteArrayInputStream) {
-				bytes = ImagesUtil.toByteArray(inputStream);
-				inputStream = new ByteArrayInputStream(bytes);
-			}
 
-			ImageReaderResult imageResult = CustomImageReader.read(inputStream);
-			inputStream.close();
+		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+			inputStream,
+			outputProfile,
+			true,
+			true,
+			padToSize);
+	}
 
-			if (imageResult.bufferedImage == null || imageResult.imageFormat == null) { // ImageIO doesn't support the image format
-				LOGGER.error("Failed to create thumbnail because the source format is unknown");
-				return null;
-			}
-
-			if (outputFormat == null || outputFormat.equals(ImageFormat.SOURCE)) {
-				outputFormat = imageResult.imageFormat;
-			}
-
-			// Thumbnails aren't useful in all formats, restrict them
-			if (!ImageFormat.JPEG.equals(outputFormat) && !ImageFormat.PNG.equals(outputFormat)) {
-				outputFormat = ImageFormat.JPEG;
-			}
-
-			if (width == 0 ||
-				height == 0 ||
-				(
-					ScaleType.MAX.equals(scaleType) &&
-					imageResult.bufferedImage.getWidth() <= width &&
-					imageResult.bufferedImage.getHeight() <= height
-				)
-			) {
-				//No resize, just convert
-				if (imageResult.imageFormat.equals(outputFormat) && bytes != null) {
-					// Return source
-					return new DLNAThumbnail(bytes, imageResult.bufferedImage.getWidth(), imageResult.bufferedImage.getHeight(), imageResult.imageFormat, false);
-				}
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				ImageIO.setUseCache(false);
-				ImagesUtil.imageIOWrite(imageResult.bufferedImage, outputFormat.toString(), out);
-				return new DLNAThumbnail(out.toByteArray(), imageResult.bufferedImage.getWidth(), imageResult.bufferedImage.getHeight(), outputFormat, false);
-			} else {
-				BufferedImage bufferedImage =
-				Thumbnails.of(imageResult.bufferedImage)
-				.size(width, height)
-				.outputFormat(outputFormat.toString())
-				.outputQuality(1.0f)
-				.asBufferedImage();
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				ImageIO.setUseCache(false);
-				ImagesUtil.imageIOWrite(bufferedImage, outputFormat.toString(), out);
-				return new DLNAThumbnail(out.toByteArray(), bufferedImage.getWidth(), bufferedImage.getHeight(), outputFormat, false);
-			}
-		} catch (IOException e) {
-			LOGGER.warn("Failed to create thumbnail: {}", e.getMessage());
-			LOGGER.trace("", e);
+	/**
+	 * Converts an image to a {@link DLNAThumbnail} adhering to
+	 * {@code outputProfile}. Format support is limited
+	 * to that of {@link ImageIO}. {@code outputProfile} is limited to JPEG or
+	 * PNG profiles. If {@code outputProfile} is a GIF profile, the image will
+	 * be converted to {@link DLNAImageProfile#JPEG_LRG}.
+	 *
+	 * @param inputByteArray the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
+	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAThumbnail toThumbnail(
+		byte[] inputByteArray,
+		DLNAImageProfile outputProfile,
+		boolean padToSize
+	) throws IOException {
+		if (inputByteArray == null) {
+			return null;
 		}
-		return null;
+
+		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+			inputByteArray,
+			outputProfile,
+			true,
+			true,
+			padToSize);
 	}
 
 	/**
-	 * @param copy whether or not a new array or a reference to the underlying
-	 *             buffer should be returned. If a reference is returned,
-	 *             <b>NO MODIFICATIONS must be done to the array!</b>
-	 * @return the bytes of this thumbnail.
+	 * Converts an {@link Image} to a {@link DLNAThumbnail}. Format support is
+	 * limited to that of {@link ImageIO}. {@code outputFormat} is limited to
+	 * JPEG or PNG format adhering to the DLNA restrictions for color space and
+	 * compression. If {@code outputFormat} doesn't qualify, the image will be
+	 * converted to a DLNA compliant JPEG.
+	 *
+	 * @param inputImage the source {@link Image}.
+	 * @param width the new width or 0 to disable scaling.
+	 * @param height the new height or 0 to disable scaling.
+	 * @param scaleType the {@link ScaleType} to use when scaling.
+	 * @param outputFormat the {@link ImageFormat} to generate or
+	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
+	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
 	 */
-	@SuppressFBWarnings("EI_EXPOSE_REP")
-	public byte[] getBytes(boolean copy) {
-		if (copy) {
-			byte[] result = new byte[bytes.length];
-			System.arraycopy(bytes, 0, result, 0, bytes.length);
-			return result;
+	public static DLNAThumbnail toThumbnail(
+		Image inputImage,
+		int width,
+		int height,
+		ScaleType scaleType,
+		ImageFormat outputFormat,
+		boolean padToSize
+	) throws IOException {
+		if (inputImage == null) {
+			return null;
 		}
-		return bytes;
+
+		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+			inputImage,
+			width,
+			height,
+			scaleType,
+			outputFormat,
+			true,
+			true,
+			true,
+			padToSize);
 	}
 
 	/**
-	 * @return the width of this thumbnail.
+	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
+	 * to that of {@link ImageIO}. {@code outputFormat} is limited to JPEG or
+	 * PNG format adhering to the DLNA restrictions for color space and
+	 * compression. If {@code outputFormat} doesn't qualify, the image will be
+	 * converted to a DLNA compliant JPEG.
+	 *
+	 * <p><b>
+	 * This method consumes and closes {@code inputStream}.
+	 * </b>
+	 * @param inputStream the source image in a supported format.
+	 * @param width the new width or 0 to disable scaling.
+	 * @param height the new height or 0 to disable scaling.
+	 * @param scaleType the {@link ScaleType} to use when scaling.
+	 * @param outputFormat the {@link ImageFormat} to generate or
+	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
+	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
 	 */
-	public int getWidth() {
-		return width;
-	}
+	public static DLNAThumbnail toThumbnail(
+		InputStream inputStream,
+		int width,
+		int height,
+		ScaleType scaleType,
+		ImageFormat outputFormat,
+		boolean padToSize
+	) throws IOException {
+		if (inputStream == null) {
+			return null;
+		}
 
+		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+			inputStream,
+			width,
+			height,
+			scaleType,
+			outputFormat,
+			true,
+			true,
+			true,
+			padToSize);
+	}
 
 	/**
-	 * @return the height of this thumbnail.
+	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
+	 * to that of {@link ImageIO}. {@code outputFormat} is limited to JPEG or
+	 * PNG format adhering to the DLNA restrictions for color space and
+	 * compression. If {@code outputFormat} doesn't qualify, the image will be
+	 * converted to a DLNA compliant JPEG.
+	 *
+	 * @param inputByteArray the source image in a supported format.
+	 * @param width the new width or 0 to disable scaling.
+	 * @param height the new height or 0 to disable scaling.
+	 * @param scaleType the {@link ScaleType} to use when scaling.
+	 * @param outputFormat the {@link ImageFormat} to generate or
+	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
+	 *         source image could not be parsed.
+	 * @throws IOException if the operation fails.
 	 */
-	public int getHeight() {
-		return height;
+	public static DLNAThumbnail toThumbnail(
+		byte[] inputByteArray,
+		int width,
+		int height,
+		ScaleType scaleType,
+		ImageFormat outputFormat,
+		boolean padToSize) throws IOException {
+		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+			inputByteArray,
+			width,
+			height,
+			scaleType,
+			outputFormat,
+			true,
+			true,
+			true,
+			padToSize);
 	}
-
 
 	/**
-	 * @return the {@link ImageFormat} for this thumbnail.
+	 * Converts and scales the thumbnail according to the given
+	 * {@link DLNAImageProfile}. Preserves aspect ratio. Format support is
+	 * limited to that of {@link ImageIO}.
+	 *
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param updateMetadata whether or not new metadata should be updated
+	 *                       after image transformation. This should only be
+	 *                       disabled if the output image won't be kept/reused.
+	 * @param padToSize Whether padding should be used if source aspect doesn't
+	 *                  match target aspect.
+	 * @return The scaled and/or converted thumbnail, {@code null} if the
+	 *         source is {@code null}.
+	 * @exception IOException if the operation fails.
 	 */
-	public ImageFormat getFormat() {
-		return format;
+	public DLNAThumbnail transcode(
+		DLNAImageProfile outputProfile,
+		boolean updateMetadata,
+		boolean padToSize
+	) throws IOException {
+		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+			this,
+			outputProfile,
+			updateMetadata,
+			true,
+			padToSize);
 	}
 
-	/**
-	 * @return the size of this thumbnail in bytes.
-	 */
-	public int getSize() {
-		return bytes != null ? bytes.length : 0;
-	}
-
+	@Override
 	public DLNAThumbnail copy() {
-		return new DLNAThumbnail(bytes, width, height, format, true);
+		return new DLNAThumbnail(bytes, imageInfo, profile, true);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(80);
-		sb.append("DLNAThumbnail: Format = ").append(format)
-		.append(", Width = ").append(width)
-		.append(", Height = ").append(height)
-		.append(", Size = ").append(bytes.length);
+		sb.append("DLNAThumbnail: Format = ").append(imageInfo.getFormat())
+		.append(", Width = ").append(imageInfo.getWidth())
+		.append(", Height = ").append(imageInfo.getHeight())
+		.append(", Size = ").append(bytes != null ? bytes.length : 0);
 		return sb.toString();
 	}
 }
