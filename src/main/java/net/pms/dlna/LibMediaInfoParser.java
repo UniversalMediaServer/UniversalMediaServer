@@ -1,5 +1,6 @@
 package net.pms.dlna;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,13 +10,13 @@ import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
+import net.pms.formats.ImageFormat;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
-import net.pms.util.ImagesUtil.ImageFormat;
 import net.pms.util.ImagesUtil.ScaleType;
+import net.pms.util.UnknownFormatException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.imaging.ImageReadException;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,13 +88,26 @@ public class LibMediaInfoParser {
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
-					media.setThumb(DLNAThumbnail.toThumbnail(
-						new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)),
-						640,
-						480,
-						ScaleType.MAX,
-						ImageFormat.SOURCE
-					));
+					try {
+						media.setThumb(DLNAThumbnail.toThumbnail(
+							new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)),
+							640,
+							480,
+							ScaleType.MAX,
+							ImageFormat.SOURCE,
+							false
+						));
+					} catch (EOFException e) {
+						LOGGER.debug(
+							"Error reading \"{}\" thumbnail from MediaInfo: Unexpected end of stream, probably corrupt or read error.",
+							file.getName()
+						);
+					} catch (UnknownFormatException e) {
+						LOGGER.debug("Could not read \"{}\" thumbnail from MediaInfo: {}", file.getName(), e.getMessage());
+					} catch (IOException e) {
+						LOGGER.error("Error reading \"{}\" thumbnail from MediaInfo: {}", file.getName(), e.getMessage());
+						LOGGER.trace("", e);
+					}
 				}
 				value = MI.Get(general, 0, "Title");
 				if (!value.isEmpty()) {
@@ -241,12 +255,12 @@ public class LibMediaInfoParser {
 				media.setImageCount(MI.Count_Get(image));
 				if (media.getImageCount() > 0) {
 					boolean parseByMediainfo = false;
-					// for image parsing use Imaging instead of the MediaInfo which doesn't provide enough information
+					// For images use our own parser instead of MediaInfo which doesn't provide enough information
 					try {
-						ImagesUtil.parseImageByImaging(file, media);
-						media.setContainer(media.getCodecV());
-					} catch (ImageReadException | IOException e) {
-						LOGGER.debug("Error when parsing image ({}) with Imaging, switching to MediaInfo.", file.getAbsolutePath());
+						ImagesUtil.parseImage(file, media);
+					} catch (IOException e) {
+						LOGGER.debug("Error parsing image ({}), switching to MediaInfo: {}", file.getAbsolutePath(), e.getMessage());
+						LOGGER.trace("", e);
 						parseByMediainfo = true;
 					}
 
@@ -255,8 +269,6 @@ public class LibMediaInfoParser {
 						media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 						media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 					}
-
-//					media.setImageCount(media.getImageCount() + 1);
 				}
 
 				// set Subs in text format

@@ -108,11 +108,12 @@ public class VirtualFolder extends DLNAResource {
 
 	/**
 	 * Returns a {@link InputStream} that represents the thumbnail used.
+	 * @throws IOException
 	 *
 	 * @see DLNAResource#getThumbnailInputStream()
 	 */
 	@Override
-	public DLNAThumbnailInputStream getThumbnailInputStream() {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (StringUtils.isEmpty(thumbnailIcon)) {
 			try {
 				return super.getThumbnailInputStream();
