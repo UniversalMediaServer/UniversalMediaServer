@@ -87,6 +87,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				} else if (expectedOutput == TEXTS) {
 					ArrayList<String> list = database.getStrings(sql);
 					if (list != null) {
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
 						for (String s : list) {
 							String sqls2[] = new String[sqls.length - 1];
 							int expectedOutputs2[] = new int[expectedOutputs.length - 1];

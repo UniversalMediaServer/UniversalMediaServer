@@ -3216,7 +3216,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		if (
 			media != null &&
-			!media.isThumbready() &&
+			(
+				!media.isThumbready() ||
+				FullyPlayed.isFullyPlayedThumbnail(inputFile.getFile())
+			) &&
 			configurationSpecificToRenderer.isThumbnailGenerationEnabled() &&
 			renderer.isThumbnails()
 		) {
