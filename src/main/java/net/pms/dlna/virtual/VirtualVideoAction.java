@@ -169,11 +169,12 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	/**
 	 * Returns either a green tick mark or a red cross that represents the
 	 * actual value of this item
+	 * @throws IOException
 	 *
 	 * @see net.pms.dlna.DLNAResource#getThumbnailInputStream()
 	 */
 	@Override
-	public DLNAThumbnailInputStream getThumbnailInputStream() {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream(enabled ? thumbnailIconOK : thumbnailIconKO));
 	}
 

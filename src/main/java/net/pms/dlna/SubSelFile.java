@@ -20,7 +20,7 @@ public class SubSelFile extends VirtualFolder {
 	}
 
 	@Override
-	public DLNAThumbnailInputStream getThumbnailInputStream() {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		try {
 			return orig.getThumbnailInputStream();
 		} catch (Exception e) {
