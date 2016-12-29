@@ -115,7 +115,7 @@ public class FullyPlayed {
 
 		// Create a blank image if input is missing
 		if (image == null) {
-			image = new BufferedImage(BLANK_IMAGE_RESOLUTION, BLANK_IMAGE_RESOLUTION, BufferedImage.TYPE_INT_ARGB);
+			image = new BufferedImage(BLANK_IMAGE_RESOLUTION, BLANK_IMAGE_RESOLUTION, BufferedImage.TYPE_3BYTE_BGR);
 		}
 
 		int overlayResolution = (int) Math.round((Math.min(image.getWidth(), image.getHeight())) * 0.6);

@@ -328,7 +328,7 @@ public class Request extends HTTPResource {
 					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
-					inputStream = ImagesUtil.scaleThumb(thumbInputStream, imageProfile, mediaRenderer);
+					inputStream = thumbInputStream.transcode(imageProfile, false, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output(output, "Content-Type: text/plain");

@@ -55,6 +55,7 @@ public class FormatConfiguration {
 	public static final String BMP = "bmp";
 	public static final String CINEPACK = "cvid";
 	public static final String COOK = "cook";
+	public static final String CUR = "cur";
 	public static final String DIVX = "divx";
 	public static final String DTS = "dts";
 	public static final String DTSHD = "dtshd";
@@ -66,6 +67,8 @@ public class FormatConfiguration {
 	public static final String H263 = "h263";
 	public static final String H264 = "h264";
 	public static final String H265 = "h265";
+	public static final String ICNS = "icns";
+	public static final String ICO = "ico";
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";
@@ -85,8 +88,12 @@ public class FormatConfiguration {
 	public static final String MPEGTS = "mpegts";
 	public static final String OGG = "ogg";
 	public static final String OPUS = "opus";
+	public static final String PCX = "pcx";
 	public static final String PNG = "png";
+	public static final String PNM = "pnm";
+	public static final String PSD = "psd";
 	public static final String QDESIGN = "qdmc";
+	public static final String RAW = "raw";
 	public static final String REALAUDIO_LOSSLESS = "ralf";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
@@ -103,7 +110,9 @@ public class FormatConfiguration {
 	public static final String VP9 = "vp9";
 	public static final String WAVPACK = "wavpack";
 	public static final String WAV = "wav";
+	public static final String WBMP = "wbmp";
 	public static final String WEBM = "webm";
+	public static final String WEBP = "webp";
 	public static final String WMA = "wma";
 	public static final String WMV = "wmv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";

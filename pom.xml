@@ -130,17 +130,6 @@
 			<id>jaudiotagger-repository</id>
 			<url>https://dl.bintray.com/ijabz/maven</url>
 		</repository>
-		<repository>
-  			<id>apache.snapshots</id>
-  			<name>Apache Development Snapshot Repository</name>
-  			<url>https://repository.apache.org/content/repositories/snapshots/</url>
-  			<releases>
-    			<enabled>false</enabled>
-  			</releases>
-  			<snapshots>
-    			<enabled>true</enabled>
-  			</snapshots>
-		</repository>  
 	</repositories>
 	<dependencies>
 		<!-- TODO this can be removed when MEncoder is removed -->
@@ -204,11 +193,6 @@
 			<version>1.1.7</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-imaging</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j-version}</version>
@@ -266,6 +250,31 @@
 			<artifactId>imageio-bmp</artifactId>
 			<version>${twelvemonkeys-imageio-version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pcx</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pnm</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-icns</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-psd</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.drewnoakes</groupId>
+			<artifactId>metadata-extractor</artifactId>
+			<version>2.9.1</version>
+		</dependency>		
 		<dependency>
 			<groupId>net.jthink</groupId>
 			<artifactId>jaudiotagger</artifactId>

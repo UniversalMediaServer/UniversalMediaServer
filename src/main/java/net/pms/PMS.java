@@ -24,7 +24,6 @@ import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
