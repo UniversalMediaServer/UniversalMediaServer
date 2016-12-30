@@ -873,8 +873,23 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Create the thumbnail image
 					try {
-						// This will fail with UnknownFormatException for any image formats not supported by ImageIO
-						thumb = DLNAThumbnail.toThumbnail(Files.newInputStream(file.toPath()), 320, 320, ScaleType.MAX, ImageFormat.SOURCE, false);
+						if (imageInfo != null && !imageInfo.isImageIOSupported() && imageInfo.getMetadata() != null) {
+							// ImageIO can't read the file, try to get the embedded Exif thumbnail if it's there.
+							thumb = DLNAThumbnail.toThumbnail(
+								ImagesUtil.getThumbnailFromMetadata(file, imageInfo.getMetadata()),
+								320,
+								320,
+								ScaleType.MAX,
+								ImageFormat.SOURCE,
+								false
+							);
+							if (thumb == null && LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Exif thumbnail extraction failed, no thumbnail will be generated for \"{}\"", file.getName());
+							}
+						} else {
+							// This will fail with UnknownFormatException for any image formats not supported by ImageIO
+							thumb = DLNAThumbnail.toThumbnail(Files.newInputStream(file.toPath()), 320, 320, ScaleType.MAX, ImageFormat.SOURCE, false);
+						}
 						thumbready = true;
 					} catch (EOFException e) {
 						LOGGER.debug(
