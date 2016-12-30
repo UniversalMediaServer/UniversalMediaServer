@@ -361,7 +361,7 @@ public final class TableMusicBrainzReleases extends Tables{
 	}
 
 	/**
-	 * Must be called in inside a table lock
+	 * Must be called from inside a table lock
 	 */
 	private static void createMusicBrainzReleasesTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
