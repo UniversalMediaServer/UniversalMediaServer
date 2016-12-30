@@ -43,11 +43,16 @@ import com.drew.imaging.png.PngMetadataReader;
 import com.drew.imaging.psd.PsdMetadataReader;
 import com.drew.imaging.raf.RafMetadataReader;
 import com.drew.imaging.tiff.TiffMetadataReader;
+import com.drew.imaging.tiff.TiffProcessingException;
+import com.drew.imaging.tiff.TiffReader;
 import com.drew.imaging.webp.WebpMetadataReader;
+import com.drew.lang.RandomAccessFileReader;
 import com.drew.lang.RandomAccessStreamReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.exif.ExifThumbnailDirectory;
+import com.drew.metadata.exif.ExifTiffHandler;
 
 public class ImagesUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagesUtil.class);
@@ -1217,6 +1222,54 @@ public class ImagesUtil {
 		} else {
 			return new Image(outputByteArray, outputFormat, bufferedImage, metadata, false);
 		}
+	}
+
+	/**
+	 * Extracts an embedded Exif thumbnail from a {@link Metadata} instance.
+	 *
+	 * @param file the {@link File} to read the thumbnail from
+	 * @param metadata the {@link Metadata} collected on the {@link File}
+	 *                 previously.
+	 * @return A byte array containing the thumbnail or {@code null} if no
+	 *         thumbnail was found/could be extracted.
+	 */
+	public static byte[] getThumbnailFromMetadata(File file, Metadata metadata) {
+		if (metadata == null) {
+			return null;
+		}
+
+		// First check if there are any ExifThumbnailDirectory
+		Collection<ExifThumbnailDirectory> directories = metadata.getDirectoriesOfType(ExifThumbnailDirectory.class);
+		if (directories.isEmpty()) {
+			return null;
+		}
+
+		// The Metadata instance we have didn't store the thumbnail data, read them again
+		metadata = new Metadata();
+		try {
+	        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+
+	        try {
+	            ExifTiffHandler handler = new ExifTiffHandler(metadata, true, null);
+	            new TiffReader().processTiff(new RandomAccessFileReader(randomAccessFile), handler, 0);
+	        } finally {
+	            randomAccessFile.close();
+	        }
+		} catch (IOException | TiffProcessingException e) {
+			LOGGER.debug("Error while reading \"{}\" metadata: {}", file.getAbsolutePath(), e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
+
+		// Now get the thumbnail data if they're there
+		directories = metadata.getDirectoriesOfType(ExifThumbnailDirectory.class);
+		for (ExifThumbnailDirectory directory : directories) {
+			if (directory.hasThumbnailData()) {
+				return directory.getThumbnailData();
+			}
+		}
+
+		return null;
 	}
 
 	/**

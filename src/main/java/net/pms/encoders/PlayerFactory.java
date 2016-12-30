@@ -62,7 +62,7 @@ public final class PlayerFactory {
 	 * registry is set by the constructor.
 	 */
 	private static SystemUtils utils;
-	
+
 	private static PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
@@ -148,7 +148,7 @@ public final class PlayerFactory {
 	/**
 	 * Adds a single {@link Player} to the list of Players. Before the player is
 	 * added to the list, it is verified to be okay.
-	 * 
+	 *
 	 * @param player Player to be added to the list.
 	 */
 	public static synchronized void registerPlayer(final Player player) {
@@ -205,7 +205,7 @@ public final class PlayerFactory {
 	/**
 	 * Returns the list of all players. This includes the ones not verified as
 	 * being okay.
-	 * 
+	 *
 	 * @return The list of players.
 	 */
 	public static ArrayList<Player> getAllPlayers() {
@@ -214,7 +214,7 @@ public final class PlayerFactory {
 
 	/**
 	 * Returns the list of players that have been verified as okay.
-	 * 
+	 *
 	 * @return The list of players.
 	 */
 	public static ArrayList<Player> getPlayers() {
@@ -222,10 +222,30 @@ public final class PlayerFactory {
 	}
 
 	/**
+	 * Returns the {@link Player} that matches the given class and format if it is
+	 * enabled. If no {@link Player} is found or the {@link Player} isn't
+	 * enabled, {@code null} is returned.
+	 *
+	 * @param profileClass
+	 *            The class to match.
+	 * @param ext
+	 *            The format to match.
+	 * @return The {@link Player} if found and enabled, otherwise {@code null}.
+	 */
+	public static Player getEnabledPlayer(final Class<? extends Player> profileClass, final Format ext) {
+		Player player = getPlayer(profileClass, ext);
+		if (player != null && configuration.getEnginesAsList(utils).contains(player.id())) {
+			return player;
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead.
 	 *
 	 * Returns the player that matches the given class and format.
-	 * 
+	 *
 	 * @param profileClass
 	 *            The class to match.
 	 * @param ext
@@ -251,7 +271,7 @@ public final class PlayerFactory {
 	 * Returns the first {@link Player} that matches the given mediaInfo or
 	 * format. Each of the available players is passed the provided information
 	 * and the first that reports it is compatible will be returned.
-	 * 
+	 *
 	 * @param resource
 	 *            The {@link DLNAResource} to match
 	 * @return The player if a match could be found, <code>null</code>
@@ -295,10 +315,10 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead. 
+	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead.
 	 *
 	 * Returns the players matching the given classes and type.
-	 * 
+	 *
 	 * @param profileClasses
 	 *            The classes to match.
 	 * @param type
