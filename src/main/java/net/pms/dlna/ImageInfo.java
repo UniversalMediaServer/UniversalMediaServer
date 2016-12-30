@@ -168,12 +168,12 @@ public class ImageInfo implements Serializable {
 	/**
 	 * Tries to create an {@link ImageInfo} instance from {@link Metadata}.
 	 * {@link ImageFormat} and size in bytes must be specified.
-	 * If {@code metadata} is null or the can't be parsed, an instance with
-	 * invalid width and height is created or an {@link MetadataException} is
-	 * thrown depending on {@code throwOnParseFailure}. The {@link ColorModel} in this
-	 * instance will be {@code null}. This constructor should only be used as a
-	 * last resort. Instances created with this constructor will have
-	 * {@code isImageIOSupport()} set to false.
+	 * If {@code metadata} is null or can't be parsed, an instance with invalid
+	 * values is created or an {@link MetadataException} is thrown depending on
+	 * {@code throwOnParseFailure}. The {@link ColorModel} in this instance
+	 * will be {@code null}. This constructor should only be used if
+	 * {@link ImageIO} can't parse the source. Instances created with this
+	 * constructor will have {@code isImageIOSupport()} set to false.
 	 *
 	 * @param metadata the {@link Metadata} describing the image.
 	 * @param format the {@link ImageFormat} for the image.
@@ -184,8 +184,30 @@ public class ImageInfo implements Serializable {
 	 * @throws MetadataException if a parsing error occurs or parsing fails.
 	 */
 	public ImageInfo(Metadata metadata, ImageFormat format, long size, boolean throwOnParseFailure) throws MetadataException {
-		int width = -1;
-		int height = -1;
+		this(-1, -1, metadata, format, size, throwOnParseFailure);
+	}
+
+	/**
+	 * Tries to create an {@link ImageInfo} instance from {@link Metadata}.
+	 * {@link ImageFormat} and size in bytes must be specified.
+	 * If {@code metadata} is null or can't be parsed, an instance with invalid
+	 * values is created or an {@link MetadataException} is thrown depending on
+	 * {@code throwOnParseFailure}. The {@link ColorModel} in this instance
+	 * will be {@code null}. This constructor should only be used if
+	 * {@link ImageIO} can't parse the source. Instances created with this
+	 * constructor will have {@code isImageIOSupport()} set to false.
+	 *
+	 * @param width the width of the image in pixels.
+	 * @param height the height of the image in pixels.
+	 * @param metadata the {@link Metadata} describing the image.
+	 * @param format the {@link ImageFormat} for the image.
+	 * @param size the size of the image in bytes.
+	 * @param throwOnParseFailure if a {@link MetadataException} should be thrown
+	 *                            instead of returning an instance with invalid
+	 *                            resolution if parsing of resolution fails.
+	 * @throws MetadataException if a parsing error occurs or parsing fails.
+	 */
+	public ImageInfo(int width, int height, Metadata metadata, ImageFormat format, long size, boolean throwOnParseFailure) throws MetadataException {
 		int bitDepth = -1;
 		int numComponents = -1;
 		ColorSpaceType colorSpaceType = null;
