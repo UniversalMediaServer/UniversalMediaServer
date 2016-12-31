@@ -5,6 +5,7 @@
 		Added right-click menu to navigation pane
 		Renamed "Cache" folder to "Media Library" folder and enabled it by default
 		Changed "Hide" options to "Show", e.g. "Hide Media Library folder" becomes "Show Media Library folder"
+		Library is re-scanned whenever a file is added/changed/removed in a shared folder
 		Fixed bug where removing a directory in UMS does not remove its contents from the Media Library.
 		Fixed sorting in dynamic folders
 		Fully played tracking is stored in the SQL database
