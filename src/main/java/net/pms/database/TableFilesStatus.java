@@ -95,10 +95,10 @@ public final class TableFilesStatus extends Tables{
 			if (fileId == 0) {
 				query = "SELECT ID FROM FILES WHERE FILENAME = " + sqlQuote(fullPathToFile);
 				if (trace) {
-					LOGGER.trace("Searching for file with \"{}\" before update", query);
+					LOGGER.trace("Looking up file id for file \"{}\" with \"{}\" before update", fullPathToFile, query);
 				}
 
-				TABLE_LOCK.writeLock().lock();
+				TABLE_LOCK.readLock().lock();
 				try (Statement statement = connection.createStatement()) {
 					try (ResultSet result = statement.executeQuery(query)) {
 						if (result.next()) {
@@ -106,7 +106,7 @@ public final class TableFilesStatus extends Tables{
 						}
 					}
 				} finally {
-					TABLE_LOCK.writeLock().unlock();
+					TABLE_LOCK.readLock().unlock();
 				}
 			}
 
@@ -128,7 +128,7 @@ public final class TableFilesStatus extends Tables{
 							} else {
 								query = "UPDATE " + TABLE_NAME + " SET MODIFIED=CURRENT_TIMESTAMP, ISFULLYPLAYED=" + isFullyPlayed + " WHERE FILEID=" + fileId;
 								if (trace) {
-									LOGGER.trace("Found the file entry so we will update it with {}", query);
+									LOGGER.trace("Found the file entry so we will update it with \"{}\"", query);
 								}
 
 								Statement statement2 = connection.createStatement();
@@ -137,7 +137,7 @@ public final class TableFilesStatus extends Tables{
 						} else {
 							query = "INSERT INTO " + TABLE_NAME + " (FILEID, MODIFIED, ISFULLYPLAYED) VALUES (" + fileId + ", CURRENT_TIMESTAMP, " + isFullyPlayed + ")";
 							if (trace) {
-								LOGGER.trace("Did not find the file entry so we will insert it with {}", query);
+								LOGGER.trace("Did not find the file entry so we will insert it with \"{}\"", query);
 							}
 
 							Statement statement2 = connection.createStatement();
@@ -149,7 +149,7 @@ public final class TableFilesStatus extends Tables{
 				}
 			} else {
 				if (trace) {
-					LOGGER.trace("Found no match in FILES for {}", fullPathToFile);
+					LOGGER.trace("Found no match in FILES for \"{}\"", fullPathToFile);
 				}
 			}
 		} catch (SQLException e) {
@@ -181,11 +181,12 @@ public final class TableFilesStatus extends Tables{
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet result = statement.executeQuery(query)) {
-					TABLE_LOCK.writeLock().unlock();
 					while (result.next()) {
 						setFullyPlayed(result.getString("FILENAME"), isFullyPlayed, result.getInt("ID"));
 					}
 				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -203,7 +204,7 @@ public final class TableFilesStatus extends Tables{
 		FilesStatusResult result;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ISFULLYPLAYED FROM FILES JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID WHERE FILENAME = " + sqlQuote(sqlLikeEscape(fullPathToFile));
+			String query = "SELECT ISFULLYPLAYED FROM FILES JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID WHERE FILENAME = " + sqlQuote(fullPathToFile);
 
 			if (trace) {
 				LOGGER.trace("Searching for file status with \"{}\"", query);
@@ -300,13 +301,13 @@ public final class TableFilesStatus extends Tables{
 	}
 
 	/**
-	 * Must be called in inside a table lock
+	 * Must be called from inside a table lock
 	 */
 	private static void createFilesStatusTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table if it doesn't exist: \"{}\"", TABLE_NAME);
+		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
 		try (Statement statement = connection.createStatement()) {
 			statement.execute(
-				"CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" +
+				"CREATE TABLE " + TABLE_NAME + "(" +
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILEID        INT      NOT NULL UNIQUE, " +
 					"MODIFIED      DATETIME, " +
@@ -314,7 +315,6 @@ public final class TableFilesStatus extends Tables{
 				")"
 			);
 
-			statement.execute("CREATE INDEX ID_IDX ON " + TABLE_NAME + "(ID)");
 			statement.execute("CREATE INDEX FILEID_IDX ON " + TABLE_NAME + "(FILEID)");
 		}
 	}
