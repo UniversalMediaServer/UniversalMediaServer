@@ -18,9 +18,9 @@
  */
 package net.pms.formats;
 
-public class GIF extends JPG {
+public class GIF extends ImageBase {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
@@ -38,5 +38,13 @@ public class GIF extends JPG {
 	@Override
 	public String mimeType() {
 		return "image/gif";
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean ps3compatible() {
+		return true;
 	}
 }
