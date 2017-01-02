@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
+import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
@@ -242,15 +243,26 @@ public class LibMediaInfoParser {
 
 				// set Image
 				media.setImageCount(MI.Count_Get(image));
-				if (media.getImageCount() > 0) {
+				if (media.getImageCount() > 0 || type == Format.IMAGE) {
 					boolean parseByMediainfo = false;
 					// For images use our own parser instead of MediaInfo which doesn't provide enough information
 					try {
 						ImagesUtil.parseImage(file, media);
+						// This is a little hack. MediaInfo only recognizes a few image formats
+						// so that MI.Count_Get(image) might return 0 even if there is an image.
+						if (media.getImageCount() == 0) {
+							media.setImageCount(1);
+						}
 					} catch (IOException e) {
-						LOGGER.debug("Error parsing image ({}), switching to MediaInfo: {}", file.getAbsolutePath(), e.getMessage());
-						LOGGER.trace("", e);
-						parseByMediainfo = true;
+						if (media.getImageCount() > 0) {
+							LOGGER.debug("Error parsing image ({}), switching to MediaInfo: {}", file.getAbsolutePath(), e.getMessage());
+							LOGGER.trace("", e);
+							parseByMediainfo = true;
+						} else {
+							LOGGER.warn("Image parsing for \"{}\" failed both with MediaInfo and internally: {}", file.getAbsolutePath(), e.getMessage());
+							LOGGER.trace("", e);
+							media.setImageCount(1);
+						}
 					}
 
 					if (parseByMediainfo) {
