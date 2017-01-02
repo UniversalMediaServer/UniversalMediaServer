@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -18,28 +19,15 @@
  */
 package net.pms.formats;
 
-public class TIF extends ImageBase {
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Identifier getIdentifier() {
-		return Identifier.TIF;
-	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String[] getSupportedExtensions() {
-		return new String[] {
-			"tif",
-			"tiff"
-		};
+public abstract class ImageBase extends Format {
+
+	public ImageBase() {
+		type = IMAGE;
 	}
 
 	@Override
-	public String mimeType() {
-		return "image/tiff";
+	public boolean transcodable() {
+		return false;
 	}
 }

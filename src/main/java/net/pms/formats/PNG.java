@@ -18,9 +18,9 @@
  */
 package net.pms.formats;
 
-public class PNG extends JPG {
+public class PNG extends ImageBase {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {

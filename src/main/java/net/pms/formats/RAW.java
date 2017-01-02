@@ -29,7 +29,7 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 
-public class RAW extends JPG {
+public class RAW extends ImageBase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
 
 	/**
