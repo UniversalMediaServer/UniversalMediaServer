@@ -18,17 +18,13 @@
  */
 package net.pms.formats;
 
-public class JPG extends Format {
+public class JPG extends ImageBase {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
 		return Identifier.JPG;
-	}
-
-	public JPG() {
-		type = IMAGE;
 	}
 
 	/**
@@ -45,7 +41,7 @@ public class JPG extends Format {
 	}
 
 	@Override
-	public boolean transcodable() {
-		return false;
+	public String mimeType() {
+		return "image/jpeg";
 	}
 }
