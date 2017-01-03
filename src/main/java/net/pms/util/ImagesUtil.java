@@ -229,6 +229,11 @@ public class ImagesUtil {
 					"Unable to parse \"{}\" with ImageIO because the format is unsupported, image information will be limited",
 					file.getAbsolutePath()
 				);
+
+				//TODO: Temp
+				LOGGER.trace("", e);
+				//
+
 				// Gather basic information from the data we have
 				if (metadata != null) {
 					try {
