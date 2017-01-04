@@ -18,6 +18,7 @@
  */
 package net.pms.dlna;
 
+import java.util.Locale;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -412,7 +413,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @since 1.50
 	 */
 	public void setCodecA(String codecA) {
-		this.codecA = codecA.toLowerCase();
+		this.codecA = codecA != null ? codecA.toLowerCase(Locale.ROOT) : null;
 	}
 
 	/**
