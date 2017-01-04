@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -20,19 +20,12 @@
 
 package net.pms.util;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.Collator;
 import java.util.*;
 import java.util.List;
-import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.filters.Canvas;
-import net.coobird.thumbnailator.geometry.Positions;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
@@ -158,77 +151,6 @@ public class UMSUtils {
 				});
 				break;
 		}
-	}
-
-	private static int getHW(String[] s, int pos) {
-		if (pos > s.length - 1) {
-			return 0;
-		}
-		try {
-			return Integer.parseInt(s[pos].trim());
-		} catch (NumberFormatException e) {
-			return 0;
-		}
-	}
-
-	@SuppressWarnings("deprecation")
-	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
-		if (in == null) {
-			return in;
-		}
-		String ts = r.getThumbSize();
-		if (StringUtils.isEmpty(ts) && StringUtils.isEmpty(r.getThumbBG())) {
-			// no need to convert here
-			return in;
-		}
-		int w;
-		int h;
-		Color col = null;
-		BufferedImage img;
-		try {
-			img = ImageIO.read(in);
-		} catch (Exception e) {
-			// catch whatever is thrown at us
-			// we can at least log it
-			LOGGER.debug("couldn't read thumb to manipulate it " + e);
-			img = null; // to make sure
-		}
-		if (img == null) {
-			return in;
-		}
-		w = img.getWidth();
-		h = img.getHeight();
-		if (StringUtils.isNotEmpty(ts)) {
-			// size limit thumbnail
-			w = getHW(ts.split("x"), 0);
-			h = getHW(ts.split("x"), 1);
-			if (w == 0 || h == 0) {
-				LOGGER.debug("bad thumb size {} skip scaling", ts);
-				w = h = 0; // just to make sure
-			}
-		}
-		if (StringUtils.isNotEmpty(r.getThumbBG())) {
-			try {
-				Field field = Color.class.getField(r.getThumbBG());
-				col = (Color) field.get(null);
-			} catch (Exception e) {
-				LOGGER.debug("bad color name " + r.getThumbBG());
-			}
-		}
-		if (w == 0 && h == 0 && col == null) {
-			return in;
-		}
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		BufferedImage img1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = img1.createGraphics();
-		if (col != null) {
-			g.setColor(col);
-		}
-		g.fillRect(0, 0, w, h);
-		g.drawImage(img, 0, 0, w, h, null);
-		ImageIO.write(img1, "jpeg", out);
-		out.flush();
-		return new ByteArrayInputStream(out.toByteArray());
 	}
 
 	public static String playedDurationStr(String current, String duration) {
@@ -585,71 +507,5 @@ public class UMSUtils {
 			}
 			return null;
 		}
-	}
-
-	/**
-	 * @see #scaleImage(byte[], int, int, boolean)
-	 * @deprecated
-	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank) {
-		return scaleImage(image, width, height, outputBlank, null);
-	}
-
-	/**
-	 * Creates a black background with the exact dimensions specified, then
-	 * centers the image on the background, preserving the aspect ratio.
-	 *
-	 * @param image
-	 * @param width
-	 * @param height
-	 * @param outputBlank whether to return null or a black image when the
-	 *                    image parameter is null
-	 * @param renderer
-	 *
-	 * @return the scaled image
-	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
-		ByteArrayInputStream in = null;
-		if (image == null && !outputBlank) {
-			return null;
-		} else if (image != null) {
-			in = new ByteArrayInputStream(image);
-		}
-
-		try {
-			BufferedImage img;
-			if (in != null) {
-				img = ImageIO.read(in);
-			} else {
-				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-			}
-
-			if (img == null) { // ImageIO doesn't support the image format
-				return null;
-			}
-
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			if (renderer != null && renderer.isThumbnailPadding()) {
-				Thumbnails.of(img)
-					.size(width, height)
-					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
-					.outputFormat("JPEG")
-					.outputQuality(1.0f)
-					.toOutputStream(out);
-			} else {
-				Thumbnails.of(img)
-					.size(width, height)
-					.outputFormat("JPEG")
-					.outputQuality(1.0f)
-					.toOutputStream(out);
-			}
-
-			return out.toByteArray();
-		} catch (IOException e) {
-			LOGGER.debug("Failed to resize image: {}", e.getMessage());
-			LOGGER.trace("", e);
-		}
-
-		return null;
 	}
 }

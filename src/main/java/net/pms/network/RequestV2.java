@@ -34,6 +34,8 @@ import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.FullyPlayed;
+import net.pms.util.ImagesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import static net.pms.util.StringUtil.convertStringToTime;
@@ -305,20 +307,25 @@ public class RequestV2 extends HTTPResource {
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
-					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, dlna.getThumbnailContentType());
+					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 
+					DLNAThumbnailInputStream thumbInputStream;
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
-						inputStream = dlna.getGenericThumbnailInputStream(null);
+						thumbInputStream = dlna.getGenericThumbnailInputStream(null);
 					} else {
 						if (mediaRenderer.isUseMediaInfo()) {
 							dlna.checkThumbnail();
 						}
-						inputStream = dlna.getThumbnailInputStream();
+						thumbInputStream = dlna.fetchThumbnailInputStream();
 					}
-					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
+					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
+						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
+					}
+					inputStream = thumbInputStream.transcode(imageProfile, false, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
@@ -442,6 +449,10 @@ public class RequestV2 extends HTTPResource {
 						if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
 							// In chunked mode we try to avoid arbitrary values.
 							totalsize = -1;
+						}
+
+						if (dlna.getTranscodedImageLength() != 0) {
+							totalsize = dlna.getTranscodedImageLength();
 						}
 
 						long remaining = totalsize - lowRange;

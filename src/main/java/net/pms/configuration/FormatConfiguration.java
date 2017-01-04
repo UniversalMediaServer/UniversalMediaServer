@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -55,6 +55,7 @@ public class FormatConfiguration {
 	public static final String BMP = "bmp";
 	public static final String CINEPACK = "cvid";
 	public static final String COOK = "cook";
+	public static final String CUR = "cur";
 	public static final String DIVX = "divx";
 	public static final String DTS = "dts";
 	public static final String DTSHD = "dtshd";
@@ -66,9 +67,12 @@ public class FormatConfiguration {
 	public static final String H263 = "h263";
 	public static final String H264 = "h264";
 	public static final String H265 = "h265";
+	public static final String ICNS = "icns";
+	public static final String ICO = "ico";
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";
+	public static final String MI_CHS = "chs";
 	public static final String MI_GMC = "gmc";
 	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
@@ -85,8 +89,12 @@ public class FormatConfiguration {
 	public static final String MPEGTS = "mpegts";
 	public static final String OGG = "ogg";
 	public static final String OPUS = "opus";
+	public static final String PCX = "pcx";
 	public static final String PNG = "png";
+	public static final String PNM = "pnm";
+	public static final String PSD = "psd";
 	public static final String QDESIGN = "qdmc";
+	public static final String RAW = "raw";
 	public static final String REALAUDIO_LOSSLESS = "ralf";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
@@ -103,7 +111,9 @@ public class FormatConfiguration {
 	public static final String VP9 = "vp9";
 	public static final String WAVPACK = "wavpack";
 	public static final String WAV = "wav";
+	public static final String WBMP = "wbmp";
 	public static final String WEBM = "webm";
+	public static final String WEBP = "webp";
 	public static final String WMA = "wma";
 	public static final String WMV = "wmv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
@@ -223,12 +233,12 @@ public class FormatConfiguration {
 		 * or 0, its value is skipped for making the match. If any of the
 		 * non-null parameters does not match, false is returned. For example,
 		 * assume a configuration that contains only the following line:
-		 * 
+		 *
 		 * Supported = f:mp4 n:2
-		 *  
+		 *
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, null) = true
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, null) = false 
-		 * match("wav", null, null, 2, 0, 0, 0, 0, null) = false 
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, null) = false
+		 * match("wav", null, null, 2, 0, 0, 0, 0, null) = false
 		 *
 		 * @param format
 		 * @param videoCodec
@@ -317,9 +327,14 @@ public class FormatConfiguration {
 						LOGGER.trace("Gmc value \"{}\" failed to match support line {}", miExtras.get(MI_GMC), supportLine);
 						return false;
 					}
-					
+
 					if (key.equals(MI_GOP) && miExtras.get(MI_GOP) != null && miExtras.get(MI_GOP).matcher("static").matches() && value.equals("variable")) {
 						LOGGER.trace("GOP value \"{}\" failed to match support line {}", value, supportLine);
+						return false;
+					}
+
+					if (key.equals(MI_CHS) && miExtras.get(MI_CHS) != null && !miExtras.get(MI_CHS).matcher(value).matches()) {
+						LOGGER.trace("GOP value \"{}\" failed to match support line {}", miExtras.get(MI_CHS), supportLine);
 						return false;
 					}
 				}

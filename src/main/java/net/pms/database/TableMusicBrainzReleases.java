@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -224,7 +224,11 @@ public final class TableMusicBrainzReleases extends Tables{
 							result.updateString("TITLE", tagInfo.title);
 						}
 						if (StringUtil.hasValue(tagInfo.year)) {
-							result.updateString("YEAR", tagInfo.year);
+							if (tagInfo.year.length() > 4) {
+								result.updateString("YEAR", tagInfo.year.substring(0, 4));
+							} else {
+								result.updateString("YEAR", tagInfo.year);
+							}
 						}
 						if (StringUtil.hasValue(tagInfo.artistId)) {
 							result.updateString("ARTIST_ID", tagInfo.artistId);

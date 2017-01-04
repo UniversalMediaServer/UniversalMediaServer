@@ -1,8 +1,7 @@
 package net.pms.dlna;
 
-import java.io.*;
+import java.io.IOException;
 import net.pms.dlna.virtual.*;
-import net.pms.network.HTTPResource;
 
 public class SearchAction extends VirtualFolder {
 	private Search sobj;
@@ -21,8 +20,8 @@ public class SearchAction extends VirtualFolder {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() {
-		return getResourceInputStream("images/Play1Hot_120.jpg");
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("images/Play1Hot_120.jpg"));
 	}
 
 	@Override
@@ -50,11 +49,6 @@ public class SearchAction extends VirtualFolder {
 	@Override
 	public long length() {
 		return -1; //DLNAMediaInfo.TRANS_SIZE;
-	}
-
-	@Override
-	public String getThumbnailContentType() {
-		return HTTPResource.JPEG_TYPEMIME;
 	}
 
 	@Override

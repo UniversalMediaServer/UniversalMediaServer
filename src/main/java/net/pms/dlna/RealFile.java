@@ -55,7 +55,7 @@ public class RealFile extends MapFile {
 		if (!file.isDirectory()) {
 			resolveFormat();
 		}
-		
+
 		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
 			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		}
@@ -64,10 +64,6 @@ public class RealFile extends MapFile {
 		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
 			run();
-
-			if (getMedia() != null && getMedia().getThumb() == null && getType() != Format.AUDIO) { // MediaInfo retrieves cover art now
-				getMedia().setThumbready(false);
-			}
 
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
@@ -208,59 +204,60 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	public String getThumbnailContentType() {
-		return super.getThumbnailContentType();
-	}
-
-	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder && (getMediaSubtitle() != null || getMediaAudio() != null)) {
 			return super.getThumbnailInputStream();
 		}
 
 		File file = getFile();
 		File cachedThumbnail = null;
+		MediaType mediaType = getMedia() != null ? getMedia().getMediaType() : MediaType.UNKNOWN;
 
-		if (getParent() != null && getParent() instanceof RealFile) {
-			cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
-		}
-
-		File thumbFolder = null;
+		File thumbFolder = file.getParentFile();
 		boolean alternativeCheck = false;
 
-		while (cachedThumbnail == null) {
-			if (thumbFolder == null && getType() != Format.IMAGE) {
-				thumbFolder = file.getParentFile();
-			}
+		if (!MediaType.IMAGE.equals(mediaType)) {
+			while (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
 
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
-			}
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
-			}
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
-			}
-
-			if (alternativeCheck) {
-				break;
-			}
-
-			if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
-				thumbFolder = new File(configuration.getAlternateThumbFolder());
-
-				if (!thumbFolder.isDirectory()) {
-					thumbFolder = null;
+				if (cachedThumbnail != null) {
 					break;
 				}
-			}
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
 
-			alternativeCheck = true;
+				if (cachedThumbnail != null) {
+					break;
+				}
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
+
+				if (cachedThumbnail != null) {
+					break;
+				}
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
+
+				if (cachedThumbnail != null) {
+					break;
+				}
+
+				if (MediaType.AUDIO.equals(mediaType) && getParent() != null && getParent() instanceof RealFile) {
+					cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
+				}
+
+				if (cachedThumbnail != null || alternativeCheck) {
+					break;
+				}
+
+				if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
+					thumbFolder = new File(configuration.getAlternateThumbFolder());
+
+					if (!thumbFolder.isDirectory()) {
+						thumbFolder = null;
+						break;
+					}
+				}
+
+				alternativeCheck = true;
+			}
 		}
 
 		if (file.isDirectory()) {
@@ -274,7 +271,7 @@ public class RealFile extends MapFile {
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
 
 		if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
-			return new FileInputStream(cachedThumbnail);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {
@@ -290,22 +287,11 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(String profile) {
 		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
 			return null;
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
-		sb.append('/');
-		if (getMedia() != null && getMedia().getThumb() != null) {
-			return super.getThumbnailURL();
-		} else if (getType() == Format.AUDIO) {
-			if (getParent() != null && getParent() instanceof RealFile && ((RealFile) getParent()).getPotentialCover() != null) {
-				return super.getThumbnailURL();
-			}
-			return null;
-		}
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	@Override

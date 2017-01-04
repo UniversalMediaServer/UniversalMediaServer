@@ -30,12 +30,17 @@ import java.util.TimeZone;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.Range;
+import net.pms.dlna.RealFile;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.FullyPlayed;
+import net.pms.util.ImagesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
@@ -306,19 +311,24 @@ public class Request extends HTTPResource {
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
-					output(output, "Content-Type: " + dlna.getThumbnailContentType());
+					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
+					output(output, "Content-Type: " + imageProfile.getMimeType());
 					output(output, "Accept-Ranges: bytes");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
 					output(output, "Connection: keep-alive");
+					DLNAThumbnailInputStream thumbInputStream;
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
-						inputStream = dlna.getGenericThumbnailInputStream(null);
+						thumbInputStream = dlna.getGenericThumbnailInputStream(null);
 					} else {
 						if (mediaRenderer.isUseMediaInfo()) {
 							dlna.checkThumbnail();
 						}
-						inputStream = dlna.getThumbnailInputStream();
+						thumbInputStream = dlna.fetchThumbnailInputStream();
 					}
-					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
+					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
+						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
+					}
+					inputStream = thumbInputStream.transcode(imageProfile, false, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output(output, "Content-Type: text/plain");
@@ -401,6 +411,10 @@ public class Request extends HTTPResource {
 						if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
 							// In chunked mode we try to avoid arbitrary values.
 							totalsize = -1;
+						}
+
+						if (dlna.getTranscodedImageLength() != 0) {
+							totalsize = dlna.getTranscodedImageLength();
 						}
 
 						long remaining = totalsize - lowRange;

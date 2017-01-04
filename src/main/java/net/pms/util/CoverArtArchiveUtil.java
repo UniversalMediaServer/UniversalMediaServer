@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -65,7 +65,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverArtArchiveUtil.class);
 	private static final long WAIT_TIMEOUT_MS = 30000;
-	private static long expireTime = 24 * 60 * 60 * 1000; // 24 hours
+	private static final long expireTime = 24 * 60 * 60 * 1000; // 24 hours
 	private static final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
 	private static enum ReleaseType {
