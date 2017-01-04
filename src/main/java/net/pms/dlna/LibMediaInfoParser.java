@@ -253,6 +253,8 @@ public class LibMediaInfoParser {
 						if (media.getImageCount() == 0) {
 							media.setImageCount(1);
 						}
+
+						media.putExtra(FormatConfiguration.MI_CHS, media.getImageInfo().colorSpace.toString());
 					} catch (IOException e) {
 						if (media.getImageCount() > 0) {
 							LOGGER.debug("Error parsing image ({}), switching to MediaInfo: {}", file.getAbsolutePath(), e.getMessage());
