@@ -334,7 +334,7 @@ public class FormatConfiguration {
 					}
 
 					if (key.equals(MI_CHS) && miExtras.get(MI_CHS) != null && !miExtras.get(MI_CHS).matcher(value).matches()) {
-						LOGGER.trace("GOP value \"{}\" failed to match support line {}", miExtras.get(MI_CHS), supportLine);
+						LOGGER.trace("Chroma subsampling value \"{}\" failed to match support line {}", miExtras.get(MI_CHS), supportLine);
 						return false;
 					}
 				}
