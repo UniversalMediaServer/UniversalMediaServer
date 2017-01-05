@@ -72,7 +72,7 @@ public class FormatConfiguration {
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";
-	public static final String MI_CHS = "chs";
+	public static final String MI_COMP = "comp";
 	public static final String MI_GMC = "gmc";
 	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
@@ -333,8 +333,8 @@ public class FormatConfiguration {
 						return false;
 					}
 
-					if (key.equals(MI_CHS) && miExtras.get(MI_CHS) != null && !miExtras.get(MI_CHS).matcher(value).matches()) {
-						LOGGER.trace("Chroma subsampling value \"{}\" failed to match support line {}", miExtras.get(MI_CHS), supportLine);
+					if (key.equals(MI_COMP) && miExtras.get(MI_COMP) != null && !miExtras.get(MI_COMP).matcher(value).matches()) {
+						LOGGER.trace("Compression format \"{}\" failed to match support line {}", miExtras.get(MI_COMP), supportLine);
 						return false;
 					}
 				}

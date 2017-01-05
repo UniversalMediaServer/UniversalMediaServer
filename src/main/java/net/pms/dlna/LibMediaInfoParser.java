@@ -11,6 +11,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.Format;
+import net.pms.formats.ImageFormat;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
@@ -19,6 +20,12 @@ import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Tag;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.jpeg.JpegComponent;
+import com.drew.metadata.jpeg.JpegDescriptor;
+import com.drew.metadata.jpeg.JpegDirectory;
 
 public class LibMediaInfoParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibMediaInfoParser.class);
@@ -254,7 +261,13 @@ public class LibMediaInfoParser {
 							media.setImageCount(1);
 						}
 
-						media.putExtra(FormatConfiguration.MI_CHS, media.getImageInfo().colorSpace.toString());
+						if (media.getImageInfo().format == ImageFormat.JPEG) {
+							JpegDirectory directory = media.getImageInfo().getMetadata().getFirstDirectoryOfType(JpegDirectory.class);
+							if (directory != null && directory.containsTag(JpegDirectory.TAG_COMPRESSION_TYPE)) {
+								String compression = directory.getDescription(JpegDirectory.TAG_COMPRESSION_TYPE);
+								media.putExtra(FormatConfiguration.MI_COMP, compression.substring(0, compression.indexOf(",")));
+							}
+						}
 					} catch (IOException e) {
 						if (media.getImageCount() > 0) {
 							LOGGER.debug("Error parsing image ({}), switching to MediaInfo: {}", file.getAbsolutePath(), e.getMessage());
