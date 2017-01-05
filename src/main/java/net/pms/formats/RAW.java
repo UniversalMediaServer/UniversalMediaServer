@@ -99,7 +99,7 @@ public class RAW extends ImageBase {
 			// Only parse using DCRaw if it is enabled
 			if (PlayerFactory.getEnabledPlayer(RAWThumbnailer.class, this) != null) {
 				OutputParams params = new OutputParams(configuration);
-				params.waitbeforestart = 1;
+				params.waitbeforestart = 0;
 				params.minBufferSize = 1;
 				params.maxBufferSize = 6;
 				params.hidebuffer = true;
@@ -164,7 +164,7 @@ public class RAW extends ImageBase {
 				media.setImageInfo(imageInfo);
 
 				if (media.getWidth() > 0 && configuration.getImageThumbnailsEnabled()) {
-					byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath());
+					byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath(), imageInfo);
 					media.setThumb(DLNAThumbnail.toThumbnail(image, 320, 320, ScaleType.MAX, ImageFormat.JPEG, false));
 				}
 			} else {
