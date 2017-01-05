@@ -20,11 +20,6 @@ import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Tag;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-import com.drew.metadata.jpeg.JpegComponent;
-import com.drew.metadata.jpeg.JpegDescriptor;
 import com.drew.metadata.jpeg.JpegDirectory;
 
 public class LibMediaInfoParser {
@@ -261,9 +256,9 @@ public class LibMediaInfoParser {
 							media.setImageCount(1);
 						}
 
-						if (media.getImageInfo().format == ImageFormat.JPEG) {
+						if (media.getImageInfo().getFormat() == ImageFormat.JPEG) {
 							JpegDirectory directory = media.getImageInfo().getMetadata().getFirstDirectoryOfType(JpegDirectory.class);
-							if (directory != null && directory.containsTag(JpegDirectory.TAG_COMPRESSION_TYPE)) {
+							if (directory != null && directory.containsTag(JpegDirectory.TAG_COMPRESSION_TYPE)) { // XXX compress format recognition could be add to the ImageInfo class
 								String compression = directory.getDescription(JpegDirectory.TAG_COMPRESSION_TYPE);
 								media.putExtra(FormatConfiguration.MI_COMP, compression.substring(0, compression.indexOf(",")));
 							}
