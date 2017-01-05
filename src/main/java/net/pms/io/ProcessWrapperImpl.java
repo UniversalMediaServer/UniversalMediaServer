@@ -19,6 +19,7 @@
 package net.pms.io;
 
 import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +51,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	private boolean keepStderr;
 	private static int processCounter = 0;
 	private boolean success;
+	private final boolean useByteArrayStdConsumer;
 
 	@Override
 	public String toString() {
@@ -64,12 +66,36 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this(cmdArray, params, false, false);
 	}
 
+	public ProcessWrapperImpl(String cmdArray[], boolean useByteArrayStdConsumer, OutputParams params) {
+		this(cmdArray, useByteArrayStdConsumer, params, false, false);
+	}
+
 	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepOutput) {
-		this(cmdArray, params, keepOutput, keepOutput);
+		this(cmdArray, false, params, keepOutput, keepOutput);
+	}
+
+	public ProcessWrapperImpl(
+		String cmdArray[],
+		boolean useByteArrayStdConsumer,
+		OutputParams params,
+		boolean keepOutput
+	) {
+		this(cmdArray, useByteArrayStdConsumer, params, keepOutput, keepOutput);
 	}
 
 	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepStdout, boolean keepStderr) {
+		this(cmdArray, false, params, keepStdout, keepStderr);
+	}
+
+	public ProcessWrapperImpl(
+		String cmdArray[],
+		boolean useByteArrayStdConsumer,
+		OutputParams params,
+		boolean keepStdout,
+		boolean keepStderr
+	) {
 		super();
+		this.useByteArrayStdConsumer = useByteArrayStdConsumer;
 
 		// Determine a suitable thread name for this process:
 		// use the command name, but remove its path first.
@@ -174,7 +200,10 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			stderrConsumer.start();
 			stdoutConsumer = null;
 
-			if (params.input_pipes[0] != null) {
+			if (useByteArrayStdConsumer) {
+				stdoutConsumer = new ByteArrayOutputStreamConsumer(process.getInputStream(), params);
+				bo = stdoutConsumer.getBuffer();
+			} else if (params.input_pipes[0] != null) {
 				LOGGER.debug("Reading pipe: " + params.input_pipes[0].getInputPipe());
 				bo = params.input_pipes[0].getDirectBuffer();
 				if (bo == null || params.losslessaudio || params.lossyaudio || params.no_videoencode) {
@@ -253,7 +282,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 						success = false;
 					}
 				} catch (IllegalThreadStateException itse) {
-					LOGGER.error("Error reading process exit value", itse);
+					LOGGER.error("Error reading process exit value: {}", itse.getMessage());
+					LOGGER.trace("", itse);
 				}
 			}
 			if (attachedProcesses != null) {
@@ -283,8 +313,26 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	 * @see #runInNewThread()
 	 */
 	@Override
+	@SuppressFBWarnings("RU_INVOKE_RUN")
 	public void runInSameThread() {
+		if (!useByteArrayStdConsumer && !params.log) {
+			LOGGER.warn(
+				"ProcessWrapperImpl.runInSameThread() is called without using " +
+				"byte array standard consumer or a text consumer. This can " +
+				"cause this thread to hang and should be avoided!");
+		}
 		this.run();
+	}
+
+	/**
+	 * This method is only valid if the constructor was called with
+	 * {@code useByteArrayStdConsumer} set to {@code true}. Otherwise returns
+	 * {@code null}.
+	 *
+	 * @return The {@link BufferedOutputByteArrayImpl} or {@code null}.
+	 */
+	public BufferedOutputByteArrayImpl getOutputByteArray() {
+		return bo instanceof BufferedOutputByteArrayImpl ? (BufferedOutputByteArrayImpl) bo : null;
 	}
 
 	@Override

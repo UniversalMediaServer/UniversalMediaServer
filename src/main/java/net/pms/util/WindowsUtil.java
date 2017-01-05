@@ -35,7 +35,7 @@ public class WindowsUtil {
 	 */
 	public static boolean installWin32Service() {
 		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-i", "wrapper.conf"};
-		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, new OutputParams(PMS.getConfiguration()));
+		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, true, new OutputParams(PMS.getConfiguration()));
 		pwinstall.runInSameThread();
 		return pwinstall.isSuccess();
 	}
@@ -53,7 +53,7 @@ public class WindowsUtil {
 		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-r", "wrapper.conf"};
 		OutputParams output = new OutputParams(PMS.getConfiguration());
 		output.noexitcheck = true;
-		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, output);
+		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, true, output);
 		pwuninstall.runInSameThread();
 		return true;
 	}
