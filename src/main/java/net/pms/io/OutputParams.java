@@ -47,6 +47,7 @@ public class OutputParams {
 	public DLNAMediaAudio aid;
 	public DLNAMediaSubtitle sid;
 	public int secondread_minsize;
+	public int outputByteArrayStreamBufferSize;
 	public boolean noexitcheck;
 	public boolean log;
 	public boolean lossyaudio;
@@ -112,6 +113,7 @@ public class OutputParams {
 			", minBufferSize=" + minBufferSize +
 			", minFileSize=" + minFileSize +
 			", no_videoencode=" + no_videoencode +
+			", outputByteArrayStreamBufferSize= " + outputByteArrayStreamBufferSize +
 			", noexitcheck=" + noexitcheck +
 			", output_pipes=" + Arrays.toString(output_pipes) +
 			", secondread_minsize=" + secondread_minsize +
