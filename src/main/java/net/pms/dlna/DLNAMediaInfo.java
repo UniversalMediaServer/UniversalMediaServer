@@ -584,7 +584,7 @@ public class DLNAMediaInfo implements Cloneable {
 		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
 
 		// true: consume stderr on behalf of the caller i.e. parse()
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, params, false, true);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, true, params, false, true);
 
 		// FAILSAFE
 		synchronized (parsingLock) {
@@ -668,7 +668,7 @@ public class DLNAMediaInfo implements Cloneable {
 		params.stdin = media.getPush();
 		params.log = true;
 		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, params);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, true, params);
 
 		// FAILSAFE
 		synchronized (parsingLock) {
@@ -978,28 +978,15 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 
 				if (type == Format.VIDEO && pw != null && thumb == null) {
-					InputStream is;
-					int sz = 0;
-					try {
-						is = pw.getInputStream(0);
+					byte[] bytes = pw.getOutputByteArray().toByteArray();
+					if (bytes != null && bytes.length > 0) {
 						try {
-							if (is != null) {
-								sz = is.available();
-								if (sz > 0) {
-									byte[] bytes = new byte[sz];
-									is.read(bytes);
-									thumb = DLNAThumbnail.toThumbnail(bytes);
-									thumbready = true;
-								}
-							}
-						} finally {
-							if (is != null) {
-								is.close();
-							}
+							thumb = DLNAThumbnail.toThumbnail(bytes);
+						} catch (IOException e) {
+							LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
+							LOGGER.trace("", e);
 						}
-					} catch (IOException e) {
-						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
-						LOGGER.trace("", e);
+						thumbready = true;
 					}
 				}
 			}
@@ -1873,7 +1860,7 @@ public class DLNAMediaInfo implements Cloneable {
 		params.maxBufferSize = 1;
 		params.stdin = f.getPush();
 
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, true, params);
 
 		Runnable r = new Runnable() {
 			@Override
@@ -1898,51 +1885,34 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		}
 
-		InputStream is;
-		ByteArrayOutputStream baot = new ByteArrayOutputStream();
+		byte data[] = pw.getOutputByteArray().toByteArray();
+		returnData[0] = data;
+		int kf = 0;
 
-		try {
-			is = pw.getInputStream(0);
-			byte b[] = new byte[4096];
-			int n;
-
-			while ((n = is.read(b)) > 0) {
-				baot.write(b, 0, n);
+		for (int i = 3; i < data.length; i++) {
+			if (data[i - 3] == 1 && (data[i - 2] & 37) == 37 && (data[i - 1] & -120) == -120) {
+				kf = i - 2;
+				break;
 			}
+		}
 
-			byte data[] = baot.toByteArray();
-			baot.close();
-			returnData[0] = data;
-			is.close();
-			int kf = 0;
+		int st = 0;
+		boolean found = false;
 
-			for (int i = 3; i < data.length; i++) {
-				if (data[i - 3] == 1 && (data[i - 2] & 37) == 37 && (data[i - 1] & -120) == -120) {
-					kf = i - 2;
+		if (kf > 0) {
+			for (int i = kf; i >= 5; i--) {
+				if (data[i - 5] == 0 && data[i - 4] == 0 && data[i - 3] == 0 && (data[i - 2] & 1) == 1 && (data[i - 1] & 39) == 39) {
+					st = i - 5;
+					found = true;
 					break;
 				}
 			}
+		}
 
-			int st = 0;
-			boolean found = false;
-
-			if (kf > 0) {
-				for (int i = kf; i >= 5; i--) {
-					if (data[i - 5] == 0 && data[i - 4] == 0 && data[i - 3] == 0 && (data[i - 2] & 1) == 1 && (data[i - 1] & 39) == 39) {
-						st = i - 5;
-						found = true;
-						break;
-					}
-				}
-			}
-
-			if (found) {
-				byte header[] = new byte[kf - st];
-				System.arraycopy(data, st, header, 0, kf - st);
-				returnData[1] = header;
-			}
-		} catch (IOException e) {
-			LOGGER.debug("Caught exception", e);
+		if (found) {
+			byte header[] = new byte[kf - st];
+			System.arraycopy(data, st, header, 0, kf - st);
+			returnData[1] = header;
 		}
 
 		return returnData;
