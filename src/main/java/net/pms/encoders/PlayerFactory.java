@@ -282,9 +282,6 @@ public final class PlayerFactory {
 		if (resource == null) {
 			LOGGER.warn("Invalid resource (null): no player found");
 			return null;
-		} else if (resource.getMedia().isImage()) { // don't resolve player for image
-//			LOGGER.trace("Don't resolve player for resource \"{}\"", resource.getName());
-			return null;
 		} else {
 			LOGGER.trace("Getting player for resource \"{}\"", resource.getName());
 		}

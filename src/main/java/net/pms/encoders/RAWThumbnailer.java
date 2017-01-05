@@ -11,10 +11,12 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.ImageInfo;
 import net.pms.formats.Format;
+import net.pms.formats.ImageFormat;
 import net.pms.io.InternalJavaProcessImpl;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.ImagesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,14 +73,17 @@ public class RAWThumbnailer extends Player {
 		}
 
 		byte[] image = null;
+		ByteArrayInputStream imageInputStream = null;
 		try {
 			image = getThumbnail(params, filename, null);
+			imageInputStream = new ByteArrayInputStream(ImagesUtil.convertImage(image, ImageFormat.JPEG, true, true, false).getBytes(false));
 		} catch (IOException e) {
 			LOGGER.error("Error extracting thumbnail: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
-		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
+		dlna.setTranscodedImageLength(imageInputStream.available());
+		ProcessWrapper pw = new InternalJavaProcessImpl(imageInputStream);
 		configuration = prev;
 		return pw;
 	}
