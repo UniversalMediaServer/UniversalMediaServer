@@ -962,12 +962,14 @@ public class RequestV2 extends HTTPResource {
 			}
 		}
 
-		// Log trace information
-		Iterator<String> it = output.headers().names().iterator();
+		if (LOGGER.isTraceEnabled()) {
+			// Log trace information
+			Iterator<String> it = output.headers().names().iterator();
 
-		while (it.hasNext()) {
-			String headerName = it.next();
-			LOGGER.trace("Sent to socket: " + headerName + ": " + output.headers().get(headerName));
+			while (it.hasNext()) {
+				String headerName = it.next();
+				LOGGER.trace("Sent to socket: " + headerName + ": " + output.headers().get(headerName));
+			}
 		}
 
 		return future;
