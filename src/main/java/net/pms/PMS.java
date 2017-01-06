@@ -1261,6 +1261,15 @@ public class PMS {
 				killOld();
 			}
 
+            if (Platform.isMac()) {
+                // Inhibit the system from sleeping while we are active:
+                String cmd = "caffeinate -i -w " + getPID();
+                try {
+                    Process p = Runtime.getRuntime().exec(cmd);
+                } catch (IOException ex) {
+                    LOGGER.debug("Error throwing MacOS inhibit system sleep: {}", ex);
+                }
+            }
 			// Create the PMS instance returned by get()
 			createInstance(); // Calls new() then init()
 		} catch (ConfigurationException t) {
