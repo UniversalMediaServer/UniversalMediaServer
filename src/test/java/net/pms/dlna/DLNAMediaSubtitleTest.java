@@ -19,6 +19,8 @@
 package net.pms.dlna;
 
 import ch.qos.logback.classic.LoggerContext;
+import net.pms.util.Iso639;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import static net.pms.formats.v2.SubtitleType.*;
@@ -128,6 +130,7 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub1.isExternalFileUtf8()).isFalse();
 		assertThat(sub1.isExternalFileUtf16()).isFalse();
 		assertThat(sub1.isExternalFileUtf()).isFalse();
+		assertThat(sub1.getLang()).isEqualTo("zh");
 
 		File file_gb18030 = FileUtils.toFile(CLASS.getResource("../util/chinese-gb18030.srt"));
 		DLNAMediaSubtitle sub2 = new DLNAMediaSubtitle();
@@ -136,6 +139,7 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub2.isExternalFileUtf8()).isFalse();
 		assertThat(sub2.isExternalFileUtf16()).isFalse();
 		assertThat(sub2.isExternalFileUtf()).isFalse();
+		assertThat(sub2.getLang()).isEqualTo("zh");
 
 		File file_cp1250 = FileUtils.toFile(CLASS.getResource("../util/czech-cp1250.srt"));
 		DLNAMediaSubtitle sub3 = new DLNAMediaSubtitle();
@@ -144,6 +148,7 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub3.isExternalFileUtf8()).isFalse();
 		assertThat(sub3.isExternalFileUtf16()).isFalse();
 		assertThat(sub3.isExternalFileUtf()).isFalse();
+		assertThat(sub3.getLang()).isEqualTo("cs");
 
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../util/russian-cp1251.srt"));
 		DLNAMediaSubtitle sub4 = new DLNAMediaSubtitle();
@@ -152,6 +157,7 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub4.isExternalFileUtf8()).isFalse();
 		assertThat(sub4.isExternalFileUtf16()).isFalse();
 		assertThat(sub4.isExternalFileUtf()).isFalse();
+		assertThat(sub4.getLang()).isEqualTo("ru");
 
 		File file_iso_8859_2 = FileUtils.toFile(CLASS.getResource("../util/hungarian-iso-8859-2.srt"));
 		DLNAMediaSubtitle sub5 = new DLNAMediaSubtitle();
@@ -160,6 +166,7 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub5.isExternalFileUtf8()).isFalse();
 		assertThat(sub5.isExternalFileUtf16()).isFalse();
 		assertThat(sub5.isExternalFileUtf()).isFalse();
+		assertThat(sub5.getLang()).isEqualTo("hu");
 
 		File file_koi8_r = FileUtils.toFile(CLASS.getResource("../util/russian-koi8-r.srt"));
 		DLNAMediaSubtitle sub6 = new DLNAMediaSubtitle();
@@ -168,6 +175,7 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub6.isExternalFileUtf8()).isFalse();
 		assertThat(sub6.isExternalFileUtf16()).isFalse();
 		assertThat(sub6.isExternalFileUtf()).isFalse();
+		assertThat(sub6.getLang()).isEqualTo("ru");
 	}
 
 	@Test
