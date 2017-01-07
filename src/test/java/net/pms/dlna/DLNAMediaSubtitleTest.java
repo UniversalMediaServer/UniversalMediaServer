@@ -137,21 +137,37 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub2.isExternalFileUtf16()).isFalse();
 		assertThat(sub2.isExternalFileUtf()).isFalse();
 
-		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../util/russian-cp1251.srt"));
+		File file_cp1250 = FileUtils.toFile(CLASS.getResource("../util/czech-cp1250.srt"));
 		DLNAMediaSubtitle sub3 = new DLNAMediaSubtitle();
-		sub3.setExternalFile(file_cp1251, null);
-		assertThat(sub3.getSubCharacterSet()).isEqualTo(CHARSET_WINDOWS_1251);
+		sub3.setExternalFile(file_cp1250, null);
+		assertThat(sub3.getSubCharacterSet()).isEqualTo(CHARSET_WINDOWS_1250);
 		assertThat(sub3.isExternalFileUtf8()).isFalse();
 		assertThat(sub3.isExternalFileUtf16()).isFalse();
 		assertThat(sub3.isExternalFileUtf()).isFalse();
 
-		File file_koi8_r = FileUtils.toFile(CLASS.getResource("../util/russian-koi8-r.srt"));
+		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../util/russian-cp1251.srt"));
+		DLNAMediaSubtitle sub4 = new DLNAMediaSubtitle();
+		sub4.setExternalFile(file_cp1251, null);
+		assertThat(sub4.getSubCharacterSet()).isEqualTo(CHARSET_WINDOWS_1251);
+		assertThat(sub4.isExternalFileUtf8()).isFalse();
+		assertThat(sub4.isExternalFileUtf16()).isFalse();
+		assertThat(sub4.isExternalFileUtf()).isFalse();
+
+		File file_iso_8859_2 = FileUtils.toFile(CLASS.getResource("../util/hungarian-iso-8859-2.srt"));
 		DLNAMediaSubtitle sub5 = new DLNAMediaSubtitle();
-		sub5.setExternalFile(file_koi8_r, null);
-		assertThat(sub5.getSubCharacterSet()).isEqualTo(CHARSET_KOI8_R);
+		sub5.setExternalFile(file_iso_8859_2, null);
+		assertThat(sub5.getSubCharacterSet()).isEqualTo(CHARSET_ISO_8859_2);
 		assertThat(sub5.isExternalFileUtf8()).isFalse();
 		assertThat(sub5.isExternalFileUtf16()).isFalse();
 		assertThat(sub5.isExternalFileUtf()).isFalse();
+
+		File file_koi8_r = FileUtils.toFile(CLASS.getResource("../util/russian-koi8-r.srt"));
+		DLNAMediaSubtitle sub6 = new DLNAMediaSubtitle();
+		sub6.setExternalFile(file_koi8_r, null);
+		assertThat(sub6.getSubCharacterSet()).isEqualTo(CHARSET_KOI8_R);
+		assertThat(sub6.isExternalFileUtf8()).isFalse();
+		assertThat(sub6.isExternalFileUtf16()).isFalse();
+		assertThat(sub6.isExternalFileUtf()).isFalse();
 	}
 
 	@Test
