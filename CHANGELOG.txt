@@ -1,7 +1,7 @@
 7.0.0-a1 - 2016-12-31
 
 	General:
-		Added "Movies" and "TV Shows" folders to the "Media Library" folder
+		Added "TV Shows", "Movies", "3D Movies", and "Unsorted" folders to the "Media Library" folder
 		Added right-click menu to navigation pane
 		Renamed "Cache" folder to "Media Library" folder and enabled it by default
 		Changed "Hide" options to "Show", e.g. "Hide Media Library folder" becomes "Show Media Library folder"
