@@ -859,7 +859,7 @@ public class DLNAMediaInfo implements Cloneable {
 						ffmpeg_parsing = true;
 					}
 				}
-				
+
 				if (configuration.getImageThumbnailsEnabled() && thumbOnly) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
@@ -1362,7 +1362,7 @@ public class DLNAMediaInfo implements Cloneable {
 			if (codecV != null) {
 				if ("matroska".equals(container) || "mkv".equals(container)) {
 					mimeType = HTTPResource.MATROSKA_TYPEMIME;
-				} else if ("ogg".equals(container)) { 
+				} else if ("ogg".equals(container)) {
 					mimeType = HTTPResource.OGG_TYPEMIME;
 				} else if ("3gp".equals(container)) {
 					mimeType = HTTPResource.THREEGPP_TYPEMIME;
@@ -1392,7 +1392,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
 				} else if ("3g2".equals(container)) {
 					mimeType = HTTPResource.AUDIO_THREEGPP2A_TYPEMIME;
-				} else if ("adts".equals(container)) {	
+				} else if ("adts".equals(container)) {
 					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
 				} else if ("matroska".equals(container) || "mkv".equals(container)) {
 					mimeType = HTTPResource.AUDIO_MATROSKA_TYPEMIME;
@@ -1931,7 +1931,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public void setCodecV(String codecV) {
-		this.codecV = codecV.toLowerCase();
+		this.codecV = codecV != null ? codecV.toLowerCase(Locale.ROOT) : null ;
 	}
 
 	/**
