@@ -13,6 +13,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -148,10 +149,11 @@ class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 		File file = new File(json.getAsJsonPrimitive().getAsString());
 
 		try {
-			if (FileUtil.getFilePermissions(file).isBrowsable()) {
+			FilePermissions permissions = FileUtil.getFilePermissions(file);
+			if (permissions.isBrowsable()) {
 				return file;
 			} else {
-				LOGGER.warn("Can't read folder: {}", file.getAbsolutePath());
+				LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
 				return null;
 			}
 		} catch (FileNotFoundException e) {
