@@ -1,3 +1,26 @@
+6.5.3 - 2017-01-07
+
+	General:
+		Added detection of the Chromium and Vivaldi web browsers
+		Fixed bug where video container and codec settings weren't saved
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added support for Sony Bravia X series TVs
+	Dependencies:
+		Updated Git Commit ID plugin to 2.2.1
+		Updated Maven Antrun plugin to 1.8
+		Updated Maven Assembly plugin to 3.0.0
+		Updated Maven Compiler plugin to 3.6.0
+		Updated Maven Enforcer plugin to 1.4.1
+		Updated Maven Findbugs plugin to 3.0.4
+		Updated Maven Javadoc plugin to 2.10.4
+		Updated Maven PMD plugin to 3.7
+		Updated Maven Project Info Reports plugin to 2.9
+		Updated Maven Site plugin to 3.6
+		Updated Maven Surefire plugin to 2.19.1
+		Updated Maven Surefire Report plugin to 2.19.1
+
 7.0.0-a1 - 2016-12-31
 
 	General:
@@ -9,11 +32,6 @@
 		Fixed bug where removing a directory in UMS does not remove its contents from the Media Library.
 		Fixed sorting in dynamic folders
 		Fully played tracking is stored in the SQL database
-
-6.5.3 - 2016-12-??
-
-	General:
-		
 
 6.5.2 - 2016-11-27
 
