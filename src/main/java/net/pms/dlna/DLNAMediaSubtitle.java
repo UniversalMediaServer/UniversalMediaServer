@@ -23,6 +23,8 @@ import com.ibm.icu.text.CharsetMatch;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Locale;
+
 import net.pms.PMS;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
@@ -186,12 +188,15 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private void setFileSubsCharacterSet(String forcedLang) {
 		if (type.isPicture()) {
 			subsCharacterSet = null;
-		} else if (forcedLang == null) { // do not check subs charset or language when the language is specified in the filename
+		} else {
 			try {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
-					subsCharacterSet = match.getName().toUpperCase(PMS.getLocale());
-					lang = match.getLanguage();
+					subsCharacterSet = match.getName().toUpperCase(Locale.ROOT);
+					if (forcedLang == null) { // set the detected language when the language is not specified in the filename
+						lang = match.getLanguage();
+					}
+
 					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", match.getName(), lang, externalFile.getAbsolutePath());
 				} else {
 					subsCharacterSet = null;
