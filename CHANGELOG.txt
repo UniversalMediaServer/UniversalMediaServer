@@ -1,8 +1,10 @@
-6.5.3 - 2017-01-??
+6.5.3 - 2017-01-07
 
 	General:
 		Added detection of the Chromium and Vivaldi web browsers
 		Fixed bug where video container and codec settings weren't saved
+	Languages:
+		Synchronized translations with Crowdin
 	Dependencies:
 		Updated Git Commit ID plugin to 2.2.1
 		Updated Maven Antrun plugin to 1.8
