@@ -19,7 +19,7 @@
  */
 package net.pms.dlna;
 
-import com.ibm.icu.text.CharsetMatch;
+//import com.ibm.icu.text.CharsetMatch;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,6 +28,7 @@ import net.pms.formats.v2.SubtitleType;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
 import static net.pms.util.Constants.CHARSET_UTF_8;
 import net.pms.util.FileUtil;
+import net.pms.util.icu4j.CharsetMatch;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
