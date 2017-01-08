@@ -19,8 +19,6 @@
 package net.pms.dlna;
 
 import ch.qos.logback.classic.LoggerContext;
-import net.pms.util.Iso639;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import static net.pms.formats.v2.SubtitleType.*;
