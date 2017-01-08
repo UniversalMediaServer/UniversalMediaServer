@@ -24,8 +24,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Locale;
-
-import net.pms.PMS;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
 import static net.pms.util.Constants.CHARSET_UTF_8;
@@ -171,8 +169,11 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Set external subs file, detect its Character Set and Language. When the {@code forcedLang} is not {@code null}, 
+	 * based on the language tag in the file name e.g {@code subsname.en.srt}, than it has priority over the detected language.
+	 * 
 	 * @param externalFile the externalFile to set
-	 * @param langForced 
+	 * @param forcedLang language forced by file name language tag
 	 */
 	public void setExternalFile(File externalFile, String forcedLang) throws FileNotFoundException {
 		if (externalFile == null) {
@@ -185,6 +186,12 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		setFileSubsCharacterSet(forcedLang);
 	}
 
+	/**
+	 * Detects and set Character Set and language of the subs file. When the {@code forcedLang} is not {@code null}
+	 * than it as priority over the detected language.
+	 * 
+	 * @param forcedLang forced language
+	 */
 	private void setFileSubsCharacterSet(String forcedLang) {
 		if (type.isPicture()) {
 			subsCharacterSet = null;
