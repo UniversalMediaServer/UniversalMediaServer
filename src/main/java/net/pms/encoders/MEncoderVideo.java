@@ -768,7 +768,7 @@ public class MEncoderVideo extends Player {
 				// Round down to the nearest Mb
 				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
 
-				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + " to make room for audio");
+				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + "kb/s to make room for audio");
 			}
 
 			encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;

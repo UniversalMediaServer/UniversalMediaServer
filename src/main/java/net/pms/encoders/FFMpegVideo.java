@@ -509,7 +509,7 @@ public class FFMpegVideo extends Player {
 					defaultMaxBitrates[0] = 3000;
 				}
 
-				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + " to make room for audio");
+				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + "kb/s to make room for audio");
 			}
 
 			videoBitrateOptions.add("-bufsize");
