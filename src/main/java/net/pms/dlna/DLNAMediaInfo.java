@@ -1361,6 +1361,9 @@ public class DLNAMediaInfo implements Cloneable {
 				case "mov":
 					mimeType = HTTPResource.MOV_TYPEMIME;
 					break;
+				case "ogg":
+					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+					break;	
 			}
 		}
 
