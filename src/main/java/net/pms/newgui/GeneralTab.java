@@ -440,8 +440,11 @@ public class GeneralTab {
 			});
 			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
-			if (Platform.isWindows()) {
-				preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
+            if (PMS.get().SleepInhibitAble == true) {
+                preventSleep = new JCheckBox(Messages.getString(
+                        Platform.isWindows() ? "NetworkTab.33" :
+                        Platform.isMac()     ? "NetworkTab.75" :
+                                "error"), configuration.isPreventsSleep());
 				preventSleep.addItemListener(new ItemListener() {
 					@Override
 					public void itemStateChanged(ItemEvent e) {
