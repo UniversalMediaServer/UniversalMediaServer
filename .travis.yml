@@ -1,7 +1,15 @@
 language: java
+
 addons:
   apt:
     packages:
     - mediainfo 
+
+jdk:
+  - openjdk7
+  - oraclejdk7
+  - oraclejdk8
+
 install: mvn external:install 
+
 script: mvn install -Dmaven.javadoc.skip=true -B -V
