@@ -224,11 +224,15 @@ public class CustomImageReader {
      *             {@link ImageInfo#SIZE_UNKNOWN} if it can't be determined.
      * @param metadata the {@link Metadata} instance to embed in the resulting
      *                 {@link ImageInfo} instance.
+	 * @param applyExifOrientation whether or not Exif orientation should be
+	 *            compensated for when setting width and height. This will also
+	 *            reset the Exif orientation information. <b>Changes will be
+	 *            applied to the {@code metadata} argument instance</b>.
      * @return An {@link ImageInfo} instance describing the input image.
 	 * @throws UnknownFormatException if the format could not be determined.
      * @throws IOException if an IO error occurred.
      */
-    public static ImageInfo readImageInfo(InputStream inputStream, long size, Metadata metadata) throws IOException {
+    public static ImageInfo readImageInfo(InputStream inputStream, long size, Metadata metadata, boolean applyExifOrientation) throws IOException {
         if (inputStream == null) {
             throw new IllegalArgumentException("input == null!");
         }
@@ -284,6 +288,7 @@ public class CustomImageReader {
 		        	size,
 		        	colorModel,
 		        	metadata,
+		        	applyExifOrientation,
 		        	imageIOSupport
 		        );
 		        return imageInfo;

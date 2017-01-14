@@ -57,7 +57,7 @@ public class Image implements Serializable {
 	 * Creates a new {@link Image} instance.
 	 *
 	 * @param bytes the source image in a supported format. Format support is
-	 * limited to that of {@link ImageIO}.
+	 *            limited to that of {@link ImageIO}.
 	 *
 	 * @param imageInfo the {@link ImageInfo} to store with this {@link Image}.
 	 * @param copy whether this instance should be copied or shared.
@@ -79,7 +79,7 @@ public class Image implements Serializable {
 				LOGGER.trace("", e);
 				metadata = new Metadata();
 			}
-			imageInfo = imageInfo.copy(metadata);
+			imageInfo = imageInfo.copy(metadata, false);
 		}
 		this.imageInfo = imageInfo;
 	}
@@ -87,15 +87,17 @@ public class Image implements Serializable {
 	/**
 	 * Creates a new {@link Image} instance.
 	 *
-	 * @param bytes the image in a supported format. Format support is
-	 * limited to that of {@link ImageIO}.
+	 * @param bytes the image in a supported format. Format support is limited
+	 *            to that of {@link ImageIO}.
 	 * @param width the width of the image.
 	 * @param height the height of the image.
 	 * @param format the {@link ImageFormat} of the image.
 	 * @param colorModel the {@link ColorModel} of the image.
-	 * @param metadata the {@link Metadata} instance describing the image.
+	 * @param metadata the {@link Metadata} instance describing the image. Not
+	 *            used if {@code copy} is {@code true}. Will be created if
+	 *            {@code null} and {@code copy} is {@code false}.
 	 * @param imageIOSupport whether or not {@link ImageIO} can read/parse this
-	 *                       image.
+	 *            image.
 	 * @param copy whether this instance should be copied or shared.
 	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP2")
@@ -131,6 +133,7 @@ public class Image implements Serializable {
 			bytes != null ? bytes.length : 0,
 			colorModel,
 			metadata,
+			false,
 			imageIOSupport
 		);
 	}
@@ -143,11 +146,19 @@ public class Image implements Serializable {
 	 * @param format the {@link ImageFormat} of the image.
 	 * @param bufferedImage the {@link BufferedImage} to get
 	 *                      non-{@link Metadata} metadata from.
-	 * @param metadata the {@link Metadata} instance describing the image.
+	 * @param metadata the {@link Metadata} instance describing the image. Not
+	 *            used if {@code copy} is {@code true}. Will be created if
+	 *            {@code null} and {@code copy} is {@code false}.
 	 * @param copy whether this instance should be copied or shared.
 	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP2")
-	public Image(byte[] bytes, ImageFormat format, BufferedImage bufferedImage, Metadata metadata, boolean copy) {
+	public Image(
+		byte[] bytes,
+		ImageFormat format,
+		BufferedImage bufferedImage,
+		Metadata metadata,
+		boolean copy
+	) {
 		if (bufferedImage == null) {
 			throw new IllegalArgumentException("bufferedImage cannot be null");
 		}
@@ -159,7 +170,7 @@ public class Image implements Serializable {
 			this.bytes = bytes;
 		}
 
-		if (metadata == null) {
+		if (metadata == null || copy) {
 			try {
 				metadata = ImagesUtil.getMetadata(this.bytes, format);
 			} catch (ImageProcessingException | IOException e) {
@@ -175,20 +186,21 @@ public class Image implements Serializable {
 			bytes != null ? bytes.length : 0,
 			bufferedImage.getColorModel(),
 			metadata,
+			false,
 			true
 		);
 	}
 
 	/**
-	 * Converts an image to an {@link Image}. Format support is limited
-	 * to that of {@link ImageIO}.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * Converts an image to an {@link Image}. Preserves aspect ratio and
+	 * rotates/flips the image according to Exif orientation. Format support is
+	 * limited to that of {@link ImageIO}.
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputStream the source image in a supported format.
-	 * @return The populated {@link Image} or {@code null} if the
-	 *         source image could not be parsed.
+	 * @return The populated {@link Image} or {@code null} if the source image
+	 *         could not be parsed.
 	 * @throws IOException
 	 */
 	public static Image toImage(InputStream inputStream) throws IOException {
@@ -196,12 +208,13 @@ public class Image implements Serializable {
 	}
 
 	/**
-	 * Converts an image to an {@link Image}. Format support is limited
-	 * to that of {@link ImageIO}.
+	 * Converts an image to an {@link Image}. Preserves aspect ratio and
+	 * rotates/flips the image according to Exif orientation. Format support is
+	 * limited to that of {@link ImageIO}.
 	 *
 	 * @param imageByteArray the source image in a supported format.
-	 * @return The populated {@link Image} or {@code null} if the
-	 *         source image could not be parsed.
+	 * @return The populated {@link Image} or {@code null} if the source image
+	 *         could not be parsed.
 	 * @throws IOException
 	 */
 	public static Image toImage(byte[] imageByteArray) throws IOException {
@@ -209,19 +222,20 @@ public class Image implements Serializable {
 	}
 
 	/**
-	 * Converts an {@link Image} to another {@link Image}. Format support is
-	 * limited to that of {@link ImageIO}.
+	 * Converts an {@link Image} to another {@link Image}. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation. Format
+	 * support is limited to that of {@link ImageIO}.
 	 *
 	 * @param inputImage the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link Image} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link Image} or {@code null} if the source image
+	 *         could not be parsed.
 	 * @throws IOException
 	 */
 	public static Image toImage(
@@ -246,22 +260,23 @@ public class Image implements Serializable {
 	}
 
 	/**
-	 * Converts an image to an {@link Image}. Format support is limited
-	 * to that of {@link ImageIO}.
+	 * Converts an image to an {@link Image}. Preserves aspect ratio and
+	 * rotates/flips the image according to Exif orientation. Format support is
+	 * limited to that of {@link ImageIO}.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputStream the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link Image} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link Image} or {@code null} if the source image
+	 *         could not be parsed.
 	 * @throws IOException
 	 */
 	public static Image toImage(
@@ -286,19 +301,20 @@ public class Image implements Serializable {
 	}
 
 	/**
-	 * Converts an image to an {@link Image}. Format support is limited
-	 * to that of {@link ImageIO}.
+	 * Converts an image to an {@link Image}. Preserves aspect ratio and
+	 * rotates/flips the image according to Exif orientation. Format support is
+	 * limited to that of {@link ImageIO}.
 	 *
 	 * @param imageByteArray the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link Image} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link Image} or {@code null} if the source image
+	 *         could not be parsed.
 	 * @throws IOException
 	 */
 	public static Image toImage(
@@ -322,24 +338,24 @@ public class Image implements Serializable {
 	}
 
 	/**
-	 * Scales the {@link Image}. Preserves aspect ratio. Format support is
-	 * limited to that of {@link ImageIO}.
+	 * Scales the {@link Image}. Preserves aspect ratio and rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}.
 	 *
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled {@link Image} or {@code null} if the source is
 	 *         {@code null}.
 	 * @throws IOException if the operation fails.
@@ -366,22 +382,22 @@ public class Image implements Serializable {
 	}
 
 	/**
-	 * Converts the {@link Image}. Preserves aspect ratio. Format support is
-	 * limited to that of {@link ImageIO}.
+	 * Converts the {@link Image}. Preserves aspect ratio and rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}.
 	 *
 	 * @param outputFormat the {@link ImageFormat} to convert to or
-	 *                     {@link ImageFormat#SOURCE} to preserve source
-	 *                     format. Overridden by {@code outputProfile}.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 *            Overridden by {@code outputProfile}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @return The converted {@link Image} or {@code null} if the source is
 	 *         {@code null}.
 	 * @throws IOException if the operation fails.
@@ -405,27 +421,27 @@ public class Image implements Serializable {
 	}
 
 	/**
-	 * Converts and scales the {@link Image}. Preserves aspect ratio. Format
-	 * support is limited to that of {@link ImageIO}.
+	 * Converts and scales the {@link Image}. Preserves aspect ratio and
+	 * rotates/flips the image according to Exif orientation. Format support is
+	 * limited to that of {@link ImageIO}.
 	 *
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to convert to or
-	 *                     {@link ImageFormat#SOURCE} to preserve source
-	 *                     format. Overridden by {@code outputProfile}.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 *            Overridden by {@code outputProfile}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted {@link Image} or {@code null} if the
 	 *         source is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -455,23 +471,23 @@ public class Image implements Serializable {
 
 	/**
 	 * Converts and scales the {@link Image} according to the given
-	 * {@link DLNAImageProfile}. Preserves aspect ratio. Format support is
-	 * limited to that of {@link ImageIO}.
+	 * {@link DLNAImageProfile}. Preserves aspect ratio and rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}.
 	 *
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to. This
-	 *                      overrides {@code outputFormat}.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 *            overrides {@code outputFormat}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted {@link Image} or {@code null} if the
 	 *         source is {@code null}.
 	 * @throws IOException if the operation fails.

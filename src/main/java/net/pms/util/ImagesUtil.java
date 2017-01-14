@@ -13,12 +13,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
-import mediautil.gen.Log;
-import mediautil.image.jpeg.LLJTran;
-import mediautil.image.jpeg.LLJTranException;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.filters.Canvas;
 import net.coobird.thumbnailator.geometry.Positions;
+import net.coobird.thumbnailator.util.exif.ExifFilterUtils;
 import net.pms.dlna.DLNAImage;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAImageProfile.DLNAComplianceResult;
@@ -49,114 +47,26 @@ import com.drew.imaging.tiff.TiffReader;
 import com.drew.imaging.webp.WebpMetadataReader;
 import com.drew.lang.RandomAccessFileReader;
 import com.drew.lang.RandomAccessStreamReader;
+import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
+import com.drew.metadata.bmp.BmpHeaderDirectory;
+import com.drew.metadata.exif.ExifDirectoryBase;
+import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.ExifThumbnailDirectory;
 import com.drew.metadata.exif.ExifTiffHandler;
+import com.drew.metadata.gif.GifHeaderDirectory;
+import com.drew.metadata.ico.IcoDirectory;
+import com.drew.metadata.jfif.JfifDirectory;
+import com.drew.metadata.jpeg.JpegDirectory;
+import com.drew.metadata.pcx.PcxDirectory;
+import com.drew.metadata.photoshop.PsdHeaderDirectory;
+import com.drew.metadata.png.PngDirectory;
+import com.drew.metadata.webp.WebpDirectory;
 
 public class ImagesUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagesUtil.class);
-
-	public static InputStream getAutoRotateInputStreamImage(InputStream input, int exifOrientation) {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			auto(input, baos, exifOrientation);
-		} catch (IOException | LLJTranException e) {
-			LOGGER.error("Error in auto rotate", e);
-			return null;
-		}
-		return new ByteArrayInputStream(baos.toByteArray());
-	}
-
-	public static void auto(InputStream input, OutputStream output, int exifOrientation) throws IOException, LLJTranException {
-
-		/*
-		 * Exif orientation tag definition:
-		 *
-		 *   Default = 1
-		 *   1 = The 0th row is at the visual top of the image, and the 0th column is the visual left-hand side.
-		 *   2 = The 0th row is at the visual top of the image, and the 0th column is the visual right-hand side.
-		 *   3 = The 0th row is at the visual bottom of the image, and the 0th column is the visual right-hand side.
-		 *   4 = The 0th row is at the visual bottom of the image, and the 0th column is the visual left-hand side.
-		 *   5 = The 0th row is the visual left-hand side of the image, and the 0th column is the visual top.
-		 *   6 = The 0th row is the visual right-hand side of the image, and the 0th column is the visual top.
-		 *   7 = The 0th row is the visual right-hand side of the image, and the 0th column is the visual bottom.
-		 *   8 = The 0th row is the visual left-hand side of the image, and the 0th column is the visual bottom.
-		 *
-		 * Exif orientation tag visualized (by Adam M. Costello):
-		 *
-		 *  Here is what the letter F would look like if it were tagged correctly and displayed
-		 *  by a program that ignores the orientation tag (thus showing the stored image):
-		 *
-		 *        1        2       3      4         5            6           7          8
-		 *
-		 *      888888  888888      88  88      8888888888  88                  88  8888888888
-		 *      88          88      88  88      88  88      88  88          88  88      88  88
-		 *      8888      8888    8888  8888    88          8888888888  8888888888          88
-		 *      88          88      88  88
-		 *      88          88  888888  888888
-		 *
-		 */
-
-		// convert exif orientation -> llj operation
-		int op;
-		switch (exifOrientation) {
-			case 1:
-				op = 0;
-				break;
-			case 2:
-				op = 1;
-				break;
-			case 3:
-				op = 6;
-				break;
-			case 4:
-				op = 2;
-				break;
-			case 5:
-				op = 3;
-				break;
-			case 6:
-				op = 5;
-				break;
-			case 7:
-				op = 4;
-				break;
-			case 8:
-				op = 7;
-				break;
-			default:
-				op = 0;
-		}
-
-		// Raise the Debug Level which is normally LEVEL_INFO. Only Warning
-		// messages will be printed by MediaUtil.
-		Log.debugLevel = Log.LEVEL_NONE;
-
-		// 1. Initialize LLJTran and Read the entire Image including Appx markers
-		LLJTran llj = new LLJTran(input);
-		// If you pass the 2nd parameter as false, Exif information is not
-		// loaded and hence will not be written.
-		llj.read(LLJTran.READ_ALL, true);
-
-		// 2. Transform the image using default options along with
-		// transformation of the Orientation tags. Try other combinations of
-		// LLJTran_XFORM.. flags. Use a jpeg with partial MCU (partialMCU.jpg)
-		// for testing LLJTran.XFORM_TRIM and LLJTran.XFORM_ADJUST_EDGES
-		int options = LLJTran.OPT_DEFAULTS | LLJTran.OPT_XFORM_ORIENTATION;
-		llj.transform(op, options);
-
-		// 3. Save the Image which is already transformed as specified by the
-		//    input transformation in Step 2, along with the Exif header.
-		try (OutputStream out = new BufferedOutputStream(output)) {
-			llj.save(out, LLJTran.OPT_WRITE_ALL);
-		}
-
-		// Cleanup
-		input.close();
-		llj.freeMemory();
-	}
 
 	/**
 	 * Parses an image file and stores the results in the given
@@ -218,7 +128,8 @@ public class ImagesUtil {
 			}
 			ImageInfo imageInfo = null;
 			try {
-				imageInfo = CustomImageReader.readImageInfo(inputStream, size , metadata);
+				imageInfo = CustomImageReader.readImageInfo(inputStream, size , metadata, true);
+				// From this point on metadata is Exif orientation compensated.
 			} catch (UnknownFormatException | IIOException e) {
 				if (format == null) {
 					throw new UnknownFormatException(
@@ -233,7 +144,7 @@ public class ImagesUtil {
 				// Gather basic information from the data we have
 				if (metadata != null) {
 					try {
-						imageInfo = new ImageInfo(metadata, format, size, true);
+						imageInfo = new ImageInfo(metadata, format, size, true, true);
 					} catch (MetadataException me) {
 						LOGGER.warn("Unable to parse metadata for \"{}\": {}", file.getAbsolutePath(), me.getMessage());
 						LOGGER.trace("", me);
@@ -250,7 +161,7 @@ public class ImagesUtil {
 			} else if (imageInfo != null && imageInfo.getFormat() != null && format != imageInfo.getFormat()) {
 				if (imageInfo.getFormat() == ImageFormat.TIFF && format.isRaw()) {
 					if (format == ImageFormat.ARW && !isARW(metadata)) {
-						// TODO: Remove this if https://github.com/drewnoakes/metadata-extractor/issues/217 is fixed
+						// XXX Remove this if https://github.com/drewnoakes/metadata-extractor/issues/217 is fixed
 						// Metadata extractor misidentifies some Photoshop created TIFFs for ARW, correct it
 						format = ImageFormat.TIFF;
 						LOGGER.trace(
@@ -273,6 +184,7 @@ public class ImagesUtil {
 							imageInfo.getColorSpace(),
 							imageInfo.getColorSpaceType(),
 							metadata,
+							false,
 							imageInfo.isImageIOSupported()
 							);
 						LOGGER.trace(
@@ -293,10 +205,6 @@ public class ImagesUtil {
 					format = imageInfo.getFormat();
 				}
 			}
-			if (imageInfo != null) {
-				media.setWidth(imageInfo.getWidth());
-				media.setHeight(imageInfo.getHeight());
-			}
 			media.setImageInfo(imageInfo);
 			if (format != null) {
 				media.setCodecV(format.toFormatConfiguration());
@@ -312,7 +220,7 @@ public class ImagesUtil {
 	 * as ARW files. This method is here to verify if such a misidentification
 	 * has taken place or not.
 	 *
-	 * TODO: This method can be removed if https://github.com/drewnoakes/metadata-extractor/issues/217 is fixed
+	 * XXX This method can be removed if https://github.com/drewnoakes/metadata-extractor/issues/217 is fixed
 	 */
 	public static boolean isARW(Metadata metadata) {
 		if (metadata == null) {
@@ -329,6 +237,312 @@ public class ImagesUtil {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Tries to parse {@link ExifOrientation} from the given metadata. If it
+	 * fails, {@link ExifOrientation#TOP_LEFT} is returned.
+	 *
+	 * @param metadata the {@link Metadata} to parse.
+	 * @return The parsed {@link ExifOrientation} or
+	 *         {@link ExifOrientation#TOP_LEFT}.
+	 */
+	public static ExifOrientation parseExifOrientation(Metadata metadata) {
+		if (metadata == null) {
+			return ExifOrientation.TOP_LEFT;
+		}
+		try {
+			for (Directory directory : metadata.getDirectories()) {
+				if (directory instanceof ExifIFD0Directory) {
+					if (((ExifIFD0Directory) directory).containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
+						return ExifOrientation.typeOf(((ExifIFD0Directory) directory).getInt(ExifIFD0Directory.TAG_ORIENTATION));
+					}
+				}
+			}
+		} catch (MetadataException e) {
+			return ExifOrientation.TOP_LEFT;
+		}
+		return ExifOrientation.TOP_LEFT;
+	}
+
+	/**
+	 * Checks if the resolution axes must be swapped if the image is rotated
+	 * according to the given Exif orientation.
+	 *
+	 * @param imageInfo the {@link ImageInfo} whose Exif orientation to evaluate.
+	 * @return {@code true} if the axes should be swapped, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isExifAxesSwapNeeded(ImageInfo imageInfo) {
+		return imageInfo != null && isExifAxesSwapNeeded(imageInfo.getExifOrientation());
+	}
+
+	/**
+	 * Checks if the resolution axes must be swapped if the image is rotated
+	 * according to the given Exif orientation.
+	 *
+	 * @param metadata the {@link Metadata} whose Exif orientation to evaluate.
+	 * @return {@code true} if the axes should be swapped, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isExifAxesSwapNeeded(Metadata metadata) {
+		return metadata != null && isExifAxesSwapNeeded(parseExifOrientation(metadata));
+	}
+
+	/**
+	 * Checks if the resolution axes must be swapped if the image is rotated
+	 * according to the given Exif orientation.
+	 *
+	 * @param orientation the Exif orientation to evaluate.
+	 * @return {@code true} if the axes should be swapped, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isExifAxesSwapNeeded(ExifOrientation orientation) {
+		switch (orientation) {
+			case LEFT_TOP:
+			case RIGHT_TOP:
+			case RIGHT_BOTTOM:
+			case LEFT_BOTTOM:
+				return true;
+			default:
+				return false;
+		}
+	}
+
+
+	/**
+	 * <b>Use this method with care as it is a little bit tricky</b>. This
+	 * method returns a new {@link ImageInfo} instance if any changes are
+	 * required. If not, the argument is returned. If changes are needed, the
+	 * old {@link ImageInfo} instance is left untouched but its {@link Metadata}
+	 * instance is altered. This is because there's no way to copy/clone a
+	 * {@link Metadata} instance. The existing {@link Metadata} instance is
+	 * therefore altered and returned with the new {@link ImageInfo} instance -
+	 * which effectively invalidates the old {@link ImageInfo} instance.
+	 *
+	 * <b>In short, make sure not to use the {@link ImageInfo} argument after
+	 * calling this method, use the returned instance instead</b>
+	 *
+	 * This method transforms the {@link ImageInfo} instance and its
+	 * {@link Metadata} instance as if the image was transformed according to
+	 * Exif orientation. Resets Exif orientation to 1. Please note: This swaps
+	 * the axes of the basic tags, custom maker note tags etc. is beyond the
+	 * scope of this method. Thumbnail axes are also swapped.
+	 *
+	 * @param imageInfo the {@link ImageInfo} to transform according to its Exif
+	 *            orientation.
+	 */
+	public static ImageInfo swapAxesIfNeeded(ImageInfo imageInfo) {
+		if (imageInfo != null && imageInfo.getExifOrientation() != ExifOrientation.TOP_LEFT) {
+			return imageInfo.copy(imageInfo.getMetadata(), true);
+		}
+		return imageInfo;
+	}
+
+	/**
+	 * Transforms the {@link Metadata} instance as if the image was transformed
+	 * according to Exif orientation. Resets Exif orientation to 1. Please note:
+	 * This swaps the axes of the basic tags, custom maker note tags etc. is
+	 * beyond the scope of this method. Thumbnail axes are also swapped.
+	 *
+	 * @param metadata the {@link Metadata} to transform according to its Exif
+	 *            orientation.
+	 */
+	public static void swapAxesIfNeeded(Metadata metadata) {
+		if (isExifAxesSwapNeeded(metadata)) {
+			swapAxes(metadata);
+		} else if (metadata != null) {
+			for (Directory directory : metadata.getDirectories()) {
+				if (directory instanceof ExifDirectoryBase ) {
+					if (
+						((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_ORIENTATION)
+					) {
+						directory.setInt(ExifDirectoryBase.TAG_ORIENTATION, 1);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Swaps the axes in the {@link Metadata} instance and resets Exif
+	 * orientation to 1. Please note: This swaps the axes of the basic tags,
+	 * custom maker note tags etc. is beyond the scope of this method. Thumbnail
+	 * axes are also swapped.
+	 *
+	 * @param metadata the {@link Metadata} instance to perform the axes swap
+	 *            on.
+	 */
+	public static void swapAxes(Metadata metadata) {
+		for (Directory directory : metadata.getDirectories()) {
+			if (directory instanceof PngDirectory) {
+				if (
+					((PngDirectory) directory).containsTag(PngDirectory.TAG_IMAGE_WIDTH) &&
+					((PngDirectory) directory).containsTag(PngDirectory.TAG_IMAGE_HEIGHT)
+				) {
+					Object value = ((PngDirectory) directory).getObject(PngDirectory.TAG_IMAGE_WIDTH);
+					directory.setObject(PngDirectory.TAG_IMAGE_WIDTH, ((PngDirectory) directory).getObject(PngDirectory.TAG_IMAGE_HEIGHT));
+					directory.setObject(PngDirectory.TAG_IMAGE_HEIGHT, value);
+				}
+				if (
+					((PngDirectory) directory).containsTag(PngDirectory.TAG_PIXELS_PER_UNIT_X) &&
+					((PngDirectory) directory).containsTag(PngDirectory.TAG_PIXELS_PER_UNIT_Y)
+				) {
+					Object value = ((PngDirectory) directory).getObject(PngDirectory.TAG_PIXELS_PER_UNIT_X);
+					directory.setObject(PngDirectory.TAG_PIXELS_PER_UNIT_X, ((PngDirectory) directory).getObject(PngDirectory.TAG_PIXELS_PER_UNIT_Y));
+					directory.setObject(PngDirectory.TAG_PIXELS_PER_UNIT_Y, value);
+				}
+			} else if (directory instanceof JpegDirectory) {
+				if (
+					((JpegDirectory) directory).containsTag(JpegDirectory.TAG_IMAGE_WIDTH) &&
+					((JpegDirectory) directory).containsTag(JpegDirectory.TAG_IMAGE_HEIGHT)
+				) {
+					Object value = ((JpegDirectory) directory).getObject(JpegDirectory.TAG_IMAGE_WIDTH);
+					directory.setObject(JpegDirectory.TAG_IMAGE_WIDTH, ((JpegDirectory) directory).getObject(JpegDirectory.TAG_IMAGE_HEIGHT));
+					directory.setObject(JpegDirectory.TAG_IMAGE_HEIGHT, value);
+				}
+			} else if (directory instanceof ExifDirectoryBase ) {
+				if (
+					((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_IMAGE_WIDTH) &&
+					((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_IMAGE_HEIGHT)
+				) {
+					Object value = ((ExifDirectoryBase) directory).getObject(ExifDirectoryBase.TAG_IMAGE_WIDTH);
+					directory.setObject(ExifDirectoryBase.TAG_IMAGE_WIDTH, ((ExifDirectoryBase) directory).getObject(ExifDirectoryBase.TAG_IMAGE_HEIGHT));
+					directory.setObject(ExifDirectoryBase.TAG_IMAGE_HEIGHT, value);
+				}
+
+				if (
+					((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_RELATED_IMAGE_WIDTH) &&
+					((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_RELATED_IMAGE_HEIGHT)
+				) {
+					Object value = ((ExifDirectoryBase) directory).getObject(ExifDirectoryBase.TAG_RELATED_IMAGE_WIDTH);
+					directory.setObject(ExifDirectoryBase.TAG_RELATED_IMAGE_WIDTH, ((ExifDirectoryBase) directory).getObject(ExifDirectoryBase.TAG_RELATED_IMAGE_HEIGHT));
+					directory.setObject(ExifDirectoryBase.TAG_RELATED_IMAGE_HEIGHT, value);
+				}
+
+				if (
+					((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_EXIF_IMAGE_WIDTH) &&
+					((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_EXIF_IMAGE_HEIGHT)
+				) {
+					Object value = ((ExifDirectoryBase) directory).getObject(ExifDirectoryBase.TAG_EXIF_IMAGE_WIDTH);
+					directory.setObject(ExifDirectoryBase.TAG_EXIF_IMAGE_WIDTH, ((ExifDirectoryBase) directory).getObject(ExifDirectoryBase.TAG_EXIF_IMAGE_HEIGHT));
+					directory.setObject(ExifDirectoryBase.TAG_EXIF_IMAGE_HEIGHT, value);
+				}
+				if (
+					((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_ORIENTATION)
+				) {
+					directory.setInt(ExifDirectoryBase.TAG_ORIENTATION, 1);
+				}
+			} else if (directory instanceof GifHeaderDirectory) {
+				if (
+					((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_IMAGE_HEIGHT)
+				) {
+					Object value = ((GifHeaderDirectory) directory).getObject(GifHeaderDirectory.TAG_IMAGE_WIDTH);
+					directory.setObject(GifHeaderDirectory.TAG_IMAGE_WIDTH, ((GifHeaderDirectory) directory).getObject(GifHeaderDirectory.TAG_IMAGE_HEIGHT));
+					directory.setObject(GifHeaderDirectory.TAG_IMAGE_HEIGHT, value);
+				}
+			} else if (directory instanceof BmpHeaderDirectory) {
+				if (
+					((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)
+				) {
+					Object value = ((BmpHeaderDirectory) directory).getObject(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
+					directory.setObject(BmpHeaderDirectory.TAG_IMAGE_WIDTH, ((BmpHeaderDirectory) directory).getObject(BmpHeaderDirectory.TAG_IMAGE_HEIGHT));
+					directory.setObject(BmpHeaderDirectory.TAG_IMAGE_HEIGHT, value);
+				}
+				if (
+					((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_X_PIXELS_PER_METER) &&
+					((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_Y_PIXELS_PER_METER)
+				) {
+					Object value = ((BmpHeaderDirectory) directory).getObject(BmpHeaderDirectory.TAG_X_PIXELS_PER_METER);
+					directory.setObject(BmpHeaderDirectory.TAG_X_PIXELS_PER_METER, ((BmpHeaderDirectory) directory).getObject(BmpHeaderDirectory.TAG_Y_PIXELS_PER_METER));
+					directory.setObject(BmpHeaderDirectory.TAG_Y_PIXELS_PER_METER, value);
+				}
+			} else if (directory instanceof IcoDirectory) {
+				if (
+					((IcoDirectory) directory).containsTag(IcoDirectory.TAG_IMAGE_WIDTH) &&
+					((IcoDirectory) directory).containsTag(IcoDirectory.TAG_IMAGE_HEIGHT)
+				) {
+					Object value = ((IcoDirectory) directory).getObject(IcoDirectory.TAG_IMAGE_WIDTH);
+					directory.setObject(IcoDirectory.TAG_IMAGE_WIDTH, ((IcoDirectory) directory).getObject(IcoDirectory.TAG_IMAGE_HEIGHT));
+					directory.setObject(IcoDirectory.TAG_IMAGE_HEIGHT, value);
+				}
+				if (
+					((IcoDirectory) directory).containsTag(IcoDirectory.TAG_CURSOR_HOTSPOT_X) &&
+					((IcoDirectory) directory).containsTag(IcoDirectory.TAG_CURSOR_HOTSPOT_Y)
+				) {
+					Object value = ((IcoDirectory) directory).getObject(IcoDirectory.TAG_CURSOR_HOTSPOT_X);
+					directory.setObject(IcoDirectory.TAG_CURSOR_HOTSPOT_X, ((IcoDirectory) directory).getObject(IcoDirectory.TAG_CURSOR_HOTSPOT_Y));
+					directory.setObject(IcoDirectory.TAG_CURSOR_HOTSPOT_Y, value);
+				}
+			} else if (directory instanceof JfifDirectory) {
+				if (
+					((JfifDirectory) directory).containsTag(JfifDirectory.TAG_RESX) &&
+					((JfifDirectory) directory).containsTag(JfifDirectory.TAG_RESY)
+				) {
+					Object value = ((JfifDirectory) directory).getObject(JfifDirectory.TAG_RESX);
+					directory.setObject(JfifDirectory.TAG_RESX, ((JfifDirectory) directory).getObject(JfifDirectory.TAG_RESY));
+					directory.setObject(JfifDirectory.TAG_RESY, value);
+				}
+				if (
+					((JfifDirectory) directory).containsTag(JfifDirectory.TAG_THUMB_WIDTH) &&
+					((JfifDirectory) directory).containsTag(JfifDirectory.TAG_THUMB_HEIGHT)
+				) {
+					Object value = ((JfifDirectory) directory).getObject(JfifDirectory.TAG_THUMB_WIDTH);
+					directory.setObject(JfifDirectory.TAG_THUMB_WIDTH, ((JfifDirectory) directory).getObject(JfifDirectory.TAG_THUMB_HEIGHT));
+					directory.setObject(JfifDirectory.TAG_THUMB_HEIGHT, value);
+				}
+			} else if (directory instanceof PcxDirectory) {
+				if (
+					((PcxDirectory) directory).containsTag(PcxDirectory.TAG_XMIN) &&
+					((PcxDirectory) directory).containsTag(PcxDirectory.TAG_XMAX) &&
+					((PcxDirectory) directory).containsTag(PcxDirectory.TAG_YMIN) &&
+					((PcxDirectory) directory).containsTag(PcxDirectory.TAG_YMAX)
+				) {
+					Object value = ((PcxDirectory) directory).getObject(PcxDirectory.TAG_XMIN);
+					directory.setObject(PcxDirectory.TAG_XMIN, ((PcxDirectory) directory).getObject(PcxDirectory.TAG_YMIN));
+					directory.setObject(PcxDirectory.TAG_YMIN, value);
+					value = ((PcxDirectory) directory).getObject(PcxDirectory.TAG_XMAX);
+					directory.setObject(PcxDirectory.TAG_XMAX, ((PcxDirectory) directory).getObject(PcxDirectory.TAG_YMAX));
+					directory.setObject(PcxDirectory.TAG_YMAX, value);
+				}
+				if (
+					((PcxDirectory) directory).containsTag(PcxDirectory.TAG_HORIZONTAL_DPI) &&
+					((PcxDirectory) directory).containsTag(PcxDirectory.TAG_VERTICAL_DPI)
+				) {
+					Object value = ((PcxDirectory) directory).getObject(PcxDirectory.TAG_HORIZONTAL_DPI);
+					directory.setObject(PcxDirectory.TAG_HORIZONTAL_DPI, ((PcxDirectory) directory).getObject(PcxDirectory.TAG_VERTICAL_DPI));
+					directory.setObject(PcxDirectory.TAG_VERTICAL_DPI, value);
+				}
+				if (
+					((PcxDirectory) directory).containsTag(PcxDirectory.TAG_HSCR_SIZE) &&
+					((PcxDirectory) directory).containsTag(PcxDirectory.TAG_VSCR_SIZE)
+				) {
+					Object value = ((PcxDirectory) directory).getObject(PcxDirectory.TAG_HSCR_SIZE);
+					directory.setObject(PcxDirectory.TAG_HSCR_SIZE, ((PcxDirectory) directory).getObject(PcxDirectory.TAG_VSCR_SIZE));
+					directory.setObject(PcxDirectory.TAG_VSCR_SIZE, value);
+				}
+			} else if (directory instanceof PsdHeaderDirectory) {
+				if (
+					((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_IMAGE_HEIGHT)
+				) {
+					Object value = ((PsdHeaderDirectory) directory).getObject(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
+					directory.setObject(PsdHeaderDirectory.TAG_IMAGE_WIDTH, ((PsdHeaderDirectory) directory).getObject(PsdHeaderDirectory.TAG_IMAGE_HEIGHT));
+					directory.setObject(PsdHeaderDirectory.TAG_IMAGE_HEIGHT, value);
+				}
+			} else if (directory instanceof WebpDirectory) {
+				if (
+					((WebpDirectory) directory).containsTag(WebpDirectory.TAG_IMAGE_WIDTH) &&
+					((WebpDirectory) directory).containsTag(WebpDirectory.TAG_IMAGE_HEIGHT)
+				) {
+					Object value = ((WebpDirectory) directory).getObject(WebpDirectory.TAG_IMAGE_WIDTH);
+					directory.setObject(WebpDirectory.TAG_IMAGE_WIDTH, ((WebpDirectory) directory).getObject(WebpDirectory.TAG_IMAGE_HEIGHT));
+					directory.setObject(WebpDirectory.TAG_IMAGE_HEIGHT, value);
+				}
+			}
+		}
 	}
 
 	/**
@@ -384,27 +598,26 @@ public class ImagesUtil {
 	}
 
 	/**
-	 * Converts an image to a different {@link ImageFormat}. Format support is
-	 * limited to that of {@link ImageIO}.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * Converts an image to a different {@link ImageFormat}. Rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}.
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputImage the source {@link Image}.
 	 * @param outputFormat the {@link ImageFormat} to convert to. If this is
-	 *                     {@link ImageFormat#SOURCE} or {@code null} this has
-	 *                     no effect.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
-	 * @return The converted image or {@code null} if the source is {@code null}.
+	 *            {@link ImageFormat#SOURCE} or {@code null} this has no effect.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
+	 * @return The converted image or {@code null} if the source is {@code null}
+	 *         .
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image convertImage(
@@ -418,27 +631,26 @@ public class ImagesUtil {
 	}
 
 	/**
-	 * Converts an image to a different {@link ImageFormat}. Format support is
-	 * limited to that of {@link ImageIO}.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * Converts an image to a different {@link ImageFormat}. Rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}.
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputStream the source image in a supported format.
 	 * @param outputFormat the {@link ImageFormat} to convert to. If this is
-	 *                     {@link ImageFormat#SOURCE} or {@code null} this has
-	 *                     no effect.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
-	 * @return The converted image or {@code null} if the source is {@code null}.
+	 *            {@link ImageFormat#SOURCE} or {@code null} this has no effect.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
+	 * @return The converted image or {@code null} if the source is {@code null}
+	 *         .
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image convertImage(
@@ -452,24 +664,24 @@ public class ImagesUtil {
 	}
 
 	/**
-	 * Converts an image to a different {@link ImageFormat}. Format support is
-	 * limited to that of {@link ImageIO}.
+	 * Converts an image to a different {@link ImageFormat}. Rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}.
 	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param outputFormat the {@link ImageFormat} to convert to. If this is
-	 *                     {@link ImageFormat#SOURCE} or {@code null} this has
-	 *                     no effect.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
-	 * @return The converted image or {@code null} if the source is {@code null}.
+	 *            {@link ImageFormat#SOURCE} or {@code null} this has no effect.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
+	 * @return The converted image or {@code null} if the source is {@code null}
+	 *         .
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image convertImage(
@@ -484,25 +696,24 @@ public class ImagesUtil {
 
 	/**
 	 * Scales an image to the given dimensions. Scaling can be with or without
-	 * padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}.
+	 * padding. Preserves aspect ratio and rotates/flips the image according to
+	 * Exif orientation. Format support is limited to that of {@link ImageIO}.
 	 *
 	 * @param inputImage the source {@link Image}.
 	 * @param width the new width.
 	 * @param height the new height.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
@@ -521,25 +732,24 @@ public class ImagesUtil {
 
 	/**
 	 * Scales an image to the given dimensions. Scaling can be with or without
-	 * padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}.
+	 * padding. Preserves aspect ratio and rotates/flips the image according to
+	 * Exif orientation. Format support is limited to that of {@link ImageIO}.
 	 *
 	 * @param inputStream the source image in a supported format.
 	 * @param width the new width.
 	 * @param height the new height.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
@@ -558,25 +768,24 @@ public class ImagesUtil {
 
 	/**
 	 * Scales an image to the given dimensions. Scaling can be with or without
-	 * padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}.
+	 * padding. Preserves aspect ratio and rotates/flips the image according to
+	 * Exif orientation. Format support is limited to that of {@link ImageIO}.
 	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param width the new width.
 	 * @param height the new height.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
@@ -596,24 +805,24 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and if necessary scales an image to comply with a
-	 * {@link DLNAImageProfile}. Format support is limited to that of
+	 * {@link DLNAImageProfile}. Preserves aspect ratio and rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
 	 * {@link ImageIO}.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputImage the source {@link Image}.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The converted image or {@code null} if the source is {@code null}.
+	 *            match target aspect.
+	 * @return The converted image or {@code null} if the source is {@code null}
+	 *         .
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image transcodeImage(
@@ -628,24 +837,24 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and if necessary scales an image to comply with a
-	 * {@link DLNAImageProfile}. Format support is limited to that of
+	 * {@link DLNAImageProfile}. Preserves aspect ratio and rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
 	 * {@link ImageIO}.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputStream the source image in a supported format.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The converted image or {@code null} if the source is {@code null}.
+	 *            match target aspect.
+	 * @return The converted image or {@code null} if the source is {@code null}
+	 *         .
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image transcodeImage(
@@ -660,24 +869,24 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and if necessary scales an image to comply with a
-	 * {@link DLNAImageProfile}. Format support is limited to that of
+	 * {@link DLNAImageProfile}. Preserves aspect ratio and rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
 	 * {@link ImageIO}.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The converted image or {@code null} if the source is {@code null}.
+	 *            match target aspect.
+	 * @return The converted image or {@code null} if the source is {@code null}
+	 *         .
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image transcodeImage(
@@ -692,33 +901,32 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and scales an image in one operation. Scaling can be with or
-	 * without padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}. Only one of the three input arguments may be
-	 * used in any given call. Note that {@code outputProfile} overrides
+	 * without padding. Preserves aspect ratio and rotates/flips the image
+	 * according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}. Only one of the three input arguments may be used in any
+	 * given call. Note that {@code outputProfile} overrides
 	 * {@code outputFormat}.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputImage the source {@link Image}.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to convert to or
-	 *                     {@link ImageFormat#SOURCE} to preserve source
-	 *                     format.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -739,33 +947,32 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and scales an image in one operation. Scaling can be with or
-	 * without padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}. Only one of the three input arguments may be
-	 * used in any given call. Note that {@code outputProfile} overrides
+	 * without padding. Preserves aspect ratio and rotates/flips the image
+	 * according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}. Only one of the three input arguments may be used in any
+	 * given call. Note that {@code outputProfile} overrides
 	 * {@code outputFormat}.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputStream the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to convert to or
-	 *                     {@link ImageFormat#SOURCE} to preserve source
-	 *                     format.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -786,33 +993,32 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and scales an image in one operation. Scaling can be with or
-	 * without padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}. Only one of the three input arguments may be
-	 * used in any given call. Note that {@code outputProfile} overrides
+	 * without padding. Preserves aspect ratio and rotates/flips the image
+	 * according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}. Only one of the three input arguments may be used in any
+	 * given call. Note that {@code outputProfile} overrides
 	 * {@code outputFormat}.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to convert to or
-	 *                     {@link ImageFormat#SOURCE} to preserve source
-	 *                     format.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -833,31 +1039,31 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and scales an image in one operation. Scaling can be with or
-	 * without padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}. Only one of the three input arguments may be
-	 * used in any given call. Note that {@code outputProfile} overrides
+	 * without padding. Preserves aspect ratio and rotates/flips the image
+	 * according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}. Only one of the three input arguments may be used in any
+	 * given call. Note that {@code outputProfile} overrides
 	 * {@code outputFormat}.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputImage the source {@link Image}.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -878,31 +1084,31 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and scales an image in one operation. Scaling can be with or
-	 * without padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}. Only one of the three input arguments may be
-	 * used in any given call. Note that {@code outputProfile} overrides
+	 * without padding. Preserves aspect ratio and rotates/flips the image
+	 * according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}. Only one of the three input arguments may be used in any
+	 * given call. Note that {@code outputProfile} overrides
 	 * {@code outputFormat}.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputStream the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -923,31 +1129,31 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and scales an image in one operation. Scaling can be with or
-	 * without padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}. Only one of the three input arguments may be
-	 * used in any given call. Note that {@code outputProfile} overrides
+	 * without padding. Preserves aspect ratio and rotates/flips the image
+	 * according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}. Only one of the three input arguments may be used in any
+	 * given call. Note that {@code outputProfile} overrides
 	 * {@code outputFormat}.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -968,14 +1174,15 @@ public class ImagesUtil {
 
 	/**
 	 * Converts and scales an image in one operation. Scaling can be with or
-	 * without padding. Preserves aspect ratio. Format support is limited to
-	 * that of {@link ImageIO}. Only one of the three input arguments may be
-	 * used in any given call. Note that {@code outputProfile} overrides
+	 * without padding. Preserves aspect ratio and rotates/flips the image
+	 * according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}. Only one of the three input arguments may be used in any
+	 * given call. Note that {@code outputProfile} overrides
 	 * {@code outputFormat}.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param inputImage the source {@link Image}.
 	 * @param inputStream the source image in a supported format.
@@ -983,22 +1190,21 @@ public class ImagesUtil {
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to convert to or
-	 *                     {@link ImageFormat#SOURCE} to preserve source
-	 *                     format. Overridden by {@code outputProfile}.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 *            Overridden by {@code outputProfile}.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to. This
-	 *                      overrides {@code outputFormat}.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
-	 * @param dlnaCompliant whether or not the output image should be
-	 *                      restricted to DLNA compliance. This also means that
-	 *                      the output can be safely cast to {@link DLNAImage}.
-	 * @param dlnaThumbnail whether or not the output image should be
-	 *                      restricted to DLNA thumbnail compliance. This also
-	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 *            overrides {@code outputFormat}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -1070,17 +1276,6 @@ public class ImagesUtil {
 			outputFormat = inputResult.imageFormat;
 		}
 
-		Metadata metadata;
-		try {
-			metadata = inputImage != null ? inputImage.getMetadata() : getMetadata(inputByteArray, inputResult.imageFormat);
-		} catch (IOException | ImageProcessingException e) {
-			LOGGER.error("Failed to read input image metadata: {}", e.getMessage());
-			LOGGER.trace("", e);
-			metadata = new Metadata();
-		}
-
-		BufferedImage bufferedImage = inputResult.bufferedImage;
-
 		if (outputProfile == null && (dlnaCompliant || dlnaThumbnail)) {
 			// Override output format to one valid for DLNA, defaulting to JPEG
 			switch (outputFormat) {
@@ -1097,7 +1292,46 @@ public class ImagesUtil {
 			}
 		}
 
+		Metadata metadata = null;
+		try {
+			metadata = inputImage != null ? inputImage.getMetadata() : getMetadata(inputByteArray, inputResult.imageFormat);
+		} catch (IOException | ImageProcessingException e) {
+			LOGGER.error("Failed to read input image metadata: {}", e.getMessage());
+			LOGGER.trace("", e);
+			metadata = new Metadata();
+		}
+		if (metadata == null) {
+			metadata = new Metadata();
+		}
+
+		BufferedImage bufferedImage = inputResult.bufferedImage;
 		boolean reencode = false;
+
+		ExifOrientation orientation = parseExifOrientation(metadata);
+		if (orientation != ExifOrientation.TOP_LEFT) {
+			// Rotate the image before doing all the other checks
+			BufferedImage oldBufferedImage = bufferedImage;
+			bufferedImage = Thumbnails.of(bufferedImage)
+				.scale(1.0d)
+				.addFilter(ExifFilterUtils.getFilterForOrientation(orientation.getThumbnailatorOrientation()))
+				.asBufferedImage();
+			oldBufferedImage.flush();
+			// Re-parse the metadata after rotation as these are newly generated.
+			ByteArrayOutputStream tmpOutputStream = new ByteArrayOutputStream(inputByteArray.length);
+			Thumbnails.of(bufferedImage).scale(1.0d).outputFormat(outputFormat.toString()).toOutputStream(tmpOutputStream);
+			try {
+				metadata = getMetadata(tmpOutputStream.toByteArray(), outputFormat);
+			} catch (IOException | ImageProcessingException e) {
+				LOGGER.debug("Failed to read rotated image metadata: {}", e.getMessage());
+				LOGGER.trace("", e);
+				metadata = new Metadata();
+			}
+			if (metadata == null) {
+				metadata = new Metadata();
+			}
+			reencode = true;
+		}
+
 		boolean convertColors =
 			bufferedImage.getType() == BufferedImageType.TYPE_CUSTOM.getTypeId() ||
 			bufferedImage.getColorModel().getColorSpace().getType() != ColorSpaceType.TYPE_RGB.getTypeId();
@@ -1123,6 +1357,7 @@ public class ImagesUtil {
 						ImageInfo.SIZE_UNKNOWN,
 						bufferedImage.getColorModel(),
 						metadata,
+						false,
 						true
 					);
 					if (outputProfile != null) {
@@ -1163,6 +1398,7 @@ public class ImagesUtil {
 			BufferedImage convertedImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), outputImageType.getTypeId());
 			ColorConvertOp colorConvertOp = new ColorConvertOp(null);
 			colorConvertOp.filter(bufferedImage, convertedImage);
+			bufferedImage.flush();
 			bufferedImage = convertedImage;
 			reencode = true;
 		}
@@ -1183,30 +1419,45 @@ public class ImagesUtil {
 			//No resize, just convert
 			if (!reencode && inputResult.imageFormat.equals(outputFormat)) {
 				// Nothing to do, just return source
+				Image result;
 				if (dlnaThumbnail) {
-					return new DLNAThumbnail(inputByteArray, outputFormat, bufferedImage, metadata, outputProfile, false);
+					result = new DLNAThumbnail(inputByteArray, outputFormat, bufferedImage, metadata, outputProfile, false);
 				} else if (dlnaCompliant) {
-					return new DLNAImage(inputByteArray, outputFormat, bufferedImage, metadata, outputProfile, false);
+					result = new DLNAImage(inputByteArray, outputFormat, bufferedImage, metadata, outputProfile, false);
 				} else {
-					return new Image(inputByteArray, outputFormat, bufferedImage, metadata, false);
+					result = new Image(inputByteArray, outputFormat, bufferedImage, metadata, false);
 				}
+				bufferedImage.flush();
+				return result;
 			}
 		} else {
-			if (padToSize) {
+			boolean force = outputProfile != null && DLNAImageProfile.JPEG_RES_H_V.equals(outputProfile);
+			BufferedImage oldBufferedImage = bufferedImage;
+			if (padToSize && force) {
+				bufferedImage = Thumbnails.of(bufferedImage)
+					.forceSize(width, height)
+					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
+					.asBufferedImage();
+			} else if (padToSize) {
 				bufferedImage = Thumbnails.of(bufferedImage)
 					.size(width, height)
 					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
+					.asBufferedImage();
+			} else if (force) {
+				bufferedImage = Thumbnails.of(bufferedImage)
+					.forceSize(width, height)
 					.asBufferedImage();
 			} else {
 				bufferedImage = Thumbnails.of(bufferedImage)
 					.size(width, height)
 					.asBufferedImage();
 			}
+			oldBufferedImage.flush();
 		}
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		Thumbnails.of(bufferedImage)
-			.scale(1.0)
+			.scale(1.0d)
 			.outputFormat(outputFormat.toString())
 			.outputQuality(1.0f)
 			.toOutputStream(outputStream);
@@ -1224,13 +1475,16 @@ public class ImagesUtil {
 			metadata = null;
 		}
 
+		Image result;
 		if (dlnaThumbnail) {
-			return new DLNAThumbnail(outputByteArray, outputFormat, bufferedImage, metadata, outputProfile, false);
+			result = new DLNAThumbnail(outputByteArray, outputFormat, bufferedImage, metadata, outputProfile, false);
 		} else if (dlnaCompliant) {
-			return new DLNAImage(outputByteArray, outputFormat, bufferedImage, metadata, outputProfile, false);
+			result = new DLNAImage(outputByteArray, outputFormat, bufferedImage, metadata, outputProfile, false);
 		} else {
-			return new Image(outputByteArray, outputFormat, bufferedImage, metadata, false);
+			result = new Image(outputByteArray, outputFormat, bufferedImage, metadata, false);
 		}
+		bufferedImage.flush();
+		return result;
 	}
 
 	/**

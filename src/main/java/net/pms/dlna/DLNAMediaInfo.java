@@ -36,6 +36,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
+import net.pms.util.ExifOrientation;
 import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
 import net.pms.util.ImagesUtil.ScaleType;
@@ -2364,6 +2365,10 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setImageInfo(ImageInfo imageInfo) {
 		this.imageInfo = imageInfo;
+		if (imageInfo != null && imageInfo.getWidth() > 0 && imageInfo.getHeight() > 0) {
+			setWidth(imageInfo.getWidth());
+			setHeight(imageInfo.getHeight());
+		}
 	}
 
 	/**
@@ -2522,11 +2527,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the orientation
+	 * @return The Exif orientation or {@code 1} if unknown.
 	 * @since 1.50.0
 	 */
-	public int getOrientation() {
-		return imageInfo != null ? imageInfo.getExifOrientation() : 0;
+	public ExifOrientation getExifOrientation() {
+		return imageInfo != null ? imageInfo.getExifOrientation() : ExifOrientation.TOP_LEFT;
 	}
 
 	/**
