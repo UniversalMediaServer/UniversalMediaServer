@@ -23,6 +23,8 @@ import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import java.io.Serializable;
 import javax.imageio.ImageIO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
@@ -40,7 +42,9 @@ import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
 import net.pms.formats.ImageFormat;
 import net.pms.util.ColorSpaceType;
+import net.pms.util.ExifOrientation;
 import net.pms.util.Image;
+import net.pms.util.ImagesUtil;
 
 /**
  * This holds information about a given image, and is used as a standard
@@ -65,6 +69,7 @@ public class ImageInfo implements Serializable {
 	 * stored, and will require a wipe of all rows with a stored instance.
 	 */
 	private static final long serialVersionUID = -6477092856365661709L;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ImageInfo.class);
 	public static final long SIZE_UNKNOWN = Long.MIN_VALUE;
 	protected final int width;
 	protected final int height;
@@ -75,22 +80,26 @@ public class ImageInfo implements Serializable {
 	protected final ColorSpace colorSpace;
 	protected final ColorSpaceType colorSpaceType;
 	protected final Metadata metadata;
-	protected final int exifOrientation;
+	protected final ExifOrientation exifOrientation;
 	protected final boolean imageIOSupport;
 
 	/**
-	 * Create a new {@link ImageInfo} instance populated with the information
-	 * in the parameters.
+	 * Create a new {@link ImageInfo} instance populated with the information in
+	 * the parameters.
 	 *
 	 * @param width the width of the image in pixels.
 	 * @param height the height of the image in pixels.
 	 * @param format the {@link ImageFormat} for the image.
-	 * @param size the size of the image in bytes.
+	 * @param size the size of the image in bytes or {@link #SIZE_UNKNOWN}.
 	 * @param colorModel the {@link ColorModel} used in the image or
-	 *                   {@code null} if unknown.
+	 *            {@code null} if unknown.
 	 * @param metadata the {@link Metadata} describing the image.
+	 * @param applyExifOrientation whether or not Exif orientation should be
+	 *            compensated for when setting width and height. This will also
+	 *            reset the Exif orientation information. <b>Changes will be
+	 *            applied to the {@code metadata} argument instance</b>.
 	 * @param imageIOSupport whether or not {@link ImageIO} can read/parse this
-	 *                       image.
+	 *            image.
 	 */
 	public ImageInfo(
 		int width,
@@ -99,12 +108,22 @@ public class ImageInfo implements Serializable {
 		long size,
 		ColorModel colorModel,
 		Metadata metadata,
+		boolean applyExifOrientation,
 		boolean imageIOSupport
 	) {
-		this.width = width;
-		this.height = height;
+		ExifOrientation exifOrientation = ImagesUtil.parseExifOrientation(metadata);
+		if (applyExifOrientation) {
+			ImagesUtil.swapAxesIfNeeded(metadata);
+		}
+		if (applyExifOrientation && ImagesUtil.isExifAxesSwapNeeded(exifOrientation)) {
+			this.width = height;
+			this.height = width;
+		} else {
+			this.width = width;
+			this.height = height;
+		}
 		this.format = format;
-		this.size = size;
+		this.size = exifOrientation == ExifOrientation.TOP_LEFT ? size : SIZE_UNKNOWN;
 		if (colorModel != null) {
 			this.bitDepth = colorModel.getNumComponents() > 0 ? colorModel.getPixelSize() / colorModel.getNumComponents() : -1;
 			this.numComponents = colorModel.getNumComponents();
@@ -117,7 +136,7 @@ public class ImageInfo implements Serializable {
 			this.colorSpaceType = null;
 		}
 		this.metadata = metadata;
-		this.exifOrientation = ImageInfo.parseExifOrientation(metadata);
+		this.exifOrientation = applyExifOrientation ? ExifOrientation.TOP_LEFT : exifOrientation;
 		this.imageIOSupport = imageIOSupport;
 	}
 
@@ -128,7 +147,7 @@ public class ImageInfo implements Serializable {
 	 * @param width the width of the image in pixels.
 	 * @param height the height of the image in pixels.
 	 * @param format the {@link ImageFormat} for the image.
-	 * @param size the size of the image in bytes.
+	 * @param size the size of the image in bytes or {@link #SIZE_UNKNOWN}.
 	 * @param bitDepth the number of bits per color model component for this
 	 *                 image.
 	 * @param numComponents the number of color model components for this
@@ -137,6 +156,10 @@ public class ImageInfo implements Serializable {
 	 * @param colorSpaceType the {@link ColorSpaceType} of this image. Only
 	 *                       used if {@code ColorSpace} is {@code null}.
 	 * @param metadata the {@link Metadata} describing the image.
+	 * @param applyExifOrientation whether or not Exif orientation should be
+	 *            compensated for when setting width and height. This will also
+	 *            reset the Exif orientation information. <b>Changes will be
+	 *            applied to the {@code metadata} argument instance</b>.
 	 * @param imageIOSupport whether or not {@link ImageIO} can read/parse this
 	 *                       image.
 	 */
@@ -150,41 +173,61 @@ public class ImageInfo implements Serializable {
 		ColorSpace colorSpace,
 		ColorSpaceType colorSpaceType,
 		Metadata metadata,
+		boolean applyExifOrientation,
 		boolean imageIOSupport
 	) {
-		this.width = width;
-		this.height = height;
+		ExifOrientation exifOrientation = ImagesUtil.parseExifOrientation(metadata);
+		if (applyExifOrientation) {
+			ImagesUtil.swapAxesIfNeeded(metadata);
+		}
+		if (applyExifOrientation && ImagesUtil.isExifAxesSwapNeeded(exifOrientation)) {
+			this.width = height;
+			this.height = width;
+		} else {
+			this.width = width;
+			this.height = height;
+		}
 		this.format = format;
-		this.size = size;
+		this.size = exifOrientation == ExifOrientation.TOP_LEFT ? size : SIZE_UNKNOWN;
 		this.bitDepth = bitDepth;
 		this.numComponents = numComponents;
 		this.colorSpace = colorSpace;
 		this.colorSpaceType = colorSpace != null ? ColorSpaceType.toColorSpaceType(colorSpace.getType()) : colorSpaceType;
 		this.metadata = metadata;
-		this.exifOrientation = ImageInfo.parseExifOrientation(metadata);
+		this.exifOrientation = applyExifOrientation ? ExifOrientation.TOP_LEFT : exifOrientation;
 		this.imageIOSupport = imageIOSupport;
 	}
 
 	/**
 	 * Tries to create an {@link ImageInfo} instance from {@link Metadata}.
-	 * {@link ImageFormat} and size in bytes must be specified.
-	 * If {@code metadata} is null or can't be parsed, an instance with invalid
+	 * {@link ImageFormat} and size in bytes must be specified. If
+	 * {@code metadata} is null or can't be parsed, an instance with invalid
 	 * values is created or an {@link MetadataException} is thrown depending on
-	 * {@code throwOnParseFailure}. The {@link ColorModel} in this instance
-	 * will be {@code null}. This constructor should only be used if
-	 * {@link ImageIO} can't parse the source. Instances created with this
-	 * constructor will have {@code isImageIOSupport()} set to false.
+	 * {@code throwOnParseFailure}. The {@link ColorModel} in this instance will
+	 * be {@code null}. This constructor should only be used if {@link ImageIO}
+	 * can't parse the source. Instances created with this constructor will have
+	 * {@code isImageIOSupport()} set to false.
 	 *
 	 * @param metadata the {@link Metadata} describing the image.
 	 * @param format the {@link ImageFormat} for the image.
-	 * @param size the size of the image in bytes.
-	 * @param throwOnParseFailure if a {@link MetadataException} should be thrown
-	 *                            instead of returning an instance with invalid
-	 *                            resolution if parsing of resolution fails.
+	 * @param size the size of the image in bytes or {@link #SIZE_UNKNOWN}.
+	 * @param applyExifOrientation whether or not Exif orientation should be
+	 *            compensated for when setting width and height. This will also
+	 *            reset the Exif orientation information. <b>Changes will be
+	 *            applied to the {@code metadata} argument instance</b>.
+	 * @param throwOnParseFailure if a {@link MetadataException} should be
+	 *            thrown instead of returning an instance with invalid
+	 *            resolution if parsing of resolution fails.
 	 * @throws MetadataException if a parsing error occurs or parsing fails.
 	 */
-	public ImageInfo(Metadata metadata, ImageFormat format, long size, boolean throwOnParseFailure) throws MetadataException {
-		this(-1, -1, metadata, format, size, throwOnParseFailure);
+	public ImageInfo(
+		Metadata metadata,
+		ImageFormat format,
+		long size,
+		boolean applyExifOrientation,
+		boolean throwOnParseFailure
+	) throws MetadataException {
+		this(-1, -1, metadata, format, size, applyExifOrientation, throwOnParseFailure);
 	}
 
 	/**
@@ -201,17 +244,31 @@ public class ImageInfo implements Serializable {
 	 * @param height the height of the image in pixels.
 	 * @param metadata the {@link Metadata} describing the image.
 	 * @param format the {@link ImageFormat} for the image.
-	 * @param size the size of the image in bytes.
+	 * @param size the size of the image in bytes or {@link #SIZE_UNKNOWN}.
+	 * @param applyExifOrientation whether or not Exif orientation should be
+	 *            compensated for when setting width and height. This will also
+	 *            reset the Exif orientation information. <b>Changes will be
+	 *            applied to the {@code metadata} argument instance</b>.
 	 * @param throwOnParseFailure if a {@link MetadataException} should be thrown
 	 *                            instead of returning an instance with invalid
 	 *                            resolution if parsing of resolution fails.
 	 * @throws MetadataException if a parsing error occurs or parsing fails.
 	 */
-	public ImageInfo(int width, int height, Metadata metadata, ImageFormat format, long size, boolean throwOnParseFailure) throws MetadataException {
+	public ImageInfo(
+		int width,
+		int height,
+		Metadata metadata,
+		ImageFormat format,
+		long size,
+		boolean applyExifOrientation,
+		boolean throwOnParseFailure
+	) throws MetadataException {
 		int bitDepth = -1;
 		int numComponents = -1;
 		ColorSpaceType colorSpaceType = null;
-		int orientation = 0;
+		ExifOrientation orientation = ExifOrientation.TOP_LEFT;
+		int parsedWidth = -1;
+		int parsedHeight = -1;
 		if (metadata != null) {
 			for (Directory directory : metadata.getDirectories()) {
 				if (directory instanceof PngDirectory) {
@@ -219,8 +276,8 @@ public class ImageInfo implements Serializable {
 						((PngDirectory) directory).containsTag(PngDirectory.TAG_IMAGE_WIDTH) &&
 						((PngDirectory) directory).containsTag(PngDirectory.TAG_IMAGE_HEIGHT)
 					) {
-						width = ((PngDirectory) directory).getInt(PngDirectory.TAG_IMAGE_WIDTH);
-						height = ((PngDirectory) directory).getInt(PngDirectory.TAG_IMAGE_HEIGHT);
+						parsedWidth = ((PngDirectory) directory).getInt(PngDirectory.TAG_IMAGE_WIDTH);
+						parsedHeight = ((PngDirectory) directory).getInt(PngDirectory.TAG_IMAGE_HEIGHT);
 					}
 					if (((PngDirectory) directory).containsTag(PngDirectory.TAG_BITS_PER_SAMPLE)) {
 						bitDepth = ((PngDirectory) directory).getInt(PngDirectory.TAG_BITS_PER_SAMPLE);
@@ -256,8 +313,8 @@ public class ImageInfo implements Serializable {
 						((JpegDirectory) directory).containsTag(JpegDirectory.TAG_IMAGE_WIDTH) &&
 						((JpegDirectory) directory).containsTag(JpegDirectory.TAG_IMAGE_HEIGHT)
 					) {
-						width = ((JpegDirectory) directory).getInt(JpegDirectory.TAG_IMAGE_WIDTH);
-						height = ((JpegDirectory) directory).getInt(JpegDirectory.TAG_IMAGE_HEIGHT);
+						parsedWidth = ((JpegDirectory) directory).getInt(JpegDirectory.TAG_IMAGE_WIDTH);
+						parsedHeight = ((JpegDirectory) directory).getInt(JpegDirectory.TAG_IMAGE_HEIGHT);
 					}
 					if (((JpegDirectory) directory).containsTag(JpegDirectory.TAG_DATA_PRECISION)) {
 						bitDepth = ((JpegDirectory) directory).getInt(JpegDirectory.TAG_DATA_PRECISION);
@@ -286,14 +343,23 @@ public class ImageInfo implements Serializable {
 					}
 				} else if (directory instanceof ExifIFD0Directory || directory instanceof ExifSubIFDDirectory) {
 					if (
+						// Prefer Exif SubIFD Exif image width and height as they seem to be more accurate.
+						directory instanceof ExifSubIFDDirectory &&
+						((ExifSubIFDDirectory) directory).containsTag(ExifSubIFDDirectory.TAG_EXIF_IMAGE_WIDTH) &&
+						((ExifSubIFDDirectory) directory).containsTag(ExifSubIFDDirectory.TAG_EXIF_IMAGE_HEIGHT)
+					) {
+						parsedWidth = ((ExifSubIFDDirectory) directory).getInt(ExifSubIFDDirectory.TAG_EXIF_IMAGE_WIDTH);
+						parsedHeight = ((ExifSubIFDDirectory) directory).getInt(ExifSubIFDDirectory.TAG_EXIF_IMAGE_HEIGHT);
+					} else if (
+						(parsedWidth < 1 || parsedHeight < 1) &&
 						((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_IMAGE_WIDTH) &&
 						((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_IMAGE_HEIGHT)
 					) {
-						width = ((ExifDirectoryBase) directory).getInt(ExifDirectoryBase.TAG_IMAGE_WIDTH);
-						height = ((ExifDirectoryBase) directory).getInt(ExifDirectoryBase.TAG_IMAGE_HEIGHT);
+						parsedWidth = ((ExifDirectoryBase) directory).getInt(ExifDirectoryBase.TAG_IMAGE_WIDTH);
+						parsedHeight = ((ExifDirectoryBase) directory).getInt(ExifDirectoryBase.TAG_IMAGE_HEIGHT);
 					}
 					if (((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_ORIENTATION)) {
-						orientation = ((ExifDirectoryBase) directory).getInt(ExifDirectoryBase.TAG_ORIENTATION);
+						orientation = ExifOrientation.typeOf(((ExifDirectoryBase) directory).getInt(ExifDirectoryBase.TAG_ORIENTATION));
 					}
 					if (((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_BITS_PER_SAMPLE)) {
 						bitDepth = ((ExifDirectoryBase) directory).getByteArray(ExifDirectoryBase.TAG_BITS_PER_SAMPLE)[0];
@@ -347,8 +413,8 @@ public class ImageInfo implements Serializable {
 						((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_IMAGE_WIDTH) &&
 						((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_IMAGE_HEIGHT)
 					) {
-						width = ((GifHeaderDirectory) directory).getInt(GifHeaderDirectory.TAG_IMAGE_WIDTH);
-						height = ((GifHeaderDirectory) directory).getInt(GifHeaderDirectory.TAG_IMAGE_HEIGHT);
+						parsedWidth = ((GifHeaderDirectory) directory).getInt(GifHeaderDirectory.TAG_IMAGE_WIDTH);
+						parsedHeight = ((GifHeaderDirectory) directory).getInt(GifHeaderDirectory.TAG_IMAGE_HEIGHT);
 					}
 					if (((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_BITS_PER_PIXEL)) {
 						numComponents = 3;
@@ -360,8 +426,8 @@ public class ImageInfo implements Serializable {
 						((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
 						((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)
 					) {
-						width = ((BmpHeaderDirectory) directory).getInt(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
-						height = ((BmpHeaderDirectory) directory).getInt(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
+						parsedWidth = ((BmpHeaderDirectory) directory).getInt(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
+						parsedHeight = ((BmpHeaderDirectory) directory).getInt(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
 					}
 					if (
 						((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_BITS_PER_PIXEL) &&
@@ -382,16 +448,16 @@ public class ImageInfo implements Serializable {
 						((IcoDirectory) directory).containsTag(IcoDirectory.TAG_IMAGE_WIDTH) &&
 						((IcoDirectory) directory).containsTag(IcoDirectory.TAG_IMAGE_HEIGHT)
 					) {
-						width = ((IcoDirectory) directory).getInt(IcoDirectory.TAG_IMAGE_WIDTH);
-						height = ((IcoDirectory) directory).getInt(IcoDirectory.TAG_IMAGE_HEIGHT);
+						parsedWidth = ((IcoDirectory) directory).getInt(IcoDirectory.TAG_IMAGE_WIDTH);
+						parsedHeight = ((IcoDirectory) directory).getInt(IcoDirectory.TAG_IMAGE_HEIGHT);
 					}
 				} else if (directory instanceof JfifDirectory) {
 					if (
 						((JfifDirectory) directory).containsTag(JfifDirectory.TAG_RESX) &&
 						((JfifDirectory) directory).containsTag(JfifDirectory.TAG_RESY)
 					) {
-						width = ((JfifDirectory) directory).getInt(JfifDirectory.TAG_RESX);
-						height = ((JfifDirectory) directory).getInt(JfifDirectory.TAG_RESY);
+						parsedWidth = ((JfifDirectory) directory).getInt(JfifDirectory.TAG_RESX);
+						parsedHeight = ((JfifDirectory) directory).getInt(JfifDirectory.TAG_RESY);
 					}
 				} else if (directory instanceof PcxDirectory) {
 					if (
@@ -400,16 +466,16 @@ public class ImageInfo implements Serializable {
 						((PcxDirectory) directory).containsTag(PcxDirectory.TAG_YMIN) &&
 						((PcxDirectory) directory).containsTag(PcxDirectory.TAG_YMAX)
 					) {
-						width = ((PcxDirectory) directory).getInt(PcxDirectory.TAG_XMAX) - ((PcxDirectory) directory).getInt(PcxDirectory.TAG_XMIN) + 1;
-						height = ((PcxDirectory) directory).getInt(PcxDirectory.TAG_YMAX) - ((PcxDirectory) directory).getInt(PcxDirectory.TAG_YMIN) + 1;
+						parsedWidth = ((PcxDirectory) directory).getInt(PcxDirectory.TAG_XMAX) - ((PcxDirectory) directory).getInt(PcxDirectory.TAG_XMIN) + 1;
+						parsedHeight = ((PcxDirectory) directory).getInt(PcxDirectory.TAG_YMAX) - ((PcxDirectory) directory).getInt(PcxDirectory.TAG_YMIN) + 1;
 					}
 				} else if (directory instanceof PsdHeaderDirectory) {
 					if (
 						((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_IMAGE_WIDTH) &&
 						((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_IMAGE_HEIGHT)
 					) {
-						width = ((PsdHeaderDirectory) directory).getInt(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
-						height = ((PsdHeaderDirectory) directory).getInt(PsdHeaderDirectory.TAG_IMAGE_HEIGHT);
+						parsedWidth = ((PsdHeaderDirectory) directory).getInt(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
+						parsedHeight = ((PsdHeaderDirectory) directory).getInt(PsdHeaderDirectory.TAG_IMAGE_HEIGHT);
 					}
 					if (((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_BITS_PER_CHANNEL)) {
 						bitDepth = ((PsdHeaderDirectory) directory).getInt(PsdHeaderDirectory.TAG_BITS_PER_CHANNEL);
@@ -441,51 +507,44 @@ public class ImageInfo implements Serializable {
 						((WebpDirectory) directory).containsTag(WebpDirectory.TAG_IMAGE_WIDTH) &&
 						((WebpDirectory) directory).containsTag(WebpDirectory.TAG_IMAGE_HEIGHT)
 					) {
-						width = ((WebpDirectory) directory).getInt(WebpDirectory.TAG_IMAGE_WIDTH);
-						height = ((WebpDirectory) directory).getInt(WebpDirectory.TAG_IMAGE_HEIGHT);
+						parsedWidth = ((WebpDirectory) directory).getInt(WebpDirectory.TAG_IMAGE_WIDTH);
+						parsedHeight = ((WebpDirectory) directory).getInt(WebpDirectory.TAG_IMAGE_HEIGHT);
 					}
 				}
 			}
 		}
+		if (width < 1 || height < 1) {
+			width = parsedWidth;
+			height = parsedHeight;
+		} else if (width != parsedWidth || height != parsedHeight) {
+			LOGGER.debug(
+				"Parsed image resolution ({} x {}) mismatches given " +
+				"image resolution ({} x {}). Ignoring parsed resolution.",
+				parsedWidth, parsedHeight, width, height
+			);
+		}
 		if (throwOnParseFailure && (width < 0 || height < 0)) {
 			throw new MetadataException("Failed to parse image resolution from metadata");
 		}
-		this.width = width;
-		this.height = height;
+		if (applyExifOrientation) {
+			ImagesUtil.swapAxesIfNeeded(metadata);
+		}
+		if (applyExifOrientation && ImagesUtil.isExifAxesSwapNeeded(orientation)) {
+			this.width = height;
+			this.height = width;
+		} else {
+			this.width = width;
+			this.height = height;
+		}
 		this.format = format;
-		this.size = size;
+		this.size = orientation == ExifOrientation.TOP_LEFT ? size : SIZE_UNKNOWN;
 		this.bitDepth = bitDepth;
 		this.numComponents = numComponents;
 		this.colorSpace = null;
 		this.colorSpaceType = colorSpaceType;
 		this.metadata = metadata;
-		this.exifOrientation = orientation;
+		this.exifOrientation = applyExifOrientation ? ExifOrientation.TOP_LEFT : orientation;
 		this.imageIOSupport = false;
-	}
-
-	/**
-	 * Tries to parse Exif orientation from the given metadata. If it fails in
-	 * any way, {@code 0} (Normal) is returned.
-	 *
-	 * @param metadata the {@link Metadata} to parse.
-	 * @return The Exif orientation value or {@code 0}.
-	 */
-	public static int parseExifOrientation(Metadata metadata) {
-		if (metadata == null) {
-			return 0;
-		}
-		try {
-			for (Directory directory : metadata.getDirectories()) {
-				if (directory instanceof ExifIFD0Directory) {
-					if (((ExifIFD0Directory) directory).containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
-						return ((ExifIFD0Directory) directory).getInt(ExifIFD0Directory.TAG_ORIENTATION);
-					}
-				}
-			}
-		} catch (MetadataException e) {
-			return 0;
-		}
-		return 0;
 	}
 
 	/**
@@ -571,9 +630,10 @@ public class ImageInfo implements Serializable {
 	}
 
 	/**
-	 * @return The Exif orientation if any, or {@code 0} if unknown.
+	 * @return The {@link ExifOrientation} if any, or
+	 *         {@link ExifOrientation#TOP_LEFT} if unknown.
 	 */
-	public int getExifOrientation() {
+	public ExifOrientation getExifOrientation() {
 		return exifOrientation;
 	}
 
@@ -591,9 +651,13 @@ public class ImageInfo implements Serializable {
 	 *
 	 * @param metadata the {@link Metadata} instance for the new
 	 *                 {@link ImageInfo} instance.
+	 * @param applyExifOrientation whether or not Exif orientation should be
+	 *            compensated for when setting width and height. This will also
+	 *            reset the Exif orientation information. <b>Changes will be
+	 *            applied to the {@code metadata} argument instance</b>.
 	 * @return A copy of this {@link ImageInfo} instance.
 	 */
-	public ImageInfo copy(Metadata metadata) {
+	public ImageInfo copy(Metadata metadata, boolean applyExifOrientation) {
 		return new ImageInfo(
 			width,
 			height,
@@ -604,6 +668,7 @@ public class ImageInfo implements Serializable {
 			colorSpace,
 			colorSpaceType,
 			metadata,
+			applyExifOrientation,
 			imageIOSupport
 		);
 	}

@@ -147,23 +147,4 @@ public class RAWThumbnailer extends Player {
 	public boolean isCompatible(DLNAResource resource) {
 		return resource != null && resource.getFormat() != null && resource.getFormat().getIdentifier() == Format.Identifier.RAW;
 	}
-
-	/**
-	 * Converts Exif orientation to DCRaw flip parameter for valid values.
-	 *
-	 * @param exifOrientation the Exif orientation to convert.
-	 * @return The converted value or {@code 0}.
-	 */
-	public static int exifOrientationToDCRaw(int exifOrientation) {
-		switch (exifOrientation) {
-			case 3:
-				return 3;
-			case 6:
-				return 6;
-			case 8:
-				return 5;
-			default:
-				return 0;
-		}
-	}
 }

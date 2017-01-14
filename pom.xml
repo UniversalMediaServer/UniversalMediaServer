@@ -76,7 +76,6 @@
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
-		<mediautil-version>1.0</mediautil-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
@@ -292,13 +291,6 @@
 			<groupId>jwbroek.cuelib</groupId>
 			<artifactId>cuelib</artifactId>
 			<version>${cuelib-version}</version>
-		</dependency>
-
-		<!-- XXX: not Mavenized: http://sourceforge.net/projects/mediachest/ -->
-		<dependency>
-			<groupId>mediautil</groupId>
-			<artifactId>mediautil</artifactId>
-			<version>${mediautil-version}</version>
 		</dependency>
 
 		<dependency>
@@ -725,15 +717,6 @@
 							<version>${cuelib-version}</version>
 							<downloadUrl>http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/cuelib/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
-						</artifactItem>
-						<artifactItem>
-							<groupId>mediautil</groupId>
-							<artifactId>mediautil</artifactId>
-							<version>${mediautil-version}</version>
-							<downloadUrl>http://downloads.sourceforge.net/project/mediachest/MediaUtil/Version%201.0/mediautil-1.zip</downloadUrl>
-							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
-							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
-							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
 						</artifactItem>
 					</artifactItems>
 				</configuration>
