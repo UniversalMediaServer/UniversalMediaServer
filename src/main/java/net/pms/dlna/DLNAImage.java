@@ -153,19 +153,19 @@ public class DLNAImage extends Image {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAImage}. Format support is limited
-	 * to that of {@link ImageIO}. Output format will be the same as the source
-	 * if the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * Converts an image to a {@link DLNAImage}. Format support is limited to
+	 * that of {@link ImageIO}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
 	 * space and compression is imposed and conversion done if necessary. All
-	 * other formats will be converted to a DLNA compliant JPEG.
+	 * other formats will be converted to a DLNA compliant JPEG. Preserves
+	 * aspect ratio and rotates/flips the image according to Exif orientation.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputStream the source image in a supported format.
-	 * @return The populated {@link DLNAImage} or {@code null} if the
-	 *         source image could not be parsed.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(InputStream inputStream) throws IOException {
@@ -173,15 +173,16 @@ public class DLNAImage extends Image {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAImage}. Format support is limited
-	 * to that of {@link ImageIO}. Output format will be the same as the source
-	 * if the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * Converts an image to a {@link DLNAImage}. Format support is limited to
+	 * that of {@link ImageIO}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
 	 * space and compression is imposed and conversion done if necessary. All
-	 * other formats will be converted to a DLNA compliant JPEG.
+	 * other formats will be converted to a DLNA compliant JPEG. Preserves
+	 * aspect ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param sourceByteArray the source image in a supported format.
-	 * @return The populated {@link DLNAImage} or {@code null} if the
-	 *         source image could not be parsed.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(byte[] sourceByteArray) throws IOException {
@@ -190,15 +191,16 @@ public class DLNAImage extends Image {
 
 	/**
 	 * Converts an {@link Image} to a {@link DLNAThumbnail} adhering to
-	 * {@code outputProfile}. Output format will be the same as the source if the
-	 * source is either GIF, JPEG or PNG. Further restrictions on color space
-	 * and compression is imposed and conversion done if necessary. All other
-	 * formats will be converted to a DLNA compliant JPEG.
+	 * {@code outputProfile}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * space and compression is imposed and conversion done if necessary. All
+	 * other formats will be converted to a DLNA compliant JPEG.
 	 *
 	 * @param inputImage the source image in a supported format.
-	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
 	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
@@ -226,15 +228,17 @@ public class DLNAImage extends Image {
 	 * {@link ImageIO}. Output format will be the same as the source if the
 	 * source is either GIF, JPEG or PNG. Further restrictions on color space
 	 * and compression is imposed and conversion done if necessary. All other
-	 * formats will be converted to a DLNA compliant JPEG.
+	 * formats will be converted to a DLNA compliant JPEG. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputStream the source image in a supported format.
-	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
 	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
@@ -262,12 +266,14 @@ public class DLNAImage extends Image {
 	 * {@link ImageIO}. Output format will be the same as the source if the
 	 * source is either GIF, JPEG or PNG. Further restrictions on color space
 	 * and compression is imposed and conversion done if necessary. All other
-	 * formats will be converted to a DLNA compliant JPEG.
+	 * formats will be converted to a DLNA compliant JPEG. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputByteArray the source image in a supported format.
-	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
+	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
 	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
@@ -301,11 +307,11 @@ public class DLNAImage extends Image {
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAImage} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(
@@ -333,25 +339,26 @@ public class DLNAImage extends Image {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAImage}. Format support is limited
-	 * to that of {@link ImageIO}. Output format will be the same as the source
-	 * if the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * Converts an image to a {@link DLNAImage}. Format support is limited to
+	 * that of {@link ImageIO}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
 	 * space and compression is imposed and conversion done if necessary. All
-	 * other formats will be converted to a DLNA compliant JPEG.
+	 * other formats will be converted to a DLNA compliant JPEG. Preserves
+	 * aspect ratio and rotates/flips the image according to Exif orientation.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputStream the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAImage} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(
@@ -379,22 +386,23 @@ public class DLNAImage extends Image {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAImage}. Format support is limited
-	 * to that of {@link ImageIO}. Output format will be the same as the source
-	 * if the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * Converts an image to a {@link DLNAImage}. Format support is limited to
+	 * that of {@link ImageIO}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
 	 * space and compression is imposed and conversion done if necessary. All
-	 * other formats will be converted to a DLNA compliant JPEG.
+	 * other formats will be converted to a DLNA compliant JPEG. Preserves
+	 * aspect ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAImage} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(

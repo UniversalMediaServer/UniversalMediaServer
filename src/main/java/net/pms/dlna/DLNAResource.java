@@ -33,7 +33,6 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAImageProfile.DLNAComplianceResult;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -45,7 +44,6 @@ import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.formats.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
@@ -3154,20 +3152,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return wrap(fis, high, low);
 			}
 
-			InputStream fis;
-			if (
-				getFormat() != null && getFormat().isImage() && media != null &&
-				//XXX Autorotate seems to work only for JPEG, this should be updated and the restriction below lifted
-				media.getImageInfo() != null && media.getImageInfo().getFormat() == ImageFormat.JPEG &&
-				media.getOrientation() > 1 && mediarenderer.isAutoRotateBasedOnExif()) {
-				// seems it's a jpeg file with an orientation setting to take care of
-				fis = ImagesUtil.getAutoRotateInputStreamImage(getInputStream(), media.getOrientation());
-				if (fis == null) { // error, let's return the original one
-					fis = getInputStream();
-				}
-			} else {
-				fis = getInputStream();
-			}
+			 InputStream fis = getInputStream();
 
 			if (fis != null) {
 				if (low > 0) {

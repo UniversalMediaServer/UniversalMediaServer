@@ -155,7 +155,15 @@ public class RAW extends ImageBase {
 						}
 					}
 					try {
-						imageInfo = new ImageInfo(metadata, ImageFormat.toImageFormat(fileType), file.getSize(), false);
+						imageInfo = new ImageInfo(
+							media.getWidth(),
+							media.getHeight(),
+							metadata,
+							ImageFormat.toImageFormat(fileType),
+							file.getSize(),
+							true,
+							false
+						);
 					} catch (MetadataException e) {
 						LOGGER.warn("Unable to parse metadata for \"{}\": {}", file.getFile().getAbsolutePath(), e.getMessage());
 						LOGGER.trace("", e);
@@ -163,7 +171,7 @@ public class RAW extends ImageBase {
 				}
 				media.setImageInfo(imageInfo);
 
-				if (media.getWidth() > 0 && configuration.getImageThumbnailsEnabled()) {
+				if (media.getWidth() > 0 && media.getHeight() > 0 && configuration.getImageThumbnailsEnabled()) {
 					byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath(), imageInfo);
 					media.setThumb(DLNAThumbnail.toThumbnail(image, 320, 320, ScaleType.MAX, ImageFormat.JPEG, false));
 				}

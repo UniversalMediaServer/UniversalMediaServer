@@ -137,17 +137,17 @@ public class DLNAThumbnail extends DLNAImage {
 
 	/**
 	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}. Output format will be the same as source
-	 * if the source is either JPEG or PNG. Further restrictions on color space
-	 * and compression is imposed and conversion done if necessary. All other
-	 * formats will be converted to a DLNA compliant JPEG.
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * to that of {@link ImageIO}. Output format will be the same as source if
+	 * the source is either JPEG or PNG. Further restrictions on color space and
+	 * compression is imposed and conversion done if necessary. All other
+	 * formats will be converted to a DLNA compliant JPEG. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputStream the source image in a supported format.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnail toThumbnail(InputStream inputStream) throws IOException {
@@ -156,14 +156,15 @@ public class DLNAThumbnail extends DLNAImage {
 
 	/**
 	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}. Output format will be the same as source
-	 * if the source is either JPEG or PNG. Further restrictions on color space
-	 * and compression is imposed and conversion done if necessary. All other
-	 * formats will be converted to a DLNA compliant JPEG.
+	 * to that of {@link ImageIO}. Output format will be the same as source if
+	 * the source is either JPEG or PNG. Further restrictions on color space and
+	 * compression is imposed and conversion done if necessary. All other
+	 * formats will be converted to a DLNA compliant JPEG. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputByteArray the source image in a supported format.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnail toThumbnail(byte[] inputByteArray) throws IOException {
@@ -203,20 +204,22 @@ public class DLNAThumbnail extends DLNAImage {
 
 	/**
 	 * Converts an image to a {@link DLNAThumbnail} adhering to
-	 * {@code outputProfile}. Format support is limited
-	 * to that of {@link ImageIO}. {@code outputProfile} is limited to JPEG or
-	 * PNG profiles. If {@code outputProfile} is a GIF profile, the image will
-	 * be converted to {@link DLNAImageProfile#JPEG_LRG}.
+	 * {@code outputProfile}. Format support is limited to that of
+	 * {@link ImageIO}. {@code outputProfile} is limited to JPEG or PNG
+	 * profiles. If {@code outputProfile} is a GIF profile, the image will be
+	 * converted to {@link DLNAImageProfile#JPEG_LRG}. Preserves aspect ratio
+	 * and rotates/flips the image according to Exif orientation.
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
 	 * @param inputStream the source image in a supported format.
-	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnail toThumbnail(
@@ -238,17 +241,19 @@ public class DLNAThumbnail extends DLNAImage {
 
 	/**
 	 * Converts an image to a {@link DLNAThumbnail} adhering to
-	 * {@code outputProfile}. Format support is limited
-	 * to that of {@link ImageIO}. {@code outputProfile} is limited to JPEG or
-	 * PNG profiles. If {@code outputProfile} is a GIF profile, the image will
-	 * be converted to {@link DLNAImageProfile#JPEG_LRG}.
+	 * {@code outputProfile}. Format support is limited to that of
+	 * {@link ImageIO}. {@code outputProfile} is limited to JPEG or PNG
+	 * profiles. If {@code outputProfile} is a GIF profile, the image will be
+	 * converted to {@link DLNAImageProfile#JPEG_LRG}. Preserves aspect ratio
+	 * and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputByteArray the source image in a supported format.
-	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnail toThumbnail(
@@ -316,21 +321,21 @@ public class DLNAThumbnail extends DLNAImage {
 	 * to that of {@link ImageIO}. {@code outputFormat} is limited to JPEG or
 	 * PNG format adhering to the DLNA restrictions for color space and
 	 * compression. If {@code outputFormat} doesn't qualify, the image will be
-	 * converted to a DLNA compliant JPEG.
+	 * converted to a DLNA compliant JPEG. Preserves aspect ratio and
+	 * rotates/flips the image according to Exif orientation.
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
-	 * <p><b>
-	 * This method consumes and closes {@code inputStream}.
-	 * </b>
 	 * @param inputStream the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnail toThumbnail(
@@ -362,18 +367,19 @@ public class DLNAThumbnail extends DLNAImage {
 	 * to that of {@link ImageIO}. {@code outputFormat} is limited to JPEG or
 	 * PNG format adhering to the DLNA restrictions for color space and
 	 * compression. If {@code outputFormat} doesn't qualify, the image will be
-	 * converted to a DLNA compliant JPEG.
+	 * converted to a DLNA compliant JPEG. Preserves aspect ratio and
+	 * rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the
-	 *         source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 *         image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnail toThumbnail(

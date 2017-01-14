@@ -44,35 +44,36 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	protected final DLNAImageProfile profile;
 
 	/**
-     * Creates a {@link DLNAThumbnailInputStream} where it uses
-     * {@code imageByteArray} as its buffer array. The buffer array is not
-     * copied. The initial value of {@code pos} is {@code 0} and the
-     * initial value of {@code count} is the length of
-     * {@code imageByteArray}.  Format support is limited to that of
-     * {@link ImageIO}.
-     *
-     * @param inputByteArray the source image in a supported format.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null}
-	 *         if the source image could not be parsed.
+	 * Creates a {@link DLNAThumbnailInputStream} where it uses
+	 * {@code imageByteArray} as its buffer array. The buffer array is not
+	 * copied. The initial value of {@code pos} is {@code 0} and the initial
+	 * value of {@code count} is the length of {@code imageByteArray}. Format
+	 * support is limited to that of {@link ImageIO}. Preserves aspect ratio and
+	 * rotates/flips the image according to Exif orientation.
+	 *
+	 * @param inputByteArray the source image in a supported format.
+	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
+	 *         the source image could not be parsed.
 	 * @throws IOException if the operation fails.
-     */
+	 */
 	public static DLNAThumbnailInputStream toThumbnailInputStream(byte[] inputByteArray) throws IOException {
 		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(inputByteArray);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
 	/**
-     * Creates a {@link DLNAThumbnailInputStream} from {@code inputStream}.
-     * <p>
-     * <b>{@code inputStream} is consumed and closed</b>
-     * <p>
-     * If {@code inputStream} is {@link ByteArrayInputStream} or a subclass
-     * the underlying array is used - otherwise the stream is read into
-     * memory. Format support is limited to that of {@link ImageIO}.
+	 * Creates a {@link DLNAThumbnailInputStream} from {@code inputStream}.
+	 * <p>
+	 * <b>{@code inputStream} is consumed and closed</b>
+	 * <p>
+	 * If {@code inputStream} is {@link ByteArrayInputStream} or a subclass the
+	 * underlying array is used - otherwise the stream is read into memory.
+	 * Format support is limited to that of {@link ImageIO}. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputStream the source image in a supported format.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null}
-	 *         if the source image could not be parsed.
+	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
+	 *         the source image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnailInputStream toThumbnailInputStream(InputStream inputStream) throws IOException {
@@ -81,25 +82,26 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	}
 
 	/**
-     * Creates a {@link DLNAThumbnailInputStream} where it uses
-     * {@code imageByteArray} as its buffer array. The buffer is only
-     * copied if any conversion is needed. The initial value of {@code pos}
-     * is {@code 0} and the initial value of {@code count} is the length of
-     * {@code imageByteArray}. Format support is limited to that of
-     * {@link ImageIO}.
-     *
+	 * Creates a {@link DLNAThumbnailInputStream} where it uses
+	 * {@code imageByteArray} as its buffer array. The buffer is only copied if
+	 * any conversion is needed. The initial value of {@code pos} is {@code 0}
+	 * and the initial value of {@code count} is the length of
+	 * {@code imageByteArray}. Format support is limited to that of
+	 * {@link ImageIO}. Preserves aspect ratio and rotates/flips the image
+	 * according to Exif orientation.
+	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null}
-	 *         if the source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
+	 *         the source image could not be parsed.
 	 * @throws IOException if the operation fails.
-     */
+	 */
 	public static DLNAThumbnailInputStream toThumbnailInputStream(
 		byte[] inputByteArray,
 		int width,
@@ -113,24 +115,25 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	}
 
 	/**
-     * Creates a {@link DLNAThumbnailInputStream} from {@code inputStream}.
-     * <p>
-     * <b>{@code inputStream} is consumed and closed</b>
-     * <p>
-     * If {@code inputStream} is {@link ByteArrayInputStream} or a subclass
-     * the underlying array is used - otherwise the stream is read into
-     * memory. Format support is limited to that of {@link ImageIO}.
+	 * Creates a {@link DLNAThumbnailInputStream} from {@code inputStream}.
+	 * <p>
+	 * <b>{@code inputStream} is consumed and closed</b>
+	 * <p>
+	 * If {@code inputStream} is {@link ByteArrayInputStream} or a subclass the
+	 * underlying array is used - otherwise the stream is read into memory.
+	 * Format support is limited to that of {@link ImageIO}. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputStream the source image in a supported format.
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *                     {@link ImageFormat#SOURCE} to preserve source format.
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
-	 *                  match target aspect.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null}
-	 *         if the source image could not be parsed.
+	 *            match target aspect.
+	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
+	 *         the source image could not be parsed.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnailInputStream toThumbnailInputStream(
