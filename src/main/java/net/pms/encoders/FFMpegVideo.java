@@ -193,7 +193,7 @@ public class FFMpegVideo extends Player {
 					}
 				} else if (params.sid.isExternal()) {
 					if (params.sid.isStreamable() && renderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
-						originalSubsFilename = null; 
+						originalSubsFilename = null;
 					} else {
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
@@ -333,7 +333,7 @@ public class FFMpegVideo extends Player {
 				params.aid.isDTS() &&
 				!avisynth() &&
 				renderer.isDTSPlayable();
-			
+
 			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.timeseek > 0;
 
 			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
@@ -431,10 +431,18 @@ public class FFMpegVideo extends Player {
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			LOGGER.trace("Using the video bitrate limit from the renderer config (" + rendererMaxBitrates[0] + "Mb/s) which is lower than the one from the program settings (" + defaultMaxBitrates[0] + ")");
 			defaultMaxBitrates = rendererMaxBitrates;
+			LOGGER.trace(
+				"Using the video bitrate limit from the renderer config ({} Mb/s) " +
+				"which is lower than the one from the program settings ({} Mb/s)",
+				rendererMaxBitrates[0],
+				defaultMaxBitrates[0]
+			);
 		} else {
-			LOGGER.trace("Using the video bitrate limit from the program settings (" + defaultMaxBitrates[0] + "Mb/s)");
+			LOGGER.trace(
+				"Using the video bitrate limit from the program settings ({} Mb/s)",
+				defaultMaxBitrates[0]
+			);
 		}
 
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
@@ -453,7 +461,7 @@ public class FFMpegVideo extends Player {
 
 			if (params.mediaRenderer.isHalveBitrate()) {
 				defaultMaxBitrates[0] /= 2;
-				LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
+				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
 
 			int bufSize = 1835;
@@ -474,7 +482,7 @@ public class FFMpegVideo extends Player {
 				) {
 					defaultMaxBitrates[0] = 31250;
 					bitrateLevel41Limited = true;
-					LOGGER.trace("Adjusting the video bitrate limit to the H.264 Level 4.1-safe value of 31250");
+					LOGGER.trace("Adjusting the video bitrate limit to the H.264 Level 4.1-safe value of 31250 kb/s");
 				}
 				bufSize = defaultMaxBitrates[0];
 			} else {
@@ -509,7 +517,10 @@ public class FFMpegVideo extends Player {
 					defaultMaxBitrates[0] = 3000;
 				}
 
-				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + "kb/s to make room for audio");
+				LOGGER.trace(
+					"Adjusting the video bitrate limit to {} kb/s to make room for audio",
+					defaultMaxBitrates[0]
+				);
 			}
 
 			videoBitrateOptions.add("-bufsize");
@@ -755,7 +766,7 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 1;
 		} else if (renderer.isTranscodeFastStart()){
 			params.manageFastStart();
-		} else {	
+		} else {
 			params.waitbeforestart = 2500;
 		}
 
@@ -820,11 +831,11 @@ public class FFMpegVideo extends Player {
 			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, configuration);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
-			if (params.stdin != null) {		
+			if (params.stdin != null) {
 				cmdList.add("pipe:");
 			} else {
 				cmdList.add(filename);
-			}	
+			}
 		}
 
 		/**
@@ -1019,7 +1030,7 @@ public class FFMpegVideo extends Player {
 
 		// Set up the process
 		PipeProcess pipe = null;
-		
+
 		if (!dtsRemux) {
 //			cmdList.add("pipe:");
 
@@ -1424,7 +1435,7 @@ public class FFMpegVideo extends Player {
 					} else {
 						resolved = true;
 						break;
-					}	
+					}
 				}
 			}
 			if (resolved) {
