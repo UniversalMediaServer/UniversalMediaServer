@@ -1,6 +1,8 @@
 package net.pms.dlna.virtual;
 
 import net.pms.Messages;
+import net.pms.database.TableFilesStatus;
+import net.pms.util.FullyPlayedAction;
 
 public class MediaLibrary extends VirtualFolder {
 	private MediaLibraryFolder allFolder;
@@ -25,15 +27,27 @@ public class MediaLibrary extends VirtualFolder {
 
 	private void init() {
 		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("PMS.34"), null);
-		tvShowsFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.4"),
-			new String[]{
-				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE ORDER BY MOVIEORSHOWNAME ASC",
-				"SELECT DISTINCT TVSEASON FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON ASC",
-				"SELECT DISTINCT * FROM FILES LEFT JOIN FILES_STATUS ON FILES.ID = FILES_STATUS.FILEID WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER"
-			},
-			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES_NOSORT}
-		);
+		if (configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_VIDEO) {
+			tvShowsFolder = new MediaLibraryFolder(
+				Messages.getString("VirtualFolder.4"),
+				new String[]{
+					"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE ORDER BY FILES.MOVIEORSHOWNAME ASC",
+					"SELECT DISTINCT FILES.TVSEASON        FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE AND FILES.MOVIEORSHOWNAME = '${0}' ORDER BY FILES.TVSEASON ASC",
+					"SELECT DISTINCT *                     FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE AND FILES.MOVIEORSHOWNAME = '${1}' AND FILES.TVSEASON = '${0}' AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE ORDER BY FILES.TVEPISODENUMBER"
+				},
+				new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES_NOSORT}
+			);
+		} else {
+			tvShowsFolder = new MediaLibraryFolder(
+				Messages.getString("VirtualFolder.4"),
+				new String[]{
+					"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE ORDER BY MOVIEORSHOWNAME ASC",
+					"SELECT DISTINCT TVSEASON FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON ASC",
+					"SELECT DISTINCT * FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER"
+				},
+				new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES_NOSORT}
+			);
+		}
 		vfVideo.addChild(tvShowsFolder);
 		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), "TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = '' ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		vfVideo.addChild(moviesFolder);

@@ -28,6 +28,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.database.TableFilesStatus;
 import static net.pms.dlna.MediaMonitor.fullyPlayedEntries;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -410,7 +411,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement stmt = null;
 		try {
 			conn = getConnection();
-			stmt = conn.prepareStatement("SELECT * FROM FILES LEFT JOIN FILES_STATUS ON FILES.ID = FILES_STATUS.FILEID WHERE FILENAME = ? AND FILES.MODIFIED = ?");
+			stmt = conn.prepareStatement("SELECT * FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE FILENAME = ? AND FILES.MODIFIED = ?");
 			stmt.setString(1, name);
 			stmt.setTimestamp(2, new Timestamp(modified));
 			rs = stmt.executeQuery();

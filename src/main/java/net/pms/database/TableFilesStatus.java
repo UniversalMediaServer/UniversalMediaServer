@@ -48,7 +48,7 @@ public final class TableFilesStatus extends Tables{
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableFilesStatus.class);
-	private static final String TABLE_NAME = "FILES_STATUS";
+	public static final String TABLE_NAME = "FILES_STATUS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
