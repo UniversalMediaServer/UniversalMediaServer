@@ -694,10 +694,18 @@ public class MEncoderVideo extends Player {
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			LOGGER.trace("Using the video bitrate limit from the renderer config (" + rendererMaxBitrates[0] + "Mb/s) which is lower than the one from the program settings (" + defaultMaxBitrates[0] + ")");
 			defaultMaxBitrates = rendererMaxBitrates;
+			LOGGER.trace(
+				"Using the video bitrate limit from the renderer config ({} Mb/s) " +
+				"which is lower than the one from the program settings ({} Mb/s)",
+				rendererMaxBitrates[0],
+				defaultMaxBitrates[0]
+			);
 		} else {
-			LOGGER.trace("Using the video bitrate limit from the program settings (" + defaultMaxBitrates[0] + "Mb/s)");
+			LOGGER.trace(
+				"Using the video bitrate limit from the program settings ({} Mb/s)",
+				defaultMaxBitrates[0]
+			);
 		}
 
 		if (mediaRenderer.getCBRVideoBitrate() == 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
@@ -706,7 +714,7 @@ public class MEncoderVideo extends Player {
 
 			if (mediaRenderer.isHalveBitrate()) {
 				defaultMaxBitrates[0] /= 2;
-				LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
+				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
 
 			int bufSize = 1835;
@@ -728,7 +736,7 @@ public class MEncoderVideo extends Player {
 				) {
 					defaultMaxBitrates[0] = 31250;
 					bitrateLevel41Limited = true;
-					LOGGER.trace("Adjusting the video bitrate limit to the H.264 Level 4.1-safe value of 31250");
+					LOGGER.trace("Adjusting the video bitrate limit to the H.264 Level 4.1-safe value of 31250 kb/s");
 				}
 				bufSize = defaultMaxBitrates[0];
 			} else {
@@ -769,7 +777,10 @@ public class MEncoderVideo extends Player {
 				// Round down to the nearest Mb
 				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
 
-				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + "kb/s to make room for audio");
+				LOGGER.trace(
+					"Adjusting the video bitrate limit to {} kb/s to make room for audio",
+					defaultMaxBitrates[0]
+				);
 			}
 
 			encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
@@ -1429,7 +1440,7 @@ public class MEncoderVideo extends Player {
 						if (font != null) {
 							sb.append(" -ass-force-style FontName=").append(quoteArg(font)).append(',');
 						}
-						
+
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
@@ -1438,7 +1449,7 @@ public class MEncoderVideo extends Player {
 							if (fontName != null) {
 								sb.append(" -ass-force-style FontName=").append(quoteArg(fontName)).append(',');
 							}
-							
+
 						} else {
 							sb.append(" -font Arial ");
 							sb.append(" -ass-force-style FontName=Arial,");
