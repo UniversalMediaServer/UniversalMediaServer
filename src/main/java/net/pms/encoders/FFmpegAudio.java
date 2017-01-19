@@ -250,6 +250,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
+			PlayerUtil.isAudio(resource, Format.Identifier.AIFF) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.FLAC) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.M4A) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MP3) ||

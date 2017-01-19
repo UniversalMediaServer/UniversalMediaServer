@@ -46,6 +46,7 @@ public abstract class Format implements Cloneable {
 
 	public enum Identifier {
 		AUDIO_AS_VIDEO,
+		AIFF,
 		BMP,
 		DVRMS,
 		FLAC,

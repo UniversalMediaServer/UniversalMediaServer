@@ -66,6 +66,7 @@ public class FormatTest {
 	public void testFormatIdentifiers() {
 		// Identifier tests based on the identifiers defined in getId() of each class
 		assertEquals("DVRMS matches \"test.dvr\"", true, new DVRMS().match("test.dvr"));
+		assertEquals("AIFF matches \"test.aiff\"", true, new AIFF().match("test.aiff"));
 		assertEquals("FLAC matches \"test.flac\"", true, new FLAC().match("test.flac"));
 		assertEquals("GIF matches \"test.gif\"", true, new GIF().match("test.gif"));
 		assertEquals("ISO matches \"test.iso\"", true, new ISO().match("test.iso"));
