@@ -213,6 +213,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is AIFF.
+	 */
+	public boolean isAIFF() {
+		return getCodecA() != null && getCodecA().startsWith("aif");
+	}
+	
+	/**
 	 * @return True if the audio codec is FLAC.
 	 */
 	public boolean isFLAC() {
@@ -223,7 +230,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is lossless.
 	 */
 	public boolean isLossless() {
-		return getCodecA() != null && (isPCM() || getCodecA().startsWith("fla") || "mlp".equals(getCodecA()) || "wv".equals(getCodecA()) || "alac".equals(getCodecA()));
+		return getCodecA() != null && (isPCM() || getCodecA().startsWith("aif") || getCodecA().startsWith("fla") || "mlp".equals(getCodecA()) || "wv".equals(getCodecA()) || "alac".equals(getCodecA()));
 	}
 
 	/**
@@ -240,10 +247,14 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "TrueHD";
 		} else if (isPCM()) {
 			return "LPCM";
+		} else if (isAIFF()) {
+			return "AIFF";	
 //		} else if (isVorbis()) {
 //			return "OGG";
 		} else if (isAAC()) {
 			return "AAC";
+		} else if (isFLAC()) {
+			return "FLAC";	
 		} else if (isMP3()) {
 			return "MP3";
 		} else if (isWMA()) {
