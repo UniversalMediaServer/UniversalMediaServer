@@ -326,6 +326,31 @@ public class RequestV2 extends HTTPResource {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
 					inputStream = thumbInputStream.transcode(imageProfile, false, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+				} else if (dlna.getMedia() != null && MediaType.IMAGE.equals(dlna.getMedia().getMediaType()) && dlna.isCodeValid(dlna)) {
+					// This is a request for an image
+					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
+					if (imageProfile == null) {
+						// Parsing failed for some reason, we'll have to pick a profile
+						if (dlna.getMedia().getImageInfo() != null && dlna.getMedia().getImageInfo().getFormat() != null) {
+							switch (dlna.getMedia().getImageInfo().getFormat()) {
+								case GIF:
+									imageProfile = DLNAImageProfile.GIF_LRG;
+									break;
+								case PNG:
+									imageProfile = DLNAImageProfile.PNG_LRG;
+									break;
+								default:
+									imageProfile = DLNAImageProfile.JPEG_LRG;
+							}
+						} else {
+							imageProfile = DLNAImageProfile.JPEG_LRG;
+						}
+					}
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
+					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+					inputStream = DLNAImageInputStream.toImageInputStream(dlna.getInputStream(), imageProfile, false, false);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");

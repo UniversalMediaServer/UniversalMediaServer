@@ -141,6 +141,8 @@ public class ImagesUtil {
 					"Unable to parse \"{}\" with ImageIO because the format is unsupported, image information will be limited",
 					file.getAbsolutePath()
 				);
+				LOGGER.trace("ImageIO parse failure reason: {}", e.getMessage());
+
 				// Gather basic information from the data we have
 				if (metadata != null) {
 					try {
@@ -1734,13 +1736,30 @@ public class ImagesUtil {
 	}
 
 	/**
-	 *
 	 * @param fileName the "file name" part of the HTTP request.
-	 * @return The "decoded" {@link ImageProfile} or {@link ImageProfile#JPEG_TN}
-	 *         if the parsing fails.
+	 * @return The "decoded" {@link ImageProfile} or
+	 *         {@link ImageProfile#JPEG_TN} if the parsing fails.
 	 */
 	public static DLNAImageProfile parseThumbRequest(String fileName) {
-		Matcher matcher = Pattern.compile("^thumbnail0000([A-Z]+_(?:(?!R)[A-Z]+|RES_?\\d+[X_]\\d+))_").matcher(fileName);
+		if (fileName.startsWith("thumbnail0000")) {
+			fileName = fileName.substring(13);
+
+			return parseImageRequest(fileName, DLNAImageProfile.JPEG_TN);
+		} else {
+			LOGGER.warn("Could not parse thumbnail DLNAImageProfile from \"{}\"");
+			return DLNAImageProfile.JPEG_TN;
+		}
+	}
+
+	/**
+	 * @param fileName the "file name" part of the HTTP request.
+	 * @param defaultProfile the {@link DLNAImageProfile} to return if parsing
+	 *            fails.
+	 * @return The "decoded" {@link ImageProfile} or {@code defaultProfile} if
+	 *         the parsing fails.
+	 */
+	public static DLNAImageProfile parseImageRequest(String fileName, DLNAImageProfile defaultProfile) {
+		Matcher matcher = Pattern.compile("^([A-Z]+_(?:(?!R)[A-Z]+|RES_?\\d+[Xx_]\\d+))_").matcher(fileName);
 		if (matcher.find()) {
 			DLNAImageProfile imageProfile = DLNAImageProfile.toDLNAImageProfile(matcher.group(1));
 			if (imageProfile == null) {
@@ -1748,8 +1767,10 @@ public class ImagesUtil {
 			} else {
 				return imageProfile;
 			}
+		} else {
+			LOGGER.debug("Embedded DLNAImageProfile not found in \"{}\"", fileName);
 		}
-		return DLNAImageProfile.JPEG_TN;
+		return defaultProfile;
 	}
 
 	//TODO (Nad) Move/Rename

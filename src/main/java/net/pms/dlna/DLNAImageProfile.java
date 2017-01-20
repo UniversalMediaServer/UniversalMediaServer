@@ -282,23 +282,40 @@ public class DLNAImageProfile implements Serializable{
 	}
 
 	/**
-	 * @return The mime type for the given {@link DLNAImageProfile}.
+	 * @return The {@link ImageFormat} for this {@link DLNAImageProfile}.
 	 */
-	public String getMimeType() {
+	public ImageFormat getFormat() {
 		switch (imageProfileInt) {
 			case GIF_LRG_INT:
-				return "image/gif";
+				return ImageFormat.GIF;
 			case JPEG_LRG_INT:
 			case JPEG_MED_INT:
 			case JPEG_RES_H_V_INT:
 			case JPEG_SM_INT:
 			case JPEG_TN_INT:
-				return "image/jpeg";
+				return ImageFormat.JPEG;
 			case PNG_LRG_INT:
 			case PNG_TN_INT:
-				return "image/png";
+				return ImageFormat.PNG;
+			default:
+				throw new IllegalStateException("Profile is missing from switch statement");
 		}
-		throw new IllegalStateException("Unknown image profile: " + this);
+	}
+
+	/**
+	 * @return The mime type for this {@link DLNAImageProfile}.
+	 */
+	public String getMimeType() {
+		switch (getFormat()) {
+			case GIF:
+				return "image/gif";
+			case JPEG:
+				return "image/jpeg";
+			case PNG:
+				return "image/png";
+			default:
+				throw new IllegalStateException("Format is missing from switch statement");
+		}
 	}
 
 	/**
@@ -365,6 +382,45 @@ public class DLNAImageProfile implements Serializable{
 			stringBuilder.append("0");
 		}
 		return Integer.parseInt(stringBuilder.toString());
+	}
+
+	/**
+	 * Evaluates whether the thumbnail or the image itself should be used as
+	 * the source for the given profile when two sources are available. This is
+	 * typically only relevant for image resources.
+	 *
+	 * @param imageInfo the {@link ImageInfo} for the non-thumbnail source.
+	 * @param thumbnailImageInfo the {@link ImageInfo} for the thumbnail source.
+	 * @return The evaluation result.
+	 */
+	public boolean useThumbnailSource(ImageInfo imageInfo, ImageInfo thumbnailImageInfo) {
+		if (DLNAImageProfile.JPEG_TN.equals(this) || DLNAImageProfile.PNG_TN.equals(this)) {
+			// These should always use thumbnail as the source
+			return true;
+		}
+
+		if (
+			imageInfo == null || imageInfo.getWidth() < 1 || imageInfo.getHeight() < 1 ||
+			thumbnailImageInfo == null || thumbnailImageInfo.getWidth() < 1 || thumbnailImageInfo.getHeight() < 1
+		) {
+			// Impossible to do a valid evaluation under these circumstances
+			return false;
+		}
+
+		boolean thumbIsSmaller =
+			thumbnailImageInfo.getWidth() < imageInfo.getWidth() ||
+			thumbnailImageInfo.getHeight() < imageInfo.getHeight();
+		if (!thumbIsSmaller) {
+			// Thumbnail has as good a resolution as the source, we might as
+			// well use the thumbnail if the format matches
+			return getFormat() == thumbnailImageInfo.getFormat() || getFormat() != imageInfo.getFormat();
+		}
+
+		// At this point we know that the thumbnail is smaller than the source.
+		// Only use the thumbnail if it's bigger or equal in size to this profile.
+		return
+			getMaxWidth() <= thumbnailImageInfo.getWidth() &&
+			getMaxHeight() <= thumbnailImageInfo.getHeight();
 	}
 
 	/**
@@ -629,6 +685,8 @@ public class DLNAImageProfile implements Serializable{
 		}
 		double widthScale = imageInfo.width < 1 ? 0 : (double) horizontal / imageInfo.getWidth();
 		double heightScale = imageInfo.height < 1 ? 0 : (double) vertical / imageInfo.getHeight();
+		// We never scale up because the DLNA profiles only have resolution
+		// ceilings - limit scale to max 1.
 		double scale = Math.min(Math.min(widthScale, heightScale), 1);
 		return new HypotheticalResult(
 			(int) Math.round(imageInfo.width * scale),
@@ -674,15 +732,15 @@ public class DLNAImageProfile implements Serializable{
 	 */
 	public static class HypotheticalResult {
 		/**
-		 * The calculated width or {@code 0}.
+		 * The calculated width or {@code -1} if unknown.
 		 */
 		public final int width;
 		/**
-		 * The calculated height or {@code 0}.
+		 * The calculated height or {@code -1} if unknown.
 		 */
 		public final int height;
 		/**
-		 * The calculated size or {@code null}.
+		 * The size or {@code null} if unknown.
 		 */
 		public final Long size;
 		/**
@@ -691,10 +749,66 @@ public class DLNAImageProfile implements Serializable{
 		public final boolean conversionNeeded;
 
 		public HypotheticalResult(int width, int height, Long size, boolean conversionNeeded) {
-			this.width = width;
-			this.height = height;
+			if (width < 1 || height < 1) {
+				// Use -1 for unknown
+				this.width = -1;
+				this.height = -1;
+			} else {
+				this.width = width;
+				this.height = height;
+			}
 			this.size = size;
 			this.conversionNeeded = conversionNeeded;
+		}
+
+		@Override
+		public String toString() {
+			return
+				"HypotheticalResult [width=" + width + ", height=" + height +
+				", size=" + size + ", conversionNeeded=" + conversionNeeded +
+				"]";
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (conversionNeeded ? 1231 : 1237);
+			result = prime * result + height;
+			result = prime * result + ((size == null) ? 0 : size.hashCode());
+			result = prime * result + width;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof HypotheticalResult)) {
+				return false;
+			}
+			HypotheticalResult other = (HypotheticalResult) obj;
+			if (conversionNeeded != other.conversionNeeded) {
+				return false;
+			}
+			if (height != other.height) {
+				return false;
+			}
+			if (size == null) {
+				if (other.size != null) {
+					return false;
+				}
+			} else if (!size.equals(other.size)) {
+				return false;
+			}
+			if (width != other.width) {
+				return false;
+			}
+			return true;
 		}
 	}
 
@@ -776,6 +890,5 @@ public class DLNAImageProfile implements Serializable{
 		public int getMaxHeight() {
 			return maxHeight;
 		}
-
 	}
 }

@@ -375,7 +375,7 @@ public class FormatConfiguration {
 	 */
 	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, RendererConfiguration renderer) {
 		if (file.getFile() != null) {
-			if (renderer.isUseMediaInfo()) {
+			if (renderer.isUseMediaInfo() && !(ext instanceof net.pms.formats.PNM)) {
 				LibMediaInfoParser.parse(media, file, type, renderer);
 			} else {
 				media.parse(file, ext, type, false, false, renderer);

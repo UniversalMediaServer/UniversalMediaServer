@@ -30,11 +30,13 @@ import java.util.TimeZone;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.MediaType;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.external.StartStopListenerDelegate;
@@ -329,6 +331,31 @@ public class Request extends HTTPResource {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
 					inputStream = thumbInputStream.transcode(imageProfile, false, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+				} else if (dlna.getMedia() != null && MediaType.IMAGE.equals(dlna.getMedia().getMediaType()) && dlna.isCodeValid(dlna)) {
+					// This is a request for an image
+					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
+					if (imageProfile == null) {
+						// Parsing failed for some reason, we'll have to pick a profile
+						if (dlna.getMedia().getImageInfo() != null && dlna.getMedia().getImageInfo().getFormat() != null) {
+							switch (dlna.getMedia().getImageInfo().getFormat()) {
+								case GIF:
+									imageProfile = DLNAImageProfile.GIF_LRG;
+									break;
+								case PNG:
+									imageProfile = DLNAImageProfile.PNG_LRG;
+									break;
+								default:
+									imageProfile = DLNAImageProfile.JPEG_LRG;
+							}
+						} else {
+							imageProfile = DLNAImageProfile.JPEG_LRG;
+						}
+					}
+					output(output, "Content-Type: " + imageProfile.getMimeType());
+					output(output, "Accept-Ranges: bytes");
+					output(output, "Expires: " + getFUTUREDATE() + " GMT");
+					output(output, "Connection: keep-alive");
+					inputStream = DLNAImageInputStream.toImageInputStream(dlna.getInputStream(), imageProfile, false, false);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output(output, "Content-Type: text/plain");

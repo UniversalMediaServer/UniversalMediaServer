@@ -71,7 +71,7 @@ public class PlaySub extends DLNAResource {
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		try {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("images/codes/" + lang + ".png"));
+			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("images/codes/" + lang + ".png"), true);
 		} catch (Exception e) {
 		}
 		return super.getThumbnailInputStream();

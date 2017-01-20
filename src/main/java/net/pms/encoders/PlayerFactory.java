@@ -282,19 +282,17 @@ public final class PlayerFactory {
 		if (resource == null) {
 			LOGGER.warn("Invalid resource (null): no player found");
 			return null;
-		} else if (resource.getMedia().isImage()) { // don't resolve player for image
-//			LOGGER.trace("Don't resolve player for resource \"{}\"", resource.getName());
-			return null;
 		} else {
 			LOGGER.trace("Getting player for resource \"{}\"", resource.getName());
 		}
+		boolean isImage = resource.getMedia() != null ? resource.getMedia().isImage() : false;
 
 		List<String> enabledEngines = configuration.getEnginesAsList(utils);
 
 		for (Player player : players) {
 			boolean enabled = enabledEngines.contains(player.id());
 
-			if (enabled) {
+			if (enabled && (!isImage || player instanceof RAWThumbnailer)) {
 				boolean compatible = player.isCompatible(resource);
 
 				if (compatible) {

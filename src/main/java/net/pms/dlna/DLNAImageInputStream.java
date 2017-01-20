@@ -26,24 +26,23 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import com.drew.metadata.Metadata;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.dlna.DLNAThumbnail;
 import net.pms.formats.ImageFormat;
 import net.pms.util.ColorSpaceType;
 import net.pms.util.ImagesUtil;
 import net.pms.util.ImagesUtil.ScaleType;
 
 /**
- * This is an {@link InputStream} implementation of {@link DLNAThumbnail}. It
- * holds the stream's content in an internal buffer and is as such not intended
- * to hold very large streams.
+ * This is an {@link InputStream} implementation of {@link DLNAImage}. It holds
+ * the stream's content in an internal buffer and is as such not intended to
+ * hold very large streams.
  */
-public class DLNAThumbnailInputStream extends ByteArrayInputStream {
+public class DLNAImageInputStream extends ByteArrayInputStream {
 
 	protected final ImageInfo imageInfo;
 	protected final DLNAImageProfile profile;
 
 	/**
-	 * Creates a {@link DLNAThumbnailInputStream} where it uses
+	 * Creates a {@link DLNAImageInputStream} where it uses
 	 * {@code imageByteArray} as its buffer array. The buffer array is not
 	 * copied. The initial value of {@code pos} is {@code 0} and the initial
 	 * value of {@code count} is the length of {@code imageByteArray}. Format
@@ -54,17 +53,17 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * @param updateMetadata whether or not new metadata should be updated after
 	 *            image transformation. This should only be disabled if the
 	 *            output image won't be kept/reused.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
-	 *         the source image is {@code null}.
+	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
+	 *         source image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnailInputStream toThumbnailInputStream(byte[] inputByteArray, boolean updateMetadata) throws IOException {
-		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(inputByteArray, updateMetadata);
-		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
+	public static DLNAImageInputStream toImageInputStream(byte[] inputByteArray, boolean updateMetadata) throws IOException {
+		DLNAImage image = DLNAImage.toDLNAImage(inputByteArray, updateMetadata);
+		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
 	/**
-	 * Creates a {@link DLNAThumbnailInputStream} from {@code inputStream}.
+	 * Creates a {@link DLNAImageInputStream} from {@code inputStream}.
 	 * <p>
 	 * <b>{@code inputStream} is consumed and closed</b>
 	 * <p>
@@ -77,17 +76,81 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * @param updateMetadata whether or not new metadata should be updated after
 	 *            image transformation. This should only be disabled if the
 	 *            output image won't be kept/reused.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
+	 * @return The populated {@link DLNAImageInputStream} or {@code null} if
 	 *         the source image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnailInputStream toThumbnailInputStream(InputStream inputStream, boolean updateMetadata) throws IOException {
-		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(inputStream, updateMetadata);
-		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
+	public static DLNAImageInputStream toImageInputStream(InputStream inputStream, boolean updateMetadata) throws IOException {
+		DLNAImage image = DLNAImage.toDLNAImage(inputStream, updateMetadata);
+		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
 	/**
-	 * Creates a {@link DLNAThumbnailInputStream} where it uses
+	 * Creates a {@link DLNAImageInputStream} from {@code inputStream}.
+	 * <p>
+	 * <b>{@code inputStream} is consumed and closed</b>
+	 * <p>
+	 * If {@code inputStream} is {@link ByteArrayInputStream} or a subclass the
+	 * underlying array is used - otherwise the stream is read into memory.
+	 * Format support is limited to that of {@link ImageIO}. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * @param inputByteArray the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
+	 *         source image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImageInputStream toImageInputStream(
+		byte[] inputByteArray,
+		DLNAImageProfile outputProfile,
+		boolean updateMetadata,
+		boolean padToSize
+	) throws IOException {
+		DLNAImage image = DLNAImage.toDLNAImage(inputByteArray, outputProfile, updateMetadata, padToSize);
+		return image != null ? new DLNAImageInputStream(image) : null;
+	}
+
+	/**
+	 * Creates a {@link DLNAImageInputStream} from {@code inputStream}.
+	 * <p>
+	 * <b>{@code inputStream} is consumed and closed</b>
+	 * <p>
+	 * If {@code inputStream} is {@link ByteArrayInputStream} or a subclass the
+	 * underlying array is used - otherwise the stream is read into memory.
+	 * Format support is limited to that of {@link ImageIO}. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * @param inputStream the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
+	 *         source image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImageInputStream toImageInputStream(
+		InputStream inputStream,
+		DLNAImageProfile outputProfile,
+		boolean updateMetadata,
+		boolean padToSize
+	) throws IOException {
+		DLNAImage image = DLNAImage.toDLNAImage(inputStream, outputProfile, updateMetadata, padToSize);
+		return image != null ? new DLNAImageInputStream(image) : null;
+	}
+
+	/**
+	 * Creates a {@link DLNAImageInputStream} where it uses
 	 * {@code imageByteArray} as its buffer array. The buffer is only copied if
 	 * any conversion is needed. The initial value of {@code pos} is {@code 0}
 	 * and the initial value of {@code count} is the length of
@@ -106,11 +169,11 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 *            output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
-	 *         the source image is {@code null}.
+	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
+	 *         source image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnailInputStream toThumbnailInputStream(
+	public static DLNAImageInputStream toImageInputStream(
 		byte[] inputByteArray,
 		int width,
 		int height,
@@ -119,7 +182,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
-		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
+		DLNAImage image = DLNAImage.toDLNAImage(
 			inputByteArray,
 			width,
 			height,
@@ -128,11 +191,11 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 			updateMetadata,
 			padToSize
 		);
-		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
+		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
 	/**
-	 * Creates a {@link DLNAThumbnailInputStream} from {@code inputStream}.
+	 * Creates a {@link DLNAImageInputStream} from {@code inputStream}.
 	 * <p>
 	 * <b>{@code inputStream} is consumed and closed</b>
 	 * <p>
@@ -152,11 +215,11 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 *            output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
-	 *         the source image is {@code null}.
+	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
+	 *         source image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnailInputStream toThumbnailInputStream(
+	public static DLNAImageInputStream toImageInputStream(
 		InputStream inputStream,
 		int width,
 		int height,
@@ -165,7 +228,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
-		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
+		DLNAImage image = DLNAImage.toDLNAImage(
 			inputStream,
 			width,
 			height,
@@ -174,40 +237,39 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 			updateMetadata,
 			padToSize
 		);
-		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
+		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
     /**
-     * Creates a {@link DLNAThumbnailInputStream} where it uses
-     * {@code thumbnail}'s buffer as its buffer array. The buffer array is
-     * not copied.
-     *
-     * @param thumbnail the input thumbnail.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null}
-	 *         if the source thumbnail is {@code null}.
-     */
+	 * Creates a {@link DLNAImageInputStream} where it uses {@code image}'s
+	 * buffer as its buffer array. The buffer array is not copied.
+	 *
+	 * @param image the input image.
+	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
+	 *         source image is {@code null}.
+	 */
 
-	public static DLNAThumbnailInputStream toThumbnailInputStream(DLNAThumbnail thumbnail) {
-		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
+	public static DLNAImageInputStream toImageInputStream(DLNAImage image) {
+		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
 	/**
 	 * Don't call this from outside this class or subclass, use
-	 * {@link DLNAThumbnailInputStream#toThumbnailInputStream(DLNAThumbnail)}
+	 * {@link DLNAImageInputStream#toImageInputStream(DLNAImage)}
 	 * which handles {@code null} input.
 	 *
-	 * @param thumbnail the input thumbnail
+	 * @param image the input image
 	 *
-	 * @throws NullPointerException if {@code thumbnail} is {@code null}.
+	 * @throws NullPointerException if {@code image} is {@code null}.
 	 */
-    protected DLNAThumbnailInputStream(DLNAThumbnail thumbnail) {
-    	super(thumbnail.getBytes(false));
-    	this.imageInfo = thumbnail.getImageInfo();
-    	this.profile = thumbnail.getDLNAImageProfile();
+    protected DLNAImageInputStream(DLNAImage image) {
+    	super(image.getBytes(false));
+    	this.imageInfo = image.getImageInfo();
+    	this.profile = image.getDLNAImageProfile();
     }
 
 	/**
-	 * Converts and scales a thumbnail according to the given
+	 * Converts and scales a image according to the given
 	 * {@link DLNAImageProfile}. Preserves aspect ratio. Format support is
 	 * limited to that of {@link ImageIO}.
 	 *
@@ -217,27 +279,27 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 *                       disabled if the output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *                  match target aspect.
-	 * @return The scaled and/or converted thumbnail, {@code null} if the
+	 * @return The scaled and/or converted image, {@code null} if the
 	 *         source is {@code null}.
 	 * @exception IOException if the operation fails.
 	 */
-	public DLNAThumbnailInputStream transcode(
+	public DLNAImageInputStream transcode(
 		DLNAImageProfile outputProfile,
 		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
-		DLNAThumbnail thumbnail;
-		thumbnail = (DLNAThumbnail) ImagesUtil.transcodeImage(
+		DLNAImage image;
+		image = (DLNAImage) ImagesUtil.transcodeImage(
 			this.getBytes(false),
 			outputProfile,
 			updateMetadata,
-			true,
+			false,
 			padToSize);
-		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
+		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
 	/**
-	 * @return The bytes of this thumbnail.
+	 * @return The bytes of this image.
 	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public byte[] getBytes(boolean copy) {
@@ -252,22 +314,22 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 
 
 	/**
-	 * @return A {@link DLNAThumbnail} sharing the the underlying buffer.
+	 * @return A {@link DLNAImage} sharing the the underlying buffer.
 	 * @throws DLNAProfileException
 	 */
-	public DLNAThumbnail getThumbnail() throws DLNAProfileException {
-		return new DLNAThumbnail(buf, imageInfo, profile, false);
+	public DLNAImage getDLNAImage() throws DLNAProfileException {
+		return new DLNAImage(buf, imageInfo, profile, false);
 	}
 
 	/**
-	 * @return The {@link ImageInfo} for this thumbnail.
+	 * @return The {@link ImageInfo} for this image.
 	 */
 	public ImageInfo getImageInfo() {
 		return imageInfo;
 	}
 
 	/**
-	 * @return The width of this thumbnail.
+	 * @return The width of this image.
 	 */
 	public int getWidth() {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
@@ -275,7 +337,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 
 
 	/**
-	 * @return The height of this thumbnail.
+	 * @return The height of this image.
 	 */
 	public int getHeight() {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
@@ -283,35 +345,35 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 
 
 	/**
-	 * @return The {@link ImageFormat} for this thumbnail.
+	 * @return The {@link ImageFormat} for this image.
 	 */
 	public ImageFormat getFormat() {
 		return imageInfo != null ? imageInfo.getFormat() : null;
 	}
 
 	/**
-	 * @return the size of this thumbnail in bytes.
+	 * @return the size of this image in bytes.
 	 */
 	public long getSize() {
 		return buf != null ? buf.length : 0;
 	}
 
 	/**
-	 * @return The {@link ColorSpace} for this thumbnail.
+	 * @return The {@link ColorSpace} for this image.
 	 */
 	public ColorSpace getColorSpace() {
 		return imageInfo != null ? imageInfo.getColorSpace() : null;
 	}
 
 	/**
-	 * @return The {@link ColorSpaceType} for this thumbnail.
+	 * @return The {@link ColorSpaceType} for this image.
 	 */
 	public ColorSpaceType getColorSpaceType() {
 		return imageInfo != null ? imageInfo.getColorSpaceType() : null;
 	}
 
 	/**
-	 * @return The bits per pixel for this thumbnail.
+	 * @return The bits per pixel for this image.
 	 *
 	 * @see #getBitDepth()
 	 */
@@ -324,14 +386,14 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * has. A grayscale image without alpha has 1, a RGB image without alpha
 	 * has 3, a RGP image with alpha has 4 etc.
 	 *
-	 * @return The number of components for this thumbnail.
+	 * @return The number of components for this image.
 	 */
 	public int getNumComponents() {
 		return imageInfo != null ? imageInfo.getNumComponents() : -1;
 	}
 
 	/**
-	 * @return The number of bits per color "channel" for this thumbnail.
+	 * @return The number of bits per color "channel" for this image.
 	 *
 	 * @see #getBitPerPixel()
 	 * @see #getNumColorComponents()
@@ -341,21 +403,21 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	}
 
 	/**
-	 * @return The {@link Metadata} for this thumbnail.
+	 * @return The {@link Metadata} for this image.
 	 */
 	public Metadata getMetadata() {
 		return imageInfo != null ? imageInfo.getMetadata() : null;
 	}
 
 	/**
-	 * @return Whether or not {@link ImageIO} can read/parse this thumbnail.
+	 * @return Whether or not {@link ImageIO} can read/parse this image.
 	 */
 	public boolean isImageIOSupported() {
 		return imageInfo != null ? imageInfo.isImageIOSupported() : false;
 	}
 
 	/**
-	 * @return The {@link DLNAImageProfile} this thumbnail adheres to.
+	 * @return The {@link DLNAImageProfile} this image adheres to.
 	 */
 	public DLNAImageProfile getDLNAImageProfile() {
 		return profile;
@@ -364,7 +426,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(90);
-		sb.append("DLNAThumbnailInputStream: Format = ").append(imageInfo.getFormat())
+		sb.append("DLNAImageInputStream: Format = ").append(imageInfo.getFormat())
 		.append(", Width = ").append(imageInfo.getWidth())
 		.append(", Height = ").append(imageInfo.getHeight())
 		.append(", Size = ").append(buf != null ? buf.length : 0);

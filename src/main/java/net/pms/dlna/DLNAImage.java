@@ -24,6 +24,8 @@ import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.drew.metadata.Metadata;
 import net.pms.dlna.DLNAImageProfile.DLNAComplianceResult;
 import net.pms.formats.ImageFormat;
@@ -43,6 +45,7 @@ import net.pms.util.ImagesUtil.ScaleType;
 public class DLNAImage extends Image {
 
 	private static final long serialVersionUID = 1L;
+	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAImage.class);
 	protected final DLNAImageProfile profile;
 
 	/**
@@ -55,20 +58,21 @@ public class DLNAImage extends Image {
      * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
      *                adheres to.
 	 * @param copy whether this instance should be copied or shared.
+	 * @throws DLNAProfileException
 	 */
 	public DLNAImage(
 		byte[] bytes,
 		ImageInfo imageInfo,
 		DLNAImageProfile profile,
 		boolean copy
-	) {
+	) throws DLNAProfileException {
 		super(bytes, imageInfo, copy);
 		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNAThumbnail);
-		if (
-			this.profile == null ||
-			!this.profile.checkCompliance(imageInfo).isAllCorrect()
-		) {
-			throw new IllegalArgumentException("DLNAImage: Compliance check failed");
+		if (this.profile == null) {
+			throw new NullPointerException("DLNAImage: profile cannot be null");
+		}
+		if (!this.profile.checkCompliance(imageInfo).isAllCorrect()) {
+			throw new DLNAProfileException("DLNAImage: Compliance check failed for " + profile.toString());
 		}
 	}
 
@@ -85,6 +89,7 @@ public class DLNAImage extends Image {
      * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
      *                adheres to.
 	 * @param copy whether this instance should be copied or shared.
+	 * @throws DLNAProfileException
 	 */
 	public DLNAImage(
 		byte[] bytes,
@@ -95,14 +100,14 @@ public class DLNAImage extends Image {
 		Metadata metadata,
 		DLNAImageProfile profile,
 		boolean copy
-	) {
+	) throws DLNAProfileException {
 		super(bytes, width, height, format, colorModel, metadata, true, copy);
 		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNAThumbnail);
-		if (
-			this.profile == null ||
-			!this.profile.checkCompliance(imageInfo).isAllCorrect()
-		) {
-			throw new IllegalArgumentException("DLNAImage: Compliance check failed");
+		if (this.profile == null) {
+			throw new NullPointerException("DLNAImage: profile cannot be null");
+		}
+		if (!this.profile.checkCompliance(imageInfo).isAllCorrect()) {
+			throw new DLNAProfileException("DLNAImage: Compliance check failed for " + profile.toString());
 		}
 	}
 
@@ -117,6 +122,7 @@ public class DLNAImage extends Image {
 	 * @param metadata the {@link Metadata} instance describing the source
 	 *                 image.
 	 * @param copy whether this instance should be copied or shared.
+	 * @throws DLNAProfileException
 	 */
 	public DLNAImage(
 		byte[] bytes,
@@ -125,14 +131,14 @@ public class DLNAImage extends Image {
 		Metadata metadata,
 		DLNAImageProfile profile,
 		boolean copy
-	) {
+	) throws DLNAProfileException {
 		super(bytes, format, bufferedImage, metadata, copy);
 		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNAThumbnail);
-		if (
-			this.profile == null ||
-			!this.profile.checkCompliance(imageInfo).isAllCorrect()
-		) {
-			throw new IllegalArgumentException("DLNAImage: Compliance check failed for " + profile.toString());
+		if (this.profile == null) {
+			throw new NullPointerException("DLNAImage: profile cannot be null");
+		}
+		if (!this.profile.checkCompliance(imageInfo).isAllCorrect()) {
+			throw new DLNAProfileException("DLNAImage: Compliance check failed for " + profile.toString());
 		}
 	}
 
@@ -144,12 +150,12 @@ public class DLNAImage extends Image {
 	 * compliant JPEG.
 	 *
 	 * @param inputImage the source {@link Image}.
-	 * @return The populated {@link DLNAImage} or {@code null} if the
-	 *         source image could not be parsed.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(Image inputImage) throws IOException {
-		return (DLNAImage) toImage(inputImage, 0, 0, null, ImageFormat.SOURCE, false);
+		return toDLNAImage(inputImage, 0, 0, null, ImageFormat.SOURCE, false);
 	}
 
 	/**
@@ -165,11 +171,11 @@ public class DLNAImage extends Image {
 	 *
 	 * @param inputStream the source image in a supported format.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
-	 *         image could not be parsed.
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(InputStream inputStream) throws IOException {
-		return (DLNAImage) toImage(inputStream, 0, 0, null, ImageFormat.SOURCE, false);
+		return toDLNAImage(inputStream, 0, 0, null, ImageFormat.SOURCE, false);
 	}
 
 	/**
@@ -182,11 +188,73 @@ public class DLNAImage extends Image {
 	 *
 	 * @param sourceByteArray the source image in a supported format.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
-	 *         image could not be parsed.
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(byte[] sourceByteArray) throws IOException {
-		return (DLNAImage) toImage(sourceByteArray, 0, 0, null, ImageFormat.SOURCE, false);
+		return toDLNAImage(sourceByteArray, 0, 0, null, ImageFormat.SOURCE, false);
+	}
+
+	/**
+	 * Converts an {@link Image} to a {@link DLNAImage}. Output format will be
+	 * the same as the source if the source is either GIF, JPEG or PNG. Further
+	 * restrictions on color space and compression is imposed and conversion
+	 * done if necessary. All other formats will be converted to a DLNA
+	 * compliant JPEG.
+	 *
+	 * @param inputImage the source {@link Image}.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(Image inputImage, boolean updateMetadata) throws IOException {
+		return toDLNAImage(inputImage, 0, 0, null, ImageFormat.SOURCE, updateMetadata, false);
+	}
+
+	/**
+	 * Converts an image to a {@link DLNAImage}. Format support is limited to
+	 * that of {@link ImageIO}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * space and compression is imposed and conversion done if necessary. All
+	 * other formats will be converted to a DLNA compliant JPEG. Preserves
+	 * aspect ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
+	 * @param inputStream the source image in a supported format.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(InputStream inputStream, boolean updateMetadata) throws IOException {
+		return toDLNAImage(inputStream, 0, 0, null, ImageFormat.SOURCE, updateMetadata, false);
+	}
+
+	/**
+	 * Converts an image to a {@link DLNAImage}. Format support is limited to
+	 * that of {@link ImageIO}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * space and compression is imposed and conversion done if necessary. All
+	 * other formats will be converted to a DLNA compliant JPEG. Preserves
+	 * aspect ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * @param sourceByteArray the source image in a supported format.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(byte[] sourceByteArray, boolean updateMetadata) throws IOException {
+		return toDLNAImage(sourceByteArray, 0, 0, null, ImageFormat.SOURCE, updateMetadata, false);
 	}
 
 	/**
@@ -202,7 +270,7 @@ public class DLNAImage extends Image {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
-	 *         image could not be parsed.
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(
@@ -240,7 +308,7 @@ public class DLNAImage extends Image {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
-	 *         image could not be parsed.
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(
@@ -275,7 +343,7 @@ public class DLNAImage extends Image {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
-	 *         image could not be parsed.
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(
@@ -296,6 +364,124 @@ public class DLNAImage extends Image {
 	}
 
 	/**
+	 * Converts an {@link Image} to a {@link DLNAThumbnail} adhering to
+	 * {@code outputProfile}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * space and compression is imposed and conversion done if necessary. All
+	 * other formats will be converted to a DLNA compliant JPEG.
+	 *
+	 * @param inputImage the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(
+		Image inputImage,
+		DLNAImageProfile outputProfile,
+		boolean updateMetadata,
+		boolean padToSize
+	) throws IOException {
+		if (inputImage == null) {
+			return null;
+		}
+
+		return (DLNAImage) ImagesUtil.transcodeImage(
+			inputImage,
+			outputProfile,
+			updateMetadata,
+			false,
+			padToSize);
+	}
+
+	/**
+	 * Converts an image to a {@link DLNAThumbnail} adhering to
+	 * {@code outputProfile}. Format support is limited to that of
+	 * {@link ImageIO}. Output format will be the same as the source if the
+	 * source is either GIF, JPEG or PNG. Further restrictions on color space
+	 * and compression is imposed and conversion done if necessary. All other
+	 * formats will be converted to a DLNA compliant JPEG. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
+	 * @param inputStream the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(
+		InputStream inputStream,
+		DLNAImageProfile outputProfile,
+		boolean updateMetadata,
+		boolean padToSize
+	) throws IOException {
+		if (inputStream == null) {
+			return null;
+		}
+
+		return (DLNAImage) ImagesUtil.transcodeImage(
+			inputStream,
+			outputProfile,
+			updateMetadata,
+			false,
+			padToSize);
+	}
+
+	/**
+	 * Converts an image to a {@link DLNAThumbnail} adhering to
+	 * {@code outputProfile}. Format support is limited to that of
+	 * {@link ImageIO}. Output format will be the same as the source if the
+	 * source is either GIF, JPEG or PNG. Further restrictions on color space
+	 * and compression is imposed and conversion done if necessary. All other
+	 * formats will be converted to a DLNA compliant JPEG. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * @param inputByteArray the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(
+		byte[] inputByteArray,
+		DLNAImageProfile outputProfile,
+		boolean updateMetadata,
+		boolean padToSize
+	) throws IOException {
+		if (inputByteArray == null) {
+			return null;
+		}
+
+		return (DLNAImage) ImagesUtil.transcodeImage(
+			inputByteArray,
+			outputProfile,
+			updateMetadata,
+			false,
+			padToSize);
+	}
+
+	/**
 	 * Converts an {@link Image} to a {@link DLNAImage}. Output format will be
 	 * the same as the source if the source is either GIF, JPEG or PNG. Further
 	 * restrictions on color space and compression is imposed and conversion
@@ -311,7 +497,7 @@ public class DLNAImage extends Image {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
-	 *         image could not be parsed.
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(
@@ -358,7 +544,7 @@ public class DLNAImage extends Image {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
-	 *         image could not be parsed.
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(
@@ -402,7 +588,7 @@ public class DLNAImage extends Image {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImage} or {@code null} if the source
-	 *         image could not be parsed.
+	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAImage toDLNAImage(
@@ -419,6 +605,147 @@ public class DLNAImage extends Image {
 			scaleType,
 			outputFormat,
 			true,
+			true,
+			false,
+			padToSize);
+	}
+
+	/**
+	 * Converts an {@link Image} to a {@link DLNAImage}. Output format will be
+	 * the same as the source if the source is either GIF, JPEG or PNG. Further
+	 * restrictions on color space and compression is imposed and conversion
+	 * done if necessary. All other formats will be converted to a DLNA
+	 * compliant JPEG.
+	 *
+	 * @param inputImage the source {@link Image}.
+	 * @param width the new width or 0 to disable scaling.
+	 * @param height the new height or 0 to disable scaling.
+	 * @param scaleType the {@link ScaleType} to use when scaling.
+	 * @param outputFormat the {@link ImageFormat} to generate or
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(
+		Image inputImage,
+		int width,
+		int height,
+		ScaleType scaleType,
+		ImageFormat outputFormat,
+		boolean updateMetadata,
+		boolean padToSize
+	) throws IOException {
+		if (inputImage == null) {
+			return null;
+		}
+
+		return (DLNAImage) ImagesUtil.transcodeImage(
+			inputImage,
+			width,
+			height,
+			scaleType,
+			outputFormat,
+			updateMetadata,
+			true,
+			false,
+			padToSize);
+	}
+
+	/**
+	 * Converts an image to a {@link DLNAImage}. Format support is limited to
+	 * that of {@link ImageIO}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * space and compression is imposed and conversion done if necessary. All
+	 * other formats will be converted to a DLNA compliant JPEG. Preserves
+	 * aspect ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
+	 * @param inputStream the source image in a supported format.
+	 * @param width the new width or 0 to disable scaling.
+	 * @param height the new height or 0 to disable scaling.
+	 * @param scaleType the {@link ScaleType} to use when scaling.
+	 * @param outputFormat the {@link ImageFormat} to generate or
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(
+		InputStream inputStream,
+		int width,
+		int height,
+		ScaleType scaleType,
+		ImageFormat outputFormat,
+		boolean updateMetadata,
+		boolean padToSize
+	) throws IOException {
+		if (inputStream == null) {
+			return null;
+		}
+
+		return (DLNAImage) ImagesUtil.transcodeImage(
+			inputStream,
+			width,
+			height,
+			scaleType,
+			outputFormat,
+			updateMetadata,
+			true,
+			false,
+			padToSize);
+	}
+
+	/**
+	 * Converts an image to a {@link DLNAImage}. Format support is limited to
+	 * that of {@link ImageIO}. Output format will be the same as the source if
+	 * the source is either GIF, JPEG or PNG. Further restrictions on color
+	 * space and compression is imposed and conversion done if necessary. All
+	 * other formats will be converted to a DLNA compliant JPEG. Preserves
+	 * aspect ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * @param inputByteArray the source image in a supported format.
+	 * @param width the new width or 0 to disable scaling.
+	 * @param height the new height or 0 to disable scaling.
+	 * @param scaleType the {@link ScaleType} to use when scaling.
+	 * @param outputFormat the {@link ImageFormat} to generate or
+	 *            {@link ImageFormat#SOURCE} to preserve source format.
+	 * @param updateMetadata whether or not new metadata should be updated after
+	 *            image transformation. This should only be disabled if the
+	 *            output image won't be kept/reused.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImage} or {@code null} if the source
+	 *         image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImage toDLNAImage(
+		byte[] inputByteArray,
+		int width,
+		int height,
+		ScaleType scaleType,
+		ImageFormat outputFormat,
+		boolean updateMetadata,
+		boolean padToSize) throws IOException {
+		return (DLNAImage) ImagesUtil.transcodeImage(
+			inputByteArray,
+			width,
+			height,
+			scaleType,
+			outputFormat,
+			updateMetadata,
 			true,
 			false,
 			padToSize);
@@ -467,7 +794,14 @@ public class DLNAImage extends Image {
 
 	@Override
 	public DLNAImage copy() {
-		return new DLNAImage(bytes, imageInfo, profile, true);
+		try {
+			return new DLNAImage(bytes, imageInfo, profile, true);
+		} catch (DLNAProfileException e) {
+			// Should be impossible
+			LOGGER.error("Impossible situation in DLNAImage.copy(): {}", e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
 	}
 
 	@Override
