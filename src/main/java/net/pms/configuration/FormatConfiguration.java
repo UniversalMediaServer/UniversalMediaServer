@@ -374,11 +374,12 @@ public class FormatConfiguration {
 	 */
 	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, RendererConfiguration renderer) {
 		if (file.getFile() != null) {
-			// MediaInfo can't correctly parse ADPCM or DSD
+			// MediaInfo can't correctly parse ADPCM, DSD or PNM
 			if (
 				renderer.isUseMediaInfo() &&
 				ext.getIdentifier() != Identifier.ADPCM &&
-				ext.getIdentifier() != Identifier.DSD
+				ext.getIdentifier() != Identifier.DSD &&
+				ext.getIdentifier() != Identifier.PNM
 			) {
 				LibMediaInfoParser.parse(media, file, type, renderer);
 			} else {

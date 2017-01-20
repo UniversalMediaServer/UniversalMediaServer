@@ -40,21 +40,7 @@ public enum ImageFormat {
 		if (imageProfile == null) {
 			return null;
 		}
-		switch (imageProfile.toInt()) {
-			case DLNAImageProfile.GIF_LRG_INT:
-				return ImageFormat.GIF;
-			case DLNAImageProfile.JPEG_LRG_INT:
-			case DLNAImageProfile.JPEG_MED_INT:
-			case DLNAImageProfile.JPEG_RES_H_V_INT:
-			case DLNAImageProfile.JPEG_SM_INT:
-			case DLNAImageProfile.JPEG_TN_INT:
-				return ImageFormat.JPEG;
-			case DLNAImageProfile.PNG_LRG_INT:
-			case DLNAImageProfile.PNG_TN_INT:
-				return ImageFormat.PNG;
-			default:
-				return null;
-		}
+		return imageProfile.getFormat();
 	}
 
 	public static ImageFormat toImageFormat(FileType fileType) {

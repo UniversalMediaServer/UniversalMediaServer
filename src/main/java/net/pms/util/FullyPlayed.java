@@ -131,7 +131,7 @@ public class FullyPlayed {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			ImagesUtil.imageIOWrite(image, thumb != null ? thumb.getFormat().toString() : "jpg", out);
-			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
+			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray(), false);
 		} catch (IOException e) {
 			LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
 			LOGGER.trace("", e);
