@@ -299,7 +299,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		try {
 			request.answer(response, e, close, startStopListenerDelegate);
 		} catch (IOException e1) {
-			LOGGER.trace("HTTP request V2 IO error: " + e1.getMessage());
+			LOGGER.debug("HTTP request V2 IO error: " + e1.getMessage());
+			LOGGER.trace("", e1);
 			// note: we don't call stop() here in a finally block as
 			// answer() is non-blocking. we only (may) need to call it
 			// here in the case of an exception. it's a no-op if it's

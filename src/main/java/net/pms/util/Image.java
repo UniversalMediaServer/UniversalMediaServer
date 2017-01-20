@@ -200,7 +200,7 @@ public class Image implements Serializable {
 	 *
 	 * @param inputStream the source image in a supported format.
 	 * @return The populated {@link Image} or {@code null} if the source image
-	 *         could not be parsed.
+	 *         is {@code null}.
 	 * @throws IOException
 	 */
 	public static Image toImage(InputStream inputStream) throws IOException {
@@ -214,7 +214,7 @@ public class Image implements Serializable {
 	 *
 	 * @param imageByteArray the source image in a supported format.
 	 * @return The populated {@link Image} or {@code null} if the source image
-	 *         could not be parsed.
+	 *         is {@code null}.
 	 * @throws IOException
 	 */
 	public static Image toImage(byte[] imageByteArray) throws IOException {
@@ -235,7 +235,7 @@ public class Image implements Serializable {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link Image} or {@code null} if the source image
-	 *         could not be parsed.
+	 *         is {@code null}.
 	 * @throws IOException
 	 */
 	public static Image toImage(
@@ -276,7 +276,7 @@ public class Image implements Serializable {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link Image} or {@code null} if the source image
-	 *         could not be parsed.
+	 *         is {@code null}.
 	 * @throws IOException
 	 */
 	public static Image toImage(
@@ -314,7 +314,7 @@ public class Image implements Serializable {
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link Image} or {@code null} if the source image
-	 *         could not be parsed.
+	 *         is {@code null}.
 	 * @throws IOException
 	 */
 	public static Image toImage(
