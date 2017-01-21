@@ -20,7 +20,7 @@ package net.pms.formats;
 
 public class MKV extends MPG {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
@@ -52,7 +52,6 @@ public class MKV extends MPG {
 			"rmv",
 			"rmvb",
 			"rm",
-			"ty",
 			"webm",
 			"265",
 			"h265"
