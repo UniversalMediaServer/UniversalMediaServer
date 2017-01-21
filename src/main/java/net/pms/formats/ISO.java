@@ -24,8 +24,12 @@ public class ISO extends MPG {
 		"iso"
 	};
 
+	public ISO() {
+		type = ISO;
+	}
+
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
