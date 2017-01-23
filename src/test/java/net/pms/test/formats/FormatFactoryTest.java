@@ -82,6 +82,7 @@ public class FormatFactoryTest {
 	@Test
 	public final void testFormatRetrieval() {
 		testSingleFormat("test.dvr", "DVRMS");
+		testSingleFormat("test.aiff", "AIFF");
 		testSingleFormat("test.flac", "FLAC");
 		testSingleFormat("test.gif", "GIF");
 		testSingleFormat("test.iso", "ISO");

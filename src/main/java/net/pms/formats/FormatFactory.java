@@ -38,6 +38,7 @@ public final class FormatFactory {
 	 * Initial list of known formats.
 	 */
 	private static final Format[] FORMATS = new Format[] {
+		new AIFF(),
 		new BMP(),
 		new DVRMS(),
 		new FLAC(),
