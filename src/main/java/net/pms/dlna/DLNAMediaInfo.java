@@ -1633,11 +1633,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isMuxable(String filename, String codecA) {
-		return codecA != null && (codecA.startsWith("dts") || codecA.equals("dca"));
+		return codecA != null && (codecA.contains("dts") || codecA.contains("dca"));
 	}
 
 	public boolean isLossless(String codecA) {
-		return codecA != null && (codecA.contains("pcm") || codecA.startsWith("dts") || codecA.equals("dca") || codecA.contains("flac")) && !codecA.contains("pcm_u8") && !codecA.contains("pcm_s8");
+		return codecA != null && (codecA.contains("pcm") || codecA.contains("dts") || codecA.contains("dca") || codecA.startsWith("atmos") || codecA.startsWith("aiff") || codecA.startsWith("fla")) && !codecA.contains("pcm_u8") && !codecA.contains("pcm_s8");
 	}
 
 	@Override
