@@ -138,7 +138,7 @@ public final class PlayerFactory {
 			registerPlayer(new FFmpegDVRMSRemux());
 		}
 
-		registerPlayer(new RAWThumbnailer());
+		registerPlayer(new DCRaw());
 
 		// Sort the players according to the configuration settings
 		Collections.sort(allPlayers, new PlayerSort());
@@ -292,7 +292,7 @@ public final class PlayerFactory {
 		for (Player player : players) {
 			boolean enabled = enabledEngines.contains(player.id());
 
-			if (enabled && (!isImage || player instanceof RAWThumbnailer)) {
+			if (enabled && (!isImage || player instanceof ImagePlayer)) {
 				boolean compatible = player.isCompatible(resource);
 
 				if (compatible) {

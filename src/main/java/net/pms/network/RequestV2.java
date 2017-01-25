@@ -31,9 +31,12 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
+import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.io.OutputParams;
+import net.pms.io.ProcessWrapper;
 import net.pms.util.FullyPlayed;
 import net.pms.util.ImagesUtil;
 import net.pms.util.StringUtil;
@@ -350,7 +353,18 @@ public class RequestV2 extends HTTPResource {
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
-					inputStream = DLNAImageInputStream.toImageInputStream(dlna.getInputStream(), imageProfile, false, false);
+					InputStream imageInputStream;
+					if (dlna.getPlayer() instanceof ImagePlayer) {
+						ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(dlna, dlna.getMedia(), new OutputParams(configuration));
+						imageInputStream = transcodeProcess.getInputStream(0);
+					} else {
+						imageInputStream = dlna.getInputStream();
+					}
+					if (imageInputStream == null) {
+						LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
+					} else {
+						inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false, false);
+					}
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
