@@ -329,7 +329,7 @@ public class RequestV2 extends HTTPResource {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
 					inputStream = thumbInputStream.transcode(imageProfile, false, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
-				} else if (dlna.getMedia() != null && MediaType.IMAGE.equals(dlna.getMedia().getMediaType()) && dlna.isCodeValid(dlna)) {
+				} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 					// This is a request for an image
 					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
 					if (imageProfile == null) {

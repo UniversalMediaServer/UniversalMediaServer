@@ -220,7 +220,7 @@ public class RealFile extends MapFile {
 		File thumbFolder = file.getParentFile();
 		boolean alternativeCheck = false;
 
-		if (!MediaType.IMAGE.equals(mediaType)) {
+		if (mediaType != MediaType.IMAGE) {
 			while (cachedThumbnail == null) {
 				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
 
@@ -243,7 +243,7 @@ public class RealFile extends MapFile {
 					break;
 				}
 
-				if (MediaType.AUDIO.equals(mediaType) && getParent() != null && getParent() instanceof RealFile) {
+				if (mediaType == MediaType.AUDIO && getParent() != null && getParent() instanceof RealFile) {
 					cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
 				}
 
