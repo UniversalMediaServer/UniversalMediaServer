@@ -112,6 +112,7 @@ public class FormatFactoryTest {
 		testSingleFormat("test.jpe", "JPG", Format.IMAGE);
 		testSingleFormat("test.jpeg", "JPG", Format.IMAGE);
 		testSingleFormat("test.jpg", "JPG", Format.IMAGE);
+		testSingleFormat("test.jps", "JPS", Format.IMAGE);
 		testSingleFormat("test.mpo", "JPG", Format.IMAGE);
 		testSingleFormat("test.m4a", "M4A", Format.AUDIO);
 		testSingleFormat("test.3g2", "MKV", Format.VIDEO);
@@ -179,10 +180,13 @@ public class FormatFactoryTest {
 		testSingleFormat("test.ups", "PLAYLIST", Format.PLAYLIST);
 		testSingleFormat("test.ra", "RA", Format.AUDIO);
 		testSingleFormat("test.png", "PNG", Format.IMAGE);
+		testSingleFormat("test.pns", "PNS", Format.IMAGE);
 		testSingleFormat("test.3fr", "RAW", Format.IMAGE);
 		testSingleFormat("test.ari", "RAW", Format.IMAGE);
 		testSingleFormat("test.arw", "RAW", Format.IMAGE);
 		testSingleFormat("test.bay", "RAW", Format.IMAGE);
+		testSingleFormat("test.bmp", "BMP", Format.IMAGE);
+		testSingleFormat("test.bms", "BMS", Format.IMAGE);
 		testSingleFormat("test.cap", "RAW", Format.IMAGE);
 		testSingleFormat("test.cr2", "RAW", Format.IMAGE);
 		testSingleFormat("test.crw", "RAW", Format.IMAGE);

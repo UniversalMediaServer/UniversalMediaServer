@@ -40,7 +40,10 @@ public class RemoteUtil {
 	public static final String MIME_MP3 = "audio/mpeg";
 	public static final String MIME_WAV = "audio/wav";
 	public static final String MIME_PNG = "image/png";
+	public static final String MIME_PNS = "image/pns";
 	public static final String MIME_JPG = "image/jpeg";
+	public static final String MIME_JPS = "image/jps";
+	public static final String MIME_MPO = "image/mpo";
 
 	public static void respond(HttpExchange t, String response, int status, String mime) {
 		if (response != null) {
@@ -183,8 +186,11 @@ public class RemoteUtil {
 				mime.equals(MIME_WEBM) ||
 				mime.equals(MIME_OGG) ||
 				mime.equals(MIME_MP3) ||
+				mime.equals(MIME_MPO) ||
 				mime.equals(MIME_PNG) ||
-				mime.equals(MIME_JPG)
+				mime.equals(MIME_PNS) ||
+				mime.equals(MIME_JPG) ||
+				mime.equals(MIME_JPS)
 			)
 		) {
 			return true;
