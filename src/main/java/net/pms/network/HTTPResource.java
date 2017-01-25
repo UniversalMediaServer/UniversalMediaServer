@@ -79,20 +79,24 @@ public class HTTPResource {
 	public static final String ASF_TYPEMIME = "video/x-ms-asf";
 	public static final String AVI_TYPEMIME = "video/avi";
 	public static final String BMP_TYPEMIME = "image/bmp";
+	public static final String BMS_TYPEMIME = "image/x-bms";
 	public static final String DIVX_TYPEMIME = "video/x-divx";
 	public static final String GIF_TYPEMIME = "image/gif";
 	public static final String JPEG_TYPEMIME = "image/jpeg";
+	public static final String JPS_TYPEMIME = "image/jps";
 	public static final String MATROSKA_TYPEMIME = "video/x-matroska";
 	public static final String MOV_TYPEMIME = "video/quicktime";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
+	public static final String MPO_TYPEMIME = "image/mpo";
+	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String PNG_TYPEMIME = "image/png";
+	public static final String PNS_TYPEMIME = "image/pns";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
 	public static final String THREEGPP2_TYPEMIME = "video/3gpp2";
 	public static final String TIFF_TYPEMIME = "image/tiff";
-	public static final String WMV_TYPEMIME = "video/x-ms-wmv";
-	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String WEBM_TYPEMIME = "video/webm";
+	public static final String WMV_TYPEMIME = "video/x-ms-wmv";
 	public HTTPResource() { }
 
 	/**
