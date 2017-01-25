@@ -64,11 +64,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats = {
+		new BMP(),
+		new BMS(),
 		new GIF(),
 		new JPG(),
+		new JPS(),
 		new MP3(),
+		new MPO(),
 		new PNG(),
-		new BMP()
+		new PNS()		
 	};
 
 	private static final Matcher umsInfo = Pattern.compile("platform=(.+)&width=(.+)&height=(.+)&isTouchDevice=(.+)").matcher("");
