@@ -313,11 +313,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isVideo() {
-		return getMediaType().equals(MediaType.VIDEO);
+		return MediaType.VIDEO == getMediaType();
 	}
 
 	public boolean isAudio() {
-		return getMediaType().equals(MediaType.AUDIO);
+		return MediaType.AUDIO == getMediaType();
 	}
 
 	public boolean hasAudio() {
@@ -349,7 +349,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isImage() {
-		return getMediaType().equals(MediaType.IMAGE);
+		return MediaType.IMAGE == getMediaType();
 	}
 
 	/**
