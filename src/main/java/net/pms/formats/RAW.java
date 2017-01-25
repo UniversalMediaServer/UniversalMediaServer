@@ -3,10 +3,7 @@ package net.pms.formats;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -16,9 +13,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.ImageInfo;
 import net.pms.dlna.InputFile;
 import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.RAWThumbnailer;
-import net.pms.io.OutputParams;
-import net.pms.io.ProcessWrapperImpl;
+import net.pms.encoders.DCRaw;
 import net.pms.util.ImagesUtil;
 import net.pms.util.ImagesUtil.ScaleType;
 import org.slf4j.Logger;
@@ -94,39 +89,17 @@ public class RAW extends ImageBase {
 
 	@Override
 	public void parse(DLNAMediaInfo media, InputFile file, int type, RendererConfiguration renderer) {
+		if (media == null || file == null || file.getFile() == null) {
+			// Parsing is impossible
+			return;
+		}
+
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		try {
 			// Only parse using DCRaw if it is enabled
-			if (PlayerFactory.getEnabledPlayer(RAWThumbnailer.class, this) != null) {
-				OutputParams params = new OutputParams(configuration);
-				params.waitbeforestart = 0;
-				params.minBufferSize = 1;
-				params.maxBufferSize = 6;
-				params.hidebuffer = true;
-
-				String cmdArray[] = new String[4];
-				cmdArray[0] = configuration.getDCRawPath();
-				cmdArray[1] = "-i";
-				cmdArray[2] = "-v";
-				if (file.getFile() != null) {
-					cmdArray[3] = file.getFile().getAbsolutePath();
-				}
-
-				params.log = true;
-				ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params, true, false);
-				pw.runInSameThread();
-
-				List<String> list = pw.getOtherResults();
-				Pattern pattern = Pattern.compile("^Output size:\\s*(\\d+)\\s*x\\s*(\\d+)");
-				Matcher matcher;
-				for (String s : list) {
-					matcher = pattern.matcher(s);
-					if (matcher.find()) {
-						media.setWidth(Integer.parseInt(matcher.group(1)));
-						media.setHeight(Integer.parseInt(matcher.group(2)));
-						break;
-					}
-				}
+			DCRaw dcraw = (DCRaw) PlayerFactory.getEnabledPlayer(DCRaw.class, this);
+			if (dcraw != null) {
+				dcraw.parse(media, file.getFile());
 
 				media.setCodecV(FormatConfiguration.RAW);
 				media.setContainer(FormatConfiguration.RAW);
@@ -172,7 +145,7 @@ public class RAW extends ImageBase {
 				media.setImageInfo(imageInfo);
 
 				if (media.getWidth() > 0 && media.getHeight() > 0 && configuration.getImageThumbnailsEnabled()) {
-					byte[] image = RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath(), imageInfo);
+					byte[] image = new DCRaw().getThumbnail(null, file.getFile().getAbsolutePath(), imageInfo);
 					media.setThumb(DLNAThumbnail.toThumbnail(image, 320, 320, ScaleType.MAX, ImageFormat.JPEG, false));
 				}
 			} else {
