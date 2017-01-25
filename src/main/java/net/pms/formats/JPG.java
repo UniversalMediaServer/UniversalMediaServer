@@ -39,8 +39,7 @@ public class JPG extends Format {
 		return new String[] {
 			"jpe",
 			"jpeg",
-			"jpg",
-			"mpo"
+			"jpg"
 		};
 	}
 
