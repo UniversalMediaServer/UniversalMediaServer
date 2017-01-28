@@ -1711,6 +1711,11 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append(matrixCoefficients);
 		}
 
+		if (isNotBlank(avcLevel)) {
+			result.append(", avc level: ");
+			result.append(avcLevel);
+		}
+
 		if (isNotBlank(fileTitleFromMetadata)) {
 			result.append(", file title from metadata: ");
 			result.append(fileTitleFromMetadata);

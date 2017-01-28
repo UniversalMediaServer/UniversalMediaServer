@@ -51,6 +51,7 @@ import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -693,8 +694,8 @@ public class MEncoderVideo extends Player {
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			defaultMaxBitrates = rendererMaxBitrates;
 			LOGGER.trace("Using the video bitrate limit from the renderer config (" + rendererMaxBitrates[0] + "Mb/s) which is lower than the one from the program settings (" + defaultMaxBitrates[0] + ")");
+			defaultMaxBitrates = rendererMaxBitrates;
 		} else {
 			LOGGER.trace("Using the video bitrate limit from the program settings (" + defaultMaxBitrates[0] + "Mb/s)");
 		}
@@ -1243,6 +1244,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
+				LOGGER.trace("Using the video bitrate limit from the renderer config (" + rendererMaxBitrates[0] + " Mb/s) which is lower than the one from the program settings (" + defaultMaxBitrates[0] + " Mb/s)");
 				defaultMaxBitrates = rendererMaxBitrates;
 			}
 
@@ -1408,8 +1410,8 @@ public class MEncoderVideo extends Player {
 
 				if (override_ass_style) {
 					String assSubColor = "ffffff00";
-					if (configuration.getSubsColor() != 0) {
-						assSubColor = Integer.toHexString(configuration.getSubsColor());
+					if (StringUtils.isNotBlank(configuration.getSubsColor())) {
+						assSubColor = configuration.getSubsColor();
 						if (assSubColor.length() > 2) {
 							assSubColor = assSubColor.substring(2) + "00";
 						}
