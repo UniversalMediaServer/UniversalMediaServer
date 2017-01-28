@@ -45,6 +45,16 @@ import org.slf4j.LoggerFactory;
  * for subtag lookup</a>. If UMS languages are removed or added, this class needs
  * to be updated. The class is immutable.
  *
+ * To add a new language, the following must be done:
+ * <ul>
+ * <li>Add the BCP47 code to {@link #UMS_BCP47_CODES}</li>
+ * <li>Add the language to UMS.conf</li>
+ * <li>Modify {@link #localeToLanguageTag(Locale)} to handle the language</li>
+ * <li>Modify {@link #languageTagToUMSLanguageTag(String)} to handle the language</li>
+ * <li>Add the language at crowdin</li>
+ * <li>Pull crowdin translations containing the new language so that the language file is committed</li>
+ * </ul>
+ *
  * @author Nadahar
  * @since 5.2.3
  */
@@ -108,6 +118,7 @@ public final class Languages {
 		"sl",      // Slovenian
 		"es",      // Spanish, Castilian
 		"sv",      // Swedish
+		"th",      // Thai
 		"tr",      // Turkish
 		"uk",      // Ukrainian
 		"vi",      // Vietnamese

@@ -56,6 +56,10 @@ public class RealFile extends MapFile {
 			resolveFormat();
 		}
 		
+		if (getType() == Format.SUBTITLE) {
+			// Don't add subtitles as separate resources
+			return false;
+		}
 		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
 			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		}

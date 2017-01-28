@@ -18,18 +18,13 @@
  */
 package net.pms.formats;
 
-public class OGG extends MP3 {
+public class OGG extends AudioFile {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
 		return Identifier.OGG;
-	}
-
-	@Override
-	public boolean transcodable() {
-		return true;
 	}
 
 	/**
@@ -38,41 +33,10 @@ public class OGG extends MP3 {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
-			"3g2a",
-			"3ga",
-			"3gpa",
-			"3gppa",
-			"aa3",
-			"ac3",
-			"amr",
-			"ape",
-			"at3",
-			"dts",
-			"mka",
-			"mp2",
-			"mpc",
 			"oga",
 			"ogg",
-			"oma",
-			"ra",
-			"shn",
-			"tta",
-			"wv"
+			"spx",
+			"opus",
 		};
-	}
-
-	/**
-	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.
-	 * <p>
-	 * Returns whether or not a format can be handled by the PS3 natively.
-	 * This means the format can be streamed to PS3 instead of having to be
-	 * transcoded.
-	 * 
-	 * @return True if the format can be handled by PS3, false otherwise.
-	 */
-	@Deprecated
-	@Override
-	public boolean ps3compatible() {
-		return false;
 	}
 }

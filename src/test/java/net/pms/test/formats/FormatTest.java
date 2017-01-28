@@ -34,7 +34,7 @@ public class FormatTest {
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset(); 
+        context.reset();
 	}
 
     /**
@@ -57,7 +57,7 @@ public class FormatTest {
 		// Substring
 		assertEquals("TIFF does not match \"not.tiff.but.mp3\"", false, new TIF().match("not.tiff.but.mp3"));
     }
-    
+
     /**
      * Test if {@link Format#match(String)} manages to match the identifiers
      * specified in each format with getId().
@@ -71,7 +71,7 @@ public class FormatTest {
 		assertEquals("GIF matches \"test.gif\"", true, new GIF().match("test.gif"));
 		assertEquals("ISO matches \"test.iso\"", true, new ISO().match("test.iso"));
 		assertEquals("JPG matches \"test.jpg\"", true, new JPG().match("test.jpg"));
-		assertEquals("M4A matches \"test.wma\"", true, new M4A().match("test.wma"));
+		assertEquals("WMA matches \"test.wma\"", true, new WMA().match("test.wma"));
 		assertEquals("MKV matches \"test.mkv\"", true, new MKV().match("test.mkv"));
 		assertEquals("MP3 matches \"test.mp3\"", true, new MP3().match("test.mp3"));
 		assertEquals("MPG matches \"test.mpg\"", true, new MPG().match("test.mpg"));
