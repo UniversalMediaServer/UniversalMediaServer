@@ -148,6 +148,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 		return true;
 	}
 
+	/**
+	 * Removes all children and re-adds them
+	 */
 	@Override
 	public void doRefreshChildren() {
 		ArrayList<File> list = null;
@@ -169,55 +172,26 @@ public class MediaLibraryFolder extends VirtualFolder {
 		ArrayList<String> addedString = new ArrayList<>();
 		ArrayList<DLNAResource> removedFiles = new ArrayList<>();
 		ArrayList<DLNAResource> removedString = new ArrayList<>();
-		int i = 0;
+
 		if (list != null) {
+			UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+
 			for (File file : list) {
-				boolean present = false;
-
 				for (DLNAResource child : getChildren()) {
-					if (i == 0 && (!(child instanceof VirtualFolder) || (child instanceof MediaLibraryFolder))) {
-						removedFiles.add(child);
-					}
-
-					String childName = child.getName();
-					long lm = child.getLastModified();
-					boolean videoTSHack = false;
-
-					if (child instanceof DVDISOFile) {
-						DVDISOFile dvdISOFile = (DVDISOFile) child;
-						// XXX DVDISOFile has inconsistent ideas of what constitutes a VIDEO_TS folder
-						videoTSHack = dvdISOFile.getFilename().equals(file.getName());
-					}
-
-					if ((file.getName().equals(childName) || videoTSHack) && file.lastModified() == lm) {
-						removedFiles.remove(child);
-						present = true;
-					}
+					removedFiles.add(child);
 				}
-				i++;
-				if (!present) {
-					addedFiles.add(file);
-				}
+				addedFiles.add(file);
 			}
 		}
-		i = 0;
+
 		if (strings != null) {
+			UMSUtils.sort(strings, PMS.getConfiguration().getSortMethod(null));
+
 			for (String f : strings) {
-				boolean present = false;
 				for (DLNAResource child : getChildren()) {
-					if (i == 0 && (!(child instanceof VirtualFolder) || (child instanceof MediaLibraryFolder))) {
-						removedString.add(child);
-					}
-					String childName = child.getName();
-					if (f.equals(childName)) {
-						removedString.remove(child);
-						present = true;
-					}
+					removedString.add(child);
 				}
-				i++;
-				if (!present) {
-					addedString.add(f);
-				}
+				addedString.add(f);
 			}
 		}
 
