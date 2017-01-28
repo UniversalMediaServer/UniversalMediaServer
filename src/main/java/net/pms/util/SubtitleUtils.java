@@ -620,10 +620,9 @@ public class SubtitleUtils {
 	 * @param colour the RGB color in the integer format
 	 * @return Converted color string in the ASS format
 	 */
-	public static String convertColourToASSColourString(int colour) {
-		String colourString = Integer.toHexString(colour);
+	public static String convertColourToASSColourString(String colour) {
 		StringBuilder outputString = new StringBuilder();
-		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
+		outputString.append("&H").append(colour.substring(6, 8)).append(colour.substring(4, 6)).append(colour.substring(2, 4));
 		return outputString.toString();
 	}
 

@@ -431,8 +431,8 @@ public class FFMpegVideo extends Player {
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			defaultMaxBitrates = rendererMaxBitrates;
 			LOGGER.trace("Using the video bitrate limit from the renderer config (" + rendererMaxBitrates[0] + "Mb/s) which is lower than the one from the program settings (" + defaultMaxBitrates[0] + ")");
+			defaultMaxBitrates = rendererMaxBitrates;
 		} else {
 			LOGGER.trace("Using the video bitrate limit from the program settings (" + defaultMaxBitrates[0] + "Mb/s)");
 		}
