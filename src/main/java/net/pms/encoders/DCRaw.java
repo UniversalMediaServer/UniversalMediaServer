@@ -7,12 +7,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.ImageInfo;
 import net.pms.formats.Format;
+import net.pms.image.ImageInfo;
 import net.pms.io.InternalJavaProcessImpl;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
@@ -20,6 +22,7 @@ import net.pms.io.ProcessWrapperImpl;
 
 public class DCRaw extends ImagePlayer {
 	public final static String ID = "dcraw";
+	private static final Logger LOGGER = LoggerFactory.getLogger(DCRaw.class);
 
 	protected String[] getDefaultArgs() {
 		return new String[]{ "-e", "-c" };
@@ -58,6 +61,9 @@ public class DCRaw extends ImagePlayer {
 		final String filename = dlna.getSystemName();
 		byte[] image = getImage(params, filename, media.getImageInfo());
 
+		if (image == null) {
+			return null;
+		}
 		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 		return pw;
 	}
@@ -114,7 +120,15 @@ public class DCRaw extends ImagePlayer {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, true, params, false, true);
 		pw.runInSameThread();
 		byte[] bytes = pw.getOutputByteArray().toByteArray();
-		return bytes != null && bytes.length > 0 ? bytes : null;
+		List<String> results = pw.getResults();
+
+		if (bytes == null || bytes.length == 0) {
+			if (!results.isEmpty() && results.get(0).startsWith("Cannot decode file")) {
+				LOGGER.warn("DCRaw could not decode image \"{}\"", fileName);
+			}
+			return null;
+		}
+		return bytes;
 	}
 
 	/**

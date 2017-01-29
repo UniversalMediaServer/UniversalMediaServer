@@ -21,20 +21,27 @@ package net.pms.dlna;
 
 import java.awt.Dimension;
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.drew.imaging.png.PngColorType;
 import com.drew.metadata.MetadataException;
-import com.drew.metadata.exif.ExifDirectoryBase;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-import com.drew.metadata.gif.GifHeaderDirectory;
-import com.drew.metadata.jfif.JfifDirectory;
-import com.drew.metadata.png.PngDirectory;
-import net.pms.formats.ImageFormat;
+import net.pms.image.ColorSpaceType;
+import net.pms.image.GIFInfo;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil;
+import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.image.JPEGInfo;
+import net.pms.image.JPEGInfo.CompressionType;
+import net.pms.image.JPEGSubsamplingNotation;
+import net.pms.image.PNGInfo;
+import net.pms.image.ExifInfo.ExifColorSpace;
+import net.pms.image.PNGInfo.InterlaceMethod;
 
 
 /**
@@ -50,7 +57,7 @@ import net.pms.formats.ImageFormat;
  * <p>
  * is true even if {@code H} and {@code V} are different in the two profiles.
  */
-public class DLNAImageProfile implements Serializable{
+public class DLNAImageProfile implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAImageProfile.class);
@@ -368,23 +375,6 @@ public class DLNAImageProfile implements Serializable{
 	}
 
 	/**
-	 * @return The version number multiplied with 100 (last two digits are decimals).
-	 */
-	protected static int parseExifVersion(byte[] bytes) {
-		if (bytes == null) {
-			return -1;
-		}
-		StringBuilder stringBuilder = new StringBuilder(4);
-		for (byte b : bytes) {
-			stringBuilder.append((char) b);
-		}
-		while (stringBuilder.length() < 4) {
-			stringBuilder.append("0");
-		}
-		return Integer.parseInt(stringBuilder.toString());
-	}
-
-	/**
 	 * Evaluates whether the thumbnail or the image itself should be used as
 	 * the source for the given profile when two sources are available. This is
 	 * typically only relevant for image resources.
@@ -427,20 +417,25 @@ public class DLNAImageProfile implements Serializable{
 	 * Performs GIF compliance checks. The result is stored in
 	 * {@code complianceResult}.
 	 */
-	protected static void checkGIF(ImageInfo imageInfo, InternalComplianceResult complianceResult) throws MetadataException {
-		if (imageInfo == null || imageInfo.getFormat() != ImageFormat.GIF || imageInfo.getMetadata() == null) {
+	protected static void checkGIF(
+		ImageInfo imageInfo,
+		InternalComplianceResult complianceResult
+	) throws MetadataException {
+
+		if (imageInfo == null || imageInfo.getFormat() != ImageFormat.GIF || !(imageInfo instanceof GIFInfo)) {
 			return;
 		}
-		complianceResult.formatCorrect = true;
-		GifHeaderDirectory directory = imageInfo.getMetadata() != null ?
-			imageInfo.getMetadata().getFirstDirectoryOfType(GifHeaderDirectory.class) : null
-		;
-		if (directory != null) {
-			if (
-				directory.containsTag(GifHeaderDirectory.TAG_BITS_PER_PIXEL) &&
-				directory.getInt(GifHeaderDirectory.TAG_BITS_PER_PIXEL) <= 8
-			) {
-				complianceResult.colorsCorrect = true;
+		complianceResult.colorsCorrect = true;
+		GIFInfo gifInfo = (GIFInfo) imageInfo;
+		complianceResult.formatCorrect = "89a".equals(gifInfo.getFormatVersion());
+		if (!complianceResult.formatCorrect) {
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"GIF DLNA compliance failed with wrong GIF version \"%s\"",
+					gifInfo.getFormatVersion()
+				));
+			} else {
+				complianceResult.failures.add("GIF version");
 			}
 		}
 	}
@@ -449,22 +444,148 @@ public class DLNAImageProfile implements Serializable{
 	 * Performs JPEG compliance checks. The result is stored in
 	 * {@code complianceResult}.
 	 */
-	protected static void checkJPEG(ImageInfo imageInfo, InternalComplianceResult complianceResult) throws MetadataException {
-		if (imageInfo == null || imageInfo.getFormat() != ImageFormat.JPEG || imageInfo.getMetadata() == null) {
+	protected static void checkJPEG(
+		ImageInfo imageInfo,
+		InternalComplianceResult complianceResult
+	) throws MetadataException {
+
+		if (imageInfo == null || imageInfo.getFormat() != ImageFormat.JPEG || !(imageInfo instanceof JPEGInfo)) {
 			return;
 		}
-		complianceResult.colorsCorrect = true;
-		JfifDirectory jfifDirectory = imageInfo.getMetadata() != null ?
-			imageInfo.getMetadata().getFirstDirectoryOfType(JfifDirectory.class) : null;
-		ExifSubIFDDirectory exifSubIFDirectory = imageInfo.getMetadata() != null ?
-			imageInfo.getMetadata().getFirstDirectoryOfType(ExifSubIFDDirectory.class) : null;
-		if (jfifDirectory != null) {
-			complianceResult.formatCorrect = jfifDirectory.containsTag(JfifDirectory.TAG_VERSION) && jfifDirectory.getVersion() >= 0x102;
+		JPEGInfo jpegInfo = (JPEGInfo) imageInfo;
+		complianceResult.colorsCorrect =
+			jpegInfo.getColorSpaceType() == ColorSpaceType.TYPE_GRAY ||
+			jpegInfo.getColorSpaceType() == ColorSpaceType.TYPE_RGB ||
+			jpegInfo.getColorSpaceType() == ColorSpaceType.TYPE_YCbCr;
+		if (!complianceResult.colorsCorrect) {
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"JPEG DLNA compliance failed with illegal color space \"%s\"",
+					jpegInfo.getColorSpaceType()
+				));
+			} else {
+				complianceResult.failures.add("color space");
+			}
 		}
-		if (!complianceResult.formatCorrect && exifSubIFDirectory != null) {
-			complianceResult.formatCorrect =
-				exifSubIFDirectory.containsTag(ExifDirectoryBase.TAG_EXIF_VERSION) &&
-				parseExifVersion(exifSubIFDirectory.getByteArray(ExifDirectoryBase.TAG_EXIF_VERSION)) >= 100;
+
+		if (
+			jpegInfo.getExifColorSpace() != null &&
+			jpegInfo.getExifColorSpace() != ExifColorSpace.SRGB &&
+			jpegInfo.getExifColorSpace() != ExifColorSpace.UNCALIBRATED
+		) {
+			complianceResult.colorsCorrect = false;
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"JPEG DLNA compliance failed with illegal Exif color space \"%s\"",
+					jpegInfo.getExifColorSpace()
+				));
+			} else {
+				complianceResult.failures.add("Exif color space");
+			}
+		}
+
+		complianceResult.formatCorrect = jpegInfo.getJFIFVersion() >= 0x102 || jpegInfo.getExifVersion() >= 100;
+		if (!complianceResult.formatCorrect && LOGGER.isTraceEnabled()) {
+			String jfifVersion = jpegInfo.getJFIFVersion() == ImageInfo.UNKNOWN ? null :
+				Double.toHexString((double) jpegInfo.getJFIFVersion() / 0x100)
+			;
+			if (jfifVersion != null) {
+				jfifVersion = jfifVersion.replaceFirst("0x", "").replaceFirst("p-?\\d*", "");
+			}
+			String exifVersion = jpegInfo.getExifVersion() == ImageInfo.UNKNOWN ? null :
+				Double.toString((double) jpegInfo.getExifVersion() / 100);
+
+			if (jfifVersion == null && exifVersion == null) {
+				if (LOGGER.isTraceEnabled()) {
+					complianceResult.failures.add("JPEG DLNA compliance failed with missing Exif- and JFIF version");
+				} else {
+					complianceResult.failures.add("missing version information");
+				}
+			} else if (jfifVersion == null) {
+				if (LOGGER.isTraceEnabled()) {
+					complianceResult.failures.add(String.format(
+						"JPEG DLNA compliance failed with too low Exif version \"%s\"",
+						exifVersion
+					));
+				} else {
+					complianceResult.failures.add("Exif version");
+				}
+			} else if (exifVersion == null) {
+				if (LOGGER.isTraceEnabled()) {
+					complianceResult.failures.add(String.format(
+						"JPEG DLNA compliance failed with too low JFIF version \"%s\"",
+						jfifVersion
+					));
+				} else {
+					complianceResult.failures.add("JFIF version");
+				}
+			} else {
+				if (LOGGER.isTraceEnabled()) {
+					complianceResult.failures.add(String.format(
+						"JPEG DLNA compliance failed with too low Exif version \"%s\" and JFIF version \"%s\"",
+						exifVersion,
+						jfifVersion
+					));
+				} else {
+					complianceResult.failures.add("Exif and JFIF version");
+				}
+			}
+		}
+		if (jpegInfo.getCompressionType() != CompressionType.BASELINE_HUFFMAN) {
+			complianceResult.formatCorrect = false;
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"JPEG DLNA compliance failed with illegal compression type \"%s\"",
+					jpegInfo.getCompressionType()
+				));
+			} else {
+				complianceResult.failures.add("compression type");
+			}
+		}
+		if (jpegInfo.getBitDepth() != 8) {
+			complianceResult.formatCorrect = false;
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"JPEG DLNA compliance failed with illegal bit depth \"%d\"",
+					jpegInfo.getBitDepth()
+				));
+			} else {
+				complianceResult.failures.add("bit depth");
+			}
+		}
+		if (jpegInfo.getNumComponents() != 3 && jpegInfo.getNumComponents() != 1) {
+			complianceResult.formatCorrect = false;
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"JPEG DLNA compliance failed with illegal number of components \"%d\"",
+					jpegInfo.getNumComponents()
+				));
+			} else {
+				complianceResult.failures.add("number of components");
+			}
+		}
+		if (!jpegInfo.isTypicalHuffman()) {
+			complianceResult.formatCorrect = false;
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add("JPEG DLNA compliance failed with non-typical Huffman tables");
+			} else {
+				complianceResult.failures.add("optimized");
+			}
+		}
+		if (
+			jpegInfo.getNumComponents() == 3 &&
+			!(new JPEGSubsamplingNotation(4, 2, 2)).equals(jpegInfo.getChromaSubsampling()) &&
+			!(new JPEGSubsamplingNotation(4, 2, 0)).equals(jpegInfo.getChromaSubsampling())
+		) {
+			complianceResult.formatCorrect = false;
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"JPEG DLNA compliance failed with illegal chroma subsampling \"%s\"",
+					jpegInfo.getChromaSubsampling()
+				));
+			} else {
+				complianceResult.failures.add("chroma subsampling");
+			}
 		}
 	}
 
@@ -472,29 +593,149 @@ public class DLNAImageProfile implements Serializable{
 	 * Performs PNG compliance checks. The result is stored in
 	 * {@code complianceResult}.
 	 */
-	protected static void checkPNG(ImageInfo imageInfo, InternalComplianceResult complianceResult) throws MetadataException {
-		if (imageInfo == null || imageInfo.getFormat() != ImageFormat.PNG || imageInfo.getMetadata() == null) {
+	protected static void checkPNG(
+		ImageInfo imageInfo,
+		InternalComplianceResult complianceResult
+	) throws MetadataException {
+
+		if (imageInfo == null || imageInfo.getFormat() != ImageFormat.PNG || !(imageInfo instanceof PNGInfo)) {
 			return;
 		}
-		Collection<PngDirectory> pngDirectories = imageInfo.getMetadata().getDirectoriesOfType(PngDirectory.class);
-		for (PngDirectory pngDirectory : pngDirectories) {
-			if (pngDirectory.getPngChunkType().getIdentifier().equals("IHDR")) {
-				if (pngDirectory.containsTag(PngDirectory.TAG_COLOR_TYPE)) {
-					switch (PngColorType.fromNumericValue(pngDirectory.getInt(PngDirectory.TAG_COLOR_TYPE))) {
-						case Greyscale:
-						case GreyscaleWithAlpha:
-						case IndexedColor:
-						case TrueColor:
-						case TrueColorWithAlpha:
-							complianceResult.colorsCorrect = true;
-							break;
-						default:
+
+		PNGInfo pngInfo = (PNGInfo) imageInfo;
+		if (pngInfo.getColorType() != null && pngInfo.getBitDepth() == 8) {
+			switch (pngInfo.getColorType()) {
+				case Greyscale:
+				case GreyscaleWithAlpha:
+				case IndexedColor:
+				case TrueColor:
+				case TrueColorWithAlpha:
+					complianceResult.colorsCorrect = true;
+					break;
+				default:
+					if (LOGGER.isTraceEnabled()) {
+						complianceResult.failures.add(String.format(
+							"PNG DLNA compliance failed with illegal color type \"%s\"",
+							pngInfo.getColorType()
+						));
+					} else {
+						complianceResult.failures.add("color type");
 					}
-				}
-				complianceResult.formatCorrect =
-					pngDirectory.containsTag(PngDirectory.TAG_INTERLACE_METHOD) &&
-					pngDirectory.getInt(PngDirectory.TAG_INTERLACE_METHOD) == 0;
 			}
+		} else if (LOGGER.isTraceEnabled()) {
+			if (pngInfo.getColorType() == null) {
+				if (LOGGER.isTraceEnabled()) {
+					complianceResult.failures.add("PNG DLNA compliance failed with missing color type information");
+				} else {
+					complianceResult.failures.add("missing color type");
+				}
+			} else {
+				if (LOGGER.isTraceEnabled()) {
+					complianceResult.failures.add(String.format(
+						"PNG DLNA compliance failed with illegal bit depth \"%d\"",
+						pngInfo.getBitDepth()
+					));
+				} else {
+					complianceResult.failures.add("bit depth");
+				}
+			}
+		}
+		if (pngInfo.isModifiedBitDepth()) {
+			complianceResult.colorsCorrect = false;
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add("PNG DLNA compliance failed with non-standard bit depth");
+			} else {
+				complianceResult.failures.add("non-standard bit depth");
+			}
+		}
+
+		complianceResult.formatCorrect = pngInfo.getInterlaceMethod() == InterlaceMethod.NONE;
+		if (!complianceResult.formatCorrect && LOGGER.isTraceEnabled()) {
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"PNG DLNA compliance failed with illegal interlace method \"%s\"",
+					pngInfo.getInterlaceMethod()
+				));
+			} else {
+				complianceResult.failures.add("interlace method");
+			}
+		}
+	}
+
+	/**
+	 * Finds the best fitting {@link DLNAImageProfile} for an image of the given
+	 * resolution and {@link ImageFormat}.
+	 *
+	 * @param resolution the image resolution.
+	 * @param format the image {@link ImageFormat}.
+	 * @param allowJPEG_RES_H_V Whether or not
+	 *            {@link DLNAImageProfile#JPEG_RES_H_V} is allowed. When this is
+	 *            true, all JPEG images will use this profile.
+	 * @return The best fitting {@link DLNAImageProfile}.
+	 */
+	public static DLNAImageProfile getClosestDLNAProfile(
+		Dimension resolution,
+		ImageFormat format,
+		boolean allowJPEG_RES_H_V
+	) {
+		return getClosestDLNAProfile(resolution.width, resolution.height, format, allowJPEG_RES_H_V);
+	}
+
+	/**
+	 * Finds the best fitting {@link DLNAImageProfile} for an image of the given
+	 * resolution and {@link ImageFormat}.
+	 *
+	 * @param width the image width.
+	 * @param height the image height.
+	 * @param format the image {@link ImageFormat}.
+	 * @param allowJPEG_RES_H_V Whether or not
+	 *            {@link DLNAImageProfile#JPEG_RES_H_V} is allowed. When this is
+	 *            true, all JPEG images will use this profile.
+	 * @return The best fitting {@link DLNAImageProfile}.
+	 */
+	public static DLNAImageProfile getClosestDLNAProfile(
+		int width,
+		int height,
+		ImageFormat format,
+		boolean allowJPEG_RES_H_V
+	) {
+		if (format == null) {
+			throw new NullPointerException("format cannot be null");
+		}
+		if (width < 1 || height < 1) {
+			throw new IllegalArgumentException(String.format(
+				"Cannot find DLNA media format profile for %d x %d",
+				width,
+				height
+			));
+		}
+
+		switch (format) {
+			case GIF:
+				return GIF_LRG;
+			case JPEG:
+				if (allowJPEG_RES_H_V) {
+					return createJPEG_RES_H_V(width, height);
+				}
+				if (JPEG_TN.isResolutionCorrect(width, height)) {
+					return JPEG_TN;
+				}
+				if (JPEG_SM.isResolutionCorrect(width, height)) {
+					return JPEG_SM;
+				}
+				if (JPEG_MED.isResolutionCorrect(width, height)) {
+					return JPEG_MED;
+				}
+				return JPEG_LRG;
+			case PNG:
+				if (PNG_TN.isResolutionCorrect(width, height)) {
+					return PNG_TN;
+				}
+				return PNG_LRG;
+			default:
+				throw new IllegalArgumentException(
+					"Invalid format " + format + " for which to find a DLNA media format profile"
+				);
 		}
 	}
 
@@ -512,10 +753,14 @@ public class DLNAImageProfile implements Serializable{
 	 * @return The validation result.
 	 */
 	public static DLNAComplianceResult checkCompliance(ImageInfo imageInfo, ImageFormat format) {
-		InternalComplianceResult complianceResult = new InternalComplianceResult();
-		if (imageInfo == null || format == null) {
-			return DLNAComplianceResult.toDLNAComplianceResult(complianceResult);
+		if (imageInfo == null) {
+			throw new NullPointerException("imageInfo cannot be null");
 		}
+		if (format == null) {
+			throw new NullPointerException("format cannot be null");
+		}
+
+		InternalComplianceResult complianceResult = new InternalComplianceResult();
 		try {
 			DLNAImageProfile largestProfile;
 			switch (format) {
@@ -530,20 +775,51 @@ public class DLNAImageProfile implements Serializable{
 					largestProfile = DLNAImageProfile.GIF_LRG;
 					complianceResult.maxWidth = largestProfile.getMaxWidth();
 					complianceResult.maxHeight = largestProfile.getMaxHeight();
-					complianceResult.resolutionCorrect =
-						largestProfile.isResolutionCorrect(imageInfo);
+					complianceResult.resolutionCorrect = largestProfile.isResolutionCorrect(imageInfo);
+					if (!complianceResult.resolutionCorrect) {
+						if (LOGGER.isTraceEnabled()) {
+							complianceResult.failures.add(String.format(
+								"GIF DLNA compliance failed with wrong resolution %d x %d (limits are %d x %d)",
+								imageInfo.getWidth(),
+								imageInfo.getHeight(),
+								largestProfile.getMaxWidth(),
+								largestProfile.getMaxHeight()
+							));
+						} else {
+							complianceResult.failures.add("resolution");
+						}
+					}
 					checkGIF(imageInfo, complianceResult);
 					break;
 				case PNG:
 					largestProfile = DLNAImageProfile.PNG_LRG;
 					complianceResult.maxWidth = largestProfile.getMaxWidth();
 					complianceResult.maxHeight = largestProfile.getMaxHeight();
-					complianceResult.resolutionCorrect =
-						largestProfile.isResolutionCorrect(imageInfo);
+					complianceResult.resolutionCorrect = largestProfile.isResolutionCorrect(imageInfo);
+					if (!complianceResult.resolutionCorrect) {
+						if (LOGGER.isTraceEnabled()) {
+							complianceResult.failures.add(String.format(
+								"PNG DLNA compliance failed with wrong resolution %d x %d (limits are %d x %d)",
+								imageInfo.getWidth(),
+								imageInfo.getHeight(),
+								largestProfile.getMaxWidth(),
+								largestProfile.getMaxHeight()
+							));
+						} else {
+							complianceResult.failures.add("resolution");
+						}
+					}
 					checkPNG(imageInfo, complianceResult);
 					break;
 				default:
-					// No other formats are compliant
+					if (LOGGER.isTraceEnabled()) {
+						complianceResult.failures.add(String.format(
+							"DLNA compliance failed with illegal image format \"%s\"",
+							format
+						));
+					} else {
+						complianceResult.failures.add("illegal format");
+					}
 			}
 		} catch (MetadataException e) {
 			complianceResult.formatCorrect = false;
@@ -575,23 +851,39 @@ public class DLNAImageProfile implements Serializable{
 	}
 
 	/**
-	 * Determines whether the resolution specified in {@code imageInfo} is
-	 * valid for this {@link DLNAImageProfile}.
+	 * Determines whether the resolution specified in {@code imageInfo} is valid
+	 * for this {@link DLNAImageProfile}.
+	 *
 	 * @param imageInfo the {@link ImageInfo} to evaluate.
 	 * @return {@code true} if the resolution is valid, {@code false} otherwise.
 	 */
 	public boolean isResolutionCorrect(ImageInfo imageInfo) {
-		if (imageInfo == null || imageInfo.getWidth() < 1 || imageInfo.getHeight() < 1) {
+		if (imageInfo == null) {
+			return false;
+		}
+		return isResolutionCorrect(imageInfo.getWidth(), imageInfo.getHeight());
+	}
+
+	/**
+	 * Determines whether the resolution specified in {@code width} and
+	 * {@code height} is valid for this {@link DLNAImageProfile}.
+	 *
+	 * @param width the number of horizontal pixels for this resolution.
+	 * @param height the number of vertical pixels for this resolution.
+	 * @return {@code true} if the resolution is valid, {@code false} otherwise.
+	 */
+	public boolean isResolutionCorrect(int width, int height) {
+		if (width < 1 || height < 1) {
 			return false;
 		}
 		if (equals(DLNAImageProfile.JPEG_RES_H_V)) {
 			return
-				imageInfo.getWidth() == horizontal &&
-				imageInfo.getHeight() == vertical;
+				width == horizontal &&
+				height == vertical;
 		} else {
 			return
-				imageInfo.getWidth() <= horizontal &&
-				imageInfo.getHeight() <= vertical;
+				width <= horizontal &&
+				height <= vertical;
 		}
 	}
 
@@ -613,6 +905,20 @@ public class DLNAImageProfile implements Serializable{
 			return DLNAComplianceResult.toDLNAComplianceResult(complianceResult);
 		}
 		complianceResult.resolutionCorrect = isResolutionCorrect(imageInfo);
+		if (!complianceResult.resolutionCorrect) {
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add(String.format(
+					"%s DLNA compliance failed with wrong resolution %d x %d (limits are %d x %d)",
+					toString(),
+					imageInfo.getWidth(),
+					imageInfo.getHeight(),
+					horizontal,
+					vertical
+				));
+			} else {
+				complianceResult.failures.add("resolution");
+			}
+		}
 
 		try {
 			switch (this.toInt()) {
@@ -620,23 +926,13 @@ public class DLNAImageProfile implements Serializable{
 					checkGIF(imageInfo, complianceResult);
 					break;
 				case DLNAImageProfile.JPEG_LRG_INT:
-					checkJPEG(imageInfo, complianceResult);
-					break;
 				case DLNAImageProfile.JPEG_MED_INT:
-					checkJPEG(imageInfo, complianceResult);
-					break;
 				case DLNAImageProfile.JPEG_RES_H_V_INT:
-					checkJPEG(imageInfo, complianceResult);
-					break;
 				case DLNAImageProfile.JPEG_SM_INT:
-					checkJPEG(imageInfo, complianceResult);
-					break;
 				case DLNAImageProfile.JPEG_TN_INT:
 					checkJPEG(imageInfo, complianceResult);
 					break;
 				case DLNAImageProfile.PNG_LRG_INT:
-					checkPNG(imageInfo, complianceResult);
-					break;
 				case DLNAImageProfile.PNG_TN_INT:
 					checkPNG(imageInfo, complianceResult);
 					break;
@@ -654,11 +950,11 @@ public class DLNAImageProfile implements Serializable{
 	}
 
 	/**
-	 * Tries to calculate the would-be resolution and size of {@code imageInfo}
-	 * if that image were to be converted into this profile. Size cannot be
-	 * calculated if any actual conversion is needed (finding that would
-	 * require an actual encoding to be done), and will return {@code null}
-	 * unless the image can be used as-is.
+	 * Calculates the would-be resolution and size of {@code imageInfo} if that
+	 * image were to be converted into this profile. Size cannot be calculated
+	 * if any actual conversion is needed (finding that would require an actual
+	 * encoding to be done), and will return {@code null} unless the image can
+	 * be used as-is.
 	 *
 	 * @param imageInfo the {@link ImageInfo} for the image in question.
 	 *
@@ -669,7 +965,7 @@ public class DLNAImageProfile implements Serializable{
 			throw new IllegalArgumentException("calculateHypotheticalProperties: imageInfo cannot be null");
 		}
 		if (imageInfo.getWidth() < 1 || imageInfo.getHeight() < 1) {
-			return new HypotheticalResult(-1, -1, null, true);
+			return new HypotheticalResult(ImageInfo.UNKNOWN, ImageInfo.UNKNOWN, null, true);
 		}
 		DLNAComplianceResult complianceResult = checkCompliance(imageInfo);
 		if (complianceResult.isAllCorrect()) {
@@ -683,14 +979,16 @@ public class DLNAImageProfile implements Serializable{
 		if (complianceResult.resolutionCorrect) {
 			return new HypotheticalResult(imageInfo.getWidth(), imageInfo.getHeight(), null, true);
 		}
-		double widthScale = imageInfo.width < 1 ? 0 : (double) horizontal / imageInfo.getWidth();
-		double heightScale = imageInfo.height < 1 ? 0 : (double) vertical / imageInfo.getHeight();
-		// We never scale up because the DLNA profiles only have resolution
-		// ceilings - limit scale to max 1.
-		double scale = Math.min(Math.min(widthScale, heightScale), 1);
+		Dimension scaledResolution = ImagesUtil.calculateScaledResolution(
+			imageInfo,
+			this.equals(JPEG_RES_H_V) ? ScaleType.EXACT : ScaleType.MAX,
+			horizontal,
+			vertical
+		);
+
 		return new HypotheticalResult(
-			(int) Math.round(imageInfo.width * scale),
-			(int) Math.round(imageInfo.height * scale),
+			scaledResolution.width,
+			scaledResolution.height,
 			null,
 			true
 		);
@@ -727,16 +1025,16 @@ public class DLNAImageProfile implements Serializable{
 	}
 
 	/**
-	 * Immutable {@link DLNAImageProfile#calculateHypotheticalProperties(ImageInfo)}
+	 * Immutable {@link #calculateHypotheticalProperties(ImageInfo)}
 	 * result data structure. Please note that {@code size} might be {@code null}.
 	 */
 	public static class HypotheticalResult {
 		/**
-		 * The calculated width or {@code -1} if unknown.
+		 * The calculated width or {@link ImageInfo#UNKNOWN} if unknown.
 		 */
 		public final int width;
 		/**
-		 * The calculated height or {@code -1} if unknown.
+		 * The calculated height or {@link ImageInfo#UNKNOWN} if unknown.
 		 */
 		public final int height;
 		/**
@@ -750,9 +1048,9 @@ public class DLNAImageProfile implements Serializable{
 
 		public HypotheticalResult(int width, int height, Long size, boolean conversionNeeded) {
 			if (width < 1 || height < 1) {
-				// Use -1 for unknown
-				this.width = -1;
-				this.height = -1;
+				// Use ImageInfo.UNKNOWN for unknown
+				this.width = ImageInfo.UNKNOWN;
+				this.height = ImageInfo.UNKNOWN;
 			} else {
 				this.width = width;
 				this.height = height;
@@ -821,6 +1119,7 @@ public class DLNAImageProfile implements Serializable{
 		public boolean colorsCorrect = false;
 		public int maxWidth;
 		public int maxHeight;
+		public List<String> failures = new ArrayList<>();
 	}
 
 	/**
@@ -833,18 +1132,34 @@ public class DLNAImageProfile implements Serializable{
 		private final boolean allCorrect;
 		private final int maxWidth;
 		private final int maxHeight;
+		private final List<String> failures;
 
-		public DLNAComplianceResult(boolean resolutionCorrect, boolean formatCorrect, boolean colorsCorrect, int maxWidth, int maxHeight) {
+		public DLNAComplianceResult(
+			boolean resolutionCorrect,
+			boolean formatCorrect,
+			boolean colorsCorrect,
+			int maxWidth,
+			int maxHeight,
+			List<String> failures
+		) {
 			this.resolutionCorrect = resolutionCorrect;
 			this.formatCorrect = formatCorrect;
 			this.colorsCorrect = colorsCorrect;
 			this.allCorrect = resolutionCorrect && formatCorrect && colorsCorrect;
 			this.maxWidth = maxWidth;
 			this.maxHeight = maxHeight;
+			this.failures = failures;
 		}
 
 		protected static DLNAComplianceResult toDLNAComplianceResult(InternalComplianceResult result) {
-			return new DLNAComplianceResult(result.resolutionCorrect, result.formatCorrect, result.colorsCorrect, result.maxWidth, result.maxHeight);
+			return new DLNAComplianceResult(
+				result.resolutionCorrect,
+				result.formatCorrect,
+				result.colorsCorrect,
+				result.maxWidth,
+				result.maxHeight,
+				result.failures
+			);
 		}
 
 		/**
@@ -889,6 +1204,13 @@ public class DLNAImageProfile implements Serializable{
 		 */
 		public int getMaxHeight() {
 			return maxHeight;
+		}
+
+		/**
+		 * @return The {@link List} of failure messages.
+		 */
+		public List<String> getFailures() {
+			return Collections.unmodifiableList(this.failures);
 		}
 	}
 }

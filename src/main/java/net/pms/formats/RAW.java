@@ -10,19 +10,20 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.dlna.ImageInfo;
 import net.pms.dlna.InputFile;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.DCRaw;
-import net.pms.util.ImagesUtil;
-import net.pms.util.ImagesUtil.ScaleType;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil;
+import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.util.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.drew.imaging.FileType;
 import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
-import com.drew.metadata.MetadataException;
 
 public class RAW extends ImageBase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
@@ -109,36 +110,44 @@ public class RAW extends ImageBase {
 					Metadata metadata = null;
 					FileType fileType = null;
 					try (BufferedInputStream inputStream = new BufferedInputStream(Files.newInputStream(file.getFile().toPath()))) {
-						try {
-							fileType = FileTypeDetector.detectFileType(inputStream);
-							metadata = ImagesUtil.getMetadata(inputStream, fileType);
-						} catch (IOException e) {
-							metadata = new Metadata();
-							LOGGER.debug("Error reading \"{}\": {}", file.getFile().getAbsolutePath(), e.getMessage());
-							LOGGER.trace("", e);
-						} catch (ImageProcessingException e) {
-							metadata = new Metadata();
-							LOGGER.debug(
-								"Error parsing {} metadata for \"{}\": {}",
-								fileType.toString().toUpperCase(Locale.ROOT),
-								file.getFile().getAbsolutePath(),
-								e.getMessage()
-							);
-							LOGGER.trace("", e);
+						fileType = FileTypeDetector.detectFileType(inputStream);
+						metadata = ImagesUtil.getMetadata(inputStream, fileType);
+					} catch (IOException e) {
+						metadata = new Metadata();
+						LOGGER.debug("Error reading \"{}\": {}", file.getFile().getAbsolutePath(), e.getMessage());
+						LOGGER.trace("", e);
+					} catch (ImageProcessingException e) {
+						metadata = new Metadata();
+						LOGGER.debug(
+							"Error parsing {} metadata for \"{}\": {}",
+							fileType.toString().toUpperCase(Locale.ROOT),
+							file.getFile().getAbsolutePath(),
+							e.getMessage()
+						);
+						LOGGER.trace("", e);
+					}
+					if (fileType == FileType.Arw && !ImagesUtil.isARW(metadata)) {
+						fileType = FileType.Tiff;
+					}
+					ImageFormat format = ImageFormat.toImageFormat(fileType);
+					if (format == null || format == ImageFormat.TIFF) {
+						format = ImageFormat.toImageFormat(metadata);
+						if (format == null || format == ImageFormat.TIFF) {
+							format = ImageFormat.RAW;
 						}
 					}
 					try {
-						imageInfo = new ImageInfo(
+						imageInfo = ImageInfo.create(
 							media.getWidth(),
 							media.getHeight(),
 							metadata,
-							ImageFormat.toImageFormat(fileType),
+							format,
 							file.getSize(),
 							true,
 							false
 						);
-					} catch (MetadataException e) {
-						LOGGER.warn("Unable to parse metadata for \"{}\": {}", file.getFile().getAbsolutePath(), e.getMessage());
+					} catch (ParseException e) {
+						LOGGER.warn("Unable to parse \"{}\": {}", file.getFile().getAbsolutePath(), e.getMessage());
 						LOGGER.trace("", e);
 					}
 				}
@@ -153,7 +162,7 @@ public class RAW extends ImageBase {
 			}
 			media.setSize(file.getSize());
 			media.setImageCount(1);
-			media.finalize(type, file);
+			media.postParse(type, file);
 			media.setMediaparsed(true);
 
 		} catch (IOException e) {

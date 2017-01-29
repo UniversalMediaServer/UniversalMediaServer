@@ -43,7 +43,8 @@ import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.formats.ImageFormat;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImageInfo;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
@@ -3489,18 +3490,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (thumb != null && isCodeValid(this)) {
 			// A local file
 			if (new File(thumb).exists()) {
-				return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumb), true);
+				return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumb));
 			}
 
 			// A jar resource
 			InputStream is;
 			if ((is = getResourceInputStream(thumb)) != null) {
-				return DLNAThumbnailInputStream.toThumbnailInputStream(is, true);
+				return DLNAThumbnailInputStream.toThumbnailInputStream(is);
 			}
 
 			// A URL
 			try {
-				return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumb, true), true);
+				return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumb, true));
 			} catch (Exception e) {}
 		}
 
@@ -3553,11 +3554,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (languageCode != null) {
 			String code = Iso639.getISO639_2Code(languageCode.toLowerCase());
-			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/codes/" + code + ".png"), true);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/codes/" + code + ".png"));
 		}
 
 		if (isAvisynth()) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo-avisynth.png"), true);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo-avisynth.png"));
 		}
 
 		return getGenericThumbnailInputStream(null);

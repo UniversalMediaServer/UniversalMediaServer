@@ -175,7 +175,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream(enabled ? thumbnailIconOK : thumbnailIconKO), true);
+		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream(enabled ? thumbnailIconOK : thumbnailIconKO));
 	}
 
 	/**

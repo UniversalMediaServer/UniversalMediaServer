@@ -30,6 +30,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImageInfo;
 import org.apache.commons.io.FileUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.h2.engine.Constants;

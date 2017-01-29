@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.image;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -25,7 +25,6 @@ import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
-import java.util.Locale;
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
@@ -35,8 +34,7 @@ import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageInputStreamSpi;
 import javax.imageio.stream.ImageInputStream;
 import net.pms.image.ImageIORuntimeException;
-import net.pms.dlna.ImageInfo;
-import net.pms.formats.ImageFormat;
+import net.pms.util.UnknownFormatException;
 import com.drew.metadata.Metadata;
 
 /**
@@ -100,40 +98,6 @@ public class CustomImageReader {
         }
     }
 
-    protected static ImageFormat parseFormatName(String formatName) {
-    	ImageFormat result = null;
-        if (formatName != null) {
-        	if (formatName.contains("BMP")) {
-        		result = ImageFormat.BMP;
-        	} else if (formatName.contains("CUR")) {
-        		result = ImageFormat.CUR;
-        	} else if (formatName.contains("DCX")) {
-        		result = ImageFormat.DCX;
-        	} else if (formatName.contains("GIF")) {
-        		result = ImageFormat.GIF;
-        	} else if (formatName.contains("ICNS")) {
-        		result = ImageFormat.ICNS;
-        	} else if (formatName.contains("ICO")) {
-        		result = ImageFormat.ICO;
-        	} else if (formatName.contains("JPEG")) {
-        		result = ImageFormat.JPEG;
-        	} else if (formatName.contains("PCX")) {
-        		result = ImageFormat.PCX;
-        	} else if (formatName.contains("PNG")) {
-        		result = ImageFormat.PNG;
-        	} else if (formatName.contains("PNM")) {
-        		result = ImageFormat.PNM;
-        	} else if (formatName.contains("PSD")) {
-        		result = ImageFormat.PSD;
-        	} else if (formatName.contains("TIFF")) {
-        		result = ImageFormat.TIFF;
-        	} else if (formatName.contains("WBMP")) {
-        		result = ImageFormat.WBMP;
-        	}
-        }
-        return result;
-    }
-
     /**
      * A copy of {@link ImageIO#read(ImageInputStream)} that returns
      * {@link ImageReaderResult} instead of {@link BufferedImage}. This lets
@@ -163,7 +127,7 @@ public class CustomImageReader {
 	        ImageReader reader = (ImageReader) iter.next();
 	        try {
 		        // Store the parsing result
-		        inputFormat = parseFormatName(reader.getFormatName().toUpperCase(Locale.ROOT));
+		        inputFormat = ImageFormat.toImageFormat(reader.getFormatName());
 
 		        reader.setInput(stream, true, true);
 	            bufferedImage = reader.read(0, reader.getDefaultReadParam());
@@ -181,7 +145,6 @@ public class CustomImageReader {
     /**
      * Tries to detect the input image file format using {@link ImageIO} and
      * returns the result.
-     *
 	 * <p>
 	 * This method does not close {@code inputStream}.
 	 *
@@ -202,7 +165,7 @@ public class CustomImageReader {
 	        }
 
 	        ImageReader reader = (ImageReader) iter.next();
-	        ImageFormat format = parseFormatName(reader.getFormatName().toUpperCase(Locale.ROOT));
+	        ImageFormat format = ImageFormat.toImageFormat(reader.getFormatName());
 	        if (format == null) {
 	        	throw new UnknownFormatException("Unable to determine image format");
 	        }
@@ -247,10 +210,11 @@ public class CustomImageReader {
 	        try {
 	        	int width = -1;
 	        	int height = -1;
-		        ImageFormat format = parseFormatName(reader.getFormatName().toUpperCase(Locale.ROOT));
+		        ImageFormat format = ImageFormat.toImageFormat(reader.getFormatName());
 		        if (format == null) {
 		        	throw new UnknownFormatException("Unable to determine image format");
 		        }
+
 		        ColorModel colorModel = null;
 		        try {
 			        reader.setInput(stream, true, true);
@@ -281,7 +245,7 @@ public class CustomImageReader {
 		        	imageIOSupport = true;
 		        }
 
-		        ImageInfo imageInfo = new ImageInfo(
+		        ImageInfo imageInfo = ImageInfo.create(
 		        	width,
 		        	height,
 		        	format,
@@ -298,14 +262,14 @@ public class CustomImageReader {
         }
     }
 
-    /**
+	/**
 	 * A copy of {@link ImageIO#createImageInputStream(Object)} that ignores
 	 * {@link ImageIO} configuration and never caches to disk. This is intended
-	 * used on relatively small images and caching to disk is extremely expensive
-	 * compared to just keeping a copy in memory while doing the source analysis.
+	 * used on relatively small images and caching to disk is very expensive
+	 * compared to keeping a copy in memory while doing the source analysis.
 	 *
 	 * @see ImageIO#createImageInputStream(Object)
-     */
+	 */
     public static ImageInputStream createImageInputStream(Object input)
         throws IOException {
         if (input == null) {

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.image;
 
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
@@ -34,11 +34,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.dlna.DLNAImage;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.dlna.ImageInfo;
-import net.pms.formats.ImageFormat;
-import net.pms.util.ColorSpaceType;
-import net.pms.util.ImagesUtil;
-import net.pms.util.ImagesUtil.ScaleType;
+import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.util.ParseException;
 
 /**
  * This class is simply a byte array for holding an {@link ImageIO} supported
@@ -56,9 +53,21 @@ public class Image implements Serializable {
 	/**
 	 * Creates a new {@link Image} instance.
 	 *
+	 * @param image the source {@link Image} in a supported format. Format
+	 *            support is limited to that of {@link ImageIO}.
+	 * @param copy whether this instance should be copied or shared.
+	 */
+	@SuppressFBWarnings("EI_EXPOSE_REP2")
+	public Image(Image image, boolean copy) {
+		this.bytes = image.getBytes(copy);
+		this.imageInfo = copy && image.getImageInfo() != null ? image.getImageInfo().copy() : image.getImageInfo();
+	}
+
+	/**
+	 * Creates a new {@link Image} instance.
+	 *
 	 * @param bytes the source image in a supported format. Format support is
 	 *            limited to that of {@link ImageIO}.
-	 *
 	 * @param imageInfo the {@link ImageInfo} to store with this {@link Image}.
 	 * @param copy whether this instance should be copied or shared.
 	 */
@@ -70,18 +79,7 @@ public class Image implements Serializable {
 		} else {
 			this.bytes = bytes;
 		}
-		if (imageInfo.getMetadata() == null || copy) {
-			Metadata metadata;
-			try {
-				metadata = ImagesUtil.getMetadata(this.bytes, imageInfo.getFormat());
-			} catch (ImageProcessingException | IOException e) {
-				LOGGER.error("Error reading image metadata: {}", e.getMessage());
-				LOGGER.trace("", e);
-				metadata = new Metadata();
-			}
-			imageInfo = imageInfo.copy(metadata, false);
-		}
-		this.imageInfo = imageInfo;
+		this.imageInfo = copy && imageInfo != null ? imageInfo.copy() : imageInfo;
 	}
 
 	/**
@@ -93,12 +91,13 @@ public class Image implements Serializable {
 	 * @param height the height of the image.
 	 * @param format the {@link ImageFormat} of the image.
 	 * @param colorModel the {@link ColorModel} of the image.
-	 * @param metadata the {@link Metadata} instance describing the image. Not
-	 *            used if {@code copy} is {@code true}. Will be created if
-	 *            {@code null} and {@code copy} is {@code false}.
+	 * @param metadata the {@link Metadata} instance describing the image. Will
+	 *            be created if {@code null}.
 	 * @param imageIOSupport whether or not {@link ImageIO} can read/parse this
 	 *            image.
 	 * @param copy whether this instance should be copied or shared.
+	 * @throws ParseException if {@code format} is {@code null} and parsing the
+	 *             format from {@code metadata} fails.
 	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	public Image(
@@ -110,14 +109,14 @@ public class Image implements Serializable {
 		Metadata metadata,
 		boolean imageIOSupport,
 		boolean copy
-	) {
+	) throws ParseException {
 		if (copy && bytes != null) {
 			this.bytes = new byte[bytes.length];
 			System.arraycopy(bytes, 0, this.bytes, 0, bytes.length);
 		} else {
 			this.bytes = bytes;
 		}
-		if (metadata == null || copy) {
+		if (metadata == null) {
 			try {
 				metadata = ImagesUtil.getMetadata(this.bytes, format);
 			} catch (ImageProcessingException | IOException e) {
@@ -126,7 +125,7 @@ public class Image implements Serializable {
 				metadata = new Metadata();
 			}
 		}
-		this.imageInfo = new ImageInfo(
+		this.imageInfo = ImageInfo.create(
 			width,
 			height,
 			format,
@@ -141,15 +140,16 @@ public class Image implements Serializable {
 	/**
 	 * Creates a new {@link Image} instance.
 	 *
-	 * @param bytes the image in a supported format. Format support is
-	 * limited to that of {@link ImageIO}.
+	 * @param bytes the image in a supported format. Format support is limited
+	 *            to that of {@link ImageIO}.
 	 * @param format the {@link ImageFormat} of the image.
-	 * @param bufferedImage the {@link BufferedImage} to get
-	 *                      non-{@link Metadata} metadata from.
-	 * @param metadata the {@link Metadata} instance describing the image. Not
-	 *            used if {@code copy} is {@code true}. Will be created if
-	 *            {@code null} and {@code copy} is {@code false}.
+	 * @param bufferedImage the {@link BufferedImage} to get non-
+	 *            {@link Metadata} metadata from.
+	 * @param metadata the {@link Metadata} instance describing the image. Will
+	 *            be created if {@code null}.
 	 * @param copy whether this instance should be copied or shared.
+	 * @throws ParseException if {@code format} is {@code null} and parsing the
+	 *             format from {@code metadata} fails.
 	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	public Image(
@@ -158,7 +158,7 @@ public class Image implements Serializable {
 		BufferedImage bufferedImage,
 		Metadata metadata,
 		boolean copy
-	) {
+	) throws ParseException {
 		if (bufferedImage == null) {
 			throw new IllegalArgumentException("bufferedImage cannot be null");
 		}
@@ -170,7 +170,7 @@ public class Image implements Serializable {
 			this.bytes = bytes;
 		}
 
-		if (metadata == null || copy) {
+		if (metadata == null) {
 			try {
 				metadata = ImagesUtil.getMetadata(this.bytes, format);
 			} catch (ImageProcessingException | IOException e) {
@@ -179,7 +179,7 @@ public class Image implements Serializable {
 				metadata = new Metadata();
 			}
 		}
-		this.imageInfo = new ImageInfo(
+		this.imageInfo = ImageInfo.create(
 			bufferedImage.getWidth(),
 			bufferedImage.getHeight(),
 			format,
@@ -252,7 +252,6 @@ public class Image implements Serializable {
 			height,
 			scaleType,
 			outputFormat,
-			true,
 			false,
 			false,
 			padToSize
@@ -293,7 +292,6 @@ public class Image implements Serializable {
 			height,
 			scaleType,
 			outputFormat,
-			true,
 			false,
 			false,
 			padToSize
@@ -331,7 +329,6 @@ public class Image implements Serializable {
 			height,
 			scaleType,
 			outputFormat,
-			true,
 			false,
 			false,
 			padToSize);
@@ -345,9 +342,6 @@ public class Image implements Serializable {
 	 * @param width the new width or 0 to disable scaling.
 	 * @param height the new height or 0 to disable scaling.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param dlnaCompliant whether or not the output image should be restricted
 	 *            to DLNA compliance. This also means that the output can be
 	 *            safely cast to {@link DLNAImage}.
@@ -374,7 +368,6 @@ public class Image implements Serializable {
 			height,
 			scaleType,
 			ImageFormat.SOURCE,
-			updateMetadata,
 			dlnaCompliant,
 			dlnaThumbnail,
 			padToSize
@@ -389,9 +382,6 @@ public class Image implements Serializable {
 	 * @param outputFormat the {@link ImageFormat} to convert to or
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 *            Overridden by {@code outputProfile}.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param dlnaCompliant whether or not the output image should be restricted
 	 *            to DLNA compliance. This also means that the output can be
 	 *            safely cast to {@link DLNAImage}.
@@ -404,7 +394,6 @@ public class Image implements Serializable {
 	 */
 	public Image transcode(
 		ImageFormat outputFormat,
-		boolean updateMetadata,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail
 	) throws IOException {
@@ -413,7 +402,6 @@ public class Image implements Serializable {
 			0,
 			null,
 			outputFormat,
-			updateMetadata,
 			dlnaCompliant,
 			dlnaThumbnail,
 			false
@@ -431,9 +419,6 @@ public class Image implements Serializable {
 	 * @param outputFormat the {@link ImageFormat} to convert to or
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 *            Overridden by {@code outputProfile}.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param dlnaCompliant whether or not the output image should be restricted
 	 *            to DLNA compliance. This also means that the output can be
 	 *            safely cast to {@link DLNAImage}.
@@ -451,7 +436,6 @@ public class Image implements Serializable {
 		int height,
 		ScaleType scaleType,
 		ImageFormat outputFormat,
-		boolean updateMetadata,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
 		boolean padToSize
@@ -462,7 +446,6 @@ public class Image implements Serializable {
 			height,
 			scaleType,
 			outputFormat,
-			updateMetadata,
 			dlnaCompliant,
 			dlnaThumbnail,
 			padToSize
@@ -477,9 +460,6 @@ public class Image implements Serializable {
 	 *
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to. This
 	 *            overrides {@code outputFormat}.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param dlnaCompliant whether or not the output image should be restricted
 	 *            to DLNA compliance. This also means that the output can be
 	 *            safely cast to {@link DLNAImage}.
@@ -494,7 +474,6 @@ public class Image implements Serializable {
 	 */
 	public Image transcode(
 		DLNAImageProfile outputProfile,
-		boolean updateMetadata,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
 		boolean padToSize
@@ -505,7 +484,6 @@ public class Image implements Serializable {
 			0,
 			ScaleType.MAX,
 			outputProfile,
-			updateMetadata,
 			dlnaCompliant,
 			dlnaThumbnail,
 			padToSize
@@ -607,13 +585,6 @@ public class Image implements Serializable {
 	 */
 	public int getBitDepth() {
 		return imageInfo != null ? imageInfo.getBitDepth() : -1;
-	}
-
-	/**
-	 * @return The {@link Metadata} for this image.
-	 */
-	public Metadata getMetadata() {
-		return imageInfo != null ? imageInfo.getMetadata() : null;
 	}
 
 	/**

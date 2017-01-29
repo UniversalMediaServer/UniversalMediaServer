@@ -27,12 +27,12 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.FormatFactory;
-import net.pms.formats.ImageFormat;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.FileUtil;
-import net.pms.util.ImagesUtil.ScaleType;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -331,7 +331,7 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		if (cachedThumbnail != null) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail), true);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {

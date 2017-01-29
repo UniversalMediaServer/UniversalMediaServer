@@ -176,7 +176,7 @@ public class RealFile extends MapFile {
 
 					if (medias != null && medias.size() == 1) {
 						setMedia(medias.get(0));
-						getMedia().finalize(getType(), input);
+						getMedia().postParse(getType(), input);
 						found = true;
 					}
 				}
@@ -275,7 +275,7 @@ public class RealFile extends MapFile {
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
 
 		if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail), true);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {

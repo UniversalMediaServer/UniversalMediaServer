@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.image;
 
 import net.coobird.thumbnailator.util.exif.Orientation;
 
@@ -123,7 +123,7 @@ public enum ExifOrientation {
 	/**
 	 * @param value The Exif orientation integer.
 	 * @return The {@link ExifOrientation} corresponding to the Exif orientation
-	 *         value or {@code null} if invalid.
+	 *         value or {@link #TOP_LEFT} if invalid.
 	 */
 	public static ExifOrientation typeOf(int value)
 	{
@@ -134,7 +134,28 @@ public enum ExifOrientation {
 				return orientation;
 			}
 		}
-		return null;
+		return TOP_LEFT;
+	}
+
+	/**
+	 * @param value The Exif orientation {@link Integer}.
+	 * @return The {@link ExifOrientation} corresponding to the Exif orientation
+	 *         value or {@link #TOP_LEFT} if invalid or {@code null}.
+	 */
+	public static ExifOrientation typeOf(Integer value)
+	{
+		if (value == null) {
+			return TOP_LEFT;
+		}
+
+		for (ExifOrientation orientation : ExifOrientation.values())
+		{
+			if (orientation.value == value.intValue())
+			{
+				return orientation;
+			}
+		}
+		return TOP_LEFT;
 	}
 
 	/**

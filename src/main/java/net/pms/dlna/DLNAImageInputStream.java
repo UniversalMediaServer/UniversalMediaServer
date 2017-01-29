@@ -24,12 +24,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
-import com.drew.metadata.Metadata;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.formats.ImageFormat;
-import net.pms.util.ColorSpaceType;
-import net.pms.util.ImagesUtil;
-import net.pms.util.ImagesUtil.ScaleType;
+import net.pms.image.ColorSpaceType;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil;
+import net.pms.image.ImagesUtil.ScaleType;
 
 /**
  * This is an {@link InputStream} implementation of {@link DLNAImage}. It holds
@@ -50,15 +50,12 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 * rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputByteArray the source image in a supported format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
 	 *         source image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAImageInputStream toImageInputStream(byte[] inputByteArray, boolean updateMetadata) throws IOException {
-		DLNAImage image = DLNAImage.toDLNAImage(inputByteArray, updateMetadata);
+	public static DLNAImageInputStream toImageInputStream(byte[] inputByteArray) throws IOException {
+		DLNAImage image = DLNAImage.toDLNAImage(inputByteArray);
 		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
@@ -73,15 +70,12 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 * ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputStream the source image in a supported format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @return The populated {@link DLNAImageInputStream} or {@code null} if
 	 *         the source image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAImageInputStream toImageInputStream(InputStream inputStream, boolean updateMetadata) throws IOException {
-		DLNAImage image = DLNAImage.toDLNAImage(inputStream, updateMetadata);
+	public static DLNAImageInputStream toImageInputStream(InputStream inputStream) throws IOException {
+		DLNAImage image = DLNAImage.toDLNAImage(inputStream);
 		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
@@ -98,9 +92,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 * @param inputByteArray the source image in a supported format.
 	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
 	 *            output.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
@@ -110,10 +101,9 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	public static DLNAImageInputStream toImageInputStream(
 		byte[] inputByteArray,
 		DLNAImageProfile outputProfile,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
-		DLNAImage image = DLNAImage.toDLNAImage(inputByteArray, outputProfile, updateMetadata, padToSize);
+		DLNAImage image = DLNAImage.toDLNAImage(inputByteArray, outputProfile, padToSize);
 		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
@@ -130,9 +120,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 * @param inputStream the source image in a supported format.
 	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
 	 *            output.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
@@ -142,10 +129,9 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	public static DLNAImageInputStream toImageInputStream(
 		InputStream inputStream,
 		DLNAImageProfile outputProfile,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
-		DLNAImage image = DLNAImage.toDLNAImage(inputStream, outputProfile, updateMetadata, padToSize);
+		DLNAImage image = DLNAImage.toDLNAImage(inputStream, outputProfile, padToSize);
 		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
@@ -164,9 +150,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
@@ -179,7 +162,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 		int height,
 		ScaleType scaleType,
 		ImageFormat outputFormat,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
 		DLNAImage image = DLNAImage.toDLNAImage(
@@ -188,7 +170,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 			height,
 			scaleType,
 			outputFormat,
-			updateMetadata,
 			padToSize
 		);
 		return image != null ? new DLNAImageInputStream(image) : null;
@@ -210,9 +191,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
@@ -225,7 +203,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 		int height,
 		ScaleType scaleType,
 		ImageFormat outputFormat,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
 		DLNAImage image = DLNAImage.toDLNAImage(
@@ -234,7 +211,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 			height,
 			scaleType,
 			outputFormat,
-			updateMetadata,
 			padToSize
 		);
 		return image != null ? new DLNAImageInputStream(image) : null;
@@ -274,9 +250,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 * limited to that of {@link ImageIO}.
 	 *
 	 * @param outputProfile the DLNA media profile to adhere to for the output.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *                  match target aspect.
 	 * @return The scaled and/or converted image, {@code null} if the
@@ -285,14 +258,12 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 */
 	public DLNAImageInputStream transcode(
 		DLNAImageProfile outputProfile,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
 		DLNAImage image;
 		image = (DLNAImage) ImagesUtil.transcodeImage(
 			this.getBytes(false),
 			outputProfile,
-			updateMetadata,
 			false,
 			padToSize);
 		return image != null ? new DLNAImageInputStream(image) : null;
@@ -400,13 +371,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 */
 	public int getBitDepth() {
 		return imageInfo != null ? imageInfo.getBitDepth() : -1;
-	}
-
-	/**
-	 * @return The {@link Metadata} for this image.
-	 */
-	public Metadata getMetadata() {
-		return imageInfo != null ? imageInfo.getMetadata() : null;
 	}
 
 	/**
