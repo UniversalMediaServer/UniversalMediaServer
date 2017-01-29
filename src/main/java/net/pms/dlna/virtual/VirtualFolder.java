@@ -121,7 +121,7 @@ public class VirtualFolder extends DLNAResource {
 				return null;
 			}
 		}
-		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream(thumbnailIcon), true);
+		return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream(thumbnailIcon));
 	}
 
 	/**

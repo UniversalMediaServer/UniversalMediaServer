@@ -29,17 +29,19 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
-import net.pms.formats.ImageFormat;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ExifInfo;
+import net.pms.image.ExifOrientation;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil;
+import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
-import net.pms.util.ExifOrientation;
 import net.pms.util.FileUtil;
-import net.pms.util.ImagesUtil;
-import net.pms.util.ImagesUtil.ScaleType;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.UnknownFormatException;
@@ -60,6 +62,8 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
 
 /**
  * This class keeps track of media file metadata scanned by the MediaInfo library.
@@ -216,10 +220,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 	/**
 	 * Not stored in database.
-	 * @deprecated Use standard getter and setter to access this variable.
 	 */
-	@Deprecated
-	public boolean mediaparsed;
+	private volatile boolean mediaparsed;
 
 	public boolean ffmpegparsed;
 
@@ -904,15 +906,24 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (configuration.isThumbnailGenerationEnabled() && configuration.getImageThumbnailsEnabled() && thumbOnly) {
+				if (thumbOnly && configuration.isThumbnailGenerationEnabled() && configuration.getImageThumbnailsEnabled()) {
 					LOGGER.trace("Creating thumbnail for \"{}\"", file.getName());
 
+					// XXX (Nadahar) - the below code needs update, as it will break with the next version of Metadata-extractor
 					// Create the thumbnail image
 					try {
-						if (imageInfo != null && !imageInfo.isImageIOSupported() && imageInfo.getMetadata() != null) {
+						if (imageInfo instanceof ExifInfo && ((ExifInfo) imageInfo).hasExifThumbnail() && !imageInfo.isImageIOSupported()) {
 							// ImageIO can't read the file, try to get the embedded Exif thumbnail if it's there.
+							Metadata metadata;
+							try {
+								metadata = ImagesUtil.getMetadata(new FileInputStream(file), imageInfo.getFormat());
+							} catch (ImageProcessingException e) {
+								metadata = null;
+								LOGGER.debug("Unexpected error reading metadata for \"{}\": {}", file.getName(), e.getMessage());
+								LOGGER.trace("", e);
+							}
 							thumb = DLNAThumbnail.toThumbnail(
-								ImagesUtil.getThumbnailFromMetadata(file, imageInfo.getMetadata()),
+								ImagesUtil.getThumbnailFromMetadata(file, metadata),
 								320,
 								320,
 								ScaleType.MAX,
@@ -1041,7 +1052,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			finalize(type, inputFile);
+			postParse(type, inputFile);
 			mediaparsed = true;
 		}
 	}
@@ -1393,7 +1404,7 @@ public class DLNAMediaInfo implements Cloneable {
 		return duration != null ? convertStringToTime(duration) : null;
 	}
 
-	public void finalize(int type, InputFile f) {
+	public void postParse(int type, InputFile f) {
 		String codecA = null;
 		if (getFirstAudioTrack() != null) {
 			codecA = getFirstAudioTrack().getCodecA();

@@ -35,6 +35,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.MediaMonitor;
 import net.pms.dlna.RealFile;
+import net.pms.image.ImagesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,7 +132,7 @@ public class FullyPlayed {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			ImagesUtil.imageIOWrite(image, thumb != null ? thumb.getFormat().toString() : "jpg", out);
-			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray(), false);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
 		} catch (IOException e) {
 			LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
 			LOGGER.trace("", e);

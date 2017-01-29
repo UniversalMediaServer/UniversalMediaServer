@@ -24,13 +24,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
-import com.drew.metadata.Metadata;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.formats.ImageFormat;
-import net.pms.util.ColorSpaceType;
-import net.pms.util.ImagesUtil;
-import net.pms.util.ImagesUtil.ScaleType;
+import net.pms.image.ColorSpaceType;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil;
+import net.pms.image.ImagesUtil.ScaleType;
 
 /**
  * This is an {@link InputStream} implementation of {@link DLNAThumbnail}. It
@@ -51,15 +51,12 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputByteArray the source image in a supported format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
 	 *         the source image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnailInputStream toThumbnailInputStream(byte[] inputByteArray, boolean updateMetadata) throws IOException {
-		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(inputByteArray, updateMetadata);
+	public static DLNAThumbnailInputStream toThumbnailInputStream(byte[] inputByteArray) throws IOException {
+		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(inputByteArray);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
@@ -74,15 +71,12 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputStream the source image in a supported format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
 	 *         the source image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnailInputStream toThumbnailInputStream(InputStream inputStream, boolean updateMetadata) throws IOException {
-		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(inputStream, updateMetadata);
+	public static DLNAThumbnailInputStream toThumbnailInputStream(InputStream inputStream) throws IOException {
+		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(inputStream);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
@@ -101,9 +95,6 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
@@ -116,7 +107,6 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		int height,
 		ScaleType scaleType,
 		ImageFormat outputFormat,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
 		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
@@ -125,7 +115,6 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 			height,
 			scaleType,
 			outputFormat,
-			updateMetadata,
 			padToSize
 		);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
@@ -147,9 +136,6 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param outputFormat the {@link ImageFormat} to generate or
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
@@ -162,7 +148,6 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		int height,
 		ScaleType scaleType,
 		ImageFormat outputFormat,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
 		DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
@@ -171,7 +156,6 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 			height,
 			scaleType,
 			outputFormat,
-			updateMetadata,
 			padToSize
 		);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
@@ -212,9 +196,6 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * limited to that of {@link ImageIO}.
 	 *
 	 * @param outputProfile the DLNA media profile to adhere to for the output.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *                  match target aspect.
 	 * @return The scaled and/or converted thumbnail, {@code null} if the
@@ -223,14 +204,12 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 */
 	public DLNAThumbnailInputStream transcode(
 		DLNAImageProfile outputProfile,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
 		DLNAThumbnail thumbnail;
 		thumbnail = (DLNAThumbnail) ImagesUtil.transcodeImage(
 			this.getBytes(false),
 			outputProfile,
-			updateMetadata,
 			true,
 			padToSize);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
@@ -338,13 +317,6 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 */
 	public int getBitDepth() {
 		return imageInfo != null ? imageInfo.getBitDepth() : -1;
-	}
-
-	/**
-	 * @return The {@link Metadata} for this thumbnail.
-	 */
-	public Metadata getMetadata() {
-		return imageInfo != null ? imageInfo.getMetadata() : null;
 	}
 
 	/**

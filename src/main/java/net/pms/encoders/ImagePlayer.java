@@ -3,8 +3,8 @@ package net.pms.encoders;
 import java.io.File;
 import java.io.IOException;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.ImageInfo;
 import net.pms.formats.Format;
+import net.pms.image.ImageInfo;
 import net.pms.io.OutputParams;
 
 

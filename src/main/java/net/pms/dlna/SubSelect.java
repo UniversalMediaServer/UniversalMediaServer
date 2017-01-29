@@ -12,7 +12,7 @@ public class SubSelect extends VirtualFolder {
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		try {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumbnailIcon, true), true);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumbnailIcon, true));
 		} catch (Exception e) {
 			return super.getThumbnailInputStream();
 		}

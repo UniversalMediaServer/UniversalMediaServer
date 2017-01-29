@@ -23,7 +23,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
-import net.pms.formats.ImageFormat;
+import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.DbgPacker;
 import net.pms.util.FullyPlayed;

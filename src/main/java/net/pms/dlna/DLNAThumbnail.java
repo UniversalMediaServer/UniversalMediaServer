@@ -27,10 +27,12 @@ import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.drew.metadata.Metadata;
-import net.pms.formats.ImageFormat;
-import net.pms.util.Image;
-import net.pms.util.ImagesUtil;
-import net.pms.util.ImagesUtil.ScaleType;
+import net.pms.image.Image;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil;
+import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.util.ParseException;
 
 /**
  * This class is simply a byte array for holding an {@link ImageIO} supported
@@ -55,14 +57,33 @@ public class DLNAThumbnail extends DLNAImage {
 	/**
 	 * Creates a new {@link DLNAThumbnail} instance.
 	 *
-	 * @param bytes the image in either JPEG or PNG format adhering to the DLNA
-	 * restrictions for color space and compression.
-	 * @param imageInfo the {@link ImageInfo} to store with this
-	 *                  {@link DLNAThumbnail}.
-     * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
-     *                adheres to.
+	 * @param image the source {@link Image} in either JPEG or PNG format
+	 *            adhering to the DLNA restrictions for color space and
+	 *            compression.
+	 * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
+	 *            adheres to.
 	 * @param copy whether this instance should be copied or shared.
-	 * @throws DLNAProfileException
+	 * @throws DLNAProfileException if the profile compliance check fails.
+	 */
+	public DLNAThumbnail(
+		Image image,
+		DLNAImageProfile profile,
+		boolean copy
+	) throws DLNAProfileException {
+		super(image, profile, copy);
+	}
+
+	/**
+	 * Creates a new {@link DLNAThumbnail} instance.
+	 *
+	 * @param bytes the source image in either JPEG or PNG format adhering to
+	 *            the DLNA restrictions for color space and compression.
+	 * @param imageInfo the {@link ImageInfo} to store with this
+	 *            {@link DLNAThumbnail}.
+	 * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
+	 *            adheres to.
+	 * @param copy whether this instance should be copied or shared.
+	 * @throws DLNAProfileException if the profile compliance check fails.
 	 */
 	public DLNAThumbnail(
 		byte[] bytes,
@@ -76,17 +97,19 @@ public class DLNAThumbnail extends DLNAImage {
 	/**
 	 * Creates a new {@link DLNAThumbnail} instance.
 	 *
-	 * @param bytes the image in either JPEG or PNG format adhering to the DLNA
-	 * restrictions for color space and compression.
+	 * @param bytes the source image in either JPEG or PNG format adhering to
+	 *            the DLNA restrictions for color space and compression.
 	 * @param width the width of the image.
 	 * @param height the height of the image.
 	 * @param format the {@link ImageFormat} of the image.
 	 * @param colorModel the {@link ColorModel} of the image.
 	 * @param metadata the {@link Metadata} instance describing the image.
-     * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
-     *                adheres to.
+	 * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
+	 *            adheres to.
 	 * @param copy whether this instance should be copied or shared.
-	 * @throws DLNAProfileException
+	 * @throws DLNAProfileException if the profile compliance check fails.
+	 * @throws ParseException if {@code format} is {@code null} and parsing the
+	 *             format from {@code metadata} fails.
 	 */
 	public DLNAThumbnail(
 		byte[] bytes,
@@ -96,24 +119,26 @@ public class DLNAThumbnail extends DLNAImage {
 		ColorModel colorModel,
 		Metadata metadata,
 		DLNAImageProfile profile,
-		boolean copy) throws DLNAProfileException
-	{
+		boolean copy
+	) throws DLNAProfileException, ParseException {
 		super(bytes, width, height, format, colorModel, metadata, profile, copy);
 	}
 
 	/**
 	 * Creates a new {@link DLNAThumbnail} instance.
 	 *
-	 * @param bytes the image in either JPEG or PNG format adhering to the DLNA
-	 * restrictions for color space and compression.
+	 * @param bytes the source image in either JPEG or PNG format adhering to
+	 *            the DLNA restrictions for color space and compression.
 	 * @param format the {@link ImageFormat} of the image.
-	 * @param bufferedImage the {@link BufferedImage} to get
-	 *                      non-{@link Metadata} metadata from.
+	 * @param bufferedImage the {@link BufferedImage} to get non-
+	 *            {@link Metadata} metadata from.
 	 * @param metadata the {@link Metadata} instance describing the image.
-     * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
-     *                adheres to.
+	 * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
+	 *            adheres to.
 	 * @param copy whether this instance should be copied or shared.
-	 * @throws DLNAProfileException
+	 * @throws DLNAProfileException if the profile compliance check fails.
+	 * @throws ParseException if {@code format} is {@code null} and parsing the
+	 *             format from {@code metadata} fails.
 	 */
 	public DLNAThumbnail(
 		byte[] bytes,
@@ -121,8 +146,8 @@ public class DLNAThumbnail extends DLNAImage {
 		BufferedImage bufferedImage,
 		Metadata metadata,
 		DLNAImageProfile profile,
-		boolean copy) throws DLNAProfileException
-	{
+		boolean copy
+	) throws DLNAProfileException, ParseException {
 		super(bytes, format, bufferedImage, metadata, profile, copy);
 	}
 
@@ -179,67 +204,6 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Converts an {@link Image} to a {@link DLNAThumbnail}. Output format will
-	 * be the same as the source if the source is either JPEG or PNG. Further
-	 * restrictions on color space and compression is imposed and conversion
-	 * done if necessary. All other formats will be converted to a DLNA
-	 * compliant JPEG.
-	 *
-	 * @param inputImage the source {@link Image}.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
-	 *         image is {@code null}.
-	 * @throws IOException if the operation fails.
-	 */
-	public static DLNAThumbnail toThumbnail(Image inputImage, boolean updateMetadata) throws IOException {
-		return toThumbnail(inputImage, 0, 0, null, ImageFormat.SOURCE, updateMetadata, false);
-	}
-
-	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}. Output format will be the same as source if
-	 * the source is either JPEG or PNG. Further restrictions on color space and
-	 * compression is imposed and conversion done if necessary. All other
-	 * formats will be converted to a DLNA compliant JPEG. Preserves aspect
-	 * ratio and rotates/flips the image according to Exif orientation.
-	 * <p>
-	 * <b> This method consumes and closes {@code inputStream}. </b>
-	 *
-	 * @param inputStream the source image in a supported format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
-	 *         image is {@code null}.
-	 * @throws IOException if the operation fails.
-	 */
-	public static DLNAThumbnail toThumbnail(InputStream inputStream, boolean updateMetadata) throws IOException {
-		return toThumbnail(inputStream, 0, 0, null, ImageFormat.SOURCE, updateMetadata, false);
-	}
-
-	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}. Output format will be the same as source if
-	 * the source is either JPEG or PNG. Further restrictions on color space and
-	 * compression is imposed and conversion done if necessary. All other
-	 * formats will be converted to a DLNA compliant JPEG. Preserves aspect
-	 * ratio and rotates/flips the image according to Exif orientation.
-	 *
-	 * @param inputByteArray the source image in a supported format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
-	 *         image is {@code null}.
-	 * @throws IOException if the operation fails.
-	 */
-	public static DLNAThumbnail toThumbnail(byte[] inputByteArray, boolean updateMetadata) throws IOException {
-		return toThumbnail(inputByteArray, 0, 0, null, ImageFormat.SOURCE, updateMetadata, false);
-	}
-
-	/**
 	 * Converts an {@link Image} to a {@link DLNAThumbnail} adhering to
 	 * {@code outputProfile}. {@code outputProfile} is limited to JPEG or PNG
 	 * profiles. If {@code outputProfile} is a GIF profile, the image will be
@@ -267,8 +231,8 @@ public class DLNAThumbnail extends DLNAImage {
 			inputImage,
 			outputProfile,
 			true,
-			true,
-			padToSize);
+			padToSize
+		);
 	}
 
 	/**
@@ -304,8 +268,8 @@ public class DLNAThumbnail extends DLNAImage {
 			inputStream,
 			outputProfile,
 			true,
-			true,
-			padToSize);
+			padToSize
+		);
 	}
 
 	/**
@@ -338,8 +302,8 @@ public class DLNAThumbnail extends DLNAImage {
 			inputByteArray,
 			outputProfile,
 			true,
-			true,
-			padToSize);
+			padToSize
+		);
 	}
 
 	/**
@@ -381,8 +345,8 @@ public class DLNAThumbnail extends DLNAImage {
 			outputFormat,
 			true,
 			true,
-			true,
-			padToSize);
+			padToSize
+		);
 	}
 
 	/**
@@ -427,8 +391,8 @@ public class DLNAThumbnail extends DLNAImage {
 			outputFormat,
 			true,
 			true,
-			true,
-			padToSize);
+			padToSize
+		);
 	}
 
 	/**
@@ -466,148 +430,8 @@ public class DLNAThumbnail extends DLNAImage {
 			outputFormat,
 			true,
 			true,
-			true,
-			padToSize);
-	}
-
-	/**
-	 * Converts an {@link Image} to a {@link DLNAThumbnail}. Format support is
-	 * limited to that of {@link ImageIO}. {@code outputFormat} is limited to
-	 * JPEG or PNG format adhering to the DLNA restrictions for color space and
-	 * compression. If {@code outputFormat} doesn't qualify, the image will be
-	 * converted to a DLNA compliant JPEG.
-	 *
-	 * @param inputImage the source {@link Image}.
-	 * @param width the new width or 0 to disable scaling.
-	 * @param height the new height or 0 to disable scaling.
-	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *            {@link ImageFormat#SOURCE} to preserve source format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
-	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
-	 *         image is {@code null}.
-	 * @throws IOException if the operation fails.
-	 */
-	public static DLNAThumbnail toThumbnail(
-		Image inputImage,
-		int width,
-		int height,
-		ScaleType scaleType,
-		ImageFormat outputFormat,
-		boolean updateMetadata,
-		boolean padToSize
-	) throws IOException {
-		if (inputImage == null) {
-			return null;
-		}
-
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
-			inputImage,
-			width,
-			height,
-			scaleType,
-			outputFormat,
-			updateMetadata,
-			true,
-			true,
-			padToSize);
-	}
-
-	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}. {@code outputFormat} is limited to JPEG or
-	 * PNG format adhering to the DLNA restrictions for color space and
-	 * compression. If {@code outputFormat} doesn't qualify, the image will be
-	 * converted to a DLNA compliant JPEG. Preserves aspect ratio and
-	 * rotates/flips the image according to Exif orientation.
-	 * <p>
-	 * <b> This method consumes and closes {@code inputStream}. </b>
-	 *
-	 * @param inputStream the source image in a supported format.
-	 * @param width the new width or 0 to disable scaling.
-	 * @param height the new height or 0 to disable scaling.
-	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *            {@link ImageFormat#SOURCE} to preserve source format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
-	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
-	 *         image is {@code null}.
-	 * @throws IOException if the operation fails.
-	 */
-	public static DLNAThumbnail toThumbnail(
-		InputStream inputStream,
-		int width,
-		int height,
-		ScaleType scaleType,
-		ImageFormat outputFormat,
-		boolean updateMetadata,
-		boolean padToSize
-	) throws IOException {
-		if (inputStream == null) {
-			return null;
-		}
-
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
-			inputStream,
-			width,
-			height,
-			scaleType,
-			outputFormat,
-			updateMetadata,
-			true,
-			true,
-			padToSize);
-	}
-
-	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
-	 * to that of {@link ImageIO}. {@code outputFormat} is limited to JPEG or
-	 * PNG format adhering to the DLNA restrictions for color space and
-	 * compression. If {@code outputFormat} doesn't qualify, the image will be
-	 * converted to a DLNA compliant JPEG. Preserves aspect ratio and
-	 * rotates/flips the image according to Exif orientation.
-	 *
-	 * @param inputByteArray the source image in a supported format.
-	 * @param width the new width or 0 to disable scaling.
-	 * @param height the new height or 0 to disable scaling.
-	 * @param scaleType the {@link ScaleType} to use when scaling.
-	 * @param outputFormat the {@link ImageFormat} to generate or
-	 *            {@link ImageFormat#SOURCE} to preserve source format.
-	 * @param updateMetadata whether or not new metadata should be updated after
-	 *            image transformation. This should only be disabled if the
-	 *            output image won't be kept/reused.
-	 * @param padToSize whether padding should be used if source aspect doesn't
-	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
-	 *         image is {@code null}.
-	 * @throws IOException if the operation fails.
-	 */
-	public static DLNAThumbnail toThumbnail(
-		byte[] inputByteArray,
-		int width,
-		int height,
-		ScaleType scaleType,
-		ImageFormat outputFormat,
-		boolean updateMetadata,
-		boolean padToSize) throws IOException {
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
-			inputByteArray,
-			width,
-			height,
-			scaleType,
-			outputFormat,
-			updateMetadata,
-			true,
-			true,
-			padToSize);
+			padToSize
+		);
 	}
 
 	/**
@@ -616,9 +440,6 @@ public class DLNAThumbnail extends DLNAImage {
 	 * limited to that of {@link ImageIO}.
 	 *
 	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the output.
-	 * @param updateMetadata whether or not new metadata should be updated
-	 *                       after image transformation. This should only be
-	 *                       disabled if the output image won't be kept/reused.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *                  match target aspect.
 	 * @return The scaled and/or converted thumbnail, {@code null} if the
@@ -627,13 +448,11 @@ public class DLNAThumbnail extends DLNAImage {
 	 */
 	public DLNAThumbnail transcode(
 		DLNAImageProfile outputProfile,
-		boolean updateMetadata,
 		boolean padToSize
 	) throws IOException {
 		return (DLNAThumbnail) ImagesUtil.transcodeImage(
 			this,
 			outputProfile,
-			updateMetadata,
 			true,
 			padToSize);
 	}

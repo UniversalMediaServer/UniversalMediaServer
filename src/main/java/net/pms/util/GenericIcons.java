@@ -41,7 +41,8 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.formats.ImageFormat;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImagesUtil;
 
 /**
  * This is an singleton class for providing and caching generic file extension
