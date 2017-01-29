@@ -32,7 +32,7 @@ public class FeedItem extends DLNAResource {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumbURL, true), true);
+		return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumbURL, true));
 	}
 
 	private String title;

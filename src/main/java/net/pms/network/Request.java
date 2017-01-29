@@ -22,7 +22,9 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -42,10 +44,10 @@ import net.pms.dlna.RealFile;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.util.FullyPlayed;
-import net.pms.util.ImagesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
@@ -62,10 +64,15 @@ public class Request extends HTTPResource {
 
 	private final static String CRLF = "\r\n";
 	private final static String HTTP_200_OK = "HTTP/1.1 200 OK";
-	private final static String HTTP_500 = "HTTP/1.1 500 Internal Server Error";
-	private final static String HTTP_206_OK = "HTTP/1.1 206 Partial Content";
 	private final static String HTTP_200_OK_10 = "HTTP/1.0 200 OK";
+	private final static String HTTP_204_NO_CONTENT = "HTTP/1.1 204 No content";
+	private final static String HTTP_204_NO_CONTENT_10 = "HTTP/1.0 204 No content";
+	private final static String HTTP_206_OK = "HTTP/1.1 206 Partial Content";
 	private final static String HTTP_206_OK_10 = "HTTP/1.0 206 Partial Content";
+	private final static String HTTP_415_UNSUPPORTED_MEDIA_TYPE = "HTTP/1.1 415 Unsupported Media Type";
+	private final static String HTTP_415_UNSUPPORTED_MEDIA_TYPE_10 = "HTTP/1.0 415 Unsupported Media Type";
+	private final static String HTTP_500 = "HTTP/1.1 500 Internal Server Error";
+	private final static String HTTP_500_10 = "HTTP/1.9 500 Internal Server Error";
 	private final static String CONTENT_TYPE_UTF8 = "CONTENT-TYPE: text/xml; charset=\"utf-8\"";
 	private final static String CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
 	private SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
@@ -250,16 +257,17 @@ public class Request extends HTTPResource {
 		StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
 		this.output = output;
+		List<String> responseHeader = new ArrayList<>();
 
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		if (lowRange != 0 || highRange != 0) {
-			output(output, http10 ? HTTP_206_OK_10 : HTTP_206_OK);
+			appendToHeader(responseHeader, http10 ? HTTP_206_OK_10 : HTTP_206_OK);
 		} else {
 			if (soapaction != null && soapaction.contains("X_GetFeatureList")) {
 				//  If we don't return a 500 error, Samsung 2012 TVs time out.
-				output(output, HTTP_500);
+				appendToHeader(responseHeader, http10 ? HTTP_500_10 : HTTP_500);
 			} else {
-				output(output, http10 ? HTTP_200_OK_10 : HTTP_200_OK);
+				appendToHeader(responseHeader, http10 ? HTTP_200_OK_10 : HTTP_200_OK);
 			}
 		}
 
@@ -275,7 +283,7 @@ public class Request extends HTTPResource {
 
 		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
 			// Request to output a page to the HTML console.
-			output(output, "Content-Type: text/html");
+			appendToHeader(responseHeader, "Content-Type: text/html");
 			response.append(HTMLConsole.servePage(argument.substring(8)));
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
 			// Request to retrieve a file
@@ -302,7 +310,7 @@ public class Request extends HTTPResource {
 			String fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
-				output(output, "TransferMode.DLNA.ORG: " + transferMode);
+				appendToHeader(responseHeader, "TransferMode.DLNA.ORG: " + transferMode);
 			}
 
 			if (dlna != null && dlna.isFolder() && !fileName.startsWith("thumbnail0000")) {
@@ -317,10 +325,10 @@ public class Request extends HTTPResource {
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
 					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
-					output(output, "Content-Type: " + imageProfile.getMimeType());
-					output(output, "Accept-Ranges: bytes");
-					output(output, "Expires: " + getFUTUREDATE() + " GMT");
-					output(output, "Connection: keep-alive");
+					appendToHeader(responseHeader, "Content-Type: " + imageProfile.getMimeType());
+					appendToHeader(responseHeader, "Accept-Ranges: bytes");
+					appendToHeader(responseHeader, "Expires: " + getFUTUREDATE() + " GMT");
+					appendToHeader(responseHeader, "Connection: keep-alive");
 					DLNAThumbnailInputStream thumbInputStream;
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						thumbInputStream = dlna.getGenericThumbnailInputStream(null);
@@ -333,7 +341,7 @@ public class Request extends HTTPResource {
 					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
-					inputStream = thumbInputStream.transcode(imageProfile, false, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+					inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
 				} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 					// This is a request for an image
 					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
@@ -354,26 +362,36 @@ public class Request extends HTTPResource {
 							imageProfile = DLNAImageProfile.JPEG_LRG;
 						}
 					}
-					output(output, "Content-Type: " + imageProfile.getMimeType());
-					output(output, "Accept-Ranges: bytes");
-					output(output, "Expires: " + getFUTUREDATE() + " GMT");
-					output(output, "Connection: keep-alive");
-					InputStream imageInputStream;
-					if (dlna.getPlayer() instanceof ImagePlayer) {
-						ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(dlna, dlna.getMedia(), new OutputParams(configuration));
-						imageInputStream = transcodeProcess.getInputStream(0);
-					} else {
-						imageInputStream = dlna.getInputStream();
-					}
-					if (imageInputStream == null) {
-						LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
-					} else {
-						inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false, false);
+					appendToHeader(responseHeader, "Content-Type: " + imageProfile.getMimeType());
+					appendToHeader(responseHeader, "Accept-Ranges: bytes");
+					appendToHeader(responseHeader, "Expires: " + getFUTUREDATE() + " GMT");
+					appendToHeader(responseHeader, "Connection: keep-alive");
+					try {
+						InputStream imageInputStream;
+						if (dlna.getPlayer() instanceof ImagePlayer) {
+							ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(dlna, dlna.getMedia(), new OutputParams(configuration));
+							imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
+						} else {
+							imageInputStream = dlna.getInputStream();
+						}
+						if (imageInputStream == null) {
+							LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
+						} else {
+							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
+						}
+					} catch (IOException e) {
+						appendToHeader(responseHeader, "Content-Length: 0");
+						appendToHeader(responseHeader, "");
+						responseHeader.set(0, http10 ? HTTP_415_UNSUPPORTED_MEDIA_TYPE_10 : HTTP_415_UNSUPPORTED_MEDIA_TYPE);
+						sendHeader(responseHeader);
+						LOGGER.debug("Could not send image \"{}\": {}", dlna.getName(), e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+						LOGGER.trace("", e);
+						return;
 					}
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
-					output(output, "Content-Type: text/plain");
-					output(output, "Expires: " + getFUTUREDATE() + " GMT");
+					appendToHeader(responseHeader, "Content-Type: text/plain");
+					appendToHeader(responseHeader, "Expires: " + getFUTUREDATE() + " GMT");
 					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 					if (sub != null) {
 						// XXX external file is null if the first subtitle track is embedded:
@@ -419,7 +437,7 @@ public class Request extends HTTPResource {
 						LOGGER.error("There is no inputstream to return for " + name);
 					} else {
 						startStopListenerDelegate.start(dlna);
-						output(output, "Content-Type: " + getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia()));
+						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia()));
 
 						if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
 							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
@@ -436,7 +454,7 @@ public class Request extends HTTPResource {
 									':' + PMS.get().getServer().getPort() + "/get/" +
 									id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
-								output(output, subtitleHttpHeader + ": " + subtitleUrl);
+								appendToHeader(responseHeader, subtitleHttpHeader + ": " + subtitleUrl);
 							}
 						}
 
@@ -470,7 +488,7 @@ public class Request extends HTTPResource {
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
 
-							output(output, "Content-Range: bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
+							appendToHeader(responseHeader, "Content-Range: bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
 							// Content-Length refers to the current chunk size here, though in chunked
 							// mode if the request is open-ended and totalsize is unknown we omit it.
@@ -485,14 +503,14 @@ public class Request extends HTTPResource {
 						}
 
 						if (contentFeatures != null) {
-							output(output, "ContentFeatures.DLNA.ORG: " + dlna.getDlnaContentFeatures(mediaRenderer));
+							appendToHeader(responseHeader, "ContentFeatures.DLNA.ORG: " + dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
 						if (dlna.getPlayer() == null || xbox360) {
-							output(output, "Accept-Ranges: bytes");
+							appendToHeader(responseHeader, "Accept-Ranges: bytes");
 						}
 
-						output(output, "Connection: keep-alive");
+						appendToHeader(responseHeader, "Connection: keep-alive");
 					}
 					if (origRendering != null) {
 						// Restore original rendering details
@@ -502,27 +520,27 @@ public class Request extends HTTPResource {
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
 			if (argument.toLowerCase().endsWith(".png")) {
-				output(output, "Content-Type: image/png");
+				appendToHeader(responseHeader, "Content-Type: image/png");
 			} else {
-				output(output, "Content-Type: image/jpeg");
+				appendToHeader(responseHeader, "Content-Type: image/jpeg");
 			}
 
-			output(output, "Accept-Ranges: bytes");
-			output(output, "Connection: keep-alive");
-			output(output, "Expires: " + getFUTUREDATE() + " GMT");
+			appendToHeader(responseHeader, "Accept-Ranges: bytes");
+			appendToHeader(responseHeader, "Connection: keep-alive");
+			appendToHeader(responseHeader, "Expires: " + getFUTUREDATE() + " GMT");
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
-			output(output, CONTENT_TYPE);
-			output(output, "Cache-Control: no-cache");
-			output(output, "Expires: 0");
-			output(output, "Accept-Ranges: bytes");
-			output(output, "Connection: keep-alive");
+			appendToHeader(responseHeader, CONTENT_TYPE);
+			appendToHeader(responseHeader, "Cache-Control: no-cache");
+			appendToHeader(responseHeader, "Expires: 0");
+			appendToHeader(responseHeader, "Accept-Ranges: bytes");
+			appendToHeader(responseHeader, "Connection: keep-alive");
 			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
 
 			if (argument.equals("description/fetch")) {
 				byte b[] = new byte[inputStream.available()];
 				inputStream.read(b);
-				String s = new String(b);
+				String s = new String(b, StandardCharsets.UTF_8);
 				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
 
 				if (PMS.get().getServer().getHost() != null) {
@@ -544,10 +562,10 @@ public class Request extends HTTPResource {
 					s = s.replace("Universal Media Server", configuration.getServerDisplayName());
 				}
 
-				inputStream = new ByteArrayInputStream(s.getBytes());
+				inputStream = new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
 			}
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
-			output(output, CONTENT_TYPE_UTF8);
+			appendToHeader(responseHeader, CONTENT_TYPE_UTF8);
 			response.append(HTTPXMLHelper.XML_HEADER);
 			response.append(CRLF);
 			response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -564,7 +582,7 @@ public class Request extends HTTPResource {
 			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
-			output(output, CONTENT_TYPE_UTF8);
+			appendToHeader(responseHeader, CONTENT_TYPE_UTF8);
 			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
@@ -576,7 +594,7 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 			}
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
-			output(output, CONTENT_TYPE_UTF8);
+			appendToHeader(responseHeader, CONTENT_TYPE_UTF8);
 
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
@@ -770,7 +788,7 @@ public class Request extends HTTPResource {
 
 				response.append("</UpdateID>");
 				response.append(CRLF);
-				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction.contains("ContentDirectory:1#Search")) {
 					response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
 				} else {
 					response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
@@ -785,14 +803,15 @@ public class Request extends HTTPResource {
 				// Ignore this
 				return;
 			}
-			output(output, CONTENT_TYPE_UTF8);
-			output(output, "Content-Length: 0");
-			output(output, "Connection: close");
-			output(output, "SID: " + PMS.get().usn());
-			output(output, "Server: " + PMS.get().getServerName());
-			output(output, "Timeout: Second-1800");
-			output(output, "");
-			output.flush();
+			appendToHeader(responseHeader, CONTENT_TYPE_UTF8);
+			appendToHeader(responseHeader, "Content-Length: 0");
+			appendToHeader(responseHeader, "Connection: close");
+			appendToHeader(responseHeader, "SID: " + PMS.get().usn());
+			appendToHeader(responseHeader, "Server: " + PMS.get().getServerName());
+			appendToHeader(responseHeader, "Timeout: Second-1800");
+			appendToHeader(responseHeader, "");
+			sendHeader(responseHeader);
+			responseHeader.clear();
 
 			if (soapaction != null) {
 				String cb = soapaction.replace("<", "").replace(">", "");
@@ -804,13 +823,13 @@ public class Request extends HTTPResource {
 					try (Socket sock = new Socket(addr, port)) {
 						OutputStream out = sock.getOutputStream();
 
-						output(out, "NOTIFY /" + argument + " HTTP/1.1");
-						output(out, "SID: " + PMS.get().usn());
-						output(out, "SEQ: " + 0);
-						output(out, "NT: upnp:event");
-						output(out, "NTS: upnp:propchange");
-						output(out, "HOST: " + addr + ":" + port);
-						output(out, CONTENT_TYPE_UTF8);
+						sendLine(out, "NOTIFY /" + argument + " HTTP/1.1");
+						sendLine(out, "SID: " + PMS.get().usn());
+						sendLine(out, "SEQ: " + 0);
+						sendLine(out, "NT: upnp:event");
+						sendLine(out, "NTS: upnp:propchange");
+						sendLine(out, "HOST: " + addr + ":" + port);
+						sendLine(out, CONTENT_TYPE_UTF8);
 					}
 				} catch (MalformedURLException ex) {
 					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
@@ -834,13 +853,14 @@ public class Request extends HTTPResource {
 			}
 		}
 
-		output(output, "Server: " + PMS.get().getServerName());
+		appendToHeader(responseHeader, "Server: " + PMS.get().getServerName());
 
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
 			byte responseData[] = response.toString().getBytes("UTF-8");
-			output(output, "Content-Length: " + responseData.length);
-			output(output, "");
+			appendToHeader(responseHeader, "Content-Length: " + responseData.length);
+			appendToHeader(responseHeader, "");
+			sendHeader(responseHeader);
 
 			// HEAD requests only require headers to be set, no need to set contents.
 			if (!method.equals("HEAD")) {
@@ -856,24 +876,25 @@ public class Request extends HTTPResource {
 					// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 					// as the PS3 will display a network error and request the last seconds of the
 					// transcoded video. Better to send no Content-Length at all.
-					output(output, "Content-Length: " + CLoverride);
+					appendToHeader(responseHeader, "Content-Length: " + CLoverride);
 				}
 			} else {
 				int cl = inputStream.available();
 				LOGGER.trace("Available Content-Length: " + cl);
-				output(output, "Content-Length: " + cl);
+				appendToHeader(responseHeader, "Content-Length: " + cl);
 			}
 
 			if (timeseek > 0 && dlna != null) {
 				// Add timeseek information headers.
 				String timeseekValue = StringUtil.convertTimeToString(timeseek, StringUtil.DURATION_TIME_FORMAT);
 				String timetotalValue = dlna.getMedia().getDurationString();
-				output(output, "TimeSeekRange.dlna.org: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
-				output(output, "X-Seek-Range: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
+				appendToHeader(responseHeader, "TimeSeekRange.dlna.org: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
+				appendToHeader(responseHeader, "X-Seek-Range: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
 			}
 
 			// Send the response headers to the client.
-			output(output, "");
+			appendToHeader(responseHeader, "");
+			sendHeader(responseHeader);
 			long sendB = 0;
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
@@ -887,19 +908,31 @@ public class Request extends HTTPResource {
 				startStopListenerDelegate.stop();
 			}
 		} else { // inputStream is null
-			if (lowRange > 0 && highRange > 0) {
-				output(output, "Content-Length: " + (highRange - lowRange + 1));
-			} else {
-				output(output, "Content-Length: 0");
-			}
-
-			output(output, "");
+			appendToHeader(responseHeader, "Content-Length: 0");
+			appendToHeader(responseHeader, "");
+			responseHeader.set(0, http10 ? HTTP_204_NO_CONTENT_10 : HTTP_204_NO_CONTENT);
+			sendHeader(responseHeader);
 		}
 	}
 
-	private void output(OutputStream output, String line) throws IOException {
+	private void appendToHeader(List<String> responseHeader, String line) throws IOException {
+		responseHeader.add(line);
+	}
+
+	private void sendLine(OutputStream output, String line) throws IOException {
 		output.write((line + CRLF).getBytes("UTF-8"));
 		LOGGER.trace("Wrote on socket: " + line);
+	}
+
+	private void sendHeader(List<String> responseHeader) throws IOException {
+		boolean trace = LOGGER.isTraceEnabled();
+		for (String line : responseHeader) {
+			output.write((line + CRLF).getBytes("UTF-8"));
+			if (trace) {
+				LOGGER.trace("Wrote on socket: " + line);
+			}
+		}
+		output.flush();
 	}
 
 	private String getFUTUREDATE() {

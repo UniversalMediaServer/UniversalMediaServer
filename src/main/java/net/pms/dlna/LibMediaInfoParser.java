@@ -12,8 +12,8 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImagesUtil;
 import net.pms.util.FileUtil;
-import net.pms.util.ImagesUtil;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -381,7 +381,7 @@ public class LibMediaInfoParser {
 					}
 				}
 
-				media.finalize(type, inputFile);
+				media.postParse(type, inputFile);
 //			} catch (Exception e) {
 //				LOGGER.error("Error in MediaInfo parsing:", e);
 //			} finally {

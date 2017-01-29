@@ -278,7 +278,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
-				HttpVersion.HTTP_1_1,
+				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
 				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
@@ -286,9 +286,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
-				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+				response = new DefaultHttpResponse(
+					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+					HttpResponseStatus.INTERNAL_SERVER_ERROR
+				);
 			} else {
-				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				response = new DefaultHttpResponse(
+					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+					HttpResponseStatus.OK
+				);
 			}
 		}
 

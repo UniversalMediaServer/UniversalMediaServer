@@ -89,8 +89,7 @@ public class WebStream extends DLNAResource {
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (thumbURL != null) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(
-				FileUtil.isUrl(thumbURL) ? downloadAndSend(thumbURL, true) : new FileInputStream(thumbURL),
-				true
+				FileUtil.isUrl(thumbURL) ? downloadAndSend(thumbURL, true) : new FileInputStream(thumbURL)
 			);
 		} else {
 			return super.getThumbnailInputStream();

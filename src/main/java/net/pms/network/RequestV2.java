@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import net.pms.PMS;
@@ -35,10 +36,10 @@ import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.util.FullyPlayed;
-import net.pms.util.ImagesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import static net.pms.util.StringUtil.convertStringToTime;
@@ -51,6 +52,7 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.stream.ChunkedStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -328,7 +330,7 @@ public class RequestV2 extends HTTPResource {
 					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
-					inputStream = thumbInputStream.transcode(imageProfile, false, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+					inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
 				} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 					// This is a request for an image
 					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
@@ -349,21 +351,42 @@ public class RequestV2 extends HTTPResource {
 							imageProfile = DLNAImageProfile.JPEG_LRG;
 						}
 					}
-					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
-					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
-					InputStream imageInputStream;
-					if (dlna.getPlayer() instanceof ImagePlayer) {
-						ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(dlna, dlna.getMedia(), new OutputParams(configuration));
-						imageInputStream = transcodeProcess.getInputStream(0);
-					} else {
-						imageInputStream = dlna.getInputStream();
-					}
-					if (imageInputStream == null) {
-						LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
-					} else {
-						inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false, false);
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
+						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+						output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
+						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+						try {
+						InputStream imageInputStream;
+						if (dlna.getPlayer() instanceof ImagePlayer) {
+							ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(
+								dlna,
+								dlna.getMedia(),
+								new OutputParams(configuration)
+							);
+							imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
+						} else {
+							imageInputStream = dlna.getInputStream();
+						}
+						if (imageInputStream == null) {
+							LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
+						} else {
+							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
+						}
+					} catch (IOException ie) {
+						output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
+						output.setStatus(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
+
+						// Send the response headers to the client.
+						future = e.getChannel().write(output);
+
+						if (close) {
+							// Close the channel after the response is sent.
+							future.addListener(ChannelFutureListener.CLOSE);
+						}
+
+						LOGGER.debug("Could not send image \"{}\": {}", dlna.getName(), ie.getMessage() != null ? ie.getMessage() : ie.getClass().getSimpleName());
+						LOGGER.trace("", ie);
+						return future;
 					}
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
@@ -558,7 +581,7 @@ public class RequestV2 extends HTTPResource {
 			if (argument.equals("description/fetch")) {
 				byte b[] = new byte[inputStream.available()];
 				inputStream.read(b);
-				String s = new String(b);
+				String s = new String(b, StandardCharsets.UTF_8);
 				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
 
 				if (PMS.get().getServer().getHost() != null) {
@@ -688,7 +711,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
 				response.append(CRLF);
 
-				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction.contains("ContentDirectory:1#Search")) {
 					response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
 				} else {
 					response.append(HTTPXMLHelper.BROWSERESPONSE_HEADER);
@@ -811,7 +834,7 @@ public class RequestV2 extends HTTPResource {
 
 				response.append("</UpdateID>");
 				response.append(CRLF);
-				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction.contains("ContentDirectory:1#Search")) {
 					response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
 				} else {
 					response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
@@ -842,18 +865,18 @@ public class RequestV2 extends HTTPResource {
 					int port = soapActionUrl.getPort();
 					Socket sock = new Socket(addr, port);
 					try (OutputStream out = sock.getOutputStream()) {
-						out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
-						out.write(CRLF.getBytes());
-						out.write(("SID: " + PMS.get().usn()).getBytes());
-						out.write(CRLF.getBytes());
-						out.write(("SEQ: " + 0).getBytes());
-						out.write(CRLF.getBytes());
-						out.write(("NT: upnp:event").getBytes());
-						out.write(CRLF.getBytes());
-						out.write(("NTS: upnp:propchange").getBytes());
-						out.write(CRLF.getBytes());
-						out.write(("HOST: " + addr + ":" + port).getBytes());
-						out.write(CRLF.getBytes());
+						out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("SEQ: " + 0).getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("NT: upnp:event").getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("NTS: upnp:propchange").getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("HOST: " + addr + ":" + port).getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 						out.flush();
 						sock.close();
 					}
@@ -985,12 +1008,8 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else {
 			// No response data and no input stream. Seems we are merely serving up headers.
-			if (lowRange > 0 && highRange > 0) {
-				// FIXME: There is no content, so why set a length?
-				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + (highRange - lowRange + 1));
-			} else {
-				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
-			}
+			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
+			output.setStatus(HttpResponseStatus.NO_CONTENT);
 
 			// Send the response headers to the client.
 			future = e.getChannel().write(output);

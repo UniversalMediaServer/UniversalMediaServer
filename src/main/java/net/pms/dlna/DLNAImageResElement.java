@@ -21,7 +21,8 @@ package net.pms.dlna;
 
 import java.util.Comparator;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
-import net.pms.formats.ImageFormat;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImageInfo;
 
 /**
  * This class is used to represent a {@code <res>} element representing an
@@ -83,17 +84,17 @@ public class DLNAImageResElement {
 	}
 
 	/**
-	 * The calculated image width or {@code -1} if unknown.
+	 * The calculated image width or {@link ImageInfo#UNKNOWN} if unknown.
 	 */
 	public int getWidth() {
-		return hypotheticalResult != null ? hypotheticalResult.width : -1;
+		return hypotheticalResult != null ? hypotheticalResult.width : ImageInfo.UNKNOWN;
 	}
 
 	/**
-	 * The calculated image height or {@code -1} if unknown.
+	 * The calculated image height or {@link ImageInfo#UNKNOWN} if unknown.
 	 */
 	public int getHeight() {
-		return hypotheticalResult != null ? hypotheticalResult.height : -1;
+		return hypotheticalResult != null ? hypotheticalResult.height : ImageInfo.UNKNOWN;
 	}
 
 	/**
