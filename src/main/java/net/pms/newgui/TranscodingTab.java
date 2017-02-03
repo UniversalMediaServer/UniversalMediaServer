@@ -25,6 +25,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -841,7 +842,7 @@ public class TranscodingTab {
 			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
 			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
 			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
-			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS"
+			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
 		};
 		String[] values = new String[]{
 			Messages.getString("General.2"),
@@ -884,7 +885,8 @@ public class TranscodingTab {
 			Messages.getString("CharacterSet.IBM420"),
 			Messages.getString("CharacterSet.IBM424"),
 			Messages.getString("CharacterSet.KOI8-R"),
-			Messages.getString("CharacterSet.ShiftJIS")
+			Messages.getString("CharacterSet.ShiftJIS"),
+			Messages.getString("CharacterSet.TIS-620")
 		};
 
 		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
@@ -1000,7 +1002,7 @@ public class TranscodingTab {
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
-		subColor.setBackground(new Color(configuration.getSubsColor()));
+		subColor.setBackground(new Color(new BigInteger(configuration.getSubsColor(), 16).intValue()));
 		subColor.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1012,7 +1014,7 @@ public class TranscodingTab {
 
 				if (newColor != null) {
 					subColor.setBackground(newColor);
-					configuration.setSubsColor(newColor.getRGB());
+					configuration.setSubsColor(Integer.toHexString(newColor.getRGB()));
 					SubtitleUtils.deleteSubs(); // Color has been changed so all temporary subs will be deleted and make new
 				}
 			}

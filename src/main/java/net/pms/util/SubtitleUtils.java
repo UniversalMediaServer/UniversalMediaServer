@@ -89,6 +89,10 @@ public class SubtitleUtils {
 			put(CHARSET_ISO_2022_JP, "ISO-2022-JP");
 			put(CHARSET_EUC_JP, "euc-jp");
 			put(CHARSET_SHIFT_JIS, "shift-jis");
+			// Thai
+			put(CHARSET_WINDOWS_874, "MS874");
+			put(CHARSET_ISO_8859_11, "ISO-8859-11");
+			put(CHARSET_TIS_620, "TIS-620");
 		}
 	};
 
@@ -616,10 +620,9 @@ public class SubtitleUtils {
 	 * @param colour the RGB color in the integer format
 	 * @return Converted color string in the ASS format
 	 */
-	public static String convertColourToASSColourString(int colour) {
-		String colourString = Integer.toHexString(colour);
+	public static String convertColourToASSColourString(String colour) {
 		StringBuilder outputString = new StringBuilder();
-		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
+		outputString.append("&H").append(colour.substring(6, 8)).append(colour.substring(4, 6)).append(colour.substring(2, 4));
 		return outputString.toString();
 	}
 
