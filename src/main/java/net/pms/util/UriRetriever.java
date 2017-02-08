@@ -23,8 +23,11 @@ package net.pms.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.http.client.*;
+//import org.apache.http.client.*;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
 
 /**
  * Downloads URLs
@@ -37,9 +40,9 @@ public class UriRetriever {
 	private HttpClient client = new HttpClient();
 
 	public byte[] get(String uri) throws IOException {
-		HttpMethod method = new HttpGet(uri);
+		HttpUriRequest get = new HttpGet(uri);
 		try {
-			int statusCode = client.executeMethod(method);
+			int statusCode = client.executeMethod(get);
 			if (statusCode != HttpStatus.SC_OK) {
 				throw new IOException("HTTP response not OK");
 			}
@@ -47,12 +50,12 @@ public class UriRetriever {
 		} catch (HttpException e) {
 			throw new IOException("Unable to download by HTTP" + e.getMessage());
 		} finally {
-			method.releaseConnection();
+			get.releaseConnection();
 		}
 	}
 
 	public byte[] getWithCallback(String uri, UriRetrieverCallback callback) throws IOException {
-		HttpMethod HttpGet = null;
+		HttpUriRequest HttpGet = null;
 
 		try {
 			HttpGet = startGetRequest(uri, callback);
@@ -70,25 +73,25 @@ public class UriRetriever {
 		}
 	}
 
-	private HttpMethod startGetRequest(String uri, UriRetrieverCallback callback) throws HttpException, IOException {
+	private HttpUriRequest startGetRequest(String uri, UriRetrieverCallback callback) throws HttpException, IOException {
 		int statusCode = -1;
-		HttpMethod method = new GetMethod(uri);
-		configureMethod(method);
-		statusCode = client.executeMethod(method);
+		HttpUriRequest get = new GetMethod(uri);
+		configureMethod(get);
+		statusCode = client.executeMethod(get);
 		if (statusCode != HttpStatus.SC_OK) {
 			throw new IOException("HTTP result code was not OK");
 		}
 		return method;
 	}
 
-	private void configureMethod(HttpMethod method) {
+	private void configureMethod(HttpUriRequest get) {
 		method.setRequestHeader("User-Agent", "UMS");
 		method.setFollowRedirects(true);
 	}
 
-	private static byte[] pullData(String uri, HttpMethod method, UriRetrieverCallback callback, int totalBytes) throws IOException {
+	private static byte[] pullData(String uri, HttpUriRequest get, UriRetrieverCallback callback, int totalBytes) throws IOException {
 		int bytesWritten = 0;
-		InputStream input = method.getResponseBodyAsStream();
+		InputStream input = get.getResponseBodyAsStream();
 		ByteArrayOutputStream output = new ByteArrayOutputStream(totalBytes);
 		byte[] buffer = new byte[BUFFER_SIZE];
 		int count = -1;
@@ -110,8 +113,8 @@ public class UriRetriever {
 		}
 	}
 
-	private int getContentSize(String uri, HttpMethod method) {
-		Header header = method.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH);
+	private int getContentSize(String uri, HttpUriRequest get) {
+		Header header = get.getResponseHeader(HTTP_HEADER_CONTENT_LENGTH);
 		if (header != null) {
 			String value = "" + header.getValue();
 			int totalBytes = -1;
