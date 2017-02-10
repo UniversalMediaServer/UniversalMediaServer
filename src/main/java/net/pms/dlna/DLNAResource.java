@@ -807,23 +807,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * player. However, other details about the media can change this, such as
 		 * whether it has subtitles that match this user's language settings, so here we
 		 * perform those checks.
-		*/
+		 */
 		if (format.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
-			if (media_subtitle != null) {
-				if (media_subtitle.isExternal()) {
-					if (renderer != null && renderer.isExternalSubtitlesFormatSupported(media_subtitle, media)) {
-						media_subtitle.setSubsStreamable(true);
-						LOGGER.trace("This video has external subtitles that could be streamed");
-					} else {
-						hasSubsToTranscode = true;
-						LOGGER.trace("This video has external subtitles that should be transcoded");
-					}
-				} else if (media_subtitle.isEmbedded()) {
-					if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(media_subtitle)) {
-						LOGGER.trace("This video has embedded subtitles that could be streamed");
-					} else {
-						hasSubsToTranscode = true;
-						LOGGER.trace("This video has embedded subtitles that should be transcoded");
+			if (hasEmbeddedSubs || hasExternalSubtitles()) {
+				OutputParams params = new OutputParams(configurationSpecificToRenderer);
+				Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
+				if (params.sid != null) {
+					if (params.sid.isExternal()) {
+						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
+							media_subtitle = params.sid;
+							media_subtitle.setSubsStreamable(true);
+							LOGGER.trace("This video has external subtitles that could be streamed");
+						} else {
+							hasSubsToTranscode = true;
+							LOGGER.trace("This video has external subtitles that should be transcoded");
+						}
+					} else if (params.sid.isEmbedded()) {
+						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
+							LOGGER.trace("This video has embedded subtitles that could be streamed");
+						} else {
+							hasSubsToTranscode = true;
+							LOGGER.trace("This video has embedded subtitles that should be transcoded");
+						}
 					}
 				}
 			} else {
@@ -1593,10 +1598,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (
-			!configurationSpecificToRenderer.isDisableTranscoding() &&
 			hasExternalSubtitles() &&
 			!isNamedNoEncoding &&
-//			media_audio == null &&
+			media_audio == null &&
 			media_subtitle == null &&
 			!configurationSpecificToRenderer.hideSubsInfo() &&
 			(
@@ -1623,10 +1627,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				audioTrackTitle = " (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")";
 			}
 
-			if (!configuration.isHideEngineNames()) {
-				displayName += player != null ? ("[" + player.name() + "]") : "";
-			}
-			
+			displayName = player != null ? ("[" + player.name() + "]") : "";
 			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + audioTrackTitle + "}";
 		}
 
@@ -1644,7 +1645,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			subtitleLanguage = "/" + media_subtitle.getLangFullName();
 			if ("/Undetermined".equals(subtitleLanguage)) {
-				subtitleLanguage = "/UND";
+				subtitleLanguage = "";
 			}
 
 			String subtitlesTrackTitle = "";
@@ -1657,14 +1658,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitlesTrackTitle = " (" + media_subtitle.getSubtitlesTrackTitleFromMetadata() + ")";
 			}
 
-			String subsType = null;
-			if (media_subtitle.isExternal()) {
-				subsType = "Ext. ";
-			} else if (media_subtitle.isEmbedded()) {
-				subsType = "Int. ";
-			}
-
-			String subsDescription = subsType + Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + subtitlesTrackTitle;
+			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + subtitlesTrackTitle;
 			if (subsAreValidForStreaming) {
 				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription + "}";
 			} else {
@@ -2397,11 +2391,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String title;
 		if (
 			firstAudioTrack != null &&
-			StringUtils.isNotBlank(firstAudioTrack.getSongname()) &&
-			getFormat() != null &&
-			getFormat().isAudio()
+			media.isAudio() &&
+			StringUtils.isNotBlank(firstAudioTrack.getSongname())
 		) {
-			title = firstAudioTrack.getSongname() + (player != null && !configurationSpecificToRenderer.isHideEngineNames() ? (" [" + player.name() + "]") : "");
+			title = firstAudioTrack.getSongname();
 		} else { // Ditlew - org
 			title = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 		}
@@ -3293,22 +3286,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public InputStream getThumbnailInputStream() throws IOException {
 		String languageCode = null;
-		if (media_audio != null && format.isVideo()) { // show audio language flags in the TRANSCODE folder only for video files
+		if (media_audio != null) {
 			languageCode = media_audio.getLang();
-			if (StringUtils.isBlank(languageCode)) {
-				languageCode = DLNAMediaLang.UND;
-			}
+		}
+
+		if (media_subtitle != null && media_subtitle.getId() != -1) {
+			languageCode = media_subtitle.getLang();
+		}
+
+		if ((media_subtitle != null || media_audio != null) && StringUtils.isBlank(languageCode)) {
+			languageCode = DLNAMediaLang.UND;
 		}
 
 		if (languageCode != null) {
 			String code = Iso639.getISO639_2Code(languageCode.toLowerCase());
-			InputStream is = getResourceInputStream("/images/codes/" + code + ".png");
-			if (is != null) {
-				return is;
-			} else {
-				LOGGER.trace("Flag is missing for language '{}' so use undefined flag", code);
-				return getResourceInputStream("/images/codes/und.png");
-			}
+			return getResourceInputStream("/images/codes/" + code + ".png");
 		}
 
 		if (isAvisynth()) {
