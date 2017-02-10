@@ -31,7 +31,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
@@ -80,11 +82,11 @@ public class DownloadPlugins {
 			URLConnection connection = u.openConnection();
 			connection.setConnectTimeout(5000);
 			connection.setReadTimeout(5000);
-			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
 			parse_list(res, in, false);
 			File test = new File(configuration.getPluginDirectory() + File.separator + PLUGIN_TEST_FILE);
 			if (test.exists()) {
-				in = new BufferedReader(new InputStreamReader(new FileInputStream(test)));
+				in = new BufferedReader(new InputStreamReader(new FileInputStream(test), StandardCharsets.UTF_8));
 				parse_list(res, in, true);
 			}
 		} catch (IOException e) {
@@ -117,36 +119,36 @@ public class DownloadPlugins {
 				plugin = new DownloadPlugins(test);
 				continue;
 			}
-			String[] keyval = str.split("=", 2);
+			String[] keyval = str.toLowerCase(Locale.ROOT).split("=", 2);
 			if (keyval.length < 2) {
 				continue;
 			}
-			if (keyval[0].equalsIgnoreCase("id")) {
+			if (keyval[0].equals("id")) {
 				plugin.id = keyval[1];
 			}
-			if (keyval[0].equalsIgnoreCase("name")) {
+			if (keyval[0].equals("name")) {
 				plugin.name = keyval[1];
 			}
-			if (keyval[0].equalsIgnoreCase("rating")) {
-				// Rating is temporarily switched off
-				// plugin.rating = keyval[1];
-			}
-			if (keyval[0].equalsIgnoreCase("desc")) {
+			// Rating is temporarily switched off
+//			if (keyval[0].equalsIgnoreCase("rating")) {
+//				plugin.rating = keyval[1];
+//			}
+			if (keyval[0].equals("desc")) {
 				plugin.desc = keyval[1];
 			}
-			if (keyval[0].equalsIgnoreCase("url")) {
+			if (keyval[0].equals("url")) {
 				plugin.url = keyval[1];
 			}
-			if (keyval[0].equalsIgnoreCase("author")) {
+			if (keyval[0].equals("author")) {
 				plugin.author = keyval[1];
 			}
-			if (keyval[0].equalsIgnoreCase("version")) {
+			if (keyval[0].equals("version")) {
 				plugin.version = keyval[1];
 			}
-			if (keyval[0].equalsIgnoreCase("type")) {
+			if (keyval[0].equals("type")) {
 				// Deprecated
 			}
-			if (keyval[0].equalsIgnoreCase("require")) {
+			if (keyval[0].equals("require")) {
 				plugin.old = false;
 				String[] minVer = keyval[1].split("\\.");
 				String[] myVer = PMS.getVersion().split("\\.");
@@ -170,7 +172,7 @@ public class DownloadPlugins {
 					break;
 				}
 			}
-			if (keyval[0].equalsIgnoreCase("prop")) {
+			if (keyval[0].equals("prop")) {
 				plugin.props = keyval[1].split(",");
 			}
 		}
@@ -233,7 +235,7 @@ public class DownloadPlugins {
 		return old;
 	}
 
-	private String splitString(String string) {
+	private static String splitString(String string) {
 		StringBuilder buf = new StringBuilder();
 		String tempString = string;
 
@@ -256,7 +258,7 @@ public class DownloadPlugins {
 		return buf.toString();
 	}
 
-	private String header(String hdr) {
+	private static String header(String hdr) {
 		return "<br><b>" + hdr + ":  </b>";
 	}
 
@@ -275,7 +277,7 @@ public class DownloadPlugins {
 		return res;
 	}
 
-	private String extractFileName(String str, String name) {
+	private static String extractFileName(String str, String name) {
 		if (!StringUtils.isEmpty(name)) {
 			return name;
 		}
@@ -286,22 +288,26 @@ public class DownloadPlugins {
 		return str.substring(pos + 1);
 	}
 
-	private void ensureCreated(String p) {
+	private static void ensureCreated(String p) throws IOException {
 		File f = new File(p);
-		f.mkdirs();
+		if (!f.exists()) {
+			if (!f.mkdirs()) {
+				throw new IOException("Could not create folder \"" + f.getAbsolutePath() + "\"");
+			}
+		}
 	}
 
 	private void unzip(File f, String dir) {
 		// Zip file with loads of goodies
 		// Unzip it
-		ZipInputStream zis;
-		try {
-			zis = new ZipInputStream(new FileInputStream(f));
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(f))){
 			ZipEntry entry;
 			while ((entry = zis.getNextEntry()) != null) {
 				File dst = new File(dir + File.separator + entry.getName());
 				if (entry.isDirectory()) {
-					dst.mkdirs();
+					if (!dst.mkdirs()) {
+						throw new IOException("Could not create folder \"" + dst.getAbsolutePath() + "\"");
+					}
 					continue;
 				}
 				int count;
@@ -317,14 +323,16 @@ public class DownloadPlugins {
 					jars.add(dst.toURI().toURL());
 				}
 			}
-			zis.close();
-		} catch (Exception e) {
-			LOGGER.info("unzip error " + e);
+		} catch (IOException e) {
+			LOGGER.info("Unzip error " + e.getMessage());
+			LOGGER.trace("", e);
 		}
-		f.delete();
+		if (!f.delete()) {
+			LOGGER.error("Failed to delete temporary file \"{}\"", f.getAbsolutePath());
+		}
 	}
 
-	private boolean downloadFile(String url, String dir, String name) throws Exception {
+	private boolean downloadFile(String url, String dir, String name) throws IOException {
 		URL u = new URL(url);
 		ensureCreated(dir);
 		String fName = extractFileName(url, name);
@@ -391,29 +399,32 @@ public class DownloadPlugins {
 		LOGGER.debug("running '" + args + "'");
 		Process pid = pb.start();
 		// Consume and log any output
-		Scanner output = new Scanner(pid.getInputStream());
-		while (output.hasNextLine()) {
-			LOGGER.debug("[" + args + "] " + output.nextLine());
+		try (Scanner output = new Scanner(pid.getInputStream(), "UTF-8")) {
+			while (output.hasNextLine()) {
+				LOGGER.debug("[" + args + "] " + output.nextLine());
+			}
 		}
 		configuration.reload();
 		pid.waitFor();
 
 		File[] newJar = new File(configuration.getPluginDirectory()).listFiles();
-		for (File f : newJar) {
-			if (!f.getAbsolutePath().endsWith(".jar")) {
-				// skip non jar files
-				continue;
-			}
-			for (File oldJar1 : oldJar) {
-				if (f.getAbsolutePath().equals(oldJar1.getAbsolutePath())) {
-					// old jar file break out, and set f to null to skip adding it
-					f = null;
-					break;
+		if (newJar != null) {
+			for (File f : newJar) {
+				if (!f.getAbsolutePath().endsWith(".jar")) {
+					// skip non jar files
+					continue;
 				}
-			}
-			// if f is null this is an jar that is old
-			if (f != null) {
-				jars.add(f.toURI().toURL());
+				for (File oldJar1 : oldJar) {
+					if (f.getAbsolutePath().equals(oldJar1.getAbsolutePath())) {
+						// old jar file break out, and set f to null to skip adding it
+						f = null;
+						break;
+					}
+				}
+				// if f is null this is an jar that is old
+				if (f != null) {
+					jars.add(f.toURI().toURL());
+				}
 			}
 		}
 	}
@@ -472,7 +483,7 @@ public class DownloadPlugins {
 		URL u = new URL(url);
 		URLConnection connection = u.openConnection();
 		boolean res, skip = false;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 			String str;
 			res = true;
 

@@ -334,7 +334,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 					}
 				}
 				if (isLowBitrate()) {
-					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, params));
+					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(media, params));
 				}
 			} else {
 				// nothing here yet

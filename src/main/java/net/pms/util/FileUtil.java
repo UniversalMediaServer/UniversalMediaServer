@@ -982,14 +982,13 @@ public class FileUtil {
 				if (Charset.isSupported(match.getName())) {
 					LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 					return Charset.forName(match.getName());
-				} else {
-					LOGGER.debug(
-						"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
-						match.getName(),
-						file.getAbsolutePath()
-					);
-					return null;
 				}
+				LOGGER.debug(
+					"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
+					match.getName(),
+					file.getAbsolutePath()
+				);
+				return null;
 			} catch (IllegalCharsetNameException e) {
 				LOGGER.debug("Illegal charset deteceted \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 			}
@@ -1011,10 +1010,9 @@ public class FileUtil {
 		if (match != null) {
 			LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 			return match.getName().toUpperCase(PMS.getLocale());
-		} else {
-			LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
-			return null;
 		}
+		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		return null;
 	}
 
 	/**
@@ -1111,7 +1109,6 @@ public class FileUtil {
 
 		if (isCharsetUTF16(charset)) {
 			if (!outputFile.exists()) {
-				BufferedReader reader = null;
 				/*
 				 * This is a strange hack, and I'm not sure if it's needed. I
 				 * did it this way to conform to the tests, which dictates that
@@ -1123,21 +1120,28 @@ public class FileUtil {
 				 * UTF_16BE produces an UTF-8 outputfile with BOM.
 				 * @author Nadahar
 				 */
-				if (charset.equals(StandardCharsets.UTF_16LE)) {
-					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), StandardCharsets.UTF_16));
-				} else {
-					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset));
+				try (
+					BufferedReader reader = new BufferedReader(
+						new InputStreamReader(
+							new FileInputStream(inputFile),
+								(StandardCharsets.UTF_16LE.equals(charset)) ?
+									StandardCharsets.UTF_16 :
+									charset
+							)
+					);
+					BufferedWriter writer = new BufferedWriter(
+						new OutputStreamWriter(
+							new FileOutputStream(outputFile),
+							StandardCharsets.UTF_8
+						)
+					);
+				) {
+					int c;
+
+					while ((c = reader.read()) != -1) {
+						writer.write(c);
+					}
 				}
-
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8));
-				int c;
-
-				while ((c = reader.read()) != -1) {
-					writer.write(c);
-				}
-
-				writer.close();
-				reader.close();
 			}
 		} else {
 			throw new IllegalArgumentException("File is not UTF-16");
@@ -1206,10 +1210,9 @@ public class FileUtil {
 	public static FilePermissions getFilePermissions(String path) throws FileNotFoundException {
 		if (path != null) {
 			return new FilePermissions(new File(path));
-		} else {
-			File file = null;
-			return new FilePermissions(file);
 		}
+		File file = null;
+		return new FilePermissions(file);
 	}
 
 	/**
@@ -1224,9 +1227,8 @@ public class FileUtil {
 			} catch (FileNotFoundException | IllegalArgumentException e) {
 				return null;
 			}
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
@@ -1545,8 +1547,7 @@ public class FileUtil {
 				}
 				return unixUID;
 			}
-		} else {
-			throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
 		}
+		throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
 	}
 }

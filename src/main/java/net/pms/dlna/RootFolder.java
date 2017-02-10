@@ -307,7 +307,7 @@ public class RootFolder extends DLNAResource {
 		return res;
 	}
 
-	private boolean skipPath(String[] skips, String path) {
+	private static boolean skipPath(String[] skips, String path) {
 		for (String s : skips) {
 			if (StringUtils.isBlank(s)) {
 				continue;
@@ -321,7 +321,7 @@ public class RootFolder extends DLNAResource {
 		return false;
 	}
 
-	private List<DLNAResource> getVirtualFolders(ArrayList<String> tags) {
+	private static List<DLNAResource> getVirtualFolders(ArrayList<String> tags) {
 		List<DLNAResource> res = new ArrayList<>();
 		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parseVirtualFolders(tags);
 
@@ -446,7 +446,7 @@ public class RootFolder extends DLNAResource {
 	 * @param spec (String) to be split
 	 * @return Array of (String) that represents the tokenized entry.
 	 */
-	private String[] parseFeedKey(String spec) {
+	private static String[] parseFeedKey(String spec) {
 		String[] pair = StringUtils.split(spec, ".", 2);
 
 		if (pair == null || pair.length < 2) {
@@ -467,7 +467,7 @@ public class RootFolder extends DLNAResource {
 	 * @param spec (String) to be split
 	 * @return Array of (String) that represents the tokenized entry.
 	 */
-	private String[] parseFeedValue(String spec) {
+	private static String[] parseFeedValue(String spec) {
 		StringTokenizer st = new StringTokenizer(spec, ",");
 		String[] triple = new String[3];
 		int i = 0;
@@ -486,78 +486,79 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @return iPhotoVirtualFolder the populated <code>VirtualFolder</code>, or null if one couldn't be created.
 	 */
-	private DLNAResource getiPhotoFolder() {
+	private static DLNAResource getiPhotoFolder() {
 		VirtualFolder iPhotoVirtualFolder = null;
 
 		if (Platform.isMac()) {
 			LOGGER.debug("Adding iPhoto folder");
-			InputStream inputStream = null;
+			//InputStream inputStream = null;
 
 			try {
 				// This command will show the XML files for recently opened iPhoto databases
 				Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
-				inputStream = process.getInputStream();
-				List<String> lines = IOUtils.readLines(inputStream);
-				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
+				try (InputStream inputStream = process.getInputStream()) {
+					List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
+					LOGGER.debug("iPhotoRecentDatabases: {}", lines);
 
-				if (lines.size() >= 2) {
-					// we want the 2nd line
-					String line = lines.get(1);
+					if (lines.size() >= 2) {
+						// we want the 2nd line
+						String line = lines.get(1);
 
-					// Remove extra spaces
-					line = line.trim();
+						// Remove extra spaces
+						line = line.trim();
 
-					// Remove quotes
-					line = line.substring(1, line.length() - 1);
+						// Remove quotes
+						line = line.substring(1, line.length() - 1);
 
-					URI uri = new URI(line);
-					URL url = uri.toURL();
-					File file = FileUtils.toFile(url);
-					LOGGER.debug("Resolved URL to file: {} -> {}", url, file.getAbsolutePath());
+						URI uri = new URI(line);
+						URL url = uri.toURL();
+						File file = FileUtils.toFile(url);
+						LOGGER.debug("Resolved URL to file: {} -> {}", url, file.getAbsolutePath());
 
-					// Load the properties XML file.
-					Map<String, Object> iPhotoLib = Plist.load(file);
+						// Load the properties XML file.
+						Map<String, Object> iPhotoLib = Plist.load(file);
 
-					// The list of all photos
-					Map<?, ?> photoList = (Map<?, ?>) iPhotoLib.get("Master Image List");
+						// The list of all photos
+						Map<?, ?> photoList = (Map<?, ?>) iPhotoLib.get("Master Image List");
 
-					// The list of events (rolls)
-					List<Map<?, ?>> listOfRolls = (List<Map<?, ?>>) iPhotoLib.get("List of Rolls");
+						// The list of events (rolls)
+						@SuppressWarnings("unchecked")
+						List<Map<?, ?>> listOfRolls = (List<Map<?, ?>>) iPhotoLib.get("List of Rolls");
 
-					iPhotoVirtualFolder = new VirtualFolder("iPhoto Library", null);
+						iPhotoVirtualFolder = new VirtualFolder("iPhoto Library", null);
 
-					for (Map<?, ?> roll : listOfRolls) {
-						Object rollName = roll.get("RollName");
+						for (Map<?, ?> roll : listOfRolls) {
+							Object rollName = roll.get("RollName");
 
-						if (rollName != null) {
-							VirtualFolder virtualFolder = new VirtualFolder(rollName.toString(), null);
+							if (rollName != null) {
+								VirtualFolder virtualFolder = new VirtualFolder(rollName.toString(), null);
 
-							// List of photos in an event (roll)
-							List<?> rollPhotos = (List<?>) roll.get("KeyList");
+								// List of photos in an event (roll)
+								List<?> rollPhotos = (List<?>) roll.get("KeyList");
 
-							for (Object photo : rollPhotos) {
-								Map<?, ?> photoProperties = (Map<?, ?>) photoList.get(photo);
+								for (Object photo : rollPhotos) {
+									Map<?, ?> photoProperties = (Map<?, ?>) photoList.get(photo);
 
-								if (photoProperties != null) {
-									Object imagePath = photoProperties.get("ImagePath");
+									if (photoProperties != null) {
+										Object imagePath = photoProperties.get("ImagePath");
 
-									if (imagePath != null) {
-										RealFile realFile = new RealFile(new File(imagePath.toString()));
-										virtualFolder.addChild(realFile);
+										if (imagePath != null) {
+											RealFile realFile = new RealFile(new File(imagePath.toString()));
+											virtualFolder.addChild(realFile);
+										}
 									}
 								}
-							}
 
-							iPhotoVirtualFolder.addChild(virtualFolder);
+								iPhotoVirtualFolder.addChild(virtualFolder);
+							}
 						}
+					} else {
+						LOGGER.info("iPhoto folder not found");
 					}
-				} else {
-					LOGGER.info("iPhoto folder not found");
 				}
 			} catch (XmlParseException | URISyntaxException | IOException e) {
-				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
-			} finally {
-				IOUtils.closeQuietly(inputStream);
+				LOGGER.error("Something went wrong with the iPhoto Library scan: {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
 
@@ -577,7 +578,7 @@ public class RootFolder extends DLNAResource {
 
 			try {
 				process = Runtime.getRuntime().exec("defaults read com.apple.iApps ApertureLibraries");
-				try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
 					// Every line entry is one aperture library. We want all of them as a dlna folder.
 					String line;
 					res = new VirtualFolder("Aperture libraries", null);
@@ -652,7 +653,7 @@ public class RootFolder extends DLNAResource {
 			if (mediaPath != null) {
 				mediaName = mediaPath.toString();
 
-				if (mediaName != null && mediaName.lastIndexOf('/') != -1 && mediaName.lastIndexOf(".aplibrary") != -1) {
+				if (mediaName.lastIndexOf('/') != -1 && mediaName.lastIndexOf(".aplibrary") != -1) {
 					mediaName = mediaName.substring(mediaName.lastIndexOf('/'), mediaName.lastIndexOf(".aplibrary"));
 				} else {
 					mediaName = "unknown library";
@@ -751,7 +752,7 @@ public class RootFolder extends DLNAResource {
 			// the second line should contain a quoted file URL e.g.:
 			// "file://localhost/Users/MyUser/Music/iTunes/iTunes%20Music%20Library.xml"
 			Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
 				// we want the 2nd line
 				if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
 					line = line.trim(); // remove extra spaces
@@ -1153,7 +1154,9 @@ public class RootFolder extends DLNAResource {
 						@Override
 						public boolean enable() {
 							for (File f : files) {
-								f.delete();
+								if (!f.delete()) {
+									LOGGER.error("Failed to delete file \"{}\"", f.getAbsolutePath());
+								}
 							}
 							getParent().getChildren().remove(this);
 							return false;
@@ -1165,7 +1168,9 @@ public class RootFolder extends DLNAResource {
 						addChild(new VirtualVideoAction(name, false) {
 							@Override
 							public boolean enable() {
-								f.delete();
+								if (!f.delete()) {
+									LOGGER.error("Failed to delete file \"{}\"", f.getAbsolutePath());
+								}
 								getParent().getChildren().remove(this);
 								return false;
 							}
@@ -1406,7 +1411,7 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	private boolean illegalPlugin(String[] plugs, String name) {
+	private static boolean illegalPlugin(String[] plugs, String name) {
 		if (StringUtils.isBlank(name)) {
 			if (plugs == null || plugs.length == 0) {
 				// only allowed without plugins filter

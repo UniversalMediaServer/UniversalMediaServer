@@ -708,15 +708,14 @@ public class DLNAMediaInfo implements Cloneable {
 		return pw;
 	}
 
-	private String getFfmpegPath() {
+	private static String getFfmpegPath() {
 		String value = configuration.getFfmpegPath();
 
 		if (value == null) {
 			LOGGER.info("No FFmpeg - unable to thumbnail");
 			throw new RuntimeException("No FFmpeg - unable to thumbnail");
-		} else {
-			return value;
 		}
+		return value;
 	}
 
 	@Deprecated
@@ -1367,9 +1366,8 @@ public class DLNAMediaInfo implements Cloneable {
 		if (container != null) {
 			if (container.equals("mp4")) {
 				return isH264();
-			} else {
-				return true;
 			}
+			return true;
 		}
 
 		return false;
@@ -1540,7 +1538,7 @@ public class DLNAMediaInfo implements Cloneable {
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
 					mimeType = HTTPResource.MPEG_TYPEMIME;
 				}
-			} else if (codecV == null && codecA != null) {
+			} else if (codecA != null) {
 				if ("ogg".equals(container)) {
 					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
 				} else if ("3gp".equals(container)) {
@@ -1712,7 +1710,18 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
+	/**
+	 * Only kept for backwards compatibility, not used by UMS.
+	 *
+	 * @deprecated Use {@link #isMuxable(String)} instead.
+	 */
+	@SuppressWarnings("unused")
+	@Deprecated
 	public boolean isMuxable(String filename, String codecA) {
+		return isMuxable(codecA);
+	}
+
+	public boolean isMuxable(String codecA) {
 		return codecA != null && (codecA.startsWith("dts") || codecA.equals("dca"));
 	}
 
@@ -2285,21 +2294,19 @@ public class DLNAMediaInfo implements Cloneable {
 	public String getFormattedAspectRatio(String aspect) {
 		if (isBlank(aspect)) {
 			return null;
+		}
+		if (aspect.contains(":")) {
+			return aspect;
+		}
+		double exactAspectRatio = Double.parseDouble(aspect);
+		if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
+			return "16:9";
+		} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
+			return "4:3";
+		} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
+			return "5:4";
 		} else {
-			if (aspect.contains(":")) {
-				return aspect;
-			} else {
-				double exactAspectRatio = Double.parseDouble(aspect);
-				if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
-					return "16:9";
-				} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
-					return "4:3";
-				} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
-					return "5:4";
-				} else {
-					return null;
-				}
-			}
+			return null;
 		}
 	}
 
@@ -2500,9 +2507,8 @@ public class DLNAMediaInfo implements Cloneable {
 	public ArrayList<DLNAMediaAudio> getAudioCodes() {
 		if (audioTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaAudio>) audioTracks;
-		} else {
-			return new ArrayList<>();
 		}
+		return new ArrayList<>();
 	}
 
 	/**
@@ -2540,9 +2546,8 @@ public class DLNAMediaInfo implements Cloneable {
 	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
 		if (subtitleTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
-		} else {
-			return new ArrayList<>();
 		}
+		return new ArrayList<>();
 	}
 
 	/**
