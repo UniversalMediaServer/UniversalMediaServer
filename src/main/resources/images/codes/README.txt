@@ -1,4 +1,4 @@
-This folder contains circular flag icons which (inaccurately) represent languages. They are 254x254 PNGs with transparent backgrounds.
+This folder contains circular flag icons which (inaccurately) represent languages. They are 256x256 PNGs with transparent backgrounds.
 
 They appear to be taken from here:
 
@@ -8,7 +8,7 @@ They appear to be taken from here:
 
 	http://creativecommons.org/licenses/by-nc-nd/3.0/
 
-Icon dimensions must be <= 255x255 and file sizes must be <= 65536 bytes.
+Icon dimensions must be <= 256x256 and file sizes must be <= 65536 bytes.
 
 These icons are supported by the PS3 and Sony BRAVIA TVs and probably other renderers. They are used to represent different subtitle language options in the #--TRANSCODE--# folder.
 
