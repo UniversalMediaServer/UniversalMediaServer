@@ -36,9 +36,22 @@ public class GlobalIdRepo {
 				remove(id);
 			}
 			ids.add(new ID(dlnaResource, curGlobalId++));
+
+			LOGGER.info("---------------------------------------------------------------------------------");
+			LOGGER.info("------------------------------- Global ID dump ----------------------------------");
+			LOGGER.info("---------------------------------------------------------------------------------");
+			for (ID element : ids) {
+				LOGGER.info(
+					"Id: {}, Name: {}, Class: {}, DisplayName: {}",
+					element.dlnaResource.getId(), element.dlnaResource.getName(), element.dlnaResource.getClass().getSimpleName(), element.dlnaResource.getDisplayName()
+				);
+			}
+			LOGGER.info("---------------------------------------------------------------------------------");
+			LOGGER.info("");
 		} finally {
 			lock.writeLock().unlock();
 		}
+
 	}
 
 	public DLNAResource get(String id) {
