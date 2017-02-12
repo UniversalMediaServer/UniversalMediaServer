@@ -87,7 +87,8 @@ public abstract class CoverUtil {
 	 */
 	protected Element getChildElement(Element element, String name) {
 		NodeList list = element.getElementsByTagName(name);
-		for (int i = 0; i < list.getLength(); i++) {
+		int listLength = list.getLength();
+		for (int i = 0; i < listLength; i++) {
 			Node node = list.item(i);
 			if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals(name) && node instanceof Element) {
 				return (Element) node;

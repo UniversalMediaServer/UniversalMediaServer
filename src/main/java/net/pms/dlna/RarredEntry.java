@@ -123,7 +123,9 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
 				} finally {
 					try {
-						rarFile.close();
+						if (rarFile != null) {
+							rarFile.close();
+						}
 						out.close();
 					} catch (IOException e) {
 						LOGGER.debug("Caught exception", e);
