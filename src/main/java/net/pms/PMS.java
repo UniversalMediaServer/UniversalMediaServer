@@ -28,6 +28,7 @@ import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -1283,8 +1284,16 @@ public class PMS {
 	}
 
 	public void storeFileInCache(File file, int formatType) {
-		if (getConfiguration().getUseCache() && !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
-			getDatabase().insertData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+		if (
+			getConfiguration().getUseCache() &&
+			!getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())
+		) {
+			try {
+				getDatabase().insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+			} catch (SQLException e) {
+				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
 	}
 
