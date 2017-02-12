@@ -39,6 +39,7 @@ import net.pms.util.FileUtil.InvalidFileSystemException;
 import net.pms.util.FileUtil.UnixMountPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class FreedesktopTrash {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FreedesktopTrash.class);
@@ -221,6 +222,10 @@ public class FreedesktopTrash {
 	}
 
 	public static void moveToTrash(Path path) throws InvalidFileSystemException, IOException {
+		if (path == null) {
+			throw new NullPointerException("path cannot be null");
+		}
+
 		final int LIMIT = 10;
 		path = path.toAbsolutePath();
 		FilePermissions pathPermissions = new FilePermissions(path);
@@ -245,8 +250,8 @@ public class FreedesktopTrash {
 		infoContent.add("DeletionDate=" + new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss").format(new Date()));
 
 		// Create the trash info file
-		String fileName = path.getFileName().toString();
-		Path infoFile;
+		Path infoFile = path.getFileName();
+		String fileName = infoFile != null ? infoFile.toString() : "";
 		int count = 0;
 		boolean created = false;
 		while (!created && count < LIMIT) {
@@ -339,6 +344,7 @@ public class FreedesktopTrash {
 	 * @param path the path for which to evaluate trash bin support
 	 * @return The evaluation result
 	 */
+	@SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
 	public static boolean hasTrash() {
 		return hasTrash(Paths.get("/"));
 	}

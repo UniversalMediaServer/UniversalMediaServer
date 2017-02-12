@@ -57,20 +57,6 @@ public class FormatsRegressionTest0 {
 	}
 
 	@Test
-	public void test04() throws Throwable {
-
-		if (debug) {
-			System.out.format("%n%s%n", "FormatsRegressionTest0.test04");
-		}
-
-		java.lang.String[] str_array0 = net.pms.formats.ISO.ISO_EXTENSIONS;
-
-		// Regression assertion (captures the current behavior of the code)
-		org.junit.Assert.assertNotNull(str_array0);
-
-	}
-
-	@Test
 	public void test05() throws Throwable {
 
 		if (debug) {
