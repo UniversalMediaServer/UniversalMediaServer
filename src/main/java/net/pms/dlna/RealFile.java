@@ -20,6 +20,7 @@ package net.pms.dlna;
 
 import com.sun.jna.Platform;
 import java.io.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import net.pms.PMS;
 import net.pms.formats.Format;
@@ -172,13 +173,24 @@ public class RealFile extends MapFile {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
-					ArrayList<DLNAMediaInfo> medias = database.getData(fileName, file.lastModified());
+					ArrayList<DLNAMediaInfo> medias;
+					try {
+						medias = database.getData(fileName, file.lastModified());
 
-					if (medias != null && medias.size() == 1) {
-						setMedia(medias.get(0));
-						getMedia().postParse(getType(), input);
-						found = true;
+						if (medias != null && medias.size() == 1) {
+							setMedia(medias.get(0));
+							getMedia().postParse(getType(), input);
+							found = true;
+						}
+						//TODO: (Nad) Bug if more than one hit
+					} catch (InvalidClassException e) {
+						LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
+						LOGGER.trace("", e);
+					} catch (IOException | SQLException e) {
+						LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
+						LOGGER.trace("", e);
 					}
+
 				}
 			}
 
@@ -187,8 +199,6 @@ public class RealFile extends MapFile {
 					setMedia(new DLNAMediaInfo());
 				}
 
-				found = !getMedia().isMediaparsed() && !getMedia().isParsing();
-
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 				} else {
@@ -196,11 +206,28 @@ public class RealFile extends MapFile {
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
 				}
 
-				if (found && configuration.getUseCache()) {
+				if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
-						database.insertData(fileName, file.lastModified(), getType(), getMedia());
+						try {
+							database.insertOrUpdateData(fileName, file.lastModified(), getType(), getMedia());
+						} catch (SQLException e) {
+							LOGGER.error(
+								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
+								fileName,
+								e.getMessage());
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("SQL error code: {}", e.getErrorCode());
+								if (
+									e.getCause() instanceof SQLException &&
+									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
+								) {
+									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+								}
+								LOGGER.trace("", e);
+							}
+						}
 					}
 				}
 			}
