@@ -47,6 +47,7 @@ import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
@@ -2807,12 +2808,27 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_CHAPTER_INTERVAL, value);
 	}
 
-	public String getSubsColor() {
-		return getString(KEY_SUBS_COLOR, "0xffffffff").substring(2);
+	public SubtitleColor getSubsColor() {
+		String colorString = getString(KEY_SUBS_COLOR, null);
+		if (StringUtils.isNotBlank(colorString)) {
+			SubtitleColor result = SubtitleColor.toSubtitleColor(colorString);
+			if (result != null) {
+				return result;
+			}
+		}
+		return new SubtitleColor(0xFF, 0xFF, 0xFF, 0xFF);
 	}
 
-	public void setSubsColor(String value) {
-		configuration.setProperty(KEY_SUBS_COLOR, "0x" + value);
+	public void setSubsColor(Color color) {
+		setSubsColor(new SubtitleColor(color));
+	}
+
+	public void setSubsColor(SubtitleColor color) {
+		if (color.getAlpha() != 0xFF) {
+			configuration.setProperty(KEY_SUBS_COLOR, color.get0xRRGGBBAA());
+		} else {
+			configuration.setProperty(KEY_SUBS_COLOR, color.get0xRRGGBB());
+		}
 	}
 
 	public boolean isFix25FPSAvMismatch() {
