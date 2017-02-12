@@ -20,7 +20,6 @@
 
 package net.pms.util;
 
-import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Formatter;
@@ -32,11 +31,9 @@ import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class StringUtil {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
@@ -344,6 +341,7 @@ public class StringUtil {
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */
+	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	public static String luceneEscape(final String s) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < s.length(); i++) {

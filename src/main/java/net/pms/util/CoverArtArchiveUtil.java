@@ -844,7 +844,8 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 		Pattern pattern = Pattern.compile("\\d{4}");
 		ArrayList<ReleaseRecord> releaseList = new ArrayList<>(nodeList.getLength());
-		for (int i = 0; i < nodeList.getLength(); i++) {
+		int nodeListLength = nodeList.getLength();
+		for (int i = 0; i < nodeListLength; i++) {
 			if (nodeList.item(i) instanceof Element) {
 				Element releaseElement = (Element) nodeList.item(i);
 				ReleaseRecord release = new ReleaseRecord();
@@ -957,7 +958,8 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				Element releaseListElement = getChildElement(recordingElement, "release-list");
 				if (releaseListElement != null) {
 					NodeList releaseNodeList = releaseListElement.getElementsByTagName("release");
-					for (int j = 0; j < releaseNodeList.getLength(); j++) {
+					int releaseNodeListLength = releaseNodeList.getLength();
+					for (int j = 0; j < releaseNodeListLength; j++) {
 						ReleaseRecord release = new ReleaseRecord(releaseTemplate);
 						Element releaseElement = (Element) releaseNodeList.item(j);
 						release.id = releaseElement.getAttribute("id");

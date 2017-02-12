@@ -22,20 +22,9 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 
 public class PLAYLIST extends Format {
-	public static final String[] PLAYLIST_EXTENSIONS = new String[] {
-		"pls",
-		"m3u",
-		"m3u8",
-		"cue",
-		"ups"
-	};
-
-	public PLAYLIST() {
-		type = PLAYLIST;
-	}
 
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
@@ -45,6 +34,10 @@ public class PLAYLIST extends Format {
 	@Override
 	public boolean transcodable() {
 		return false;
+	}
+
+	public PLAYLIST() {
+		type = PLAYLIST;
 	}
 
 	/**
@@ -61,6 +54,12 @@ public class PLAYLIST extends Format {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return PLAYLIST_EXTENSIONS;
+		return new String[] {
+			"pls",
+			"m3u",
+			"m3u8",
+			"cue",
+			"ups"
+		};
 	}
 }

@@ -20,6 +20,7 @@
 package net.pms.util;
 
 import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -43,7 +44,7 @@ public class CodecUtil {
 
 	/**
 	 * Initialize the list of codec formats that are recognized by ffmpeg by
-	 * parsing the "ffmpeg_formats.txt" resource. 
+	 * parsing the "ffmpeg_formats.txt" resource.
 	 */
 	private static void initCodecs() {
 		InputStream is = CodecUtil.class.getClassLoader().getResourceAsStream("resources/ffmpeg_formats.txt");
@@ -87,6 +88,7 @@ public class CodecUtil {
 		return defaultBitrate;
 	}
 
+	@SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
 	public static String getDefaultFontPath() {
 		String font = null;
 		if (Platform.isWindows()) {

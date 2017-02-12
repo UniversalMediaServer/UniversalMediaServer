@@ -21,6 +21,7 @@ package net.pms.encoders;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -68,7 +69,8 @@ public final class PlayerFactory {
 	/**
 	 * This takes care of sorting the players by the given PMS configuration.
 	 */
-	private static class PlayerSort implements Comparator<Player> {
+	@SuppressWarnings("serial")
+	private static class PlayerSort implements Comparator<Player>, Serializable {
 
 		@Override
 		public int compare(Player player1, Player player2) {
