@@ -25,7 +25,6 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -1002,7 +1001,7 @@ public class TranscodingTab {
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
-		subColor.setBackground(new Color(new BigInteger(configuration.getSubsColor(), 16).intValue()));
+		subColor.setBackground(configuration.getSubsColor());
 		subColor.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1014,7 +1013,7 @@ public class TranscodingTab {
 
 				if (newColor != null) {
 					subColor.setBackground(newColor);
-					configuration.setSubsColor(Integer.toHexString(newColor.getRGB()));
+					configuration.setSubsColor(newColor);
 					SubtitleUtils.deleteSubs(); // Color has been changed so all temporary subs will be deleted and make new
 				}
 			}
