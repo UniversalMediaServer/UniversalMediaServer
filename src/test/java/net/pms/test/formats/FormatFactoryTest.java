@@ -228,8 +228,8 @@ public class FormatFactoryTest {
 		testSingleFormat("test.tta", "TTA", Format.AUDIO);
 		testSingleFormat("test.txt", "TXT", Format.SUBTITLE);
 		testSingleFormat("test.thd", "TrueHD", Format.AUDIO);
-		testSingleFormat("test.tif", "TIF", Format.IMAGE);
-		testSingleFormat("test.tiff", "TIF", Format.IMAGE);
+		testSingleFormat("test.tif", "TIFF", Format.IMAGE);
+		testSingleFormat("test.tiff", "TIFF", Format.IMAGE);
 		testSingleFormat("test.wav", "WAV", Format.AUDIO);
 		testSingleFormat("test.wave", "WAV", Format.AUDIO);
 		testSingleFormat("test.wv", "WavPack", Format.AUDIO);

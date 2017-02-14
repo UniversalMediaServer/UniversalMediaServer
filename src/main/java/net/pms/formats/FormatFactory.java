@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.pms.formats.audio.*;
+import net.pms.formats.image.*;
+import net.pms.formats.subtitle.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +41,7 @@ public final class FormatFactory {
 	/**
 	 * Initial list of known formats.
 	 */
-	private static final Format[] FORMATS = new Format[] {
+	static final Format[] FORMATS = new Format[] {
 		new AC3(),
 		new ADPCM(),
 		new ADTS(),
@@ -56,6 +59,7 @@ public final class FormatFactory {
 		new ICNS(),
 		new ICO(),
 		new IDX(),
+		new IFF(),
 		new ISO(),
 		new JPG(),
 		new M4A(),
@@ -70,19 +74,23 @@ public final class FormatFactory {
 		new MPGAudio(),
 		new OGG(),
 		new PCX(),
+		new PICT(),
 		new PLAYLIST(),
 		new PNG(),
 		new PNM(),
 		new PSD(),
 		new RA(),
 		new RAW(),
+		new RGBE(),
 		new SAMI(),
+		new SGI(),
 		new SHN(),
 		new SubRip(),
 		new SUP(),
+		new TGA(),
 		new THREEGA(),
 		new THREEG2A(),
-		new TIF(),
+		new TIFF(),
 		new TrueHD(),
 		new TTA(),
 		new TXT(),

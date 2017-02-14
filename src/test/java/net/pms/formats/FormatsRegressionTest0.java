@@ -1,5 +1,6 @@
 package net.pms.formats;
 
+import net.pms.formats.subtitle.SubRip;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -33,7 +34,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test02");
 		}
 
-		net.pms.formats.ADPCM aDPCM0 = new net.pms.formats.ADPCM();
+		net.pms.formats.audio.ADPCM aDPCM0 = new net.pms.formats.audio.ADPCM();
 		net.pms.formats.Format format1 = aDPCM0.getSecondaryFormat();
 		aDPCM0.setIcon("");
 
@@ -78,7 +79,7 @@ public class FormatsRegressionTest0 {
 		}
 
 		net.pms.formats.MKV mKV0 = new net.pms.formats.MKV();
-		net.pms.formats.RA rA1 = new net.pms.formats.RA();
+		net.pms.formats.audio.RA rA1 = new net.pms.formats.audio.RA();
 		mKV0.setSecondaryFormat((net.pms.formats.Format) rA1);
 
 	}
@@ -109,7 +110,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test08");
 		}
 
-		net.pms.formats.ADPCM aDPCM0 = new net.pms.formats.ADPCM();
+		net.pms.formats.audio.ADPCM aDPCM0 = new net.pms.formats.audio.ADPCM();
 		boolean b1 = aDPCM0.transcodable();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -159,7 +160,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test11");
 		}
 
-		net.pms.formats.JPG jPG0 = new net.pms.formats.JPG();
+		net.pms.formats.image.JPG jPG0 = new net.pms.formats.image.JPG();
 		boolean b1 = jPG0.transcodable();
 		java.lang.String[] str_array2 = jPG0.getSupportedExtensions();
 
@@ -178,7 +179,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test12");
 		}
 
-		net.pms.formats.ATRAC aTRAC0 = new net.pms.formats.ATRAC();
+		net.pms.formats.audio.ATRAC aTRAC0 = new net.pms.formats.audio.ATRAC();
 		java.lang.String[] str_array1 = aTRAC0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -193,7 +194,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test13");
 		}
 
-		net.pms.formats.WavPack wavPack0 = new net.pms.formats.WavPack();
+		net.pms.formats.audio.WavPack wavPack0 = new net.pms.formats.audio.WavPack();
 
 	}
 
@@ -204,7 +205,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test14");
 		}
 
-		net.pms.formats.SUP sUP0 = new net.pms.formats.SUP();
+		net.pms.formats.subtitle.SUP sUP0 = new net.pms.formats.subtitle.SUP();
 		java.lang.String[] str_array1 = null;
 		// The following exception was thrown during execution in test
 		// generation
@@ -238,7 +239,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test16");
 		}
 
-		net.pms.formats.WebVTT webVTT0 = new net.pms.formats.WebVTT();
+		net.pms.formats.subtitle.WebVTT webVTT0 = new net.pms.formats.subtitle.WebVTT();
 		boolean b1 = webVTT0.isAudio();
 		boolean b2 = webVTT0.transcodable();
 
@@ -276,7 +277,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test18");
 		}
 
-		net.pms.formats.ASS aSS0 = new net.pms.formats.ASS();
+		net.pms.formats.subtitle.ASS aSS0 = new net.pms.formats.subtitle.ASS();
 		java.lang.String[] str_array1 = aSS0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -341,7 +342,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test24");
 		}
 
-		net.pms.formats.MKA mKA0 = new net.pms.formats.MKA();
+		net.pms.formats.audio.MKA mKA0 = new net.pms.formats.audio.MKA();
 
 	}
 
@@ -352,7 +353,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test25");
 		}
 
-		net.pms.formats.MPC mPC0 = new net.pms.formats.MPC();
+		net.pms.formats.audio.MPC mPC0 = new net.pms.formats.audio.MPC();
 		net.pms.formats.Format.Identifier identifier1 = mPC0.getIdentifier();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.MPC + "'",
 			identifier1.equals(net.pms.formats.Format.Identifier.MPC));
@@ -366,7 +367,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test26");
 		}
 
-		net.pms.formats.THREEG2A tHREEG2A0 = new net.pms.formats.THREEG2A();
+		net.pms.formats.audio.THREEG2A tHREEG2A0 = new net.pms.formats.audio.THREEG2A();
 
 	}
 
@@ -377,7 +378,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test27");
 		}
 
-		net.pms.formats.SUP sUP0 = new net.pms.formats.SUP();
+		net.pms.formats.subtitle.SUP sUP0 = new net.pms.formats.subtitle.SUP();
 		net.pms.formats.Format format1 = sUP0.getSecondaryFormat();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -406,7 +407,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test29");
 		}
 
-		net.pms.formats.THREEGA tHREEGA0 = new net.pms.formats.THREEGA();
+		net.pms.formats.audio.THREEGA tHREEGA0 = new net.pms.formats.audio.THREEGA();
 		java.lang.String[] str_array1 = tHREEGA0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -421,7 +422,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test30");
 		}
 
-		net.pms.formats.MPC mPC0 = new net.pms.formats.MPC();
+		net.pms.formats.audio.MPC mPC0 = new net.pms.formats.audio.MPC();
 		java.lang.String[] str_array1 = mPC0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -436,7 +437,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test31");
 		}
 
-		net.pms.formats.THREEGA tHREEGA0 = new net.pms.formats.THREEGA();
+		net.pms.formats.audio.THREEGA tHREEGA0 = new net.pms.formats.audio.THREEGA();
 		net.pms.formats.Format.Identifier identifier1 = tHREEGA0.getIdentifier();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.THREEGA + "'",
 			identifier1.equals(net.pms.formats.Format.Identifier.THREEGA));
@@ -450,7 +451,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test32");
 		}
 
-		net.pms.formats.JPG jPG0 = new net.pms.formats.JPG();
+		net.pms.formats.image.JPG jPG0 = new net.pms.formats.image.JPG();
 		boolean b1 = jPG0.transcodable();
 		net.pms.formats.ISO iSO2 = new net.pms.formats.ISO();
 		java.lang.String[] str_array3 = iSO2.getSupportedExtensions();
@@ -474,7 +475,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test33");
 		}
 
-		net.pms.formats.RA rA0 = new net.pms.formats.RA();
+		net.pms.formats.audio.RA rA0 = new net.pms.formats.audio.RA();
 		net.pms.formats.Format.Identifier identifier1 = rA0.getIdentifier();
 		java.lang.String str2 = rA0.getMatchedExtension();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.RA + "'",
@@ -492,7 +493,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test34");
 		}
 
-		net.pms.formats.RA rA0 = new net.pms.formats.RA();
+		net.pms.formats.audio.RA rA0 = new net.pms.formats.audio.RA();
 		net.pms.formats.Format.Identifier identifier1 = rA0.getIdentifier();
 		boolean b2 = rA0.isUnknown();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.RA + "'",
@@ -510,7 +511,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test35");
 		}
 
-		net.pms.formats.OGG oGG0 = new net.pms.formats.OGG();
+		net.pms.formats.audio.OGG oGG0 = new net.pms.formats.audio.OGG();
 
 	}
 
@@ -538,7 +539,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test37");
 		}
 
-		net.pms.formats.SUP sUP0 = new net.pms.formats.SUP();
+		net.pms.formats.subtitle.SUP sUP0 = new net.pms.formats.subtitle.SUP();
 		boolean b1 = net.pms.formats.FormatFactory.addFormat((net.pms.formats.Format) sUP0);
 
 		// Regression assertion (captures the current behavior of the code)
@@ -553,7 +554,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test38");
 		}
 
-		net.pms.formats.WebVTT webVTT0 = new net.pms.formats.WebVTT();
+		net.pms.formats.subtitle.WebVTT webVTT0 = new net.pms.formats.subtitle.WebVTT();
 		net.pms.formats.Format.Identifier identifier1 = webVTT0.getIdentifier();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.WEBVTT + "'",
 			identifier1.equals(net.pms.formats.Format.Identifier.WEBVTT));
@@ -567,7 +568,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test39");
 		}
 
-		net.pms.formats.MPC mPC0 = new net.pms.formats.MPC();
+		net.pms.formats.audio.MPC mPC0 = new net.pms.formats.audio.MPC();
 		java.lang.String[] str_array1 = mPC0.getSupportedExtensions();
 		boolean b3 = mPC0.match("");
 
@@ -600,7 +601,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test41");
 		}
 
-		net.pms.formats.SubRip subRip0 = new net.pms.formats.SubRip();
+		SubRip subRip0 = new SubRip();
 		java.lang.String[] str_array1 = subRip0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -638,7 +639,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test43");
 		}
 
-		net.pms.formats.AIFF aIFF0 = new net.pms.formats.AIFF();
+		net.pms.formats.audio.AIFF aIFF0 = new net.pms.formats.audio.AIFF();
 
 	}
 
@@ -663,7 +664,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test45");
 		}
 
-		net.pms.formats.MLP mLP0 = new net.pms.formats.MLP();
+		net.pms.formats.audio.MLP mLP0 = new net.pms.formats.audio.MLP();
 		net.pms.formats.Format.Identifier identifier1 = mLP0.getIdentifier();
 		boolean b2 = mLP0.isAudio();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.MLP + "'",
@@ -681,7 +682,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test46");
 		}
 
-		net.pms.formats.MonkeysAudio monkeysAudio0 = new net.pms.formats.MonkeysAudio();
+		net.pms.formats.audio.MonkeysAudio monkeysAudio0 = new net.pms.formats.audio.MonkeysAudio();
 		monkeysAudio0.setMatchedExtension("video/mpeg");
 
 	}
@@ -707,7 +708,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test48");
 		}
 
-		net.pms.formats.PNG pNG0 = new net.pms.formats.PNG();
+		net.pms.formats.image.PNG pNG0 = new net.pms.formats.image.PNG();
 
 	}
 
@@ -718,7 +719,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test49");
 		}
 
-		net.pms.formats.MonkeysAudio monkeysAudio0 = new net.pms.formats.MonkeysAudio();
+		net.pms.formats.audio.MonkeysAudio monkeysAudio0 = new net.pms.formats.audio.MonkeysAudio();
 		java.lang.String[] str_array1 = monkeysAudio0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -786,7 +787,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test53");
 		}
 
-		net.pms.formats.SAMI sAMI0 = new net.pms.formats.SAMI();
+		net.pms.formats.subtitle.SAMI sAMI0 = new net.pms.formats.subtitle.SAMI();
 
 	}
 
@@ -797,7 +798,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test54");
 		}
 
-		net.pms.formats.AU aU0 = new net.pms.formats.AU();
+		net.pms.formats.audio.AU aU0 = new net.pms.formats.audio.AU();
 		java.lang.String[] str_array1 = aU0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -812,7 +813,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test55");
 		}
 
-		net.pms.formats.RA rA0 = new net.pms.formats.RA();
+		net.pms.formats.audio.RA rA0 = new net.pms.formats.audio.RA();
 		net.pms.formats.Format.Identifier identifier1 = rA0.getIdentifier();
 		java.lang.String[] str_array2 = rA0.getSupportedExtensions();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.RA + "'",
@@ -845,7 +846,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test57");
 		}
 
-		net.pms.formats.MP3 mP30 = new net.pms.formats.MP3();
+		net.pms.formats.audio.MP3 mP30 = new net.pms.formats.audio.MP3();
 		java.lang.String[] str_array1 = mP30.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -893,7 +894,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test60");
 		}
 
-		net.pms.formats.SubRip subRip0 = new net.pms.formats.SubRip();
+		SubRip subRip0 = new SubRip();
 		boolean b1 = subRip0.transcodable();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -922,7 +923,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test62");
 		}
 
-		net.pms.formats.FLAC fLAC0 = new net.pms.formats.FLAC();
+		net.pms.formats.audio.FLAC fLAC0 = new net.pms.formats.audio.FLAC();
 		java.lang.String[] str_array1 = fLAC0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -937,7 +938,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test63");
 		}
 
-		net.pms.formats.DTS dTS0 = new net.pms.formats.DTS();
+		net.pms.formats.audio.DTS dTS0 = new net.pms.formats.audio.DTS();
 		int i1 = dTS0.getType();
 		java.lang.String[] str_array2 = dTS0.getSupportedExtensions();
 
@@ -956,7 +957,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test64");
 		}
 
-		net.pms.formats.SubRip subRip0 = new net.pms.formats.SubRip();
+		SubRip subRip0 = new SubRip();
 		net.pms.formats.Format.Identifier identifier1 = subRip0.getIdentifier();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.SUBRIP + "'",
 			identifier1.equals(net.pms.formats.Format.Identifier.SUBRIP));
@@ -970,7 +971,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test65");
 		}
 
-		net.pms.formats.RA rA0 = new net.pms.formats.RA();
+		net.pms.formats.audio.RA rA0 = new net.pms.formats.audio.RA();
 		net.pms.formats.Format.Identifier identifier1 = rA0.getIdentifier();
 		boolean b2 = rA0.transcodable();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.RA + "'",
@@ -988,7 +989,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test66");
 		}
 
-		net.pms.formats.SubRip subRip0 = new net.pms.formats.SubRip();
+		SubRip subRip0 = new SubRip();
 		boolean b1 = subRip0.isUnknown();
 
 		// Regression assertion (captures the current behavior of the code)
@@ -1003,7 +1004,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test67");
 		}
 
-		net.pms.formats.JPG jPG0 = new net.pms.formats.JPG();
+		net.pms.formats.image.JPG jPG0 = new net.pms.formats.image.JPG();
 		net.pms.formats.Format.Identifier identifier1 = jPG0.getIdentifier();
 		org.junit.Assert.assertTrue("'" + identifier1 + "' != '" + net.pms.formats.Format.Identifier.JPG + "'",
 			identifier1.equals(net.pms.formats.Format.Identifier.JPG));
