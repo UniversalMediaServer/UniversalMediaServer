@@ -1058,12 +1058,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		children.add(child);
 		child.parent = this;
 
-		/*setLastChildId(getLastChildId() + 1);
-		child.setIndexId(getLastChildId());*/
 		PMS.getGlobalRepo().add(child);
-		if (defaultRenderer != null) {
-			defaultRenderer.cachePut(child);
-		}
 	}
 
 	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) {
@@ -1079,31 +1074,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		/*DLNAResource dlna = renderer.cacheGet(objectId);
-		if (dlna == null) {
-			// nothing found. Try again
-			LOGGER.debug("requested media ({}) not discovered by {}, trying other renderers", objectId, renderer);
-			for (RendererConfiguration r : PMS.get().getRenders()) {
-				if (r.equals(renderer)) {
-					// no need to search ourself again
-					continue;
-				}
-				DLNAResource res = r.cacheGet(objectId);
-				if (res != null && !res.isFolder()) {
-					// only non-folders can be found this way
-					LOGGER.debug("render " + r +" had found media " + res);
-					return res;
-				}
-			}
-		}
-		return dlna;*/
 		DLNAResource dlna;
 		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
 			dlna = renderer.getRootFolder();
 		} else {
 			// only allow the last one here
-			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);//renderer.cacheGet(objectId);
+			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);
 		}
 
 		if (dlna == null) {
@@ -1153,7 +1130,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (objectId.equals("0")) {
 			dlna = renderer.getRootFolder();
 		} else {
-			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);//renderer.cacheGet(objectId);
+			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);
 		}
 
 		if (dlna == null) {
