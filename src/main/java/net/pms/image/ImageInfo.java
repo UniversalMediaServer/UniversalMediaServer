@@ -154,6 +154,18 @@ public abstract class ImageInfo implements Serializable {
 		}
 
 		switch (format) {
+			case ICNS:
+			case IFF:
+			case PICT:
+			case PNM:
+			case RGBE:
+			case SGI:
+			case TGA:
+			case WBMP:
+				return new GenericImageInfo(
+					width, height, format, size, colorModel, metadata,
+					applyExifOrientation, imageIOSupport
+				);
 			case BMP:
 				return new BMPInfo(
 					width, height, format, size, colorModel, metadata,
@@ -171,11 +183,6 @@ public abstract class ImageInfo implements Serializable {
 				);
 			case GIF:
 				return new GIFInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
-				);
-			case ICNS:
-				return new GenericImageInfo(
 					width, height, format, size, colorModel, metadata,
 					applyExifOrientation, imageIOSupport
 				);
@@ -199,11 +206,6 @@ public abstract class ImageInfo implements Serializable {
 					width, height, format, size, colorModel, metadata,
 					applyExifOrientation, imageIOSupport
 				);
-			case PNM:
-				return new GenericImageInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
-				);
 			case PSD:
 				return new PSDInfo(
 					width, height, format, size, colorModel, metadata,
@@ -214,18 +216,13 @@ public abstract class ImageInfo implements Serializable {
 					width, height, format, size, colorModel, metadata,
 					applyExifOrientation, imageIOSupport
 				);
-			case WBMP:
-				return new GenericImageInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
-				);
 			case WEBP:
 				return new WebPInfo(
 					width, height, format, size, colorModel, metadata,
 					applyExifOrientation, imageIOSupport
 				);
 			default:
-				throw new IllegalStateException("Format " + format + "is unknown for this factory method");
+				throw new IllegalStateException("Format " + format + " is unknown for ImageInfo.create()");
 		}
 	}
 
@@ -390,6 +387,19 @@ public abstract class ImageInfo implements Serializable {
 		}
 
 		switch (format) {
+			case ICNS:
+			case IFF:
+			case PICT:
+			case PNM:
+			case RGBE:
+			case SGI:
+			case TGA:
+			case WBMP:
+				return new GenericImageInfo(
+					width, height, format, size, bitDepth, numComponents,
+					colorSpace, colorSpaceType, metadata, applyExifOrientation,
+					imageIOSupport
+				);
 			case BMP:
 				return new BMPInfo(
 					width, height, format, size, bitDepth, numComponents,
@@ -410,12 +420,6 @@ public abstract class ImageInfo implements Serializable {
 				);
 			case GIF:
 				return new GIFInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
-				);
-			case ICNS:
-				return new GenericImageInfo(
 					width, height, format, size, bitDepth, numComponents,
 					colorSpace, colorSpaceType, metadata, applyExifOrientation,
 					imageIOSupport
@@ -444,12 +448,6 @@ public abstract class ImageInfo implements Serializable {
 					colorSpace, colorSpaceType, metadata, applyExifOrientation,
 					imageIOSupport
 				);
-			case PNM:
-				return new GenericImageInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
-				);
 			case PSD:
 				return new PSDInfo(
 					width, height, format, size, bitDepth, numComponents,
@@ -462,12 +460,6 @@ public abstract class ImageInfo implements Serializable {
 					colorSpace, colorSpaceType, metadata, applyExifOrientation,
 					imageIOSupport
 				);
-			case WBMP:
-				return new GenericImageInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
-				);
 			case WEBP:
 				return new WebPInfo(
 					width, height, format, size, bitDepth, numComponents,
@@ -475,7 +467,7 @@ public abstract class ImageInfo implements Serializable {
 					imageIOSupport
 				);
 			default:
-				throw new IllegalStateException("Format " + format + "is unknown for this factory method");
+				throw new IllegalStateException("Format " + format + " is unknown for this ImageInfo.create()");
 		}
 	}
 
@@ -662,6 +654,18 @@ public abstract class ImageInfo implements Serializable {
 		}
 
 		switch (format) {
+			case ICNS:
+			case IFF:
+			case PICT:
+			case PNM:
+			case RGBE:
+			case SGI:
+			case TGA:
+			case WBMP:
+				return new GenericImageInfo(
+					width, height, metadata, format, size,
+					applyExifOrientation, throwOnParseFailure
+				);
 			case BMP:
 				return new BMPInfo(
 					width, height, metadata, format, size,
@@ -679,11 +683,6 @@ public abstract class ImageInfo implements Serializable {
 				);
 			case GIF:
 				return new GIFInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
-				);
-			case ICNS:
-				return new GenericImageInfo(
 					width, height, metadata, format, size,
 					applyExifOrientation, throwOnParseFailure
 				);
@@ -707,11 +706,6 @@ public abstract class ImageInfo implements Serializable {
 					width, height, metadata, format, size,
 					applyExifOrientation, throwOnParseFailure
 				);
-			case PNM:
-				return new GenericImageInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
-				);
 			case PSD:
 				return new PSDInfo(
 					width, height, metadata, format, size,
@@ -722,18 +716,13 @@ public abstract class ImageInfo implements Serializable {
 					width, height, metadata, format, size,
 					applyExifOrientation, throwOnParseFailure
 				);
-			case WBMP:
-				return new GenericImageInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
-				);
 			case WEBP:
 				return new WebPInfo(
 					width, height, metadata, format, size,
 					applyExifOrientation, throwOnParseFailure
 				);
 			default:
-				throw new IllegalStateException("Format " + format + "is unknown for this factory method");
+				throw new IllegalStateException("Format " + format + " is unknown for ImageInfo.create()");
 		}
 	}
 

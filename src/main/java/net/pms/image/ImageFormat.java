@@ -63,20 +63,30 @@ public enum ImageFormat {
 	GIF,
 	ICNS,
 	ICO,
+	/** Interchange File Format */
+	IFF,
 	JPEG,
 	KDC,
 	NEF,
 	ORF,
 	PCX,
+	/** Apple PICT */
+	PICT,
 	PEF,
 	PNG,
 	PNM,
 	PSD,
 	RAF,
+	/** Radiance HDR/RGBE */
+	RGBE,
 	RW2,
+	/** Silicon Graphics SGI image format */
+	SGI,
 	/** A special code that means "whatever the source image uses" where that's relevant. */
 	SOURCE,
 	SRW,
+	/** Truevision Targa Graphic */
+	TGA,
 	TIFF,
 	WBMP,
 	WEBP;
@@ -157,16 +167,39 @@ public enum ImageFormat {
         		result = ImageFormat.ICNS;
         	} else if (formatName.contains("ICO")) {
         		result = ImageFormat.ICO;
+        	} else if (formatName.equals("IFF")) {
+        		result = ImageFormat.IFF;
         	} else if (formatName.contains("JPEG")) {
         		result = ImageFormat.JPEG;
         	} else if (formatName.contains("PCX")) {
         		result = ImageFormat.PCX;
+        	} else if (
+        		formatName.contains("PIC") ||
+        		formatName.contains("PCT")
+        	) {
+        		result = ImageFormat.PICT;
         	} else if (formatName.contains("PNG")) {
         		result = ImageFormat.PNG;
         	} else if (formatName.contains("PNM")) {
         		result = ImageFormat.PNM;
         	} else if (formatName.contains("PSD")) {
         		result = ImageFormat.PSD;
+        	} else if (
+        		formatName.contains("RGBE") ||
+        		formatName.contains("HDR") ||
+        		formatName.contains("XYZE")
+        	) {
+        		result = ImageFormat.RGBE;
+        	} else if (
+        		formatName.contains("SGI") ||
+        		formatName.equals("RLE")
+        	) {
+        		result = ImageFormat.SGI;
+        	} else if (
+        		formatName.contains("TGA") ||
+        		formatName.contains("TARGA")
+        	) {
+        		result = ImageFormat.TGA;
         	} else if (formatName.contains("TIFF")) {
         		result = ImageFormat.TIFF;
         	} else if (formatName.contains("WBMP")) {
@@ -318,11 +351,16 @@ public enum ImageFormat {
 			case GIF:
 			case ICNS:
 			case ICO:
+			case IFF:
 			case JPEG:
 			case PCX:
+			case PICT:
 			case PNG:
 			case PNM:
 			case PSD:
+			case RGBE:
+			case SGI:
+			case TGA:
 			case TIFF:
 			case WBMP:
 				return true;
@@ -381,7 +419,7 @@ public enum ImageFormat {
 			case SOURCE:
 				throw new IllegalArgumentException("SOURCE cannot be translated into an actual format");
 			default:
-				return toString();
+				return toString().toLowerCase(Locale.ROOT);
 		}
 	}
 }
