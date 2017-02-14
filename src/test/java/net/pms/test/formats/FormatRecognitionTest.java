@@ -30,19 +30,19 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
-import net.pms.formats.GIF;
 import net.pms.formats.ISO;
-import net.pms.formats.JPG;
-import net.pms.formats.M4A;
 import net.pms.formats.MKV;
-import net.pms.formats.MP3;
 import net.pms.formats.MPG;
-import net.pms.formats.OGG;
-import net.pms.formats.PNG;
-import net.pms.formats.RAW;
-import net.pms.formats.TIF;
-import net.pms.formats.WAV;
 import net.pms.formats.WEB;
+import net.pms.formats.audio.M4A;
+import net.pms.formats.audio.MP3;
+import net.pms.formats.audio.OGG;
+import net.pms.formats.audio.WAV;
+import net.pms.formats.image.GIF;
+import net.pms.formats.image.JPG;
+import net.pms.formats.image.PNG;
+import net.pms.formats.image.RAW;
+import net.pms.formats.image.TIFF;
 import net.pms.network.HTTPResource;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
@@ -138,7 +138,7 @@ public class FormatRecognitionTest {
 		// Construct JPG information
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("tiff");
-		Format format = new TIF();
+		Format format = new TIFF();
 		format.match("test.tiff");
 		assertEquals("PS3 is compatible with TIFF", true,
 				conf.isCompatible(info, format, configuration));
