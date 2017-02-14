@@ -1295,6 +1295,7 @@ public class ImagesUtil {
 
 		boolean convertColors =
 			bufferedImage.getType() == BufferedImageType.TYPE_CUSTOM.getTypeId() ||
+			bufferedImage.getType() == BufferedImageType.TYPE_BYTE_BINARY.getTypeId() ||
 			bufferedImage.getColorModel().getColorSpace().getType() != ColorSpaceType.TYPE_RGB.getTypeId();
 
 		// Impose DLNA format restrictions
