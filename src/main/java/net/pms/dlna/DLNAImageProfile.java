@@ -603,14 +603,38 @@ public class DLNAImageProfile implements Serializable {
 		}
 
 		PNGInfo pngInfo = (PNGInfo) imageInfo;
-		if (pngInfo.getColorType() != null && pngInfo.getBitDepth() == 8) {
+		if (pngInfo.getColorType() != null) {
 			switch (pngInfo.getColorType()) {
 				case Greyscale:
 				case GreyscaleWithAlpha:
+					if (pngInfo.getBitDepth() == 8 || pngInfo.getBitDepth() == 16) {
+						complianceResult.colorsCorrect = true;
+					} else {
+						if (LOGGER.isTraceEnabled()) {
+							complianceResult.failures.add(String.format(
+								"PNG DLNA compliance failed with illegal bit depth \"%d\"",
+								pngInfo.getBitDepth()
+							));
+						} else {
+							complianceResult.failures.add("bit depth");
+						}
+					}
+					break;
 				case IndexedColor:
 				case TrueColor:
 				case TrueColorWithAlpha:
-					complianceResult.colorsCorrect = true;
+					if (pngInfo.getBitDepth() == 8) {
+						complianceResult.colorsCorrect = true;
+					} else {
+						if (LOGGER.isTraceEnabled()) {
+							complianceResult.failures.add(String.format(
+								"PNG DLNA compliance failed with illegal bit depth \"%d\"",
+								pngInfo.getBitDepth()
+							));
+						} else {
+							complianceResult.failures.add("bit depth");
+						}
+					}
 					break;
 				default:
 					if (LOGGER.isTraceEnabled()) {
@@ -623,21 +647,10 @@ public class DLNAImageProfile implements Serializable {
 					}
 			}
 		} else if (LOGGER.isTraceEnabled()) {
-			if (pngInfo.getColorType() == null) {
-				if (LOGGER.isTraceEnabled()) {
-					complianceResult.failures.add("PNG DLNA compliance failed with missing color type information");
-				} else {
-					complianceResult.failures.add("missing color type");
-				}
+			if (LOGGER.isTraceEnabled()) {
+				complianceResult.failures.add("PNG DLNA compliance failed with missing color type information");
 			} else {
-				if (LOGGER.isTraceEnabled()) {
-					complianceResult.failures.add(String.format(
-						"PNG DLNA compliance failed with illegal bit depth \"%d\"",
-						pngInfo.getBitDepth()
-					));
-				} else {
-					complianceResult.failures.add("bit depth");
-				}
+				complianceResult.failures.add("missing color type");
 			}
 		}
 		if (pngInfo.isModifiedBitDepth()) {

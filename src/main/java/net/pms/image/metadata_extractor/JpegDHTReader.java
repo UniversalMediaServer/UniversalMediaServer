@@ -59,7 +59,7 @@ public class JpegDHTReader implements JpegSegmentMetadataReader
 				byte[] lBytes = getBytes(reader, 16);
 				int vCount = 0;
 				for (byte b : lBytes) {
-					vCount += b;
+					vCount += (0xFF & b);
 				}
 				byte[] vBytes = getBytes(reader, vCount);
 				directory.getTables().add(new HuffmanTable(tableClass, tableDestinationId, lBytes, vBytes));
