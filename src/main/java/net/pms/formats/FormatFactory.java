@@ -21,8 +21,8 @@ package net.pms.formats;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,11 +88,10 @@ public final class FormatFactory {
 		new WMA(),
 	};
 
-	private static final ReentrantReadWriteLock formatsLock = new ReentrantReadWriteLock();
 	/**
 	 * The list of registered formats.
 	 */
-	private static final List<Format> formats = new ArrayList<>(Arrays.asList(FORMATS));
+	private static final List<Format> formats = Collections.synchronizedList(new ArrayList<>(Arrays.asList(FORMATS)));
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -120,8 +119,7 @@ public final class FormatFactory {
 	 * @since 1.90.0
 	 */
 	public static Format getAssociatedFormat(final String filename) {
-		formatsLock.readLock().lock();
-		try {
+		synchronized(formats) {
 			for (Format format : formats) {
 				if (format.match(filename)) {
 					LOGGER.trace("Matched format " + format + " to \"" + filename + "\"");
@@ -130,8 +128,6 @@ public final class FormatFactory {
 					return format.duplicate();
 				}
 			}
-		} finally {
-			formatsLock.readLock().unlock();
 		}
 
 		LOGGER.trace("Could not match any format to \"" + filename + "\"");
@@ -145,45 +141,17 @@ public final class FormatFactory {
 	 * @since 1.90.0
 	 */
 	public static List<Format> getSupportedFormats() {
-		formatsLock.readLock().lock();
-		try {
-			return new ArrayList<Format>(formats);
-		} finally {
-			formatsLock.readLock().unlock();
-		}
+		return formats;
 	}
 
 	/**
-	 * Adds a {@link Format} to the registered formats.
+	 * Sets the list of known formats.
 	 *
-	 * @param format the {@link Format} to register.
+	 * @param formatList The list of supported formats.
+	 * @since 1.90.0
 	 */
-	public static boolean addFormat(Format format) {
-		if (format == null) {
-			throw new NullPointerException("format cannot be null");
-		}
-		formatsLock.writeLock().lock();
-		try {
-			return formats.add(format);
-		} finally {
-			formatsLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Removes a {@link Format} from the registered formats.
-	 *
-	 * @param format the {@link Format} to remove.
-	 */
-	public static boolean removeFormat(Format format) {
-		if (format == null) {
-			throw new NullPointerException("format cannot be null");
-		}
-		formatsLock.writeLock().lock();
-		try {
-			return formats.remove(format);
-		} finally {
-			formatsLock.writeLock().unlock();
-		}
+	public static void setFormats(List<Format> formatList) {
+		formats.clear();
+		formats.addAll(formatList);
 	}
 }

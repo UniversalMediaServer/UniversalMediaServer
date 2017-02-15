@@ -265,25 +265,6 @@ public class FormatsRegressionTest0 {
 	}
 
 	@Test
-	public void test17() throws Throwable {
-
-		if (debug) {
-			System.out.format("%n%s%n", "FormatsRegressionTest0.test17");
-		}
-
-		net.pms.formats.Format format0 = null;
-		// The following exception was thrown during execution in test
-		// generation
-		try {
-			boolean b1 = net.pms.formats.FormatFactory.addFormat(format0);
-			org.junit.Assert.fail("Expected exception of type java.lang.NullPointerException");
-		} catch (java.lang.NullPointerException e) {
-			// Expected exception.
-		}
-
-	}
-
-	@Test
 	public void test18() throws Throwable {
 
 		if (debug) {
@@ -553,7 +534,7 @@ public class FormatsRegressionTest0 {
 		}
 
 		net.pms.formats.SUP sUP0 = new net.pms.formats.SUP();
-		boolean b1 = net.pms.formats.FormatFactory.addFormat((net.pms.formats.Format) sUP0);
+		boolean b1 = net.pms.formats.FormatFactory.getSupportedFormats().add((net.pms.formats.Format) sUP0);
 
 		// Regression assertion (captures the current behavior of the code)
 		org.junit.Assert.assertTrue(b1 == true);
