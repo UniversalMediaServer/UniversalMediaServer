@@ -45,6 +45,7 @@ import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
+import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SubtitleColor;
@@ -2811,12 +2812,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public SubtitleColor getSubsColor() {
 		String colorString = getString(KEY_SUBS_COLOR, null);
 		if (StringUtils.isNotBlank(colorString)) {
-			SubtitleColor result = SubtitleColor.toSubtitleColor(colorString);
-			if (result != null) {
-				return result;
+			try {
+				return new SubtitleColor(colorString);
+			} catch (InvalidArgumentException e) {
+				LOGGER.error("Using default subtitle color: {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
-		return new SubtitleColor(0xFF, 0xFF, 0xFF, 0xFF);
+		return new SubtitleColor(0xFF, 0xFF, 0xFF);
 	}
 
 	public void setSubsColor(Color color) {

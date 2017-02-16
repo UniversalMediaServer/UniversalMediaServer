@@ -248,39 +248,6 @@ public class StringUtil {
 	}
 
 	/**
-	 * Interprets color strings of these forms:
-	 *    integer: r,g,b[,a]          - e.g. '125,184,47' or '125,184,47,128'
-	 *    hex: #[aa]rrggbb            - e.g. '#04DCF9' or '#8004DCF9'
-	 *    java.awt.Color named color  - e.g. 'blue' or 'LIGHT_GRAY'
-	 */
-	public static Color parseColor(String colorString) {
-		try {
-			colorString = colorString.trim();
-			if (colorString.contains(",")) {
-				// Integer r,g,b[,a]
-				String[] colorElements = colorString.split("\\s*,\\s*");
-				int r = Integer.parseInt(colorElements[0]);
-				int g = Integer.parseInt(colorElements[1]);
-				int b = Integer.parseInt(colorElements[2]);
-				int a = colorElements.length > 3 ? Integer.parseInt(colorElements[3]) : 255;
-				return new Color(r, g, b, a);
-
-			} else if (colorString.charAt(0) == '#') {
-				// Hex #[aa]rrggbb
-				long argb = Long.parseLong(colorString.substring(1), 16);
-				return new Color((int)argb, colorString.length() > 8);
-
-			} else {
-				// java.awt.Color named color
-				return (Color) Color.class.getField(colorString).get(null);
-			}
-		} catch (Exception e) {
-		}
-		LOGGER.warn("Unknown color '{}'. Color string must be rgb (integer R,G,B[,A] or hex #[AA]RRGGBB) or a standard java.awt.Color name", colorString);
-		return null;
-	}
-
-	/**
 	 * Returns the argument string surrounded with quotes if it contains a space,
 	 * otherwise returns the string as is.
 	 *
@@ -373,7 +340,7 @@ public class StringUtil {
 
 	/**
 	 * Escapes {@link org.apache.lucene} special characters with backslash
-	 * 
+	 *
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */
@@ -412,7 +379,7 @@ public class StringUtil {
 
 	/**
 	 * Escapes special characters with backslashes for FFmpeg subtitles
-	 * 
+	 *
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */
