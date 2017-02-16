@@ -29,6 +29,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
+import net.pms.formats.image.ImageBase;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,6 @@ import org.slf4j.LoggerFactory;
 public class FormatConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatConfiguration.class);
 	private ArrayList<SupportSpec> supportSpecs;
-	// Use old parser for JPEG files (MediaInfo does not support EXIF)
-	private static final String[] PARSER_V1_EXTENSIONS = new String[]{".jpg", ".jpe", ".jpeg"};
 	public static final String THREEGPP = "3gp";
 	public static final String THREEGPP2 = "3g2";
 	public static final String THREEGA = "3ga";
@@ -375,7 +374,8 @@ public class FormatConfiguration {
 	 */
 	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, RendererConfiguration renderer) {
 		if (file.getFile() != null) {
-			if (renderer.isUseMediaInfo() && !(ext instanceof net.pms.formats.image.PNM)) {
+			// Don't parse images with MediaInfo
+			if (renderer.isUseMediaInfo() && !(ext instanceof ImageBase)) {
 				LibMediaInfoParser.parse(media, file, type, renderer);
 			} else {
 				media.parse(file, ext, type, false, false, renderer);
