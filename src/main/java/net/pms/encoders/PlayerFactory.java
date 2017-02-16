@@ -305,7 +305,9 @@ public final class PlayerFactory {
 					LOGGER.trace("Player \"{}\" is incompatible", player.name());
 				}
 			} else {
-				LOGGER.trace("Player \"{}\" is disabled", player.name());
+				if (!isImage || player instanceof ImagePlayer) {
+					LOGGER.trace("Player \"{}\" is disabled", player.name());
+				}
 			}
 		}
 

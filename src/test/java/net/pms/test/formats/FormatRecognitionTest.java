@@ -33,16 +33,11 @@ import net.pms.formats.Format;
 import net.pms.formats.ISO;
 import net.pms.formats.MKV;
 import net.pms.formats.MPG;
-import net.pms.formats.WEB;
 import net.pms.formats.audio.M4A;
 import net.pms.formats.audio.MP3;
 import net.pms.formats.audio.OGG;
 import net.pms.formats.audio.WAV;
-import net.pms.formats.image.GIF;
-import net.pms.formats.image.JPG;
-import net.pms.formats.image.PNG;
 import net.pms.formats.image.RAW;
-import net.pms.formats.image.TIFF;
 import net.pms.network.HTTPResource;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
@@ -82,66 +77,6 @@ public class FormatRecognitionTest {
 		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
 		assertEquals("With nothing provided isCompatible() should return false", false,
 				conf.isCompatible(null, null, configuration));
-	}
-
-	/**
-	 * Test the compatibility of the Playstation 3 with the GIF format.
-	 */
-	@Test
-	public void testPlaystationImageGifCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
-		assumeTrue(mediaInfoParserIsValid);
-
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
-		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
-
-		// Construct GIF information
-		DLNAMediaInfo info = new DLNAMediaInfo();
-		info.setContainer("gif");
-		Format format = new GIF();
-		format.match("test.gif");
-		assertEquals("PS3 is compatible with GIF", true,
-				conf.isCompatible(info, format, configuration));
-	}
-
-	/**
-	 * Test the compatibility of the Playstation 3 with the PNG format.
-	 */
-	@Test
-	public void testPlaystationImagePngCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
-		assumeTrue(mediaInfoParserIsValid);
-
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
-		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
-
-		// Construct JPG information
-		DLNAMediaInfo info = new DLNAMediaInfo();
-		info.setContainer("png");
-		Format format = new PNG();
-		format.match("test.png");
-		assertEquals("PS3 is compatible with PNG", true,
-				conf.isCompatible(info, format, configuration));
-	}
-
-	/**
-	 * Test the compatibility of the Playstation 3 with the TIFF format.
-	 */
-	@Test
-	public void testPlaystationImageTiffCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
-		assumeTrue(mediaInfoParserIsValid);
-
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
-		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
-
-		// Construct JPG information
-		DLNAMediaInfo info = new DLNAMediaInfo();
-		info.setContainer("tiff");
-		Format format = new TIFF();
-		format.match("test.tiff");
-		assertEquals("PS3 is compatible with TIFF", true,
-				conf.isCompatible(info, format, configuration));
 	}
 
 	/**
@@ -261,13 +196,6 @@ public class FormatRecognitionTest {
 		format.match("test.iso");
 		assertFalse("isCompatible() gives the outcome false for ISO", conf.isCompatible(info, format, configuration));
 
-		// JPG: true
-		info = new DLNAMediaInfo();
-		info.setContainer("jpg");
-		format = new JPG();
-		format.match("test.jpeg");
-		assertTrue("isCompatible() gives the outcome true for JPG", conf.isCompatible(info, format, configuration));
-
 		// M4A: false
 		info = new DLNAMediaInfo();
 		info.setContainer("m4a");
@@ -316,14 +244,6 @@ public class FormatRecognitionTest {
 		format = new WAV();
 		format.match("test.wav");
 		assertTrue("isCompatible() gives the outcome true for WAV", conf.isCompatible(info, format, configuration));
-
-		// WEB: type=IMAGE
-		info = new DLNAMediaInfo();
-		info.setContainer("jpg");
-		format = new WEB();
-		format.match("http://test.org/");
-		format.setType(Format.IMAGE);
-		assertTrue("isCompatible() give the outcome true for WEB image", conf.isCompatible(info, format, configuration));
 
 		// WEB: type=VIDEO
 		info = new DLNAMediaInfo();
