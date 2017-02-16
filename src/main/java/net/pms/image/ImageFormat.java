@@ -180,7 +180,14 @@ public enum ImageFormat {
         		result = ImageFormat.PICT;
         	} else if (formatName.contains("PNG")) {
         		result = ImageFormat.PNG;
-        	} else if (formatName.contains("PNM")) {
+        	} else if (
+        		formatName.contains("PNM") ||
+        		formatName.contains("PBM") ||
+        		formatName.contains("PGM") ||
+        		formatName.contains("PPM") ||
+        		formatName.contains("PAM") ||
+        		formatName.contains("PFM")
+        	) {
         		result = ImageFormat.PNM;
         	} else if (formatName.contains("PSD")) {
         		result = ImageFormat.PSD;
