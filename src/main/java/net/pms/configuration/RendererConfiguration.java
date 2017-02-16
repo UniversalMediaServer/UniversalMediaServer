@@ -26,6 +26,8 @@ import net.pms.network.UPNPHelper;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
+import net.pms.util.FormattableColor;
+import net.pms.util.InvalidArgumentException;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.Configuration;
@@ -357,8 +359,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public Color getColor(String key, String defaultValue) {
 		String colorString = getString(key, defaultValue);
-		Color color = StringUtil.parseColor(colorString);
-		return color != null ? color : ! colorString.equals(defaultValue) ? StringUtil.parseColor(defaultValue) : null;
+		if (!StringUtils.isBlank(colorString)) {
+			try {
+				return new FormattableColor(colorString);
+			} catch (InvalidArgumentException e) {
+				LOGGER.error(e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		if (StringUtils.isBlank(defaultValue)) {
+			return null;
+		}
+		try {
+			return new FormattableColor(defaultValue);
+		} catch (InvalidArgumentException e) {
+			LOGGER.error("Invalid default value: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
 	}
 
 	@Deprecated
