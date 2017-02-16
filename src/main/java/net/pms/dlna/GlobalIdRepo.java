@@ -31,23 +31,31 @@ public class GlobalIdRepo {
 	public void add(DLNAResource dlnaResource) {
 		lock.writeLock().lock();
 		try {
-			String id = dlnaResource.getId();
-			if (id != null) {
-				remove(id);
-			}
-			ids.add(new ID(dlnaResource, curGlobalId++));
+			boolean isUniqueResource = true;
+			String resourcePath = dlnaResource.getSystemName();
+//			String id = dlnaResource.getId();
+//			if (id != null) {
+//				remove(id);
+//			}
 
 			LOGGER.info("---------------------------------------------------------------------------------");
 			LOGGER.info("------------------------------- Global ID dump ----------------------------------");
 			LOGGER.info("---------------------------------------------------------------------------------");
 			for (ID element : ids) {
+				if ("RealFile".equals(element.dlnaResource.getClass().getSimpleName()) && resourcePath.equals(element.dlnaResource.getSystemName())) {
+					dlnaResource.setId(element.dlnaResource.getId());
+					isUniqueResource = false;
+				}
 				LOGGER.info(
-					"Id: {}, Name: {}, Class: {}, DisplayName: {}",
-					element.dlnaResource.getId(), element.dlnaResource.getName(), element.dlnaResource.getClass().getSimpleName(), element.dlnaResource.getDisplayName()
+					"Id: {}, Name: {}, Class: {}, DisplayName: {}, Path: {}",
+					element.dlnaResource.getId(), element.dlnaResource.getName(), element.dlnaResource.getClass().getSimpleName(), element.dlnaResource.getDisplayName(), element.dlnaResource.getSystemName()
 				);
 			}
 			LOGGER.info("---------------------------------------------------------------------------------");
 			LOGGER.info("");
+			if (isUniqueResource) {
+				ids.add(new ID(dlnaResource, curGlobalId++));
+			}
 		} finally {
 			lock.writeLock().unlock();
 		}
