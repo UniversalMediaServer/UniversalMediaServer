@@ -20,14 +20,14 @@ import su.litvak.chromecast.api.v2.ChromeCast;
 
 public class ChromecastMgr implements ServiceListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastMgr.class);
-	private JmDNS jmDNS;
+	private JmDNS ChromeCasts;
 	private ArrayList<ChromeDevice> chromes;
 	private RendererConfiguration ccr;
 
 	public ChromecastMgr(JmDNS j) throws IOException {
-		this.jmDNS = j;
+		this.ChromeCasts = j;
 		ccr = RendererConfiguration.getRendererConfigurationByName("Chromecast");
-		jmDNS.addServiceListener(ChromeCast.SERVICE_TYPE, this);
+		ChromeCasts.addServiceListener(ChromeCast.SERVICE_TYPE, this);
 		chromes = new ArrayList<>();
 		if (!PMS.getConfiguration().isChromecastDbg()) {
 			ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger)
@@ -43,7 +43,7 @@ public class ChromecastMgr implements ServiceListener {
 			return;
 		}
 		LOGGER.debug("Found chromecast " + event.getInfo().getName());
-		ChromeCast cc = new ChromeCast(jmDNS, event.getInfo().getName());
+		ChromeCast cc = new ChromeCast(ChromeCasts, event.getInfo().getName());
 		try {
 			cc.connect();
 			chromes.add(new ChromeDevice(cc, ccr, InetAddress.getByName(cc.getAddress())));
