@@ -18,6 +18,7 @@ import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
+import net.pms.formats.Format.Identifier;
 import net.pms.formats.v2.AudioProperties;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
@@ -2170,14 +2171,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param mediainfo The {@link DLNAMediaInfo} information parsed from the
+	 * @param mediaInfo The {@link DLNAMediaInfo} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @param configuration The {@link PmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format, PmsConfiguration configuration) {
+	public boolean isCompatible(DLNAMediaInfo mediaInfo, Format format, PmsConfiguration configuration) {
 
 		if (configuration == null) {
 			configuration = PMS.getConfiguration(this);
@@ -2191,10 +2192,38 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		) {
 			return true;
 		}
+		// Handle images differently because of automatic image transcoding
+		if (format != null && format.isImage()) {
+			if (
+				format.getIdentifier() == Identifier.RAW ||
+				mediaInfo != null && mediaInfo.getImageInfo() != null &&
+				mediaInfo.getImageInfo().getFormat() != null &&
+				mediaInfo.getImageInfo().getFormat().isRaw()
+			) {
+				LOGGER.trace(
+					"RAW ({}) images are not supported for streaming",
+					mediaInfo != null && mediaInfo.getImageInfo() != null && mediaInfo.getImageInfo().getFormat() != null ?
+					mediaInfo.getImageInfo().getFormat() :
+					format
+				);
+				return false;
+			}
+			if (mediaInfo != null && mediaInfo.getImageInfo() != null && mediaInfo.getImageInfo().isImageIOSupported()) {
+				LOGGER.trace(
+					"Format \"{}\" will be subject to on-demand automatic transcoding with ImageIO",
+					mediaInfo.getImageInfo().getFormat() != null ?
+					mediaInfo.getImageInfo().getFormat() :
+					format
+				);
+				return true;
+			}
+			LOGGER.trace("Format \"{}\" is not supported by ImageIO and will depend on a compatible transcoding engine", format);
+			return false;
+		}
 
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
-		if (isUseMediaInfo() && mediainfo != null && getFormatConfiguration().match(mediainfo) != null) {
+		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().match(mediaInfo) != null) {
 			return true;
 		}
 
