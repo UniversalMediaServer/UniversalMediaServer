@@ -616,7 +616,7 @@ public class PMS {
 
 		// launch ChromecastMgr
 		jmDNS = null;
-		launchJmDNSRenders();
+		launchJmDNSRenderers();
 
 		OutputParams outputParams = new OutputParams(configuration);
 
@@ -1868,7 +1868,7 @@ public class PMS {
 		return dynamicPls;
 	}
 
-	private void launchJmDNSRenders() {
+	private void launchJmDNSRenderers() {
 		if (configuration.useChromecastExt()) {
 			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
 				try {
@@ -1879,7 +1879,7 @@ public class PMS {
 				}
 			}
 			else {
-				LOGGER.info("No Chromecast render found. Please enable one and restart.");
+				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
 			}
 		}
 	}
