@@ -17,12 +17,14 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.formats.Format;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class RemoteBrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
 	private RemoteWeb parent;
@@ -167,7 +169,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				item.put("bump", sb.toString());
 				sb.setLength(0);
 
-				if (WebRender.supports(r) || r.isResume()) {
+				if (WebRender.supports(r) || r.isResume() || r.getType() == Format.IMAGE) {
 					sb.append("<a href=\"/play/").append(idForWeb)
 						.append("\" title=\"").append(name).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
