@@ -42,6 +42,7 @@ import net.pms.formats.image.BMP;
 import net.pms.formats.image.GIF;
 import net.pms.formats.image.JPG;
 import net.pms.formats.image.PNG;
+import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
@@ -164,8 +165,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case XBOX1:   return "Xbox One";
 			case OPERA:   return "Opera";
 			case EDGE:    return "Edge";
-			case CHROMIUM:return "Chromium";	
-			case VIVALDI: return "Vivaldi";	
+			case CHROMIUM:return "Chromium";
+			case VIVALDI: return "Vivaldi";
 			default:      return Messages.getString("PMS.142");
 		}
 	}
@@ -233,8 +234,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case XBOX1:   return "xbox-one.png";
 			case OPERA:   return "opera.png";
 			case EDGE:    return "edge.png";
-			case CHROMIUM:return "chromium.png";	
-			case VIVALDI: return "vivaldi.png";	
+			case CHROMIUM:return "chromium.png";
+			case VIVALDI: return "vivaldi.png";
 			default:      return super.getRendererIcon();
 		}
 	}
@@ -465,6 +466,28 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 		cmdList.add("-f");
 		cmdList.add("HLS");
+	}
+
+	public boolean isImageFormatSupported(ImageFormat format) {
+		if (format == null) {
+			return false;
+		}
+		if (format == ImageFormat.GIF || format == ImageFormat.JPEG || format == ImageFormat.PNG) {
+			return true;
+		}
+		switch (format) {
+			case BMP:
+				return
+					browser == FIREFOX || browser == CHROME ||
+					browser == CHROMIUM || browser == OPERA ||
+					browser == MSIE || browser == EDGE || browser == SAFARI;
+			case TIFF:
+				return browser == EDGE || browser == CHROMIUM || browser == SAFARI || browser == MSIE;
+			case WEBP:
+				return browser == CHROME || browser == CHROMIUM || browser == OPERA;
+			default:
+				return false;
+		}
 	}
 
 	public static boolean supportedFormat(Format f) {

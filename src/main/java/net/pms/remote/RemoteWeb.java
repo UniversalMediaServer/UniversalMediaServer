@@ -321,7 +321,7 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			LOGGER.debug("file req " + t.getRequestURI());
+			LOGGER.debug("Handling web interface file request \"{}\"", t.getRequestURI());
 
 			String path = t.getRequestURI().getPath();
 			String response = null;
