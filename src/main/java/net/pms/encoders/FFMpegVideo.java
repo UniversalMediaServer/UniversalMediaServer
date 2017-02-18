@@ -230,7 +230,7 @@ public class FFMpegVideo extends Player {
 
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
 						subsFilter.append(",Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
-						subsFilter.append(",PrimaryColour=").append(SubtitleUtils.convertColourToASSColourString(configuration.getSubsColor()));
+						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4StylesHexValue());
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
 						subsFilter.append(",MarginV=").append(configuration.getAssMargin());
@@ -431,16 +431,17 @@ public class FFMpegVideo extends Player {
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			defaultMaxBitrates = rendererMaxBitrates;
 			LOGGER.trace(
-				"Using the video bitrate limit from the renderer config ({} Mb/s) " +
-				"which is lower than the one from the program settings ({} Mb/s)",
+				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
+				"it is lower than the general configuration bitrate limit ({} Mb/s)",
+				params.mediaRenderer.getRendererName(),
 				rendererMaxBitrates[0],
 				defaultMaxBitrates[0]
 			);
+			defaultMaxBitrates = rendererMaxBitrates;
 		} else {
 			LOGGER.trace(
-				"Using the video bitrate limit from the program settings ({} Mb/s)",
+				"Using video bitrate limit from the general configuration ({} Mb/s)",
 				defaultMaxBitrates[0]
 			);
 		}

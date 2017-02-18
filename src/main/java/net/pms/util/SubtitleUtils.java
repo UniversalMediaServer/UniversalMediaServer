@@ -440,7 +440,7 @@ public class SubtitleUtils {
 
 								break;
 							case "PrimaryColour":
-								params[i] = convertColourToASSColourString(configuration.getSubsColor());
+								params[i] = configuration.getSubsColor().getASSv4StylesHexValue();
 								break;
 							case "Outline":
 								params[i] = configuration.getAssOutline();
@@ -525,7 +525,7 @@ public class SubtitleUtils {
 				fontScaleY = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
 			}
 
-			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
+			String primaryColour = configuration.getSubsColor().getASSv4StylesHexValue();
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
 			outputString.append("Style: Default,Arial,").append("15").append(',').append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(',').append(fontScaleY).append(",0,0,1,").append(outline).append(',').append(shadow);
@@ -611,19 +611,6 @@ public class SubtitleUtils {
 
 	public static void deleteSubs() {
 		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
-	}
-
-	/**
-	 * Converts the standard Colour RGB integer presentation to the SSA/ASS string format which
-	 * is formatted as BGR (really stupid SSA/ASS implementation)
-	 *
-	 * @param colour the RGB color in the integer format
-	 * @return Converted color string in the ASS format
-	 */
-	public static String convertColourToASSColourString(String colour) {
-		StringBuilder outputString = new StringBuilder();
-		outputString.append("&H").append(colour.substring(6, 8)).append(colour.substring(4, 6)).append(colour.substring(2, 4));
-		return outputString.toString();
 	}
 
 	/**

@@ -51,7 +51,6 @@ import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -694,16 +693,17 @@ public class MEncoderVideo extends Player {
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			defaultMaxBitrates = rendererMaxBitrates;
 			LOGGER.trace(
-				"Using the video bitrate limit from the renderer config ({} Mb/s) " +
-				"which is lower than the one from the program settings ({} Mb/s)",
+				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
+				"it is lower than the general configuration bitrate limit ({} Mb/s)",
+				mediaRenderer.getRendererName(),
 				rendererMaxBitrates[0],
 				defaultMaxBitrates[0]
 			);
+			defaultMaxBitrates = rendererMaxBitrates;
 		} else {
 			LOGGER.trace(
-				"Using the video bitrate limit from the program settings ({} Mb/s)",
+				"Using video bitrate limit from the general configuration ({} Mb/s)",
 				defaultMaxBitrates[0]
 			);
 		}
@@ -1255,7 +1255,13 @@ public class MEncoderVideo extends Player {
 			}
 
 			if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
-				LOGGER.trace("Using the video bitrate limit from the renderer config (" + rendererMaxBitrates[0] + " Mb/s) which is lower than the one from the program settings (" + defaultMaxBitrates[0] + " Mb/s)");
+				LOGGER.trace(
+					"Using video bitrate limit from {} configuration ({} Mb/s) because " +
+					"it is lower than the general configuration bitrate limit ({} Mb/s)",
+					params.mediaRenderer.getRendererName(),
+					rendererMaxBitrates[0],
+					defaultMaxBitrates[0]
+				);
 				defaultMaxBitrates = rendererMaxBitrates;
 			}
 
@@ -1420,14 +1426,7 @@ public class MEncoderVideo extends Player {
 					params.sid.getType() == SubtitleType.TX3G;
 
 				if (override_ass_style) {
-					String assSubColor = "ffffff00";
-					if (StringUtils.isNotBlank(configuration.getSubsColor())) {
-						assSubColor = configuration.getSubsColor();
-						if (assSubColor.length() > 2) {
-							assSubColor = assSubColor.substring(2) + "00";
-						}
-					}
-
+					String assSubColor = configuration.getSubsColor().getMEncoderHexValue();
 					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getAssScale());
 
 					// Set subtitles font

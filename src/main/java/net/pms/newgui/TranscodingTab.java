@@ -25,8 +25,8 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
-import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Locale;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -1002,21 +1002,29 @@ public class TranscodingTab {
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
-		subColor.setBackground(new Color(new BigInteger(configuration.getSubsColor(), 16).intValue()));
+		subColor.setBackground(configuration.getSubsColor());
 		subColor.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(
-					looksFrame,
-					Messages.getString("MEncoderVideo.125"),
-					subColor.getBackground()
-				);
+				final JColorChooser jColorChooser = new JColorChooser(subColor.getBackground());
+				Locale locale = PMS.getLocale();
+				jColorChooser.setLocale(locale);
+				jColorChooser.setComponentOrientation(ComponentOrientation.getOrientation(locale));
+				JDialog dialog = JColorChooser.createDialog(looksFrame, Messages.getString("MEncoderVideo.125"), true, jColorChooser, new ActionListener() {
 
-				if (newColor != null) {
-					subColor.setBackground(newColor);
-					configuration.setSubsColor(Integer.toHexString(newColor.getRGB()));
-					SubtitleUtils.deleteSubs(); // Color has been changed so all temporary subs will be deleted and make new
-				}
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						Color newColor = jColorChooser.getColor();
+						if (newColor != null) {
+							subColor.setBackground(newColor);
+							configuration.setSubsColor(newColor);
+							// Subtitle color has been changed so all temporary subtitles must be deleted
+							SubtitleUtils.deleteSubs();
+						}
+					}
+				}, null);
+				dialog.setVisible(true);
+				dialog.dispose();
 			}
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(13, 14, 3), colSpec, orientation));

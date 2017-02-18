@@ -59,7 +59,6 @@ public class GlobalIdRepo {
 		} finally {
 			lock.writeLock().unlock();
 		}
-
 	}
 
 	public DLNAResource get(String id) {
