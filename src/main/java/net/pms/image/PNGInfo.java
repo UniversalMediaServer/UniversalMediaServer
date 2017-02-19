@@ -279,4 +279,16 @@ public class PNGInfo extends ImageInfo {
 		boolean hasTransparencyChunk = false;
 		boolean isModifiedBitDepth = false;
 	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+		if (colorType != null) {
+			sb.append(", Color Type = ").append(colorType);
+		}
+		if (interlaceMethod != null) {
+			sb.append(", Interlace Method = ").append(interlaceMethod);
+		}
+		sb.append(", Has Transparency Chunk = ").append(hasTransparencyChunk ? "True" : "False")
+		.append("Has Modified Bit Depth = ").append(isModifiedBitDepth ? "True" : "False");
+	}
 }

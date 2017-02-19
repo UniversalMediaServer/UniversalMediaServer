@@ -127,4 +127,8 @@ public class ICOInfo extends ImageInfo {
 	public ICOInfo copy() {
 		return new ICOInfo(width, height, format, size, bitDepth, numComponents, colorSpace, colorSpaceType, imageIOSupport);
 	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+	}
 }

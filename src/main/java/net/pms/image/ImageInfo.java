@@ -929,14 +929,35 @@ public abstract class ImageInfo implements Serializable {
 	 */
 	public abstract ImageInfo copy();
 
+	protected abstract void buildToString(StringBuilder sb);
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(80);
 		sb.append(this.getClass().getSimpleName())
-		.append(": Format = ").append(format)
-		.append(", Width = ").append(width)
-		.append(", Height = ").append(height)
-		.append(", Size = ").append(size == SIZE_UNKNOWN ? "Unknown" : size);
+		.append(" [Format = ").append(format)
+		.append(", Width = ").append(width == UNKNOWN ? "Unknown" : width)
+		.append(", Height = ").append(height == UNKNOWN ? "Unknown" : height)
+		.append(", Size = ").append(size == SIZE_UNKNOWN ? "Unknown" : size)
+		.append(", Bit Depth = ").append(bitDepth == UNKNOWN ? "Unknown" : bitDepth)
+		.append(", Number of Components = ").append(numComponents == UNKNOWN ? "Unknown" : numComponents);
+		if (colorSpace != null) {
+			sb.append(", Color Space = [");
+			for (int i = 0; i < colorSpace.getNumComponents(); i++) {
+				if (i != 0) {
+					sb.append(", ");
+				}
+				sb.append(colorSpace.getName(i));
+			}
+			sb.append("]");
+		}
+		if (colorSpaceType != null) {
+			sb.append(", Color Space Type = ").append(colorSpaceType);
+		}
+		sb.append(", ImageIO Support = ").append(imageIOSupport ? "True" : "False");
+		buildToString(sb);
+		sb.append("]");
+
 		return sb.toString();
 	}
 
