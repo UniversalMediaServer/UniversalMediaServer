@@ -53,8 +53,9 @@ public class GlobalIdRepo {
 //					isUniqueResource = false;
 //				}
 				LOGGER.info(
-					"Id: {}, Name: {}, Class: {}, DisplayName: {}, Path: {}",
-					element.dlnaResource.getId(), element.dlnaResource.getName(), element.dlnaResource.getClass().getSimpleName(), element.dlnaResource.getDisplayName(), element.dlnaResource.getSystemName()
+					"Instance: {}, Id: {}, Name: {}, Class: {}, DisplayName: {}, Path: {}",
+					System.identityHashCode(element.dlnaResource), element.dlnaResource.getId(), element.dlnaResource.getName(),
+					element.dlnaResource.getClass().getSimpleName(), element.dlnaResource.getDisplayName(), element.dlnaResource.getSystemName()
 				);
 			}
 			LOGGER.info("---------------------------------------------------------------------------------");
