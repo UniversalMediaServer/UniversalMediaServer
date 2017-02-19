@@ -92,6 +92,10 @@ public class ImagesUtil {
 			throw new IllegalArgumentException("parseImage: media cannot be null");
 		}
 
+		boolean trace = LOGGER.isTraceEnabled();
+		if (trace) {
+			LOGGER.trace("Parsing image file \"{}\"", file.getAbsolutePath());
+		}
 		long size = file.length();
 		ResettableInputStream inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), MAX_BUFFER);
 		try  {
@@ -218,6 +222,9 @@ public class ImagesUtil {
 			if (format != null) {
 				media.setCodecV(format.toFormatConfiguration());
 				media.setContainer(format.toFormatConfiguration());
+			}
+			if (trace) {
+				LOGGER.trace("Parsing of image \"{}\" completed", file.getName());
 			}
 		} finally {
 			inputStream.close();
@@ -1152,6 +1159,32 @@ public class ImagesUtil {
 		) {
 			throw new IllegalArgumentException("Use either inputByteArray, inputImage or inputStream");
 		}
+
+		boolean trace = LOGGER.isTraceEnabled();
+		if (trace) {
+			StringBuilder sb = new StringBuilder();
+			if (scaleType != null) {
+				sb.append("ScaleType = ").append(scaleType);
+			}
+			if (width > 0 && height > 0) {
+				if (sb.length() > 0) {
+					sb.append(", ");
+				}
+				sb.append("Width = ").append(width).append(", Height = ").append(height);
+			}
+			if (sb.length() > 0) {
+				sb.append(", ");
+			}
+			sb.append("PadToSize = ").append(padToSize ? "True" : "False");
+			LOGGER.trace(
+				"Converting image with {} source to {} ({}) using the following parameters: {}",
+				inputByteArray != null ? "byte array" : inputImage != null ? "Image" : "input stream",
+				outputProfile != null ? outputProfile : outputFormat,
+				dlnaThumbnail ? "DLNAThumbnail" : dlnaCompliant ? "DLNAImage" : "Image",
+				sb
+			);
+		}
+
 		ImageIO.setUseCache(false);
 		dlnaCompliant = dlnaCompliant || dlnaThumbnail;
 
@@ -1334,6 +1367,22 @@ public class ImagesUtil {
 					Math.min(height, complianceResult.getMaxHeight()) :
 						height > 0 ? height : complianceResult.getMaxHeight();
 			}
+			if (trace) {
+				if (complianceResult.isAllCorrect()) {
+					LOGGER.trace("Image conversion DLNA compliance check: The source image is compliant");
+				} else {
+					LOGGER.trace(
+						"Image conversion DLNA compliance check for {}: " +
+						"The source image colors are {}, format is {} and resolution ({} x {}) is {}",
+						outputProfile,
+						complianceResult.isColorsCorrect() ? "compliant" : "non-compliant",
+						complianceResult.isFormatCorrect() ? "compliant" : "non-compliant",
+						bufferedImage.getWidth(),
+						bufferedImage.getHeight(),
+						complianceResult.isResolutionCorrect() ? "compliant" : "non-compliant"
+					);
+				}
+			}
 		}
 
 		if (convertColors) {
@@ -1391,6 +1440,16 @@ public class ImagesUtil {
 						new Image(inputByteArray, outputFormat, bufferedImage, metadata, false);
 				}
 				bufferedImage.flush();
+
+				if (trace) {
+					LOGGER.trace(
+						"No conversion is needed, returning source image with width = {}, height = {} and output {}.",
+						bufferedImage.getWidth(),
+						bufferedImage.getHeight(),
+						dlnaCompliant && outputProfile != null ? "profile: " + outputProfile : "format: " + outputFormat
+					);
+				}
+
 				return result;
 			}
 		} else {
@@ -1435,6 +1494,24 @@ public class ImagesUtil {
 		} else {
 			result = new Image(outputByteArray, bufferedImage.getWidth(), bufferedImage.getHeight(), outputFormat, null, null, true, false);
 		}
+
+		if (trace) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Convert colors = ").append(convertColors ? "True" : "False")
+			.append(", Re-encode = ").append(reencode ? "True" : "False");
+
+			LOGGER.trace(
+				"Finished converting image from format {}{}. " +
+				"Output image width = {}, height = {} and output {}. Flags: {}",
+				inputResult.imageFormat,
+				orientation != ExifOrientation.TOP_LEFT ? " with orientation " + orientation : "",
+				bufferedImage.getWidth(),
+				bufferedImage.getHeight(),
+				dlnaCompliant && outputProfile != null ? "profile: " + outputProfile : "format: " + outputFormat,
+				sb
+			);
+		}
+
 		bufferedImage.flush();
 		return result;
 	}

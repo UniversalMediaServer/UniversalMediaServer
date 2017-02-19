@@ -320,4 +320,11 @@ public class BMPInfo extends ImageInfo {
 	protected static class BMPParseInfo extends ParseInfo {
 		CompressionType compressionType;
 	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+		if (compressionType != null) {
+			sb.append(", Compression Type = ").append(compressionType);
+		}
+	}
 }
