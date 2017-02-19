@@ -31,23 +31,12 @@ public class GlobalIdRepo {
 	public void add(DLNAResource dlnaResource) {
 		lock.writeLock().lock();
 		try {
-			boolean isUniqueResource = true;
-			String incomingResourcePath = dlnaResource.getSystemName();
-			String incomingClass = dlnaResource.getClass().getSimpleName();
 			String id = dlnaResource.getId();
 			if (id != null) {
 				remove(id);
 			}
 
-			for (ID element : ids) {
-				if (incomingClass.equals(element.dlnaResource.getClass().getSimpleName()) && incomingResourcePath.equals(element.dlnaResource.getSystemName())) {
-					dlnaResource.setId(element.dlnaResource.getId());
-					isUniqueResource = false;
-				}
-			}
-			if (isUniqueResource) {
-				ids.add(new ID(dlnaResource, curGlobalId++));
-			}
+			ids.add(new ID(dlnaResource, curGlobalId++));
 		} finally {
 			lock.writeLock().unlock();
 		}
