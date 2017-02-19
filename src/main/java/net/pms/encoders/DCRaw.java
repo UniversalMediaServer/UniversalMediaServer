@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JComponent;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -93,6 +94,9 @@ public class DCRaw extends ImagePlayer {
 	 * @throws IOException if an IO error occurs.
 	 */
 	public byte[] getImage(OutputParams params, String fileName, ImageInfo imageInfo) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Decoding image \"{}\" with DCRaw", fileName);
+		}
 		if (params == null) {
 			params = new OutputParams(PMS.getConfiguration());
 		}
@@ -125,6 +129,8 @@ public class DCRaw extends ImagePlayer {
 		if (bytes == null || bytes.length == 0) {
 			if (!results.isEmpty() && results.get(0).startsWith("Cannot decode file")) {
 				LOGGER.warn("DCRaw could not decode image \"{}\"", fileName);
+			} else if (!results.isEmpty()) {
+				LOGGER.debug("DCRaw failed to decode image \"{}\": {}", fileName, StringUtils.join(results, "\n"));
 			}
 			return null;
 		}
@@ -142,6 +148,10 @@ public class DCRaw extends ImagePlayer {
 	 * @throws IOException if an IO error occurs.
 	 */
 	public byte[] getThumbnail(OutputParams params, String fileName, ImageInfo imageInfo) {
+		boolean trace = LOGGER.isTraceEnabled();
+		if (trace) {
+			LOGGER.trace("Extracting thumbnail from \"{}\" with DCRaw", fileName);
+		}
 		if (params == null) {
 			params = new OutputParams(PMS.getConfiguration());
 		}
@@ -167,8 +177,15 @@ public class DCRaw extends ImagePlayer {
 		byte[] bytes = pw.getOutputByteArray().toByteArray();
 		List<String> results = pw.getResults();
 
-		// No embedded thumbnail retrieved, generate thumbnail from the actual file
 		if (bytes.length == 0 && !results.isEmpty() && results.get(0).contains("has no thumbnail")) {
+			// No embedded thumbnail retrieved, generate thumbnail from the actual file
+			if (trace) {
+				LOGGER.trace(
+					"No embedded thumbnail found in \"{}\", " +
+					"trying to generate thumbnail from the image itself",
+					fileName
+				);
+			}
 			params.outputByteArrayStreamBufferSize =
 				imageInfo != null &&
 					imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ?
@@ -178,6 +195,9 @@ public class DCRaw extends ImagePlayer {
 
 			pw.runInSameThread();
 			bytes = pw.getOutputByteArray().toByteArray();
+		}
+		if (trace && (bytes == null || bytes.length == 0)) {
+			LOGGER.trace("Failed to generate thumbnail with DCRaw for image \"{}\"", fileName);
 		}
 		return bytes != null && bytes.length > 0 ? bytes : null;
 	}
@@ -217,6 +237,14 @@ public class DCRaw extends ImagePlayer {
 			if (matcher.find()) {
 				media.setWidth(Integer.parseInt(matcher.group(1)));
 				media.setHeight(Integer.parseInt(matcher.group(2)));
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(
+						"Parsed resolution {} x {} for image \"{}\" from DCRaw output",
+						Integer.parseInt(matcher.group(1)),
+						Integer.parseInt(matcher.group(2)),
+						file.getPath()
+					);
+				}
 				break;
 			}
 		}

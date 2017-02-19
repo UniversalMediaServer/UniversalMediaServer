@@ -127,4 +127,8 @@ public class WebPInfo extends ImageInfo {
 	public WebPInfo copy() {
 		return new WebPInfo(width, height, format, size, bitDepth, numComponents, colorSpace, colorSpaceType, imageIOSupport);
 	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+	}
 }

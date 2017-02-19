@@ -116,4 +116,8 @@ public class GenericImageInfo extends ImageInfo {
 	public GenericImageInfo copy() {
 		return new GenericImageInfo(width, height, format, size, bitDepth, numComponents, colorSpace, colorSpaceType, imageIOSupport);
 	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+	}
 }

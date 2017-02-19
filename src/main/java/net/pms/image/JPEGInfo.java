@@ -5,6 +5,7 @@ import java.awt.image.ColorModel;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import net.pms.image.metadata_extractor.HuffmanTablesDirectory;
 import net.pms.util.ParseException;
 import com.drew.metadata.Directory;
@@ -392,5 +393,36 @@ public class JPEGInfo extends ExifInfo {
 		Map<Integer, JpegComponent> components = new HashMap<Integer, JpegComponent>(4);
 		Boolean isTypicalHuffman;
 		JPEGSubsamplingNotation chromaSubsampling;
+	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+		super.buildToString(sb);
+		if (jfifVersion != null) {
+			sb.append(", JFIF Version = ").append(Integer.toHexString(jfifVersion));
+		}
+		if (compressionType != null) {
+			sb.append(", Compression Type = ").append(compressionType);
+		}
+		if (isTypicalHuffman != null) {
+			sb.append(", Typical Huffman = ").append(isTypicalHuffman.booleanValue() ? "True" : "False");
+		}
+		if (chromaSubsampling != null) {
+			sb.append(", Chroma Subsampling = ").append(chromaSubsampling);
+		}
+		if (components != null) {
+			sb.append(", Components: [");
+			boolean first = true;
+			for (Entry<Integer, JpegComponent> component : components.entrySet()) {
+				if (!first) {
+					sb.append(", ");
+				}
+				sb.append(component.getKey()).append(" (").append(component.getValue().getComponentName()).append("): ")
+					.append(component.getValue().getHorizontalSamplingFactor()).append(" x ")
+					.append(component.getValue().getVerticalSamplingFactor());
+				first = false;
+			}
+			sb.append("]");
+		}
 	}
 }

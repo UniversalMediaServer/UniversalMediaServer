@@ -137,4 +137,8 @@ public class PCXInfo extends ImageInfo {
 	public PCXInfo copy() {
 		return new PCXInfo(width, height, format, size, bitDepth, numComponents, colorSpace, colorSpaceType, imageIOSupport);
 	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+	}
 }

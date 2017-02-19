@@ -208,4 +208,12 @@ public class GIFInfo extends ImageInfo {
 		String formatVersion;
 		Boolean hasTransparency;
 	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+		if (formatVersion != null) {
+			sb.append(", GIF Version = ").append(formatVersion);
+		}
+		sb.append(", Has Transparency = ").append(hasTransparency ? "True" : "False");
+	}
 }

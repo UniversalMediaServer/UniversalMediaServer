@@ -254,4 +254,14 @@ public class PSDInfo extends ImageInfo {
 		ColorMode colorMode;
 		Integer channelCount;
 	}
+
+	@Override
+	protected void buildToString(StringBuilder sb) {
+		if (colorMode != null) {
+			sb.append(", Color Mode = ").append(colorMode);
+		}
+		if (channelCount != null) {
+			sb.append(", Channel Count = ").append(channelCount);
+		}
+	}
 }
