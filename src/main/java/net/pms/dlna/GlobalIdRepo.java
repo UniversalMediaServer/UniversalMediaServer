@@ -31,9 +31,9 @@ public class GlobalIdRepo {
 	public void add(DLNAResource dlnaResource) {
 		lock.writeLock().lock();
 		try {
-			boolean isUniqueResource = true;
-			String incomingResourcePath = dlnaResource.getSystemName();
-			String incomingClass = dlnaResource.getClass().getSimpleName();
+//			boolean isUniqueResource = true;
+//			String incomingResourcePath = dlnaResource.getSystemName();
+//			String incomingClass = dlnaResource.getClass().getSimpleName();
 			String id = dlnaResource.getId();
 			if (id != null) {
 				remove(id);
@@ -47,11 +47,11 @@ public class GlobalIdRepo {
 			LOGGER.info("------------------------------- Global ID dump ----------------------------------");
 			LOGGER.info("---------------------------------------------------------------------------------");
 			for (ID element : ids) {
-				if (incomingClass.equals(element.dlnaResource.getClass().getSimpleName()) && incomingResourcePath.equals(element.dlnaResource.getSystemName())) {
-					LOGGER.info("already exists, setting id to " + element.dlnaResource.getId());
-					dlnaResource.setId(element.dlnaResource.getId());
-					isUniqueResource = false;
-				}
+//				if (incomingClass.equals(element.dlnaResource.getClass().getSimpleName()) && incomingResourcePath.equals(element.dlnaResource.getSystemName())) {
+//					LOGGER.info("already exists, setting id to " + element.dlnaResource.getId());
+//					dlnaResource.setId(element.dlnaResource.getId());
+//					isUniqueResource = false;
+//				}
 				LOGGER.info(
 					"Id: {}, Name: {}, Class: {}, DisplayName: {}, Path: {}",
 					element.dlnaResource.getId(), element.dlnaResource.getName(), element.dlnaResource.getClass().getSimpleName(), element.dlnaResource.getDisplayName(), element.dlnaResource.getSystemName()
@@ -59,10 +59,10 @@ public class GlobalIdRepo {
 			}
 			LOGGER.info("---------------------------------------------------------------------------------");
 			LOGGER.info("");
-			if (isUniqueResource) {
-				LOGGER.info("adding");
+//			if (isUniqueResource) {
+//				LOGGER.info("adding");
 				ids.add(new ID(dlnaResource, curGlobalId++));
-			}
+//			}
 		} finally {
 			lock.writeLock().unlock();
 		}
