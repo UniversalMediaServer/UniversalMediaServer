@@ -38,29 +38,14 @@ public class GlobalIdRepo {
 			if (id != null) {
 				remove(id);
 			}
-			LOGGER.info(
-				"Incoming Id: {}, Name: {}, Class: {}, DisplayName: {}, Path: {}",
-				dlnaResource.getId(), dlnaResource.getName(), dlnaResource.getClass().getSimpleName(), dlnaResource.getDisplayName(), dlnaResource.getSystemName()
-			);
 
-			LOGGER.info("---------------------------------------------------------------------------------");
-			LOGGER.info("------------------------------- Global ID dump ----------------------------------");
-			LOGGER.info("---------------------------------------------------------------------------------");
 			for (ID element : ids) {
 				if (incomingClass.equals(element.dlnaResource.getClass().getSimpleName()) && incomingResourcePath.equals(element.dlnaResource.getSystemName())) {
-					LOGGER.info("already exists, setting id to " + element.dlnaResource.getId());
 					dlnaResource.setId(element.dlnaResource.getId());
 					isUniqueResource = false;
 				}
-				LOGGER.info(
-					"Id: {}, Name: {}, Class: {}, DisplayName: {}, Path: {}",
-					element.dlnaResource.getId(), element.dlnaResource.getName(), element.dlnaResource.getClass().getSimpleName(), element.dlnaResource.getDisplayName(), element.dlnaResource.getSystemName()
-				);
 			}
-			LOGGER.info("---------------------------------------------------------------------------------");
-			LOGGER.info("");
 			if (isUniqueResource) {
-				LOGGER.info("adding");
 				ids.add(new ID(dlnaResource, curGlobalId++));
 			}
 		} finally {
