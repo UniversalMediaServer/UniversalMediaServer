@@ -306,13 +306,19 @@ public class RealFile extends MapFile {
 
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
 
-		if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
-		} else if (getMedia() != null && getMedia().getThumb() != null) {
-			return getMedia().getThumbnailInputStream();
-		} else {
-			return super.getThumbnailInputStream();
+		DLNAThumbnailInputStream result = null;
+		try {
+			if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
+				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
+			} else if (getMedia() != null && getMedia().getThumb() != null) {
+				result = getMedia().getThumbnailInputStream();
+			}
+		} catch (IOException e) {
+			result = null;
+			LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
+			LOGGER.trace("", e);
 		}
+		return result != null ? result : super.getThumbnailInputStream();
 	}
 
 	@Override
