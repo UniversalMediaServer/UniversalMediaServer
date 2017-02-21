@@ -39,10 +39,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
+import net.pms.image.ImagesUtil.ScaleType;
 
 /**
  * This is an singleton class for providing and caching generic file extension
@@ -74,16 +77,45 @@ public enum GenericIcons {
 		genericFolderThumbnail = thumbnail;
 	}
 
-	public DLNAThumbnailInputStream getGenericIcon(DLNAMediaInfo media) {
-		ImageFormat imageFormat = ImageFormat.PNG;
+	public DLNAThumbnailInputStream getGenericIcon(DLNAResource resource) {
+		ImageFormat imageFormat = ImageFormat.JPEG;
+
+		if (resource == null) {
+			ImageIO.setUseCache(false);
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			try {
+				ImagesUtil.imageIOWrite(genericUnknownIcon, imageFormat.toString(), out);
+				return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
+			} catch (IOException e) {
+				LOGGER.warn(
+					"Unexpected error while generating generic thumbnail for null resource: {}",
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+				return null;
+			}
+		}
 
 		IconType iconType = IconType.UNKNOWN;
-		if (media != null) {
-			if (media.isAudio()) {
+		if (resource.getMedia() != null) {
+			if (resource.getMedia().isAudio()) {
 				iconType = IconType.AUDIO;
-			} else if (media.isImage()) {
+			} else if (resource.getMedia().isImage()) {
 				iconType = IconType.IMAGE;
-			} else if (media.isVideo()) {
+			} else if (resource.getMedia().isVideo()) {
+				// FFmpeg parses images as video, try to rectify
+				if (resource.getFormat() != null && resource.getFormat().isImage()) {
+					iconType = IconType.IMAGE;
+				} else {
+					iconType = IconType.VIDEO;
+				}
+			}
+		} else if (resource.getFormat() != null) {
+			if (resource.getFormat().isAudio()) {
+				iconType = IconType.AUDIO;
+			} else if (resource.getFormat().isImage()) {
+				iconType = IconType.IMAGE;
+			} else if (resource.getFormat().isVideo()) {
 				iconType = IconType.VIDEO;
 			}
 		}
@@ -101,16 +133,19 @@ public enum GenericIcons {
 			}
 			Map<String, DLNAThumbnail> imageCache = typeCache.get(iconType);
 
-			String label = media != null ?
-				media.isImage() && media.getImageInfo() != null && media.getImageInfo().getFormat() != null ?
-					media.getImageInfo().getFormat().toString() :
-					media.getContainer() :
-				null;
+			String label = getLabelFromImageFormat(resource.getMedia());
+			if (label == null) {
+				label = getLabelFromFormat(resource.getFormat());
+			}
+			if (label == null) {
+				label = getLabelFromContainer(resource.getMedia());
+			}
 			if (label != null && label.length() < 5) {
 				label = label.toUpperCase(Locale.ROOT);
 			} else if (label != null && label.toLowerCase(Locale.ROOT).equals(label)) {
 				label = StringUtils.capitalize(label);
 			}
+
 			if (imageCache.containsKey(label)) {
 				return DLNAThumbnailInputStream.toThumbnailInputStream(imageCache.get(label));
 			}
@@ -122,7 +157,7 @@ public enum GenericIcons {
 			try {
 				image = addFormatLabelToImage(label, imageFormat, iconType);
 			} catch (IOException e) {
-				LOGGER.warn("Unexpected error while generating generic thumbnail for \"{}\": {}", media, e.getMessage());
+				LOGGER.warn("Unexpected error while generating generic thumbnail for \"{}\": {}", resource.getName(), e.getMessage());
 				LOGGER.trace("", e);
 			}
 
@@ -136,6 +171,41 @@ public enum GenericIcons {
 
 	public DLNAThumbnailInputStream getGenericFolderIcon() {
 		return DLNAThumbnailInputStream.toThumbnailInputStream(genericFolderThumbnail);
+	}
+
+	private String getLabelFromImageFormat(DLNAMediaInfo mediaInfo) {
+		return
+			mediaInfo != null && mediaInfo.isImage() &&
+			mediaInfo.getImageInfo() != null &&
+			mediaInfo.getImageInfo().getFormat() != null ?
+				mediaInfo.getImageInfo().getFormat().toString() : null;
+	}
+
+	private String getLabelFromFormat(Format format) {
+		if (format == null || format.getIdentifier() == null) {
+			return null;
+		}
+		// Replace some Identifier names with prettier ones
+		switch (format.getIdentifier()) {
+			case AUDIO_AS_VIDEO:
+				return "Audio as Video";
+			case MICRODVD:
+				return "MicroDVD";
+			case SUBRIP:
+				return "SubRip";
+			case THREEG2A:
+				return "3G2A";
+			case THREEGA:
+				return "3GA";
+			case WEBVTT:
+				return "WebVTT";
+			default:
+				return format.getIdentifier().toString();
+		}
+	}
+
+	private String getLabelFromContainer(DLNAMediaInfo mediaInfo) {
+		return mediaInfo != null ? mediaInfo.getContainer() : null;
 	}
 
 	/**
@@ -201,7 +271,7 @@ public enum GenericIcons {
 				g.dispose();
 			}
 		}
-		return out != null ? new DLNAThumbnail(out.toByteArray(), imageFormat, image, null, null, false)  : null;
+		return out != null ? DLNAThumbnail.toThumbnail(out.toByteArray(), 0, 0, ScaleType.MAX, imageFormat, false) : null;
 	}
 
 	/**

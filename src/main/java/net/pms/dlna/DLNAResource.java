@@ -3509,7 +3509,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (isFolder()) {
 			return GenericIcons.INSTANCE.getGenericFolderIcon();
 		} else {
-			return GenericIcons.INSTANCE.getGenericIcon(media);
+			return GenericIcons.INSTANCE.getGenericIcon(this);
 		}
 	}
 
