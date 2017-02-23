@@ -938,6 +938,7 @@ public class DLNAMediaDatabase implements Runnable {
 			close(rs);
 			close(ps);
 			close(conn);
+			PMS.get().getFrame().setStatusLine(null);
 		}
 	}
 

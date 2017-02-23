@@ -162,7 +162,7 @@ public class RootFolder extends DLNAResource {
 		 */
 		if (PMS.getConfiguration().getUseCache()) {
 			for (DLNAResource r : getConfiguredFolders(tags, true)) {
-				FileWatcher.add(new FileWatcher.Watch(r.getSystemName(), LIBRARY_RESCANNER));
+				FileWatcher.add(new FileWatcher.Watch(r.getSystemName() + File.separator + "**", LIBRARY_RESCANNER));
 			}
 		}
 
@@ -231,7 +231,6 @@ public class RootFolder extends DLNAResource {
 			frame.setScanLibraryEnabled(true);
 			PMS.get().getDatabase().cleanup();
 		}
-		frame.setStatusLine(null);
 	}
 
 	/*
@@ -1459,16 +1458,29 @@ public class RootFolder extends DLNAResource {
 	};
 
 	/**
-	 * Rescans the media library when a change is made to relevant file or folder.
+	 * Adds and removes files from the database when they are created or
+	 * deleted on the hard drive.
 	 */
 	public static final FileWatcher.Listener LIBRARY_RESCANNER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-			if (PMS.getConfiguration().getUseCache()) {
+			if (PMS.getConfiguration().getUseCache() && !isDir) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
-				if (database != null && !database.isScanLibraryRunning()) {
-					database.scanLibrary();
+				if (database != null) {
+					if ("ENTRY_DELETE".equals(event)) {
+						LOGGER.trace("File " + filename + " was deleted or moved on the hard drive, running cleanup");
+						database.cleanup();
+					} else if ("ENTRY_CREATE".equals(event)) {
+						LOGGER.trace("File " + filename + " was created on the hard drive");
+						File file = new File(filename);
+						RealFile rf = new RealFile(file);
+						rf.setParent(rf);
+						rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
+						if (rf.isValid()) {
+							LOGGER.trace("File " + filename + " should now be in the database");
+						}
+					}
 				}
 			}
 		}
