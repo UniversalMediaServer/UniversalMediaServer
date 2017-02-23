@@ -46,8 +46,11 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableFilesStatus;
 import net.pms.database.Tables;
+import static net.pms.database.Tables.sqlLikeEscape;
 import net.pms.dlna.*;
+import static net.pms.dlna.MediaMonitor.fullyPlayedEntries;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -70,6 +73,7 @@ import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
@@ -838,6 +842,11 @@ public class PMS {
 			java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 		}
 
+		// Initiate a library scan in case files were added to folders while UMS was closed.
+		if (getConfiguration().getUseCache()) {
+			getDatabase().scanLibrary();
+		}
+
 		return true;
 	}
 
@@ -1299,9 +1308,108 @@ public class PMS {
 		}
 	}
 
+	/**
+	 * Stores the file in the cache.
+	 * Note: Also checks if the data exists first, unlike the one below.
+	 *
+	 * @param file
+	 * @param formatType 
+	 */
 	public void storeFileInCache(File file, int formatType) {
 		if (getConfiguration().getUseCache() && !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
 			getDatabase().insertData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+		}
+	}
+
+	/**
+	 * Appends the existing file record in the cache with metadata from
+	 * OpenSubtitles or if that lookup failed, data extracted from the filename.
+	 *
+	 * Note: Does not check if the data already exists, unlike the one above,
+	 * because that check is done before this is used.
+	 *
+	 * @param file
+	 * @param formatType 
+	 * @param media 
+	 */
+	public void storeOpenSubtitlesMetadataInCache(File file, int formatType, DLNAMediaInfo media) {
+		if (getConfiguration().getUseCache()) {
+			getDatabase().appendWithDataFromOpenSubtitles(file.getAbsolutePath(), file.lastModified(), formatType, media);
+		}
+	}
+
+	/**
+	 * Updates the name of a TV series for existing entries in the database.
+	 *
+	 * @param newName
+	 * @param oldName
+	 */
+	public void updateTVSeriesName(String newName, String oldName) {
+		getDatabase().updateRowsInFilesTable(newName, oldName, "MOVIEORSHOWNAME", 255);
+	}
+
+	/**
+	 * Deletes all files in the database within a directory.
+	 *
+	 * @param directory
+	 */
+	public void deleteFileEntriesInDirectory(String directory) {
+		getDatabase().deleteRowsInFilesTable(sqlLikeEscape(directory) + "%", "FILENAME");
+	}
+
+	/**
+	 * Returns a similar TV series name from the database.
+	 *
+	 * This uses the Soundex method of comparing strings, where strings are
+	 * rated between 1-4 with 4 meaning they sound identical.
+	 *
+	 * This prevents "Word of the Word" and "Word Of The Word!" from being
+	 * seen as different shows.
+	 *
+	 * @param title
+	 * @return 
+	 */
+	public String getSimilarTVSeriesName(String title) {
+		title = StringEscapeUtils.escapeSql(title);
+
+		if (getConfiguration().getUseCache()) {
+			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND DIFFERENCE(MOVIEORSHOWNAME, '" + title + "') = 4");
+			if (titleList.size() > 0) {
+				return titleList.get(0);
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Sets whether the file has been fully played in the database, and in
+	 * the DLNAMediaInfo if that is passed.
+	 *
+	 * @param fullPathToFile
+	 * @param isFullyPlayed
+	 */
+	public void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
+		if (getConfiguration().getUseCache()) {
+			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed, 0);
+		}
+
+		if (isFullyPlayed) {
+			fullyPlayedEntries.add(fullPathToFile);
+		} else {
+			fullyPlayedEntries.remove(fullPathToFile);
+		}
+	}
+
+	/**
+	 * Sets whether the directory has been fully played.
+	 *
+	 * @param fullPathToFile
+	 * @param isFullyPlayed
+	 */
+	public void setDirectoryFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
+		if (getConfiguration().getUseCache()) {
+			TableFilesStatus.setDirectoryFullyPlayed(sqlLikeEscape(fullPathToFile) + "%", isFullyPlayed);
 		}
 	}
 

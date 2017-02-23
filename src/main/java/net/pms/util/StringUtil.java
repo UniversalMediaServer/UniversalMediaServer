@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
+import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
@@ -441,5 +442,19 @@ public class StringUtil {
 		}
 
 		return sb.toString();
+	}
+
+	/**
+	 * Whether the strings are over 91% similar based on the Jaro Winkler
+	 * similarity algorithm.
+	 *
+	 * @param value1
+	 * @param value2
+	 * @return 
+	 */
+	public static boolean isSimilarEnough(String value1, String value2) {
+		double similarity = getJaroWinklerDistance(value1, value2);
+		LOGGER.trace("The similarity between '" + value1 + "' and '" + value2 + "' is " + similarity);
+		return similarity > 0.91;
 	}
 }

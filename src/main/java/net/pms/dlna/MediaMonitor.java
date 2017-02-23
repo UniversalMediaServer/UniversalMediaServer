@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static Set<String> fullyPlayedEntries;
+	public static Set<String> fullyPlayedEntries;
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -65,7 +65,11 @@ public class MediaMonitor extends VirtualFolder {
 						if (!new File(entry.trim()).exists()) {
 							continue;
 						}
-						fullyPlayedEntries.add(entry.trim());
+
+						entry = entry.trim();
+						fullyPlayedEntries.add(entry);
+
+						PMS.get().setFullyPlayed(entry, true);
 					}
 				}
 			}
@@ -89,10 +93,10 @@ public class MediaMonitor extends VirtualFolder {
 					}
 					mm.setDiscovered(false);
 					mm.getChildren().clear();
-					try {
-						dumpFile();
-					} catch (IOException e) {
-					}
+//					try {
+//						dumpFile();
+//					} catch (IOException e) {
+//					}
 					return true;
 				}
 			});
@@ -201,24 +205,27 @@ public class MediaMonitor extends VirtualFolder {
 						return;
 					}
 
-					fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+					if (fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER) {
+						fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+						if (res.getMedia() != null) {
+							PMS.get().setFullyPlayed(rf.getFile().getAbsolutePath(), true);
+							res.getMedia().setThumbready(false);
+						}
+					}
+
 					setDiscovered(false);
 					getChildren().clear();
-
-					try {
-						dumpFile();
-					} catch (IOException e) {
-						LOGGER.debug("An error occurred when dumping monitor file: " + e);
-					}
 
 					File playedFile = new File(rf.getFile().getAbsolutePath());
 
 					if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER) {
 						// Move the video to a different folder
 						String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
+						boolean moved = false;
 
 						if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
 							LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+							moved = true;
 						} else {
 							LOGGER.debug("Moving {} failed, trying again in 3 seconds", playedFile.getName());
 
@@ -227,6 +234,7 @@ public class MediaMonitor extends VirtualFolder {
 
 								if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
 									LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+									moved = true;
 								} else {
 									LOGGER.info("Failed to move {}", playedFile.getName());
 								}
@@ -234,6 +242,13 @@ public class MediaMonitor extends VirtualFolder {
 								LOGGER.warn("Abandoning moving of {} because the thread was interrupted, probably due to UMS shutdown", e.getMessage());
 								LOGGER.trace("", e);
 								Thread.currentThread().interrupt();
+							}
+						}
+
+						if (moved) {
+							fullyPlayedEntries.add(newDirectory + playedFile.getName());
+							if (res.getMedia() != null) {
+								PMS.get().setFullyPlayed(newDirectory + playedFile.getName(), true);
 							}
 						}
 					} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
@@ -257,7 +272,11 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public static boolean isFullyPlayed(String str) {
-		return fullyPlayedEntries != null && fullyPlayedEntries.contains(str);
+		if (fullyPlayedEntries != null && fullyPlayedEntries.contains(str)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -277,13 +296,13 @@ public class MediaMonitor extends VirtualFolder {
 			sb.append("## Generated: ");
 			sb.append(now.toString());
 			sb.append("\n");
-			for (String str : fullyPlayedEntries) {
-				if (sb.indexOf(str) == -1) {
-					sb.append("entry=");
-					sb.append(str);
-					sb.append("\n");
-				}
-			}
+//			for (String str : fullyPlayedEntries) {
+//				if (sb.indexOf(str) == -1) {
+//					sb.append("entry=");
+//					sb.append(str);
+//					sb.append("\n");
+//				}
+//			}
 			out.write(sb.toString());
 			out.flush();
 		}

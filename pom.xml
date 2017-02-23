@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>6.5.4-SNAPSHOT</version>
+	<version>7.0.0-a2-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -68,7 +68,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>6.5.3</project.version.short>
+		<project.version.short>7.0.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -122,16 +122,16 @@
 			<url>https://dl.bintray.com/ijabz/maven</url>
 		</repository>
 		<repository>
-  			<id>apache.snapshots</id>
-  			<name>Apache Development Snapshot Repository</name>
-  			<url>https://repository.apache.org/content/repositories/snapshots/</url>
-  			<releases>
-    			<enabled>false</enabled>
-  			</releases>
-  			<snapshots>
-    			<enabled>true</enabled>
-  			</snapshots>
-		</repository>  
+			<id>apache.snapshots</id>
+			<name>Apache Development Snapshot Repository</name>
+			<url>https://repository.apache.org/content/repositories/snapshots/</url>
+			<releases>
+			<enabled>false</enabled>
+			</releases>
+			<snapshots>
+			<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 	<dependencies>
 		<!-- TODO this can be removed when MEncoder is removed -->

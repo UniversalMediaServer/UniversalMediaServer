@@ -69,6 +69,7 @@ public class Tables {
 
 					TableMusicBrainzReleases.checkTable(connection);
 					TableCoverArtArchive.checkTable(connection);
+					TableFilesStatus.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -263,14 +264,14 @@ public class Tables {
 	/**
 	 * Escapes the argument with the default H2 escape character for the
 	 * escape character itself and the two wildcard characters <code>%</code>
-	 * and <code>_<code>. This escaping is only valid when using,
-	 *  <code>LIKE</code>, not when using <code>=</code>.
+	 * and <code>_</code>. This escaping is only valid when using,
+	 * <code>LIKE</code>, not when using <code>=</code>.
 	 *
 	 * TODO: Escaping should be generalized so that any escape character could
 	 *       be used and that the class would set the correct escape character
 	 *       when opening the database.
 	 *
-	 * @param the {@link String} to be SQL escaped.
+	 * @param s the {@link String} to be SQL escaped.
 	 * @return The escaped {@link String}.
 	 */
 	public final static String sqlLikeEscape(final String s) {

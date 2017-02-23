@@ -35,6 +35,7 @@ public class GlobalIdRepo {
 			if (id != null) {
 				remove(id);
 			}
+
 			ids.add(new ID(dlnaResource, curGlobalId++));
 		} finally {
 			lock.writeLock().unlock();

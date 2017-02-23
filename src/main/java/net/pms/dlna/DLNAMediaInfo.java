@@ -137,6 +137,21 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 
+	/**
+	 * Metadata gathered from either the filename or OpenSubtitles.
+	 */
+	private String imdbID;
+	private String year;
+	private String tvShowName;
+	private String tvSeason;
+	private String tvEpisodeNumber;
+	private String tvEpisodeName;
+	private String edition;
+	private boolean isTVEpisode;
+	private int databaseFileId = -1;
+
+	private boolean isFullyPlayed = false;
+
 	private byte thumb[];
 
 	/**
@@ -535,9 +550,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args[1] = "-ss";
 		if (resume) {
-			args[2] = "" + (int) getDurationInSeconds();
+			args[2] = Integer.toString((int) getDurationInSeconds());
 		} else {
-			args[2] = "" + configuration.getThumbnailSeekPos();
+			args[2] = Integer.toString((int) Math.min(configuration.getThumbnailSeekPos(), getDurationInSeconds()));
 		}
 
 		args[3] = "-i";
@@ -881,10 +896,11 @@ public class DLNAMediaInfo implements Cloneable {
 						// Make sure the image fits in the renderer's bounds
 						boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
 						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
-
+						thumbready = true;
 						if (isFullyPlayedThumbnail) {
 							thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.IMAGE);
 						}
+
 					} catch (IOException e) {
 						LOGGER.debug("Error generating thumbnail for \"{}\": {}", file.getName(), e.getMessage());
 						LOGGER.trace("", e);
@@ -893,7 +909,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 
 			if (ffmpeg_parsing) {
-				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
+				if (!thumbOnly || (type == Format.VIDEO && !configuration.isUseMplayerForVideoThumbs())) {
 					pw = getFFmpegThumbnail(inputFile, resume, renderer);
 				}
 
@@ -945,6 +961,7 @@ public class DLNAMediaInfo implements Cloneable {
 								if (sz > 0) {
 									thumb = new byte[sz];
 									is.read(thumb);
+									thumbready = true;
 								}
 							}
 
@@ -973,6 +990,7 @@ public class DLNAMediaInfo implements Cloneable {
 								if (sz > 0) {
 									thumb = new byte[sz];
 									is.read(thumb);
+									thumbready = true;
 								}
 							}
 						} finally {
@@ -2079,6 +2097,78 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setVideoBitDepth(int value) {
 		this.videoBitDepth = value;
+	}
+
+	public String getIMDbID() {
+		return imdbID;
+	}
+
+	public void setIMDbID(String value) {
+		this.imdbID = value;
+	}
+
+	public String getYear() {
+		return year;
+	}
+
+	public void setYear(String value) {
+		this.year = value;
+	}
+
+	public String getMovieOrShowName() {
+		return tvShowName;
+	}
+
+	public void setMovieOrShowName(String value) {
+		this.tvShowName = value;
+	}
+
+	public String getTVSeason() {
+		return tvSeason;
+	}
+
+	public void setTVSeason(String value) {
+		this.tvSeason = value;
+	}
+
+	public String getTVEpisodeNumber() {
+		return tvEpisodeNumber;
+	}
+
+	public void setTVEpisodeNumber(String value) {
+		this.tvEpisodeNumber = value;
+	}
+
+	public String getTVEpisodeName() {
+		return tvEpisodeName;
+	}
+
+	public void setTVEpisodeName(String value) {
+		this.tvEpisodeName = value;
+	}
+
+	public boolean isTVEpisode() {
+		return isTVEpisode;
+	}
+
+	public void setIsTVEpisode(boolean value) {
+		this.isTVEpisode = value;
+	}
+
+	public int getDatabaseFileId() {
+		return databaseFileId;
+	}
+
+	public void setDatabaseFileId(int value) {
+		this.databaseFileId = value;
+	}
+
+	public String getEdition() {
+		return edition;
+	}
+
+	public void setEdition(String value) {
+		this.edition = value;
 	}
 
 	/**

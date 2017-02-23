@@ -111,7 +111,14 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (!configuration.isHideRecentlyPlayedFolder()) {
+		if (configuration.isShowMediaLibraryFolder()) {
+			DLNAResource libraryRes = PMS.get().getLibrary();
+			if (libraryRes != null) {
+				addChild(libraryRes);
+			}
+		}
+
+		if (configuration.isShowRecentlyPlayedFolder()) {
 			last = new Playlist(Messages.getString("VirtualFolder.1"),
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
@@ -128,7 +135,7 @@ public class RootFolder extends DLNAResource {
 			}
 			mon = new MediaMonitor(dirs);
 
-			if (!configuration.isHideNewMediaFolder()) {
+			if (configuration.isShowNewMediaFolder()) {
 				addChild(mon);
 			}
 		}
@@ -148,6 +155,15 @@ public class RootFolder extends DLNAResource {
 
 		for (DLNAResource r : getConfiguredFolders(tags)) {
 			addChild(r);
+		}
+
+		/**
+		 * Changes to monitored folders trigger a rescan
+		 */
+		if (PMS.getConfiguration().getUseCache()) {
+			for (DLNAResource r : getConfiguredFolders(tags, true)) {
+				FileWatcher.add(new FileWatcher.Watch(r.getSystemName() + File.separator + "**", LIBRARY_RESCANNER));
+			}
 		}
 
 		for (DLNAResource r : getVirtualFolders(tags)) {
@@ -177,18 +193,11 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (!configuration.isHideMediaLibraryFolder()) {
-			DLNAResource libraryRes = PMS.get().getLibrary();
-			if (libraryRes != null) {
-				addChild(libraryRes);
-			}
-		}
-
 		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
 			addChild(r);
 		}
 
-		if (!configuration.getHideVideoSettings()) {
+		if (configuration.isShowServerSettingsFolder()) {
 			addAdminFolder();
 		}
 
@@ -222,7 +231,6 @@ public class RootFolder extends DLNAResource {
 			frame.setScanLibraryEnabled(true);
 			PMS.get().getDatabase().cleanup();
 		}
-		frame.setStatusLine(null);
 	}
 
 	/*
@@ -279,8 +287,12 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
+		return getConfiguredFolders(tags, false);
+	}
+
+	private List<RealFile> getConfiguredFolders(ArrayList<String> tags, boolean monitored) {
 		List<RealFile> res = new ArrayList<>();
-		File[] files = PMS.get().getSharedFoldersArray(false, tags, configuration);
+		File[] files = PMS.get().getSharedFoldersArray(monitored, tags, configuration);
 		String s = configuration.getFoldersIgnored(tags);
 		String[] skips = null;
 
@@ -1196,7 +1208,7 @@ public class RootFolder extends DLNAResource {
 	private DLNAResource getVideoSettingsFolder() {
 		DLNAResource res = null;
 
-		if (!configuration.getHideVideoSettings()) {
+		if (configuration.isShowServerSettingsFolder()) {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
 			res.addChild(vfSub);
@@ -1321,11 +1333,11 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isHideLiveSubtitlesFolder()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isShowLiveSubtitlesFolder()) {
 				@Override
 				public boolean enable() {
-					configuration.setHideLiveSubtitlesFolder(!configuration.isHideLiveSubtitlesFolder());
-					return configuration.isHideLiveSubtitlesFolder();
+					configuration.setShowLiveSubtitlesFolder(configuration.isShowLiveSubtitlesFolder());
+					return configuration.isShowLiveSubtitlesFolder();
 				}
 			});
 		}
@@ -1440,6 +1452,35 @@ public class RootFolder extends DLNAResource {
 			if (r != null) {
 				if (watch.flag == RELOAD_WEB_CONF) {
 					r.loadWebConf();
+				}
+			}
+		}
+	};
+
+	/**
+	 * Adds and removes files from the database when they are created or
+	 * deleted on the hard drive.
+	 */
+	public static final FileWatcher.Listener LIBRARY_RESCANNER = new FileWatcher.Listener() {
+		@Override
+		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+			if (PMS.getConfiguration().getUseCache() && !isDir) {
+				DLNAMediaDatabase database = PMS.get().getDatabase();
+
+				if (database != null) {
+					if ("ENTRY_DELETE".equals(event)) {
+						LOGGER.trace("File " + filename + " was deleted or moved on the hard drive, running cleanup");
+						database.cleanup();
+					} else if ("ENTRY_CREATE".equals(event)) {
+						LOGGER.trace("File " + filename + " was created on the hard drive");
+						File file = new File(filename);
+						RealFile rf = new RealFile(file);
+						rf.setParent(rf);
+						rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
+						if (rf.isValid()) {
+							LOGGER.trace("File " + filename + " should now be in the database");
+						}
+					}
 				}
 			}
 		}

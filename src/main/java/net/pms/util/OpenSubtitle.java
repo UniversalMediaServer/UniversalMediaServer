@@ -27,6 +27,7 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -34,7 +35,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import net.pms.PMS;
+import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.formats.Format;
+import net.pms.util.StringUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -325,22 +330,26 @@ public class OpenSubtitle {
 	 * @throws IOException
 	 */
 	public static String[] getInfo(File f, String formattedName) throws IOException {
-		return getInfo(f, formattedName, null);
+		return getInfo(f, formattedName, null, null);
 	}
 
-	public static String[] getInfo(File f, String formattedName, RendererConfiguration r) throws IOException {
-		String[] res = getInfo(getHash(f), f.length(), null, null, r);
+	public static String[] getInfo(File f, String formattedName, DLNAMediaInfo media) throws IOException {
+		return getInfo(f, formattedName, null, media);
+	}
+
+	public static String[] getInfo(File f, String formattedName, RendererConfiguration r, DLNAMediaInfo media) throws IOException {
+		String[] res = getInfo(getHash(f), f.length(), null, null, r, media, f);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdb(f);
 			if (StringUtil.hasValue(imdb)) {
-				res = getInfo(null, 0, imdb, null, r);
+				res = getInfo(null, 0, imdb, null, r, media, f);
 			}
 		}
 		if (res == null || res.length == 0) { // final try, use the name
 			if (StringUtils.isNotEmpty(formattedName)) {
-				res = getInfo(null, 0, null, formattedName, r);
+				res = getInfo(null, 0, null, formattedName, r, media, f);
 			} else {
-				res = getInfo(null, 0, null, f.getName(), r);
+				res = getInfo(null, 0, null, f.getName(), r, media, f);
 			}
 		}
 		return res;
@@ -361,7 +370,7 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String[] getInfo(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
+	private static String[] getInfo(String hash, long size, String imdb, String query, RendererConfiguration r, DLNAMediaInfo media, File file) throws IOException {
 		if (!login()) {
 			return null;
 		}
@@ -396,15 +405,18 @@ public class OpenSubtitle {
 		Pattern re = Pattern.compile(
 				".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" + "" +
 				"MovieName</name>.*?<string>([^<]+)</string>.*?" +
+				"MovieYear</name>.*?<string>([^<]+)</string>.*?" +
 				"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
-				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?" +
-				"MovieYear</name>.*?<string>([^<]+)</string>.*?",
+				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?",
 				Pattern.DOTALL
 		);
 		String page = postPage(url.openConnection(), req);
+
+		// LOGGER.trace("opensubs page: " + page);
+
 		Matcher m = re.matcher(page);
 		if (m.find()) {
-			LOGGER.debug("match " + m.group(1) + "," + m.group(2) + "," + m.group(3) + "," + m.group(4) + "," + m.group(5));
+			LOGGER.debug("Matched OpenSubtitles entry: " + m.group(1) + "," + m.group(2) + "," + m.group(3) + "," + m.group(4) + "," + m.group(5));
 			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
 			String name = m.group(2);
 			Matcher m1 = re1.matcher(name);
@@ -414,25 +426,215 @@ public class OpenSubtitle {
 				name = m1.group(1).trim();
 			}
 
+			String imdbId = ImdbUtil.ensureTT(m.group(1).trim());
+
 			/**
- 			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
- 			 * something like "Episode #1.4", so discard that.
- 			 */
- 			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
- 			if (episodeName.startsWith("Episode #")) {
- 				episodeName = "";
- 			}
+			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
+			 * something like "Episode #1.4", so discard that.
+			 */
+			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
+			if (episodeName.startsWith("Episode #")) {
+				episodeName = "";
+			}
+
+			String movieOrShowName = StringEscapeUtils.unescapeHtml4(name);
 
 			return new String[]{
-				ImdbUtil.ensureTT(m.group(1).trim()),
+				imdbId,
 				episodeName,
-				StringEscapeUtils.unescapeHtml4(name),
-				m.group(3).trim(), // Season number
-				m.group(4).trim(), // Episode number
-				m.group(5).trim()  // Year
+				movieOrShowName,
+				m.group(4).trim(), // Season number
+				m.group(5).trim(), // Episode number
+				m.group(3).trim()  // Year
 			};
 		}
 		return null;
+	}
+
+	public static void backgroundLookupAndAdd(final File file, final String formattedName, final DLNAMediaInfo media) {
+		if (getConfiguration().getUseCache() && !PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					String[] metadataFromOpenSubtitles;
+					try {
+						// Set this to true to get huge logspam in INFO mode to help with visibility of accuracy of OpenSubtitles data
+						boolean overTheTopLogging = false;
+
+						if (overTheTopLogging) {
+							LOGGER.info("Looking up " + file.getName());
+						}
+
+						metadataFromOpenSubtitles = getInfo(file, file.getName(), media);
+						boolean isMetadataSet = false;
+						String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
+
+						String titleFromFilename           = metadataFromFilename[0];
+						String yearFromFilename            = metadataFromFilename[1];
+						String editionFromFilename         = metadataFromFilename[2];
+						String tvSeasonFromFilename        = metadataFromFilename[3];
+						String tvEpisodeNumberFromFilename = metadataFromFilename[4];
+						String tvEpisodeNameFromFilename   = metadataFromFilename[5];
+
+						String titleToSave = titleFromFilename;
+						String titleFromDatabase;
+
+						if (metadataFromOpenSubtitles != null) {
+							String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
+							String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
+							String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
+							if (tvEpisodeNumberFromOpenSubtitles.length() == 1) {
+								tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
+							}
+
+							/**
+							 * We have data from OpenSubtitles, but before storing it in our database we
+							 * validate it against the data extracted from the filename.
+							 * This is because sometimes OpenSubtitles reports incorrect data.
+							 */
+							if (overTheTopLogging) {
+								LOGGER.info("Found " + file.getName() + " : " + titleFromOpenSubtitles);
+							}
+
+							/**
+							 * Proceed if the years match, or if there is no year then try the movie/show name.
+							 */
+							if (
+								(
+									StringUtils.isNotBlank(yearFromFilename) &&
+									yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
+									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+								) || (
+									StringUtils.isBlank(yearFromFilename) &&
+									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+								)
+							) {
+								/**
+								 * If the name returned from OpenSubtitles has greater than 91% similarity
+								 * to the one from the filename, we regard it as a correct match.
+								 * This means we get proper case and special characters without worrying about
+								 * incorrect results being used.
+								 */
+								if (StringUtil.isSimilarEnough(titleFromFilename, titleFromOpenSubtitles)) {
+									/**
+									 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
+									 * number, so we validate those as well.
+									 * This check will pass if either we don't know what the season and episode
+									 * numbers are from the filename, or we do and they match with our results
+									 * from OpenSubtitles.
+									 */
+									if (
+										(
+											StringUtils.isNotBlank(tvSeasonFromFilename) &&
+											StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
+											tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) &&
+											StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
+											StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
+											tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)
+										) || (
+											StringUtils.isBlank(tvSeasonFromFilename) &&
+											StringUtils.isBlank(tvEpisodeNumberFromFilename)
+										)
+									) {
+										titleToSave = titleFromOpenSubtitles;
+										titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+										if (overTheTopLogging) {
+											LOGGER.info("titleFromDatabase: " + titleFromDatabase);
+											LOGGER.info("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
+										}
+
+										/**
+										 * If there is a title from the database and it is not exactly the same as the
+										 * one from OpenSubtitles, continue to see if we want to change that to make
+										 * them all consistent.
+										 */
+										if (!"".equals(titleFromDatabase) && !titleFromOpenSubtitles.equals(titleFromDatabase)) {
+											if (StringUtil.isSimilarEnough(titleFromOpenSubtitles, titleFromDatabase)) {
+												/**
+												 * Replace our close-but-not-exact title in the database with the title from
+												 * OpenSubtitles.
+												 */
+												PMS.get().updateTVSeriesName(titleFromOpenSubtitles, titleFromDatabase);
+											}
+										}
+
+										media.setIMDbID(metadataFromOpenSubtitles[0]);
+										media.setMovieOrShowName(titleToSave);
+										media.setYear(metadataFromOpenSubtitles[5]);
+										media.setEdition(editionFromFilename);
+
+										// If the filename has indicated this is a TV episode
+										if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
+											media.setTVSeason(tvSeasonFromOpenSubtitles);
+											media.setTVEpisodeNumber(tvEpisodeNumberFromOpenSubtitles);
+											if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
+												media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
+											}
+
+											if (overTheTopLogging) {
+												LOGGER.info("Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
+											}
+
+											media.setIsTVEpisode(true);
+										}
+										isMetadataSet = true;
+									}
+								}
+							}
+						}
+
+						if (!isMetadataSet) {
+							/**
+							 * We don't have a good match from OpenSubtitles, so apply the metadata from
+							 * the filename.
+							 */
+							if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
+								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+								if (overTheTopLogging) {
+									LOGGER.info("titleFromDatabase: " + titleFromDatabase);
+									LOGGER.info("titleFromFilename: " + titleFromFilename);
+								}
+								if (!"".equals(titleFromDatabase)) {
+									if (StringUtil.isSimilarEnough(titleFromFilename, titleFromDatabase)) {
+										titleToSave = titleFromDatabase;
+									}
+								}
+								media.setTVSeason(tvSeasonFromFilename);
+								media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+								if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
+									media.setTVEpisodeName(tvEpisodeNameFromFilename);
+								}
+
+								if (overTheTopLogging) {
+									LOGGER.info("Setting is TV episode true for " + titleFromFilename + " " + tvEpisodeNumberFromFilename);
+								}
+
+								media.setIsTVEpisode(true);
+							}
+
+							media.setMovieOrShowName(titleToSave);
+
+							if (yearFromFilename != null) {
+								media.setYear(yearFromFilename);
+							}
+							if (editionFromFilename != null) {
+								media.setEdition(editionFromFilename);
+							}
+						}
+
+						if (overTheTopLogging) {
+							LOGGER.info("Getting is TV episode for " + titleToSave + " " + tvEpisodeNumberFromFilename + ": " + media.isTVEpisode());
+						}
+
+						PMS.get().storeOpenSubtitlesMetadataInCache(file, Format.VIDEO, media);
+					} catch (IOException ex) {
+						// This will happen regularly so just log it in trace mode
+						LOGGER.trace("Error in OpenSubtitles parsing:", ex);
+					}
+				}
+			};
+			new Thread(r).start();
+		}
 	}
 
 	public static String subFile(String name) {

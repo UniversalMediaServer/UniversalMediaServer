@@ -284,6 +284,11 @@ public class UPNPControl {
 				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
 					return UMSHeaders;
 				}
+
+				@Override
+				public int getAliveIntervalMillis() {
+					return 10000;
+				}
 			};
 
 			RegistryListener rl = new DefaultRegistryListener() {
