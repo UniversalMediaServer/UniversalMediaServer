@@ -18,7 +18,6 @@
  */
 package net.pms.formats;
 
-import java.util.StringTokenizer;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
@@ -45,23 +44,53 @@ public abstract class Format implements Cloneable {
 	private String matchedExtension;
 
 	public enum Identifier {
+		AC3,
+		ADPCM,
+		ADTS,
+		AIFF,
+		APE,
+		ATRAC,
+		AU,
 		AUDIO_AS_VIDEO,
+		ASS,
 		BMP,
+		DSD,
+		DTS,
 		DVRMS,
+		EAC3,
 		FLAC,
 		GIF,
+		IDX,
 		ISO,
 		JPG,
 		M4A,
+		MICRODVD,
+		MKA,
 		MKV,
+		MLP,
 		MP3,
+		MPA,
+		MPC,
 		MPG,
 		OGG,
 		PNG,
+		RA,
 		RAW,
+		SAMI,
+		SHN,
+		SUBRIP,
+		SUP,
+		THD,
+		THREEGA,
+		THREEG2A,
 		TIF,
+		TTA,
+		TXT,
 		WAV,
 		WEB,
+		WEBVTT,
+		WMA,
+		WV,
 		CUSTOM,
 		PLAYLIST
 	}
@@ -72,6 +101,7 @@ public abstract class Format implements Cloneable {
 	public static final int UNKNOWN  =  8;
 	public static final int PLAYLIST = 16;
 	public static final int ISO      = 32;
+	public static final int SUBTITLE = 64;
 
 	public int getType() {
 		return type;
@@ -134,18 +164,6 @@ public abstract class Format implements Cloneable {
 	public String[] getSupportedExtensions() {
 		return null;
 	}
-
-	/**
-	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.
-	 * <p>
-	 * Returns whether or not a format can be handled by the PS3 natively.
-	 * This means the format can be streamed to PS3 instead of having to be
-	 * transcoded.
-	 *
-	 * @return True if the format can be handled by PS3, false otherwise.
-	 */
-	@Deprecated
-	public abstract boolean ps3compatible();
 
 	/**
 	 * Returns whether or not media can be handled by the renderer natively,
@@ -241,6 +259,10 @@ public abstract class Format implements Cloneable {
 
 	public boolean isUnknown() {
 		return (type & UNKNOWN) == UNKNOWN;
+	}
+
+	public boolean isSubtitle() {
+		return (type & SUBTITLE) == SUBTITLE;
 	}
 
 	@Override

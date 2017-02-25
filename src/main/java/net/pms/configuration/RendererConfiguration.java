@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,9 +85,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	protected Map<String, String> charMap;
 	protected Map<String, String> DLNAPN;
-
-	// Cache for the tree
-	protected Map<String, DLNAResource> renderCache;
 
 	// TextWrap parameters
 	protected int lineWidth, lineHeight, indent;
@@ -959,7 +957,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		configurationReader = new ConfigurationReader(configuration, false);
 		pmsConfiguration = _pmsConfiguration;
 
-		renderCache = new HashMap<>();
 		player = null;
 		buffer = 0;
 
@@ -1836,8 +1833,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
 			try {
 				return calculatedSpeed();
-			} catch (Exception e) {
-				// ignore this
+			} catch (InterruptedException e) {
+				return "0";
+			} catch (ExecutionException e) {
+				LOGGER.debug("Automatic maximum bitrate calculation failed with: {}", e.getCause().getMessage());
+				LOGGER.trace("", e.getCause());
 			}
 		}
 		return getString(MAX_VIDEO_BITRATE, "0");
@@ -1867,12 +1867,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (StringUtils.isNotEmpty(getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(getMaxVideoBitrate());
+		String maxVideoBitrate = getMaxVideoBitrate();
+		if (StringUtils.isNotEmpty(maxVideoBitrate)) {
+			rendererMaxBitrates = getVideoBitrateConfig(maxVideoBitrate);
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			LOGGER.trace(
+				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
+				"it is lower than the general configuration bitrate limit ({} Mb/s)",
+				getRendererName(),
+				rendererMaxBitrates[0],
+				defaultMaxBitrates[0]
+			);
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
@@ -2507,7 +2515,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
 	}
 
-	public String calculatedSpeed() throws Exception {
+	public String calculatedSpeed() throws InterruptedException, ExecutionException {
 		String max = getString(MAX_VIDEO_BITRATE, "");
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
@@ -2528,14 +2536,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		return max;
-	}
-
-	public void cachePut(DLNAResource res) {
-		renderCache.put(res.getResourceId(), res);
-	}
-
-	public DLNAResource cacheGet(String id) {
-		return renderCache.get(id);
 	}
 
 	/**

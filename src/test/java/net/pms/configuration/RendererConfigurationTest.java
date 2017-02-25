@@ -100,6 +100,7 @@ public class RendererConfigurationTest {
 
 		// PhilipsPFL:
 		testHeaders("Philips TV", "User-Agent: Windows2000/0.0 UPnP/1.0 PhilipsIntelSDK/1.4 DLNADOC/1.50");
+		testHeaders("Philips TV", "User-Agent: Streamium/1.0");
 
 		// Realtek:
 		// FIXME: Actual conflict here! Popcorn Hour is returned...

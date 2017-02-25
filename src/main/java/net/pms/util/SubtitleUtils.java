@@ -89,6 +89,10 @@ public class SubtitleUtils {
 			put(CHARSET_ISO_2022_JP, "ISO-2022-JP");
 			put(CHARSET_EUC_JP, "euc-jp");
 			put(CHARSET_SHIFT_JIS, "shift-jis");
+			// Thai
+			put(CHARSET_WINDOWS_874, "MS874");
+			put(CHARSET_ISO_8859_11, "ISO-8859-11");
+			put(CHARSET_TIS_620, "TIS-620");
 		}
 	};
 
@@ -436,7 +440,7 @@ public class SubtitleUtils {
 
 								break;
 							case "PrimaryColour":
-								params[i] = convertColourToASSColourString(configuration.getSubsColor());
+								params[i] = configuration.getSubsColor().getASSv4StylesHexValue();
 								break;
 							case "Outline":
 								params[i] = configuration.getAssOutline();
@@ -521,7 +525,7 @@ public class SubtitleUtils {
 				fontScaleY = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
 			}
 
-			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
+			String primaryColour = configuration.getSubsColor().getASSv4StylesHexValue();
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
 			outputString.append("Style: Default,Arial,").append("15").append(',').append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(',').append(fontScaleY).append(",0,0,1,").append(outline).append(',').append(shadow);
@@ -607,20 +611,6 @@ public class SubtitleUtils {
 
 	public static void deleteSubs() {
 		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
-	}
-
-	/**
-	 * Converts the standard Colour RGB integer presentation to the SSA/ASS string format which
-	 * is formatted as BGR (really stupid SSA/ASS implementation)
-	 *
-	 * @param colour the RGB color in the integer format
-	 * @return Converted color string in the ASS format
-	 */
-	public static String convertColourToASSColourString(int colour) {
-		String colourString = Integer.toHexString(colour);
-		StringBuilder outputString = new StringBuilder();
-		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
-		return outputString.toString();
 	}
 
 	/**
