@@ -1,4 +1,4 @@
-6.6.0 - 2017-02-??
+6.6.0 - 2017-02-25
 
 	General:
 		Added support for AIFF files
