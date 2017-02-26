@@ -1,6 +1,8 @@
 package net.pms.encoders;
 
+import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -10,12 +12,18 @@ import javax.swing.JComponent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.drew.lang.ByteArrayReader;
+import net.coobird.thumbnailator.Thumbnails;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.image.ExifInfo;
+import net.pms.image.ExifOrientation;
 import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil;
+import net.pms.image.thumbnailator.ExifFilterUtils;
 import net.pms.io.InternalJavaProcessImpl;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
@@ -142,8 +150,7 @@ public class DCRaw extends ImagePlayer {
 	 *
 	 * @param params the {@link OutputParams} to use. Can be {@code null}.
 	 * @param fileName the path of the image file to process.
-	 * @param imageInfo the {@link ImageInfo} for the image file. Can be
-	 *            {@code null}.
+	 * @param imageInfo the {@link ImageInfo} for the image file.
 	 * @return A byte array containing the thumbnail or {@code null}.
 	 * @throws IOException if an IO error occurs.
 	 */
@@ -162,7 +169,7 @@ public class DCRaw extends ImagePlayer {
 
 		// This is a wild guess at a decent buffer size for an embedded thumbnail.
 		// Every time the buffer has to grow, the whole buffer must be copied in memory.
-		params.outputByteArrayStreamBufferSize = 300000;
+		params.outputByteArrayStreamBufferSize = 150000;
 
 		// First try to get the embedded thumbnail
 		String cmdArray[] = new String[6];
@@ -175,9 +182,91 @@ public class DCRaw extends ImagePlayer {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, true, params, false, true);
 		pw.runInSameThread();
 		byte[] bytes = pw.getOutputByteArray().toByteArray();
+
 		List<String> results = pw.getResults();
 
-		if (bytes.length == 0 && !results.isEmpty() && results.get(0).contains("has no thumbnail")) {
+		if (bytes.length > 0) {
+			// DCRaw doesn't seem to apply Exif Orientation to embedded thumbnails, handle it
+			boolean isJPEG = (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xD8;
+			ExifOrientation thumbnailOrientation = null;
+			Dimension jpegResolution = null;
+			int exifOrientationOffset = -1;
+			if (isJPEG) {
+				try {
+					ByteArrayReader reader = new ByteArrayReader(bytes);
+					exifOrientationOffset = ImagesUtil.getJPEGExifIFDTagOffset(0x112, reader);
+					jpegResolution = ImagesUtil.getJPEGResolution(reader);
+				} catch (IOException e) {
+					exifOrientationOffset = -1;
+					LOGGER.debug(
+						"Unexpected error while trying to find Exif orientation offset in embedded thumbnail for \"{}\": {}",
+						fileName,
+						e.getMessage());
+					LOGGER.trace("", e);
+				}
+				if (exifOrientationOffset > 0) {
+					thumbnailOrientation = ExifOrientation.typeOf(bytes[exifOrientationOffset]);
+				} else {
+					LOGGER.debug("Couldn't find Exif orientation in the thumbnail extracted from \"{}\"", fileName);
+				}
+			}
+			ExifOrientation imageOrientation = imageInfo instanceof ExifInfo ?
+				((ExifInfo) imageInfo).getOriginalExifOrientation() : null;
+
+			// There might be required to impose specific rules depending on the (RAW) format here
+
+			if (imageOrientation != null && imageOrientation != thumbnailOrientation) {
+				if (thumbnailOrientation != null) {
+					if (
+						imageInfo.getWidth() > 0 &&
+						imageInfo.getHeight() > 0 &&
+						jpegResolution != null &&
+						jpegResolution.getWidth() > 0 &&
+						jpegResolution.getHeight() > 0
+					) {
+						// Try to determine which orientation to trust
+						double imageAspect, thumbnailAspect;
+						if (ImagesUtil.isExifAxesSwapNeeded(imageOrientation)) {
+							imageAspect = (double) imageInfo.getHeight() / imageInfo.getWidth();
+						} else {
+							imageAspect = (double) imageInfo.getWidth() / imageInfo.getHeight();
+						}
+						if (ImagesUtil.isExifAxesSwapNeeded(thumbnailOrientation)) {
+							thumbnailAspect = (double) jpegResolution.getHeight() / jpegResolution.getWidth();
+						} else {
+							thumbnailAspect = (double) jpegResolution.getWidth() / jpegResolution.getHeight();
+						}
+
+						if (Math.abs(imageAspect - thumbnailAspect) > 0.001d) {
+							// The image and the thumbnail seems to have different aspect ratios, use that of the image
+							bytes[exifOrientationOffset] = (byte) imageOrientation.getValue();
+						}
+					}
+				} else if (imageOrientation != ExifOrientation.TOP_LEFT) {
+					// Apply the orientation to the thumbnail
+					try {
+						ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+						Thumbnails.of(new ByteArrayInputStream(bytes))
+							.scale(1.0d)
+							.addFilter(ExifFilterUtils.getFilterForOrientation(imageOrientation.getThumbnailatorOrientation()))
+							.outputFormat("PNG") // PNG here to avoid further degradation from rotation
+							.outputQuality(1.0f)
+							.toOutputStream(outputStream);
+						bytes = outputStream.toByteArray();
+					} catch (IOException e) {
+						LOGGER.error(
+							"Unexpected error when trying to rotate thumbnail for \"{}\" - cancelling rotation: {}",
+							fileName,
+							e.getMessage()
+						);
+						LOGGER.trace("", e);
+					}
+				}
+
+			}
+		}
+
+		if (bytes.length == 0 || !results.isEmpty() && results.get(0).contains("has no thumbnail")) {
 			// No embedded thumbnail retrieved, generate thumbnail from the actual file
 			if (trace) {
 				LOGGER.trace(
