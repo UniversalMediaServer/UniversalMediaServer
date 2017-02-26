@@ -7,10 +7,13 @@ import java.awt.image.ColorConvertOp;
 import java.awt.image.RenderedImage;
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.IIOException;
@@ -51,6 +54,7 @@ import com.drew.imaging.psd.PsdMetadataReader;
 import com.drew.imaging.raf.RafMetadataReader;
 import com.drew.imaging.tiff.TiffMetadataReader;
 import com.drew.imaging.webp.WebpMetadataReader;
+import com.drew.lang.RandomAccessReader;
 import com.drew.lang.RandomAccessStreamReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
@@ -1950,6 +1954,140 @@ public class ImagesUtil {
 			}
 		}
 		return result.byteValue();
+	}
+
+	/**
+	 * Finds the offset of the given Exif tag. Only the first IFD is searched.
+	 *
+	 * @param tagId the tag id to look for.
+	 * @param reader a {@link RandomAccessReader} with a JPEG image.
+	 * @return the offset of the given tag's value, or -1 if not found.
+	 * @throws UnknownFormatException if the content isn't a JPEG.
+	 * @throws IOException if any error occurs while reading.
+	 */
+	public static int getJPEGExifIFDTagOffset(int tagId, RandomAccessReader reader) throws UnknownFormatException, IOException {
+		reader.setMotorolaByteOrder(true);
+		if (reader.getUInt16(0) != 0xFFD8) {
+			throw new UnknownFormatException("Content isn't JPEG");
+		}
+
+		byte SEGMENT_IDENTIFIER = (byte) 0xFF;
+		byte MARKER_EOI = (byte) 0xD9;
+		byte APP1 = (byte) 0xE1;
+		final String EXIF_SEGMENT_PREAMBLE = "Exif\0\0";
+
+        byte segmentIdentifier = reader.getInt8(2);
+        byte segmentType = reader.getInt8(3);
+
+		int pos = 4;
+
+        while (
+        	segmentIdentifier != SEGMENT_IDENTIFIER ||
+        	segmentType != APP1 &&
+        	segmentType != MARKER_EOI ||
+        	segmentType == APP1 &&
+    		!EXIF_SEGMENT_PREAMBLE.equals(new String(
+        		reader.getBytes(pos + 2, EXIF_SEGMENT_PREAMBLE.length()),
+        		0,
+        		EXIF_SEGMENT_PREAMBLE.length(),
+        		StandardCharsets.US_ASCII)
+        	)
+        ) {
+        	segmentIdentifier = segmentType;
+        	segmentType = reader.getInt8(pos++);
+        }
+
+        if (segmentType == MARKER_EOI) {
+        	// Reached the end of the image without finding an Exif segment
+        	return -1;
+        }
+
+        int segmentLength = reader.getUInt16(pos) - 2;
+        pos += 2 + EXIF_SEGMENT_PREAMBLE.length();
+
+        if (segmentLength < EXIF_SEGMENT_PREAMBLE.length()) {
+        	throw new ParseException("Exif segment is too small");
+        }
+
+        int exifHeaderOffset = pos;
+
+        short byteOrderIdentifier = reader.getInt16(pos);
+        pos += 4; // Skip TIFF marker
+
+        if (byteOrderIdentifier == 0x4d4d) { // "MM"
+            reader.setMotorolaByteOrder(true);
+        } else if (byteOrderIdentifier == 0x4949) { // "II"
+            reader.setMotorolaByteOrder(false);
+        } else {
+            throw new ParseException("Can't determine Exif endianness from: 0x" + Integer.toHexString(byteOrderIdentifier));
+        }
+
+        pos = reader.getInt32(pos) + exifHeaderOffset;
+
+        int tagCount = reader.getUInt16(pos);
+
+        for (int tagNumber = 0; tagNumber < tagCount; tagNumber++) {
+        	int tagOffset = pos + 2 + (12 * tagNumber);
+        	int curTagId = reader.getUInt16(tagOffset);
+        	if (curTagId == tagId) {
+        		// tag found
+        		return tagOffset + 8;
+        	}
+        }
+
+		return -1;
+	}
+
+	/**
+	 * Reads the resolution specified in the JPEG SOF header.
+	 *
+	 * @param reader a {@link RandomAccessReader} with a JPEG image.
+	 * @return The JPEG SOF specified resolution or {@code null} if no SOF is
+	 *         found.
+	 * @throws UnknownFormatException if the content isn't a JPEG.
+	 * @throws IOException if any error occurs while reading.
+	 */
+	public static Dimension getJPEGResolution(RandomAccessReader reader) throws UnknownFormatException, IOException {
+		reader.setMotorolaByteOrder(true);
+		if (reader.getUInt16(0) != 0xFFD8) {
+			throw new UnknownFormatException("Content isn't JPEG");
+		}
+
+		byte SEGMENT_IDENTIFIER = (byte) 0xFF;
+		byte MARKER_EOI = (byte) 0xD9;
+		Set<Byte> SOFS = new HashSet<>(Arrays.asList(
+			(byte) 0xC0, (byte) 0xC1, (byte) 0xC2, (byte) 0xC3, (byte) 0xC5,
+			(byte) 0xC6, (byte) 0xC7, (byte) 0xC8, (byte) 0xC9, (byte) 0xCA,
+			(byte) 0xCB, (byte) 0xCD, (byte) 0xCE, (byte) 0xCF
+		));
+
+        byte segmentIdentifier = reader.getInt8(2);
+        byte segmentType = reader.getInt8(3);
+
+		int pos = 4;
+
+        while (
+        	segmentIdentifier != SEGMENT_IDENTIFIER ||
+        	!SOFS.contains(segmentType) &&
+        	segmentType != MARKER_EOI
+        ) {
+        	segmentIdentifier = segmentType;
+        	segmentType = reader.getInt8(pos++);
+        }
+
+        if (segmentType == MARKER_EOI) {
+        	// Reached the end of the image without finding the SOF segment
+        	return null;
+        }
+
+        int segmentLength = reader.getUInt16(pos) - 2;
+        pos += 3;
+
+        if (segmentLength < 5) {
+        	throw new ParseException("SOF segment is too small");
+        }
+
+        return new Dimension(reader.getUInt16(pos + 2), reader.getUInt16(pos));
 	}
 
 	/**
