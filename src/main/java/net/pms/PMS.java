@@ -71,10 +71,12 @@ import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.software.os.OperatingSystem;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -1390,18 +1392,50 @@ public class PMS {
 	 * warnings where appropriate.
 	 */
 	private void logSystemInfo() {
-		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
-		HardwareAbstractionLayer hal = new SystemInfo().getHardware();
-        CentralProcessor processor = hal.getProcessor();
-        GlobalMemory memory = hal.getMemory();
+		long jvmMemory = Runtime.getRuntime().maxMemory();
+		OperatingSystem os = null;
+		CentralProcessor processor = null;
+		GlobalMemory memory = null;
+		try {
+			SystemInfo systemInfo = new SystemInfo();
+			HardwareAbstractionLayer hardware = systemInfo.getHardware();
+			os = systemInfo.getOperatingSystem();
+	        processor = hardware.getProcessor();
+	        memory = hardware.getMemory();
+		} catch (Exception e) {
+			LOGGER.error("Could not retrieve OS and hardware information: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
 
-		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
-		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
-		LOGGER.info("Physical memory available: {} MB", memory.getAvailable() / 1048576);
-		LOGGER.info("Memory accessible by Java: {} MB", memoryInMB);
-		LOGGER.info("CPU: " + processor.getName());
-		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
-		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
+		LOGGER.info(
+			"Java: {} {} ({}-bit) by {}",
+			System.getProperty("java.vm.name"),
+			System.getProperty("java.version"),
+			System.getProperty("sun.arch.data.model"),
+			System.getProperty("java.vendor")
+		);
+		if (os != null && StringUtils.isNotBlank(os.toString())) {
+			LOGGER.info("OS: {} {}-bit", os.toString(), getOSBitness());
+		} else {
+			LOGGER.info("OS: {} {}-bit {}", System.getProperty("os.name"), getOSBitness(), System.getProperty("os.version"));
+		}
+		if (processor != null) {
+			LOGGER.info(
+				"CPU: {} with {} cores ({} virtual cores)",
+				processor.getName(),
+				processor.getPhysicalProcessorCount(),
+				processor.getLogicalProcessorCount()
+			);
+		}
+		if (memory != null) {
+			LOGGER.info("Memory: {}", StringUtil.formatBytes(memory.getTotal(), true));
+			LOGGER.info("Free memory: {}", StringUtil.formatBytes(memory.getAvailable(), true));
+
+		}
+		LOGGER.info("Maximum JVM Memory: {}", jvmMemory == Long.MAX_VALUE ? "Unlimited" : StringUtil.formatBytes(jvmMemory, true));
+		LOGGER.info("Language: {}", WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		LOGGER.info("Encoding: {}", System.getProperty("file.encoding"));
+		LOGGER.info("Language: {}", WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("");
 
 		if (Platform.isMac()) {

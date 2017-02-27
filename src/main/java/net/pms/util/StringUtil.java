@@ -41,6 +41,18 @@ public class StringUtil {
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
 	public static final String NEWLINE_CHARACTER = System.getProperty("line.separator");
+	public static final long KIBI = 1L << 10;
+	public static final long MEBI = 1L << 20;
+	public static final long GIBI = 1L << 30;
+	public static final long TEBI = 1L << 40;
+	public static final long PEBI = 1L << 50;
+	public static final long EXBI = 1L << 60;
+	public static final long KILO = 1000L;
+	public static final long MEGA = 1000000L;
+	public static final long GIGA = 1000000000L;
+	public static final long TERA = 1000000000000L;
+	public static final long PETA = 1000000000000000L;
+	public static final long EXA  = 1000000000000000000L;
 
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
@@ -373,7 +385,7 @@ public class StringUtil {
 
 	/**
 	 * Escapes {@link org.apache.lucene} special characters with backslash
-	 * 
+	 *
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */
@@ -412,7 +424,7 @@ public class StringUtil {
 
 	/**
 	 * Escapes special characters with backslashes for FFmpeg subtitles
-	 * 
+	 *
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */
@@ -442,4 +454,60 @@ public class StringUtil {
 
 		return sb.toString();
 	}
+
+    /**
+	 * Formats bytes into a rounded {@link String} representation in either
+	 * binary/power of 2 or SI notation using {@link Locale#ROOT}.
+	 *
+	 * @param bytes the value to format.
+	 * @param binary whether the representation should be binary/power of 2 or
+	 *            SI/metric.
+	 * @return The formatted byte value and unit.
+	 */
+    public static String formatBytes(long bytes, boolean binary) {
+    	return formatBytes(bytes, binary, Locale.ROOT);
+    }
+
+    /**
+	 * Formats bytes into a rounded {@link String} representation in either
+	 * binary/power of 2 or SI notation.
+	 *
+	 * @param bytes the value to format.
+	 * @param binary whether the representation should be binary/power of 2 or
+	 *            SI/metric.
+	 * @param locale the {@link Locale} to use when formatting.
+	 * @return The formatted byte value and unit.
+	 */
+    public static String formatBytes(long bytes, boolean binary, Locale locale) {
+    	if ((binary && bytes < 1L << 10) || bytes < KILO) {
+    		return String.format("%d %s", bytes, bytes == 1L ? "byte" : "bytes");
+    	}
+
+    	long divisor;
+    	String unit;
+        if ((binary && bytes < MEBI) || bytes < MEGA) { // kibi/kilo
+        	divisor = binary ? KIBI : KILO;
+        	unit = binary ? "KiB" : "kB";
+        } else if ((binary && bytes < GIBI) || bytes < GIGA) { // mebi/mega
+        	divisor = binary ? MEBI : MEGA;
+        	unit = binary ? "MiB" : "MB";
+        } else if ((binary && bytes < TEBI) || bytes < TERA) { // gibi/giga
+        	divisor = binary ? GIBI : GIGA;
+        	unit = binary ? "GiB" : "GB";
+        } else if ((binary && bytes < PEBI) || bytes < PETA) { // tebi/tera
+        	divisor = binary ? TEBI : TERA;
+        	unit = binary ? "TiB" : "TB";
+        } else if ((binary && bytes < EXBI) || bytes < EXA) { // pebi/peta
+        	divisor = binary ? PEBI : PETA;
+        	unit = binary ? "PiB" : "PB";
+        } else { // exbi/exa
+        	divisor = binary ? EXBI : EXA;
+        	unit = binary ? "EiB" : "EB";
+        }
+        if (bytes % divisor == 0) {
+        	return String.format(locale, "%d %s", bytes / divisor, unit);
+        }
+        return String.format(locale, "%.1f %s", (double) bytes / divisor, unit);
+    }
+
 }
