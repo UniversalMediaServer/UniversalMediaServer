@@ -19,6 +19,7 @@
 
 package net.pms;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
@@ -73,6 +74,7 @@ import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.software.os.OperatingSystem;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -874,20 +876,17 @@ public class PMS {
 		return mediaLibrary;
 	}
 
-	private SystemUtils createSystemUtils() {
+	private static SystemUtils createSystemUtils() {
 		if (Platform.isWindows()) {
 			return new WinUtils();
-		} else {
-			if (Platform.isMac()) {
-				return new MacSystemUtils();
-			} else {
-				if (Platform.isSolaris()) {
-					return new SolarisUtils();
-				} else {
-					return new BasicSystemUtils();
-				}
-			}
 		}
+		if (Platform.isMac()) {
+			return new MacSystemUtils();
+		}
+		if (Platform.isSolaris()) {
+			return new SolarisUtils();
+		}
+		return new BasicSystemUtils();
 	}
 
 	/**
@@ -1416,19 +1415,50 @@ public class PMS {
 	 * Log system properties identifying Java, the OS and encoding and log
 	 * warnings where appropriate.
 	 */
-	private void logSystemInfo() {
-		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
-		HardwareAbstractionLayer hal = new SystemInfo().getHardware();
-		CentralProcessor processor = hal.getProcessor();
-		GlobalMemory memory = hal.getMemory();
+	private static void logSystemInfo() {
+		long jvmMemory = Runtime.getRuntime().maxMemory();
+		OperatingSystem os = null;
+		CentralProcessor processor = null;
+		GlobalMemory memory = null;
+		try {
+			SystemInfo systemInfo = new SystemInfo();
+			HardwareAbstractionLayer hardware = systemInfo.getHardware();
+			os = systemInfo.getOperatingSystem();
+			processor = hardware.getProcessor();
+			memory = hardware.getMemory();
+		} catch (Error e) {
+			LOGGER.debug("Could not retrieve OS and hardware information: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
 
-		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
-		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
-		LOGGER.info("Physical memory available: {} MB", memory.getAvailable() / 1048576);
-		LOGGER.info("Memory accessible by Java: {} MB", memoryInMB);
-		LOGGER.info("CPU: " + processor.getName());
-		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
-		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
+		LOGGER.info(
+			"Java: {} {} ({}-bit) by {}",
+			System.getProperty("java.vm.name"),
+			System.getProperty("java.version"),
+			System.getProperty("sun.arch.data.model"),
+			System.getProperty("java.vendor")
+		);
+		if (os != null && isNotBlank(os.toString())) {
+			LOGGER.info("OS: {} {}-bit", os.toString(), getOSBitness());
+		} else {
+			LOGGER.info("OS: {} {}-bit {}", System.getProperty("os.name"), getOSBitness(), System.getProperty("os.version"));
+		}
+		if (processor != null) {
+			LOGGER.info(
+				"CPU: {} with {} cores ({} virtual cores)",
+				processor.getName(),
+				processor.getPhysicalProcessorCount(),
+				processor.getLogicalProcessorCount()
+			);
+		}
+		if (memory != null) {
+			LOGGER.info("Physical Memory: {}", StringUtil.formatBytes(memory.getTotal(), true));
+			LOGGER.info("Free memory: {}", StringUtil.formatBytes(memory.getAvailable(), true));
+
+		}
+		LOGGER.info("Maximum JVM Memory: {}", jvmMemory == Long.MAX_VALUE ? "Unlimited" : StringUtil.formatBytes(jvmMemory, true));
+		LOGGER.info("Language: {}", WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		LOGGER.info("Encoding: {}", System.getProperty("file.encoding"));
 		LOGGER.info("");
 
 		if (Platform.isMac()) {
@@ -1694,9 +1724,8 @@ public class PMS {
 		try {
 			if (locale != null) {
 				return locale;
-			} else {
-				return Locale.getDefault();
 			}
+			return Locale.getDefault();
 		} finally {
 			localeLock.readLock().unlock();
 		}
