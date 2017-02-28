@@ -220,6 +220,11 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>[0.4, 0.5)</version>
 		</dependency>
+		
+		<!-- 
+			If any ImageIO plugins are added or removed, corresponding changes
+		 	must be made in src/main/external-resources/META-INF/services
+		 -->
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
