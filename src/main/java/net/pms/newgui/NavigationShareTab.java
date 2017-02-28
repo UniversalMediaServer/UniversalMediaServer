@@ -459,7 +459,7 @@ public class NavigationShareTab {
 			public void actionPerformed(ActionEvent e) {
 				int option = JOptionPane.showConfirmDialog(
 					looksFrame,
-					Messages.getString("NetworkTab.13") + Messages.getString("NetworkTab.19"),
+					Messages.getString("NetworkTab.13") + "\n" + Messages.getString("NetworkTab.19"),
 					Messages.getString("Dialog.Question"),
 					JOptionPane.YES_NO_OPTION);
 				if (option == JOptionPane.YES_OPTION) {
