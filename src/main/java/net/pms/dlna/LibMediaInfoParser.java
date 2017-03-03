@@ -14,6 +14,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +118,12 @@ public class LibMediaInfoParser {
 							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
 							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
+							// Prefer "FrameRate_Original over FrameRate if it's there because it is more accurate
+							// https://github.com/UniversalMediaServer/UniversalMediaServer/issues/1210
+							value = MI.Get(video, i, "FrameRate_Original");
+							if (StringUtils.isBlank(value))
+								value = MI.Get(video, i, "FrameRate");
+							media.setFrameRate(getFPSValue(value));
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
 							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
@@ -246,7 +253,7 @@ public class LibMediaInfoParser {
 						media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 						media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 					}
-					
+
 //					media.setImageCount(media.getImageCount() + 1);
 				}
 
@@ -417,7 +424,7 @@ public class LibMediaInfoParser {
 	 * @param media
 	 * @param audio
 	 * @param value
-	 * @param file 
+	 * @param file
 	 */
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		if (value.isEmpty()) {
