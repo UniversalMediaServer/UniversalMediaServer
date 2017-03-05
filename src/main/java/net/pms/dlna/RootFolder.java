@@ -1464,13 +1464,13 @@ public class RootFolder extends DLNAResource {
 	public static final FileWatcher.Listener LIBRARY_RESCANNER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-			if (PMS.getConfiguration().getUseCache() && !isDir) {
+			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache() && !isDir) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
 					if ("ENTRY_DELETE".equals(event)) {
-						LOGGER.trace("File " + filename + " was deleted or moved on the hard drive, running cleanup");
-						database.cleanup();
+						LOGGER.trace("File " + filename + " was deleted or moved on the hard drive, removing it from the database");
+						PMS.get().deleteFileEntriesInDirectory(filename);
 					} else if ("ENTRY_CREATE".equals(event)) {
 						LOGGER.trace("File " + filename + " was created on the hard drive");
 						File file = new File(filename);
