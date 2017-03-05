@@ -1354,7 +1354,7 @@ public class PMS {
 	 * @param path
 	 */
 	public void deleteFileEntry(String path) {
-		getDatabase().deleteRowsInFilesTable(sqlLikeEscape(path), "FILENAME");
+		getDatabase().deleteRowsInFilesTables(sqlLikeEscape(path), "FILENAME");
 	}
 
 	/**
@@ -1363,7 +1363,7 @@ public class PMS {
 	 * @param directory
 	 */
 	public void deleteFileEntriesInDirectory(String directory) {
-		getDatabase().deleteRowsInFilesTable(sqlLikeEscape(directory) + "%", "FILENAME");
+		getDatabase().deleteRowsInFilesTables(sqlLikeEscape(directory) + "%", "FILENAME");
 	}
 
 	/**
