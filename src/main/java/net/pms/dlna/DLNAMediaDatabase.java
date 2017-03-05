@@ -818,7 +818,7 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		try {
-			LOGGER.trace("Deleting rows in database where the value in column " + column + " is " + value);
+			LOGGER.trace("Deleting rows from FILES table where the value in column " + column + " is " + value);
 			conn = getConnection();
 
 			String compareMethod = "=";
@@ -829,6 +829,47 @@ public class DLNAMediaDatabase implements Runnable {
 			ps = conn.prepareStatement("DELETE FROM FILES WHERE " + column + " " + compareMethod + " ?");
 			ps.setString(1, value);
 			ps.executeUpdate();
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	/**
+	 * Deletes a row or rows in the FILES and FILES_STATUS tables.
+	 * Will automatically use LIKE if a wildcard (%) is detected.
+	 *
+	 * @param value  the value to insert
+	 * @param column the column to update
+	 */
+	public synchronized void deleteRowsInFilesTables(String value, String column) {
+		if (
+			StringUtils.isEmpty(value) ||
+			StringUtils.isEmpty(column)
+		) {
+			return;
+		}
+
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs;
+		try {
+			LOGGER.trace("Deleting rows from FILES and FILES_STATUS tables where the value in column " + column + " is " + value);
+			conn = getConnection();
+
+			String compareMethod = "=";
+			if (value.contains("%")) {
+				compareMethod = "LIKE";
+			}
+
+			ps = conn.prepareStatement("SELECT ID FROM FILES WHERE " + column + " " + compareMethod + " ?");
+			rs = ps.executeQuery();
+			while (rs.next()) {
+				deleteRowsInFilesTable(Integer.toString(rs.getInt("ID")), "ID");
+				TableFilesStatus.removeEntryFromFileId(Integer.toString(rs.getInt("ID")));
+			}
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
 		} finally {

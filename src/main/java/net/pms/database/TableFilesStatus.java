@@ -206,6 +206,37 @@ public final class TableFilesStatus extends Tables{
 		}
 	}
 
+	/**
+	 * Removes an entry based on its FILEID (which is the ID of its
+	 * corresponding entry in the FILES table.
+	 *
+	 * @param fileid the fileid to remove
+	 */
+	public static void removeEntryFromFileId(final String fileid) {
+		try (Connection connection = database.getConnection()) {
+			String query = "DELETE FROM " + TABLE_NAME + " WHERE FILEID = " + fileid;
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet result = statement.executeQuery(query)) {
+					if (result.next()) {
+						LOGGER.trace("Removed entry in FILES_STATUS for fileid \"{}\"", fileid);
+					} else {
+						LOGGER.trace("Could not find entry in FILES_STATUS for fileid \"{}\"", fileid);
+					}
+				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Database error while removing entry from file status for \"{}\": {}",
+				fileid,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
+
 	public static FilesStatusResult isFullyPlayed(final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
 		FilesStatusResult result;
