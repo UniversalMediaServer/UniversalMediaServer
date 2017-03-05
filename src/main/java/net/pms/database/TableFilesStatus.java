@@ -28,6 +28,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.pms.Messages;
+import net.pms.PMS;
 
 /**
  * This class is responsible for managing the FilesStatus table. It
@@ -166,14 +168,17 @@ public final class TableFilesStatus extends Tables{
 	/**
 	 * Sets whether each file within the directory is fully played.
 	 *
-	 * @param fullPathToFile
-	 * @param isFullyPlayed
+	 * @param fullPath      the full and escaped path to the directory
+	 * @param statusPath    a more readable version of fullPath
+	 * @param isFullyPlayed whether to mark fully played or unplayed
 	 */
-	public static void setDirectoryFullyPlayed(final String fullPathToFile, final boolean isFullyPlayed) {
+	public static void setDirectoryFullyPlayed(final String fullPath, final String statusPath, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
+		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
+		PMS.get().getFrame().setStatusLine(statusLineString + ": " + statusPath);
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(fullPathToFile);
+			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(fullPath);
 			if (trace) {
 				LOGGER.trace("Searching for file with \"{}\" before update", query);
 			}
@@ -192,10 +197,12 @@ public final class TableFilesStatus extends Tables{
 			LOGGER.error(
 				"Database error while writing file status \"{}\" for \"{}\": {}",
 				isFullyPlayed,
-				fullPathToFile,
+				fullPath,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
+		} finally {
+			PMS.get().getFrame().setStatusLine(null);
 		}
 	}
 
