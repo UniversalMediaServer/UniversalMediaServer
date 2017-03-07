@@ -117,7 +117,9 @@ public class LibMediaInfoParser {
 							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
 							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
-							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
+							media.setFrameRateOriginal(MI.Get(video, i, "FrameRate_Original"));
+							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRate_Mode")));
+							media.setFrameRateModeRaw(MI.Get(video, i, "FrameRate_Mode"));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
 							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
 							value = MI.Get(video, i, "Format_Settings_QPel");
