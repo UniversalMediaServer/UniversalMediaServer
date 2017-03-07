@@ -126,6 +126,8 @@ public class DLNAMediaInfo implements Cloneable {
 	public String frameRate;
 
 	private String frameRateMode;
+	private String frameRateModeLog;
+	private String frameRateOriginal;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -1663,78 +1665,106 @@ public class DLNAMediaInfo implements Cloneable {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append("container: ");
-		result.append(container);
-		result.append(", bitrate: ");
-		result.append(bitrate);
+		result.append(getContainer());
 		result.append(", size: ");
-		result.append(size);
-		if (videoTrackCount > 0) {
+		result.append(getSize());
+		if (isVideo()) {
+			result.append(", bitrate: ");
+			result.append(getBitrate());
 			result.append(", video tracks: ");
-			result.append(videoTrackCount);
-		}
-		if (getAudioTrackCount() > 0) {
+			result.append(getVideoTrackCount());
+			result.append(", video codec: ");
+			result.append(getCodecV());
+			result.append(", duration: ");
+			result.append(getDurationString());
+			result.append(", width: ");
+			result.append(getWidth());
+			result.append(", height: ");
+			result.append(getHeight());
+			if (isNotBlank(getFrameRate())) {
+			result.append(", frame rate: ");
+			result.append(getFrameRate());
+			}
+			if (isNotBlank(getFrameRateOriginal())) {
+			result.append(", original frame rate: ");
+			result.append(getFrameRateOriginal());
+			}
+			if (isNotBlank(getFrameRateModeLog())) {
+			result.append(", frame rate mode: ");
+			result.append(getFrameRateModeLog());
+			}
+			if (isNotBlank(getMuxingMode())) {
+				result.append(", muxing mode: ");
+				result.append(getMuxingMode());
+			}
+			if (isNotBlank(getMatrixCoefficients())) {
+				result.append(", matrix coefficients: ");
+				result.append(getMatrixCoefficients());
+			}
+			if (isNotBlank(getAvcLevel())) {
+				result.append(", avc level: ");
+				result.append(getAvcLevel());
+			}
+//			if (isNotBlank(getHevcLevel())) {
+//				result.append(", hevc level: ");
+//				result.append(getHevcLevel());
+			if (getVideoBitDepth() != 8) {
+				result.append(", video bit depth: ");
+				result.append(getVideoBitDepth());
+			}
+			if (hasSubtitles()) {
+				result.append(", subtitle tracks: ");
+				result.append(getSubTrackCount());
+			}
+			if (isNotBlank(getFileTitleFromMetadata())) {
+				result.append(", file title from metadata: ");
+				result.append(getFileTitleFromMetadata());
+			}
+			if (isNotBlank(getVideoTrackTitleFromMetadata())) {
+				result.append(", video track title from metadata: ");
+				result.append(getVideoTrackTitleFromMetadata());
+			}
 			result.append(", audio tracks: ");
 			result.append(getAudioTrackCount());
+			for (DLNAMediaAudio audio : audioTracks) {
+				result.append("\n\tAudio track ");
+				result.append(audio.toString());
+			}
+			for (DLNAMediaSubtitle sub : subtitleTracks) {
+				result.append("\n\tSubtitle track ");
+				result.append(sub.toString());
+			}
 		}
-		if (imageCount > 0) {
-			result.append(", images: ");
-			result.append(imageCount);
+		if (isAudio()) {
+			result.append(", bitrate: ");
+			result.append(getBitrate());
+			result.append(", audio tracks: ");
+			result.append(getAudioTrackCount());
+			result.append(", duration: ");
+			result.append(getDurationString());
+			for (DLNAMediaAudio audio : audioTracks) {
+				result.append("\n\tAudio track ");
+				result.append(audio.toString());
+			}
 		}
-		if (getSubTrackCount() > 0) {
-			result.append(", subtitle tracks: ");
-			result.append(getSubTrackCount());
+		if (isImage()) {
+			if (getImageCount() > 1) {
+				result.append(", images: ");
+				result.append(getImageCount());
+			}
+			result.append(", width: ");
+			result.append(getWidth());
+			result.append(", height: ");
+			result.append(getHeight());
 		}
-		result.append(", video codec: ");
-		result.append(codecV);
-		result.append(", duration: ");
-		result.append(getDurationString());
-		result.append(", width: ");
-		result.append(width);
-		result.append(", height: ");
-		result.append(height);
-		result.append(", frame rate: ");
-		result.append(frameRate);
-
-		if (thumb != null) {
+		
+		if (getThumb() != null) {
 			result.append(", thumb size: ");
-			result.append(thumb.length);
-		}
-		if (isNotBlank(muxingMode)) {
-			result.append(", muxing mode: ");
-			result.append(muxingMode);
+			result.append(getThumb().length);
 		}
 
 		result.append(", mime type: ");
-		result.append(mimeType);
-
-		if (isNotBlank(matrixCoefficients)) {
-			result.append(", matrix coefficients: ");
-			result.append(matrixCoefficients);
-		}
-
-		if (isNotBlank(avcLevel)) {
-			result.append(", avc level: ");
-			result.append(avcLevel);
-		}
-
-		if (isNotBlank(fileTitleFromMetadata)) {
-			result.append(", file title from metadata: ");
-			result.append(fileTitleFromMetadata);
-		}
-		if (isNotBlank(videoTrackTitleFromMetadata)) {
-			result.append(", video track title from metadata: ");
-			result.append(videoTrackTitleFromMetadata);
-		}
-
-		for (DLNAMediaAudio audio : audioTracks) {
-			result.append("\n\tAudio track ");
-			result.append(audio.toString());
-		}
-
-		for (DLNAMediaSubtitle sub : subtitleTracks) {
-			result.append("\n\tSubtitle track ");
-			result.append(sub.toString());
-		}
+		result.append(getMimeType());
 
 		return result.toString();
 	}
@@ -2069,6 +2099,20 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setFrameRate(String frameRate) {
 		this.frameRate = frameRate;
 	}
+	
+	/**
+	 * @return the frameRateOriginal
+	 */
+	public String getFrameRateOriginal() {
+		return frameRateOriginal;
+	}
+	
+	/**
+	 * @param frameRateOriginal the frameRateOriginal to set
+	 */
+	public void setFrameRateOriginal(String frameRateOriginal) {
+		this.frameRateOriginal = frameRateOriginal;
+	}
 
 	/**
 	 * @return the frameRateMode
@@ -2084,6 +2128,20 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setFrameRateMode(String frameRateMode) {
 		this.frameRateMode = frameRateMode;
+	}
+	
+	/**
+	 * @return the frameRateModeLog
+	 */
+	public String getFrameRateModeLog() {
+		return frameRateModeLog;
+	}
+	
+	/**
+	 * @param frameRateModeLog the frameRateModeLog to set
+	 */
+	public void setFrameRateModeLog(String frameRateModeLog) {
+		this.frameRateModeLog = frameRateModeLog;
 	}
 
 	/**

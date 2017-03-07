@@ -900,7 +900,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					LOGGER.trace(prependTraceReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), media.getBitrate(), maxBandwidth);
 				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
+					LOGGER.trace(prependTraceReason + "the video bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
 				} else if (renderer.isH264Level41Limited() && media.isH264()) {
 					if (media.getAvcLevel() != null) {
 						double h264Level = 4.1;

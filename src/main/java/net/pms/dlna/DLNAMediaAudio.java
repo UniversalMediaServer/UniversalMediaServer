@@ -509,10 +509,12 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		result.append("id: ");
-		result.append(getId());
-		result.append(", lang: ");
-		result.append(getLang());
+		if (isNotBlank(getLang())) {
+			result.append("id: ");
+			result.append(getId());
+			result.append(", lang: ");
+			result.append(getLang());
+		}
 
 		if (isNotBlank(getAudioTrackTitleFromMetadata())) {
 			result.append(", audio track title from metadata: ");
@@ -528,9 +530,11 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			result.append(", number of channels: ");
 			result.append(getAudioProperties().getNumberOfChannels());
 		}
-
-		result.append(", bits per sample: ");
-		result.append(getBitsperSample());
+		
+		if (getBitsperSample() != 16) {
+			result.append(", bits per sample: ");
+			result.append(getBitsperSample());
+		}
 
 		if (isNotBlank(getArtist())) {
 			result.append(", artist: ");
