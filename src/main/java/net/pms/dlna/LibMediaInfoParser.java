@@ -156,6 +156,9 @@ public class LibMediaInfoParser {
 						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
 							media.setAvcLevel(getAvcLevel(value));
 						}
+						if (isNotBlank(value) && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H265)) {
+							media.setHevcLevel(getHevcLevel(value));
+						}
 					}
 				}
 
@@ -614,9 +617,16 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
+		// Value can look like "Advanced@L1", "Complex@L2", "MP@LL" or "Simple@L3" with VC-1 or MPEG-4 Visual at this point.	
 		} else if (containsIgnoreCase(value, "@l") && streamType == StreamType.Video) {
-			media.setAvcLevel(getAvcLevel(value));
-			media.setH264Profile(getAvcProfile(value));
+			if (value.contains("avc")) {
+				media.setAvcLevel(getAvcLevel(value));
+				media.setH264Profile(getAvcProfile(value));
+			}
+			if (value.contains("hevc")) {
+				media.setHevcLevel(getHevcLevel(value));
+				media.setH265Profile(getHevcProfile(value));
+			}
 		}
 
 		if (format != null) {
@@ -678,11 +688,37 @@ public class LibMediaInfoParser {
 		// High@L3.0
 		// High@L4.0
 		// High@L4.1
-		final String avcLevel = substringAfterLast(lowerCase(value), "@l");
+		// // Value can look like "Stereo High@L4.1 / High@L4.1".
+		if (isNotBlank(substringBetween(lowerCase(value), "@l" , " /"))) {
+			final String avcLevel = substringBetween(lowerCase(value), "@l" , " /");
+		} else {
+			final String avcLevel = substringAfterLast(lowerCase(value), "@l");
+		}
 		if (isNotBlank(avcLevel)) {
 			return avcLevel;
 		} else {
 			LOGGER.warn("Could not parse AvcLevel value {}." , value);
+			return null;
+		}
+}
+	/**
+	 * @param value {@code Format_Profile} value to parse.
+	 * @return HEVC level or {@code null} if could not parse.
+	 */
+	public static String getHevcLevel(String value) {
+		// Example values:
+		// High@L4.1
+		// High@L5
+		// High@L5.1
+		// High@L5.2
+		// High@L6
+		// High@L6.1
+		// High@L6.2
+		final String hevcLevel = substringsBetween(lowerCase(value), "@l" , "@");
+		if (isNotBlank(hevcLevel)) {
+			return hevcLevel;
+		} else {
+			LOGGER.warn("Could not parse HevcLevel value {}." , value);
 			return null;
 		}
 	}
@@ -693,6 +729,16 @@ public class LibMediaInfoParser {
 			return profile;
 		} else {
 			LOGGER.warn("Could not parse AvcProfile value {}." , value);
+			return null;
+		}
+	}
+	
+	public static String getHevcProfile(String value) {
+		String profile = substringBefore(lowerCase(value), "@l");
+		if (isNotBlank(profile)) {
+			return profile;
+		} else {
+			LOGGER.warn("Could not parse HevcProfile value {}." , value);
 			return null;
 		}
 	}

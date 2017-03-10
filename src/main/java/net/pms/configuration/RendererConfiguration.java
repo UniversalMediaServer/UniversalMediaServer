@@ -143,6 +143,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
+	protected static final String H265_L41_LIMITED = "H265Level41Limited";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
@@ -1269,6 +1270,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isH264Level41Limited() {
 		return getBoolean(H264_L41_LIMITED, true);
+	}
+	
+	public boolean isH265Level41Limited() {
+		return getBoolean(H265_L41_LIMITED, true);
 	}
 
 	public boolean isTranscodeFastStart() {

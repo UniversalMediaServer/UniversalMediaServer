@@ -920,6 +920,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						LOGGER.trace(prependTraceReason + "the H.264 level is unknown.", getName());
 					}
 				}
+				} else if (renderer.isH265Level41Limited() && media.isH265()) {
+					if (media.getHevcLevel() != null) {
+						double h265Level = 4.1;
+
+						try {
+							h265Level = Double.parseDouble(media.getHevcLevel());
+						} catch (NumberFormatException e) {
+							LOGGER.trace("Could not convert {} to double: {}", media.getHevcLevel(), e.getMessage());
+						}
+
+						if (h265Level > 4.1) {
+							isIncompatible = true;
+							LOGGER.trace(prependTraceReason + "the H.265 level ({}) is not supported.", getName(), h265Level);
+						}
+					} else {
+						isIncompatible = true;
+						LOGGER.trace(prependTraceReason + "the H.265 level is unknown.", getName());
+					}
+				}
 			}
 
 			// Prefer transcoding over streaming if:

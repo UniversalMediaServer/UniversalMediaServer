@@ -1312,6 +1312,15 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean isH264() {
 		return codecV != null && codecV.startsWith("h264");
 	}
+	
+	/**
+	 * Whether the file contains H.265 (HEVC) video.
+	 *
+	 * @return {boolean}
+	 */
+	public boolean isH265() {
+		return codecV != null && codecV.startsWith("hevc");
+	}
 
 	/**
 	 * Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
@@ -1701,9 +1710,9 @@ public class DLNAMediaInfo implements Cloneable {
 			if (isNotBlank(avcLevel)) {
 				result.append(", AVC Level: ").append(getAvcLevel());
 			}
-//			if (isNotBlank(getHevcLevel())) {
-//				result.append(", HEVC Level: ");
-//				result.append(getHevcLevel());
+			if (isNotBlank(getHevcLevel())) {
+				result.append(", HEVC Level: ");
+				result.append(getHevcLevel());
 			if (getVideoBitDepth() != 8) {
 				result.append(", Video Bit Depth: ").append(getVideoBitDepth());
 			}
@@ -2381,6 +2390,18 @@ public class DLNAMediaInfo implements Cloneable {
 			avcLevelLock.readLock().unlock();
 		}
 	}
+	
+	/**
+	 * @return HEVC level for video stream or {@code null} if not parsed.
+	 */
+	public String getHevcLevel() {
+		hevcLevelLock.readLock().lock();
+		try {
+			return hevcLevel;
+		} finally {
+			hevcLevelLock.readLock().unlock();
+		}
+	}
 
 	/**
 	 * Sets AVC level for video stream or {@code null} if not parsed.
@@ -2395,10 +2416,32 @@ public class DLNAMediaInfo implements Cloneable {
 			avcLevelLock.writeLock().unlock();
 		}
 	}
+	
+	/**
+	 * Sets HEVC level for video stream or {@code null} if not parsed.
+	 *
+	 * @param hevcLevel HEVC level.
+	 */
+	public void setHevcLevel(String hevcLevel) {
+		hevcLevelLock.writeLock().lock();
+		try {
+			this.hevcLevel = hevcLevel;
+		} finally {
+			hevcLevelLock.writeLock().unlock();
+		}
+	}
 
 	public int getAvcAsInt() {
 		try {
 			return Integer.parseInt(getAvcLevel().replaceAll("\\.", ""));
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+	
+	public int getHevcAsInt() {
+		try {
+			return Integer.parseInt(getHevcLevel().replaceAll("\\.", ""));
 		} catch (Exception e) {
 			return 0;
 		}
@@ -2409,10 +2452,22 @@ public class DLNAMediaInfo implements Cloneable {
 			return h264Profile;
 		}
 	}
+	
+	public String getH265Profile() {
+		synchronized (h265ProfileLock) {
+			return h265Profile;
+		}
+	}
 
 	public void setH264Profile(String s) {
 		synchronized (h264ProfileLock) {
 			h264Profile = s;
+		}
+	}
+	
+	public void setH265Profile(String s) {
+		synchronized (h265ProfileLock) {
+			h265Profile = s;
 		}
 	}
 
