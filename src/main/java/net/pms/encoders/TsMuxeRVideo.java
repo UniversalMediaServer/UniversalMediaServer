@@ -43,6 +43,7 @@ import net.pms.io.*;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.H264Level;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -248,7 +249,10 @@ public class TsMuxeRVideo extends Player {
 			 * In reality this won't cause problems since renderers typically don't support above 4.1 anyway - nor are many
 			 * videos encoded higher than that either - but it's worth acknowledging the logic discrepancy.
 			 */
-			if (!media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) && params.mediaRenderer.isH264Level41Limited()) {
+			if (
+				params.mediaRenderer.getH264LevelLimit() == H264Level.L4_1 &&
+				!media.isVideoWithinH264Level41Limits(newInput, params.mediaRenderer)
+			) {
 				LOGGER.info("The video will not play or will show a black screen");
 			}
 

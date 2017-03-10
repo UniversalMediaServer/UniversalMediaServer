@@ -731,7 +731,7 @@ public class MEncoderVideo extends Player {
 			 */
 			if ((mediaRenderer.isTranscodeToH264() || mediaRenderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
 				if (
-					mediaRenderer.isH264Level41Limited() &&
+					mediaRenderer.getH264LevelLimit() == H264Level.L4_1 &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
@@ -899,7 +899,11 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
 		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)) {
+		if (
+			deferToTsmuxer == true &&
+			params.mediaRenderer.getH264LevelLimit() == H264Level.L4_1 &&
+			!media.isVideoWithinH264Level41Limits(newInput, params.mediaRenderer)
+		) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 		}

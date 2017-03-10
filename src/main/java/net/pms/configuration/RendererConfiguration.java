@@ -28,6 +28,8 @@ import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
 import net.pms.util.FormattableColor;
+import net.pms.util.H264Level;
+import net.pms.util.H265Level;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
@@ -141,7 +143,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String HALVE_BITRATE = "HalveBitrate";
-	protected static final String H264_L41_LIMITED = "H264Level41Limited";
+	protected static final String H264_LEVEL_LIMIT = "H264LevelLimit";
+	protected static final String H265_LEVEL_LIMIT = "H265LevelLimit";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
@@ -1242,10 +1245,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * @return whether to transcode H.264 video if it exceeds level 4.1
+	 * @return The H.264 level limit, if any, or {@code null}.
 	 */
-	public boolean isH264Level41Limited() {
-		return getBoolean(H264_L41_LIMITED, true);
+	public H264Level getH264LevelLimit() {
+		return H264Level.typeOf(getString(H264_LEVEL_LIMIT, null));
+	}
+
+	/**
+	 * @return The H.265 level limit, if any, or {@code null}.
+	 */
+	public H265Level getH265LevelLimit() {
+		return H265Level.typeOf(getString(H265_LEVEL_LIMIT, null));
 	}
 
 	public boolean isTranscodeFastStart() {

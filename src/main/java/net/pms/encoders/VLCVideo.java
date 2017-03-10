@@ -341,7 +341,7 @@ public class VLCVideo extends Player {
 			 */
 			if (!isXboxOneWebVideo && (params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265())) {
 				if (
-					params.mediaRenderer.isH264Level41Limited() &&
+					params.mediaRenderer.getH264LevelLimit() == H264Level.L4_1 &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;

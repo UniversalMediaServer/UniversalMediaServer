@@ -905,23 +905,27 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the video bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
-				} else if (renderer.isH264Level41Limited() && media.isH264()) {
-					if (media.getAvcLevel() != null) {
-						double h264Level = 4.1;
-
-						try {
-							h264Level = Double.parseDouble(media.getAvcLevel());
-						} catch (NumberFormatException e) {
-							LOGGER.trace("Could not convert {} to double: {}", media.getAvcLevel(), e.getMessage());
-						}
-
-						if (h264Level > 4.1) {
+				} else if (media.isH264() && renderer.getH264LevelLimit() != null) {
+					H264Level h264Level = media.getH264Level();
+					if (h264Level != null) {
+						if (!h264Level.isSmallerOrEqual(renderer.getH264LevelLimit())) {
 							isIncompatible = true;
 							LOGGER.trace(prependTraceReason + "the H.264 level ({}) is not supported.", getName(), h264Level);
 						}
 					} else {
 						isIncompatible = true;
 						LOGGER.trace(prependTraceReason + "the H.264 level is unknown.", getName());
+					}
+				} else if (media.isH265() && renderer.getH265LevelLimit() != null) {
+					H265Level h265Level = media.getH265Level();
+					if (h265Level != null) {
+						if (!h265Level.isSmallerOrEqual(renderer.getH265LevelLimit())) {
+							isIncompatible = true;
+							LOGGER.trace(prependTraceReason + "the H.265 level ({}) is not supported.", getName(), h265Level);
+						}
+					} else {
+						isIncompatible = true;
+						LOGGER.trace(prependTraceReason + "the H.265 level is unknown.", getName());
 					}
 				}
 			}
