@@ -63,7 +63,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "8";
+	private final String latestVersion = "9";
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -71,7 +71,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_ASPECTRATIO_DVDISO = 32;
 	private final int SIZE_ASPECTRATIO_CONTAINER = 5;
 	private final int SIZE_ASPECTRATIO_VIDEOTRACK = 5;
-	private final int SIZE_AVC_LEVEL = 3;
+	private final int SIZE_VIDEO_FORMAT_PROFILE = 40;
 	private final int SIZE_CONTAINER = 32;
 	private final int SIZE_MATRIX_COEFFICIENTS = 16;
 	private final int SIZE_MUXINGMODE = 32;
@@ -237,7 +237,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_ASPECTRATIO_CONTAINER).append(')');
 				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_ASPECTRATIO_VIDEOTRACK).append(')');
 				sb.append(", REFRAMES                TINYINT");
-				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(')');
+				sb.append(", VIDEOFORMATPROFILE      VARCHAR2(").append(SIZE_VIDEO_FORMAT_PROFILE).append(')');
 				sb.append(", IMAGEINFO               OTHER");
 				sb.append(", THUMB                   OTHER");
 				sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(')');
@@ -374,7 +374,7 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
 					media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
 					media.setReferenceFrameCount(rs.getByte("REFRAMES"));
-					media.setAvcLevel(rs.getString("AVCLEVEL"));
+					media.setVideoFormatProfile(rs.getString("VIDEOFORMATPROFILE"));
 					media.setThumb((DLNAThumbnail) rs.getObject("THUMB"));
 					media.setContainer(rs.getString("CONTAINER"));
 					media.setMuxingMode(rs.getString("MUXINGMODE"));
@@ -578,7 +578,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
 					"ID, FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, " +
-					"ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, THUMB, " +
+					"ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, VIDEOFORMATPROFILE, IMAGEINFO, THUMB, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH " +
 				"FROM FILES " +
@@ -617,7 +617,7 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), SIZE_ASPECTRATIO_CONTAINER));
 							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
 							rs.updateByte("REFRAMES", media.getReferenceFrameCount());
-							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+							rs.updateString("VIDEOFORMATPROFILE", left(media.getVideoFormatProfile(), SIZE_VIDEO_FORMAT_PROFILE));
 							if (media.getImageInfo() != null) {
 								rs.updateObject("IMAGEINFO", media.getImageInfo());
 							} else {
@@ -648,7 +648,7 @@ public class DLNAMediaDatabase implements Runnable {
 				try (
 					PreparedStatement ps = connection.prepareStatement(
 						"INSERT INTO FILES (FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
-						"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
+						"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, VIDEOFORMATPROFILE, IMAGEINFO, " +
 						"THUMB, CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
 						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
@@ -681,7 +681,7 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setString(12, left(media.getAspectRatioContainer(), SIZE_ASPECTRATIO_CONTAINER));
 						ps.setString(13, left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
 						ps.setByte(14, media.getReferenceFrameCount());
-						ps.setString(15, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+						ps.setString(15, left(media.getVideoFormatProfile(), SIZE_VIDEO_FORMAT_PROFILE));
 						if (media.getImageInfo() != null) {
 							ps.setObject(16, media.getImageInfo());
 						} else {

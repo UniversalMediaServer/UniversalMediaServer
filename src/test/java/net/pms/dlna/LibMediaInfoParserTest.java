@@ -34,42 +34,17 @@ public class LibMediaInfoParserTest {
 	}
 
 	@Test
-	public void testGetAvcLevel() throws Exception {
-		assertThat(LibMediaInfoParser.getAvcLevel("Main@L2.0")).isEqualTo("2.0");
-		assertThat(LibMediaInfoParser.getAvcLevel("High@L3.0")).isEqualTo("3.0");
-		assertThat(LibMediaInfoParser.getAvcLevel("high@l4.0")).isEqualTo("4.0");
-		assertThat(LibMediaInfoParser.getAvcLevel("hIgH@L4.1")).isEqualTo("4.1");
-		assertThat(LibMediaInfoParser.getAvcLevel("5.1")).isNull();
-		assertThat(LibMediaInfoParser.getAvcLevel("level5")).isNull();
-	}
-	
-	@Test
-	public void testGetAvcProfile() throws Exception {
-		assertThat(LibMediaInfoParser.getAvcProfile("Main@L2.0")).isEqualTo("main");
-		assertThat(LibMediaInfoParser.getAvcProfile("High@L3.0")).isEqualTo("high");
-		assertThat(LibMediaInfoParser.getAvcProfile("high@l4.0")).isEqualTo("high");
-		assertThat(LibMediaInfoParser.getAvcProfile("hIgH@L4.1")).isEqualTo("high");
-		assertThat(LibMediaInfoParser.getAvcProfile("LOW@L4.1")).isEqualTo("low");
-	}
-	
-	@Test
-	public void testGetAvcProfileInvalidInput() throws Exception {
-		assertThat(LibMediaInfoParser.getAvcProfile("@L2.0")).isNull();
-		assertThat(LibMediaInfoParser.getAvcProfile("@l2.0")).isNull();
-	}
-	
-	@Test
 	public void testGetBitrate() throws Exception {
 		assertThat(LibMediaInfoParser.getBitrate("256")).isEqualTo(256);
 		assertThat(LibMediaInfoParser.getBitrate("128/192")).isEqualTo(128);
 	}
-	
+
 	@Test
 	public void testGetBitrateInvalidInput() throws Exception {
 		assertThat(LibMediaInfoParser.getBitrate("")).isEqualTo(0);
 		assertThat(LibMediaInfoParser.getBitrate("asfd")).isEqualTo(0);
 	}
-	
+
 	@Test
 	public void testGetSpecificID() throws Exception {
 		assertThat(LibMediaInfoParser.getSpecificID("256")).isEqualTo(256);
@@ -77,26 +52,26 @@ public class LibMediaInfoParserTest {
 		assertThat(LibMediaInfoParser.getSpecificID("189 (0xBD)")).isEqualTo(189);
 		assertThat(LibMediaInfoParser.getSpecificID("189 (0xBD)-")).isEqualTo(189);
 	}
-	
+
 	@Test
 	public void testGetSampleFrequency() throws Exception {
 		assertThat(LibMediaInfoParser.getSampleFrequency("44100")).isEqualTo("44100");
 		assertThat(LibMediaInfoParser.getSampleFrequency("24000khz")).isEqualTo("24000");
 		assertThat(LibMediaInfoParser.getSampleFrequency("48000 / 44100")).isEqualTo("48000");
 	}
-	
+
 	@Test
 	public void testGetFPSValue() throws Exception {
 		assertThat(LibMediaInfoParser.getFPSValue("30")).isEqualTo("30");
 		assertThat(LibMediaInfoParser.getFPSValue("30fps")).isEqualTo("30");
 	}
-	
+
 	@Test
 	public void testGetFrameRateModeValue() throws Exception {
 		assertThat(LibMediaInfoParser.getFrameRateModeValue("VBR")).isEqualTo("VBR");
 		assertThat(LibMediaInfoParser.getFrameRateModeValue("CBR/VBR")).isEqualTo("CBR");
 	}
-	
+
 	@Test
 	public void testGetLang() throws Exception {
 		assertThat(LibMediaInfoParser.getLang("enUS")).isEqualTo("enUS");

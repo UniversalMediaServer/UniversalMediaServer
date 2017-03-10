@@ -44,13 +44,14 @@ import net.pms.network.HTTPResource;
 import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
+import net.pms.util.H264Level;
+import net.pms.util.H265Level;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import static net.pms.util.StringUtil.*;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -117,8 +118,8 @@ public class DLNAMediaInfo implements Cloneable {
 		audioOrVideoContainers = Collections.unmodifiableMap(mutableAudioOrVideoContainers);
 	}
 
-	private final Object videoWithinH264LevelLimitsLock = new Object();
-	private Boolean videoWithinH264LevelLimits = null;
+	private final ReentrantReadWriteLock videoWithinH264Level41LimitsLock = new ReentrantReadWriteLock();
+	private Boolean videoWithinH264Level41Limits = null;
 
 	// Stored in database
 	private Double durationSec;
@@ -197,11 +198,8 @@ public class DLNAMediaInfo implements Cloneable {
 	private final ReentrantReadWriteLock referenceFrameCountLock = new ReentrantReadWriteLock();
 	private byte referenceFrameCount = -1;
 
-	private final ReentrantReadWriteLock avcLevelLock = new ReentrantReadWriteLock();
-	private String avcLevel = null;
-
-	private final Object h264ProfileLock = new Object();
-	private String h264Profile = null;
+	private final ReentrantReadWriteLock videoFormatProfileLock = new ReentrantReadWriteLock();
+	private String videoFormatProfile;
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
@@ -1415,6 +1413,15 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * Whether the file contains H.265 (HEVC) video.
+	 *
+	 * @return {boolean}
+	 */
+	public boolean isH265() {
+		return codecV != null && codecV.startsWith("hevc");
+	}
+
+	/**
 	 * Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
 	 */
 	public boolean isValidForLPCMTranscoding() {
@@ -1659,11 +1666,25 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * TODO move to PlayerUtil
 	 */
-	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
-		synchronized (videoWithinH264LevelLimitsLock) {
-			if (videoWithinH264LevelLimits == null) {
+	public boolean isVideoWithinH264Level41Limits(InputFile f, RendererConfiguration mediaRenderer) {
+		// First check if videoWithinH264Level41Limits has already been set with a read lock
+		videoWithinH264Level41LimitsLock.readLock().lock();
+		try {
+			if (videoWithinH264Level41Limits != null) {
+				return videoWithinH264Level41Limits;
+			}
+		} finally {
+			videoWithinH264Level41LimitsLock.readLock().unlock();
+		}
+		// Acquire a write lock and set videoWithinH264Level41Limits
+		videoWithinH264Level41LimitsLock.writeLock().lock();
+		try {
+			// Whether it's already set must be re-checked here because if can
+			// already have been set by another thread after releasing the read
+			// lock but before acquiring the write lock
+			if (videoWithinH264Level41Limits == null) {
 				if (isH264()) {
-					videoWithinH264LevelLimits = true;
+					videoWithinH264Level41Limits = true;
 					if (
 						container != null &&
 						(
@@ -1684,26 +1705,11 @@ public class DLNAMediaInfo implements Cloneable {
 							synchronized (h264_annexBLock) {
 								h264_annexB = headers[1];
 								if (h264_annexB != null) {
-									int skip = 5;
-									if (h264_annexB[2] == 1) {
-										skip = 4;
-									}
-									byte header[] = new byte[h264_annexB.length - skip];
-									System.arraycopy(h264_annexB, skip, header, 0, header.length);
-
-									avcLevelLock.readLock().lock();
 									referenceFrameCountLock.readLock().lock();
 									try {
 										if (
 											referenceFrameCount > -1 &&
-											(
-												"4.1".equals(avcLevel) ||
-												"4.2".equals(avcLevel) ||
-												"5".equals(avcLevel) ||
-												"5.0".equals(avcLevel) ||
-												"5.1".equals(avcLevel) ||
-												"5.2".equals(avcLevel)
-											) &&
+											getH264Level().isGreaterOrEqual(H264Level.L4_1) &&
 											width > 0 &&
 											height > 0
 										) {
@@ -1733,37 +1739,39 @@ public class DLNAMediaInfo implements Cloneable {
 													f.getFilename(),
 													maxref, referenceFrameCount
 												);
-												videoWithinH264LevelLimits = false;
-											} else if (referenceFrameCount == -1) {
-												LOGGER.debug(
-													"The file \"{}\" may not be compatible with this renderer because " +
-													"we can't get its number of reference frames",
-													f.getFilename()
-												);
-												videoWithinH264LevelLimits = false;
+												videoWithinH264Level41Limits = false;
 											}
+										} else if (referenceFrameCount == -1) {
+											LOGGER.debug(
+												"The file \"{}\" may not be compatible with this renderer because " +
+												"we can't get its number of reference frames",
+												f.getFilename()
+											);
+											videoWithinH264Level41Limits = false;
 										}
+
 									} finally {
 										referenceFrameCountLock.readLock().unlock();
-										avcLevelLock.readLock().unlock();
 									}
 								} else {
 									LOGGER.debug(
 										"The H.264 stream inside the file \"{}\" is not compatible with this renderer",
 										f.getFilename()
 									);
-									videoWithinH264LevelLimits = false;
+									videoWithinH264Level41Limits = false;
 								}
 							}
 						} else {
-							videoWithinH264LevelLimits = false;
+							videoWithinH264Level41Limits = false;
 						}
 					}
 				} else {
-					videoWithinH264LevelLimits = false;
+					videoWithinH264Level41Limits = false;
 				}
 			}
-			return videoWithinH264LevelLimits;
+			return videoWithinH264Level41Limits;
+		} finally {
+			videoWithinH264Level41LimitsLock.writeLock().unlock();
 		}
 	}
 
@@ -1810,12 +1818,9 @@ public class DLNAMediaInfo implements Cloneable {
 			if (isNotBlank(getMatrixCoefficients())) {
 				result.append(", Matrix Coefficients: ").append(getMatrixCoefficients());
 			}
-			if (isNotBlank(avcLevel)) {
-				result.append(", AVC Level: ").append(getAvcLevel());
+			if (isNotBlank(getVideoFormatProfile())) {
+				result.append(", Video Format Profile: ").append(getVideoFormatProfile());
 			}
-//			if (isNotBlank(getHevcLevel())) {
-//				result.append(", HEVC Level: ");
-//				result.append(getHevcLevel());
 			if (getVideoBitDepth() != 8) {
 				result.append(", Video Bit Depth: ").append(getVideoBitDepth());
 			}
@@ -2493,48 +2498,74 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return AVC level for video stream or {@code null} if not parsed.
+	 * @return The AVC/H.264 level for video stream or {@code null} if not
+	 *         parsed/relevant.
 	 */
-	public String getAvcLevel() {
-		avcLevelLock.readLock().lock();
+	public H264Level getH264Level() {
+		return H264Level.typeOf(getVideoFormatProfile());
+	}
+
+	/**
+	 * @return The HEVC/H.265 level for video stream or {@code null} if not
+	 *         parsed/relevant.
+	 */
+	public H265Level getH265Level() {
+		return H265Level.typeOf(getVideoFormatProfile());
+	}
+
+	/**
+	 * Gets the video format profile for the video stream or {@code null} if not parsed/relevant.
+	 *
+	 * @return the video format profile {@link String}.
+	 */
+	public String getVideoFormatProfile() {
+		videoFormatProfileLock.readLock().lock();
 		try {
-			return avcLevel;
+			return videoFormatProfile;
 		} finally {
-			avcLevelLock.readLock().unlock();
+			videoFormatProfileLock.readLock().unlock();
 		}
 	}
 
 	/**
-	 * Sets AVC level for video stream or {@code null} if not parsed.
+	 * Sets video format profile for the video stream.
 	 *
-	 * @param avcLevel AVC level.
+	 * @param formatProfile AVC level.
 	 */
-	public void setAvcLevel(String avcLevel) {
-		avcLevelLock.writeLock().lock();
+	public void setVideoFormatProfile(String formatProfile) {
+		videoFormatProfileLock.writeLock().lock();
 		try {
-			this.avcLevel = avcLevel;
+			this.videoFormatProfile = formatProfile == null ? null : formatProfile.trim();
 		} finally {
-			avcLevelLock.writeLock().unlock();
+			videoFormatProfileLock.writeLock().unlock();
 		}
 	}
 
-	public int getAvcAsInt() {
-		try {
-			return Integer.parseInt(getAvcLevel().replaceAll("\\.", ""));
-		} catch (Exception e) {
-			return 0;
-		}
-	}
-
+	/**
+	 * @return The AVC/H.264 profile for video stream or {@code null} if not
+	 *         parsed/relevant.
+	 */
 	public String getH264Profile() {
-		synchronized (h264ProfileLock) {
-			return h264Profile;
+		String profile = substringBefore(lowerCase(getVideoFormatProfile(), Locale.ROOT), "@l");
+		if (isNotBlank(profile)) {
+			return profile;
+		} else {
+			LOGGER.warn("Could not parse H264 profile value {}." , getVideoFormatProfile());
+			return null;
 		}
 	}
 
-	public void setH264Profile(String s) {
-		synchronized (h264ProfileLock) {
-			h264Profile = s;
+	/**
+	 * @return The HEVC/H.265 profile for video stream or {@code null} if not
+	 *         parsed/relevant.
+	 */
+	public String getH265Profile() {
+		String profile = substringBefore(lowerCase(getVideoFormatProfile(), Locale.ROOT), "@l");
+		if (isNotBlank(profile)) {
+			return profile;
+		} else {
+			LOGGER.warn("Could not parse H265 profile value {}." , getVideoFormatProfile());
+			return null;
 		}
 	}
 
