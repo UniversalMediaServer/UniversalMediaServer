@@ -941,7 +941,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace("Final verdict: \"{}\" will be streamed", getName());
 			}
 		} else {
-			LOGGER.trace("Final verdict: \"{}\" will be streamed because no compatible player was found");
+			LOGGER.trace("Final verdict: \"{}\" will be streamed because no compatible player was found", getName());
 		}
 		return resolvedPlayer;
 	}
