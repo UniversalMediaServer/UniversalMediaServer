@@ -113,6 +113,8 @@ public class PMS {
 	 */
 	private String uuid;
 
+    public boolean SleepInhibitAble;
+
 	/**
 	 * Relative location of a context sensitive help page in the documentation
 	 * directory.
@@ -294,8 +296,20 @@ public class PMS {
 
 		LOGGER.info("Build: " + shortCommitId + " (" + commitTime + ")");
 
-		// Log system properties
+        // Log system properties
 		logSystemInfo();
+
+        // First chance to Prevent Sleep
+        if (Platform.isMac() && configuration.isPreventsSleep()) {
+            LOGGER.debug("MacOS: Inhibit system sleep while we are active");
+            String cmd = "caffeinate -i -w " + getPID();
+            try {
+                Process p = Runtime.getRuntime().exec(cmd);
+            } catch (IOException ex) {
+                // This will happen on first execution if PreventsSleep default==true
+                LOGGER.debug("Error throwing MacOS Inhibit System Sleep: {}", ex);
+            }
+        }
 
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: " + cwd);
@@ -1395,7 +1409,9 @@ public class PMS {
 		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("");
 
-		if (Platform.isMac()) {
+        if (Platform.isWindows()) {
+            SleepInhibitAble = true;
+        } else if (Platform.isMac()) {
 			// The binaries shipped with the Mac OS X version of PMS are being
 			// compiled against specific OS versions, making them incompatible
 			// with older versions. Warn the user about this when necessary.
@@ -1407,6 +1423,8 @@ public class PMS {
 			if (versionNumbers.length > 1) {
 				try {
 					int osVersionMinor = Integer.parseInt(versionNumbers[1]);
+                    SleepInhibitAble = osVersionMinor >= 8;
+                    configuration.setPreventsSleep((SleepInhibitAble) ? configuration.isPreventsSleep() : false);
 
 					if (osVersionMinor < 6) {
 						LOGGER.warn("-----------------------------------------------------------------");
