@@ -681,9 +681,10 @@
 			<plugin>
 				<groupId>com.universalmediaserver</groupId>
 				<artifactId>external-maven-plugin</artifactId>
-				<version>0.1</version>
+				<version>0.2</version>
 				<inherited>false</inherited>
 				<configuration>
+					<disableSSLValidation>true</disableSSLValidation>
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
 					<createChecksum>true</createChecksum>
 					<artifactItems>
