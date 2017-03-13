@@ -813,15 +813,17 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>3.0.4</version>
+							<version>${findbugsMavenPluginVersion}</version>
 							<configuration>
-						<!-- Enables analysis which takes more memory but finds more bugs. If 
-						you run out of memory, changes the value of the effort element to 'low'. -->
+							<!-- Enables analysis which takes more memory but finds more bugs. If 
+							you run out of memory, changes the value of the effort element to 'low'. -->
 							<effort>Max</effort>
-						<!-- Reports all bugs (other values are medium and max) -->
+							<!-- Reports all bugs (other values are medium and max) -->
 							<threshold>Low</threshold>
 							<!-- Produces XML report -->
 							<xmlOutput>true</xmlOutput>
+							<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+							<failOnError>false</failOnError>
 							</configuration>
 						</plugin>
 
@@ -829,7 +831,18 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-checkstyle-plugin</artifactId>
-							<version>2.17</version>
+							<version>${mavenCheckstylePluginVersion}</version>
+							<configuration>
+       								<configLocation>checkstyle.xml</configLocation>
+        							<encoding>${project.build.sourceEncoding}</encoding>
+     							 </configuration>
+    							 <reportSets>
+    							    <reportSet>
+    							      <reports>
+     							        <report>checkstyle</report>
+      							      </reports>
+      							    </reportSet>
+							 </reportSets>
 						</plugin>
 
 						<!-- Cobertura Test Coverage report -->
