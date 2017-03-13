@@ -815,15 +815,15 @@
 							<artifactId>findbugs-maven-plugin</artifactId>
 							<version>${findbugsMavenPluginVersion}</version>
 							<configuration>
-							<!-- Enables analysis which takes more memory but finds more bugs. If 
-							you run out of memory, changes the value of the effort element to 'low'. -->
-							<effort>Max</effort>
-							<!-- Reports all bugs (other values are medium and max) -->
-							<threshold>Low</threshold>
-							<!-- Produces XML report -->
-							<xmlOutput>true</xmlOutput>
-							<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
-							<failOnError>false</failOnError>
+								<!-- Enables analysis which takes more memory but finds more bugs. If 
+								you run out of memory, changes the value of the effort element to 'low'. -->
+								<effort>Max</effort>
+								<!-- Reports all bugs (other values are medium and max) -->
+								<threshold>Low</threshold>
+								<!-- Produces XML report -->
+								<xmlOutput>true</xmlOutput>
+								<excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+								<failOnError>false</failOnError>
 							</configuration>
 						</plugin>
 
