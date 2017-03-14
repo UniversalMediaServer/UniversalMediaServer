@@ -1225,7 +1225,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.7.0-80,1.7.0-100]</version>
+											<version>[1.7.0-80,1.7.0-200]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -1403,7 +1403,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,1.8.0-100]</version>
+											<version>[1.8.0-51,1.8.0-200]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
