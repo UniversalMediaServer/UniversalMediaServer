@@ -33,6 +33,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.PreventSleepMode;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
@@ -54,7 +55,7 @@ public class GeneralTab {
 	private JCheckBox autoUpdateCheckBox;
 	private JCheckBox hideAdvancedOptions;
 	private JCheckBox newHTTPEngine;
-	private JCheckBox preventSleep;
+	private JComboBox<String> preventSleep;
 	private JTextField host;
 	private JTextField port;
 	private JTextField serverName;
@@ -431,6 +432,25 @@ public class GeneralTab {
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
+			boolean disableSleepSupported = PMS.get().getRegistry().disableGoToSleepSupported();
+			if (disableSleepSupported) {
+				builder.addLabel(Messages.getString("NetworkTab.PreventSleepLabel"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+				final KeyedComboBoxModel<PreventSleepMode, String> preventSleepModel = createPreventSleepModel();
+				preventSleep = new JComboBox<>(preventSleepModel);
+				preventSleep.setToolTipText(Messages.getString("NetworkTab.PreventSleepToolTip"));
+				preventSleepModel.setSelectedKey(configuration.getPreventSleep());
+				preventSleep.addItemListener(new ItemListener() {
+
+					@Override
+					public void itemStateChanged(ItemEvent e) {
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+							configuration.setPreventSleep(preventSleepModel.getSelectedKey());
+						}
+					}
+				});
+				builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			}
+
 			newHTTPEngine = new JCheckBox(Messages.getString("NetworkTab.32"), configuration.isHTTPEngineV2());
 			newHTTPEngine.addItemListener(new ItemListener() {
 				@Override
@@ -438,18 +458,7 @@ public class GeneralTab {
 					configuration.setHTTPEngineV2((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-
-			if (Platform.isWindows()) {
-				preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
-				preventSleep.addItemListener(new ItemListener() {
-					@Override
-					public void itemStateChanged(ItemEvent e) {
-						configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
-					}
-				});
-				builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
-			}
+			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(disableSleepSupported ? 7 : 1, ypos), colSpec, orientation));
 			ypos += 2;
 
 			final SelectRenderers selectRenderers = new SelectRenderers();
@@ -599,10 +608,22 @@ public class GeneralTab {
 		List<String> names = NetworkConfiguration.getInstance().getDisplayNames();
 		keys.add(0, "");
 		names.add(0, "");
-		final KeyedComboBoxModel<String, String> networkInterfaces = new KeyedComboBoxModel<>(
-			keys.toArray(new String[keys.size()]), names.toArray(new String[names.size()])
+		return new KeyedComboBoxModel<>(
+			keys.toArray(new String[keys.size()]),
+			names.toArray(new String[names.size()])
 		);
-		return networkInterfaces;
+	}
+
+	private KeyedComboBoxModel<PreventSleepMode, String> createPreventSleepModel() {
+		PreventSleepMode[] modes = PreventSleepMode.values();
+		String[] descriptions = new String[modes.length];
+		for (int i = 0; i < modes.length; i++) {
+			descriptions[i] = modes[i].toString();
+		}
+		return new KeyedComboBoxModel<>(
+			modes,
+			descriptions
+		);
 	}
 
 	/**

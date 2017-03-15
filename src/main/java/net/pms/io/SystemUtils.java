@@ -11,6 +11,10 @@ public interface SystemUtils {
 
 	public abstract void reenableGoToSleep();
 
+	public abstract void resetSleepTimer();
+
+	public abstract boolean disableGoToSleepSupported();
+
 	public abstract File getAvsPluginsDir();
 
 	public abstract File getKLiteFiltersDir();
@@ -53,7 +57,7 @@ public interface SystemUtils {
 
 	/**
 	 * Fetch the hardware address for a network interface.
-	 * 
+	 *
 	 * @param ni Interface to fetch the mac address for
 	 * @return the mac address as bytes, or null if it couldn't be fetched.
 	 * @throws SocketException

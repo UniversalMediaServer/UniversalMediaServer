@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MacSystemUtils extends BasicSystemUtils {
-	private final static Logger LOGGER = LoggerFactory.getLogger(MacSystemUtils.class); 
+	private final static Logger LOGGER = LoggerFactory.getLogger(MacSystemUtils.class);
 
 	public MacSystemUtils() { }
 
@@ -22,7 +22,7 @@ public class MacSystemUtils extends BasicSystemUtils {
 			// On OS X, open the given URI with the "open" command.
 			// This will open HTTP URLs in the default browser.
 			Runtime.getRuntime().exec(new String[] { "open", uri });
-			
+
 		} catch (IOException e) {
 			LOGGER.trace("Unable to open the given URI: {}", uri);
 		}
@@ -35,7 +35,7 @@ public class MacSystemUtils extends BasicSystemUtils {
 
 	/**
 	 * Fetch the hardware address for a network interface.
-	 * 
+	 *
 	 * @param ni Interface to fetch the MAC address for
 	 * @return the MAC address as bytes, or null if it couldn't be fetched.
 	 * @throws SocketException
@@ -80,5 +80,10 @@ public class MacSystemUtils extends BasicSystemUtils {
 		}
 
 		return aHardwareAddress;
+	}
+
+	@Override
+	public boolean disableGoToSleepSupported() {
+		return true;
 	}
 }

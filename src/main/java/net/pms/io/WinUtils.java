@@ -28,7 +28,6 @@ import java.lang.reflect.Method;
 import java.nio.CharBuffer;
 import java.util.prefs.Preferences;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,6 @@ import org.slf4j.LoggerFactory;
  */
 public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public interface Kernel32 extends Library {
 		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
@@ -61,9 +59,10 @@ public class WinUtils extends BasicSystemUtils {
 		);
 
 		int SetThreadExecutionState(int EXECUTION_STATE);
-		int ES_DISPLAY_REQUIRED = 0x00000002;
-		int ES_SYSTEM_REQUIRED = 0x00000001;
-		int ES_CONTINUOUS = 0x80000000;
+		int ES_CONTINUOUS        = 0x80000000;
+		int ES_SYSTEM_REQUIRED   = 0x00000001;
+		int ES_DISPLAY_REQUIRED  = 0x00000002;
+		int ES_AWAYMODE_REQUIRED = 0x00000040;
 
 		int GetACP();
 		int GetOEMCP();
@@ -73,33 +72,28 @@ public class WinUtils extends BasicSystemUtils {
 	private boolean kerio;
 	private String avsPluginsDir;
 	private String kLiteFiltersDir;
-	public long lastDontSleepCall = 0;
-	public long lastGoToSleepCall = 0;
 
-	/* (non-Javadoc)
-	 * @see net.pms.io.SystemUtils#disableGoToSleep()
-	 */
 	@Override
 	public void disableGoToSleep() {
-		// Disable go to sleep (every 40s)
-		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
-			lastDontSleepCall = System.currentTimeMillis();
-		}
+		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to prevent Windows from going to sleep");
+		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
 	}
 
-	/* (non-Javadoc)
-	 * @see net.pms.io.SystemUtils#reenableGoToSleep()
-	 */
 	@Override
 	public void reenableGoToSleep() {
-		// Reenable go to sleep
-		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
-			lastGoToSleepCall = System.currentTimeMillis();
-		}
+		LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS to allow Windows to go to sleep");
+		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
+	}
+
+	@Override
+	public void resetSleepTimer() {
+		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to reset the Windows sleep timer");
+		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
+	}
+
+	@Override
+	public boolean disableGoToSleepSupported() {
+		return true;
 	}
 
 	/* (non-Javadoc)
