@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class BasicSystemUtils implements SystemUtils {
-	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class); 
+	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
 
 	protected String vlcp;
 	protected String vlcv;
@@ -49,13 +49,17 @@ public class BasicSystemUtils implements SystemUtils {
 
 	@Override
 	public void disableGoToSleep() {
-
 	}
 
 	@Override
 	public void reenableGoToSleep() {
-
 	}
+
+	@Override
+	public boolean disableGoToSleepSupported() {
+		return false;
+	}
+
 
 	@Override
 	public File getAvsPluginsDir() {
@@ -111,7 +115,7 @@ public class BasicSystemUtils implements SystemUtils {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see net.pms.io.SystemUtils#isAvis()
 	 */
 	@Override

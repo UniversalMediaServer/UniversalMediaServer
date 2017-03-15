@@ -125,12 +125,21 @@ public class PMS {
 
 	public static BufferedImage thumbnailOverlayImage;
 
+	private SleepManager sleepManager = new SleepManager();
+
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
 	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
+	}
+
+	/**
+	 * @return The {@link SleepManager} instance.
+	 */
+	public SleepManager getSleepManager() {
+		return sleepManager;
 	}
 
 	/**
