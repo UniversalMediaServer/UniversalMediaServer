@@ -74,20 +74,19 @@ public class WinUtils extends BasicSystemUtils {
 	private boolean kerio;
 	private String avsPluginsDir;
 	private String kLiteFiltersDir;
-        private AtomicInteger OpenRequests = new AtomicInteger(0);
 
 	/* (non-Javadoc)
 	 * @see net.pms.io.SystemUtils#disableGoToSleep()
 	 */
 	@Override
 	public void disableGoToSleep() {
-		// Disable go to sleep (probably the lastDontSleepCall check is not needed)
-       		LOGGER.debug("Called disableGoToSleep (cnt: " + OpenRequests.toString() + ")");
-                if (configuration.isPreventsSleep() && (OpenRequests.getAndIncrement() == 0)) {
+		// Disable go to sleep
+       		LOGGER.debug("Called disableGoToSleep");
+                if (configuration.isPreventsSleep()) {
                         // stay always on
 			LOGGER.debug("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED|ES_CONTINUOUS");
                         Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
-		}
+            }
 
 	}
 
@@ -96,15 +95,15 @@ public class WinUtils extends BasicSystemUtils {
 	 */
 	@Override
 	public void reenableGoToSleep() {
-		LOGGER.debug("Called reenableGoToSleep (cnt: " + OpenRequests.toString() + ")");
-                if (configuration.isPreventsSleep() && (OpenRequests.decrementAndGet() == 0)) {
+		LOGGER.debug("Called reenableGoToSleep");
+                if (configuration.isPreventsSleep()) {
                     // disable the "permanent on"
                     LOGGER.debug("Calling SetThreadExecutionState ES_CONTINUOUS");
                     Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
-                    // retrigger the normal idle timer
+                    // retrigger the normal idle timer (is this done automatically?)
                     LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
                     Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
-                }
+            }
 	}
 
 	/* (non-Javadoc)
