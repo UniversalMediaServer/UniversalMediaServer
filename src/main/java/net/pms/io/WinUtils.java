@@ -31,6 +31,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Contains the Windows specific native functionality. Do not try to instantiate on Linux/MacOS X !
@@ -73,8 +74,7 @@ public class WinUtils extends BasicSystemUtils {
 	private boolean kerio;
 	private String avsPluginsDir;
 	private String kLiteFiltersDir;
-	public long lastDontSleepCall = 0;
-	public long lastGoToSleepCall = 0;
+        private AtomicInteger OpenRequests = new AtomicInteger(0);
 
 	/* (non-Javadoc)
 	 * @see net.pms.io.SystemUtils#disableGoToSleep()
@@ -82,11 +82,11 @@ public class WinUtils extends BasicSystemUtils {
 	@Override
 	public void disableGoToSleep() {
 		// Disable go to sleep (probably the lastDontSleepCall check is not needed)
-       		LOGGER.debug("Called disableGoToSleep");
-		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
-			LOGGER.debug("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
-			lastDontSleepCall = System.currentTimeMillis();
+       		LOGGER.debug("Called disableGoToSleep (cnt: " + OpenRequests.toString() + ")");
+                if (configuration.isPreventsSleep() && (OpenRequests.getAndIncrement() == 0)) {
+                        // stay always on
+			LOGGER.debug("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED|ES_CONTINUOUS");
+                        Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
 		}
 
 	}
@@ -96,11 +96,15 @@ public class WinUtils extends BasicSystemUtils {
 	 */
 	@Override
 	public void reenableGoToSleep() {
-            	// not needed anymore
-		LOGGER.debug("Called reenableGoToSleep");
-                // lastGoToSleepCall is here just for the case that is is needed elsewhere
-                // (probably not needed)
-        	lastGoToSleepCall = System.currentTimeMillis();
+		LOGGER.debug("Called reenableGoToSleep (cnt: " + OpenRequests.toString() + ")");
+                if (configuration.isPreventsSleep() && (OpenRequests.decrementAndGet() == 0)) {
+                    // disable the "permanent on"
+                    LOGGER.debug("Calling SetThreadExecutionState ES_CONTINUOUS");
+                    Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
+                    // retrigger the normal idle timer
+                    LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
+                    Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
+                }
 	}
 
 	/* (non-Javadoc)
