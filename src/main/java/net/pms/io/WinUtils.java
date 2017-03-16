@@ -81,12 +81,14 @@ public class WinUtils extends BasicSystemUtils {
 	 */
 	@Override
 	public void disableGoToSleep() {
-		// Disable go to sleep (every 40s)
+		// Disable go to sleep (probably the lastDontSleepCall check is not needed)
+       		LOGGER.debug("Called disableGoToSleep");
 		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
+			LOGGER.debug("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
+			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
 			lastDontSleepCall = System.currentTimeMillis();
 		}
+
 	}
 
 	/* (non-Javadoc)
@@ -94,12 +96,11 @@ public class WinUtils extends BasicSystemUtils {
 	 */
 	@Override
 	public void reenableGoToSleep() {
-		// Reenable go to sleep
-		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
-			lastGoToSleepCall = System.currentTimeMillis();
-		}
+            	// not needed anymore
+		LOGGER.debug("Called reenableGoToSleep");
+                // lastGoToSleepCall is here just for the case that is is needed elsewhere
+                // (probably not needed)
+        	lastGoToSleepCall = System.currentTimeMillis();
 	}
 
 	/* (non-Javadoc)
