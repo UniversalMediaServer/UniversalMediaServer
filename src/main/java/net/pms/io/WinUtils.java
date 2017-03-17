@@ -75,19 +75,19 @@ public class WinUtils extends BasicSystemUtils {
 
 	@Override
 	public void disableGoToSleep() {
-		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to prevent Windows from going to sleep");
+		LOGGER.error("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to prevent Windows from going to sleep");
 		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
 	}
 
 	@Override
 	public void reenableGoToSleep() {
-		LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS to allow Windows to go to sleep");
+		LOGGER.error("Calling SetThreadExecutionState ES_CONTINUOUS to allow Windows to go to sleep");
 		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
 	}
 
 	@Override
 	public void resetSleepTimer() {
-		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to reset the Windows sleep timer");
+		LOGGER.error("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to reset the Windows sleep timer");
 		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
 	}
 

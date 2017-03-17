@@ -79,7 +79,7 @@ public class SleepManager {
 	 * previously.
 	 */
 	public synchronized void start() {
-		LOGGER.debug("Starting SleepManager");
+		LOGGER.error("Starting SleepManager");
 		if (mode == PreventSleepMode.RUNNING || mode == PreventSleepMode.PLAYBACK && playingCount > 0) {
 			preventSleep();
 		}
@@ -228,7 +228,7 @@ public class SleepManager {
 					}
 				}
 			} catch (InterruptedException e) {
-				LOGGER.debug("Shutting down sleep worker");
+				LOGGER.error("Shutting down sleep worker");
 				doAllowSleep();
 				owner.clearWorker();
 			} catch (Throwable e) {
