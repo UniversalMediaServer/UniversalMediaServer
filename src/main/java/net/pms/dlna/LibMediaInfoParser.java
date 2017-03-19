@@ -119,7 +119,7 @@ public class LibMediaInfoParser {
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
 							media.setFrameRateOriginal(MI.Get(video, i, "FrameRate_Original"));
 							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRate_Mode")));
-							media.setFrameRateModeLog(MI.Get(video, i, "FrameRate_Mode"));
+							media.setFrameRateModeRaw(MI.Get(video, i, "FrameRate_Mode"));
 							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
 							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
 							value = MI.Get(video, i, "Format_Settings_QPel");

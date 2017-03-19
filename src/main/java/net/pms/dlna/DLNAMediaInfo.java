@@ -126,7 +126,11 @@ public class DLNAMediaInfo implements Cloneable {
 	public String frameRate;
 
 	private String frameRateMode;
-	private String frameRateModeLog;
+
+	/**
+	 * The frame rate mode as read from the parser
+	 */
+	private String frameRateModeRaw;
 	private String frameRateOriginal;
 
 	/**
@@ -1664,109 +1668,100 @@ public class DLNAMediaInfo implements Cloneable {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		result.append("container: ");
-		result.append(getContainer());
-		result.append(", size: ");
-		result.append(getSize());
+		result.append("Container: ").append(getContainer().toUpperCase(Locale.ROOT));
+		result.append(", Size: ").append(getSize());
 		if (isVideo()) {
-			result.append(", bitrate: ");
-			result.append(getBitrate());
-			result.append(", video tracks: ");
-			result.append(getVideoTrackCount());
-			result.append(", video codec: ");
-			result.append(getCodecV());
-			result.append(", duration: ");
-			result.append(getDurationString());
-			result.append(", width: ");
-			result.append(getWidth());
-			result.append(", height: ");
-			result.append(getHeight());
+			result.append(", Video Bitrate: ").append(getBitrate());
+			result.append(", Video Tracks: ").append(getVideoTrackCount());
+			result.append(", Video Codec: ").append(getCodecV());
+			result.append(", Duration: ").append(getDurationString());
+			result.append(", Video Resolution: ").append(getWidth()).append(" x ").append(getHeight());
 			if (isNotBlank(getFrameRate())) {
-			result.append(", frame rate: ");
-			result.append(getFrameRate());
+				result.append(", Frame Rate: ").append(getFrameRate());
 			}
 			if (isNotBlank(getFrameRateOriginal())) {
-			result.append(", original frame rate: ");
-			result.append(getFrameRateOriginal());
+				result.append(", Original Frame Rate: ").append(getFrameRateOriginal());
 			}
-			if (isNotBlank(getFrameRateModeLog())) {
-			result.append(", frame rate mode: ");
-			result.append(getFrameRateModeLog());
+			if (isNotBlank(getFrameRateMode())) {
+				result.append(", Frame Rate Mode: ");
+				result.append(getFrameRateModeRaw());
+				if (isNotBlank(getFrameRateModeRaw())) {
+					result.append(" (").append(getFrameRateModeRaw()).append(")");
+				}
+			} else if (isNotBlank(getFrameRateModeRaw())) {
+				result.append(", Frame Rate Mode Raw: ");
+				result.append(getFrameRateModeRaw());
 			}
 			if (isNotBlank(getMuxingMode())) {
-				result.append(", muxing mode: ");
-				result.append(getMuxingMode());
+				result.append(", Muxing Mode: ").append(getMuxingMode());
 			}
 			if (isNotBlank(getMatrixCoefficients())) {
-				result.append(", matrix coefficients: ");
-				result.append(getMatrixCoefficients());
+				result.append(", Matrix Coefficients: ").append(getMatrixCoefficients());
 			}
-			if (isNotBlank(getAvcLevel())) {
-				result.append(", avc level: ");
-				result.append(getAvcLevel());
+			if (isNotBlank(avcLevel)) {
+				result.append(", AVC Level: ").append(getAvcLevel());
 			}
 //			if (isNotBlank(getHevcLevel())) {
-//				result.append(", hevc level: ");
+//				result.append(", HEVC Level: ");
 //				result.append(getHevcLevel());
 			if (getVideoBitDepth() != 8) {
-				result.append(", video bit depth: ");
-				result.append(getVideoBitDepth());
-			}
-			if (hasSubtitles()) {
-				result.append(", subtitle tracks: ");
-				result.append(getSubTrackCount());
+				result.append(", Video Bit Depth: ").append(getVideoBitDepth());
 			}
 			if (isNotBlank(getFileTitleFromMetadata())) {
-				result.append(", file title from metadata: ");
-				result.append(getFileTitleFromMetadata());
+				result.append(", File Title from Metadata: ").append(getFileTitleFromMetadata());
 			}
 			if (isNotBlank(getVideoTrackTitleFromMetadata())) {
-				result.append(", video track title from metadata: ");
-				result.append(getVideoTrackTitleFromMetadata());
+				result.append(", Video Track Title from Metadata: ").append(getVideoTrackTitleFromMetadata());
 			}
-			result.append(", audio tracks: ");
-			result.append(getAudioTrackCount());
-			for (DLNAMediaAudio audio : audioTracks) {
-				result.append("\n\tAudio track ");
-				result.append(audio.toString());
+
+			if (getAudioTrackCount() > 0) {
+				appendAudioTracks(result);
 			}
-			for (DLNAMediaSubtitle sub : subtitleTracks) {
-				result.append("\n\tSubtitle track ");
-				result.append(sub.toString());
+
+			if (hasSubtitles()) {
+				appendSubtitleTracks(result);
 			}
+
+		} else if (getAudioTrackCount() > 0) {
+			result.append(", Bitrate: ").append(getBitrate());
+			result.append(", Duration: ").append(getDurationString());
+			appendAudioTracks(result);
 		}
-		if (isAudio()) {
-			result.append(", bitrate: ");
-			result.append(getBitrate());
-			result.append(", audio tracks: ");
-			result.append(getAudioTrackCount());
-			result.append(", duration: ");
-			result.append(getDurationString());
-			for (DLNAMediaAudio audio : audioTracks) {
-				result.append("\n\tAudio track ");
-				result.append(audio.toString());
-			}
-		}
-		if (isImage()) {
+		if (getImageCount() > 0) {
 			if (getImageCount() > 1) {
-				result.append(", images: ");
-				result.append(getImageCount());
+				result.append(", Images: ").append(getImageCount());
 			}
-			result.append(", width: ");
-			result.append(getWidth());
-			result.append(", height: ");
-			result.append(getHeight());
-		}
-		
-		if (getThumb() != null) {
-			result.append(", thumb size: ");
-			result.append(getThumb().length);
+			result.append(", Image Width: ").append(getWidth());
+			result.append(", Image Height: ").append(getHeight());
 		}
 
-		result.append(", mime type: ");
-		result.append(getMimeType());
+		if (getThumb() != null) {
+			result.append(", Thumb Size: ").append(getThumb().length);
+		}
+
+		result.append(", Mime Type: ").append(getMimeType());
 
 		return result.toString();
+	}
+
+	public void appendAudioTracks(StringBuilder sb) {
+		sb.append(", Audio Tracks: ").append(getAudioTrackCount());
+		for (DLNAMediaAudio audio : audioTracks) {
+			if (!audio.equals(audioTracks.get(0))) {
+				sb.append(",");
+			}
+			sb.append(" [").append(audio).append("]");
+		}
+	}
+
+	public void appendSubtitleTracks(StringBuilder sb) {
+		sb.append(", Subtitle Tracks: ").append(getSubTrackCount());
+		for (DLNAMediaSubtitle subtitleTrack : subtitleTracks) {
+			if (!subtitleTrack.equals(subtitleTracks.get(0))) {
+				sb.append(",");
+			}
+			sb.append(" [").append(subtitleTrack).append("]");
+		}
 	}
 
 	public InputStream getThumbnailInputStream() {
@@ -2099,14 +2094,14 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setFrameRate(String frameRate) {
 		this.frameRate = frameRate;
 	}
-	
+
 	/**
 	 * @return the frameRateOriginal
 	 */
 	public String getFrameRateOriginal() {
 		return frameRateOriginal;
 	}
-	
+
 	/**
 	 * @param frameRateOriginal the frameRateOriginal to set
 	 */
@@ -2129,19 +2124,19 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setFrameRateMode(String frameRateMode) {
 		this.frameRateMode = frameRateMode;
 	}
-	
+
 	/**
-	 * @return the frameRateModeLog
+	 * @return The unaltered frame rate mode
 	 */
-	public String getFrameRateModeLog() {
-		return frameRateModeLog;
+	public String getFrameRateModeRaw() {
+		return frameRateModeRaw;
 	}
-	
+
 	/**
-	 * @param frameRateModeLog the frameRateModeLog to set
+	 * @param frameRateModeRaw the unaltered frame rate mode to set
 	 */
-	public void setFrameRateModeLog(String frameRateModeLog) {
-		this.frameRateModeLog = frameRateModeLog;
+	public void setFrameRateModeRaw(String frameRateModeRaw) {
+		this.frameRateModeRaw = frameRateModeRaw;
 	}
 
 	/**
