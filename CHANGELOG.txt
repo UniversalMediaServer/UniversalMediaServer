@@ -1,4 +1,4 @@
-7.0.0-b1 - 2017-03-?? - Changes since 7.0.0-a1
+7.0.0-b1 - 2017-03-26 - Changes since 7.0.0-a1
 
 	General:
 		Added "Unwatched" folder to the videos folder if "Hide fully played media" is not enabled
