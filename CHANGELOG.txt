@@ -1,7 +1,35 @@
+7.0.0-b1 - 2017-03-?? - Changes since 7.0.0-a1
+
+	General:
+		Added "Unwatched" folder to the videos folder if "Hide fully played media" is not enabled
+		File addition/removal is handled specifically instead of doing a library scan
+		Optimized database storage
+		Reduced memory use
+		Fixed the setting to hide fully played media in the Media Library
+		Fixed sorting in Media Library virtual folders
+		Fixed thread-safety/concurrency bugs
+		All changes in 6.5.3 and 6.6.0
+		Improved logging
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Improved support for Samsung 9 series TVs
+		Improved detection of Panasonic ST60 TVs
+		Improved detection of Samsung JU6400 TVs
+	Dependencies:
+		Updated external-maven-plugin to 0.2
+		Updated FFmpeg to the latest builds
+
 6.6.1 - 2017-03-??
 
 	General:
-		
+		Improved logging
+	Renderers:
+		Improved support for Samsung 9 series TVs
+		Improved detection of Panasonic ST60 TVs
+		Improved detection of Samsung JU6400 TVs
+	Dependencies:
+		Updated external-maven-plugin to 0.2
 
 6.6.0 - 2017-02-25
 
