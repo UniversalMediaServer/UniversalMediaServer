@@ -753,6 +753,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 			ProcessWrapperImpl pw = null;
 			boolean ffmpeg_parsing = true;
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 			if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
 				ffmpeg_parsing = false;
@@ -832,7 +833,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 							// Make sure the image fits in the renderer's bounds
 							boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-							thumb = UMSUtils.scaleImage(thumb, thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
+							thumb = UMSUtils.scaleImage(new ByteArrayInputStream(thumb), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer).toByteArray();
 
 							if (isFullyPlayedThumbnail) {
 								thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.AUDIO);
@@ -880,7 +881,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 						// Make sure the image fits in the renderer's bounds
 						boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-						thumb = UMSUtils.scaleImage(Files.readAllBytes(file.toPath()), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer);
+						thumb = UMSUtils.scaleImage(new ByteArrayInputStream(Files.readAllBytes(file.toPath())), thumbnailWidth, thumbnailHeight, isFullyPlayedThumbnail, renderer).toByteArray();
 
 						if (isFullyPlayedThumbnail) {
 							thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.IMAGE);
@@ -987,7 +988,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					// Make sure the image fits in the renderer's bounds
 					boolean isFullyPlayedThumbnail = FullyPlayed.isFullyPlayedThumbnail(file);
-					thumb = UMSUtils.scaleImage(thumb, renderer.getThumbnailWidth(), renderer.getThumbnailHeight(), isFullyPlayedThumbnail, renderer);
+					thumb = UMSUtils.scaleImage(new ByteArrayInputStream(thumb), renderer.getThumbnailWidth(), renderer.getThumbnailHeight(), isFullyPlayedThumbnail, renderer).toByteArray();
 
 					if (isFullyPlayedThumbnail) {
 						thumb = FullyPlayed.addFullyPlayedOverlay(thumb, MediaType.VIDEO);
