@@ -318,7 +318,12 @@ public class RequestV2 extends HTTPResource {
 						}
 						inputStream = dlna.getThumbnailInputStream();
 					}
-					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
+					
+					String[] size = fileName.split("_");
+					if (size.length > 2)
+						inputStream = UMSUtils.scaleThumb(inputStream, size[1], null);
+					else
+						inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
