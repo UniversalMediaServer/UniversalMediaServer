@@ -217,13 +217,8 @@ public final class TableFilesStatus extends Tables{
 			String query = "DELETE FROM " + TABLE_NAME + " WHERE FILEID = " + fileid;
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						LOGGER.trace("Removed entry in FILES_STATUS for fileid \"{}\"", fileid);
-					} else {
-						LOGGER.trace("Could not find entry in FILES_STATUS for fileid \"{}\"", fileid);
-					}
-				}
+				statement.executeUpdate(query);
+				LOGGER.trace("Removed entry in FILES_STATUS for fileid \"{}\"", fileid);
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
 			}

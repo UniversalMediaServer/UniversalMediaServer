@@ -865,6 +865,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 
 			ps = conn.prepareStatement("SELECT ID FROM FILES WHERE " + column + " " + compareMethod + " ?");
+			ps.setString(1, value);
 			rs = ps.executeQuery();
 			while (rs.next()) {
 				deleteRowsInFilesTable(Integer.toString(rs.getInt("ID")), "ID");
