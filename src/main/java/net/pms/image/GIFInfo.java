@@ -2,10 +2,10 @@ package net.pms.image;
 
 import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
-import net.pms.image.metadata_extractor.GifControlDirectory;
 import net.pms.util.ParseException;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
+import com.drew.metadata.gif.GifControlDirectory;
 import com.drew.metadata.gif.GifHeaderDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
-import java.awt.image.RenderedImage;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -26,11 +25,7 @@ import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAImageProfile.DLNAComplianceResult;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.image.ImageIORuntimeException;
-import net.pms.image.CustomImageReader.ImageReaderResult;
-import net.pms.image.metadata_extractor.GifReader;
-import net.pms.image.metadata_extractor.JpegDHTReader;
-import net.pms.image.metadata_extractor.StreamReader;
+import net.pms.image.ImageIOTools.ImageReaderResult;
 import net.pms.image.thumbnailator.ExifFilterUtils;
 import net.pms.util.BufferedImageType;
 import net.pms.util.InvalidStateException;
@@ -45,9 +40,9 @@ import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.imaging.bmp.BmpMetadataReader;
+import com.drew.imaging.gif.GifMetadataReader;
 import com.drew.imaging.ico.IcoMetadataReader;
 import com.drew.imaging.jpeg.JpegMetadataReader;
-import com.drew.imaging.jpeg.JpegSegmentMetadataReader;
 import com.drew.imaging.pcx.PcxMetadataReader;
 import com.drew.imaging.png.PngMetadataReader;
 import com.drew.imaging.psd.PsdMetadataReader;
@@ -60,11 +55,7 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.drew.metadata.exif.ExifReader;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
-import com.drew.metadata.exif.ExifThumbnailDirectory;
-import com.drew.metadata.jfif.JfifReader;
-import com.drew.metadata.jpeg.JpegReader;
 
 public class ImagesUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagesUtil.class);
@@ -139,7 +130,7 @@ public class ImagesUtil {
 			}
 			ImageInfo imageInfo = null;
 			try {
-				imageInfo = CustomImageReader.readImageInfo(inputStream, size , metadata, false);
+				imageInfo = ImageIOTools.readImageInfo(inputStream, size , metadata, false);
 			} catch (UnknownFormatException | IIOException | ParseException e) {
 				if (format == null) {
 					throw new UnknownFormatException(
@@ -1220,7 +1211,7 @@ public class ImagesUtil {
 
 		ImageReaderResult inputResult;
 		try {
-			inputResult = CustomImageReader.read(new ByteArrayInputStream(inputByteArray));
+			inputResult = ImageIOTools.read(new ByteArrayInputStream(inputByteArray));
 		} catch (IIOException e) {
 			throw new UnknownFormatException("Unable to read image format", e);
 		}
@@ -1534,6 +1525,17 @@ public class ImagesUtil {
 			return null;
 		}
 
+		/*
+		 * XXX Extraction of thumbnails was removed in version
+		 * 2.10.0 of metadata-extractor because of a bug in
+		 * related code. This section is deactivated while
+		 * waiting for this to be made available again.
+		 *
+		 * Images supported by ImageIO or DCRaw aren't affected,
+		 * so this only applied to very few images anyway.
+		 * It could extract thumbnails for some "raw" images
+		 * if DCRaw was disabled.
+		 *
 		// First check if there is a ExifThumbnailDirectory
 		Collection<ExifThumbnailDirectory> directories = metadata.getDirectoriesOfType(ExifThumbnailDirectory.class);
 		if (directories.isEmpty()) {
@@ -1546,7 +1548,7 @@ public class ImagesUtil {
 			if (directory.hasThumbnailData()) {
 				return directory.getThumbnailData();
 			}
-		}
+		}*/
 
 		return null;
 	}
@@ -1654,25 +1656,13 @@ public class ImagesUtil {
 		            metadata = BmpMetadataReader.readMetadata(inputStream);
 					break;
 				case Gif:
-		            //metadata = GifMetadataReader.readMetadata(inputStream);
-					// XXX Can be removed when the next release of metadata-extractor is available
-			        metadata = new Metadata();
-			        new GifReader().extract(new StreamReader(inputStream), metadata);
+		            metadata = GifMetadataReader.readMetadata(inputStream);
 					break;
 				case Ico:
 		            metadata = IcoMetadataReader.readMetadata(inputStream);
 					break;
 				case Jpeg:
-		            //metadata = JpegMetadataReader.readMetadata(inputStream);
-					// XXX Can be removed when the next release of metadata-extractor is available
-			        metadata = new Metadata();
-			        Iterable<JpegSegmentMetadataReader> readers = Arrays.asList(
-			            new JpegReader(),
-			            new JfifReader(),
-			            new ExifReader(),
-			            new JpegDHTReader()
-			        );
-			        JpegMetadataReader.process(metadata, inputStream, readers);
+		            metadata = JpegMetadataReader.readMetadata(inputStream);
 					break;
 				case Pcx:
 		            metadata = PcxMetadataReader.readMetadata(inputStream);
@@ -1711,24 +1701,13 @@ public class ImagesUtil {
 					metadata = BmpMetadataReader.readMetadata(inputStream);
 					break;
 				case GIF:
-		            //metadata = GifMetadataReader.readMetadata(inputStream);
-					// XXX Can be removed when the next release of metadata-extractor is available
-			        metadata = new Metadata();
-			        new GifReader().extract(new StreamReader(inputStream), metadata);
+		            metadata = GifMetadataReader.readMetadata(inputStream);
 					break;
 				case ICO:
 					metadata = IcoMetadataReader.readMetadata(inputStream);
 					break;
 				case JPEG:
-					//metadata = JpegMetadataReader.readMetadata(inputStream);
-			        metadata = new Metadata();
-			        Iterable<JpegSegmentMetadataReader> readers = Arrays.asList(
-			            new JpegReader(),
-			            new JfifReader(),
-			            new ExifReader(),
-			            new JpegDHTReader()
-			        );
-			        JpegMetadataReader.process(metadata, inputStream, readers);
+					metadata = JpegMetadataReader.readMetadata(inputStream);
 					break;
 				case DCX:
 				case PCX:
@@ -1808,24 +1787,6 @@ public class ImagesUtil {
 			LOGGER.debug("Embedded DLNAImageProfile not found in \"{}\"", fileName);
 		}
 		return defaultProfile;
-	}
-
-	//TODO (Nad) Move/Rename
-	/**
-	 * This is a wrapper around
-	 * {@link ImageIO#write(RenderedImage, String, OutputStream)}
-	 * that translate any thrown {@link RuntimeException} to an
-	 * {@link ImageIORuntimeException} because {@link ImageIO} has the nasty
-	 * habit of throwing {@link RuntimeException}s when something goes wrong.
-	 *
-	 * @see ImageIO#write(RenderedImage, String, OutputStream)
-	 */
-	public static boolean imageIOWrite(RenderedImage im, String formatName, OutputStream output) throws IOException {
-		try {
-			return ImageIO.write(im, formatName, output);
-		} catch (RuntimeException e) {
-			throw new ImageIORuntimeException(e.getMessage(), e);
-		}
 	}
 
 	/**
