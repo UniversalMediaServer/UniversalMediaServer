@@ -44,7 +44,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
-import net.pms.image.ImagesUtil;
+import net.pms.image.ImageIOTools;
 import net.pms.image.ImagesUtil.ScaleType;
 
 /**
@@ -84,7 +84,7 @@ public enum GenericIcons {
 			ImageIO.setUseCache(false);
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			try {
-				ImagesUtil.imageIOWrite(genericUnknownIcon, imageFormat.toString(), out);
+				ImageIOTools.imageIOWrite(genericUnknownIcon, imageFormat.toString(), out);
 				return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
 			} catch (IOException e) {
 				LOGGER.warn(
@@ -266,7 +266,7 @@ public enum GenericIcons {
 				g.drawString(label, x, y);
 
 				ImageIO.setUseCache(false);
-				ImagesUtil.imageIOWrite(image, imageFormat.toString(), out);
+				ImageIOTools.imageIOWrite(image, imageFormat.toString(), out);
 			} finally {
 				g.dispose();
 			}

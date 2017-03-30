@@ -62,8 +62,6 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Metadata;
 
 /**
  * This class keeps track of media file metadata scanned by the MediaInfo library.
@@ -913,6 +911,17 @@ public class DLNAMediaInfo implements Cloneable {
 					// Create the thumbnail image
 					try {
 						if (imageInfo instanceof ExifInfo && ((ExifInfo) imageInfo).hasExifThumbnail() && !imageInfo.isImageIOSupported()) {
+							/*
+							 * XXX Extraction of thumbnails was removed in version
+							 * 2.10.0 of metadata-extractor because of a bug in
+							 * related code. This section is deactivated while
+							 * waiting for this to be made available again.
+							 *
+							 * Images supported by ImageIO or DCRaw aren't affected,
+							 * so this only applied to very few images anyway.
+							 * It could extract thumbnails for some "raw" images
+							 * if DCRaw was disabled.
+							 *
 							// ImageIO can't read the file, try to get the embedded Exif thumbnail if it's there.
 							Metadata metadata;
 							try {
@@ -932,7 +941,7 @@ public class DLNAMediaInfo implements Cloneable {
 							);
 							if (thumb == null && LOGGER.isTraceEnabled()) {
 								LOGGER.trace("Exif thumbnail extraction failed, no thumbnail will be generated for \"{}\"", file.getName());
-							}
+							}*/
 						} else {
 							// This will fail with UnknownFormatException for any image formats not supported by ImageIO
 							thumb = DLNAThumbnail.toThumbnail(

@@ -22,8 +22,10 @@ package net.pms.image;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Iterator;
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
@@ -38,21 +40,17 @@ import net.pms.util.UnknownFormatException;
 import com.drew.metadata.Metadata;
 
 /**
- * This is a hack of a utility class created because whoever wrote {@link ImageIO}
- * decided to make it {@code final}. The sole purpose of these methods is to
- * return the image format of the source image along with the {@link BufferedImage}.
- *
- * There should be no reason to have to do this twice, and thus the result from
- * the analysis done when reading the image is kept.
+ * This is a utility class for use with {@link ImageIO}, which mainly contains
+ * modified versions of static {@link ImageIO} methods.
  *
  * @author Nadahar
  */
-public class CustomImageReader {
+public class ImageIOTools {
 
     protected static final IIORegistry theRegistry = IIORegistry.getDefaultInstance();
 
 	// Not to be instantiated
-	private CustomImageReader() {
+	private ImageIOTools() {
 	}
 
 	/**
@@ -297,6 +295,23 @@ public class CustomImageReader {
 
         return null;
     }
+
+	/**
+	 * This is a wrapper around
+	 * {@link ImageIO#write(RenderedImage, String, OutputStream)}
+	 * that translate any thrown {@link RuntimeException} to an
+	 * {@link ImageIORuntimeException} because {@link ImageIO} has the nasty
+	 * habit of throwing {@link RuntimeException}s when something goes wrong.
+	 *
+	 * @see ImageIO#write(RenderedImage, String, OutputStream)
+	 */
+	public static boolean imageIOWrite(RenderedImage im, String formatName, OutputStream output) throws IOException {
+		try {
+			return ImageIO.write(im, formatName, output);
+		} catch (RuntimeException e) {
+			throw new ImageIORuntimeException(e.getMessage(), e);
+		}
+	}
 
     /**
      * A simple container for more than one return value.
