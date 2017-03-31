@@ -728,7 +728,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				}
 
 				if (query != null) {
-					final String url = "http://musicbrainz.org/ws/2/" + query;
+					final String url = "http://musicbrainz.org/ws/2/" + query + "&fmt=xml";
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Performing release MBID lookup at musicbrainz: \"{}\"", url);
 					}
@@ -749,6 +749,8 @@ public class CoverArtArchiveUtil extends CoverUtil {
 							LOGGER.error("Failed to parse XML for \"{}\": {}", url, e.getMessage());
 							LOGGER.trace("", e);
 							return null;
+						} finally {
+							connection.getInputStream().close();
 						}
 
 						ArrayList<ReleaseRecord> releaseList;
