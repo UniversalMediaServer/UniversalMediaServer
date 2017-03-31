@@ -28,6 +28,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
+import net.pms.formats.Format.Identifier;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
@@ -780,7 +781,7 @@ public class DLNAMediaInfo implements Cloneable {
 							if (StringUtils.isNotBlank(channels)) {
 								if (channels.equals("1") || channels.contains("mono")) { // parse value "1" or "Mono"
 									audio.getAudioProperties().setNumberOfChannels(1);
-								} else if (!(channels.equals("2") || channels.contains("stereo"))) {
+								} else if (!(channels.equals("2") || channels.equals("0") || channels.contains("stereo"))) {
 									// No need to parse stereo as it's set as default
 									try {
 										audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(channels));
@@ -790,9 +791,11 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 
-							audio.setCodecA(ah.getEncodingType());
+							if (StringUtils.isNotBlank(ah.getEncodingType())) {
+								audio.setCodecA(ah.getEncodingType());
+							}
 
-							if (audio.getCodecA().contains("(windows media")) {
+							if (audio.getCodecA() != null && audio.getCodecA().contains("(windows media")) {
 								audio.setCodecA(audio.getCodecA().substring(0, audio.getCodecA().indexOf("(windows media")).trim());
 							}
 						}
@@ -843,7 +846,16 @@ public class DLNAMediaInfo implements Cloneable {
 						ffmpeg_parsing = false;
 					}
 
-					if (audio.getSongname() != null && audio.getSongname().length() > 0) {
+					// Set container for formats that the normal parsing fails to do from Format
+					if (StringUtils.isBlank(container) && ext != null) {
+						if (ext.getIdentifier() == Identifier.ADPCM) {
+							audio.setCodecA(FormatConfiguration.ADPCM);
+						} else if (ext.getIdentifier() == Identifier.DSD) {
+							audio.setCodecA(FormatConfiguration.DSDAudio);
+						}
+					}
+
+					if (StringUtils.isNotBlank(audio.getSongname())) {
 						if (renderer != null && renderer.isPrependTrackNumbers() && audio.getTrack() > 0) {
 							audio.setSongname(audio.getTrack() + ": " + audio.getSongname());
 						}
@@ -854,6 +866,9 @@ public class DLNAMediaInfo implements Cloneable {
 					if (!ffmpeg_parsing) {
 						audioTracks.add(audio);
 					}
+				}
+				if (StringUtils.isBlank(container)) {
+					container = audio.getCodecA();
 				}
 			}
 
@@ -1501,6 +1516,10 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_DTSHD_TYPEMIME;
 				} else if (codecA.equals(FormatConfiguration.EAC3)) {
 					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.ADPCM)) {
+					mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.DSDAudio)) {
+					mimeType = HTTPResource.AUDIO_DSD_TYPEMIME;
 				}
 			}
 
