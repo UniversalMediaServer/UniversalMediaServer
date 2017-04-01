@@ -1,7 +1,9 @@
-7.0.0-b2 - 2017-04-??
+7.0.0-b2 - 2017-04-02
 
 	General:
 		Fixed bugs with the fully played feature
+	Languages:
+		Synchronized translations with Crowdin
 
 7.0.0-b1 - 2017-03-26 - Changes since 7.0.0-a1
 
