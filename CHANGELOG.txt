@@ -1,3 +1,8 @@
+7.0.0-b2 - 2017-04-??
+
+	General:
+		Fixed bugs with the fully played feature
+
 7.0.0-b1 - 2017-03-26 - Changes since 7.0.0-a1
 
 	General:
