@@ -527,7 +527,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		result.append("Audio Codec: ").append(getAudioCodec());
 
 		result.append(", Bitrate: ").append(getBitRate());
-		if (getBitsperSample() != 16 ) {
+
+		if (getBitsperSample() != 16) {
 			result.append(", Bits per Sample: ").append(getBitsperSample());
 		}
 		if (getAudioProperties() != null) {
@@ -536,21 +537,21 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 
 		if (isNotBlank(getArtist())) {
 			result.append(", Artist: ").append(getArtist());
-			if (isNotBlank(getAlbum())) {
-				result.append(", Album: ").append(getAlbum());
-			}
-			if (isNotBlank(getSongname())) {
-				result.append(", Track Name: ").append(getSongname());
-			}
-			if (getYear() != 0) {
-				result.append(", Year: ").append(getYear());
-			}
-			if (getTrack() != 0) {
-				result.append(", Track: ").append(getTrack());
-			}
-			if (isNotBlank(getGenre())) {
-				result.append(", Genre: ").append(getGenre());
-			}
+		}
+		if (isNotBlank(getAlbum())) {
+			result.append(", Album: ").append(getAlbum());
+		}
+		if (isNotBlank(getSongname())) {
+			result.append(", Track Name: ").append(getSongname());
+		}
+		if (getYear() != 0) {
+			result.append(", Year: ").append(getYear());
+		}
+		if (getTrack() != 0) {
+			result.append(", Track: ").append(getTrack());
+		}
+		if (isNotBlank(getGenre())) {
+			result.append(", Genre: ").append(getGenre());
 		}
 
 		if (isNotBlank(getMuxingModeAudio())) {
