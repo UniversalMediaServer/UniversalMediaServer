@@ -1710,11 +1710,10 @@ public class DLNAMediaInfo implements Cloneable {
 			if (isNotBlank(avcLevel)) {
 				result.append(", AVC Level: ").append(getAvcLevel());
 			}
-
 			if (isNotBlank(getHevcLevel())) {
 				result.append(", HEVC Level: ");
 				result.append(getHevcLevel());
-
+			}
 			if (getVideoBitDepth() != 8) {
 				result.append(", Video Bit Depth: ").append(getVideoBitDepth());
 			}
