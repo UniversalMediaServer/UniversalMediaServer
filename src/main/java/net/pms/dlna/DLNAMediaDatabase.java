@@ -69,6 +69,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_ASPECTRATIO_CONTAINER = 5;
 	private final int SIZE_ASPECTRATIO_VIDEOTRACK = 5;
 	private final int SIZE_AVC_LEVEL = 3;
+	private final int SIZE_HEVC_LEVEL = 3;
 	private final int SIZE_CONTAINER = 32;
 	private final int SIZE_MATRIX_COEFFICIENTS = 16;
 	private final int SIZE_MODEL = 128;
@@ -235,6 +236,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_ASPECTRATIO_VIDEOTRACK).append(')');
 				sb.append(", REFRAMES                TINYINT");
 				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(')');
+				sb.append(", HEVCLEVEL               VARCHAR2(").append(SIZE_HEVC_LEVEL).append(')');
 				sb.append(", BITSPERPIXEL            INT");
 				sb.append(", THUMB                   BINARY");
 				sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(')');
@@ -373,6 +375,7 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
 				media.setReferenceFrameCount(rs.getByte("REFRAMES"));
 				media.setAvcLevel(rs.getString("AVCLEVEL"));
+				media.setHevcLevel(rs.getString("HEVCLEVEL"));
 				media.setBitsPerPixel(rs.getInt("BITSPERPIXEL"));
 				media.setThumb(rs.getBytes("THUMB"));
 				media.setContainer(rs.getString("CONTAINER"));
@@ -461,7 +464,7 @@ public class DLNAMediaDatabase implements Runnable {
 			conn = getConnection();
 			ps = conn.prepareStatement(
 				"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
-				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
+				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, HEVCLEVEL, BITSPERPIXEL, "+
 				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
 				"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
 				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -494,26 +497,27 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(13, left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
 				ps.setByte(14, media.getReferenceFrameCount());
 				ps.setString(15, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
-				ps.setInt(16, media.getBitsPerPixel());
-				ps.setBytes(17, media.getThumb());
-				ps.setString(18, left(media.getContainer(), SIZE_CONTAINER));
+				ps.setString(16, left(media.getHevcLevel(), SIZE_HEVC_LEVEL));
+				ps.setInt(17, media.getBitsPerPixel());
+				ps.setBytes(18, media.getThumb());
+				ps.setString(19, left(media.getContainer(), SIZE_CONTAINER));
 				if (media.getExtras() != null) {
-					ps.setString(19, left(media.getExtrasAsString(), SIZE_MODEL));
+					ps.setString(20, left(media.getExtrasAsString(), SIZE_MODEL));
 				} else {
-					ps.setString(19, left(media.getModel(), SIZE_MODEL));
+					ps.setString(20, left(media.getModel(), SIZE_MODEL));
 				}
-				ps.setInt(20, media.getExposure());
-				ps.setInt(21, media.getOrientation());
-				ps.setInt(22, media.getIso());
-				ps.setString(23, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-				ps.setString(24, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
-				ps.setString(25, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
-				ps.setString(26, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-				ps.setString(27, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
-				ps.setString(28, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
-				ps.setInt(29, media.getVideoTrackCount());
-				ps.setInt(30, media.getImageCount());
-				ps.setInt(31, media.getVideoBitDepth());
+				ps.setInt(21, media.getExposure());
+				ps.setInt(22, media.getOrientation());
+				ps.setInt(23, media.getIso());
+				ps.setString(24, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
+				ps.setString(25, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
+				ps.setString(26, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
+				ps.setString(27, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
+				ps.setString(28, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
+				ps.setString(29, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
+				ps.setInt(30, media.getVideoTrackCount());
+				ps.setInt(31, media.getImageCount());
+				ps.setInt(32, media.getVideoBitDepth());
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -527,22 +531,23 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(13, null);
 				ps.setByte(14, (byte) -1);
 				ps.setString(15, null);
-				ps.setInt(16, 0);
-				ps.setBytes(17, null);
-				ps.setString(18, null);
+				ps.setString(16, null);
+				ps.setInt(17, 0);
+				ps.setBytes(18, null);
 				ps.setString(19, null);
-				ps.setInt(20, 0);
+				ps.setString(20, null);
 				ps.setInt(21, 0);
 				ps.setInt(22, 0);
-				ps.setString(23, null);
+				ps.setInt(23, 0);
 				ps.setString(24, null);
 				ps.setString(25, null);
 				ps.setString(26, null);
 				ps.setString(27, null);
 				ps.setString(28, null);
-				ps.setInt(29, 0);
+				ps.setString(29, null);
 				ps.setInt(30, 0);
 				ps.setInt(31, 0);
+				ps.setInt(32, 0);
 			}
 			ps.executeUpdate();
 			int id;
