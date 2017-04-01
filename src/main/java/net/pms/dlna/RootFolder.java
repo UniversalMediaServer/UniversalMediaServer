@@ -1470,7 +1470,7 @@ public class RootFolder extends DLNAResource {
 				if (database != null) {
 					if ("ENTRY_DELETE".equals(event)) {
 						LOGGER.trace("File " + filename + " was deleted or moved on the hard drive, removing it from the database");
-						PMS.get().deleteFileEntriesInDirectory(filename);
+						PMS.get().deleteFileEntry(filename);
 					} else if ("ENTRY_CREATE".equals(event)) {
 						LOGGER.trace("File " + filename + " was created on the hard drive");
 						File file = new File(filename);
