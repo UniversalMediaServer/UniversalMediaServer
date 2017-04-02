@@ -2476,45 +2476,62 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else if (getFormat() != null && getFormat().isAudio()) {
 					if (media != null && media.isMediaparsed()) {
-						addAttribute(sb, "bitrate", media.getBitrate());
-						if (media.getDuration() != null) {
+						if (media.getBitrate() > 0) {
+							addAttribute(sb, "bitrate", media.getBitrate());
+						}
+						if (media.getDuration() != null && media.getDuration().doubleValue() != 0.0) {
 							wireshark.append(" duration=").append(convertTimeToString(media.getDuration(), DURATION_TIME_FORMAT));
 							addAttribute(sb, "duration", convertTimeToString(media.getDuration(), DURATION_TIME_FORMAT));
 						}
 
-						if (firstAudioTrack != null && firstAudioTrack.getSampleFrequency() != null) {
-							addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
-						}
-
+						int transcodeFrequency = -1;
+						int transcodeNumberOfChannels = -1;
 						if (firstAudioTrack != null) {
-							addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());
+							if (player == null) {
+								if (firstAudioTrack.getSampleFrequency() != null) {
+									addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
+								}
+								if (firstAudioTrack.getAudioProperties().getNumberOfChannels() > 0) {
+									addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());
+								}
+							} else {
+								if (configurationSpecificToRenderer.isAudioResample()) {
+									transcodeFrequency = mediaRenderer.isTranscodeAudioTo441() ? 44100 : 48000;
+									transcodeNumberOfChannels = 2;
+								} else {
+									transcodeFrequency = firstAudioTrack.getSampleRate();
+									transcodeNumberOfChannels = firstAudioTrack.getAudioProperties().getNumberOfChannels();
+								}
+								if (transcodeFrequency > 0) {
+									addAttribute(sb, "sampleFrequency", transcodeFrequency);
+								}
+								if (transcodeNumberOfChannels > 0) {
+									addAttribute(sb, "nrAudioChannels", transcodeNumberOfChannels);
+								}
+							}
 						}
 
 						if (player == null) {
-							wireshark.append(" size=").append(media.getSize());
-							addAttribute(sb, "size", media.getSize());
+							if (media.getSize() != 0) {
+								wireshark.append(" size=").append(media.getSize());
+								addAttribute(sb, "size", media.getSize());
+							}
 						} else {
 							// Calculate WAV size
-							if (firstAudioTrack != null) {
-								int defaultFrequency = mediaRenderer.isTranscodeAudioTo441() ? 44100 : 48000;
-								if (!configurationSpecificToRenderer.isAudioResample()) {
-									try {
-										// FIXME: Which exception could be thrown here?
-										defaultFrequency = firstAudioTrack.getSampleRate();
-									} catch (Exception e) {
-										LOGGER.debug("Caught exception", e);
-									}
-								}
-
-								int na = firstAudioTrack.getAudioProperties().getNumberOfChannels();
-								if (na > 2) { // No 5.1 dump in MPlayer
-									na = 2;
-								}
-
-								int finalSize = (int) (media.getDurationInSeconds() * defaultFrequency * 2 * na);
-								LOGGER.trace("Calculated size for " + getSystemName() + ": " + finalSize);
+							if (
+								firstAudioTrack != null &&
+								media.getDurationInSeconds() > 0.0 &&
+								transcodeFrequency > 0 &&
+								transcodeNumberOfChannels > 0
+							) {
+								int finalSize = (int) (media.getDurationInSeconds() * transcodeFrequency * 2 * transcodeNumberOfChannels);
+								LOGGER.trace("Calculated transcoded size for {}: {}", getSystemName(), finalSize);
 								wireshark.append(" size=").append(finalSize);
 								addAttribute(sb, "size", finalSize);
+							} else if (media.getSize() > 0){
+								LOGGER.trace("Could not calculate transcoded size for {}, using file size: {}", getSystemName(), media.getSize());
+								wireshark.append(" size=").append(media.getSize());
+								addAttribute(sb, "size", media.getSize());
 							}
 						}
 					} else {
