@@ -20,8 +20,9 @@
 
 package net.pms.util;
 
-import java.awt.Color;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Formatter;
 import java.util.Locale;
@@ -30,10 +31,27 @@ import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class StringUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
@@ -408,5 +426,46 @@ public class StringUtil {
 		}
 
 		return sb.toString();
+	}
+
+	public static String prettifyXML(String xml, int indentWidth) {
+		try {
+			// Turn XML string into a document
+			Document xmlDocument =
+				DocumentBuilderFactory.newInstance().
+				newDocumentBuilder().
+				parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+
+			// Remove whitespaces outside tags
+			xmlDocument.normalize();
+			XPath xPath = XPathFactory.newInstance().newXPath();
+			NodeList nodeList = (NodeList) xPath.evaluate(
+				"//text()[normalize-space()='']",
+				xmlDocument,
+				XPathConstants.NODESET
+			);
+
+			for (int i = 0; i < nodeList.getLength(); ++i) {
+				Node node = nodeList.item(i);
+				node.getParentNode().removeChild(node);
+			}
+
+			// Setup pretty print options
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			transformerFactory.setAttribute("indent-number", indentWidth);
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+			// Return pretty print XML string
+			StringWriter stringWriter = new StringWriter();
+			transformer.transform(new DOMSource(xmlDocument), new StreamResult(stringWriter));
+			return stringWriter.toString();
+		} catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+			LOGGER.warn("Failed to prettify XML document, returning the source document: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return xml;
+		}
 	}
 }
