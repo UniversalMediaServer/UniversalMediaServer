@@ -2,8 +2,7 @@ package net.pms.remote;
 
 import com.sun.net.httpserver.*;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
+import java.net.*;
 import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -22,6 +21,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.DbgPacker;
+import net.pms.network.NetworkConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -39,6 +39,10 @@ public class RemoteWeb {
 	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final int defaultPort = configuration.getWebPort();
+
+	private InetAddress iafinal;
+	private String hostname;
+	private NetworkInterface networkInterface;
 
 	public RemoteWeb() throws IOException {
 		this(defaultPort);
@@ -65,7 +69,29 @@ public class RemoteWeb {
 		//readCred();
 
 		// Setup the socket address
-		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
+
+		hostname = configuration.getServerHostname();
+		InetSocketAddress address;
+
+		if (StringUtils.isNotBlank(hostname)) {
+			LOGGER.info("WEB: Using forced address " + hostname);
+			InetAddress tempIA = InetAddress.getByName(hostname);
+
+			if (tempIA != null && networkInterface != null && networkInterface.equals(NetworkInterface.getByInetAddress(tempIA))) {
+				address = new InetSocketAddress(tempIA, port);
+			} else {
+				address = new InetSocketAddress(hostname, port);
+			}
+		} else if (isAddressFromInterfaceFound(configuration.getNetworkInterface())) { // sets iafinal and networkInterface
+			LOGGER.info("WEB: Using address {} found on network interface: {}", iafinal, networkInterface.toString().trim().replace('\n', ' '));
+			address = new InetSocketAddress(iafinal, port);
+		} else {
+			LOGGER.info("WEB: Using localhost address");
+			address = new InetSocketAddress(port);
+		}
+
+		LOGGER.info("WEB: Created socket: " + address);
+
 
 		// Initialize the HTTP(S) server
 		if (configuration.getWebHttps()) {
@@ -147,6 +173,21 @@ public class RemoteWeb {
 			}
 		});
 		return server;
+	}
+
+
+	// this sets iafinal and networkInterface
+	private boolean isAddressFromInterfaceFound(String networkInterfaceName) {
+		NetworkConfiguration.InterfaceAssociation ia = StringUtils.isNotEmpty(networkInterfaceName) ?
+				NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(networkInterfaceName) :
+					NetworkConfiguration.getInstance().getDefaultNetworkInterfaceAddress();
+
+		if (ia != null) {
+			iafinal = ia.getAddr();
+			networkInterface = ia.getIface();
+		}
+
+		return ia != null;
 	}
 
 	public String getTag(String user) {
