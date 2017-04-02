@@ -26,6 +26,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
@@ -61,6 +62,7 @@ import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
+import net.pms.network.NetworkConfiguration;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.*;
@@ -611,8 +613,6 @@ public class PMS {
 		masterCode = null;
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
-		// Now that renderer confs are all loaded, we can start searching for renderers
-		UPNPHelper.getInstance().init();
 
 		// launch ChromecastMgr
 		jmDNS = null;
@@ -695,7 +695,10 @@ public class PMS {
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
-		server = new HTTPServer(configuration.getServerPort());
+		server = new HTTPServer();
+
+		// Now that renderer configurations are all loaded, and the server is created we can start searching for renderers
+		UPNPHelper.getInstance().init();
 
 		/*
 		 * XXX: keep this here (i.e. after registerExtensions and before registerPlayers) so that plugins
@@ -762,7 +765,7 @@ public class PMS {
 		}
 
 		if (web != null && web.getServer() != null) {
-			LOGGER.info("WEB interface is available at: " + web.getUrl());
+			LOGGER.info("Web interface is available at: " + web.getUrl());
 		}
 
 		// initialize the cache
@@ -785,11 +788,15 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					if (web != null) {
+						web.stop();
+					}
+
 					for (ExternalListener l : ExternalFactory.getExternalListeners()) {
 						l.shutdown();
 					}
 
-					UPNPHelper.shutDownListener();
+					UPNPHelper.shutDown();
 					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");
 
@@ -826,7 +833,7 @@ public class PMS {
 		UPNPHelper.sendByeBye();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
-		UPNPHelper.sendAlive();
+		UPNPHelper.sendAlive(null);
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
@@ -960,24 +967,49 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
-					LOGGER.trace("Waiting 1 second...");
+					if (web != null) {
+						LOGGER.trace("Restart: Stopping web interface");
+						web.stop();
+					}
+					LOGGER.trace("Restart: Stopping UPnP");
+					UPNPHelper.shutDown();
+					LOGGER.trace("Restart: Sending BYEBYE message");
 					UPNPHelper.sendByeBye();
+					LOGGER.trace("Restart: Stopping HTTP server");
 					server.stop();
 					server = null;
+					LOGGER.trace("Restart: Resetting renderers");
 					RendererConfiguration.resetAllRenderers();
 
+					LOGGER.trace("Waiting 1 second...");
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						LOGGER.trace("Caught exception", e);
 					}
+					// HTTP control handler must be invalidated so that a new one is created during UPNPHelper.init()
+					UPNPHelper.invalidateHttpControlHandler();
 
-					server = new HTTPServer(configuration.getServerPort());
+					LOGGER.trace("Rebuilding network configuration");
+					NetworkConfiguration.reinitialize();
+
+					LOGGER.trace("Restart: Creating HTTP server");
+					server = new HTTPServer();
+					LOGGER.trace("Restart: Starting HTTP server");
 					server.start();
-					UPNPHelper.sendAlive();
+					LOGGER.trace("Restart: Starting UPnP");
+					UPNPHelper.getInstance().init();
+					UPNPHelper.listen();
+					LOGGER.trace("Restart: Sending Alive message");
+					UPNPHelper.sendAlive(null);
+					if (configuration.useWebInterface()) {
+						LOGGER.trace("Restart: Starting web interface");
+						web = new RemoteWeb(configuration.getWebPort());
+					}
 					frame.setReloadable(false);
 				} catch (IOException e) {
-					LOGGER.error("error during restart :" +e.getMessage(), e);
+					LOGGER.error("Error during restart : {}", e.getMessage());
+					LOGGER.trace("", e);
 				}
 			}
 		});
@@ -1672,12 +1704,33 @@ public class PMS {
 	 */
 
 	public static void setLocale(Locale aLocale) {
+		Locale oldLocale;
 		localeLock.writeLock().lock();
 		try {
+			oldLocale = locale;
 			locale = (Locale) aLocale.clone();
 			Messages.setLocaleBundle(locale);
 		} finally {
 			localeLock.writeLock().unlock();
+		}
+		if (aLocale != null && (oldLocale == null || !ComponentOrientation.getOrientation(oldLocale).equals(ComponentOrientation.getOrientation(aLocale)))) {
+			final IFrame frame = get().getFrame();
+			if (frame instanceof JFrame) {
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
+
+						@Override
+						public void run() {
+							((JFrame) frame).applyComponentOrientation(ComponentOrientation.getOrientation(PMS.getLocale()));
+						}
+					});
+				} catch (InterruptedException e) {
+					LOGGER.warn("Interrupted while applying component orientation");
+				} catch (InvocationTargetException e) {
+					LOGGER.error("Unexpected error while applying component orientation: {}", e.getCause());
+					LOGGER.trace("", e.getCause());
+				}
+			}
 		}
 	}
 
@@ -1703,12 +1756,7 @@ public class PMS {
 		if (variant == null) {
 			variant = "";
 		}
-		localeLock.writeLock().lock();
-		try {
-			locale = new Locale(language, country, variant);
-		} finally {
-			localeLock.writeLock().unlock();
-		}
+		setLocale(new Locale(language, country, variant));
 	}
 
 	/**
@@ -1740,7 +1788,7 @@ public class PMS {
 		setLocale(language, "", "");
 	}
 
-	private RemoteWeb web;
+	private volatile RemoteWeb web;
 
 	public RemoteWeb getWebInterface() {
 		return web;

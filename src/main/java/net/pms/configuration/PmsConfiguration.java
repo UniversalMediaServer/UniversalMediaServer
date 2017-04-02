@@ -71,7 +71,8 @@ import org.slf4j.LoggerFactory;
 public class PmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
 	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
-	protected static final int DEFAULT_SERVER_PORT = 5001;
+	public static final int DEFAULT_SERVER_PORT = 5001;
+	public static final int DEFAULT_WEB_PORT = 9001;
 	// 90000 lines is approximately 10 MiB depending on locale and message length
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
@@ -232,6 +233,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	protected static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	protected static final String KEY_NETWORK_INTERFACE = "network_interface";
+	protected static final String KEY_NETWORK_NAME_RESOLUTION = "network_name_resolution";
 	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
@@ -287,7 +289,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	protected static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	protected static final String KEY_UPNP_ENABLED = "upnp_enable";
-	protected static final String KEY_UPNP_PORT = "upnp_port";
 	protected static final String KEY_USE_CACHE = "use_cache";
 	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	protected static final String KEY_USE_IMDB_INFO = "use_imdb_info";
@@ -364,6 +365,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<>(
 		Arrays.asList(
+			//TODO: Update this
 			KEY_ALTERNATE_THUMB_FOLDER,
 			KEY_ATZ_LIMIT,
 			KEY_AUDIO_THUMBNAILS_METHOD,
@@ -797,11 +799,25 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * The server port where PMS listens for TCP/IP traffic. Default value is 5001.
+	 * The server port where PMS listens for TCP/IP traffic. The default value is {@link #DEFAULT_SERVER_PORT}.
 	 * @return The port number.
 	 */
 	public int getServerPort() {
 		return getInt(KEY_SERVER_PORT, DEFAULT_SERVER_PORT);
+	}
+
+	/**
+	 * @return The default HTTP server port number.
+	 */
+	public int getServerDefaultPort() {
+		return DEFAULT_SERVER_PORT;
+	}
+
+	/**
+	 * @return The HTTP server port configuration {@link String} or {@code null}.
+	 */
+	public String getServerPortString() {
+		return getString(KEY_SERVER_PORT, null);
 	}
 
 	/**
@@ -917,7 +933,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Gets the {@link java.util.Locale} compatible tag of the preferred
 	 * language for the UMS user interface. The default is based on the default (OS) locale.
-	 * @return The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
+	 * @return The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IETF's BCP 47</a> language tag.
 	 */
 	public String getLanguageTag() {
 		return getLanguageLocale().toLanguageTag();
@@ -952,7 +968,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets the preferred language for the UMS user interface.
-	 * @param value The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
+	 * @param value The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IETF's BCP 47</a> language tag.
 	 */
 	public void setLanguage(String value) {
 		if (value != null && !value.isEmpty()) {
@@ -2194,7 +2210,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The string of network interface names to skip.
 	 */
 	public List<String> getSkipNetworkInterfaces() {
-		return getStringList(KEY_SKIP_NETWORK_INTERFACES, "tap,vmnet,vnic,virtualbox");
+		return getStringList(KEY_SKIP_NETWORK_INTERFACES, "tap");
 	}
 
 	public void setSkipLoopFilterEnabled(boolean value) {
@@ -2347,6 +2363,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setNetworkInterface(String value) {
 		configuration.setProperty(KEY_NETWORK_INTERFACE, value);
+	}
+
+	public boolean isNetworkNameResolution() {
+		return getBoolean(KEY_NETWORK_NAME_RESOLUTION, false);
 	}
 
 	public boolean isHideEngineNames() {
@@ -3028,10 +3048,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_AUTO_UPDATE, value);
 	}
 
-	public int getUpnpPort() {
-		return getInt(KEY_UPNP_PORT, 1900);
-	}
-
 	public String getUuid() {
 		return getString(KEY_UUID, null);
 	}
@@ -3635,10 +3651,36 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Default port for the WEB interface.
+	 * The web interface port. The default value is {@link #DEFAULT_WEB_PORT}.
 	 */
 	public int getWebPort() {
-		return getInt(KEY_WEB_PORT, 9001);
+		return getInt(KEY_WEB_PORT, DEFAULT_WEB_PORT);
+	}
+
+	/**
+	 * @return The default web interface port number.
+	 */
+	public int getWebDefaultPort() {
+		return DEFAULT_WEB_PORT;
+	}
+
+	/**
+	 * @return The web interface port configuration {@link String} or {@code null}.
+	 */
+	public String getWebPortString() {
+		return getString(KEY_WEB_PORT, null);
+	}
+
+	/**
+	 * Set the web interface port or clear it with {@code null}.
+	 * @param value The TCP/IP port number.
+	 */
+	public void setWebPort(String value) {
+		if (value == null) {
+			configuration.clearProperty(KEY_WEB_PORT);
+		} else {
+			configuration.setProperty(KEY_WEB_PORT, value);
+		}
 	}
 
 	public boolean useWebInterface() {

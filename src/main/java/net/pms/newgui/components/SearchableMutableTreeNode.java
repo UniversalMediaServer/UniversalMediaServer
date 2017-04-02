@@ -80,6 +80,7 @@ public class SearchableMutableTreeNode extends DefaultMutableTreeNode {
 
 	/**
 	 * Search the node's children recursively
+	 *
 	 * @param searchObject the object to search for
 	 * @return the found node or null
 	 * @throws IllegalChildException if a child that's not a SearchableMutableTreeNode or descendant is encountered
@@ -89,11 +90,10 @@ public class SearchableMutableTreeNode extends DefaultMutableTreeNode {
 	}
 
 	public String getNodeName() {
-		return (String) super.getUserObject();
+		return getUserObject().toString();
 	}
 
     public SearchableMutableTreeNode getParent() {
         return (SearchableMutableTreeNode) parent;
     }
-
 }

@@ -79,7 +79,7 @@ public class RequestHandler implements Runnable {
 			InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
 			InetAddress ia = remoteAddress.getAddress();
 
-			boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost());
+			boolean isSelf = ia.isLoopbackAddress() || ia.getHostAddress().equals(PMS.get().getServer().getHost());
 
 			// Apply the IP filter
 			if (filterIp(ia)) {

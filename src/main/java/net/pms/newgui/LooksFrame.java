@@ -198,6 +198,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		this.autoUpdater = autoUpdater;
 		this.configuration = configuration;
 		assert this.configuration != null;
+		applyComponentOrientation(ComponentOrientation.getOrientation(PMS.getLocale()));
 		Options.setDefaultIconSize(new Dimension(18, 18));
 		Options.setUseNarrowButtons(true);
 

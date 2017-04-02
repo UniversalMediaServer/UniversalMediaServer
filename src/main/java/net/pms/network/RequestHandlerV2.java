@@ -88,7 +88,11 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		InetAddress ia = remoteAddress.getAddress();
 
 		// Is the request from our own Cling service, i.e. self-originating?
-		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
+		boolean isSelf =
+			(
+				ia.isLoopbackAddress() ||
+				ia.getHostAddress().equals(PMS.get().getServer().getHost())
+			) &&
 			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT) != null &&
 			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
 
