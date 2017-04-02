@@ -27,6 +27,8 @@ import java.net.Socket;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -39,6 +41,7 @@ import net.pms.util.SubtitleUtils;
 import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -773,7 +776,18 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				LOGGER.trace(response.toString());
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Response sent to {}:\n{}", mediaRenderer.getConfName(), response);
+					Pattern pattern = Pattern.compile("<Result>(.*?)</Result>");
+					Matcher matcher = pattern.matcher(response);
+					if (matcher.find()) {
+						LOGGER.trace(
+							"The unescaped <Result> sent to {} is:\n{}",
+							mediaRenderer.getConfName(),
+							StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
+						);
+					}
+				}
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());

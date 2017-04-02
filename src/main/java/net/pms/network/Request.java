@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -40,6 +42,7 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -727,7 +730,18 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				LOGGER.trace(response.toString());
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Response sent to {}:\n{}", mediaRenderer.getConfName(), response);
+					Pattern pattern = Pattern.compile("<Result>(.*?)</Result>");
+					Matcher matcher = pattern.matcher(response);
+					if (matcher.find()) {
+						LOGGER.trace(
+							"The unescaped <Result> sent to {} is:\n{}",
+							mediaRenderer.getConfName(),
+							StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
+						);
+					}
+				}
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			if (soapaction == null) {
