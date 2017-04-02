@@ -186,6 +186,11 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		setFileSubsCharacterSet(forcedLang);
 	}
 
+	// Backward compatibility
+	public void setExternalFile(File externalFile) throws FileNotFoundException {
+		setExternalFile(externalFile, null);
+	}
+
 	/**
 	 * Detects and set Character Set and language of the subs file. When the {@code forcedLang} is not {@code null}
 	 * than it as priority over the detected language.
