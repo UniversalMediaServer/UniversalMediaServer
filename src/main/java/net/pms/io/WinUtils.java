@@ -61,9 +61,10 @@ public class WinUtils extends BasicSystemUtils {
 		);
 
 		int SetThreadExecutionState(int EXECUTION_STATE);
+		int ES_CONTINUOUS = 0x80000000;
 		int ES_DISPLAY_REQUIRED = 0x00000002;
 		int ES_SYSTEM_REQUIRED = 0x00000001;
-		int ES_CONTINUOUS = 0x80000000;
+		int ES_AWAYMODE_REQUIRED = 0x00000040;
 
 		int GetACP();
 		int GetOEMCP();
@@ -83,8 +84,8 @@ public class WinUtils extends BasicSystemUtils {
 	public void disableGoToSleep() {
 		// Disable go to sleep (every 40s)
 		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
+			LOGGER.trace("Enable Windows sleep mode prevention");
+			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS|Kernel32.ES_AWAYMODE_REQUIRED);
 			lastDontSleepCall = System.currentTimeMillis();
 		}
 	}
@@ -96,7 +97,7 @@ public class WinUtils extends BasicSystemUtils {
 	public void reenableGoToSleep() {
 		// Reenable go to sleep
 		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS");
+			LOGGER.trace("Disable the Windows sleep mode prevention");
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
 			lastGoToSleepCall = System.currentTimeMillis();
 		}

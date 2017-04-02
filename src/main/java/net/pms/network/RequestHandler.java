@@ -87,7 +87,7 @@ public class RequestHandler implements Runnable {
 			}
 
 			LOGGER.trace("Opened request handler on socket " + socket);
-			PMS.get().getRegistry().disableGoToSleep();
+//			PMS.get().getRegistry().disableGoToSleep();
 
 			// The handler makes a couple of attempts to recognize a renderer from its requests.
 			// IP address matches from previous requests are preferred, when that fails request
