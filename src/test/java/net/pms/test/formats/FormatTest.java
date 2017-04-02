@@ -67,16 +67,21 @@ public class FormatTest {
 		// Identifier tests based on the identifiers defined in getId() of each class
 		assertEquals("DVRMS matches \"test.dvr\"", true, new DVRMS().match("test.dvr"));
 		assertEquals("AIFF matches \"test.aiff\"", true, new AIFF().match("test.aiff"));
+		assertEquals("BMP matches \"test.bmp\"", true, new BMP().match("test.bmp"));
+		assertEquals("BMS matches \"test.bms\"", true, new BMS().match("test.bms"));
 		assertEquals("FLAC matches \"test.flac\"", true, new FLAC().match("test.flac"));
 		assertEquals("GIF matches \"test.gif\"", true, new GIF().match("test.gif"));
 		assertEquals("ISO matches \"test.iso\"", true, new ISO().match("test.iso"));
 		assertEquals("JPG matches \"test.jpg\"", true, new JPG().match("test.jpg"));
+		assertEquals("JPS matches \"test.jps\"", true, new JPS().match("test.jps"));
 		assertEquals("WMA matches \"test.wma\"", true, new WMA().match("test.wma"));
 		assertEquals("MKV matches \"test.mkv\"", true, new MKV().match("test.mkv"));
 		assertEquals("MP3 matches \"test.mp3\"", true, new MP3().match("test.mp3"));
 		assertEquals("MPG matches \"test.mpg\"", true, new MPG().match("test.mpg"));
+		assertEquals("MPO matches \"test.mpo\"", true, new MPO().match("test.mpo"));
 		assertEquals("OGG matches \"test.ogg\"", true, new OGG().match("test.ogg"));
 		assertEquals("PNG matches \"test.png\"", true, new PNG().match("test.png"));
+		assertEquals("PNS matches \"test.pns\"", true, new PNS().match("test.pns"));
 		assertEquals("RAW matches \"test.arw\"", true, new RAW().match("test.arw"));
 		assertEquals("TIF matches \"test.tiff\"", true, new TIF().match("test.tiff"));
 		assertEquals("WAV matches \"test.wav\"", true, new WAV().match("test.wav"));

@@ -1,5 +1,6 @@
+
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
+ * PS3 Media Server, for streaming any media to your PS3.
  * Copyright (C) 2008  A.Brochard
  *
  * This program is free software; you can redistribute it and/or
@@ -18,17 +19,13 @@
  */
 package net.pms.formats;
 
-public class JPG extends Format {
+public class PNG extends JPG {
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.JPG;
-	}
-
-	public JPG() {
-		type = IMAGE;
+		return Identifier.PNS;
 	}
 
 	/**
@@ -36,15 +33,11 @@ public class JPG extends Format {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] {
-			"jpe",
-			"jpeg",
-			"jpg"
-		};
+		return new String[] { "pns" };
 	}
 
 	@Override
-	public boolean transcodable() {
-		return false;
+	public String mimeType() {
+		return "image/pns";
 	}
 }

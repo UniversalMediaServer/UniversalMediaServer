@@ -47,6 +47,7 @@ public final class FormatFactory {
 		new ATRAC(),
 		new AU(),
 		new BMP(),
+		new BMS(),
 		new DSDAudio(),
 		new DTS(),
 		new DVRMS(),
@@ -56,6 +57,7 @@ public final class FormatFactory {
 		new IDX(),
 		new ISO(),
 		new JPG(),
+		new JPS(),
 		new M4A(),
 		new MicroDVD(),
 		new MKA(),
@@ -66,9 +68,11 @@ public final class FormatFactory {
 		new MPC(),
 		new MPG(),
 		new MPGAudio(),
+		new MPO(),
 		new OGG(),
 		new PLAYLIST(),
 		new PNG(),
+		new PNS(),
 		new RA(),
 		new RAW(),
 		new SAMI(),
@@ -85,7 +89,7 @@ public final class FormatFactory {
 		new WavPack(),
 		new WEB(),
 		new WebVTT(),
-		new WMA(),
+		new WMA()
 	};
 
 	private static final ReentrantReadWriteLock formatsLock = new ReentrantReadWriteLock();

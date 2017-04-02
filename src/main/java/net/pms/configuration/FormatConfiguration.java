@@ -53,6 +53,7 @@ public class FormatConfiguration {
 	public static final String AU = "au";
 	public static final String AVI = "avi";
 	public static final String BMP = "bmp";
+	public static final String BMS = "bms";
 	public static final String CINEPACK = "cvid";
 	public static final String COOK = "cook";
 	public static final String DIVX = "divx";
@@ -68,6 +69,7 @@ public class FormatConfiguration {
 	public static final String H264 = "h264";
 	public static final String H265 = "h265";
 	public static final String JPG = "jpg";
+	public static final String JPS = "jps";
 	public static final String LPCM = "lpcm";
 	public static final String M4A = "m4a";
 	public static final String MATROSKA = "mkv";
@@ -88,9 +90,11 @@ public class FormatConfiguration {
 	public static final String MPEG2 = "mpeg2";
 	public static final String MPEGPS = "mpegps";
 	public static final String MPEGTS = "mpegts";
+	public static final String MPO = "mpo";
 	public static final String OGG = "ogg";
 	public static final String OPUS = "opus";
 	public static final String PNG = "png";
+	public static final String PNS = "pns";
 	public static final String QDESIGN = "qdmc";
 	public static final String RA = "ra";
 	public static final String REALAUDIO_LOSSLESS = "ralf";
