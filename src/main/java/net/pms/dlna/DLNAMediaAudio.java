@@ -509,7 +509,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		if (!getLang().equals("und")) {
+		if (getLang() != null && !getLang().equals("und")) {
 			result.append("Id: ").append(getId());
 			result.append(", Language Code: ").append(getLang());
 		}
