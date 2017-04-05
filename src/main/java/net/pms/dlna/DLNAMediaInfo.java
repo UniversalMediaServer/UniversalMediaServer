@@ -871,6 +871,8 @@ public class DLNAMediaInfo implements Cloneable {
 							audio.setCodecA(FormatConfiguration.ADPCM);
 						} else if (ext.getIdentifier() == Identifier.DSD) {
 							audio.setCodecA(FormatConfiguration.DSDAudio);
+						} else if (ext.getIdentifier() == Identifier.RA) {
+							audio.setCodecA(FormatConfiguration.RA);
 						}
 					}
 
@@ -1571,6 +1573,8 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
 				} else if (codecA.equals(FormatConfiguration.DSDAudio)) {
 					mimeType = HTTPResource.AUDIO_DSD_TYPEMIME;
+				} else if (codecA.equals(FormatConfiguration.RA)) {
+					mimeType = HTTPResource.AUDIO_RA_TYPEMIME;
 				}
 			}
 
