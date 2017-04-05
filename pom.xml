@@ -110,15 +110,6 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-		<!-- GSON -->
-		<repository>
-			<id>google-gson</id>
-			<name>google-gson</name>
-			<url>https://google-gson.googlecode.com/svn/mavenrepo/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
 		<repository>
 			<id>4thline-repo</id>
 			<url>http://4thline.org/m2</url>
