@@ -223,7 +223,11 @@ public class AudioProperties {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		result.append("Channel(s): ").append(getNumberOfChannels());
+		if (getNumberOfChannels() == 1) {
+			result.append("Channel: ").append(getNumberOfChannels());
+		} else {
+			result.append("Channels: ").append(getNumberOfChannels());
+		}
 		result.append(", Sample Frequency: ").append(getSampleFrequency()).append(" Hz");
 		if (getAudioDelay() != 0) {
 			result.append(", Delay: ").append(getAudioDelay());

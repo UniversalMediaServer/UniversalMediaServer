@@ -1476,6 +1476,13 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.RA:
 					mimeType = HTTPResource.AUDIO_RA_TYPEMIME;
 					break;
+				case FormatConfiguration.RM:
+					if (isAudio()) {
+						mimeType = HTTPResource.AUDIO_RA_TYPEMIME;
+					} else {
+						mimeType = HTTPResource.RM_TYPEMIME;
+					}
+					break;
 				case FormatConfiguration.SHORTEN:
 					mimeType = HTTPResource.AUDIO_SHN_TYPEMIME;
 					break;
@@ -1713,8 +1720,10 @@ public class DLNAMediaInfo implements Cloneable {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		result.append("Container: ").append(getContainer().toUpperCase(Locale.ROOT));
-		result.append(", Size: ").append(getSize());
+		if (getContainer() != null) {
+			result.append("Container: ").append(getContainer().toUpperCase(Locale.ROOT)).append(", ");
+		}
+		result.append("Size: ").append(getSize());
 		if (isVideo()) {
 			result.append(", Video Bitrate: ").append(getBitrate());
 			result.append(", Video Tracks: ").append(getVideoTrackCount());
