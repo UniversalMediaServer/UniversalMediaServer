@@ -42,7 +42,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public int bitsperSample;
+	public int bitsperSample = 16;
 
 	private int bitRate;
 
@@ -117,13 +117,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	@Deprecated
 	public String muxingModeAudio;
-
-	/**
-	 * Constructor
-	 */
-	public DLNAMediaAudio() {
-		setBitsperSample(16);
-	}
 
 	/**
 	 * Returns the sample rate for this audio media.
