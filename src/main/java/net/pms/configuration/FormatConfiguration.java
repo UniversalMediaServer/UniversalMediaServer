@@ -20,6 +20,9 @@
 
 package net.pms.configuration;
 
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -30,6 +33,7 @@ import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
+import net.pms.util.AudioUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -374,6 +378,22 @@ public class FormatConfiguration {
 	 */
 	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, RendererConfiguration renderer) {
 		if (file.getFile() != null) {
+			if (ext.getIdentifier() == Identifier.RA) {
+				// Special parsing for RealAudio 1.0 and 2.0 which isn't handled by MediaInfo or JAudioTagger
+				FileChannel channel;
+				try {
+					channel = FileChannel.open(file.getFile().toPath(), StandardOpenOption.READ);
+					if (AudioUtils.parseRealAudio(channel, media)) {
+						// If successful parsing is done, if not continue parsing the standard way
+						media.postParse(type, file);
+						return;
+					}
+				} catch (IOException e) {
+					LOGGER.warn("An error occurred when trying to open \"{}\" for reading: {}", file, e.getMessage());
+					LOGGER.trace("", e);
+				}
+			}
+
 			// MediaInfo can't correctly parse ADPCM, DSD or PNM
 			if (
 				renderer.isUseMediaInfo() &&
