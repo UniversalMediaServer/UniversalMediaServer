@@ -146,7 +146,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is AAC.
 	 */
 	public boolean isAAC() {
-		return isAACLC() || isAACHE();
+		return isAACLC() || isHEAAC();
 	}
 
 	/**
@@ -159,7 +159,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @return True if the audio codec is AAC HE.
 	 */
-	public boolean isAACHE() {
+	public boolean isHEAAC() {
 		return FormatConfiguration.AAC_HE.equalsIgnoreCase(getCodecA());
 	}
 
@@ -189,6 +189,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isALAC() {
 		return FormatConfiguration.ALAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is ALS.
+	 */
+	public boolean isALS() {
+		return FormatConfiguration.ALS.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -245,13 +252,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isFLAC() {
 		return getCodecA() != null && getCodecA().startsWith("fla");
-	}
-
-	/**
-	 * @return True if the audio codec is HE-AAC.
-	 */
-	public boolean isHEAAC() {
-		return FormatConfiguration.AAC_HE.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -407,7 +407,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	public boolean isLossless() {
 		return getCodecA() != null &&
 			(
-				isAIFF() || isALAC() || isFLAC() || isMLP() ||
+				isAIFF() || isALAC() || isALS() || isFLAC() || isMLP() ||
 				isMonkeysAudio() || isPCM() || isRALF() || isShorten() ||
 				isTrueHD() || isTTA() || isWAV() || isWavPack() ||
 				isWMALossless()
@@ -432,6 +432,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "AIFF";
 		} else if (isALAC()) {
 			return "ALAC";
+		} else if (isALS()) {
+			return "ALS";
 		} else if (isAtmos()) {
 			return "Atmos";
 		} else if (isATRAC()) {

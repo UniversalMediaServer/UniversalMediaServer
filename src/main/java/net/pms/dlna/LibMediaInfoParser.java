@@ -85,6 +85,7 @@ public class LibMediaInfoParser {
 				// set General
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
+				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "InternetMediaType"), file);
 				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
@@ -325,11 +326,9 @@ public class LibMediaInfoParser {
 				 * As a workaround, set container type to AAC for MP4 files that have a single AAC audio track and no video.
 				 */
 				if (
-					FormatConfiguration.MP4.equals(media.getContainer()) &&
-					isBlank(media.getCodecV()) &&
-					media.getAudioTracksList() != null &&
-					media.getAudioTracksList().size() == 1 &&
-					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
+					(FormatConfiguration.M4A.equals(media.getContainer())) &&
+					(FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA()) ||
+					FormatConfiguration.AAC_HE.equals(media.getAudioTracksList().get(0).getCodecA()))
 				) {
 					media.setContainer(FormatConfiguration.AAC);
 				}
@@ -478,7 +477,10 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WEBM;
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
-		} else if (value.equals("isom") || value.startsWith("mp4") || value.equals("20") || value.equals("m4v") || value.startsWith("mpeg-4")) {
+		} else if ("audio/mp4".equals(value)) {
+			format = FormatConfiguration.M4A;
+		} else if (!"audio/mp4".equals(value) && (value.equals("isom") || value.startsWith("mp4") || value.contains("xvid") ||
+			   value.equals("20") || value.equals("m4v") || value.startsWith("mpeg-4"))) {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
 			format = FormatConfiguration.MPEGPS;
@@ -516,8 +518,6 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.VP8;
 		} else if (value.startsWith("vp9")) {
 			format = FormatConfiguration.VP9;
-		} else if (value.contains("xvid")) {
-			format = FormatConfiguration.MP4;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
 		} else if (value.contains("div") || value.contains("dx")) {
@@ -583,6 +583,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {
 			format = FormatConfiguration.ALAC;
+		} else if (value.equals("als")) {
+			format = FormatConfiguration.ALS;
 		} else if (value.equals("wave")) {
 			format = FormatConfiguration.WAV;
 		} else if (value.equals("shorten")) {
