@@ -511,7 +511,7 @@ public class FormatsRegressionTest0 {
 			System.out.format("%n%s%n", "FormatsRegressionTest0.test35");
 		}
 
-		net.pms.formats.audio.OGG oGG0 = new net.pms.formats.audio.OGG();
+		net.pms.formats.audio.OGA oGA0 = new net.pms.formats.audio.OGA();
 
 	}
 

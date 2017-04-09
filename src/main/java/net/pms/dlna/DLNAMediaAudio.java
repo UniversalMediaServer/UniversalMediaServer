@@ -136,31 +136,38 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return True if the audio codec is 3GA.
-	 */
-	public boolean is3GA() {
-		return FormatConfiguration.THREEGA.equalsIgnoreCase(getCodecA());
-	}
-
-	/**
 	 * @return True if the audio codec is AAC.
 	 */
 	public boolean isAAC() {
-		return isAACLC() || isAACHE();
+		return isAACLC() || isHEAAC() || isAACLTP() || isHEAACV2();
 	}
 
 	/**
-	 * @return True if the audio codec is AAC LC.
+	 * @return True if the audio codec is AAC-LC.
 	 */
 	public boolean isAACLC() {
 		return FormatConfiguration.AAC.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
-	 * @return True if the audio codec is AAC HE.
+	 * @return True if the audio codec is HE-AAC.
 	 */
-	public boolean isAACHE() {
+	public boolean isHEAAC() {
 		return FormatConfiguration.AAC_HE.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is HE-AACv2.
+	 */
+	public boolean isHEAACV2() {
+		return FormatConfiguration.HEAACV2.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is AAC-LTP.
+	 */
+	public boolean isAACLTP() {
+		return FormatConfiguration.AAC_LTP.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -189,6 +196,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isALAC() {
 		return FormatConfiguration.ALAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is ALS.
+	 */
+	public boolean isALS() {
+		return FormatConfiguration.ALS.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -244,21 +258,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is FLAC.
 	 */
 	public boolean isFLAC() {
-		return getCodecA() != null && getCodecA().startsWith("fla");
-	}
-
-	/**
-	 * @return True if the audio codec is HE-AAC.
-	 */
-	public boolean isHEAAC() {
-		return FormatConfiguration.AAC_HE.equalsIgnoreCase(getCodecA());
-	}
-
-	/**
-	 * @return True if the audio codec is Matroska Audio.
-	 */
-	public boolean isMKA() {
-		return FormatConfiguration.MKA.equalsIgnoreCase(getCodecA());
+		return FormatConfiguration.FLAC.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -307,7 +307,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is PCM.
 	 */
 	public boolean isPCM() {
-		return FormatConfiguration.LPCM.equals(getCodecA()) || getCodecA() != null && getCodecA().startsWith("pcm");
+		return FormatConfiguration.LPCM.equalsIgnoreCase(getCodecA()) || getCodecA() != null && getCodecA().startsWith("pcm");
 	}
 
 	/**
@@ -329,6 +329,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isShorten() {
 		return FormatConfiguration.SHORTEN.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is SLS.
+	 */
+	public boolean isSLS() {
+		return FormatConfiguration.SLS.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -407,9 +414,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	public boolean isLossless() {
 		return getCodecA() != null &&
 			(
-				isAIFF() || isALAC() || isFLAC() || isMLP() ||
+				isAIFF() || isALAC() || isALS() || isFLAC() || isMLP() ||
 				isMonkeysAudio() || isPCM() || isRALF() || isShorten() ||
-				isTrueHD() || isTTA() || isWAV() || isWavPack() ||
+				isSLS() || isTrueHD() || isTTA() || isWAV() || isWavPack() ||
 				isWMALossless()
 			);
 	}
@@ -420,10 +427,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return The standardized name.
 	 */
 	public String getAudioCodec() {
-		if (is3GA()) {
-			return "3GA";
-		} else if (isAACLC()) {
+		if (isAACLC()) {
 			return "AAC";
+		} else if (isAACLTP()) {
+			return "AAC-LTP";
 		} else if (isAC3()) {
 			return "AC3";
 		} else if (isADPCM()) {
@@ -432,6 +439,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "AIFF";
 		} else if (isALAC()) {
 			return "ALAC";
+		} else if (isALS()) {
+			return "ALS";
 		} else if (isAtmos()) {
 			return "Atmos";
 		} else if (isATRAC()) {
@@ -450,8 +459,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "FLAC";
 		} else if (isHEAAC()) {
 			return "HE-AAC";
-		} else if (isMKA()) {
-			return "Matroska Audio";
+		} else if (isHEAACV2()) {
+			return "HE-AACv2";
 		} else if (isMLP()) {
 			return "MLP";
 		} else if (isMonkeysAudio()) {
@@ -472,6 +481,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "RealAudio Lossless";
 		} else if (isShorten()) {
 			return "Shorten";
+		} else if (isSLS()) {
+			return "SLS";
 		} else if (isVorbis()) {
 			return "Vorbis";
 		} else if (isTrueHD()) {
@@ -518,7 +529,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			result.append(", ");
 		}
 		result.append("Audio Codec: ").append(getAudioCodec());
-
 		result.append(", Bitrate: ").append(getBitRate());
 		if (getBitsperSample() != 16) {
 			result.append(", Bits per Sample: ").append(getBitsperSample());

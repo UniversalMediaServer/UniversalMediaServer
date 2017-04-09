@@ -39,6 +39,7 @@ public class RemoteUtil {
 	//public static final String MIME_TRANS = MIME_WEBM;
 	public static final String MIME_MP3 = "audio/mpeg";
 	public static final String MIME_WAV = "audio/wav";
+	public static final String MIME_WEBM_Audio = "audio/webm";
 	public static final String MIME_PNG = "image/png";
 	public static final String MIME_JPG = "image/jpeg";
 
@@ -181,6 +182,7 @@ public class RemoteUtil {
 			(
 				mime.equals(MIME_MP4) ||
 				mime.equals(MIME_WEBM) ||
+				mime.equals(MIME_WEBM_Audio) ||
 				mime.equals(MIME_OGG) ||
 				mime.equals(MIME_MP3) ||
 				mime.equals(MIME_PNG) ||

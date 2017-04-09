@@ -33,10 +33,6 @@ public class MKV extends MPG {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
-			"3g2",
-			"3gp",
-			"3gp2",
-			"asf",
 			"asx",
 			"dv",
 			"evo",
@@ -47,6 +43,7 @@ public class MKV extends MPG {
 			"mk3d",
 			"mkv",
 			"mov",
+			"ogg",
 			"ogm",
 			"ogv",
 			"rmv",

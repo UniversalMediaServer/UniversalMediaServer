@@ -1,5 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
+ * PS3 Media Server, for streaming any media to your PS3.
  * Copyright (C) 2008  A.Brochard
  *
  * This program is free software; you can redistribute it and/or
@@ -18,13 +18,13 @@
  */
 package net.pms.formats.audio;
 
-public class OGG extends AudioBase {
+public class OGA extends AudioBase {
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.OGG;
+		return Identifier.OGA;
 	}
 
 	/**
@@ -34,7 +34,6 @@ public class OGG extends AudioBase {
 	public String[] getSupportedExtensions() {
 		return new String[] {
 			"oga",
-			"ogg",
 			"spx",
 			"opus",
 		};

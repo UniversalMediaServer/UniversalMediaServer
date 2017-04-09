@@ -142,7 +142,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		params.maxBufferSize = configuration.getMaxAudioBuffer();
-		params.waitbeforestart = 2000;
+		params.waitbeforestart = 1;
 		params.manageFastStart();
 
 		/*
@@ -267,7 +267,7 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.MLP) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MP3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MPA) ||
-			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.OGA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.RA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.SHN) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.THREEGA) ||

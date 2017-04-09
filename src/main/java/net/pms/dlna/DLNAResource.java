@@ -1,5 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
+ * PS3 Media Server, for streaming any media to your PS3.
  * Copyright (C) 2008  A.Brochard
  *
  * This program is free software; you can redistribute it and/or
@@ -431,7 +431,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// TODO: Determine renderer's correct localization value
 		int localizationValue = 1;
 		String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, localizationValue);
-		return (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer) + ";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
+		return (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer) + ";DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
 	public DLNAResource getPrimaryResource() {
@@ -1795,7 +1795,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * TimeSeekRange.DLNA.ORG (seek by time) headers; the second allows it to send RANGE (seek by byte)
 	 * headers.
 	 *
-	 *    00 - no seeking (or even pausing) allowed
+	 *    00 - forbidden by the DLNA standard
 	 *    01 - seek by byte
 	 *    10 - seek by time
 	 *    11 - seek by both
@@ -1857,6 +1857,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		return "DLNA.ORG_OP=" + dlnaOrgOpFlags;
 	}
+
+	private String dlnaOrgCiFlags;
+//		String dlnaOrgCiFlags = null;
+
+//		if (!format.isCompatible(newChild.media, defaultRenderer)) {
+//			dlnaOrgCiFlags = "DLNA.ORG_CI=1";
+//		}
+
+//		return dlnaOrgCiFlags;
+//	}
 
 	/**
 	 * Creates the DLNA.ORG_PN to send.
@@ -2272,8 +2282,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				} else if (mime.equals(AUDIO_MP3_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=MP3";
-				} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME) || mime.equals(AUDIO_WAV_TYPEMIME)) {
+				} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=LPCM";
+				} else if (mime.equals(AUDIO_AAC_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=AAC_ISO_320";
+				} else if (mime.equals(AUDIO_ADTS_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=AAC_ADTS_320";
+				} else if (mime.equals(AUDIO_THREEGPPA_TYPEMIME) || mime.equals(AUDIO_THREEGPP2A_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=AAC_ISO_320";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase("als")) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=ALS_MULT5_ISO";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase(FormatConfiguration.WMA)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMAFULL";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase(FormatConfiguration.WMALOSSLESS)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMALSL";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase(FormatConfiguration.WMAPRO)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMAPRO";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase(FormatConfiguration.WMAVOICE)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMABASE";
 				}
 			}
 
@@ -2442,7 +2468,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				openTag(sb, "res");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 				String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, c);
-				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer);
+				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer) + (dlnaOrgCiFlags != null ? (";" + dlnaOrgCiFlags) : "") + (!mediaRenderer.isDLNALocalizationRequired() ? ";DLNA.ORG_FLAGS=01500000000000000000000000000000" : "");
 				wireshark.append(' ').append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 				if (subsAreValidForStreaming && mediaRenderer.offerSubtitlesByProtocolInfo() && !mediaRenderer.useClosedCaption()) {
@@ -2520,6 +2546,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (player == null) {
 								if (firstAudioTrack.getSampleFrequency() != null) {
 									addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
+								}
+								if (firstAudioTrack.getBitsperSample() != 0) {
+									addAttribute(sb, "bitsPerSample", firstAudioTrack.getBitsperSample());
+								} else if (
+										FormatConfiguration.ADTS.equals(media.getContainer()) ||
+										media.getMimeType().equals(AUDIO_LPCM_TYPEMIME)
+									) {
+									addAttribute(sb, "bitsPerSample", 16);
 								}
 								if (firstAudioTrack.getAudioProperties().getNumberOfChannels() > 0) {
 									addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());

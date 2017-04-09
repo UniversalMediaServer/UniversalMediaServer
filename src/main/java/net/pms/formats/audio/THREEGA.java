@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -35,8 +35,9 @@ public class THREEGA extends AudioBase {
 	public String[] getSupportedExtensions() {
 		return new String[] {
 			"3ga",
-			"amr",
 			"3gpa",
+			"amr",
+			"awb"
 		};
 	}
 }

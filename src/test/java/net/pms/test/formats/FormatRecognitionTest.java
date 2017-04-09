@@ -35,7 +35,7 @@ import net.pms.formats.MKV;
 import net.pms.formats.MPG;
 import net.pms.formats.audio.M4A;
 import net.pms.formats.audio.MP3;
-import net.pms.formats.audio.OGG;
+import net.pms.formats.audio.OGA;
 import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.network.HTTPResource;
@@ -224,12 +224,12 @@ public class FormatRecognitionTest {
 		format.match("test.mpg");
 		assertTrue("isCompatible() gives the outcome true for MPG", conf.isCompatible(info, format, configuration));
 
-		// OGG: false
+		// OGA: false
 		info = new DLNAMediaInfo();
 		info.setContainer("ogg");
-		format = new OGG();
-		format.match("test.ogg");
-		assertFalse("isCompatible() gives the outcome false for OGG", conf.isCompatible(info, format, configuration));
+		format = new OGA();
+		format.match("test.oga");
+		assertFalse("isCompatible() gives the outcome false for OGA", conf.isCompatible(info, format, configuration));
 
 		// RAW: false
 		info = new DLNAMediaInfo();

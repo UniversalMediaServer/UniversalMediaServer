@@ -72,7 +72,7 @@ public final class FormatFactory {
 		new MPC(),
 		new MPG(),
 		new MPGAudio(),
-		new OGG(),
+		new OGA(),
 		new PCX(),
 		new PICT(),
 		new PLAYLIST(),
