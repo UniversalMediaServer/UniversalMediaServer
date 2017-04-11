@@ -115,7 +115,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		// FIXME: These are just preliminary
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
-		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac m:video/flash");
+		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac-lc m:video/flash");
 		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
 		configuration.addProperty(SUPPORTED, "f:ogg v:theora m:video/ogg");
