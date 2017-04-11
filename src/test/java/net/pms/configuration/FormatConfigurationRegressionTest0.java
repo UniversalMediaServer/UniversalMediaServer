@@ -137,7 +137,7 @@ public class FormatConfigurationRegressionTest0 {
 
     if (debug) { System.out.format("%n%s%n","RegressionTest0.test11"); }
 
-    java.lang.String str0 = net.pms.configuration.FormatConfiguration.MATROSKA;
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.MKV;
 
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "mkv"+ "'", str0.equals("mkv"));
@@ -329,10 +329,10 @@ public class FormatConfigurationRegressionTest0 {
 
     if (debug) { System.out.format("%n%s%n","RegressionTest0.test27"); }
 
-    java.lang.String str0 = net.pms.configuration.FormatConfiguration.AAC_HE;
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.HE_AAC;
 
     // Regression assertion (captures the current behavior of the code)
-    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "aac-he"+ "'", str0.equals("aac-he"));
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "he-aac"+ "'", str0.equals("he-aac"));
 
   }
 
@@ -449,7 +449,7 @@ public class FormatConfigurationRegressionTest0 {
 
     if (debug) { System.out.format("%n%s%n","RegressionTest0.test37"); }
 
-    java.lang.String str0 = net.pms.configuration.FormatConfiguration.REALAUDIO_LOSSLESS;
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.RALF;
 
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "ralf"+ "'", str0.equals("ralf"));
@@ -473,7 +473,7 @@ public class FormatConfigurationRegressionTest0 {
 
     if (debug) { System.out.format("%n%s%n","RegressionTest0.test39"); }
 
-    java.lang.String str0 = net.pms.configuration.FormatConfiguration.DSDAudio;
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.DSD;
 
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "dsd"+ "'", str0.equals("dsd"));
@@ -569,11 +569,22 @@ public class FormatConfigurationRegressionTest0 {
 
     if (debug) { System.out.format("%n%s%n","RegressionTest0.test47"); }
 
-    java.lang.String str0 = net.pms.configuration.FormatConfiguration.AAC;
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.AAC_LC;
 
     // Regression assertion (captures the current behavior of the code)
-    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "aac"+ "'", str0.equals("aac"));
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "aac-lc"+ "'", str0.equals("aac-lc"));
 
+  }
+
+  @Test
+  public void testAACMain() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.testAACMain"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.AAC_MAIN;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "aac-main"+ "'", str0.equals("aac-main"));
   }
 
   @Test
@@ -957,7 +968,6 @@ public class FormatConfigurationRegressionTest0 {
 
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "dtshd"+ "'", str0.equals("dtshd"));
-
   }
 
   @Test
@@ -969,7 +979,71 @@ public class FormatConfigurationRegressionTest0 {
 
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "aiff"+ "'", str0.equals("aiff"));
-
   }
 
+  @Test
+  public void testALS() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.testALS"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.ALS;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "als"+ "'", str0.equals("als"));
+  }
+
+  @Test
+  public void testOGGAudio() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.testOGGAudio"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.OGA;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "ogg-audio"+ "'", str0.equals("ogg-audio"));
+  }
+
+  @Test
+  public void testRealAudio_14_4() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.testRealAudio_14_4"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.REALAUDIO_14_4;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "ra14.4"+ "'", str0.equals("ra14.4"));
+  }
+
+  @Test
+  public void testRealAudio_28_8() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.testRealAudio_28_8"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.REALAUDIO_28_8;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "ra28.8"+ "'", str0.equals("ra28.8"));
+  }
+
+  @Test
+  public void testRALF() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.testRALF"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.RALF;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "ralf"+ "'", str0.equals("ralf"));
+  }
+
+  @Test
+  public void testSipro() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.testSipro"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.SIPRO;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "sipro"+ "'", str0.equals("sipro"));
+  }
 }
