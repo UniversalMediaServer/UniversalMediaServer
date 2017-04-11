@@ -264,11 +264,11 @@ public final class AudioUtils {
 					case "atrc":
 						audio.setCodecA(FormatConfiguration.ATRAC);
 					case "ralf":
-						audio.setCodecA(FormatConfiguration.REALAUDIO_LOSSLESS);
+						audio.setCodecA(FormatConfiguration.RALF);
 					case "raac":
-						audio.setCodecA(FormatConfiguration.AAC);
+						audio.setCodecA(FormatConfiguration.AAC_LC);
 					case "racp":
-						audio.setCodecA(FormatConfiguration.AAC_HE);
+						audio.setCodecA(FormatConfiguration.HE_AAC);
 					default:
 						LOGGER.debug("Unknown RealMedia codec FourCC \"{}\" - parsing failed", fourCCString);
 						return false;

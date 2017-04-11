@@ -21,6 +21,7 @@ package net.pms.dlna;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -85,6 +86,29 @@ public class DLNAMediaInfo implements Cloneable {
 	 * <code>int</code> can contain.
 	 */
 	public static final long TRANS_SIZE = Long.MAX_VALUE - Integer.MAX_VALUE - 1;
+
+	/**
+	 * Containers that can represent audio or video media is by default
+	 * considered to be video. This {@link Map} maps such containers to the type
+	 * to use if they represent audio media.
+	 */
+	protected static final Map<String, String> audioOrVideoContainers;
+
+	static {
+		Map<String, String> mutableAudioOrVideoContainers = new HashMap<String, String>();
+
+		// Map container formats to their "audio variant".
+		mutableAudioOrVideoContainers.put(FormatConfiguration.MP4, FormatConfiguration.M4A);
+		mutableAudioOrVideoContainers.put(FormatConfiguration.MKV, FormatConfiguration.MKA);
+		mutableAudioOrVideoContainers.put(FormatConfiguration.OGG, FormatConfiguration.OGA);
+		mutableAudioOrVideoContainers.put(FormatConfiguration.RM, FormatConfiguration.RA);
+		mutableAudioOrVideoContainers.put(FormatConfiguration.MPEG1, FormatConfiguration.MPA);
+		mutableAudioOrVideoContainers.put(FormatConfiguration.MPEG2, FormatConfiguration.MPA);
+		mutableAudioOrVideoContainers.put(FormatConfiguration.THREEGPP, FormatConfiguration.THREEGA);
+		mutableAudioOrVideoContainers.put(FormatConfiguration.THREEGPP2, FormatConfiguration.THREEGA);
+
+		audioOrVideoContainers = Collections.unmodifiableMap(mutableAudioOrVideoContainers);
+	}
 
 	private final Object videoWithinH264LevelLimitsLock = new Object();
 	private Boolean videoWithinH264LevelLimits = null;
@@ -873,7 +897,7 @@ public class DLNAMediaInfo implements Cloneable {
 						if (ext.getIdentifier() == Identifier.ADPCM) {
 							audio.setCodecA(FormatConfiguration.ADPCM);
 						} else if (ext.getIdentifier() == Identifier.DSD) {
-							audio.setCodecA(FormatConfiguration.DSDAudio);
+							audio.setCodecA(FormatConfiguration.DSD);
 						}
 					}
 
@@ -1446,7 +1470,10 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.AC3:
 					mimeType = HTTPResource.AUDIO_AC3_TYPEMIME;
 					break;
-				case FormatConfiguration.DSDAudio:
+				case FormatConfiguration.AU:
+					mimeType = HTTPResource.AUDIO_AU_TYPEMIME;
+					break;
+				case FormatConfiguration.DSD:
 					mimeType = HTTPResource.AUDIO_DSD_TYPEMIME;
 					break;
 				case FormatConfiguration.EAC3:
@@ -1476,15 +1503,17 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.MPC:
 					mimeType = HTTPResource.AUDIO_MPC_TYPEMIME;
 					break;
+				case FormatConfiguration.OGG:
+					mimeType = HTTPResource.OGG_TYPEMIME;
+					break;
+				case FormatConfiguration.OGA:
+					mimeType = HTTPResource.AUDIO_OGA_TYPEMIME;
+					break;
 				case FormatConfiguration.RA:
 					mimeType = HTTPResource.AUDIO_RA_TYPEMIME;
 					break;
 				case FormatConfiguration.RM:
-					if (isAudio()) {
-						mimeType = HTTPResource.AUDIO_RA_TYPEMIME;
-					} else {
-						mimeType = HTTPResource.RM_TYPEMIME;
-					}
+					mimeType = HTTPResource.RM_TYPEMIME;
 					break;
 				case FormatConfiguration.SHORTEN:
 					mimeType = HTTPResource.AUDIO_SHN_TYPEMIME;
@@ -1503,12 +1532,6 @@ public class DLNAMediaInfo implements Cloneable {
 					break;
 				case FormatConfiguration.WMA:
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-					break;
-				case FormatConfiguration.OGG:
-					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
-					break;
-				case FormatConfiguration.AU:
-					mimeType = HTTPResource.AUDIO_AU_TYPEMIME;
 					break;
 			}
 		}
@@ -1542,7 +1565,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			} else if (codecV == null && codecA != null) {
 				if ("ogg".equals(container)) {
-					mimeType = HTTPResource.AUDIO_OGG_TYPEMIME;
+					mimeType = HTTPResource.AUDIO_OGA_TYPEMIME;
 				} else if ("3gp".equals(container)) {
 					mimeType = HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
 				} else if ("3g2".equals(container)) {
@@ -1567,8 +1590,6 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
 				} else if (codecA.contains("pcm") || codecA.contains("wav") || codecA.contains("dts")) {
 					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
-				} else if (codecA.contains("aac")) {
-					mimeType = HTTPResource.AUDIO_M4A_TYPEMIME;
 				} else if (codecA.equals(FormatConfiguration.TRUEHD)) {
 					mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
 				} else if (codecA.equals(FormatConfiguration.DTS)) {
@@ -1579,7 +1600,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
 				} else if (codecA.equals(FormatConfiguration.ADPCM)) {
 					mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DSDAudio)) {
+				} else if (codecA.equals(FormatConfiguration.DSD)) {
 					mimeType = HTTPResource.AUDIO_DSD_TYPEMIME;
 				}
 			}
@@ -2919,5 +2940,47 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public boolean isDVDResolution() {
 		return (width == 720 && height == 576) || (width == 720 && height == 480);
+	}
+
+	/**
+	 * Determines if this {@link DLNAMediaInfo} instance has a container that is
+	 * used both for audio and video media.
+	 *
+	 * @return {@code true} if the currently set {@code container} can be either
+	 *         audio or video, {@code false} otherwise.
+	 */
+	public boolean isAudioOrVideoContainer() {
+		if (StringUtils.isBlank(container)) {
+			return false;
+		}
+		for (String format : audioOrVideoContainers.keySet()) {
+			if (format.equals(container)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Returns the format to use if this {@link DLNAMediaInfo} instance
+	 * represent an audio media wrapped in a container that can represent both
+	 * audio and video media. This returns {@code null} unless
+	 * {@link #isAudioOrVideoContainer} is {@code true}.
+	 *
+	 * @see #isAudioOrVideoContainer()
+	 *
+	 * @return The "audio variant" format for this container, or {@code null} if
+	 *         it doesn't apply.
+	 */
+	public String getAudioVariantFormat() {
+		if (StringUtils.isBlank(container)) {
+			return null;
+		}
+		for (Entry<String, String> entry : audioOrVideoContainers.entrySet()) {
+			if (entry.getKey().equals(container)) {
+				return entry.getValue();
+			}
+		}
+		return null;
 	}
 }
