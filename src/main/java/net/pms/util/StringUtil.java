@@ -24,8 +24,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
@@ -207,6 +210,19 @@ public class StringUtil {
 		}
 
 		return sb.toString();
+	}
+
+	/**
+	 * Converts a duration in seconds to the DIDL-Lite specified duration
+	 * format.
+	 *
+	 * @param duration the duration in seconds
+	 * @return The formatted duration.
+	 */
+	public static String formatDidlLiteDuration(double duration) {
+		SimpleDateFormat format = new SimpleDateFormat("H:mm:ss", Locale.ROOT);
+		format.setTimeZone(TimeZone.getTimeZone("UTC"));
+		return format.format(new Date((long) (duration * 1000)));
 	}
 
 	/**
