@@ -28,6 +28,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.sql.PreparedStatement;
+import java.util.HashSet;
+import java.util.Set;
 import net.pms.Messages;
 import net.pms.PMS;
 
@@ -57,7 +60,7 @@ public final class TableFilesStatus extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -87,72 +90,46 @@ public final class TableFilesStatus extends Tables{
 	 *
 	 * @param fullPathToFile
 	 * @param isFullyPlayed
-	 * @param fileId
 	 */
-	public static void setFullyPlayed(final String fullPathToFile, final boolean isFullyPlayed, int fileId) {
+	public static void setFullyPlayed(final String fullPathToFile, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
 		try (Connection connection = database.getConnection()) {
-			if (fileId == 0) {
-				query = "SELECT ID FROM FILES WHERE FILENAME = " + sqlQuote(fullPathToFile);
-				if (trace) {
-					LOGGER.trace("Looking up file id for file \"{}\" with \"{}\" before update", fullPathToFile, query);
-				}
-
-				TABLE_LOCK.readLock().lock();
-				try (Statement statement = connection.createStatement()) {
-					try (ResultSet result = statement.executeQuery(query)) {
-						if (result.next()) {
-							fileId = result.getInt("ID");
-						}
-					}
-				} finally {
-					TABLE_LOCK.readLock().unlock();
-				}
+			query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			if (trace) {
+				LOGGER.trace("Searching for file with \"{}\" before update", query);
 			}
 
-			// If the entry exists in the FILES table
-			if (fileId != 0) {
-				query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILEID = " + fileId;
-				if (trace) {
-					LOGGER.trace("Searching for file with \"{}\" before update", query);
-				}
-
-				TABLE_LOCK.writeLock().lock();
-				try (Statement statement = connection.createStatement()) {
-					try (ResultSet result = statement.executeQuery(query)) {
-						if (result.next()) {
-							if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
-								if (trace) {
-									LOGGER.trace("Found file entry and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
-								}
-							} else {
-								query = "UPDATE " + TABLE_NAME + " SET MODIFIED=CURRENT_TIMESTAMP, ISFULLYPLAYED=" + isFullyPlayed + " WHERE FILEID=" + fileId;
-								if (trace) {
-									LOGGER.trace("Found the file entry so we will update it with \"{}\"", query);
-								}
-
-								Statement statement2 = connection.createStatement();
-								statement2.execute(query);
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet result = statement.executeQuery(query)) {
+					if (result.next()) {
+						if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
+							if (trace) {
+								LOGGER.trace("Found file entry and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
 							}
 						} else {
-							query = "INSERT INTO " + TABLE_NAME + " (FILEID, MODIFIED, ISFULLYPLAYED) VALUES (" + fileId + ", CURRENT_TIMESTAMP, " + isFullyPlayed + ")";
+							query = "UPDATE " + TABLE_NAME + " SET MODIFIED=CURRENT_TIMESTAMP, ISFULLYPLAYED=" + isFullyPlayed + " WHERE FILENAME=" + sqlQuote(fullPathToFile);
 							if (trace) {
-								LOGGER.trace("Did not find the file entry so we will insert it with \"{}\"", query);
+								LOGGER.trace("Found the file entry so we will update it with \"{}\"", query);
 							}
 
 							Statement statement2 = connection.createStatement();
 							statement2.execute(query);
 						}
+					} else {
+						query = "INSERT INTO " + TABLE_NAME + " (FILENAME, MODIFIED, ISFULLYPLAYED) VALUES (" + sqlQuote(fullPathToFile) + ", CURRENT_TIMESTAMP, " + isFullyPlayed + ")";
+						if (trace) {
+							LOGGER.trace("Did not find the file entry so we will insert it with \"{}\"", query);
+						}
+
+						Statement statement2 = connection.createStatement();
+						statement2.execute(query);
 					}
-				} finally {
-					TABLE_LOCK.writeLock().unlock();
 				}
-			} else {
-				if (trace) {
-					LOGGER.trace("Found no match in FILES for \"{}\"", fullPathToFile);
-				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -187,7 +164,7 @@ public final class TableFilesStatus extends Tables{
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet result = statement.executeQuery(query)) {
 					while (result.next()) {
-						setFullyPlayed(result.getString("FILENAME"), isFullyPlayed, result.getInt("ID"));
+						setFullyPlayed(result.getString("FILENAME"), isFullyPlayed);
 					}
 				}
 			} finally {
@@ -207,25 +184,24 @@ public final class TableFilesStatus extends Tables{
 	}
 
 	/**
-	 * Removes an entry based on its FILEID (which is the ID of its
-	 * corresponding entry in the FILES table.
+	 * Removes an entry based on its FILENAME.
 	 *
-	 * @param fileid the fileid to remove
+	 * @param filename the filename to remove
 	 */
-	public static void removeEntryFromFileId(final String fileid) {
+	public static void removeEntry(final String filename) {
 		try (Connection connection = database.getConnection()) {
-			String query = "DELETE FROM " + TABLE_NAME + " WHERE FILEID = " + fileid;
+			String query = "DELETE FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(filename);
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				statement.executeUpdate(query);
-				LOGGER.trace("Removed entry in FILES_STATUS for fileid \"{}\"", fileid);
+				LOGGER.trace("Removed entry in FILES_STATUS for filename \"{}\"", filename);
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
 				"Database error while removing entry from file status for \"{}\": {}",
-				fileid,
+				filename,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
@@ -237,7 +213,7 @@ public final class TableFilesStatus extends Tables{
 		FilesStatusResult result;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ISFULLYPLAYED FROM FILES JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			String query = "SELECT ISFULLYPLAYED FROM FILES JOIN " + TABLE_NAME + " ON FILES.FILENAME = " + TABLE_NAME + ".FILENAME WHERE FILES.FILENAME = " + sqlQuote(fullPathToFile);
 
 			if (trace) {
 				LOGGER.trace("Searching for file status with \"{}\"", query);
@@ -319,10 +295,39 @@ public final class TableFilesStatus extends Tables{
 		try {
 			for (int version = currentVersion;version < TABLE_VERSION; version++) {
 				switch (version) {
-					//case 1: Alter table to version 2
+					case 1:
+						// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR2(1024)");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
+
+							Set<String> fileStatusEntries = new HashSet<>();
+							PreparedStatement stmt = connection.prepareStatement("SELECT FILES.ID AS FILES_ID, FILES.FILENAME AS FILES_FILENAME FROM FILES LEFT JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID");
+							ResultSet rs = stmt.executeQuery();
+							String filename;
+							while (rs.next()) {
+								filename = rs.getString("FILES_FILENAME");
+
+								// Ensure we don't attempt add the same filename twice
+								if (!fileStatusEntries.contains(filename)) {
+									fileStatusEntries.add(filename);
+									String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
+									Statement statement2 = connection.createStatement();
+									statement2.execute(query);
+									LOGGER.info("Updating fully played entry for " + filename);
+								}
+							}
+
+							statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP COLUMN FILEID");
+							statement.execute("DROP INDEX IF EXISTS FILEID_IDX");
+							statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
+						}
+						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "is missing table upgrade commands from version " +
+							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
 							version + " to " + TABLE_VERSION
 						);
 				}
@@ -342,13 +347,13 @@ public final class TableFilesStatus extends Tables{
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
 					"ID            IDENTITY PRIMARY KEY, " +
-					"FILEID        INT      NOT NULL UNIQUE, " +
+					"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
 					"MODIFIED      DATETIME, " +
 					"ISFULLYPLAYED BOOLEAN  DEFAULT false" +
 				")"
 			);
 
-			statement.execute("CREATE INDEX FILEID_IDX ON " + TABLE_NAME + "(FILEID)");
+			statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
 		}
 	}
 }
