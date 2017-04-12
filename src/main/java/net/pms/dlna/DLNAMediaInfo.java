@@ -45,6 +45,7 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
+import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import static net.pms.util.StringUtil.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -1425,15 +1426,15 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getDurationString() {
-		return durationSec != null ? convertTimeToString(durationSec, DURATION_TIME_FORMAT) : null;
+		return durationSec != null ? StringUtil.formatDidlLiteDuration(durationSec) : null;
 	}
 
 	/**
-	 * @deprecated Use {@link #StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT)} instead.
+	 * @deprecated Use {@link StringUtil#formatDidlLiteDuration} instead.
 	 */
 	@Deprecated
 	public static String getDurationString(double d) {
-		return convertTimeToString(d, DURATION_TIME_FORMAT);
+		return StringUtil.formatDidlLiteDuration(d);
 	}
 
 	public static Double parseDurationString(String duration) {
