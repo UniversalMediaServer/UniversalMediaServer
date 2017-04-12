@@ -2155,14 +2155,6 @@ public class DLNAMediaInfo implements Cloneable {
 		this.isTVEpisode = value;
 	}
 
-	public int getDatabaseFileId() {
-		return databaseFileId;
-	}
-
-	public void setDatabaseFileId(int value) {
-		this.databaseFileId = value;
-	}
-
 	public String getEdition() {
 		return edition;
 	}

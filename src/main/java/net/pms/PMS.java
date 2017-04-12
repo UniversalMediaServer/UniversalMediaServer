@@ -1354,7 +1354,7 @@ public class PMS {
 	 * @param path
 	 */
 	public void deleteFileEntry(String path) {
-		getDatabase().deleteRowsInFilesTables(sqlLikeEscape(path), "FILENAME");
+		getDatabase().deleteRowsInFilesTables(sqlLikeEscape(path));
 	}
 
 	/**
@@ -1363,7 +1363,7 @@ public class PMS {
 	 * @param directory
 	 */
 	public void deleteFileEntriesInDirectory(String directory) {
-		getDatabase().deleteRowsInFilesTables(sqlLikeEscape(directory) + "%", "FILENAME");
+		getDatabase().deleteRowsInFilesTables(sqlLikeEscape(directory) + "%");
 	}
 
 	/**
@@ -1400,7 +1400,7 @@ public class PMS {
 	 */
 	public void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
 		if (getConfiguration().getUseCache()) {
-			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed, 0);
+			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
 		}
 
 		if (isFullyPlayed) {

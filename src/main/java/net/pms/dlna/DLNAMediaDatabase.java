@@ -411,7 +411,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement stmt = null;
 		try {
 			conn = getConnection();
-			stmt = conn.prepareStatement("SELECT * FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE FILENAME = ? AND FILES.MODIFIED = ?");
+			stmt = conn.prepareStatement("SELECT * FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.FILENAME = ? AND FILES.MODIFIED = ?");
 			stmt.setString(1, name);
 			stmt.setTimestamp(2, new Timestamp(modified));
 			rs = stmt.executeQuery();
@@ -510,7 +510,6 @@ public class DLNAMediaDatabase implements Runnable {
 						subrs.close();
 					}
 				}
-				media.setDatabaseFileId(id);
 
 				list.add(media);
 			}
@@ -537,30 +536,14 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		PreparedStatement ps = null;
 
-		boolean existingId = false;
-		if (media != null && media.getDatabaseFileId() > -1) {
-			existingId = true;
-		}
-
 		try {
 			conn = getConnection();
-
-			if (existingId) {
-				ps = conn.prepareStatement(
-					"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
-					"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
-					"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
-					"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, ID) VALUES "+
-					"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-				ps.setInt(32, media.getDatabaseFileId());
-			} else {
-				ps = conn.prepareStatement(
-					"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
-					"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
-					"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
-					"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
-					"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			}
+			ps = conn.prepareStatement(
+				"INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, "+
+				"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, "+
+				"THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, "+
+				"MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
+				"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -804,13 +787,11 @@ public class DLNAMediaDatabase implements Runnable {
 	 * Deletes a row or rows in the FILES table.
 	 * Will automatically use LIKE if a wildcard (%) is detected.
 	 *
-	 * @param value  the value to insert
-	 * @param column the column to update
+	 * @param filename the filename to delete
 	 */
-	public synchronized void deleteRowsInFilesTable(String value, String column) {
+	public synchronized void deleteRowsInFilesTable(String filename) {
 		if (
-			StringUtils.isEmpty(value) ||
-			StringUtils.isEmpty(column)
+			StringUtils.isEmpty(filename)
 		) {
 			return;
 		}
@@ -818,16 +799,16 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		try {
-			LOGGER.trace("Deleting rows from FILES table where the value in column " + column + " is " + value);
+			LOGGER.trace("Deleting rows from FILES table where the filename is " + filename);
 			conn = getConnection();
 
 			String compareMethod = "=";
-			if (value.contains("%")) {
+			if (filename.contains("%")) {
 				compareMethod = "LIKE";
 			}
 
-			ps = conn.prepareStatement("DELETE FROM FILES WHERE " + column + " " + compareMethod + " ?");
-			ps.setString(1, value);
+			ps = conn.prepareStatement("DELETE FROM FILES WHERE FILENAME " + compareMethod + " ?");
+			ps.setString(1, filename);
 			ps.executeUpdate();
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
@@ -839,44 +820,18 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * Deletes a row or rows in the FILES and FILES_STATUS tables.
-	 * Will automatically use LIKE if a wildcard (%) is detected.
 	 *
-	 * @param value  the value to insert
-	 * @param column the column to update
+	 * @param filename the filename to delete
 	 */
-	public synchronized void deleteRowsInFilesTables(String value, String column) {
+	public synchronized void deleteRowsInFilesTables(String filename) {
 		if (
-			StringUtils.isEmpty(value) ||
-			StringUtils.isEmpty(column)
+			StringUtils.isEmpty(filename)
 		) {
 			return;
 		}
 
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs;
-		try {
-			LOGGER.trace("Deleting rows from FILES and FILES_STATUS tables where the value in column " + column + " is " + value);
-			conn = getConnection();
-
-			String compareMethod = "=";
-			if (value.contains("%")) {
-				compareMethod = "LIKE";
-			}
-
-			ps = conn.prepareStatement("SELECT ID FROM FILES WHERE " + column + " " + compareMethod + " ?");
-			ps.setString(1, value);
-			rs = ps.executeQuery();
-			while (rs.next()) {
-				deleteRowsInFilesTable(Integer.toString(rs.getInt("ID")), "ID");
-				TableFilesStatus.removeEntryFromFileId(Integer.toString(rs.getInt("ID")));
-			}
-		} catch (SQLException se) {
-			LOGGER.error(null, se);
-		} finally {
-			close(ps);
-			close(conn);
-		}
+		deleteRowsInFilesTable(filename);
+		TableFilesStatus.removeEntry(filename);
 	}
 
 	public synchronized void updateThumbnail(String name, long modified, int type, DLNAMediaInfo media) {

@@ -34,12 +34,12 @@ public class MediaLibrary extends VirtualFolder {
 		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("PMS.34"), null);
 
 		// The following block contains all videos that are not fully played
-		String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE ";
+		String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE ";
 		MediaLibraryFolder unwatchedTvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
 			new String[]{
-				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE                                                                                                                                  ORDER BY FILES.MOVIEORSHOWNAME ASC",
-				"SELECT DISTINCT FILES.TVSEASON        FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE AND FILES.MOVIEORSHOWNAME = '${0}'                                                                                               ORDER BY FILES.TVSEASON ASC",
+				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE                                                                                                                                  ORDER BY FILES.MOVIEORSHOWNAME ASC",
+				"SELECT DISTINCT FILES.TVSEASON        FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE AND FILES.MOVIEORSHOWNAME = '${0}'                                                                                               ORDER BY FILES.TVSEASON ASC",
 				sqlJoinStart +                                                                                                                                                "FILES.TYPE = 4 AND FILES.ISTVEPISODE AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE AND FILES.MOVIEORSHOWNAME = '${1}' AND FILES.TVSEASON = '${0}' AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE ORDER BY FILES.TVEPISODENUMBER"
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES_NOSORT}
@@ -51,7 +51,7 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{
-				"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.ID = " + TableFilesStatus.TABLE_NAME + ".FILEID WHERE FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE ORDER BY MODIFIED DESC",
+				"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE ORDER BY MODIFIED DESC",
 				sqlJoinStart + "FILES.TYPE = 4 AND FORMATDATETIME(MODIFIED, 'd MMM yyyy') = '${0}' AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE ORDER BY FILENAME ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
