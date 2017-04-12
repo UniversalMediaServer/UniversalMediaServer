@@ -1839,6 +1839,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return "DLNA.ORG_OP=" + dlnaOrgOpFlags;
 	}
 
+	private String dlnaOrgCiFlags;
+//		String dlnaOrgCiFlags = null;
+
+//		if (!RendererConfiguration.isVideoSupported() || !RendererConfiguration.isAudioSupported()) {
+//			dlnaOrgCiFlags = "DLNA.ORG_CI=1";
+//		}
+
+//		return dlnaOrgCiFlags;
+//	}
+
 	/**
 	 * Creates the DLNA.ORG_PN to send.
 	 * DLNA.ORG_PN is a string that tells the renderer what type of file to expect, like its
@@ -2253,8 +2263,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				} else if (mime.equals(AUDIO_MP3_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=MP3";
-				} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME) || mime.equals(AUDIO_WAV_TYPEMIME)) {
+				} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=LPCM";
+				} else if (mime.equals(AUDIO_WAV_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WAV";
+				} else if (mime.equals(AUDIO_ADTS_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=AAC_ADTS_320";
+				} else if (mime.equals(AUDIO_M4A_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=AAC_ISO_320";
+				} else if (mime.equals(AUDIO_THREEGPPA_TYPEMIME) || mime.equals(AUDIO_THREEGPP2A_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=AAC_ISO_320";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase(FormatConfiguration.WMA)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMAFULL";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase(FormatConfiguration.WMALOSSLESS)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMALSL";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase(FormatConfiguration.WMAPRO)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMAPRO";
+				} else if (getMediaAudio() != null && getMediaAudio().getAudioCodec().equalsIgnoreCase(FormatConfiguration.WMAVOICE)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMABASE";
 				}
 			}
 
@@ -2423,7 +2449,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				openTag(sb, "res");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 				String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, c);
-				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer);
+				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer) + (dlnaOrgCiFlags != null ? (";" + dlnaOrgCiFlags) : "");
 				wireshark.append(' ').append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 				if (subsAreValidForStreaming && mediaRenderer.offerSubtitlesByProtocolInfo() && !mediaRenderer.useClosedCaption()) {
@@ -2502,6 +2528,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								if (firstAudioTrack.getSampleFrequency() != null) {
 									addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
 								}
+								addAttribute(sb, "bitsPerSample", firstAudioTrack.getBitsperSample());
 								if (firstAudioTrack.getAudioProperties().getNumberOfChannels() > 0) {
 									addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());
 								}
