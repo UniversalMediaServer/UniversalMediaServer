@@ -184,14 +184,13 @@ public final class TableFilesStatus extends Tables{
 	}
 
 	/**
-	 * Removes an entry based on its FILEID (which is the ID of its
-	 * corresponding entry in the FILES table.
+	 * Removes an entry based on its FILENAME.
 	 *
 	 * @param filename the filename to remove
 	 */
 	public static void removeEntry(final String filename) {
 		try (Connection connection = database.getConnection()) {
-			String query = "DELETE FROM " + TABLE_NAME + " WHERE FILENAME = " + filename;
+			String query = "DELETE FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(filename);
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				statement.executeUpdate(query);
