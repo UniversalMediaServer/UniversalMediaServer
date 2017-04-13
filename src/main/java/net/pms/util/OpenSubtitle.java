@@ -27,6 +27,7 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -38,7 +39,6 @@ import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.formats.Format;
 import net.pms.util.StringUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -84,7 +84,9 @@ public class OpenSubtitle {
 			long tailChunkPosition = length - chunkSizeForFile;
 
 			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks
-			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
+			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0) {
+				;
+			}
 
 			// Second chunk, or the rest of the data if length is smaller than two chunks
 			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
@@ -554,7 +556,7 @@ public class OpenSubtitle {
 												 * Replace our close-but-not-exact title in the database with the title from
 												 * OpenSubtitles.
 												 */
-												PMS.get().updateTVSeriesName(titleFromOpenSubtitles, titleFromDatabase);
+												PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
 											}
 										}
 
@@ -626,7 +628,16 @@ public class OpenSubtitle {
 							LOGGER.info("Getting is TV episode for " + titleToSave + " " + tvEpisodeNumberFromFilename + ": " + media.isTVEpisode());
 						}
 
-						PMS.get().storeOpenSubtitlesMetadataInCache(file, Format.VIDEO, media);
+						try {
+							PMS.get().getDatabase().appendWithDataFromOpenSubtitles(file.getAbsolutePath(), file.lastModified(), media);
+						} catch (SQLException e) {
+							LOGGER.error(
+								"Could not update the database with information from OpenSubtitles for \"{}\": {}",
+								file.getAbsolutePath(),
+								e.getMessage()
+							);
+							LOGGER.trace("", e);
+						}
 					} catch (IOException ex) {
 						// This will happen regularly so just log it in trace mode
 						LOGGER.trace("Error in OpenSubtitles parsing:", ex);

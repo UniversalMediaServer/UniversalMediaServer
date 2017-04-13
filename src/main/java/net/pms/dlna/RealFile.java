@@ -20,6 +20,7 @@ package net.pms.dlna;
 
 import com.sun.jna.Platform;
 import java.io.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import net.pms.PMS;
 import net.pms.formats.Format;
@@ -55,7 +56,7 @@ public class RealFile extends MapFile {
 		if (!file.isDirectory()) {
 			resolveFormat();
 		}
-		
+
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
 			return false;
@@ -176,7 +177,13 @@ public class RealFile extends MapFile {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
-					ArrayList<DLNAMediaInfo> medias = database.getData(fileName, file.lastModified());
+					ArrayList<DLNAMediaInfo> medias = null;
+					try {
+						medias = database.getData(fileName, file.lastModified());
+					} catch (IOException | SQLException e) {
+						// This code will disappear in the merge
+						e.printStackTrace();
+					}
 
 					if (medias != null && medias.size() == 1) {
 						setMedia(medias.get(0));
@@ -204,7 +211,12 @@ public class RealFile extends MapFile {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
-						database.insertData(fileName, file.lastModified(), getType(), getMedia());
+						try {
+							database.insertOrUpdateData(fileName, file.lastModified(), getType(), getMedia());
+						} catch (SQLException e) {
+							LOGGER.error("Error while updating cache: {}", e.getMessage()); // This will disappear in the merge
+							LOGGER.trace("", e);
+						}
 					}
 				}
 			}

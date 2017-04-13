@@ -29,6 +29,7 @@ import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -46,11 +47,8 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.TableFilesStatus;
 import net.pms.database.Tables;
-import static net.pms.database.Tables.sqlLikeEscape;
 import net.pms.dlna.*;
-import static net.pms.dlna.MediaMonitor.fullyPlayedEntries;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -1309,61 +1307,23 @@ public class PMS {
 	}
 
 	/**
-	 * Stores the file in the cache.
-	 * Note: Also checks if the data exists first, unlike the one below.
+	 * Stores the file in the cache if it doesn't already exist.
 	 *
-	 * @param file
-	 * @param formatType 
+	 * @param file the full path to the file.
+	 * @param formatType the type constant defined in {@link Format}.
 	 */
 	public void storeFileInCache(File file, int formatType) {
-		if (getConfiguration().getUseCache() && !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
-			getDatabase().insertData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+		if (
+			getConfiguration().getUseCache() &&
+			!getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())
+		) {
+			try {
+				getDatabase().insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+			} catch (SQLException e) {
+				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
-	}
-
-	/**
-	 * Appends the existing file record in the cache with metadata from
-	 * OpenSubtitles or if that lookup failed, data extracted from the filename.
-	 *
-	 * Note: Does not check if the data already exists, unlike the one above,
-	 * because that check is done before this is used.
-	 *
-	 * @param file
-	 * @param formatType 
-	 * @param media 
-	 */
-	public void storeOpenSubtitlesMetadataInCache(File file, int formatType, DLNAMediaInfo media) {
-		if (getConfiguration().getUseCache()) {
-			getDatabase().appendWithDataFromOpenSubtitles(file.getAbsolutePath(), file.lastModified(), formatType, media);
-		}
-	}
-
-	/**
-	 * Updates the name of a TV series for existing entries in the database.
-	 *
-	 * @param newName
-	 * @param oldName
-	 */
-	public void updateTVSeriesName(String newName, String oldName) {
-		getDatabase().updateRowsInFilesTable(newName, oldName, "MOVIEORSHOWNAME", 255);
-	}
-
-	/**
-	 * Deletes a file from the database.
-	 *
-	 * @param path
-	 */
-	public void deleteFileEntry(String path) {
-		getDatabase().deleteRowsInFilesTables(sqlLikeEscape(path));
-	}
-
-	/**
-	 * Deletes all files in the database within a directory.
-	 *
-	 * @param directory
-	 */
-	public void deleteFileEntriesInDirectory(String directory) {
-		getDatabase().deleteRowsInFilesTables(sqlLikeEscape(directory) + "%");
 	}
 
 	/**
@@ -1376,7 +1336,7 @@ public class PMS {
 	 * seen as different shows.
 	 *
 	 * @param title
-	 * @return 
+	 * @return
 	 */
 	public String getSimilarTVSeriesName(String title) {
 		title = StringEscapeUtils.escapeSql(title);
@@ -1389,37 +1349,6 @@ public class PMS {
 		}
 
 		return "";
-	}
-
-	/**
-	 * Sets whether the file has been fully played in the database, and in
-	 * the DLNAMediaInfo if that is passed.
-	 *
-	 * @param fullPathToFile
-	 * @param isFullyPlayed
-	 */
-	public void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
-		if (getConfiguration().getUseCache()) {
-			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
-		}
-
-		if (isFullyPlayed) {
-			fullyPlayedEntries.add(fullPathToFile);
-		} else {
-			fullyPlayedEntries.remove(fullPathToFile);
-		}
-	}
-
-	/**
-	 * Sets whether the directory has been fully played.
-	 *
-	 * @param fullPathToFile
-	 * @param isFullyPlayed
-	 */
-	public void setDirectoryFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
-		if (getConfiguration().getUseCache()) {
-			TableFilesStatus.setDirectoryFullyPlayed(sqlLikeEscape(fullPathToFile) + "%", fullPathToFile, isFullyPlayed);
-		}
 	}
 
 	/**

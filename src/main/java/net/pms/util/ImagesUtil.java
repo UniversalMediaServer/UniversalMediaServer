@@ -92,13 +92,13 @@ public class ImagesUtil {
 	}
 
 	/**
-	 * This method populates the supplied {@link DLNAMediaInfo} object with some of the image data 
+	 * This method populates the supplied {@link DLNAMediaInfo} object with some of the image data
 	 * (WIDTH, HEIGHT, BITSPERPIXEL, COLORTYPE, MODEL, EXPOSURE TIME, ORIENTATION and ISO).
 	 *
 	 * @param file The image file to be parsed
 	 * @param media The Imaging metadata which will be populated
-	 * @throws ImageReadException 
-	 * @throws IOException 
+	 * @throws ImageReadException
+	 * @throws IOException
 	 */
 	public static void parseImageByImaging(File file, DLNAMediaInfo media) throws ImageReadException, IOException {
 		ImageInfo info = Imaging.getImageInfo(file);
@@ -113,6 +113,8 @@ public class ImagesUtil {
 			if (meta != null && meta instanceof JpegImageMetadata) {
 				JpegImageMetadata jpegmeta = (JpegImageMetadata) meta;
 				TiffField tf = jpegmeta.findEXIFValue(TiffTagConstants.TIFF_TAG_MODEL);
+				/*
+				 * The commented code will disappear in the merge
 				if (tf != null) {
 					media.setModel(tf.getStringValue().trim());
 				}
@@ -133,6 +135,7 @@ public class ImagesUtil {
 					int[] isoValues = tf.getIntArrayValue();
 					media.setIso(isoValues[0]);
 				}
+				 */
 			}
 
 		} else if (formatName.startsWith("PNG")) {

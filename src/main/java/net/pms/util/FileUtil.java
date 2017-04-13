@@ -14,7 +14,6 @@ import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFileAttributes;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -1340,7 +1339,7 @@ public class FileUtil {
 				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
 			} else {
 				for (File child : children) {
-					if (ignoreFiles.contains(child.getAbsolutePath())) {
+					if (ignoreFiles != null && ignoreFiles.contains(child.getAbsolutePath())) {
 						continue;
 					}
 
@@ -1430,17 +1429,25 @@ public class FileUtil {
 	}
 
 	/**
-	 * Appends a path separator of the same type last in the string if
-	 * it's not already there.
-	 * @param path the path to be modified
-	 * @return the corrected path
+	 * Appends a path separator of the same type last in the string if it's not
+	 * already there.
+	 *
+	 * @param path the path to be modified.
+	 * @return The corrected path or {@code null} of {@code path} is
+	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {
+		if (path == null) {
+			return null;
+		}
+
 		if (!path.endsWith("\\") && !path.endsWith("/")) {
 			if (path.contains("\\")) {
 				path += "\\";
-			} else {
+			} else if (path.contains("/")) {
 				path += "/";
+			} else {
+				path += File.separator;
 			}
 		}
 		return path;

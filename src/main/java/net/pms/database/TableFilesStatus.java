@@ -19,6 +19,7 @@
  */
 package net.pms.database;
 
+import static net.pms.database.Tables.sqlLikeEscape;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,7 +28,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.PreparedStatement;
 import java.util.HashSet;
 import java.util.Set;
@@ -67,25 +67,6 @@ public final class TableFilesStatus extends Tables{
 	}
 
 	/**
-	 * A type class for returning results from FilesStatus database
-	 * lookup.
-	 */
-	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-	public static class FilesStatusResult {
-		public boolean found = false;
-		public boolean isFullyPlayed = false;
-
-		public FilesStatusResult() {
-		}
-
-		@SuppressFBWarnings("EI_EXPOSE_REP2")
-		public FilesStatusResult(final boolean found, final boolean isFullyPlayed) {
-			this.found = found;
-			this.isFullyPlayed = isFullyPlayed;
-		}
-	}
-
-	/**
 	 * Sets whether the file has been fully played.
 	 *
 	 * @param fullPathToFile
@@ -98,7 +79,7 @@ public final class TableFilesStatus extends Tables{
 		try (Connection connection = database.getConnection()) {
 			query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
 			if (trace) {
-				LOGGER.trace("Searching for file with \"{}\" before update", query);
+				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
 
 			TABLE_LOCK.writeLock().lock();
@@ -107,12 +88,12 @@ public final class TableFilesStatus extends Tables{
 					if (result.next()) {
 						if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
 							if (trace) {
-								LOGGER.trace("Found file entry and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
+								LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
 							}
 						} else {
 							query = "UPDATE " + TABLE_NAME + " SET MODIFIED=CURRENT_TIMESTAMP, ISFULLYPLAYED=" + isFullyPlayed + " WHERE FILENAME=" + sqlQuote(fullPathToFile);
 							if (trace) {
-								LOGGER.trace("Found the file entry so we will update it with \"{}\"", query);
+								LOGGER.trace("Found the file entry in " + TABLE_NAME + "; it will be updated with \"{}\"", query);
 							}
 
 							Statement statement2 = connection.createStatement();
@@ -121,7 +102,7 @@ public final class TableFilesStatus extends Tables{
 					} else {
 						query = "INSERT INTO " + TABLE_NAME + " (FILENAME, MODIFIED, ISFULLYPLAYED) VALUES (" + sqlQuote(fullPathToFile) + ", CURRENT_TIMESTAMP, " + isFullyPlayed + ")";
 						if (trace) {
-							LOGGER.trace("Did not find the file entry so we will insert it with \"{}\"", query);
+							LOGGER.trace("Did not find the file entry in " + TABLE_NAME + ", it will be inserted with \"{}\"", query);
 						}
 
 						Statement statement2 = connection.createStatement();
@@ -133,7 +114,7 @@ public final class TableFilesStatus extends Tables{
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while writing file status \"{}\" for \"{}\": {}",
+				"Database error while writing status \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
 				isFullyPlayed,
 				fullPathToFile,
 				e.getMessage()
@@ -143,21 +124,22 @@ public final class TableFilesStatus extends Tables{
 	}
 
 	/**
-	 * Sets whether each file within the directory is fully played.
+	 * Sets whether each file within the folder is fully played.
 	 *
-	 * @param fullPath      the full and escaped path to the directory
-	 * @param statusPath    a more readable version of fullPath
-	 * @param isFullyPlayed whether to mark fully played or unplayed
+	 * @param fullPathToFolder the full path to the folder.
+	 * @param isFullyPlayed whether to mark the folder content as fully played
+	 *            or not fully played.
 	 */
-	public static void setDirectoryFullyPlayed(final String fullPath, final String statusPath, final boolean isFullyPlayed) {
+	public static void setDirectoryFullyPlayed(final String fullPathToFolder, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
+		String pathWithWildcard = sqlLikeEscape(fullPathToFolder) + "%";
 		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
-		PMS.get().getFrame().setStatusLine(statusLineString + ": " + statusPath);
+		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(fullPath);
+			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
 			if (trace) {
-				LOGGER.trace("Searching for file with \"{}\" before update", query);
+				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
 
 			TABLE_LOCK.writeLock().lock();
@@ -172,9 +154,9 @@ public final class TableFilesStatus extends Tables{
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while writing file status \"{}\" for \"{}\": {}",
+				"Database error while writing status \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
 				isFullyPlayed,
-				fullPath,
+				pathWithWildcard,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
@@ -184,23 +166,30 @@ public final class TableFilesStatus extends Tables{
 	}
 
 	/**
-	 * Removes an entry based on its FILENAME.
+	 * Removes an entry or entries based on its FILENAME. If {@code useLike} is
+	 * {@code true}, {@code filename} must be properly escaped.
+	 *
+	 * @see Tables#sqlLikeEscape(String)
 	 *
 	 * @param filename the filename to remove
+	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
+	 *            operator, {@code false} if {@code =} should be used.
 	 */
-	public static void removeEntry(final String filename) {
+	public static void remove(final String filename, boolean useLike) {
 		try (Connection connection = database.getConnection()) {
-			String query = "DELETE FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(filename);
+			String query =
+				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
+				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
-				statement.executeUpdate(query);
-				LOGGER.trace("Removed entry in FILES_STATUS for filename \"{}\"", filename);
+				int rows = statement.executeUpdate(query);
+				LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while removing entry from file status for \"{}\": {}",
+				"Database error while removing entries from " + TABLE_NAME + " for \"{}\": {}",
 				filename,
 				e.getMessage()
 			);
@@ -208,33 +197,30 @@ public final class TableFilesStatus extends Tables{
 		}
 	}
 
-	public static FilesStatusResult isFullyPlayed(final String fullPathToFile) {
+	public static Boolean isFullyPlayed(final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
-		FilesStatusResult result;
+		Boolean result = null;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ISFULLYPLAYED FROM FILES JOIN " + TABLE_NAME + " ON FILES.FILENAME = " + TABLE_NAME + ".FILENAME WHERE FILES.FILENAME = " + sqlQuote(fullPathToFile);
+			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILES.FILENAME = " + sqlQuote(fullPathToFile);
 
 			if (trace) {
-				LOGGER.trace("Searching for file status with \"{}\"", query);
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
 
 			TABLE_LOCK.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
-						result = new FilesStatusResult(true, resultSet.getBoolean("ISFULLYPLAYED"));
-					} else {
-						result = new FilesStatusResult(false, false);
+						result = Boolean.valueOf(resultSet.getBoolean("ISFULLYPLAYED"));
 					}
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up file status for \"{}\": {}", fullPathToFile, e.getMessage());
+			LOGGER.error("Database error while looking up file status in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
-			result = new FilesStatusResult();
 		}
 
 		return result;
@@ -288,7 +274,6 @@ public final class TableFilesStatus extends Tables{
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressWarnings("unused")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
@@ -320,10 +305,11 @@ public final class TableFilesStatus extends Tables{
 
 							statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
 							statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
-							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP COLUMN FILEID");
 							statement.execute("DROP INDEX IF EXISTS FILEID_IDX");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP COLUMN FILEID");
 							statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
 						}
+						version = 2;
 						break;
 					default:
 						throw new IllegalStateException(

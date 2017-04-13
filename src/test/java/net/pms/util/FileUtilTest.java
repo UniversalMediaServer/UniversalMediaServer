@@ -389,11 +389,11 @@ public class FileUtilTest {
 
 	@Test
 	public void testAppendPathSeparator() {
-		assertEquals("AppendEmptyString", FileUtil.appendPathSeparator(""), "/");
-		assertEquals("AppendSlash", FileUtil.appendPathSeparator("/"), "/");
-		assertEquals("AppendMissingBackslash", FileUtil.appendPathSeparator("foo\\bar"), "foo\\bar\\");
-		assertEquals("DontAppendBackslash", FileUtil.appendPathSeparator("foo\\bar\\"), "foo\\bar\\");
-		assertEquals("AppendMissingSlash", FileUtil.appendPathSeparator("foo/bar"), "foo/bar/");
-		assertEquals("DontAppendSlash", FileUtil.appendPathSeparator("foo/bar/"), "foo/bar/");
+		assertEquals("AppendEmptyString", File.separator, FileUtil.appendPathSeparator(""));
+		assertEquals("AppendSlash", "/", FileUtil.appendPathSeparator("/"));
+		assertEquals("AppendMissingBackslash", "foo\\bar\\", FileUtil.appendPathSeparator("foo\\bar"));
+		assertEquals("DontAppendBackslash", "foo\\bar\\", FileUtil.appendPathSeparator("foo\\bar\\"));
+		assertEquals("AppendMissingSlash", "foo/bar/", FileUtil.appendPathSeparator("foo/bar"));
+		assertEquals("DontAppendSlash", "foo/bar/", FileUtil.appendPathSeparator("foo/bar/"));
 	}
 }

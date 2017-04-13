@@ -39,6 +39,7 @@ import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.database.TableFilesStatus;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.CoverSupplier;
@@ -762,7 +763,7 @@ public class NavigationShareTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String path = (String) FList.getValueAt(FList.getSelectedRow(), 0);
-				PMS.get().setDirectoryFullyPlayed(path, true);
+				TableFilesStatus.setDirectoryFullyPlayed(path, true);
 			}
 		});
 
@@ -770,13 +771,13 @@ public class NavigationShareTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String path = (String) FList.getValueAt(FList.getSelectedRow(), 0);
-				PMS.get().setDirectoryFullyPlayed(path, false);
+				TableFilesStatus.setDirectoryFullyPlayed(path, false);
 			}
 		});
 
 		popupMenu.add(menuItemMarkPlayed);
 		popupMenu.add(menuItemMarkUnplayed);
-		
+
 		FList.setComponentPopupMenu(popupMenu);
 		FList.addMouseListener(new TableMouseListener(FList));
 
@@ -821,7 +822,7 @@ public class NavigationShareTab {
 					if (FList.getModel().getRowCount() == 0) {
 						folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
 					} else {
-						PMS.get().deleteFileEntriesInDirectory((String) FList.getValueAt(FList.getSelectedRow(), 0));
+						PMS.get().getDatabase().removeMediaEntriesInFolder((String) FList.getValueAt(FList.getSelectedRow(), 0));
 					}
 					((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
 					updateModel();

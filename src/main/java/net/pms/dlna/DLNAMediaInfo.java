@@ -202,25 +202,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public String model;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int exposure;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
 	public int orientation;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int iso;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -1357,6 +1339,7 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * @deprecated Use {@link #StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT)} instead.
 	 */
+	@Deprecated
 	public static String getDurationString(double d) {
 		return convertTimeToString(d, DURATION_TIME_FORMAT);
 	}
@@ -2339,7 +2322,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the bitsPerPixel
 	 * @since 1.50.0
 	 */
-	public int getBitsPerPixel() {
+	public int getBitsPerPixel() { //TODO: (Nad) Check post merge
 		return bitsPerPixel;
 	}
 
@@ -2507,38 +2490,6 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the model
-	 * @since 1.50.0
-	 */
-	public String getModel() {
-		return model;
-	}
-
-	/**
-	 * @param model the model to set
-	 * @since 1.50.0
-	 */
-	public void setModel(String model) {
-		this.model = model;
-	}
-
-	/**
-	 * @return the exposure
-	 * @since 1.50.0
-	 */
-	public int getExposure() {
-		return exposure;
-	}
-
-	/**
-	 * @param exposure the exposure to set
-	 * @since 1.50.0
-	 */
-	public void setExposure(int exposure) {
-		this.exposure = exposure;
-	}
-
-	/**
 	 * @return the orientation
 	 * @since 1.50.0
 	 */
@@ -2552,22 +2503,6 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setOrientation(int orientation) {
 		this.orientation = orientation;
-	}
-
-	/**
-	 * @return the iso
-	 * @since 1.50.0
-	 */
-	public int getIso() {
-		return iso;
-	}
-
-	/**
-	 * @param iso the iso to set
-	 * @since 1.50.0
-	 */
-	public void setIso(int iso) {
-		this.iso = iso;
 	}
 
 	/**

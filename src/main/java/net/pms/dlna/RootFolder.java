@@ -1469,16 +1469,16 @@ public class RootFolder extends DLNAResource {
 
 				if (database != null) {
 					if ("ENTRY_DELETE".equals(event)) {
-						LOGGER.trace("File " + filename + " was deleted or moved on the hard drive, removing it from the database");
-						PMS.get().deleteFileEntry(filename);
+						LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
+						PMS.get().getDatabase().removeMediaEntry(filename);
 					} else if ("ENTRY_CREATE".equals(event)) {
-						LOGGER.trace("File " + filename + " was created on the hard drive");
+						LOGGER.trace("File {} was created on the hard drive", filename);
 						File file = new File(filename);
 						RealFile rf = new RealFile(file);
 						rf.setParent(rf);
 						rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
 						if (rf.isValid()) {
-							LOGGER.trace("File " + filename + " should now be in the database");
+							LOGGER.trace("File {} should now be in the database", filename);
 						}
 					}
 				}

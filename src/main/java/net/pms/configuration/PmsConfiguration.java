@@ -926,6 +926,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
 	 * @since 5.2.3
 	 */
+	@Deprecated
 	public String getLanguage() {
 		return getLanguageTag();
 	}
@@ -1917,7 +1918,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return What to do with a file after it has been fully played
 	 */
 	public FullyPlayedAction getFullyPlayedAction() {
-		return FullyPlayedAction.toFullyPlayedAction(getInt(KEY_FULLY_PLAYED_ACTION, 1));
+		return FullyPlayedAction.typeOf(getInt(KEY_FULLY_PLAYED_ACTION, FullyPlayedAction.MARK.getValue()), FullyPlayedAction.MARK);
 	}
 
 	/**
@@ -1926,7 +1927,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param action what to do with a file after it has been fully played
 	 */
 	public void setFullyPlayedAction(FullyPlayedAction action) {
-		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.toInt());
+		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.getValue());
 	}
 
 	/**
@@ -2509,8 +2510,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @see #getSortMethod(java.io.File)
 	 * @deprecated
-	 * @return 
+	 * @return
 	 */
+	@Deprecated
 	public int mediaLibrarySort() {
 		return getSortMethod(null);
 	}
@@ -3244,6 +3246,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @deprecated Use {@link #getCredFile()} instead.
 	 */
+	@Deprecated
 	public String getCredPath() {
 		return getCredFile().getAbsolutePath();
 	}
