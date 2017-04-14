@@ -185,6 +185,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
+	protected static final String KEY_LOGGING_LOGFILE_PATH = "logging_logfile_path";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
 	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
 	protected static final String KEY_LOGGING_FILTER_LOGS_TAB = "logging_filter_logs_tab";
@@ -443,6 +444,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	protected static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	protected static final String ENV_PROFILE_PATH = "UMS_PROFILE";
+	protected static final String ENV_LOG_PATH = "UMS_LOGPATH";
+	protected static final String ENV_PIDFILE_PATH = "UMS_PIDFILE";
 	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
 	protected static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 
@@ -625,90 +628,120 @@ public class PmsConfiguration extends RendererConfiguration {
 			)
 		);
 	}
-
-	private String verifyLogFolder(File folder, String fallbackTo) {
-		try {
-			FilePermissions permissions = FileUtil.getFilePermissions(folder);
-			if (LOGGER.isTraceEnabled()) {
-				if (!permissions.isFolder()) {
-					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not a folder, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
-				} else if (!permissions.isBrowsable()) {
-					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not browsable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
-				} else if (!permissions.isWritable()) {
-					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
-				}
+	
+	private boolean CheckCreateLogDirectory(String path)
+	{		
+		if (path==null)
+			return false;
+		path=path.trim();
+		if (path.length()==0)
+			return false;		
+		
+		final File logDirectory = new File(path);
+		if (!logDirectory.exists()) 
+		{
+			if (LOGGER.isTraceEnabled()) 
+				LOGGER.trace("CheckCreateLogDirectory: Trying to create: \"{}\"", logDirectory.getAbsolutePath());			
+			try 
+			{
+				FileUtils.forceMkdir(logDirectory);
+				if (LOGGER.isTraceEnabled()) 
+					LOGGER.trace("CheckCreateLogDirectory: \"{}\" created", logDirectory.getAbsolutePath());				
+			} 
+			catch (IOException e) 
+			{
+				LOGGER.debug("CheckCreateLogDirectory: Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
 			}
-			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable()) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Default logfile folder set to: {}", folder.getAbsolutePath());
-				}
-				return folder.getAbsolutePath();
-			}
-		} catch (FileNotFoundException e) {
-			LOGGER.trace("getDefaultLogFileFolder: \"{}\" not found, falling back to {} for logging: {}", folder.getAbsolutePath(), fallbackTo, e.getMessage());
 		}
-		return null;
+		
+		try 
+		{
+			FilePermissions permissions = FileUtil.getFilePermissions(logDirectory);
+			if (LOGGER.isTraceEnabled()) 
+			{
+				if (!permissions.isFolder()) 
+					LOGGER.trace("CheckCreateLogDirectory: \"{}\" is not a directory", logDirectory.getAbsolutePath());
+				 else if (!permissions.isBrowsable()) 
+					LOGGER.trace("CheckCreateLogDirectory: \"{}\" is not browsable", logDirectory.getAbsolutePath());
+				 else if (!permissions.isWritable()) 
+					LOGGER.trace("CheckCreateLogDirectory: \"{}\" is not writable", logDirectory.getAbsolutePath());				
+			}
+			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable()) 
+			{
+				if (LOGGER.isDebugEnabled()) 
+					LOGGER.debug("CheckCreateLogDirectory: Default logfile folder set to: {}", logDirectory.getAbsolutePath());
+				
+				defaultLogFileDir=logDirectory.getAbsolutePath();
+				return true;
+			}
+		} 
+		catch (FileNotFoundException e) 
+		{
+			LOGGER.trace("CheckCreateLogDirectory: \"{}\" not found : {}", logDirectory.getAbsolutePath(), e.getMessage());
+		}
+		return false;		
 	}
 
 	/**
 	 * @return first writable folder in the following order:
 	 * <p>
-	 *     1. (On Linux only) path to {@code /var/log/ums/%USERNAME%/}.
+	 *     1. path defined in the configuration file in logging_logfile_path
 	 * </p>
 	 * <p>
-	 *     2. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
+	 *     2. path defined in the environment variable UMS_LOG_PATH
+	 * </p>
+	 * <p>
+	 *     3. (only for Linux) /var/log/UMS
+	 * </p> 
+	 * <p>
+	 *     4. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
 	 *     {@code ~/Library/Application Support/UMS/} on Mac).
 	 * </p>
 	 * <p>
-	 *     3. Path to user-defined temporary folder specified by {@code temp_directory} parameter in UMS.conf.
+	 *     5. Path to user-defined temporary folder specified by {@code temp_directory} parameter in UMS.conf.
 	 * </p>
 	 * <p>
-	 *     4. Path to system temporary folder.
+	 *     6. Path to system temporary folder.
 	 * </p>
 	 * <p>
-	 *     5. Path to current working directory.
+	 *     7. Path to current working directory.
 	 * </p>
 	 */
-	public synchronized String getDefaultLogFileFolder() {
-		if (defaultLogFileDir == null) {
-			if (Platform.isLinux()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UMS/{}/\"", System.getProperty("user.name"));
-				}
-				final File logDirectory = new File("/var/log/UMS/" + System.getProperty("user.name") + "/");
-				if (!logDirectory.exists()) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
-					}
-					try {
-						FileUtils.forceMkdir(logDirectory);
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("getDefaultLogFileFolder: \"{}\" created", logDirectory.getAbsolutePath());
-						}
-					} catch (IOException e) {
-						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
-					}
-				}
-				defaultLogFileDir = verifyLogFolder(logDirectory, "profile folder");
+	public synchronized String getDefaultLogFileFolder() 
+	{
+		if (defaultLogFileDir == null) 
+		{			
+			// Check log file path in the configuration file first			
+			if (CheckCreateLogDirectory(getString(KEY_LOGGING_LOGFILE_PATH, null)))	
+				return defaultLogFileDir;
+			
+			// Check environment variable			
+			if (CheckCreateLogDirectory(System.getenv(ENV_LOG_PATH)))	
+				return defaultLogFileDir;
+			
+			// log to standard Linux log location
+			if (Platform.isLinux()) 
+				if (CheckCreateLogDirectory("/var/log/UMS/"))	
+					return defaultLogFileDir;			
+			
+			// log to profile directory if it is writable.
+			if (CheckCreateLogDirectory(PROFILE_DIRECTORY))	
+				return defaultLogFileDir;
+			
+			// Try user-defined temporary folder or fall back to system temporary folder.
+			try
+			{
+				final File tmpFolder=tempFolder.getTempFolder();
+				if (tmpFolder!=null)
+					if (CheckCreateLogDirectory(tmpFolder.getAbsolutePath()))	
+						return defaultLogFileDir;
 			}
-
-			if (defaultLogFileDir == null) {
-				// Log to profile directory if it is writable.
-				final File profileDirectory = new File(PROFILE_DIRECTORY);
-				defaultLogFileDir = verifyLogFolder(profileDirectory, "temporary folder");
-			}
-
-			if (defaultLogFileDir == null) {
-				// Try user-defined temporary folder or fall back to system temporary folder.
-				try {
-					defaultLogFileDir = verifyLogFolder(getTempFolder(), "working folder");
-				} catch (IOException e) {
-					LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
-					defaultLogFileDir = "";
-				}
-			}
+			catch (IOException e)
+			{
+				LOGGER.trace("getDefaultLogFileFolder: could not get temp folder : {}",  e.getMessage());
+			}			
+			defaultLogFileDir = "";							
 		}
-
 		return defaultLogFileDir;
 	}
 
