@@ -24,7 +24,6 @@ import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
@@ -39,7 +38,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
+import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.spi.ImageWriterSpi;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
@@ -124,8 +125,6 @@ public class PMS {
 	private NameFilter filter;
 
 	private JmDNS jmDNS;
-
-	public static BufferedImage thumbnailOverlayImage;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -254,12 +253,6 @@ public class PMS {
 	public SystemUtils getRegistry() {
 		return registry;
 	}
-
-	/**
-	 * @see System#err
-	 */
-	@SuppressWarnings("unused")
-	private final PrintStream stderr = System.err;
 
 	/**
 	 * Main resource database that supports search capabilities. Also known as media cache.
@@ -422,11 +415,30 @@ public class PMS {
 			}
 		}
 
-		// call this as early as possible
+		// Call this as early as possible
 		displayBanner();
 
-		// initialize database
+		// Initialize database
 		Tables.checkTables();
+
+		// Log registered ImageIO plugins
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("");
+			LOGGER.trace("Registered ImageIO reader classes:");
+			Iterator<ImageReaderSpi> readerIterator = IIORegistry.getDefaultInstance().getServiceProviders(ImageReaderSpi.class, true);
+			while (readerIterator.hasNext()) {
+				ImageReaderSpi reader = readerIterator.next();
+				LOGGER.trace("Reader class: {}", reader.getPluginClassName());
+			}
+			LOGGER.trace("");
+			LOGGER.trace("Registered ImageIO writer classes:");
+			Iterator<ImageWriterSpi> writerIterator = IIORegistry.getDefaultInstance().getServiceProviders(ImageWriterSpi.class, true);
+			while (writerIterator.hasNext()) {
+				ImageWriterSpi writer = writerIterator.next();
+				LOGGER.trace("Writer class: {}", writer.getPluginClassName());
+			}
+			LOGGER.trace("");
+		}
 
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
@@ -832,13 +844,6 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
-
-		// Load the fully played overlay image, in case it's needed later
-		try {
-			thumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
-		} catch (IOException ex) {
-			java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		}
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
 		if (getConfiguration().getUseCache()) {

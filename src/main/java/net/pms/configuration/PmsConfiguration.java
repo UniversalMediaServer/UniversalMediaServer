@@ -45,6 +45,7 @@ import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
+import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SubtitleColor;
@@ -2267,7 +2268,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				"mencoderwebvideo",
 				"vlcaudio", // (VideoLanAudioStreaming) TODO (legacy web audio engine): remove
 				"ffmpegdvrmsremux",
-				"rawthumbs"
+				"dcraw"
 			},
 			","
 		);
@@ -2281,6 +2282,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 
 		engines = hackAvs(registry, engines);
+		// Backwards compatibility, can be removed when sufficient time has passed - 2017-01
+		int i = engines.indexOf("rawthumbs");
+		if (i >= 0) {
+			engines.set(i, "dcraw");
+		}
+
 		return engines;
 	}
 
@@ -2836,12 +2843,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public SubtitleColor getSubsColor() {
 		String colorString = getString(KEY_SUBS_COLOR, null);
 		if (StringUtils.isNotBlank(colorString)) {
-			SubtitleColor result = SubtitleColor.toSubtitleColor(colorString);
-			if (result != null) {
-				return result;
+			try {
+				return new SubtitleColor(colorString);
+			} catch (InvalidArgumentException e) {
+				LOGGER.error("Using default subtitle color: {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
-		return new SubtitleColor(0xFF, 0xFF, 0xFF, 0xFF);
+		return new SubtitleColor(0xFF, 0xFF, 0xFF);
 	}
 
 	public void setSubsColor(Color color) {

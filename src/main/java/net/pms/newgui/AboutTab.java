@@ -122,13 +122,18 @@ public class AboutTab {
 		lDryIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lDryIconsLink.addMouseListener(dryIconsLink);
 
+		final LinkMouseListener jmgIconsLink = new LinkMouseListener("Jordan Michael Groll's Icons", "http://jrdng.deviantart.com/art/File-Icons-Version-3-68597653");
+		JLabel lJmgIconsLink = builder.addLabel(jmgIconsLink.getLabel(), cc.xy(2, 25, "center, fill"));
+		lJmgIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lJmgIconsLink.addMouseListener(jmgIconsLink);
+
 		final LinkMouseListener svpLink = new LinkMouseListener("SVP", "http://www.svp-team.com/");
-		JLabel lSVPLink = builder.addLabel(svpLink.getLabel(), cc.xy(2, 25, "center, fill"));
+		JLabel lSVPLink = builder.addLabel(svpLink.getLabel(), cc.xy(2, 27, "center, fill"));
 		lSVPLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSVPLink.addMouseListener(svpLink);
 
 		final LinkMouseListener openSubtitlesLink = new LinkMouseListener("OpenSubtitles.org", "http://www.opensubtitles.org/");
-		JLabel lOpenSubtitlesLink = builder.addLabel(openSubtitlesLink.getLabel(), cc.xy(2, 27, "center, fill"));
+		JLabel lOpenSubtitlesLink = builder.addLabel(openSubtitlesLink.getLabel(), cc.xy(2, 29, "center, fill"));
 		lOpenSubtitlesLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lOpenSubtitlesLink.addMouseListener(openSubtitlesLink);
 

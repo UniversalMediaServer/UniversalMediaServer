@@ -42,7 +42,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public int bitsperSample;
+	public int bitsperSample = 16;
 
 	private int bitRate;
 
@@ -117,13 +117,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	@Deprecated
 	public String muxingModeAudio;
-
-	/**
-	 * Constructor
-	 */
-	public DLNAMediaAudio() {
-		setBitsperSample(16);
-	}
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -509,40 +502,52 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		result.append("id: ");
-		result.append(getId());
-		result.append(", lang: ");
-		result.append(getLang());
+		if (getLang() != null && !getLang().equals("und")) {
+			result.append("Id: ").append(getId());
+			result.append(", Language Code: ").append(getLang());
+		}
 
 		if (isNotBlank(getAudioTrackTitleFromMetadata())) {
-			result.append(", audio track title from metadata: ");
-			result.append(getAudioTrackTitleFromMetadata());
+			if (result.length() > 0) {
+				result.append(", ");
+			}
+			result.append("Audio Track Title From Metadata: ").append(getAudioTrackTitleFromMetadata());
 		}
 
-		result.append(", audio codec: ");
-		result.append(getAudioCodec());
-		result.append(", sample frequency:");
-		result.append(getSampleFrequency());
-
-		if (getAudioProperties() != null && getAudioProperties().getNumberOfChannels() != 0) {
-			result.append(", number of channels: ");
-			result.append(getAudioProperties().getNumberOfChannels());
+		if (result.length() > 0) {
+			result.append(", ");
 		}
+		result.append("Audio Codec: ").append(getAudioCodec());
 
-		result.append(", bits per sample: ");
-		result.append(getBitsperSample());
+		result.append(", Bitrate: ").append(getBitRate());
+		if (getBitsperSample() != 16) {
+			result.append(", Bits per Sample: ").append(getBitsperSample());
+		}
+		if (getAudioProperties() != null) {
+			result.append(", ").append(getAudioProperties());
+		}
 
 		if (isNotBlank(getArtist())) {
-			result.append(", artist: ");
-			result.append(getArtist());
-			result.append(", album: ");
-			result.append(getAlbum());
-			result.append(", song name: ");
-			result.append(getSongname());
-			result.append(", year: ");
-			result.append(getYear());
-			result.append(", track: ");
-			result.append(getTrack());
+			result.append(", Artist: ").append(getArtist());
+		}
+		if (isNotBlank(getAlbum())) {
+			result.append(", Album: ").append(getAlbum());
+		}
+		if (isNotBlank(getSongname())) {
+			result.append(", Track Name: ").append(getSongname());
+		}
+		if (getYear() != 0) {
+			result.append(", Year: ").append(getYear());
+		}
+		if (getTrack() != 0) {
+			result.append(", Track: ").append(getTrack());
+		}
+		if (isNotBlank(getGenre())) {
+			result.append(", Genre: ").append(getGenre());
+		}
+
+		if (isNotBlank(getMuxingModeAudio())) {
+			result.append(", Muxing Mode: ").append(getMuxingModeAudio());
 		}
 
 		return result.toString();

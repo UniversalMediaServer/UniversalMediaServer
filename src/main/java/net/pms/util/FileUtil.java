@@ -227,6 +227,13 @@ public class FileUtil {
 		return getExtension(substringBefore(u, "?"));
 	}
 
+	public static String getExtension(File f) {
+		if (f == null || f.getName() == null) {
+			return null;
+		}
+		return getExtension(f.getName());
+	}
+
 	public static String getExtension(String f) {
 		int point = f.lastIndexOf('.');
 

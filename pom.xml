@@ -76,10 +76,11 @@
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
-		<mediautil-version>1.0</mediautil-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
+		
+		<twelvemonkeys-imageio-version>3.3.2</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
@@ -109,15 +110,6 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-		<!-- GSON -->
-		<repository>
-			<id>google-gson</id>
-			<name>google-gson</name>
-			<url>https://google-gson.googlecode.com/svn/mavenrepo/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
 		<repository>
 			<id>4thline-repo</id>
 			<url>http://4thline.org/m2</url>
@@ -128,17 +120,6 @@
 		<repository>
 			<id>jaudiotagger-repository</id>
 			<url>https://dl.bintray.com/ijabz/maven</url>
-		</repository>
-		<repository>
-			<id>apache.snapshots</id>
-			<name>Apache Development Snapshot Repository</name>
-			<url>https://repository.apache.org/content/repositories/snapshots/</url>
-			<releases>
-			<enabled>false</enabled>
-			</releases>
-			<snapshots>
-			<enabled>true</enabled>
-			</snapshots>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -203,11 +184,6 @@
 			<version>${logback-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-imaging</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.7</version>
@@ -235,26 +211,86 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>[0.4, 0.5)</version>
 		</dependency>
+		
+		<!-- 
+			If any ImageIO plugins are added or removed, corresponding changes
+		 	must be made in src/main/external-resources/META-INF/services
+		 -->
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-bmp</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>3.2.1</version>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-icns</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-iff</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.2.1</version>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-hdr</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-metadata</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pcx</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pict</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pnm</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-psd</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-sgi</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-tga</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>3.2.1</version>
+			<version>${twelvemonkeys-imageio-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-bmp</artifactId>
-			<version>3.2.1</version>
-		</dependency>
+			<groupId>com.drewnoakes</groupId>
+			<artifactId>metadata-extractor</artifactId>
+			<version>2.10.1</version>
+		</dependency>		
 		<dependency>
 			<groupId>net.jthink</groupId>
 			<artifactId>jaudiotagger</artifactId>
@@ -281,13 +317,6 @@
 			<groupId>jwbroek.cuelib</groupId>
 			<artifactId>cuelib</artifactId>
 			<version>${cuelib-version}</version>
-		</dependency>
-
-		<!-- XXX: not Mavenized: http://sourceforge.net/projects/mediachest/ -->
-		<dependency>
-			<groupId>mediautil</groupId>
-			<artifactId>mediautil</artifactId>
-			<version>${mediautil-version}</version>
 		</dependency>
 
 		<dependency>
@@ -715,15 +744,6 @@
 							<downloadUrl>http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/cuelib/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
 						</artifactItem>
-						<artifactItem>
-							<groupId>mediautil</groupId>
-							<artifactId>mediautil</artifactId>
-							<version>${mediautil-version}</version>
-							<downloadUrl>http://downloads.sourceforge.net/project/mediachest/MediaUtil/Version%201.0/mediautil-1.zip</downloadUrl>
-							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
-							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
-							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
-						</artifactItem>
 					</artifactItems>
 				</configuration>
 				<executions>
@@ -963,7 +983,6 @@
 										<mkdir dir="${project.binaries}/win32/fonts" />
 										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
 										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
-										<mkdir dir="${project.binaries}/win32/fonts" />
 										<mkdir dir="${project.binaries}/win32/interframe" />
 										<mkdir dir="${project.binaries}/win32/mplayer" />
 										<mkdir dir="${project.binaries}/win32/service" />

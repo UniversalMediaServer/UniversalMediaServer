@@ -20,8 +20,13 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
+import net.pms.image.ImageFormat;
+import net.pms.network.HTTPResource;
 import net.pms.newgui.DbgPacker;
+import net.pms.util.FullyPlayed;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -284,22 +289,25 @@ public class RemoteWeb {
 				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
-			InputStream in;
+			DLNAThumbnailInputStream in;
 			if (!configuration.isShowCodeThumbs() && !r.isCodeValid(r)) {
 				// we shouldn't show the thumbs for coded objects
 				// unless the code is entered
 				in = r.getGenericThumbnailInputStream(null);
 			} else {
 				r.checkThumbnail();
-				in = r.getThumbnailInputStream();
+				in = r.fetchThumbnailInputStream();
+			}
+			if (r instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) r).getFile())) {
+				in = FullyPlayed.addFullyPlayedOverlay(in);
 			}
 			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type", r.getThumbnailContentType());
+			hdr.add("Content-Type", ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
-			t.sendResponseHeaders(200, in.available());
+			t.sendResponseHeaders(200, in.getSize());
 			OutputStream os = t.getResponseBody();
-			LOGGER.trace("input is {} output is {}", in, os);
+			LOGGER.trace("Web thumbnail: Input is {} output is {}", in, os);
 			RemoteUtil.dump(in, os);
 		}
 	}
@@ -313,7 +321,7 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			LOGGER.debug("file req " + t.getRequestURI());
+			LOGGER.debug("Handling web interface file request \"{}\"", t.getRequestURI());
 
 			String path = t.getRequestURI().getPath();
 			String response = null;

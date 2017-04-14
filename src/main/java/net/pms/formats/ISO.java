@@ -19,14 +19,6 @@
 package net.pms.formats;
 
 public class ISO extends MPG {
-	public static final String[] ISO_EXTENSIONS = new String[] {
-		"img",
-		"iso"
-	};
-
-	public ISO() {
-		type = ISO;
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -36,11 +28,18 @@ public class ISO extends MPG {
 		return Identifier.ISO;
 	}
 
+	public ISO() {
+		type = ISO;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return ISO_EXTENSIONS;
+		return new String[] {
+			"img",
+			"iso"
+		};
 	}
 }

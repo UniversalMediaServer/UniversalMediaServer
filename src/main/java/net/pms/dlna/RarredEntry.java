@@ -38,12 +38,12 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	private long length;
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(String profile) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) { // no thumbnail support for now for rarred videos
 			return null;
 		}
 
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	public RarredEntry(String name, File file, String fileHeaderName, long length) {
@@ -123,7 +123,9 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
 				} finally {
 					try {
-						rarFile.close();
+						if (rarFile != null) {
+							rarFile.close();
+						}
 						out.close();
 					} catch (IOException e) {
 						LOGGER.debug("Caught exception", e);
@@ -160,7 +162,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {

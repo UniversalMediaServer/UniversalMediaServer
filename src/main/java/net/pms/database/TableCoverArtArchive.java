@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -112,7 +112,7 @@ public final class TableCoverArtArchive extends Tables{
 							}
 							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 							if (cover != null) {
-								result.updateString("COVER", mBID);
+								result.updateBytes("COVER", cover);
 							} else {
 								result.updateNull("COVER");
 							}

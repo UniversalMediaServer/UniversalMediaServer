@@ -1,6 +1,6 @@
 package net.pms.dlna;
 
-import java.io.InputStream;
+import java.io.IOException;
 import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
 
@@ -10,9 +10,9 @@ public class SubSelect extends VirtualFolder {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		try {
-			return downloadAndSend(thumbnailIcon, true);
+			return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumbnailIcon, true));
 		} catch (Exception e) {
 			return super.getThumbnailInputStream();
 		}

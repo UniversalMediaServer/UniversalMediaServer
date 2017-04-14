@@ -18,6 +18,7 @@ import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
+import net.pms.formats.Format.Identifier;
 import net.pms.formats.v2.AudioProperties;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
@@ -26,6 +27,8 @@ import net.pms.network.UPNPHelper;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
+import net.pms.util.FormattableColor;
+import net.pms.util.InvalidArgumentException;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.Configuration;
@@ -121,7 +124,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	// property names
 	protected static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	protected static final String AUDIO = "Audio";
-	protected static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
 	protected static final String AUTO_PLAY_TMO = "AutoPlayTmo";
 	protected static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
 	protected static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
@@ -138,7 +140,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
-	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
@@ -175,8 +176,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
-	protected static final String SQUARE_AUDIO_THUMBNAILS = "SquareAudioThumbnails";
-	protected static final String SQUARE_IMAGE_THUMBNAILS = "SquareImageThumbnails";
 	protected static final String STREAM_EXT = "StreamExtensions";
 	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
@@ -185,7 +184,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
 	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	protected static final String TEXTWRAP = "TextWrap";
-	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
 	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
 	protected static final String THUMBNAIL_PADDING = "ThumbnailPadding";
@@ -357,8 +355,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public Color getColor(String key, String defaultValue) {
 		String colorString = getString(key, defaultValue);
-		Color color = StringUtil.parseColor(colorString);
-		return color != null ? color : ! colorString.equals(defaultValue) ? StringUtil.parseColor(defaultValue) : null;
+		if (!StringUtils.isBlank(colorString)) {
+			try {
+				return new FormattableColor(colorString);
+			} catch (InvalidArgumentException e) {
+				LOGGER.error(e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		if (StringUtils.isBlank(defaultValue)) {
+			return null;
+		}
+		try {
+			return new FormattableColor(defaultValue);
+		} catch (InvalidArgumentException e) {
+			LOGGER.error("Invalid default value: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return null;
+		}
 	}
 
 	@Deprecated
@@ -835,21 +849,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return rank;
 	}
 
-	/**
-	 * @see #getThumbnailWidth()
-	 * @see #getThumbnailHeight()
-	 * @deprecated
-	 */
-	@Deprecated
-	public String getThumbSize() {
-		return getString(THUMBNAIL_SIZE, "");
-	}
-
-	@Deprecated
-	public String getThumbBG() {
-		return getString(THUMBNAIL_BG, "");
-	}
-
 	public int getThumbnailWidth() {
 		return getInt(THUMBNAIL_WIDTH, 320);
 	}
@@ -1224,10 +1223,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isTranscodeToMPEG2() {
 		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGPSMPEG2AC3();
-	}
-
-	public boolean isAutoRotateBasedOnExif() {
-		return getBoolean(AUTO_EXIF_ROTATE, false);
 	}
 
 	public boolean isTranscodeToMP3() {
@@ -2052,17 +2047,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns whether or not to use the "res" element instead of the "albumArtURI"
-	 * element for thumbnails in DLNA reponses. E.g. Samsung 2012 models do not
-	 * recognize the "albumArtURI" element. Default value is <code>false</code>.
-	 *
-	 * @return True if the "res" element should be used, false otherwise.
-	 */
-	public boolean getThumbNailAsResource() {
-		return getBoolean(THUMBNAIL_AS_RESOURCE, false);
-	}
-
-	/**
 	 * Returns the comma separated list of file extensions that are forced to
 	 * be transcoded and never streamed, as defined in the renderer
 	 * configuration. Default value is "".
@@ -2134,10 +2118,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(MEDIAPARSERV2_THUMB, false) && LibMediaInfoParser.isValid();
 	}
 
-	public boolean isForceJPGThumbnails() {
-		return getBoolean(FORCE_JPG_THUMBNAILS, false) && LibMediaInfoParser.isValid();
-	}
-
 	public boolean isShowAudioMetadata() {
 		return getBoolean(SHOW_AUDIO_METADATA, true);
 	}
@@ -2191,14 +2171,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param mediainfo The {@link DLNAMediaInfo} information parsed from the
+	 * @param mediaInfo The {@link DLNAMediaInfo} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @param configuration The {@link PmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format, PmsConfiguration configuration) {
+	public boolean isCompatible(DLNAMediaInfo mediaInfo, Format format, PmsConfiguration configuration) {
 
 		if (configuration == null) {
 			configuration = PMS.getConfiguration(this);
@@ -2212,10 +2192,38 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		) {
 			return true;
 		}
+		// Handle images differently because of automatic image transcoding
+		if (format != null && format.isImage()) {
+			if (
+				format.getIdentifier() == Identifier.RAW ||
+				mediaInfo != null && mediaInfo.getImageInfo() != null &&
+				mediaInfo.getImageInfo().getFormat() != null &&
+				mediaInfo.getImageInfo().getFormat().isRaw()
+			) {
+				LOGGER.trace(
+					"RAW ({}) images are not supported for streaming",
+					mediaInfo != null && mediaInfo.getImageInfo() != null && mediaInfo.getImageInfo().getFormat() != null ?
+					mediaInfo.getImageInfo().getFormat() :
+					format
+				);
+				return false;
+			}
+			if (mediaInfo != null && mediaInfo.getImageInfo() != null && mediaInfo.getImageInfo().isImageIOSupported()) {
+				LOGGER.trace(
+					"Format \"{}\" will be subject to on-demand automatic transcoding with ImageIO",
+					mediaInfo.getImageInfo().getFormat() != null ?
+					mediaInfo.getImageInfo().getFormat() :
+					format
+				);
+				return true;
+			}
+			LOGGER.trace("Format \"{}\" is not supported by ImageIO and will depend on a compatible transcoding engine", format);
+			return false;
+		}
 
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
-		if (isUseMediaInfo() && mediainfo != null && getFormatConfiguration().match(mediainfo) != null) {
+		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().match(mediaInfo) != null) {
 			return true;
 		}
 
@@ -2884,24 +2892,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public boolean isThumbnailPadding() {
 		return getBoolean(THUMBNAIL_PADDING, false);
-	}
-
-	/**
-	 * Whether to use ThumbnailHeight as ThumbnailWidth for audio thumbnails.
-	 *
-	 * @return whether to use ThumbnailHeight as ThumbnailWidth for audio thumbnails
-	 */
-	public boolean isSquareAudioThumbnails() {
-		return getBoolean(SQUARE_AUDIO_THUMBNAILS, false);
-	}
-
-	/**
-	 * Whether to use ThumbnailHeight as ThumbnailWidth for image thumbnails.
-	 *
-	 * @return whether to use ThumbnailHeight as ThumbnailWidth for image thumbnails
-	 */
-	public boolean isSquareImageThumbnails() {
-		return getBoolean(SQUARE_IMAGE_THUMBNAILS, false);
 	}
 
 	/**

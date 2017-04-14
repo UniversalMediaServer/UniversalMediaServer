@@ -19,7 +19,6 @@
  */
 package net.pms.database;
 
-import static net.pms.database.Tables.sqlLikeEscape;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

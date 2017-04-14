@@ -23,6 +23,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
+import net.pms.util.GenericIcons;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,10 @@ public abstract class Format implements Cloneable {
 		EAC3,
 		FLAC,
 		GIF,
+		RGBE,
+		ICNS,
+		ICO,
+		IFF,
 		IDX,
 		ISO,
 		JPG,
@@ -73,20 +78,27 @@ public abstract class Format implements Cloneable {
 		MPC,
 		MPG,
 		OGG,
+		PCX,
+		PICT,
 		PNG,
+		PNM,
+		PSD,
 		RA,
 		RAW,
 		SAMI,
+		SGI,
 		SHN,
 		SUBRIP,
 		SUP,
+		TGA,
 		THD,
 		THREEGA,
 		THREEG2A,
-		TIF,
+		TIFF,
 		TTA,
 		TXT,
 		WAV,
+		WBMP,
 		WEB,
 		WEBVTT,
 		WMA,
@@ -203,6 +215,11 @@ public abstract class Format implements Cloneable {
 		return HTTPResource.getDefaultMimeType(type);
 	}
 
+	/**
+	 * Not in use, handled by {@link GenericIcons}
+	 *
+	 * @deprecated
+	 */
 	public void setIcon(String filename) {
 		icon = filename;
 	}

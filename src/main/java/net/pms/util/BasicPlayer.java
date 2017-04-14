@@ -400,7 +400,7 @@ public interface BasicPlayer extends ActionListener {
 						while(PMS.get().getServer().getHost() == null) {
 							try {
 								Thread.sleep(1000);
-							} catch (Exception e) {
+							} catch (InterruptedException e) {
 								return;
 							}
 						}

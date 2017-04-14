@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -20,8 +20,9 @@
 
 package net.pms.util;
 
-import java.awt.Color;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Formatter;
 import java.util.Locale;
@@ -30,11 +31,29 @@ import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class StringUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
@@ -249,39 +268,6 @@ public class StringUtil {
 	}
 
 	/**
-	 * Interprets color strings of these forms:
-	 *    integer: r,g,b[,a]          - e.g. '125,184,47' or '125,184,47,128'
-	 *    hex: #[aa]rrggbb            - e.g. '#04DCF9' or '#8004DCF9'
-	 *    java.awt.Color named color  - e.g. 'blue' or 'LIGHT_GRAY'
-	 */
-	public static Color parseColor(String colorString) {
-		try {
-			colorString = colorString.trim();
-			if (colorString.contains(",")) {
-				// Integer r,g,b[,a]
-				String[] colorElements = colorString.split("\\s*,\\s*");
-				int r = Integer.parseInt(colorElements[0]);
-				int g = Integer.parseInt(colorElements[1]);
-				int b = Integer.parseInt(colorElements[2]);
-				int a = colorElements.length > 3 ? Integer.parseInt(colorElements[3]) : 255;
-				return new Color(r, g, b, a);
-
-			} else if (colorString.charAt(0) == '#') {
-				// Hex #[aa]rrggbb
-				long argb = Long.parseLong(colorString.substring(1), 16);
-				return new Color((int)argb, colorString.length() > 8);
-
-			} else {
-				// java.awt.Color named color
-				return (Color) Color.class.getField(colorString).get(null);
-			}
-		} catch (Exception e) {
-		}
-		LOGGER.warn("Unknown color '{}'. Color string must be rgb (integer R,G,B[,A] or hex #[AA]RRGGBB) or a standard java.awt.Color name", colorString);
-		return null;
-	}
-
-	/**
 	 * Returns the argument string surrounded with quotes if it contains a space,
 	 * otherwise returns the string as is.
 	 *
@@ -374,10 +360,11 @@ public class StringUtil {
 
 	/**
 	 * Escapes {@link org.apache.lucene} special characters with backslash
-	 * 
+	 *
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */
+	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	public static String luceneEscape(final String s) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < s.length(); i++) {
@@ -413,7 +400,7 @@ public class StringUtil {
 
 	/**
 	 * Escapes special characters with backslashes for FFmpeg subtitles
-	 * 
+	 *
 	 * @param s the {@link String} to evaluate
 	 * @return The converted String
 	 */
@@ -442,6 +429,47 @@ public class StringUtil {
 		}
 
 		return sb.toString();
+	}
+
+	public static String prettifyXML(String xml, int indentWidth) {
+		try {
+			// Turn XML string into a document
+			Document xmlDocument =
+				DocumentBuilderFactory.newInstance().
+				newDocumentBuilder().
+				parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+
+			// Remove whitespaces outside tags
+			xmlDocument.normalize();
+			XPath xPath = XPathFactory.newInstance().newXPath();
+			NodeList nodeList = (NodeList) xPath.evaluate(
+				"//text()[normalize-space()='']",
+				xmlDocument,
+				XPathConstants.NODESET
+			);
+
+			for (int i = 0; i < nodeList.getLength(); ++i) {
+				Node node = nodeList.item(i);
+				node.getParentNode().removeChild(node);
+			}
+
+			// Setup pretty print options
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			transformerFactory.setAttribute("indent-number", indentWidth);
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+			// Return pretty print XML string
+			StringWriter stringWriter = new StringWriter();
+			transformer.transform(new DOMSource(xmlDocument), new StreamResult(stringWriter));
+			return stringWriter.toString();
+		} catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+			LOGGER.warn("Failed to prettify XML document, returning the source document: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return xml;
+		}
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -20,6 +20,9 @@
 
 package net.pms.configuration;
 
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -29,6 +32,8 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
+import net.pms.formats.Format.Identifier;
+import net.pms.util.AudioUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +41,6 @@ import org.slf4j.LoggerFactory;
 public class FormatConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatConfiguration.class);
 	private ArrayList<SupportSpec> supportSpecs;
-	// Use old parser for JPEG files (MediaInfo does not support EXIF)
-	private static final String[] PARSER_V1_EXTENSIONS = new String[]{".jpg", ".jpe", ".jpeg"};
 	public static final String THREEGPP = "3gp";
 	public static final String THREEGPP2 = "3g2";
 	public static final String THREEGA = "3ga";
@@ -56,6 +59,7 @@ public class FormatConfiguration {
 	public static final String BMP = "bmp";
 	public static final String CINEPACK = "cvid";
 	public static final String COOK = "cook";
+	public static final String CUR = "cur";
 	public static final String DIVX = "divx";
 	public static final String DSDAudio = "dsd";
 	public static final String DTS = "dts";
@@ -68,6 +72,8 @@ public class FormatConfiguration {
 	public static final String H263 = "h263";
 	public static final String H264 = "h264";
 	public static final String H265 = "h265";
+	public static final String ICNS = "icns";
+	public static final String ICO = "ico";
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
 	public static final String M4A = "m4a";
@@ -91,9 +97,13 @@ public class FormatConfiguration {
 	public static final String MPEGTS = "mpegts";
 	public static final String OGG = "ogg";
 	public static final String OPUS = "opus";
+	public static final String PCX = "pcx";
 	public static final String PNG = "png";
+	public static final String PNM = "pnm";
+	public static final String PSD = "psd";
 	public static final String QDESIGN = "qdmc";
 	public static final String RA = "ra";
+	public static final String RAW = "raw";
 	public static final String REALAUDIO_LOSSLESS = "ralf";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
@@ -110,7 +120,9 @@ public class FormatConfiguration {
 	public static final String VP9 = "vp9";
 	public static final String WAV = "wav";
 	public static final String WAVPACK = "wavpack";
+	public static final String WBMP = "wbmp";
 	public static final String WEBM = "webm";
+	public static final String WEBP = "webp";
 	public static final String WMA = "wma";
 	public static final String WMALOSSLESS = "wmalossless";
 	public static final String WMAPRO = "wmapro";
@@ -366,7 +378,29 @@ public class FormatConfiguration {
 	 */
 	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, RendererConfiguration renderer) {
 		if (file.getFile() != null) {
-			if (renderer.isUseMediaInfo()) {
+			if (ext.getIdentifier() == Identifier.RA) {
+				// Special parsing for RealAudio 1.0 and 2.0 which isn't handled by MediaInfo or JAudioTagger
+				FileChannel channel;
+				try {
+					channel = FileChannel.open(file.getFile().toPath(), StandardOpenOption.READ);
+					if (AudioUtils.parseRealAudio(channel, media)) {
+						// If successful parsing is done, if not continue parsing the standard way
+						media.postParse(type, file);
+						return;
+					}
+				} catch (IOException e) {
+					LOGGER.warn("An error occurred when trying to open \"{}\" for reading: {}", file, e.getMessage());
+					LOGGER.trace("", e);
+				}
+			}
+
+			// MediaInfo can't correctly parse ADPCM, DSD or PNM
+			if (
+				renderer.isUseMediaInfo() &&
+				ext.getIdentifier() != Identifier.ADPCM &&
+				ext.getIdentifier() != Identifier.DSD &&
+				ext.getIdentifier() != Identifier.PNM
+			) {
 				LibMediaInfoParser.parse(media, file, type, renderer);
 			} else {
 				media.parse(file, ext, type, false, false, renderer);

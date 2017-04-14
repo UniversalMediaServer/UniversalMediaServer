@@ -1,5 +1,6 @@
 package net.pms.dlna;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,12 +10,15 @@ import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
+import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImagesUtil;
+import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.FileUtil;
+import net.pms.util.UnknownFormatException;
 import net.pms.util.OpenSubtitle;
-import net.pms.util.ImagesUtil;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.imaging.ImageReadException;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,52 +82,72 @@ public class LibMediaInfoParser {
 			media.setSize(file.length());
 			String value;
 
-			// set General
-			getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
-			getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
-			media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
-			media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
-			value = MI.Get(general, 0, "Cover_Data");
-			if (!value.isEmpty()) {
-				media.setThumb(new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)));
-				media.setThumbready(true);
-			}
-			value = MI.Get(general, 0, "Title");
-			if (!value.isEmpty()) {
-				media.setFileTitleFromMetadata(value);
-			}
+				// set General
+				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
+				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
+				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
+				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
+				value = MI.Get(general, 0, "Cover_Data");
+				if (!value.isEmpty()) {
+					try {
+						media.setThumb(DLNAThumbnail.toThumbnail(
+							new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)),
+							640,
+							480,
+							ScaleType.MAX,
+							ImageFormat.SOURCE,
+							false
+						));
+					} catch (EOFException e) {
+						LOGGER.debug(
+							"Error reading \"{}\" thumbnail from MediaInfo: Unexpected end of stream, probably corrupt or read error.",
+							file.getName()
+						);
+					} catch (UnknownFormatException e) {
+						LOGGER.debug("Could not read \"{}\" thumbnail from MediaInfo: {}", file.getName(), e.getMessage());
+					} catch (IOException e) {
+						LOGGER.error("Error reading \"{}\" thumbnail from MediaInfo: {}", file.getName(), e.getMessage());
+						LOGGER.trace("", e);
+					}
+				}
+				value = MI.Get(general, 0, "Title");
+				if (!value.isEmpty()) {
+					media.setFileTitleFromMetadata(value);
+				}
 
-			// set Video
-			media.setVideoTrackCount(MI.Count_Get(video));
-			if (media.getVideoTrackCount() > 0) {
-				for (int i = 0; i < media.getVideoTrackCount(); i++) {
-					// check for DXSA and DXSB subtitles (subs in video format)
-					if (MI.Get(video, i, "Title").startsWith("Subtitle")) {
-						currentSubTrack = new DLNAMediaSubtitle();
-						// First attempt to detect subtitle track format
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "Format")));
-						// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "CodecID")));
-						currentSubTrack.setId(media.getSubtitleTracksList().size());
-						addSub(currentSubTrack, media);
-					} else {
-						getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format"), file);
-						getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format_Version"), file);
-						getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID"), file);
-						media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
-						media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
-						media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
-						media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
-						media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
-						media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
-						media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
-						media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRateMode")));
-						media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
-						media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
-						value = MI.Get(video, i, "Format_Settings_QPel");
-						if (!value.isEmpty()) {
-							media.putExtra(FormatConfiguration.MI_QPEL, value);
-						}
+				// set Video
+				media.setVideoTrackCount(MI.Count_Get(video));
+				if (media.getVideoTrackCount() > 0) {
+					for (int i = 0; i < media.getVideoTrackCount(); i++) {
+						// check for DXSA and DXSB subtitles (subs in video format)
+						if (MI.Get(video, i, "Title").startsWith("Subtitle")) {
+							currentSubTrack = new DLNAMediaSubtitle();
+							// First attempt to detect subtitle track format
+							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "Format")));
+							// Second attempt to detect subtitle track format (CodecID usually is more accurate)
+							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "CodecID")));
+							currentSubTrack.setId(media.getSubtitleTracksList().size());
+							addSub(currentSubTrack, media);
+						} else {
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format"), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format_Version"), file);
+							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID"), file);
+							media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
+							media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
+							media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
+							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
+							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
+							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
+							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
+							media.setFrameRateOriginal(MI.Get(video, i, "FrameRate_Original"));
+							media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRate_Mode")));
+							media.setFrameRateModeRaw(MI.Get(video, i, "FrameRate_Mode"));
+							media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
+							media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
+							value = MI.Get(video, i, "Format_Settings_QPel");
+							if (!value.isEmpty()) {
+								media.putExtra(FormatConfiguration.MI_QPEL, value);
+							}
 
 						value = MI.Get(video, i, "Format_Settings_GMC");
 						if (!value.isEmpty()) {
@@ -231,15 +255,26 @@ public class LibMediaInfoParser {
 
 			// set Image
 			media.setImageCount(MI.Count_Get(image));
-			if (media.getImageCount() > 0) {
+			if (media.getImageCount() > 0 || type == Format.IMAGE) {
 				boolean parseByMediainfo = false;
-				// for image parsing use Imaging instead of the MediaInfo which doesn't provide enough information
+				// For images use our own parser instead of MediaInfo which doesn't provide enough information
 				try {
-					ImagesUtil.parseImageByImaging(file, media);
-					media.setContainer(media.getCodecV());
-				} catch (ImageReadException | IOException e) {
-					LOGGER.debug("Error when parsing image ({}) with Imaging, switching to MediaInfo.", file.getAbsolutePath());
-					parseByMediainfo = true;
+					ImagesUtil.parseImage(file, media);
+					// This is a little hack. MediaInfo only recognizes a few image formats
+					// so that MI.Count_Get(image) might return 0 even if there is an image.
+					if (media.getImageCount() == 0) {
+						media.setImageCount(1);
+					}
+				} catch (IOException e) {
+					if (media.getImageCount() > 0) {
+						LOGGER.debug("Error parsing image ({}), switching to MediaInfo: {}", file.getAbsolutePath(), e.getMessage());
+						LOGGER.trace("", e);
+						parseByMediainfo = true;
+					} else {
+						LOGGER.warn("Image parsing for \"{}\" failed both with MediaInfo and internally: {}", file.getAbsolutePath(), e.getMessage());
+						LOGGER.trace("", e);
+						media.setImageCount(1);
+					}
 				}
 
 				if (parseByMediainfo) {
@@ -247,8 +282,7 @@ public class LibMediaInfoParser {
 					media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 					media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 				}
-
-//					media.setImageCount(media.getImageCount() + 1);
+//				media.setImageCount(media.getImageCount() + 1);
 			}
 
 			// set Subs in text format
@@ -360,7 +394,14 @@ public class LibMediaInfoParser {
 				}
 			}
 
-			media.finalize(type, inputFile);
+				media.postParse(type, inputFile);
+//			} catch (Exception e) {
+//				LOGGER.error("Error in MediaInfo parsing:", e);
+//			} finally {
+				MI.Close();
+				if (media.getContainer() == null) {
+					media.setContainer(DLNAMediaLang.UND);
+				}
 
 			MI.Close();
 			if (media.getContainer() == null) {
@@ -415,7 +456,7 @@ public class LibMediaInfoParser {
 	 * @param media
 	 * @param audio
 	 * @param value
-	 * @param file 
+	 * @param file
 	 */
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		if (value.isEmpty()) {
