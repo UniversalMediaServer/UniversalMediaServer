@@ -334,6 +334,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WINDOW_EXTENDED_STATE = "window_extended_state";
 	protected static final String KEY_WINDOW_GEOMETRY = "window_geometry";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
+	protected static final String KEY_PID_FILE_NAME="pid_file_name";
 
 	// Deprecated settings
 	@Deprecated
@@ -355,6 +356,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	// Path to default logfile directory
 	protected String defaultLogFileDir = null;
+	protected String pidFilePath=null;
 
 	public TempFolder tempFolder;
 	public ProgramPaths programPaths;
@@ -629,6 +631,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 	
+	/**
+	 * Checks/creates path to the log file, passed as parameter
+	 * @param path
+	 * @return true, if path to the log file has been successfully checked/created
+	 */
 	private boolean CheckCreateLogDirectory(String path)
 	{		
 		if (path==null)
@@ -681,7 +688,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 		return false;		
 	}
-
+	
 	/**
 	 * @return first writable folder in the following order:
 	 * <p>
@@ -721,7 +728,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			
 			// log to standard Linux log location
 			if (Platform.isLinux()) 
-				if (CheckCreateLogDirectory("/var/log/UMS/"))	
+				if (CheckCreateLogDirectory("/var/log/ums/"))	
 					return defaultLogFileDir;			
 			
 			// log to profile directory if it is writable.
@@ -744,7 +751,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 		return defaultLogFileDir;
 	}
-
+		
 	public String getDefaultLogFileName() {
 		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
 		if (FileUtil.isValidFileName(s)) {
@@ -756,6 +763,45 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getDefaultLogFilePath() {
 		return FileUtil.appendPathSeparator(getDefaultLogFileFolder()) + getDefaultLogFileName();
+	}
+	
+	/**
+	 * Returns path to the pid file determined in the following order:
+	 * <p>
+	 *  1. path defined in the configuration file in pid_file_name
+	 * </p>
+	 * <p>
+	 *  2. path defined in the environment variable UMS_PIDFILE
+	 * </p>
+	 * <p>
+	 *  3. Linux only: /var/run/ums.pid
+	 * </p>
+	 * <p>
+	 *  4. path to data directory /data/ums.pid
+	 * </p>
+	 * @return Path to the pid file
+	 */
+	public String GetPidFilePath()
+	{
+		if (pidFilePath==null)
+		{
+			pidFilePath=getString(KEY_PID_FILE_NAME, null);
+			if (pidFilePath!=null)
+				return pidFilePath;
+			pidFilePath=System.getenv(ENV_PIDFILE_PATH);
+			if (pidFilePath!=null)
+			{
+				pidFilePath=pidFilePath.trim();
+				if (pidFilePath.length()>0)
+					return pidFilePath;
+			}
+			
+			if (Platform.isLinux())
+				pidFilePath="/var/run/ums.pid";
+			else
+				pidFilePath=getDataDir() + File.separator + "ums.pid"; 
+		}
+		return pidFilePath;
 	}
 
 	public File getTempFolder() throws IOException {

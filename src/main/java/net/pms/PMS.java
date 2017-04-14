@@ -1534,14 +1534,10 @@ public class PMS {
 		return tmp[0].equals("javaw.exe") && ums;
 	}
 
-	private static String pidFile() {
-		return configuration.getDataFile("pms.pid");
-	}
-
 	private static void killProc() throws AccessControlException, IOException{
 		ProcessBuilder pb = null;
 		String pid;
-		String pidFile = pidFile();
+		String pidFile = configuration.GetPidFilePath();
 		if (!FileUtil.getFilePermissions(pidFile).isReadable()) {
 			throw new AccessControlException("Cannot read " + pidFile);
 		}
@@ -1584,9 +1580,10 @@ public class PMS {
 	}
 
 	private static void dumpPid() throws IOException {
-		try (FileOutputStream out = new FileOutputStream(pidFile())) {
+		String pidFile=configuration.GetPidFilePath();
+		try (FileOutputStream out = new FileOutputStream(pidFile)) {
 			long pid = getPID();
-			LOGGER.debug("Writing PID: " + pid);
+			LOGGER.debug("Writing PID: {} into {} ", pid, pidFile);
 			String data = String.valueOf(pid) + "\r\n";
 			out.write(data.getBytes(StandardCharsets.US_ASCII));
 			out.flush();
