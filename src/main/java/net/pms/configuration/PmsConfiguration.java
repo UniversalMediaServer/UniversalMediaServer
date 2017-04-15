@@ -450,6 +450,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String ENV_PIDFILE_PATH = "UMS_PIDFILE";
 	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
 	protected static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
+	protected static final String DEFAULT_PID_FILE_NAME="UMS.pid";
+	protected static final String DEFAILT_LOG_FOLDER_LINUX="/var/log/UMS/";
+	protected static final String DEFAULT_PID_FILE_FOLDER_LINUX="/var/run/UMS/";
 
 	// Path to directory containing UMS config files
 	protected static final String PROFILE_DIRECTORY;
@@ -632,61 +635,73 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 	
 	/**
-	 * Checks/creates path to the log file, passed as parameter
+	 * Checks/creates folder, passed as parameter
 	 * @param path
-	 * @return true, if path to the log file has been successfully checked/created
+	 * @return absolute folder path, if folder exists and writable, otherwise - null 
 	 */
-	private boolean CheckCreateLogDirectory(String path)
-	{		
+	public static String checkCreateFolder(String path)
+	{
 		if (path==null)
-			return false;
+			return null;
 		path=path.trim();
 		if (path.length()==0)
-			return false;		
+			return null;		
 		
-		final File logDirectory = new File(path);
-		if (!logDirectory.exists()) 
+		final File folder = new File(path);
+		if (!folder.exists()) 
 		{
 			if (LOGGER.isTraceEnabled()) 
-				LOGGER.trace("CheckCreateLogDirectory: Trying to create: \"{}\"", logDirectory.getAbsolutePath());			
+				LOGGER.trace("CheckCreateFolder: Trying to create: \"{}\"", folder.getAbsolutePath());			
 			try 
 			{
-				FileUtils.forceMkdir(logDirectory);
+				FileUtils.forceMkdir(folder);
 				if (LOGGER.isTraceEnabled()) 
-					LOGGER.trace("CheckCreateLogDirectory: \"{}\" created", logDirectory.getAbsolutePath());				
+					LOGGER.trace("CheckCreateFolder: \"{}\" created", folder.getAbsolutePath());				
 			} 
 			catch (IOException e) 
 			{
-				LOGGER.debug("CheckCreateLogDirectory: Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
+				LOGGER.debug("CheckCreateFolder: Could not create \"{}\": {}", folder.getAbsolutePath(), e.getMessage());
 			}
 		}
 		
 		try 
 		{
-			FilePermissions permissions = FileUtil.getFilePermissions(logDirectory);
+			FilePermissions permissions = FileUtil.getFilePermissions(folder);
 			if (LOGGER.isTraceEnabled()) 
 			{
 				if (!permissions.isFolder()) 
-					LOGGER.trace("CheckCreateLogDirectory: \"{}\" is not a directory", logDirectory.getAbsolutePath());
+					LOGGER.trace("CheckCreateFolder: \"{}\" is not a directory", folder.getAbsolutePath());
 				 else if (!permissions.isBrowsable()) 
-					LOGGER.trace("CheckCreateLogDirectory: \"{}\" is not browsable", logDirectory.getAbsolutePath());
+					LOGGER.trace("CheckCreateFolder: \"{}\" is not browsable", folder.getAbsolutePath());
 				 else if (!permissions.isWritable()) 
-					LOGGER.trace("CheckCreateLogDirectory: \"{}\" is not writable", logDirectory.getAbsolutePath());				
+					LOGGER.trace("CheckCreateFolder: \"{}\" is not writable", folder.getAbsolutePath());				
 			}
-			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable()) 
-			{
-				if (LOGGER.isDebugEnabled()) 
-					LOGGER.debug("CheckCreateLogDirectory: Default logfile folder set to: {}", logDirectory.getAbsolutePath());
-				
-				defaultLogFileDir=logDirectory.getAbsolutePath();
-				return true;
-			}
+			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable())
+				return folder.getAbsolutePath();
 		} 
 		catch (FileNotFoundException e) 
 		{
-			LOGGER.trace("CheckCreateLogDirectory: \"{}\" not found : {}", logDirectory.getAbsolutePath(), e.getMessage());
+			LOGGER.trace("CheckCreateFolder: \"{}\" not found : {}", folder.getAbsolutePath(), e.getMessage());
 		}
-		return false;		
+		return null;
+	}
+	
+	/**
+	 * Checks/creates path to the log file, passed as parameter
+	 * @param path
+	 * @return true, if path to the log file has been successfully checked/created
+	 */
+	private boolean checkCreateLogFileFolder(String path)
+	{	
+		String absolutePath=checkCreateFolder(path);
+		if (absolutePath!=null)
+		{
+			if (LOGGER.isDebugEnabled()) 
+				LOGGER.debug("CheckCreateLogFileFolder: Default logfile folder set to: {}", absolutePath);
+			defaultLogFileDir=absolutePath;
+			return true;
+		}
+		return false;						
 	}
 	
 	/**
@@ -698,7 +713,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *     2. path defined in the environment variable UMS_LOG_PATH
 	 * </p>
 	 * <p>
-	 *     3. (only for Linux) /var/log/UMS
+	 *     3. (only for Linux) /var/log/ums
 	 * </p> 
 	 * <p>
 	 *     4. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
@@ -719,20 +734,20 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (defaultLogFileDir == null) 
 		{			
 			// Check log file path in the configuration file first			
-			if (CheckCreateLogDirectory(getString(KEY_LOGGING_LOGFILE_PATH, null)))	
+			if (checkCreateLogFileFolder(getString(KEY_LOGGING_LOGFILE_PATH, null)))	
 				return defaultLogFileDir;
 			
 			// Check environment variable			
-			if (CheckCreateLogDirectory(System.getenv(ENV_LOG_PATH)))	
+			if (checkCreateLogFileFolder(System.getenv(ENV_LOG_PATH)))	
 				return defaultLogFileDir;
 			
 			// log to standard Linux log location
 			if (Platform.isLinux()) 
-				if (CheckCreateLogDirectory("/var/log/ums/"))	
+				if (checkCreateLogFileFolder(DEFAILT_LOG_FOLDER_LINUX))	
 					return defaultLogFileDir;			
 			
 			// log to profile directory if it is writable.
-			if (CheckCreateLogDirectory(PROFILE_DIRECTORY))	
+			if (checkCreateLogFileFolder(PROFILE_DIRECTORY))	
 				return defaultLogFileDir;
 			
 			// Try user-defined temporary folder or fall back to system temporary folder.
@@ -740,7 +755,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			{
 				final File tmpFolder=tempFolder.getTempFolder();
 				if (tmpFolder!=null)
-					if (CheckCreateLogDirectory(tmpFolder.getAbsolutePath()))	
+					if (checkCreateLogFileFolder(tmpFolder.getAbsolutePath()))	
 						return defaultLogFileDir;
 			}
 			catch (IOException e)
@@ -781,25 +796,37 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * </p>
 	 * @return Path to the pid file
 	 */
-	public String GetPidFilePath()
+	public String getPidFilePath()
 	{
 		if (pidFilePath==null)
 		{
+			String pidFileName=DEFAULT_PID_FILE_NAME;
 			pidFilePath=getString(KEY_PID_FILE_NAME, null);
-			if (pidFilePath!=null)
-				return pidFilePath;
-			pidFilePath=System.getenv(ENV_PIDFILE_PATH);
+			if (pidFilePath==null)				
+				pidFilePath=System.getenv(ENV_PIDFILE_PATH);
 			if (pidFilePath!=null)
 			{
-				pidFilePath=pidFilePath.trim();
-				if (pidFilePath.length()>0)
-					return pidFilePath;
+				String pidFolder=pidFilePath;				
+				if (pidFilePath.toLowerCase().endsWith(".pid"))
+				{
+					int pos=pidFilePath.lastIndexOf(File.separator);					
+					if (pos>=0)
+					{
+						pidFolder=pidFilePath.substring(0,pos);
+						pidFileName=pidFilePath.substring(pos+1);
+					}
+				}
+				
+				pidFolder=checkCreateFolder(pidFolder);
+				if (pidFolder!=null)
+					return pidFolder+File.separator+pidFileName;
 			}
 			
+			// defaults if not yet configured or failed
 			if (Platform.isLinux())
-				pidFilePath="/var/run/ums.pid";
+				pidFilePath=DEFAULT_PID_FILE_FOLDER_LINUX+pidFileName;
 			else
-				pidFilePath=getDataDir() + File.separator + "ums.pid"; 
+				pidFilePath=getDataDir() + File.separator + pidFileName; 
 		}
 		return pidFilePath;
 	}
