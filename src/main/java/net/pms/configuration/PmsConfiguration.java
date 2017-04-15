@@ -451,7 +451,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
 	protected static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 	protected static final String DEFAULT_PID_FILE_NAME="UMS.pid";
-	protected static final String DEFAILT_LOG_FOLDER_LINUX="/var/log/UMS/";
+	protected static final String DEFAULT_LOG_FOLDER_LINUX="/var/log/UMS/";
 	protected static final String DEFAULT_PID_FILE_FOLDER_LINUX="/var/run/UMS/";
 
 	// Path to directory containing UMS config files
@@ -743,7 +743,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			
 			// log to standard Linux log location
 			if (Platform.isLinux()) 
-				if (checkCreateLogFileFolder(DEFAILT_LOG_FOLDER_LINUX))	
+				if (checkCreateLogFileFolder(DEFAULT_LOG_FOLDER_LINUX))	
 					return defaultLogFileDir;			
 			
 			// log to profile directory if it is writable.
