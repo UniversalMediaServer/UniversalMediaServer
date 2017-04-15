@@ -1580,6 +1580,10 @@ public class PMS {
 		try (FileOutputStream out = new FileOutputStream(pidFile)) 
 		{			
 			String data = String.valueOf(pid);
+			if (Platform.isLinux())
+				data+="\n";
+			else
+				data+="\r\n";
 			out.write(data.getBytes(StandardCharsets.US_ASCII));
 			out.flush();
 		}		
