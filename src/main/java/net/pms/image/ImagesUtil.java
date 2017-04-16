@@ -1172,7 +1172,7 @@ public class ImagesUtil {
 			}
 			sb.append("PadToSize = ").append(padToSize ? "True" : "False");
 			LOGGER.trace(
-				"Converting image with {} source to {} ({}) using the following parameters: {}",
+				"Converting {} image source to {} format and type {} using the following parameters: {}",
 				inputByteArray != null ? "byte array" : inputImage != null ? "Image" : "input stream",
 				outputProfile != null ? outputProfile : outputFormat,
 				dlnaThumbnail ? "DLNAThumbnail" : dlnaCompliant ? "DLNAImage" : "Image",
@@ -1496,12 +1496,12 @@ public class ImagesUtil {
 			.append(", Re-encode = ").append(reencode ? "True" : "False");
 
 			LOGGER.trace(
-				"Finished converting image from format {}{}. " +
-				"Output image width = {}, height = {} and output {}. Flags: {}",
+				"Finished converting {} {} image{}. " +
+				"Output image resolution: {}, {}. Flags: {}",
+				inputResult.width + "×" + inputResult.height,
 				inputResult.imageFormat,
 				orientation != ExifOrientation.TOP_LEFT ? " with orientation " + orientation : "",
-				bufferedImage.getWidth(),
-				bufferedImage.getHeight(),
+				bufferedImage.getWidth() + "×" + bufferedImage.getHeight(),
 				dlnaCompliant && outputProfile != null ? "profile: " + outputProfile : "format: " + outputFormat,
 				sb
 			);
