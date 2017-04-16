@@ -1488,6 +1488,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * @deprecated Use {@link #syncResolve()} instead
 	 */
+	@Deprecated
 	public void resolve() {
 		if (!resolved) {
 			resolveOnce();
@@ -2898,7 +2899,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		url = resElement.isThumbnail() ? getThumbnailURL(url) : getURL(url + "_");
 		if (StringUtils.isNotBlank(url)) {
 			String ciFlag;
-			if (resElement.getCiFlag() == null) {
+			/*
+			 * Some Panasonic TV's can't handle if the thumbnails have the CI
+			 * flag set to 0 while the main resource doesn't have a CI flag.
+			 * DLNA dictates that a missing CI flag should be interpreted as
+			 * if it were 0, so the result should be the same.
+			 */
+			if (resElement.getCiFlag() == null || resElement.getCiFlag() == 0) {
 				ciFlag = "";
 			} else {
 				ciFlag = ";DLNA.ORG_CI=" + resElement.getCiFlag().toString();
