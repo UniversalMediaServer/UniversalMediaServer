@@ -583,15 +583,15 @@ public class DLNAMediaDatabase implements Runnable {
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH " +
 				"FROM FILES " +
 				"WHERE " +
-					"FILENAME = ? AND MODIFIED = ?",
+					"FILENAME = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			)) {
 				ps.setString(1, name);
-				ps.setTimestamp(2, new Timestamp(modified));
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
 						fileId = rs.getInt("ID");
+						rs.updateTimestamp("MODIFIED", new Timestamp(modified));
 						rs.updateInt("TYPE", type);
 						if (media != null) {
 							if (media.getDuration() != null) {

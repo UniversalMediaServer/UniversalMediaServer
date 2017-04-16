@@ -36,7 +36,6 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.MediaMonitor;
 import net.pms.dlna.RealFile;
 import net.pms.image.ImageIOTools;
-import net.pms.image.ImagesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
