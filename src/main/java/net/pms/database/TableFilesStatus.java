@@ -201,7 +201,7 @@ public final class TableFilesStatus extends Tables{
 		Boolean result = null;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILES.FILENAME = " + sqlQuote(fullPathToFile);
+			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
@@ -211,7 +211,7 @@ public final class TableFilesStatus extends Tables{
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
-						result = Boolean.valueOf(resultSet.getBoolean("ISFULLYPLAYED"));
+						result = resultSet.getBoolean("ISFULLYPLAYED");
 					}
 				}
 			} finally {

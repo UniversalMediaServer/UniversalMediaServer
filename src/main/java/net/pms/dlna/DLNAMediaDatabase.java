@@ -689,7 +689,7 @@ public class DLNAMediaDatabase implements Runnable {
 					"ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, THUMB, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, " +
-					"TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE" +
+					"TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ?",
@@ -809,23 +809,23 @@ public class DLNAMediaDatabase implements Runnable {
 						} else {
 							ps.setNull(17, Types.OTHER);
 						}
-						ps.setString(17, left(media.getContainer(), SIZE_CONTAINER));
-						ps.setString(18, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-						ps.setString(19, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
-						ps.setString(20, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
-						ps.setString(21, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-						ps.setString(22, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
-						ps.setString(23, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
-						ps.setInt(24, media.getVideoTrackCount());
-						ps.setInt(25, media.getImageCount());
-						ps.setInt(26, media.getVideoBitDepth());
-						ps.setString(27, left(media.getIMDbID(), SIZE_IMDBID));
-						ps.setString(28, left(media.getYear(), SIZE_YEAR));
-						ps.setString(29, left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
-						ps.setString(30, left(media.getTVSeason(), SIZE_TVSEASON));
-						ps.setString(31, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-						ps.setString(32, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
-						ps.setBoolean(33, media.isTVEpisode());
+						ps.setString(18, left(media.getContainer(), SIZE_CONTAINER));
+						ps.setString(19, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
+						ps.setString(20, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
+						ps.setString(21, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
+						ps.setString(22, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
+						ps.setString(23, left(media.getFileTitleFromMetadata(), SIZE_TITLE));
+						ps.setString(24, left(media.getVideoTrackTitleFromMetadata(), SIZE_TITLE));
+						ps.setInt(25, media.getVideoTrackCount());
+						ps.setInt(26, media.getImageCount());
+						ps.setInt(27, media.getVideoBitDepth());
+						ps.setString(28, left(media.getIMDbID(), SIZE_IMDBID));
+						ps.setString(29, left(media.getYear(), SIZE_YEAR));
+						ps.setString(30, left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
+						ps.setString(31, left(media.getTVSeason(), SIZE_TVSEASON));
+						ps.setString(32, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
+						ps.setString(33, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
+						ps.setBoolean(34, media.isTVEpisode());
 					} else {
 						ps.setString(4, null);
 						ps.setInt(5, 0);
@@ -912,7 +912,7 @@ public class DLNAMediaDatabase implements Runnable {
 			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
-					"IMDBID, YEAR, MOVIEORSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE" +
+					"ID, FILENAME, MODIFIED, IMDBID, YEAR, MOVIEORSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ? AND MODIFIED = ?",

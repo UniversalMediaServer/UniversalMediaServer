@@ -197,8 +197,8 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed > configuration.getMinimumWatchedPlayTimeSeconds() &&
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
-			DLNAResource parent = realFile.getParent();
-			if (parent != null) {
+			DLNAResource fileParent = realFile.getParent();
+			if (fileParent != null) {
 				boolean isMonitored = false;
 				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
 				if (foldersMonitored != null && foldersMonitored.length > 0) {
@@ -210,7 +210,6 @@ public class MediaMonitor extends VirtualFolder {
 				}
 
 				if (isMonitored && !isFullyPlayed(realFile.getFile().getAbsolutePath())) {
-
 					if (fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER && fullyPlayedAction != FullyPlayedAction.MOVE_TRASH) {
 						setFullyPlayed(realFile.getFile().getAbsolutePath(), true);
 						if (realFile.getMedia() != null) {
@@ -227,7 +226,6 @@ public class MediaMonitor extends VirtualFolder {
 						String oldDirectory = FileUtil.appendPathSeparator(playedFile.getAbsoluteFile().getParent());
 						String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
 						if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
-
 							// Move the video to a different folder
 							boolean moved = false;
 
@@ -313,7 +311,7 @@ public class MediaMonitor extends VirtualFolder {
 			fullyPlayedEntriesLock.readLock().unlock();
 		}
 		if (fullyPlayed != null) {
-			return fullyPlayed.booleanValue();
+			return fullyPlayed;
 		}
 
 		// The status isn't cached, add it
@@ -322,7 +320,7 @@ public class MediaMonitor extends VirtualFolder {
 			// It could have been added between the locks, check again
 			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
 			if (fullyPlayed != null) {
-				return fullyPlayed.booleanValue();
+				return fullyPlayed;
 			}
 
 			// Add the entry to the cache
@@ -331,7 +329,7 @@ public class MediaMonitor extends VirtualFolder {
 				fullyPlayed = false;
 			}
 			fullyPlayedEntries.put(fullPathToFile, fullyPlayed);
-			return fullyPlayed.booleanValue();
+			return fullyPlayed;
 		} finally {
 			fullyPlayedEntriesLock.writeLock().unlock();
 		}
