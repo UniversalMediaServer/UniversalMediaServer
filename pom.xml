@@ -209,7 +209,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>[0.4, 0.5)</version>
+			<version>0.4.8</version>
 		</dependency>
 		
 		<!-- 
@@ -421,6 +421,11 @@
 			<groupId>fm.last</groupId>
 			<artifactId>coverartarchive-api</artifactId>
 			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.ossindex</groupId>
+			<artifactId>ossindex-maven-plugin</artifactId>
+			<version>2.1.1</version>
 		</dependency>
 	</dependencies>
 	<build>
