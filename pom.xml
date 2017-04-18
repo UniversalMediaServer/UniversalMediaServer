@@ -425,7 +425,7 @@
 		<dependency>
 			<groupId>net.ossindex</groupId>
 			<artifactId>ossindex-maven-plugin</artifactId>
-			<version>2.1.1</version>
+			<version>2.1.2</version>
 		</dependency>
 	</dependencies>
 	<build>
