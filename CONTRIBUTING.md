@@ -28,3 +28,12 @@ GitHub only allows image attachments. Other attachments, for example zipped logs
 Remember to include a link to the attachment in your post here.
 
 If you prefer to upload your attachment elsewhere, please avoid sites with restricted access or captcha if possible.
+
+# Checking for known vulnerabilities in dependencies
+
+Run `mvn test net.ossindex:ossindex-maven-plugin:audit`
+
+# Checking for updated dependencies
+
+Run `mvn versions:display-plugin-updates`
+
