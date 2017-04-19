@@ -179,7 +179,6 @@ public class LibMediaInfoParser {
 						}
 					}
 				}
-				OpenSubtitle.backgroundLookupAndAdd(file, file.getName(), media);
 			}
 
 			// set Audio

@@ -1488,11 +1488,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public synchronized final void syncResolve() {
 		resolve();
+
+		if (
+			this instanceof RealFile &&
+			media != null &&
+			media.isVideo() &&
+			((RealFile) this).getFile() != null &&
+			configuration.getUseCache() &&
+			configuration.isUseInfoFromIMDb()
+		) {
+			OpenSubtitle.backgroundLookupAndAdd(((RealFile) this).getFile(), media);
+		}
 	}
 
 	/**
 	 * @deprecated Use {@link #syncResolve()} instead
 	 */
+	@Deprecated
 	public void resolve() {
 		if (!resolved) {
 			resolveOnce();

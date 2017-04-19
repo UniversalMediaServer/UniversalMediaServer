@@ -1857,6 +1857,7 @@ public class PMS {
 	private CodeDb codes;
 	private CodeEnter masterCode;
 
+	@Deprecated
 	public void infoDbAdd(File f, String formattedName) {
 		infoDb.backgroundAdd(f, formattedName);
 	}
@@ -1957,11 +1958,11 @@ public class PMS {
 
 	private CredMgr credMgr;
 
-	public static CredMgr.Cred getCred(String owner) {
+	public static CredMgr.Credential getCred(String owner) {
 		return instance.credMgr.getCred(owner);
 	}
 
-	public static CredMgr.Cred getCred(String owner, String tag) {
+	public static CredMgr.Credential getCred(String owner, String tag) {
 		return instance.credMgr.getCred(owner, tag);
 	}
 
