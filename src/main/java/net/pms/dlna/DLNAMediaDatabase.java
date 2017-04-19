@@ -156,6 +156,7 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		ResultSet rs = null;
 		Statement stmt = null;
+		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
 			conn = getConnection();
@@ -225,20 +226,26 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.debug("Database will be (re)initialized");
 			try {
 				conn = getConnection();
+				LOGGER.trace("DROPPING TABLE FILES");
 				executeUpdate(conn, "DROP TABLE FILES");
+				LOGGER.trace("DROPPING TABLE METADATA");
 				executeUpdate(conn, "DROP TABLE METADATA");
+				LOGGER.trace("DROPPING TABLE REGEXP_RULES");
 				executeUpdate(conn, "DROP TABLE REGEXP_RULES");
+				LOGGER.trace("DROPPING TABLE AUDIOTRACKS");
 				executeUpdate(conn, "DROP TABLE AUDIOTRACKS");
+				LOGGER.trace("DROPPING TABLE SUBTRACKS");
 				executeUpdate(conn, "DROP TABLE SUBTRACKS");
 			} catch (SQLException se) {
 				if (se.getErrorCode() != 42102) { // Don't log exception "Table "FILES" not found" which will be corrected in following step
-					LOGGER.error(null, se);
+					LOGGER.error("SQL error while dropping tables: {}", se.getMessage());
+					LOGGER.trace("", se);
 				}
 			}
 			try {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
-				sb.append("  ID                      INT AUTO_INCREMENT");
+				sb.append("  ID                      IDENTITY PRIMARY KEY");
 				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
 				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
 				sb.append(", TYPE                    INT");
@@ -272,13 +279,17 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
 				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_TVEPISODENAME).append(')');
-				sb.append(", ISTVEPISODE             BOOLEAN");
-				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
+				sb.append(", ISTVEPISODE             BOOLEAN)");
+				if (trace) {
+					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
+				}
 				executeUpdate(conn, sb.toString());
+				LOGGER.trace("Creating index IDX_FILE");
+				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_FILE ON FILES(FILENAME, MODIFIED)");
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE AUDIOTRACKS (");
-				sb.append("  FILEID            INT              NOT NULL");
-				sb.append(", ID                INT              NOT NULL");
+				sb.append("  ID                INT              NOT NULL");
+				sb.append(", FILEID            BIGINT           NOT NULL");
 				sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE             VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", NRAUDIOCHANNELS   NUMERIC");
@@ -295,23 +306,35 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 				sb.append(", BITRATE           INT");
 				sb.append(", constraint PKAUDIO primary key (FILEID, ID))");
+				if (trace) {
+					LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
+				}
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
-				sb.append("  FILEID   INT              NOT NULL");
-				sb.append(", ID       INT              NOT NULL");
+				sb.append("  ID       INT              NOT NULL");
+				sb.append(", FILEID   BIGINT           NOT NULL");
 				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", TYPE     INT");
 				sb.append(", constraint PKSUB primary key (FILEID, ID))");
 
+				if (trace) {
+					LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
+				}
 				executeUpdate(conn, sb.toString());
+				LOGGER.trace("Creating table METADATA");
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
 				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
+				LOGGER.trace("Creating index IDXARTIST");
 				executeUpdate(conn, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
+				LOGGER.trace("Creating index IDXALBUM");
 				executeUpdate(conn, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
+				LOGGER.trace("Creating index IDXGENRE");
 				executeUpdate(conn, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
+				LOGGER.trace("Creating index IDXYEAR");
 				executeUpdate(conn, "CREATE INDEX IDXYEAR on AUDIOTRACKS (YEAR asc);");
+				LOGGER.trace("Creating table REGEXP_RULES");
 				executeUpdate(conn, "CREATE TABLE REGEXP_RULES ( ID VARCHAR2(255) PRIMARY KEY, RULE VARCHAR2(255), ORDR NUMERIC);");
 				executeUpdate(conn, "INSERT INTO REGEXP_RULES VALUES ( '###', '(?i)^\\W.+', 0 );");
 				executeUpdate(conn, "INSERT INTO REGEXP_RULES VALUES ( '0-9', '(?i)^\\d.+', 1 );");
@@ -326,7 +349,8 @@ public class DLNAMediaDatabase implements Runnable {
 
 				LOGGER.debug("Database initialized");
 			} catch (SQLException se) {
-				LOGGER.info("Error in table creation: " + se.getMessage());
+				LOGGER.error("Error creating tables: " + se.getMessage());
+				LOGGER.trace("", se);
 			} finally {
 				close(conn);
 			}
@@ -444,7 +468,7 @@ public class DLNAMediaDatabase implements Runnable {
 			) {
 				while (rs.next()) {
 					DLNAMediaInfo media = new DLNAMediaInfo();
-					int id = rs.getInt("ID");
+					long id = rs.getLong("ID");
 					media.setDuration(toDouble(rs, "DURATION"));
 					media.setBitrate(rs.getInt("BITRATE"));
 					media.setImageInfo((ImageInfo) rs.getObject("IMAGEINFO"));
@@ -484,7 +508,7 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setMediaparsed(true);
 
 					ResultSet elements;
-					audios.setInt(1, id);
+					audios.setLong(1, id);
 					elements = audios.executeQuery();
 					while (elements.next()) {
 						DLNAMediaAudio audio = new DLNAMediaAudio();
@@ -507,7 +531,7 @@ public class DLNAMediaDatabase implements Runnable {
 						media.getAudioTracksList().add(audio);
 					}
 					elements.close();
-					subs.setInt(1, id);
+					subs.setLong(1, id);
 					elements = subs.executeQuery();
 					while (elements.next()) {
 						DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
@@ -539,7 +563,7 @@ public class DLNAMediaDatabase implements Runnable {
 		return null;
 	}
 
-	private void insertOrUpdateSubtitleTracks(Connection connection, int fileId, DLNAMediaInfo media) throws SQLException {
+	private void insertOrUpdateSubtitleTracks(Connection connection, long fileId, DLNAMediaInfo media) throws SQLException {
 		if (connection == null || fileId < 0 || media == null || media.getSubTrackCount() < 1) {
 			return;
 		}
@@ -566,7 +590,7 @@ public class DLNAMediaDatabase implements Runnable {
 			);
 		) {
 			for (DLNAMediaSubtitle subtitleTrack : media.getSubtitleTracksList()) {
-				updateStatment.setInt(1, fileId);
+				updateStatment.setLong(1, fileId);
 				updateStatment.setInt(2, subtitleTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
 					if (rs.next()) {
@@ -576,7 +600,7 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateRow();
 					} else {
 						insertStatement.clearParameters();
-						insertStatement.setInt(1, fileId);
+						insertStatement.setLong(1, fileId);
 						insertStatement.setInt(2, subtitleTrack.getId());
 						insertStatement.setString(3, left(subtitleTrack.getLang(), SIZE_LANG));
 						insertStatement.setString(4, left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_TITLE));
@@ -588,7 +612,7 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
-	private void insertOrUpdateAudioTracks(Connection connection, int fileId, DLNAMediaInfo media) throws SQLException {
+	private void insertOrUpdateAudioTracks(Connection connection, long fileId, DLNAMediaInfo media) throws SQLException {
 		if (connection == null || fileId < 0 || media == null || media.getAudioTrackCount() < 1) {
 			return;
 		}
@@ -618,7 +642,7 @@ public class DLNAMediaDatabase implements Runnable {
 			);
 		) {
 			for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
-				updateStatment.setInt(1, fileId);
+				updateStatment.setLong(1, fileId);
 				updateStatment.setInt(2, audioTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
 					if (rs.next()) {
@@ -640,7 +664,7 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateRow();
 					} else {
 						insertStatement.clearParameters();
-						insertStatement.setInt(1, fileId);
+						insertStatement.setLong(1, fileId);
 						insertStatement.setInt(2, audioTrack.getId());
 						insertStatement.setString(3, left(audioTrack.getLang(), SIZE_LANG));
 						insertStatement.setString(4, left(audioTrack.getAudioTrackTitleFromMetadata(), SIZE_TITLE));
@@ -682,7 +706,7 @@ public class DLNAMediaDatabase implements Runnable {
 			Connection connection = getConnection()
 		) {
 			connection.setAutoCommit(false);
-			int fileId = -1;
+			long fileId = -1;
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
 					"ID, FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, " +
@@ -699,7 +723,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(1, name);
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						fileId = rs.getInt("ID");
+						fileId = rs.getLong("ID");
 						rs.updateTimestamp("MODIFIED", new Timestamp(modified));
 						rs.updateInt("TYPE", type);
 						if (media != null) {
@@ -862,7 +886,7 @@ public class DLNAMediaDatabase implements Runnable {
 					ps.executeUpdate();
 					try (ResultSet rs = ps.getGeneratedKeys()) {
 						if (rs.next()) {
-							fileId = rs.getInt(1);
+							fileId = rs.getLong(1);
 						}
 					}
 				}
@@ -912,7 +936,7 @@ public class DLNAMediaDatabase implements Runnable {
 			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
-					"ID, FILENAME, MODIFIED, IMDBID, YEAR, MOVIEORSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE " +
+					"ID, IMDBID, YEAR, MOVIEORSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ? AND MODIFIED = ?",

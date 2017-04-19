@@ -358,17 +358,18 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Attempt to return information from IMDb about the file based on information
-	 * from the filename; either the hash, the IMDb ID or the filename itself.
+	 * Attempt to return information from OpenSubtitles about the file based
+	 * on information from the filename; either the hash, the IMDb ID or the
+	 * filename itself.
 	 *
 	 * @param hash  the video hash
 	 * @param size  the bytesize to be used with the hash
 	 * @param imdb  the IMDb ID
-	 * @param query the string to search IMDb for
+	 * @param query the string to search OpenSubtitles for
 	 *
-	 * @return a string array including the IMDb ID, episode title, season number,
-	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it on IMDb.
+	 * @return a string array including the IMDb ID, episode title, season
+	 *         number, episode number relative to the season, and the show
+	 *         name, or {@code null} if we couldn't find it on OpenSubtitles.
 	 *
 	 * @throws IOException
 	 */

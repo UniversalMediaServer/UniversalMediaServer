@@ -23,10 +23,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.PreparedStatement;
 import java.util.HashSet;
 import java.util.Set;
@@ -76,13 +78,14 @@ public final class TableFilesStatus extends Tables{
 		String query;
 
 		try (Connection connection = database.getConnection()) {
-			query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
 
 			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement()) {
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
 						if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
@@ -90,23 +93,33 @@ public final class TableFilesStatus extends Tables{
 								LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
 							}
 						} else {
-							query = "UPDATE " + TABLE_NAME + " SET MODIFIED=CURRENT_TIMESTAMP, ISFULLYPLAYED=" + isFullyPlayed + " WHERE FILENAME=" + sqlQuote(fullPathToFile);
 							if (trace) {
-								LOGGER.trace("Found the file entry in " + TABLE_NAME + "; it will be updated with \"{}\"", query);
+								LOGGER.trace(
+									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to \"{}\"",
+									fullPathToFile,
+									isFullyPlayed
+								);
 							}
-
-							Statement statement2 = connection.createStatement();
-							statement2.execute(query);
+							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+							result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
+							result.updateRow();
 						}
 					} else {
-						query = "INSERT INTO " + TABLE_NAME + " (FILENAME, MODIFIED, ISFULLYPLAYED) VALUES (" + sqlQuote(fullPathToFile) + ", CURRENT_TIMESTAMP, " + isFullyPlayed + ")";
 						if (trace) {
-							LOGGER.trace("Did not find the file entry in " + TABLE_NAME + ", it will be inserted with \"{}\"", query);
+							LOGGER.trace(
+								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYER set to \"{}\"",
+								fullPathToFile,
+								isFullyPlayed
+							);
 						}
-
-						Statement statement2 = connection.createStatement();
-						statement2.execute(query);
+						result.moveToInsertRow();
+						result.updateString("FILENAME", fullPathToFile);
+						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+						result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
+						result.insertRow();
 					}
+				} finally {
+					connection.commit();
 				}
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
@@ -273,11 +286,13 @@ public final class TableFilesStatus extends Tables{
 	 *
 	 * @throws SQLException
 	 */
+	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
@@ -332,13 +347,13 @@ public final class TableFilesStatus extends Tables{
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
 					"ID            IDENTITY PRIMARY KEY, " +
-					"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
+					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
 					"ISFULLYPLAYED BOOLEAN  DEFAULT false" +
 				")"
 			);
 
-			statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
 		}
 	}
 }
