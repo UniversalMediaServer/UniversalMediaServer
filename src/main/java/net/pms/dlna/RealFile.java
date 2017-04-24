@@ -329,7 +329,7 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	protected String getThumbnailURL(String profile) {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
 			return null;
 		}

@@ -47,7 +47,7 @@ import com.drew.metadata.Metadata;
  */
 public class ImageIOTools {
 
-    protected static final IIORegistry theRegistry = IIORegistry.getDefaultInstance();
+	protected static final IIORegistry theRegistry = IIORegistry.getDefaultInstance();
 
 	// Not to be instantiated
 	private ImageIOTools() {
@@ -57,8 +57,8 @@ public class ImageIOTools {
 	 * A copy of {@link ImageIO#read(InputStream)} that calls
 	 * {{@link #read(ImageInputStream)} instead of
 	 * {@link ImageIO#read(ImageInputStream)} and that returns
-     * {@link ImageReaderResult} instead of {@link BufferedImage}. This lets
-     * information about the detected format be retained.
+	 * {@link ImageReaderResult} instead of {@link BufferedImage}. This lets
+	 * information about the detected format be retained.
 	 *
 	 * <p><b>
 	 * This method consumes and closes {@code inputStream}.
@@ -68,39 +68,39 @@ public class ImageIOTools {
 	 *
 	 * @see ImageIO#read(InputStream)
 	 */
-    public static ImageReaderResult read(InputStream inputStream) throws IOException {
-        if (inputStream == null) {
-            throw new IllegalArgumentException("input == null!");
-        }
+	public static ImageReaderResult read(InputStream inputStream) throws IOException {
+		if (inputStream == null) {
+			throw new IllegalArgumentException("input == null!");
+		}
 
-        ImageInputStream stream = createImageInputStream(inputStream);
-        try {
-	        ImageReaderResult result = read(stream);
-	        if (result == null) {
-	        	inputStream.close();
-	        }
-	        return result;
-        } catch (RuntimeException | IOException e) {
-        	try {
-        		inputStream.close();
-        	} catch (Exception e2) {
-        		//Do nothing
-        	}
-        	if (e instanceof RuntimeException) {
-        		throw new ImageIORuntimeException(
-        			"An error occurred while trying to read image: " + e.getMessage(),
-        			(RuntimeException) e
-        		);
-        	}
-        	throw e;
-        }
-    }
+		ImageInputStream stream = createImageInputStream(inputStream);
+		try {
+			ImageReaderResult result = read(stream);
+			if (result == null) {
+				inputStream.close();
+			}
+			return result;
+		} catch (RuntimeException | IOException e) {
+			try {
+				inputStream.close();
+			} catch (Exception e2) {
+				//Do nothing
+			}
+			if (e instanceof RuntimeException) {
+				throw new ImageIORuntimeException(
+					"An error occurred while trying to read image: " + e.getMessage(),
+					(RuntimeException) e
+				);
+			}
+			throw e;
+		}
+	}
 
-    /**
-     * A copy of {@link ImageIO#read(ImageInputStream)} that returns
-     * {@link ImageReaderResult} instead of {@link BufferedImage}. This lets
-     * information about the detected format be retained.
-     *
+	/**
+	 * A copy of {@link ImageIO#read(ImageInputStream)} that returns
+	 * {@link ImageReaderResult} instead of {@link BufferedImage}. This lets
+	 * information about the detected format be retained.
+	 *
 	 * <b>
 	 * This method consumes and closes {@code stream}.
 	 * </b>
@@ -108,41 +108,41 @@ public class ImageIOTools {
 	 * @param stream an {@link ImageInputStream} to read from.
 	 *
 	 * @see ImageIO#read(ImageInputStream)
-     */
-    public static ImageReaderResult read(ImageInputStream stream) throws IOException {
-        if (stream == null) {
-            throw new IllegalArgumentException("stream == null!");
-        }
+	 */
+	public static ImageReaderResult read(ImageInputStream stream) throws IOException {
+		if (stream == null) {
+			throw new IllegalArgumentException("stream == null!");
+		}
 
-        try {
-	        Iterator<?> iter = ImageIO.getImageReaders(stream);
-	        if (!iter.hasNext()) {
-	        	throw new UnknownFormatException("Unable to find a suitable image reader");
-	        }
+		try {
+			Iterator<?> iter = ImageIO.getImageReaders(stream);
+			if (!iter.hasNext()) {
+				throw new UnknownFormatException("Unable to find a suitable image reader");
+			}
 
-	        ImageFormat inputFormat = null;
-	        BufferedImage bufferedImage = null;
-	        ImageReader reader = (ImageReader) iter.next();
-	        try {
-		        // Store the parsing result
-		        inputFormat = ImageFormat.toImageFormat(reader.getFormatName());
+			ImageFormat inputFormat = null;
+			BufferedImage bufferedImage = null;
+			ImageReader reader = (ImageReader) iter.next();
+			try {
+				// Store the parsing result
+				inputFormat = ImageFormat.toImageFormat(reader.getFormatName());
 
-		        reader.setInput(stream, true, true);
-	            bufferedImage = reader.read(0, reader.getDefaultReadParam());
-	        } finally {
-	            reader.dispose();
-	        }
-	        return bufferedImage != null ? new ImageReaderResult(bufferedImage, inputFormat) : null;
-        } catch (RuntimeException e) {
-        	throw new ImageIORuntimeException("An error occurred while trying to read image: " + e.getMessage(), e);
-        } finally {
-        	stream.close();
-        }
-    }
+				reader.setInput(stream, true, true);
+				bufferedImage = reader.read(0, reader.getDefaultReadParam());
+			} finally {
+				reader.dispose();
+			}
+			return bufferedImage != null ? new ImageReaderResult(bufferedImage, inputFormat) : null;
+		} catch (RuntimeException e) {
+			throw new ImageIORuntimeException("An error occurred while trying to read image: " + e.getMessage(), e);
+		} finally {
+			stream.close();
+		}
+	}
 
-    /**
-     * Tries to detect the input image file format using {@link ImageIO} and
-     * returns the result.
+	/**
+	 * Tries to detect the input image file format using {@link ImageIO} and
+	 * returns the result.
 	 * <p>
 	 * This method does not close {@code inputStream}.
 	 *
@@ -150,115 +150,115 @@ public class ImageIOTools {
 	 * @return The {@link ImageFormat} for the input.
 	 * @throws UnknownFormatException if the format could not be determined.
 	 * @throws IOException if an IO error occurred.
-     */
-    public static ImageFormat detectFileFormat(InputStream inputStream) throws IOException {
-        if (inputStream == null) {
-            throw new IllegalArgumentException("input == null!");
-        }
+	 */
+	public static ImageFormat detectFileFormat(InputStream inputStream) throws IOException {
+		if (inputStream == null) {
+			throw new IllegalArgumentException("input == null!");
+		}
 
-        try (ImageInputStream stream = createImageInputStream(inputStream)) {
-	        Iterator<?> iter = ImageIO.getImageReaders(stream);
-	        if (!iter.hasNext()) {
-	        	throw new UnknownFormatException("Unable to find a suitable image reader");
-	        }
+		try (ImageInputStream stream = createImageInputStream(inputStream)) {
+			Iterator<?> iter = ImageIO.getImageReaders(stream);
+			if (!iter.hasNext()) {
+				throw new UnknownFormatException("Unable to find a suitable image reader");
+			}
 
-	        ImageReader reader = (ImageReader) iter.next();
-	        ImageFormat format = ImageFormat.toImageFormat(reader.getFormatName());
-	        if (format == null) {
-	        	throw new UnknownFormatException("Unable to determine image format");
-	        }
-	        return format;
-        } catch (RuntimeException e) {
-        	throw new ImageIORuntimeException("An error occurred while trying to detect image format: " + e.getMessage(), e);
-        }
-    }
+			ImageReader reader = (ImageReader) iter.next();
+			ImageFormat format = ImageFormat.toImageFormat(reader.getFormatName());
+			if (format == null) {
+				throw new UnknownFormatException("Unable to determine image format");
+			}
+			return format;
+		} catch (RuntimeException e) {
+			throw new ImageIORuntimeException("An error occurred while trying to detect image format: " + e.getMessage(), e);
+		}
+	}
 
-    /**
-     * Tries to gather the data needed to populate a {@link ImageInfo} instance
-     * describing the input image.
-     *
+	/**
+	 * Tries to gather the data needed to populate a {@link ImageInfo} instance
+	 * describing the input image.
+	 *
 	 * <p>
 	 * This method does not close {@code inputStream}.
-     *
-     * @param inputStream the image whose information to gather.
-     * @param size the size of the image in bytes or
-     *             {@link ImageInfo#SIZE_UNKNOWN} if it can't be determined.
-     * @param metadata the {@link Metadata} instance to embed in the resulting
-     *                 {@link ImageInfo} instance.
+	 *
+	 * @param inputStream the image whose information to gather.
+	 * @param size the size of the image in bytes or
+	 *             {@link ImageInfo#SIZE_UNKNOWN} if it can't be determined.
+	 * @param metadata the {@link Metadata} instance to embed in the resulting
+	 *                 {@link ImageInfo} instance.
 	 * @param applyExifOrientation whether or not Exif orientation should be
 	 *            compensated for when setting width and height. This will also
 	 *            reset the Exif orientation information. <b>Changes will be
 	 *            applied to the {@code metadata} argument instance</b>.
-     * @return An {@link ImageInfo} instance describing the input image.
+	 * @return An {@link ImageInfo} instance describing the input image.
 	 * @throws UnknownFormatException if the format could not be determined.
-     * @throws IOException if an IO error occurred.
-     */
-    public static ImageInfo readImageInfo(InputStream inputStream, long size, Metadata metadata, boolean applyExifOrientation) throws IOException {
-        if (inputStream == null) {
-            throw new IllegalArgumentException("input == null!");
-        }
+	 * @throws IOException if an IO error occurred.
+	 */
+	public static ImageInfo readImageInfo(InputStream inputStream, long size, Metadata metadata, boolean applyExifOrientation) throws IOException {
+		if (inputStream == null) {
+			throw new IllegalArgumentException("input == null!");
+		}
 
-        try (ImageInputStream stream = createImageInputStream(inputStream)) {
-	        Iterator<?> iter = ImageIO.getImageReaders(stream);
-	        if (!iter.hasNext()) {
-	        	throw new UnknownFormatException("Unable to find a suitable image reader");
-	        }
+		try (ImageInputStream stream = createImageInputStream(inputStream)) {
+			Iterator<?> iter = ImageIO.getImageReaders(stream);
+			if (!iter.hasNext()) {
+				throw new UnknownFormatException("Unable to find a suitable image reader");
+			}
 
-	        ImageReader reader = (ImageReader) iter.next();
-	        try {
-	        	int width = -1;
-	        	int height = -1;
-		        ImageFormat format = ImageFormat.toImageFormat(reader.getFormatName());
-		        if (format == null) {
-		        	throw new UnknownFormatException("Unable to determine image format");
-		        }
+			ImageReader reader = (ImageReader) iter.next();
+			try {
+				int width = -1;
+				int height = -1;
+				ImageFormat format = ImageFormat.toImageFormat(reader.getFormatName());
+				if (format == null) {
+					throw new UnknownFormatException("Unable to determine image format");
+				}
 
-		        ColorModel colorModel = null;
-		        try {
-			        reader.setInput(stream, true, true);
-			        Iterator<ImageTypeSpecifier> iterator = reader.getImageTypes(0);
-			        if (iterator.hasNext()) {
-			        	colorModel = iterator.next().getColorModel();
-			        }
-			        width = reader.getWidth(0);
-			        height = reader.getHeight(0);
-		        } catch (RuntimeException e) {
-		        	throw new ImageIORuntimeException("Error reading image information: " + e.getMessage(), e);
-		        }
+				ColorModel colorModel = null;
+				try {
+					reader.setInput(stream, true, true);
+					Iterator<ImageTypeSpecifier> iterator = reader.getImageTypes(0);
+					if (iterator.hasNext()) {
+						colorModel = iterator.next().getColorModel();
+					}
+					width = reader.getWidth(0);
+					height = reader.getHeight(0);
+				} catch (RuntimeException e) {
+					throw new ImageIORuntimeException("Error reading image information: " + e.getMessage(), e);
+				}
 
-		        boolean imageIOSupport;
-		        if (format == ImageFormat.TIFF) {
-		        	// ImageIO thinks that it can read some "TIFF like" RAW formats,
-		        	// but fails when it actually tries, so we have to test it.
-			        try {
-			        	ImageReadParam param = reader.getDefaultReadParam();
-			        	param.setSourceRegion(new Rectangle(1, 1));
-			        	reader.read(0, param);
-			        	imageIOSupport = true;
-			        } catch (Exception e) {
-			        	// Catch anything here, we simply want to test if it fails.
-			        	imageIOSupport = false;
-			        }
-		        } else {
-		        	imageIOSupport = true;
-		        }
+				boolean imageIOSupport;
+				if (format == ImageFormat.TIFF) {
+					// ImageIO thinks that it can read some "TIFF like" RAW formats,
+					// but fails when it actually tries, so we have to test it.
+					try {
+						ImageReadParam param = reader.getDefaultReadParam();
+						param.setSourceRegion(new Rectangle(1, 1));
+						reader.read(0, param);
+						imageIOSupport = true;
+					} catch (Exception e) {
+						// Catch anything here, we simply want to test if it fails.
+						imageIOSupport = false;
+					}
+				} else {
+					imageIOSupport = true;
+				}
 
-		        ImageInfo imageInfo = ImageInfo.create(
-		        	width,
-		        	height,
-		        	format,
-		        	size,
-		        	colorModel,
-		        	metadata,
-		        	applyExifOrientation,
-		        	imageIOSupport
-		        );
-		        return imageInfo;
-	        } finally {
-	        	reader.dispose();
-	        }
-        }
-    }
+				ImageInfo imageInfo = ImageInfo.create(
+					width,
+					height,
+					format,
+					size,
+					colorModel,
+					metadata,
+					applyExifOrientation,
+					imageIOSupport
+				);
+				return imageInfo;
+			} finally {
+				reader.dispose();
+			}
+		}
+	}
 
 	/**
 	 * A copy of {@link ImageIO#createImageInputStream(Object)} that ignores
@@ -268,33 +268,33 @@ public class ImageIOTools {
 	 *
 	 * @see ImageIO#createImageInputStream(Object)
 	 */
-    public static ImageInputStream createImageInputStream(Object input)
-        throws IOException {
-        if (input == null) {
-            throw new IllegalArgumentException("input == null!");
-        }
+	public static ImageInputStream createImageInputStream(Object input)
+		throws IOException {
+		if (input == null) {
+			throw new IllegalArgumentException("input == null!");
+		}
 
-        Iterator<ImageInputStreamSpi> iter;
-        // Ensure category is present
-        try {
-            iter = theRegistry.getServiceProviders(ImageInputStreamSpi.class, true);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+		Iterator<ImageInputStreamSpi> iter;
+		// Ensure category is present
+		try {
+			iter = theRegistry.getServiceProviders(ImageInputStreamSpi.class, true);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 
-        while (iter.hasNext()) {
-            ImageInputStreamSpi spi = (ImageInputStreamSpi)iter.next();
-            if (spi.getInputClass().isInstance(input)) {
-                try {
-                    return spi.createInputStreamInstance(input, false, null);
-                } catch (IOException e) {
-                    throw new IIOException("Can't create cache file!", e);
-                }
-            }
-        }
+		while (iter.hasNext()) {
+			ImageInputStreamSpi spi = (ImageInputStreamSpi)iter.next();
+			if (spi.getInputClass().isInstance(input)) {
+				try {
+					return spi.createInputStreamInstance(input, false, null);
+				} catch (IOException e) {
+					throw new IIOException("Can't create cache file!", e);
+				}
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
 	/**
 	 * This is a wrapper around
@@ -313,16 +313,20 @@ public class ImageIOTools {
 		}
 	}
 
-    /**
-     * A simple container for more than one return value.
-     */
-    public static class ImageReaderResult {
-    	public final BufferedImage bufferedImage;
-    	public final ImageFormat imageFormat;
+	/**
+	 * A simple container for more than one return value.
+	 */
+	public static class ImageReaderResult {
+		public final BufferedImage bufferedImage;
+		public final ImageFormat imageFormat;
+		public final int width;
+		public final int height;
 
-    	public ImageReaderResult(BufferedImage bufferedImage, ImageFormat imageFormat) {
-    		this.bufferedImage = bufferedImage;
-    		this.imageFormat = imageFormat;
-    	}
-    }
+		public ImageReaderResult(BufferedImage bufferedImage, ImageFormat imageFormat) {
+			this.bufferedImage = bufferedImage;
+			this.imageFormat = imageFormat;
+			this.width = bufferedImage == null ? -1 : bufferedImage.getWidth();
+			this.height = bufferedImage == null ? -1 : bufferedImage.getHeight();
+		}
+	}
 }

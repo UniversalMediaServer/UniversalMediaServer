@@ -338,17 +338,16 @@ public class DLNAMediaInfo implements Cloneable {
 	public MediaType getMediaType() {
 		if (videoTrackCount > 0) {
 			return MediaType.VIDEO;
-		} else {
-			switch (audioTracks.size()) {
-				case 1 :
-					return MediaType.AUDIO;
-				case 0 :
-					if (imageCount > 0) {
-						return MediaType.IMAGE;
-					}
-				default :
-					return MediaType.UNKNOWN;
-			}
+		}
+		switch (audioTracks.size()) {
+			case 1 :
+				return MediaType.AUDIO;
+			case 0 :
+				if (imageCount > 0) {
+					return MediaType.IMAGE;
+				}
+			default :
+				return MediaType.UNKNOWN;
 		}
 	}
 
@@ -590,7 +589,11 @@ public class DLNAMediaInfo implements Cloneable {
 		args[13] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled
-		if (!configuration.isThumbnailGenerationEnabled() || !renderer.isThumbnails() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
+		if (
+			!configuration.isThumbnailGenerationEnabled() ||
+			renderer != null && !renderer.isThumbnails() ||
+			configuration.isUseMplayerForVideoThumbs() && !dvrms
+		) {
 			args[2] = "0";
 			for (int i = 5; i <= 13; i++) {
 				args[i] = "-an";
@@ -918,7 +921,6 @@ public class DLNAMediaInfo implements Cloneable {
 				if (thumbOnly && configuration.isThumbnailGenerationEnabled() && configuration.getImageThumbnailsEnabled()) {
 					LOGGER.trace("Creating thumbnail for \"{}\"", file.getName());
 
-					// XXX (Nadahar) - the below code needs update, as it will break with the next version of Metadata-extractor
 					// Create the thumbnail image
 					try {
 						if (imageInfo instanceof ExifInfo && ((ExifInfo) imageInfo).hasExifThumbnail() && !imageInfo.isImageIOSupported()) {
