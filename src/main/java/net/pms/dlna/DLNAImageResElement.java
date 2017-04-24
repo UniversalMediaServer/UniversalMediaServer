@@ -25,8 +25,8 @@ import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 
 /**
- * This class is used to represent a {@code <res>} element representing an
- * image (including thumbnail) in a {@code DIDL-Lite} document.
+ * This class is used to represent a {@code <res>} element representing an image
+ * (including thumbnail) in a {@code DIDL-Lite} document.
  *
  * @author Nadahar
  */
@@ -36,18 +36,47 @@ public class DLNAImageResElement {
 	private final boolean thumbnail;
 	private final HypotheticalResult hypotheticalResult;
 
+	/**
+	 * Instantiates a new DLNA image {@code <res>} element.
+	 *
+	 * @param profile the {@link DLNAImageProfile} for this {@code <res>}
+	 *            element.
+	 * @param imageInfo the {@link ImageInfo} for the image represented by this
+	 *            {@code <res>} element.
+	 * @param thumbnail whether the source for this {@code <res>} element is a
+	 *            thumbnail.
+	 *
+	 * @see #isThumbnail()
+	 */
 	public DLNAImageResElement(DLNAImageProfile profile, ImageInfo imageInfo, boolean thumbnail) {
 		this(profile, imageInfo, thumbnail, null);
 	}
 
+	/**
+	 * Instantiates a new DLNA image {@code <res>} element.
+	 *
+	 * @param profile the {@link DLNAImageProfile} for this {@code <res>}
+	 *            element.
+	 * @param imageInfo the {@link ImageInfo} for the image represented by this
+	 *            {@code <res>} element.
+	 * @param thumbnail whether the source for this {@code <res>} element is a
+	 *            thumbnail.
+	 * @param overrideCIFlag The overridden CI flag for this {@code <res>}
+	 *            element. Pass {@code null} for automatic setting of the CI
+	 *            flag.
+	 *
+	 * @see #isThumbnail()
+	 */
 	public DLNAImageResElement(DLNAImageProfile profile, ImageInfo imageInfo, boolean thumbnail, Integer overrideCIFlag) {
 		this.profile = profile;
 		if (profile != null && imageInfo != null) {
 			hypotheticalResult = profile.calculateHypotheticalProperties(imageInfo);
-			ciFlag = overrideCIFlag == null
-				? hypotheticalResult.conversionNeeded
-					? Integer.valueOf(1) : Integer.valueOf(0)
-				: overrideCIFlag;
+			ciFlag = overrideCIFlag == null ?
+				(hypotheticalResult.conversionNeeded ?
+					Integer.valueOf(1) :
+					Integer.valueOf(0)
+				) :
+				overrideCIFlag;
 		} else {
 			hypotheticalResult = null;
 			ciFlag = overrideCIFlag;
@@ -70,7 +99,13 @@ public class DLNAImageResElement {
 	}
 
 	/**
-	 * @return Whether this element is a thumbnail.
+	 * Note: This can be confusing. This doesn't indicate whether the res
+	 * element is <b>used</b> as a thumbnail, but if the res element's source is
+	 * a thumbnail from UMS' point of view. For low resolution images (where the
+	 * resolution is equal or smaller than the cached thumbnail), the thumbnail
+	 * source can be used also for the image itself for increased performance.
+	 *
+	 * @return Whether this element has a thumbnail source.
 	 */
 	public boolean isThumbnail() {
 		return thumbnail;
@@ -84,21 +119,23 @@ public class DLNAImageResElement {
 	}
 
 	/**
-	 * The calculated image width or {@link ImageInfo#UNKNOWN} if unknown.
+	 * @return The calculated image width or {@link ImageInfo#UNKNOWN} if
+	 *         unknown.
 	 */
 	public int getWidth() {
 		return hypotheticalResult != null ? hypotheticalResult.width : ImageInfo.UNKNOWN;
 	}
 
 	/**
-	 * The calculated image height or {@link ImageInfo#UNKNOWN} if unknown.
+	 * @return The calculated image height or {@link ImageInfo#UNKNOWN} if
+	 *         unknown.
 	 */
 	public int getHeight() {
 		return hypotheticalResult != null ? hypotheticalResult.height : ImageInfo.UNKNOWN;
 	}
 
 	/**
-	 * The image size or {@code null} if unknown.
+	 * @return The image size or {@code null} if unknown.
 	 */
 	public Long getSize() {
 		return hypotheticalResult != null ? hypotheticalResult.size : null;
@@ -267,9 +304,8 @@ public class DLNAImageResElement {
 				) {
 					if (DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile())) {
 						return -1;
-					} else {
-						return 1;
 					}
+					return 1;
 				}
 
 				if (o1.getWidth() != o2.getWidth()) {

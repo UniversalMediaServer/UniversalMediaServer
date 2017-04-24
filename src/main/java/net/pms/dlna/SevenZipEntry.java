@@ -44,7 +44,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private ISevenZipInArchive arc;
 
 	@Override
-	protected String getThumbnailURL(String profile) {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) {
 			// no thumbnail support for now for zipped videos
 			return null;
