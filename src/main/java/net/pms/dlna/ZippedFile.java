@@ -55,7 +55,7 @@ public class ZippedFile extends DLNAResource {
 	}
 
 	@Override
-	protected String getThumbnailURL(String profile) {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE) {
 			// no thumbnail support for now for zip files
 			return null;

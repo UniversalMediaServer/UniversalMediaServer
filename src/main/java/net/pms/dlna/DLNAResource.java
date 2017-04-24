@@ -1669,11 +1669,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @return Returns a URL pointing to an image representing the item. If
+	 * @return Returns an URL pointing to an image representing the item. If
 	 * none is available, "thumbnail0000.png" is used.
 	 */
-	protected String getThumbnailURL(String profile) {
-		return getURL("thumbnail0000" + profile + "_");
+	protected String getThumbnailURL(DLNAImageProfile profile) {
+		StringBuilder sb = new StringBuilder(PMS.get().getServer().getURL());
+		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
+		if (profile != null) {
+			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
+				sb.append("JPEG_RES").append(profile.getH()).append("x");
+				sb.append(profile.getV()).append("_");
+			} else {
+				sb.append(profile).append("_");
+			}
+		}
+		sb.append(encode(getName())).append(".");
+		if (profile != null) {
+			sb.append(profile.getDefaultExtension());
+		} else {
+			LOGGER.debug("Warning: Thumbnail without DLNA image profile requested, resulting URL is: \"{}\"", sb.toString());
+		}
+
+		return sb.toString();
 	}
 
 	/**
@@ -2899,10 +2916,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (!resElement.isResolutionKnown() && DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile())) {
 			throw new IllegalArgumentException("Resolution cannot be unknown for DLNAImageProfile.JPEG_RES_H_V");
 		}
-		String url = DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
-			"JPEG_RES" + resElement.getWidth() + "x" + resElement.getHeight() :
-			resElement.getProfile().toString();
-		url = resElement.isThumbnail() ? getThumbnailURL(url) : getURL(url + "_");
+		String url;
+		if (resElement.isThumbnail()) {
+			url = getThumbnailURL(resElement.getProfile());
+		} else {
+			url = getURL(
+				(DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
+					"JPEG_RES" + resElement.getWidth() + "x" + resElement.getHeight() :
+					resElement.getProfile().toString()
+				) + "_"
+			);
+		}
 		if (StringUtils.isNotBlank(url)) {
 			String ciFlag;
 			/*
@@ -2938,7 +2962,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private void addAlbumArt(StringBuilder sb, DLNAImageProfile thumbnailProfile) {
-		String albumArtURL = getThumbnailURL(thumbnailProfile.toString());
+		String albumArtURL = getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(albumArtURL)) {
 			openTag(sb, "upnp:albumArtURI");
 			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
@@ -3440,7 +3464,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			media != null &&
 			!media.isThumbready() &&
 			configurationSpecificToRenderer.isThumbnailGenerationEnabled() &&
-			renderer.isThumbnails()
+			(renderer == null || renderer.isThumbnails())
 		) {
 			Double seekPosition = (double) configurationSpecificToRenderer.getThumbnailSeekPos();
 			if (isResume()) {
