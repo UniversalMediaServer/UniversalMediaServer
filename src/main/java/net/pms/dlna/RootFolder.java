@@ -1477,6 +1477,9 @@ public class RootFolder extends DLNAResource {
 						RealFile rf = new RealFile(file);
 						rf.setParent(rf);
 						rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
+
+						rf.resolveFormat();
+
 						if (rf.isValid()) {
 							LOGGER.trace("File {} should now be in the database", filename);
 						}
