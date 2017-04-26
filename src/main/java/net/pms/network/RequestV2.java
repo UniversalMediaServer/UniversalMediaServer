@@ -28,8 +28,12 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -53,12 +57,16 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.handler.codec.http.DefaultHttpMessage;
+import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.stream.ChunkedStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 /**
  * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
@@ -66,6 +74,7 @@ import org.slf4j.LoggerFactory;
 public class RequestV2 extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
 	private final static String CRLF = "\r\n";
+	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(.*?)</Result>");
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
 	private final String method;
@@ -246,7 +255,7 @@ public class RequestV2 extends HTTPResource {
 	 *
 	 * @param ctx
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
-	 * @param e The {@link MessageEvent} object used to communicate with the client that sent
+	 * @param event The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
 	 * @param close Set to true to close the channel after sending the response. By default the
 	 * 			channel is not closed after sending.
@@ -257,7 +266,7 @@ public class RequestV2 extends HTTPResource {
 	 */
 	public ChannelFuture answer(
 		HttpResponse output,
-		MessageEvent e,
+		MessageEvent event,
 		final boolean close,
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
@@ -380,7 +389,7 @@ public class RequestV2 extends HTTPResource {
 						output.setStatus(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
 
 						// Send the response headers to the client.
-						future = e.getChannel().write(output);
+						future = event.getChannel().write(output);
 
 						if (close) {
 							// Close the channel after the response is sent.
@@ -685,7 +694,46 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
-				//LOGGER.trace(content);
+				if (LOGGER.isTraceEnabled()) {
+					StringBuilder sb = new StringBuilder(method);
+					if (event.getMessage() instanceof DefaultHttpRequest) {
+						sb.append(" ").append(((DefaultHttpRequest) event.getMessage()).getUri());
+					}
+					if (event.getMessage() instanceof HttpMessage) {
+						sb.append(" ").append(((HttpMessage) event.getMessage()).getProtocolVersion().getText());
+					}
+					if (event.getMessage() instanceof DefaultHttpMessage) {
+						sb.append(" Chunked: ").append(((DefaultHttpMessage) event.getMessage()).isChunked());
+					}
+					sb.append("\n");
+
+					if (event.getMessage() instanceof HttpMessage) {
+						sb.append("HEADER:\n");
+						for (Entry<String, String> entry : ((HttpMessage) event.getMessage()).headers().entries()) {
+							sb.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+						}
+					} else {
+						sb.append("Unknown class: ").append(event.getClass().getSimpleName()).append("\n");
+						sb.append(event);
+					}
+					String formattedContent = null;
+					if (isNotBlank(content)) {
+						try {
+							formattedContent = StringUtil.prettifyXML(content, 4);
+						} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
+							formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+							formattedContent += "    " + content.replaceAll("\n", "\n    ");
+							LOGGER.trace("XML parsing failed with:\n{}", e);
+						}
+					}
+					LOGGER.trace(
+						"Received {} request from {}:\n\n{}\n{}",
+						soapaction.contains("ContentDirectory:1#Browse") ? "browse" : "search",
+						mediaRenderer.getConfName(),
+						sb.toString(),
+						isNotBlank(formattedContent) ? "CONTENT:\n" + formattedContent : "NO CONTENT"
+					);
+				}
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
@@ -845,18 +893,6 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Response sent to {}:\n{}", mediaRenderer.getConfName(), response);
-					Pattern pattern = Pattern.compile("<Result>(.*?)</Result>");
-					Matcher matcher = pattern.matcher(response);
-					if (matcher.find()) {
-						LOGGER.trace(
-							"The unescaped <Result> sent to {} is:\n{}",
-							mediaRenderer.getConfName(),
-							StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
-						);
-					}
-				}
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());
@@ -877,8 +913,10 @@ public class RequestV2 extends HTTPResource {
 					URL soapActionUrl = new URL(cb);
 					String addr = soapActionUrl.getHost();
 					int port = soapActionUrl.getPort();
-					Socket sock = new Socket(addr, port);
-					try (OutputStream out = sock.getOutputStream()) {
+					try (
+						Socket sock = new Socket(addr, port);
+						OutputStream out = sock.getOutputStream()
+					) {
 						out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
 						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 						out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
@@ -892,7 +930,6 @@ public class RequestV2 extends HTTPResource {
 						out.write(("HOST: " + addr + ":" + port).getBytes(StandardCharsets.UTF_8));
 						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 						out.flush();
-						sock.close();
 					}
 				} catch (MalformedURLException ex) {
 					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
@@ -948,7 +985,7 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			// Send the response to the client.
-			future = e.getChannel().write(output);
+			future = event.getChannel().write(output);
 
 			if (close) {
 				// Close the channel after the response is sent.
@@ -966,9 +1003,9 @@ public class RequestV2 extends HTTPResource {
 					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + CLoverride);
 				}
 			} else {
-				int cl = inputStream.available();
-				LOGGER.trace("Available Content-Length: " + cl);
-				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + cl);
+				int contentLength = inputStream.available();
+				LOGGER.trace("Available Content-Length: {}", contentLength);
+				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
 			}
 
 			if (range.isStartOffsetAvailable() && dlna != null) {
@@ -981,11 +1018,11 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			// Send the response headers to the client.
-			future = e.getChannel().write(output);
+			future = event.getChannel().write(output);
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
 				// Send the response body to the client in chunks.
-				ChannelFuture chunkWriteFuture = e.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
+				ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
 				// Add a listener to clean up after sending the entire response body.
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
@@ -995,7 +1032,7 @@ public class RequestV2 extends HTTPResource {
 							PMS.get().getRegistry().reenableGoToSleep();
 							inputStream.close();
 						} catch (IOException e) {
-							LOGGER.debug("Caught exception", e);
+							LOGGER.error("Caught exception", e);
 						}
 
 						// Always close the channel after the response is sent because of
@@ -1010,7 +1047,7 @@ public class RequestV2 extends HTTPResource {
 					PMS.get().getRegistry().reenableGoToSleep();
 					inputStream.close();
 				} catch (IOException ioe) {
-					LOGGER.debug("Caught exception", ioe);
+					LOGGER.error("Caught exception", ioe);
 				}
 
 				if (close) {
@@ -1026,7 +1063,7 @@ public class RequestV2 extends HTTPResource {
 			output.setStatus(HttpResponseStatus.NO_CONTENT);
 
 			// Send the response headers to the client.
-			future = e.getChannel().write(output);
+			future = event.getChannel().write(output);
 
 			if (close) {
 				// Close the channel after the response is sent.
@@ -1036,14 +1073,72 @@ public class RequestV2 extends HTTPResource {
 
 		if (LOGGER.isTraceEnabled()) {
 			// Log trace information
-			Iterator<String> it = output.headers().names().iterator();
-
-			while (it.hasNext()) {
-				String headerName = it.next();
-				LOGGER.trace("Sent to socket: " + headerName + ": " + output.headers().get(headerName));
+			StringBuilder header = new StringBuilder();
+			for (Entry<String, String> entry : output.headers().entries()) {
+				if (entry.getKey() != null) {
+					header.append("  ").append(entry.getKey())
+					.append(": ").append(entry.getValue()).append("\n");
+				}
+			}
+			if (method.equals("HEAD")) {
+				LOGGER.trace("HEAD only response sent to {} with {} and status \"{}\":\n\nHEADER:\n{}",
+					mediaRenderer.getConfName(),
+					output.getProtocolVersion(),
+					output.getStatus(),
+					header.toString()
+				);
+			} else {
+				String formattedResponse = null;
+				if (isNotBlank(response)) {
+					try {
+						formattedResponse = StringUtil.prettifyXML(response.toString(), 4);
+					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+						formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
+					}
+				}
+				if (isNotBlank(formattedResponse)) {
+					LOGGER.trace(
+						"Response sent to {} with {} and status \"{}\":\n\nHEADER:\n{}\nCONTENT:\n{}",
+						mediaRenderer.getConfName(),
+						output.getProtocolVersion(),
+						output.getStatus(),
+						header.toString(),
+						formattedResponse
+					);
+					Matcher matcher = DIDL_PATTERN.matcher(response);
+					if (matcher.find()) {
+						try {
+							LOGGER.trace(
+								"The unescaped <Result> sent to {} is:\n{}",
+								mediaRenderer.getConfName(),
+								StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
+							);
+						} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+							LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
+							LOGGER.trace("", e);
+						}
+					}
+				} else if (inputStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
+					LOGGER.trace(
+						"{} transfer response sent to {} with {} and status \"{}\":\n\nHEADER:\n{}",
+						output.isChunked() ? "Chunked" : "Non-chunked",
+						mediaRenderer.getConfName(),
+						output.getProtocolVersion(),
+						output.getStatus(),
+						header.toString()
+					);
+				} else {
+					LOGGER.trace(
+						"Empty response sent to {} with {} and status \"{}\":\nHEADER:\n{}",
+						mediaRenderer.getConfName(),
+						output.getProtocolVersion(),
+						output.getStatus(),
+						header.toString()
+					);
+				}
 			}
 		}
-
 		return future;
 	}
 

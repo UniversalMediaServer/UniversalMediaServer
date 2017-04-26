@@ -258,6 +258,9 @@ public class RequestHandler implements Runnable {
 			}
 
 			if (request != null) {
+				if (LOGGER.isTraceEnabled()) {
+					request.setHeaderLines(headerLines.toArray(new String[headerLines.size()]));
+				}
 				request.answer(output, startStopListenerDelegate);
 			}
 

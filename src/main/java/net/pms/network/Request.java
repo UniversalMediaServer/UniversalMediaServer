@@ -31,6 +31,9 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -57,6 +60,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 /**
  * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
@@ -75,9 +79,10 @@ public class Request extends HTTPResource {
 	private final static String HTTP_415_UNSUPPORTED_MEDIA_TYPE = "HTTP/1.1 415 Unsupported Media Type";
 	private final static String HTTP_415_UNSUPPORTED_MEDIA_TYPE_10 = "HTTP/1.0 415 Unsupported Media Type";
 	private final static String HTTP_500 = "HTTP/1.1 500 Internal Server Error";
-	private final static String HTTP_500_10 = "HTTP/1.9 500 Internal Server Error";
+	private final static String HTTP_500_10 = "HTTP/1.0 500 Internal Server Error";
 	private final static String CONTENT_TYPE_UTF8 = "CONTENT-TYPE: text/xml; charset=\"utf-8\"";
 	private final static String CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
+	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(.*?)</Result>");
 	private SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private final String method;
 
@@ -95,6 +100,7 @@ public class Request extends HTTPResource {
 	private int startingIndex;
 	private int requestCount;
 	private String browseFlag;
+	private String[] headerLines;
 
 	/**
 	 * When sending an input stream, the lowRange indicates which byte to start from.
@@ -225,6 +231,14 @@ public class Request extends HTTPResource {
 
 	public void setTextContent(String content) {
 		this.content = content;
+	}
+
+	public String[] getHeaderLines() {
+		return headerLines;
+	}
+
+	public void setHeaderLines(String[] headerLines) {
+		this.headerLines = headerLines;
 	}
 
 	/**
@@ -640,7 +654,39 @@ public class Request extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
-				//LOGGER.trace(content);
+				if (LOGGER.isTraceEnabled()) {
+					StringBuilder sb = new StringBuilder();
+					if (headerLines != null) {
+						if (headerLines.length > 0) {
+							sb.append(headerLines[0]).append("\n");
+						}
+						if (headerLines.length > 1) {
+							sb.append("HEADER:\n");
+							for (int i = 1; i < headerLines.length; i++) {
+								sb.append("  ").append(headerLines[i]).append("\n");
+							}
+						}
+					} else {
+						sb.append("No header information available\n");
+					}
+					String formattedContent = null;
+					if (isNotBlank(content)) {
+						try {
+							formattedContent = StringUtil.prettifyXML(content, 4);
+						} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
+							formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+							formattedContent += "    " + content.replaceAll("\n", "\n    ");
+							LOGGER.trace("XML parsing failed with:\n{}", e);
+						}
+					}
+					LOGGER.trace(
+						"Received {} request from {}:\n\n{}\n{}",
+						soapaction.contains("ContentDirectory:1#Browse") ? "browse" : "search",
+						mediaRenderer.getConfName(),
+						sb.toString(),
+						isNotBlank(formattedContent) ? "CONTENT:\n" + formattedContent : "NO CONTENT"
+					);
+				}
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
@@ -799,18 +845,6 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Response sent to {}:\n{}", mediaRenderer.getConfName(), response);
-					Pattern pattern = Pattern.compile("<Result>(.*?)</Result>");
-					Matcher matcher = pattern.matcher(response);
-					if (matcher.find()) {
-						LOGGER.trace(
-							"The unescaped <Result> sent to {} is:\n{}",
-							mediaRenderer.getConfName(),
-							StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
-						);
-					}
-				}
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			if (soapaction == null) {
@@ -916,7 +950,7 @@ public class Request extends HTTPResource {
 			}
 
 			if (sendB > -1) {
-				LOGGER.trace("Sending stream: " + sendB + " bytes of " + argument);
+				LOGGER.trace("Sending stream: {} bytes of {}", sendB, argument);
 			} else {
 				// Premature end
 				startStopListenerDelegate.stop();
@@ -927,6 +961,81 @@ public class Request extends HTTPResource {
 			responseHeader.set(0, http10 ? HTTP_204_NO_CONTENT_10 : HTTP_204_NO_CONTENT);
 			sendHeader(responseHeader);
 		}
+
+		if (LOGGER.isTraceEnabled()) {
+			// Log trace information
+			StringBuilder header = new StringBuilder();
+			String status;
+			if (responseHeader.size() > 0) {
+				status = responseHeader.get(0).replaceFirst("HTTP/\\d\\.\\d\\s", "");
+			} else {
+				status = "?";
+			}
+			for (int i = 1; i < responseHeader.size(); i++) {
+				if (isNotBlank(responseHeader.get(i))) {
+					header.append("  ").append(responseHeader.get(i)).append("\n");
+				}
+			}
+
+			if (method.equals("HEAD")) {
+				LOGGER.trace("HEAD only response sent to {} with {} and status \"{}\":\n\nHEADER:\n{}",
+					mediaRenderer.getConfName(),
+					http10 ? "HTTP/1.0" : "HTTP/1.1",
+					status,
+					header.toString()
+				);
+			} else {
+				String formattedResponse = null;
+				if (isNotBlank(response)) {
+					try {
+						formattedResponse = StringUtil.prettifyXML(response.toString(), 4);
+					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+						formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
+					}
+				}
+				if (isNotBlank(formattedResponse)) {
+					LOGGER.trace(
+						"Response sent to {} with {} and status \"{}\":\n\nHEADER:\n{}\nCONTENT:\n{}",
+						mediaRenderer.getConfName(),
+						http10 ? "HTTP/1.0" : "HTTP/1.1",
+						status,
+						header.toString(),
+						formattedResponse
+					);
+					Matcher matcher = DIDL_PATTERN.matcher(response);
+					if (matcher.find()) {
+						try {
+							LOGGER.trace(
+								"The unescaped <Result> sent to {} is:\n{}",
+								mediaRenderer.getConfName(),
+								StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
+							);
+						} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+							LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
+							LOGGER.trace("", e);
+						}
+					}
+				} else if (inputStream != null && !responseHeader.contains("Content-Length: 0")) {
+					LOGGER.trace(
+						"Transfer response sent to {} with {} and status \"{}\":\n\nHEADER:\n{}",
+						mediaRenderer.getConfName(),
+						http10 ? "HTTP/1.0" : "HTTP/1.1",
+						status,
+						header.toString()
+					);
+				} else {
+					LOGGER.trace(
+						"Empty response sent to {} with {} and status \"{}\":\nHEADER:\n{}",
+						mediaRenderer.getConfName(),
+						http10 ? "HTTP/1.0" : "HTTP/1.1",
+						status,
+						header.toString()
+					);
+				}
+			}
+		}
+
 	}
 
 	private void appendToHeader(List<String> responseHeader, String line) throws IOException {
