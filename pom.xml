@@ -34,11 +34,6 @@
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
-	<!-- this is not required, but is recommended for plugin version checks -->
-	<prerequisites>
-		<maven>2.2.1</maven>
-	</prerequisites>
-
 	<organization>
 		<name>Universal Media Server</name>
 		<url>http://www.universalmediaserver.com/</url>
@@ -668,6 +663,10 @@
 						<configuration>
 							<rules>
 								<dependencyConvergence/>
+								<!-- this is not required, but is recommended for plugin version checks -->
+								<requireMavenVersion>
+									<version>3.0.0</version>
+								</requireMavenVersion>
 							</rules>
 						</configuration>
 						<goals>
