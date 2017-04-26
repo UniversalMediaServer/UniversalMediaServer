@@ -341,9 +341,8 @@ public class StringUtil {
 		Matcher matcher = pattern.matcher(html);
 		if (matcher.find()) {
 			return matcher.group(1).replaceAll("\n    ", "").trim().replaceAll("(?i)<br>", "\n").replaceAll("<.*?>","");
-		} else {
-			throw new IllegalArgumentException("HTML text not as expected, must have <body> section");
 		}
+		throw new IllegalArgumentException("HTML text not as expected, must have <body> section");
 	}
 
 	/**
@@ -430,7 +429,7 @@ public class StringUtil {
 		return sb.toString();
 	}
 
-	public static String prettifyXML(String xml, int indentWidth) {
+	public static String prettifyXML(String xml, int indentWidth) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
 		try {
 			// Turn XML string into a document
 			Document xmlDocument =
@@ -464,8 +463,8 @@ public class StringUtil {
 			StringWriter stringWriter = new StringWriter();
 			transformer.transform(new DOMSource(xmlDocument), new StreamResult(stringWriter));
 			return stringWriter.toString();
-		} catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-			LOGGER.warn("Failed to prettify XML document, returning the source document: {}", e.getMessage());
+		} catch (IOException e) {
+			LOGGER.warn("Failed to read XML document, returning the source document: {}", e.getMessage());
 			LOGGER.trace("", e);
 			return xml;
 		}

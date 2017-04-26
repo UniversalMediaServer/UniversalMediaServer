@@ -93,10 +93,12 @@ public class FullyPlayed {
 
 	/**
 	 * Adds a text overlay to the given thumbnail and returns it.
+	 * <p>
+	 * <b>This method either consumes and closes {@code thumb} or it returns it
+	 * in a reset state ({@code position = 0}).</b>
 	 *
-	 * @param thumb the source thumb to add the overlay to
-	 * @param mediaType the type of media the thumbnail is for
-	 * @return The modified thumbnail
+	 * @param thumb the source thumbnail to add the overlay to.
+	 * @return The processed thumbnail.
 	 */
 	public static DLNAThumbnailInputStream addFullyPlayedOverlay(DLNAThumbnailInputStream thumb) {
 		if (thumbnailOverlayImage == null) {
@@ -132,13 +134,18 @@ public class FullyPlayed {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			ImageIOTools.imageIOWrite(image, thumb != null ? thumb.getFormat().toString() : "jpg", out);
+			if (thumb != null) {
+				thumb.close();
+			}
 			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
 		} catch (IOException e) {
 			LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
-		thumb.fullReset();
+		if (thumb != null) {
+			thumb.fullReset();
+		}
 		return thumb;
 	}
 
