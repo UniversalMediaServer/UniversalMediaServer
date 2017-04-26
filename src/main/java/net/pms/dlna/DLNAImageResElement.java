@@ -20,9 +20,12 @@
 package net.pms.dlna;
 
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
+import net.pms.network.UPNPControl.Renderer;
 
 /**
  * This class is used to represent a {@code <res>} element representing an image
@@ -353,5 +356,28 @@ public class DLNAImageResElement {
 				return 0;
 			}
 		};
+	}
+
+	/**
+	 * Filter out {@link DLNAImageResElement}s not supported by {@code renderer}.
+	 *
+	 * @param resElements the {@link List} of {@link DLNAImageResElement}s to filter.
+	 * @param renderer the {@link Renderer} to use for filtering.
+	 */
+	public static void filterResElements(List<DLNAImageResElement> resElements, Renderer renderer) {
+		if (
+			renderer == null ||
+			renderer.deviceProtocolInfo == null ||
+			renderer.deviceProtocolInfo.isImageProfilesEmpty()
+		) {
+			return;
+		}
+		Iterator<DLNAImageResElement> iterator = resElements.iterator();
+		while (iterator.hasNext()) {
+			DLNAImageResElement resElement = iterator.next();
+			if (!renderer.deviceProtocolInfo.imageProfilesContains(resElement.getProfile())) {
+				iterator.remove();
+			}
+		}
 	}
 }

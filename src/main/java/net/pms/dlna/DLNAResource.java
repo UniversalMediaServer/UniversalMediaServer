@@ -49,6 +49,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
+import net.pms.network.UPNPControl.Renderer;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -2430,7 +2431,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		MediaType mediaType = media != null ? media.getMediaType() : MediaType.UNKNOWN;
 		if (!isFolder && mediaType == MediaType.IMAGE) {
-			appendImage(sb);
+			appendImage(sb, mediaRenderer);
 		} else if (!isFolder) {
 			int indexCount = 1;
 			if (mediaRenderer.isDLNALocalizationRequired()) {
@@ -2632,7 +2633,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (!(isFolder && !mediaRenderer.isSendFolderThumbnails())) {
 			if (mediaType != MediaType.IMAGE) {
-				appendThumbnail(sb, mediaType);
+				appendThumbnail(sb, mediaType, mediaRenderer);
 			}
 		}
 
@@ -2686,9 +2687,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * {@code upnp:albumArtURI} entries for the image.
 	 *
 	 * @param sb The {@link StringBuilder} to append the elements to.
+	 * @param renderer the {@link Renderer} used for filtering or {@code null}
+	 *            for no filtering.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private void appendImage(StringBuilder sb) {
+	private void appendImage(StringBuilder sb, Renderer renderer) {
 		/*
 		 * There's no technical difference between the image itself and the
 		 * thumbnail for an object.item.imageItem, they are all simply listed
@@ -2765,6 +2768,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.debug("Warning: Image \"{}\" isn't parsed when DIDL-Lite is generated", this.getName());
 		}
 
+		// Filter the elements according to the renderer's GetProtocolInfo Sink
+		DLNAImageResElement.filterResElements(resElements, renderer);
+
 		// Sort the elements by priority
 		Collections.sort(resElements, DLNAImageResElement.getComparator(imageInfo != null ? imageInfo.getFormat() : ImageFormat.JPEG));
 
@@ -2790,11 +2796,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Generate and append the thumbnail {@code res} and
 	 * {@code upnp:albumArtURI} entries for the thumbnail.
 	 *
-	 * @param mediaType The {@link MediaType} of this {@link DLNAResource}.
-	 * @param sb The {@link StringBuilder} to append the response to.
+	 * @param sb the {@link StringBuilder} to append the response to.
+	 * @param mediaType the {@link MediaType} of this {@link DLNAResource}.
+	 * @param renderer the {@link Renderer} used for filtering or {@code null}
+	 *            for no filtering.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private void appendThumbnail(StringBuilder sb, MediaType mediaType) {
+	private void appendThumbnail(StringBuilder sb, MediaType mediaType, Renderer renderer) {
 
 		/*
 		 * JPEG_TN = Max 160 x 160; EXIF Ver.1.x or later or JFIF 1.02; SRGB or uncalibrated
@@ -2863,7 +2871,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			List<DLNAImageResElement> resElements = new ArrayList<>();
 
-
 			// Add elements in any order, it's sorted by priority later
 			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_TN, imageInfo, true));
 			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_SM, imageInfo, true));
@@ -2887,6 +2894,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 			}
+
+			// Filter the elements according to the renderer's GetProtocolInfo Sink
+			DLNAImageResElement.filterResElements(resElements, renderer);
 
 			// Sort the elements by priority
 			Collections.sort(resElements, DLNAImageResElement.getComparator(imageInfo != null ? imageInfo.getFormat() : ImageFormat.JPEG));
