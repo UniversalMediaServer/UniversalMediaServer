@@ -911,14 +911,15 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Updates an existing row with information from OpenSubtitles.
+	 * Updates an existing row with information either extracted from the filename
+	 * or from OpenSubtitles.
 	 *
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param media the {@link DLNAMediaInfo} row to update.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public synchronized void appendWithDataFromOpenSubtitles(String name, long modified, DLNAMediaInfo media) throws SQLException {
+	public synchronized void insertVideoMetadata(String name, long modified, DLNAMediaInfo media) throws SQLException {
 		if (StringUtils.isBlank(name)) {
 			LOGGER.warn(
 				"Couldn't write OpenSubtitles data for \"{}\" to the database because the media cannot be identified",
@@ -930,6 +931,7 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.warn("Couldn't write OpenSubtitles data for \"{}\" to the database because there is no media information",
 				name
 			);
+			return;
 		}
 
 		try (Connection connection = getConnection()) {

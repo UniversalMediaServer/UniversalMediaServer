@@ -567,20 +567,85 @@ public class OpenSubtitle {
 
 	public static void backgroundLookupAndAdd(final File file, final DLNAMediaInfo media) {
 		if (!PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
+			final boolean overTheTopLogging = false;
+			String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
+
+			String titleFromFilename           = metadataFromFilename[0];
+			String yearFromFilename            = metadataFromFilename[1];
+			String editionFromFilename         = metadataFromFilename[2];
+			String tvSeasonFromFilename        = metadataFromFilename[3];
+			String tvEpisodeNumberFromFilename = metadataFromFilename[4];
+			String tvEpisodeNameFromFilename   = metadataFromFilename[5];
+
+			media.setMovieOrShowName(titleFromFilename);
+			String titleFromDatabase;
+
+			/**
+			 * Apply the metadata from the filename.
+			 */
+			if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
+				/**
+				 * Overwrite the title from the filename if it's very similar to one we
+				 * already have in our database. This is to avoid minor grammatical differences
+				 * like "Word and Word" vs. "Word & Word" from creating two virtual folders.
+				 */
+				titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+				if (overTheTopLogging) {
+					LOGGER.info("titleFromDatabase: " + titleFromDatabase);
+					LOGGER.info("titleFromFilename: " + titleFromFilename);
+				}
+				if (!"".equals(titleFromDatabase)) {
+					if (StringUtil.isSimilarEnough(titleFromFilename, titleFromDatabase)) {
+						media.setMovieOrShowName(titleFromDatabase);
+					}
+				}
+
+				media.setTVSeason(tvSeasonFromFilename);
+				media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+				if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
+					media.setTVEpisodeName(tvEpisodeNameFromFilename);
+				}
+
+				if (overTheTopLogging) {
+					LOGGER.info("Setting is TV episode true for " + titleFromFilename + " " + tvEpisodeNumberFromFilename);
+				}
+
+				media.setIsTVEpisode(true);
+			}
+
+			if (yearFromFilename != null) {
+				media.setYear(yearFromFilename);
+			}
+			if (editionFromFilename != null) {
+				media.setEdition(editionFromFilename);
+			}
+
+			try {
+				PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+			} catch (SQLException e) {
+				LOGGER.error(
+					"Could not update the database with information from OpenSubtitles for \"{}\": {}",
+					file.getAbsolutePath(),
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+
+			/**
+			 * Now that the information from the filename has been applied, we cue up
+			 * the request to OpenSubtitles which may update and supplement the data
+			 * we extracted.
+			 */
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
 					String[] metadataFromOpenSubtitles;
 					try {
-						// Set this to true to get huge logspam in INFO mode to help with visibility of accuracy of OpenSubtitles data
-						boolean overTheTopLogging = false;
-
 						if (overTheTopLogging) {
 							LOGGER.info("Looking up " + file.getName());
 						}
 
 						metadataFromOpenSubtitles = getInfo(file, file.getName());
-						boolean isMetadataSet = false;
 						String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
 
 						String titleFromFilename           = metadataFromFilename[0];
@@ -588,7 +653,6 @@ public class OpenSubtitle {
 						String editionFromFilename         = metadataFromFilename[2];
 						String tvSeasonFromFilename        = metadataFromFilename[3];
 						String tvEpisodeNumberFromFilename = metadataFromFilename[4];
-						String tvEpisodeNameFromFilename   = metadataFromFilename[5];
 
 						String titleToSave = titleFromFilename;
 						String titleFromDatabase;
@@ -691,48 +755,8 @@ public class OpenSubtitle {
 
 											media.setIsTVEpisode(true);
 										}
-										isMetadataSet = true;
 									}
 								}
-							}
-						}
-
-						if (!isMetadataSet) {
-							/**
-							 * We don't have a good match from OpenSubtitles, so apply the metadata from
-							 * the filename.
-							 */
-							if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
-								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
-								if (overTheTopLogging) {
-									LOGGER.info("titleFromDatabase: " + titleFromDatabase);
-									LOGGER.info("titleFromFilename: " + titleFromFilename);
-								}
-								if (!"".equals(titleFromDatabase)) {
-									if (StringUtil.isSimilarEnough(titleFromFilename, titleFromDatabase)) {
-										titleToSave = titleFromDatabase;
-									}
-								}
-								media.setTVSeason(tvSeasonFromFilename);
-								media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
-								if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
-									media.setTVEpisodeName(tvEpisodeNameFromFilename);
-								}
-
-								if (overTheTopLogging) {
-									LOGGER.info("Setting is TV episode true for " + titleFromFilename + " " + tvEpisodeNumberFromFilename);
-								}
-
-								media.setIsTVEpisode(true);
-							}
-
-							media.setMovieOrShowName(titleToSave);
-
-							if (yearFromFilename != null) {
-								media.setYear(yearFromFilename);
-							}
-							if (editionFromFilename != null) {
-								media.setEdition(editionFromFilename);
 							}
 						}
 
@@ -741,7 +765,7 @@ public class OpenSubtitle {
 						}
 
 						try {
-							PMS.get().getDatabase().appendWithDataFromOpenSubtitles(file.getAbsolutePath(), file.lastModified(), media);
+							PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 						} catch (SQLException e) {
 							LOGGER.error(
 								"Could not update the database with information from OpenSubtitles for \"{}\": {}",
