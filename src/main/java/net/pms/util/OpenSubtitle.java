@@ -45,7 +45,6 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.util.CredMgr.Credential;
-import net.pms.util.StringUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -654,7 +653,6 @@ public class OpenSubtitle {
 						String tvSeasonFromFilename        = metadataFromFilename[3];
 						String tvEpisodeNumberFromFilename = metadataFromFilename[4];
 
-						String titleToSave = titleFromFilename;
 						String titleFromDatabase;
 
 						if (metadataFromOpenSubtitles != null) {
@@ -674,9 +672,7 @@ public class OpenSubtitle {
 								LOGGER.info("Found " + file.getName() + " : " + titleFromOpenSubtitles);
 							}
 
-							/**
-							 * Proceed if the years match, or if there is no year then try the movie/show name.
-							 */
+							// Proceed if the years match, or if there is no year then try the movie/show name.
 							if (
 								(
 									StringUtils.isNotBlank(yearFromFilename) &&
@@ -714,7 +710,6 @@ public class OpenSubtitle {
 											StringUtils.isBlank(tvEpisodeNumberFromFilename)
 										)
 									) {
-										titleToSave = titleFromOpenSubtitles;
 										titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
 										if (overTheTopLogging) {
 											LOGGER.info("titleFromDatabase: " + titleFromDatabase);
@@ -726,18 +721,17 @@ public class OpenSubtitle {
 										 * one from OpenSubtitles, continue to see if we want to change that to make
 										 * them all consistent.
 										 */
-										if (!"".equals(titleFromDatabase) && !titleFromOpenSubtitles.equals(titleFromDatabase)) {
-											if (StringUtil.isSimilarEnough(titleFromOpenSubtitles, titleFromDatabase)) {
-												/**
-												 * Replace our close-but-not-exact title in the database with the title from
-												 * OpenSubtitles.
-												 */
-												PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
-											}
+										if (
+											!"".equals(titleFromDatabase) &&
+											!titleFromOpenSubtitles.equals(titleFromDatabase) &&
+											StringUtil.isSimilarEnough(titleFromOpenSubtitles, titleFromDatabase)
+										) {
+											// Replace our close-but-not-exact title in the database with the title from OpenSubtitles.
+											PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
 										}
 
 										media.setIMDbID(metadataFromOpenSubtitles[0]);
-										media.setMovieOrShowName(titleToSave);
+										media.setMovieOrShowName(titleFromOpenSubtitles);
 										media.setYear(metadataFromOpenSubtitles[5]);
 										media.setEdition(editionFromFilename);
 
