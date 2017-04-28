@@ -755,24 +755,20 @@ public class OpenSubtitle {
 
 											media.setIsTVEpisode(true);
 										}
+
+										try {
+											PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+										} catch (SQLException e) {
+											LOGGER.error(
+												"Could not update the database with information from OpenSubtitles for \"{}\": {}",
+												file.getAbsolutePath(),
+												e.getMessage()
+											);
+											LOGGER.trace("", e);
+										}
 									}
 								}
 							}
-						}
-
-						if (overTheTopLogging) {
-							LOGGER.info("Getting is TV episode for {} {}: {}", titleToSave, tvEpisodeNumberFromFilename, media.isTVEpisode());
-						}
-
-						try {
-							PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
-						} catch (SQLException e) {
-							LOGGER.error(
-								"Could not update the database with information from OpenSubtitles for \"{}\": {}",
-								file.getAbsolutePath(),
-								e.getMessage()
-							);
-							LOGGER.trace("", e);
 						}
 					} catch (IOException ex) {
 						// This will happen regularly so just log it in trace mode
