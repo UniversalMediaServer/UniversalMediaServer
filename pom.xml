@@ -87,7 +87,7 @@
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
-		<logback-version>1.1.8</logback-version>
+		<logback-version>1.1.11</logback-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -362,11 +362,6 @@
 			<version>4.2.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom2</artifactId>
-			<version>2.0.6</version>
-		</dependency>
-		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-core</artifactId>
 			<version>2.1.1</version>
@@ -402,14 +397,9 @@
 			<version>0.10.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.20.0-GA</version>
-		</dependency>
-		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>58.2</version>
+			<version>59.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
