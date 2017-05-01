@@ -87,7 +87,7 @@
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
-		<logback-version>1.1.11</logback-version>
+		<logback-version>1.2.3</logback-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
