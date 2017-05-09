@@ -894,8 +894,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else if (
 				configurationSpecificToRenderer.isEncodedAudioPassthrough() &&
 				(
-					audioTracksList.contains("audio codec: AC3") ||
-					audioTracksList.contains("audio codec: DTS")
+					audioTracksList.contains("Audio Codec: AC3") ||
+					audioTracksList.contains("Audio Codec: DTS")
 				)
 			) {
 				isIncompatible = true;

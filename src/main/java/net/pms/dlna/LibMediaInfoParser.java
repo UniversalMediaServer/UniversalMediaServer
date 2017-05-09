@@ -88,6 +88,7 @@ public class LibMediaInfoParser {
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
 				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
+				media.setTruncated(getTruncated(MI.Get(general, 0, "IsTruncated")));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
 					try {
@@ -197,9 +198,12 @@ public class LibMediaInfoParser {
 						}
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
 						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
+						currentAudioTrack.getAudioProperties().setBitRate(MI.Get(audio, i, "BitRate"));
 						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
-						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
-						currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
+						currentAudioTrack.getAudioProperties().setBitsperSample(MI.Get(audio, i, "BitDepth"));
+						currentAudioTrack.getAudioProperties().setSampleFrequency(MI.Get(audio, i, "SamplingRate"));
+						currentAudioTrack.getAudioProperties().setAudioDelay(MI.Get(audio, i, "Video_Delay"));
+						currentAudioTrack.setRawBitRateMode(MI.Get(audio, i, "BitRate_Mode"));
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
 
 						if (
@@ -241,15 +245,6 @@ public class LibMediaInfoParser {
 								currentAudioTrack.setTrack(Integer.parseInt(value));
 							} catch (NumberFormatException nfe) {
 								LOGGER.debug("Could not parse track \"" + value + "\"");
-							}
-						}
-
-						value = MI.Get(audio, i, "BitDepth");
-						if (!value.isEmpty()) {
-							try {
-								currentAudioTrack.setBitsperSample(Integer.parseInt(value));
-							} catch (NumberFormatException nfe) {
-								LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
 							}
 						}
 
@@ -480,7 +475,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MPEGTS;
 		} else if (value.contains("aiff")) {
 			format = FormatConfiguration.AIFF;
-		} else if (value.startsWith("atmos") || value.equals("131")) {
+		} else if (value.contains("atmos") || value.equals("131")) {
 			format = FormatConfiguration.ATMOS;
 		} else if (value.contains("ogg")) {
 			format = FormatConfiguration.OGG;
@@ -541,10 +536,20 @@ public class LibMediaInfoParser {
 			// only for audio files:
 			format = FormatConfiguration.MP2;
 			media.setContainer(FormatConfiguration.MP2);
-		} else if (value.equals ("ma") || value.equals("ma / core") || value.equals("134")) {
-			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
-				format = FormatConfiguration.DTSHD;
-			}
+		} else if (value.equals("dts")) {
+				format = FormatConfiguration.DTS;
+		} else if (
+				value.equals("ma") ||
+				value.equals("ma / core") ||
+				value.equals("ma / es matrix / core") ||
+				value.equals("ma / es discrete / core") ||
+				value.equals("x / ma / core") ||
+				value.equals("hra / core") ||
+				value.equals("hra / es matrix / core") ||
+				value.equals("hra / es discrete / core") ||
+				value.equals("134")
+			) {
+			format = FormatConfiguration.DTSHD;
 		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
 			format = FormatConfiguration.VORBIS;
 		} else if (value.equals("adts")) {
@@ -573,7 +578,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.HE_AAC;
 		} else if (value.startsWith("adpcm")) {
 			format = FormatConfiguration.ADPCM;
-		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
+		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS) || !audio.getCodecA().equals(FormatConfiguration.DTSHD)))) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {
 			format = FormatConfiguration.ALAC;
@@ -743,6 +748,14 @@ public class LibMediaInfoParser {
 		return null;
 	}
 
+	public static String getTruncated(String value) {
+		if (isNotBlank(value)) {
+			return value;
+		} else {
+			return null;
+		}
+	}
+
 	public static int getBitrate(String value) {
 		if (value.isEmpty()) {
 			return 0;
@@ -776,8 +789,8 @@ public class LibMediaInfoParser {
 
 	public static String getSampleFrequency(String value) {
 		/**
-		 * Some tracks show several values, e.g. "48000 / 48000 / 24000" for HE-AAC
-		 * We store only the first value
+		 * Some tracks show several values, e.g. "48000 / 48000 / 24000" for HE-AAC.
+		 * We store only the first value.
 		 */
 		if (value.indexOf('/') > -1) {
 			value = value.substring(0, value.indexOf('/'));
@@ -823,7 +836,7 @@ public class LibMediaInfoParser {
 	}
 
 	/**
-	 * @deprecated use trim()
+	 * @deprecated use trim().
 	 */
 	@Deprecated
 	public static String getFlavor(String value) {
