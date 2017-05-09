@@ -26,6 +26,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
@@ -89,6 +91,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private HelpTab ht;
 	private PluginTab pt;
 	private AbstractButton reload;
+	private AbstractButton webinterface;
 	private JLabel status;
 	private static Object lookAndFeelInitializedLock = new Object();
 	private static boolean lookAndFeelInitialized = false;
@@ -389,6 +392,23 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.setRollover(true);
 
 		toolBar.add(new JPanel());
+
+		if (PMS.getConfiguration().useWebInterface()) {
+			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-webinterface.png");
+			webinterface.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						Desktop.getDesktop().browse(new URI(PMS.get().getWebInterface().getUrl()));
+					} catch (IOException | URISyntaxException e2) {
+						LOGGER.trace("Unable to open the given URI: " + PMS.get().getWebInterface().getUrl() + ".");
+					}
+				}
+			});
+			webinterface.setToolTipText(Messages.getString("LooksFrame.30"));
+			toolBar.add(webinterface);
+		}
+
 		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
 		reload.addActionListener(new ActionListener() {
 			@Override
@@ -398,6 +418,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		toolBar.add(reload);
+
 		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
 		quit.addActionListener(new ActionListener() {
@@ -415,6 +436,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		// Apply the orientation to the toolbar and all components in it
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		toolBar.applyComponentOrientation(orientation);
+		toolBar.setBorder(new EmptyBorder(new Insets(8,0,0,0)));
 
 		panel.add(toolBar, BorderLayout.NORTH);
 		panel.add(buildMain(), BorderLayout.CENTER);
