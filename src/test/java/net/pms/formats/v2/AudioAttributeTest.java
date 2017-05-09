@@ -1,5 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
+ * PS3 Media Server, for streaming any media to your PS3.
  * Copyright (C) 2012  I. Sokolov
  *
  * This program is free software; you can redistribute it and/or
@@ -25,10 +25,12 @@ import org.junit.Test;
 public class AudioAttributeTest {
 	@Test
 	public void testGetAudioAttributeByLibMediaInfoKeyValuePair_matchingKeyValuePairs() throws Exception {
+		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("BitRate                          : 8000")).isEqualTo(BITRATE);
 		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Channel(s)                       : 6")).isEqualTo(CHANNELS_NUMBER);
 		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair(" Channel(s):6")).isEqualTo(CHANNELS_NUMBER);
 		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Video_Delay                      : 0")).isEqualTo(DELAY);
 		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("SamplingRate                     : 48000")).isEqualTo(SAMPLE_FREQUENCY);
+		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("BitDepth                         : 16")).isEqualTo(BITS_PERSAMPLE);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

@@ -1,5 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
+ * PS3 Media Server, for streaming any media to your PS3.
  * Copyright (C) 2012  I. Sokolov
  *
  * This program is free software; you can redistribute it and/or
@@ -29,9 +29,11 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * boolean getLargerValue, Integer defaultValue, Integer minimumValue)
  */
 public enum AudioAttribute {
+	BITRATE (set("BitRate"), true, true, 8000, 1),
 	CHANNELS_NUMBER (set("Channel(s)"), true, true, 2, 1),
 	DELAY (set("Video_Delay"), false, false, 0, null),
-	SAMPLE_FREQUENCY (set("SamplingRate"), true, true, 48000, 1);
+	SAMPLE_FREQUENCY (set("SamplingRate"), true, true, 48000, 1),
+	BITS_PERSAMPLE (set("BitDepth"), true, true, 16, 1);
 
 	private final Set<String> libMediaInfoKeys;
 	private final boolean multipleValuesPossible;
