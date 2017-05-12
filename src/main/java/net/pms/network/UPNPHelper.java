@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import net.pms.PMS;
@@ -166,10 +167,12 @@ public class UPNPHelper extends UPNPControl {
 
 		String msg = discovery.toString();
 
-		if (st.equals(lastSearch)) {
-			LOGGER.trace("Resending last discovery [" + host + ":" + port + "]");
-		} else {
-			LOGGER.trace("Sending discovery [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+		if (LOGGER.isTraceEnabled()) {
+			if (st.equals(lastSearch)) {
+				LOGGER.trace("Resending last discovery [" + host + ":" + port + "]");
+			} else {
+				LOGGER.trace("Sending discovery [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+			}
 		}
 
 		sendReply(host, port, msg);
@@ -352,7 +355,7 @@ public class UPNPHelper extends UPNPControl {
 	 * @param socket the socket
 	 * @param nt the nt
 	 * @param message the message
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		sendMessage(socket, nt, message, false);
@@ -467,7 +470,8 @@ public class UPNPHelper extends UPNPControl {
 						InetAddress upnpAddress = getUPNPAddress();
 						multicastSocket.joinGroup(upnpAddress);
 
-						int M_SEARCH = 1, NOTIFY = 2;
+						final int M_SEARCH = 1;
+						final int NOTIFY = 2;
 						InetAddress lastAddress = null;
 						int lastPacketType = 0;
 
@@ -476,7 +480,7 @@ public class UPNPHelper extends UPNPControl {
 							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 							multicastSocket.receive(receivePacket);
 
-							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
+							String s = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
 
 							InetAddress address = receivePacket.getAddress();
 							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
@@ -487,8 +491,8 @@ public class UPNPHelper extends UPNPControl {
 								if (configuration.getIpFiltering().allowed(address)) {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
-									if (!redundant) {
-										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
+									if (!redundant && LOGGER.isTraceEnabled()) {
+										LOGGER.trace("Received a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
 									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -512,7 +516,7 @@ public class UPNPHelper extends UPNPControl {
 								}
 							// Don't log redundant notify messages
 							} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
+								LOGGER.trace("Received a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
 							}
 							lastAddress = address;
 							lastPacketType = packetType;
