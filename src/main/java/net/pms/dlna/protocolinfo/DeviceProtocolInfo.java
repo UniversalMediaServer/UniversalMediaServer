@@ -33,6 +33,7 @@ import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
 import org.apache.commons.lang3.text.translate.LookupTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNAImageProfile;
 import net.pms.util.ParseException;
 
 /**
@@ -109,6 +110,9 @@ public class DeviceProtocolInfo implements Serializable {
 	/** The {@link Map} of {@link ProtocolInfo} {@link Set}s. */
 	protected final HashMap<DeviceProtocolInfoSource<?>, SortedSet<ProtocolInfo>> protocolInfoSets = new HashMap<>();
 
+	/** The image profile set. */
+	protected final SortedSet<DLNAImageProfile> imageProfileSet = new TreeSet<>();
+
 	/**
 	 * Creates a new empty instance.
 	 */
@@ -171,10 +175,29 @@ public class DeviceProtocolInfo implements Serializable {
 					LOGGER.trace("", e);
 				}
 			}
+			updateImageProfiles();
 		} finally {
 			setsLock.writeLock().unlock();
 		}
 		return result;
+	}
+
+	/**
+	 * Re-parses {@code protocolInfoSet} and stores the results in
+	 * {@code imageProfileSet}.
+	 */
+	protected void updateImageProfiles() {
+		setsLock.writeLock().lock();
+		try {
+			imageProfileSet.clear();
+			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
+				for (ProtocolInfo protocolInfo : set) {
+					imageProfileSet.addAll(DLNAImageProfile.toDLNAImageProfiles(protocolInfo));
+				}
+			}
+		} finally {
+			setsLock.writeLock().unlock();
+		}
 	}
 
 
@@ -415,6 +438,7 @@ public class DeviceProtocolInfo implements Serializable {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
 			if (set != null) {
 				set.clear();
+				updateImageProfiles();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -429,6 +453,7 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.writeLock().lock();
 		try {
 			protocolInfoSets.clear();
+			imageProfileSet.clear();
 		} finally {
 			setsLock.writeLock().unlock();
 		}
@@ -458,6 +483,7 @@ public class DeviceProtocolInfo implements Serializable {
 			}
 
 			if (currentSet.add(protocolInfo)) {
+				updateImageProfiles();
 				return true;
 			}
 			return false;
@@ -490,6 +516,7 @@ public class DeviceProtocolInfo implements Serializable {
 			}
 
 			if (currentSet.addAll(collection)) {
+				updateImageProfiles();
 				return true;
 			}
 			return false;
@@ -517,6 +544,7 @@ public class DeviceProtocolInfo implements Serializable {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
 			if (set != null) {
 				if (set.remove(protocolInfo)) {
+					updateImageProfiles();
 					return true;
 				}
 			}
@@ -545,6 +573,9 @@ public class DeviceProtocolInfo implements Serializable {
 			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
 				result |= set != null && set.remove(protocolInfo);
 			}
+			if (result) {
+				updateImageProfiles();
+			}
 		} finally {
 			setsLock.writeLock().unlock();
 		}
@@ -572,6 +603,7 @@ public class DeviceProtocolInfo implements Serializable {
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
 			if (set != null && set.removeAll(collection)) {
+				updateImageProfiles();
 				return true;
 			}
 			return false;
@@ -601,6 +633,9 @@ public class DeviceProtocolInfo implements Serializable {
 			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
 				result |= set != null && set.removeAll(collection);
 			}
+			if (result) {
+				updateImageProfiles();
+			}
 		} finally {
 			setsLock.writeLock().unlock();
 		}
@@ -629,6 +664,7 @@ public class DeviceProtocolInfo implements Serializable {
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
 			if (set != null && set.retainAll(collection)) {
+				updateImageProfiles();
 				return true;
 			}
 			return false;
@@ -660,10 +696,105 @@ public class DeviceProtocolInfo implements Serializable {
 			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
 				result |= set != null && set.retainAll(collection);
 			}
+			if (result) {
+				updateImageProfiles();
+			}
 		} finally {
 			setsLock.writeLock().unlock();
 		}
 		return result;
+	}
+
+
+	// imageProfileSet "java.util.Collection methods" getters
+
+
+	/**
+	 * Returns the number of {@link DLNAImageProfile} elements. If this contains
+	 * more than {@link Integer#MAX_VALUE} elements, returns
+	 * {@link Integer#MAX_VALUE}.
+	 *
+	 * @return The number of {@link DLNAImageProfile} elements.
+	 */
+	public int imageProfilesSize() {
+		setsLock.readLock().lock();
+		try {
+			return imageProfileSet.size();
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Checks if is image profiles empty.
+	 *
+	 * @return {@code true} if this contains no {@link DLNAImageProfile}
+	 *         elements.
+	 */
+	public boolean isImageProfilesEmpty() {
+		setsLock.readLock().lock();
+		try {
+			return imageProfileSet.isEmpty();
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns {@code true} if this contains the specified
+	 * {@link DLNAImageProfile} instance.
+	 *
+	 * @param imageProfile the {@link DLNAImageProfile} instance whose presence
+	 *            is to be tested.
+	 * @return {@code true} if this contains the specified
+	 *         {@link DLNAImageProfile} instance.
+	 */
+	public boolean imageProfilesContains(DLNAImageProfile imageProfile) {
+		setsLock.readLock().lock();
+		try {
+			return imageProfileSet.contains(imageProfile);
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns an array containing all the {@link DLNAImageProfile} instances in
+	 * an unspecified order.
+	 * <p>
+	 * The returned array will be "safe" in that no references to it are
+	 * maintained. (In other words, this method must allocate a new array). The
+	 * caller is thus free to modify the returned array.
+	 *
+	 * @return An array containing all the {@link DLNAImageProfile} instances.
+	 */
+	public DLNAImageProfile[] imageProfilesToArray() {
+		setsLock.readLock().lock();
+		try {
+			return imageProfileSet.toArray(new DLNAImageProfile[imageProfileSet.size()]);
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+
+	/**
+	 * Returns {@code true} if this contains all the {@link DLNAImageProfile} instances in the
+	 * specified collection.
+	 *
+	 * @param collection a {@link Collection} to be checked for containment.
+	 * @return {@code true} if this collection contains all of the {@link DLNAImageProfile} instances in
+	 *         {@code collection}.
+	 *
+	 * @see #imageProfilesContains(DLNAImageProfile)
+	 */
+	public boolean imageProfilesContainsAll(Collection<DLNAImageProfile> collection) {
+		setsLock.readLock().lock();
+		try {
+			return imageProfileSet.containsAll(collection);
+		} finally {
+			setsLock.readLock().unlock();
+		}
 	}
 
 	@Override
@@ -725,6 +856,14 @@ public class DeviceProtocolInfo implements Serializable {
 							}
 							sb.append("\n");
 						}
+					}
+				}
+			}
+			if (imageProfileSet != null && !imageProfileSet.isEmpty()) {
+				sb.append("DLNAImageProfile entries:\n");
+				for (DLNAImageProfile imageProfile : imageProfileSet) {
+					if (imageProfile != null) {
+						sb.append("  ").append(imageProfile).append("\n");
 					}
 				}
 			}
