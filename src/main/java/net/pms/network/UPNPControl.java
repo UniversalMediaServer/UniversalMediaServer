@@ -13,6 +13,7 @@ import net.pms.PMS;
 import static net.pms.network.UPNPHelper.sleep;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
+import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
@@ -156,6 +157,7 @@ public class UPNPControl {
 		private Thread monitor;
 		public volatile boolean active, renew;
 		public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
+		public volatile PanasonicDmpProfiles panasonicDmpProfiles;
 
 		public Renderer(String uuid) {
 			this();

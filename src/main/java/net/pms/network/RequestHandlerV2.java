@@ -38,6 +38,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -145,6 +146,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
 				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+			} else if (renderer != null && name.equals("X-PANASONIC-DMP-Profile")) {
+				PanasonicDmpProfiles.parsePanasonicDmpProfiles(headers.get(name), renderer);
 			}
 
 			try {
