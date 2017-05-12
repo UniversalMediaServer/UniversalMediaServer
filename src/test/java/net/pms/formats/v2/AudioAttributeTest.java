@@ -25,7 +25,7 @@ import org.junit.Test;
 public class AudioAttributeTest {
 	@Test
 	public void testGetAudioAttributeByLibMediaInfoKeyValuePair_matchingKeyValuePairs() throws Exception {
-		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("BitRate                          : 8000")).isEqualTo(BITRATE);
+		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("BitRate                          : " + AudioProperties.BITRATE_DEFAULT)).isEqualTo(BITRATE);
 		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Channel(s)                       : 6")).isEqualTo(CHANNELS_NUMBER);
 		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair(" Channel(s):6")).isEqualTo(CHANNELS_NUMBER);
 		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Video_Delay                      : 0")).isEqualTo(DELAY);

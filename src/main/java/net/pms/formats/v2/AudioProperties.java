@@ -38,11 +38,17 @@ public class AudioProperties {
 	private static final Pattern intPattern = Pattern.compile("([\\+-]?\\d+)([eE][\\+-]?\\d+)?");
 //	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
 
-	private int bitRate = 8000;
-	private int numberOfChannels = 2;
-	private int audioDelay = 0;
-	private int sampleFrequency = 48000;
-	private int bitsperSample = 16;
+	public static final int BITRATE_DEFAULT = 8000;
+	public static final int NUMBEROFCHANNELS_DEFAULT = 2;
+	public static final int BITSPERSAMPLE_DEFAULT = 16;
+	public static final int AUDIODELAY_DEFAULT = 0;
+	public static final int SAMPLEFREQUENCY_DEFAULT = 48000;
+
+	private int bitRate;
+	private int numberOfChannels;
+	private int bitsperSample;
+	private int audioDelay;
+	private int sampleFrequency;
 
 	public int getAttribute(AudioAttribute attribute) {
 		switch (attribute) {
@@ -64,10 +70,11 @@ public class AudioProperties {
 	/**
 	 * Get bitrate for this audio track.
 	 *
-	 * @return bitrate (default is 8000).
+	 * @return The bitrate, or {@link #BITRATE_DEFAULT} if {@code bitRate} is
+	 *         invalid.
 	 */
 	public int getBitRate() {
-		return bitRate;
+		return bitRate > 0 ? bitRate : BITRATE_DEFAULT;
 	}
 
 	/**
@@ -76,9 +83,6 @@ public class AudioProperties {
 	 * @param bitrate to set.
 	 */
 	public void setBitRate(int bitRate) {
-		if (bitRate < 1) {
-			throw new IllegalArgumentException("Bitrate can't be less than 1.");
-		}
 		this.bitRate = bitRate;
 	}
 
@@ -94,10 +98,11 @@ public class AudioProperties {
 	/**
 	 * Get number of channels for this audio track.
 	 *
-	 * @return number of channels (default is 2).
+	 * @return The number of channels, or {@link #NUMBEROFCHANNELS_DEFAULT} if {@code numberOfChannels} is
+	 *         invalid.
 	 */
 	public int getNumberOfChannels() {
-		return numberOfChannels;
+		return numberOfChannels > 0 ? numberOfChannels : NUMBEROFCHANNELS_DEFAULT;
 	}
 
 	/**
@@ -106,9 +111,6 @@ public class AudioProperties {
 	 * @param numberOfChannels number of channels to set.
 	 */
 	public void setNumberOfChannels(int numberOfChannels) {
-		if (numberOfChannels < 1) {
-			throw new IllegalArgumentException("Channel number can't be less than 1.");
-		}
 		this.numberOfChannels = numberOfChannels;
 	}
 
@@ -124,10 +126,11 @@ public class AudioProperties {
 	/**
 	 * Get bits per sample for this audio track.
 	 *
-	 * @return bits per sample (default is 16).
+	 * @return The bits per sample, or {@link #BITSPERSAMPLE_DEFAULT} if {@code bitsperSample} is
+	 *         invalid.
 	 */
 	public int getBitsperSample() {
-		return bitsperSample;
+		return bitsperSample > 0 ? bitsperSample : BITSPERSAMPLE_DEFAULT;
 	}
 
 	/**
@@ -136,9 +139,6 @@ public class AudioProperties {
 	 * @param bitsperSample bits per sample to set.
 	 */
 	public void setBitsperSample(int bitsperSample) {
-		if (bitsperSample < 1) {
-			throw new IllegalArgumentException("Bits per sample can't be less than 1.");
-		}
 		this.bitsperSample = bitsperSample;
 	}
 
@@ -154,7 +154,8 @@ public class AudioProperties {
 	/**
 	 * Get delay for this audio track.
 	 *
-	 * @return audio delay in ms. May be negative.
+	 * @return The audio delay, or {@link #AUDIODELAY_DEFAULT} if {@code audioDelay} is
+	 *         invalid.
 	 */
 	public int getAudioDelay() {
 		return audioDelay;
@@ -181,21 +182,19 @@ public class AudioProperties {
 	/**
 	 * Get sample frequency for this audio track.
 	 *
-	 * @return sample frequency in Hz.
+	 * @return The sample frequency, or {@link #SAMPLEFREQUENCY_DEFAULT} if {@code sampleFrequency} is
+	 *         invalid.
 	 */
 	public int getSampleFrequency() {
-		return sampleFrequency;
+		return sampleFrequency > 0 ? sampleFrequency : SAMPLEFREQUENCY_DEFAULT;
 	}
 
 	/**
 	 * Set sample frequency for this audio track.
 	 *
-	 * @param sampleFrequency sample frequency in Hz
+	 * @param sampleFrequency sample frequency in Hz.
 	 */
 	public void setSampleFrequency(int sampleFrequency) {
-		if (sampleFrequency < 1) {
-			throw new IllegalArgumentException("Sample frequency can't be less than 1 Hz.");
-		}
 		this.sampleFrequency = sampleFrequency;
 	}
 
@@ -210,8 +209,8 @@ public class AudioProperties {
 
 	public static int getChannelsNumberFromLibMediaInfo(String mediaInfoValue) {
 		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number 2.");
-			return 2;
+			LOGGER.warn("Empty value passed in. Returning default number {}.", NUMBEROFCHANNELS_DEFAULT);
+			return NUMBEROFCHANNELS_DEFAULT;
 		}
 
 		// examples of libmediainfo  (mediainfo --Full --Language=raw file):
@@ -221,30 +220,26 @@ public class AudioProperties {
 
 		int result = -1;
 		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
-		while (intMatcher.find()) {
+		if (intMatcher.find()) {
 			String matchResult = intMatcher.group();
 			try {
-				int currentResult = Integer.parseInt(matchResult);
-				if (currentResult > result) {
-					result = currentResult;
-				}
+				result = Integer.parseInt(matchResult);
 			} catch (NumberFormatException ex) {
 				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
 			}
 		}
 
 		if (result <= 0) {
-			LOGGER.warn("Can't parse value {}. Returning default number 2.", mediaInfoValue);
-			return 2;
-		} else {
-			return result;
+			LOGGER.warn("Can't parse number of channels {}. Returning default value {}.", mediaInfoValue, NUMBEROFCHANNELS_DEFAULT);
+			return NUMBEROFCHANNELS_DEFAULT;
 		}
+		return result;
 	}
 
 	public static int getBitsperSampleFromLibMediaInfo(String mediaInfoValue) {
 		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number 16.");
-			return 16;
+			LOGGER.warn("Empty value passed in. Returning default number {}.", BITSPERSAMPLE_DEFAULT);
+			return BITSPERSAMPLE_DEFAULT;
 		}
 
 		// examples of libmediainfo  (mediainfo --Full --Language=raw file):
@@ -254,31 +249,27 @@ public class AudioProperties {
 
 		int result = -1;
 		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
-		while (intMatcher.find()) {
+		if (intMatcher.find()) {
 			String matchResult = intMatcher.group();
 			try {
-				int currentResult = Integer.parseInt(matchResult);
-				if (currentResult > result) {
-					result = currentResult;
-				}
+				result = Integer.parseInt(matchResult);
 			} catch (NumberFormatException ex) {
 				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
 			}
 		}
 
 		if (result <= 0) {
-			LOGGER.warn("Can't parse value {}. Returning default number 16.", mediaInfoValue);
-			return 16;
-		} else {
-			return result;
+			LOGGER.warn("Can't parse bits per sample {}. Returning default value {}.", mediaInfoValue, BITSPERSAMPLE_DEFAULT);
+			return BITSPERSAMPLE_DEFAULT;
 		}
+		return result;
 	}
 
 
 	public static int getAudioDelayFromLibMediaInfo(String mediaInfoValue) {
 		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number 0.");
-			return 0;
+			LOGGER.warn("Empty value passed in. Returning default number {}.", AUDIODELAY_DEFAULT);
+			return AUDIODELAY_DEFAULT;
 		}
 
 		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
@@ -299,8 +290,8 @@ public class AudioProperties {
 
 	public static int getSampleFrequencyFromLibMediaInfo(String mediaInfoValue) {
 		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number 48000 Hz.");
-			return 48000;
+			LOGGER.warn("Empty value passed in. Returning default number {}.", SAMPLEFREQUENCY_DEFAULT);
+			return SAMPLEFREQUENCY_DEFAULT;
 		}
 
 		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
@@ -309,30 +300,26 @@ public class AudioProperties {
 
 		int result = -1;
 		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
-		while (intMatcher.find()) {
+		if (intMatcher.find()) {
 			String matchResult = intMatcher.group();
 			try {
-				int currentResult = Integer.parseInt(matchResult);
-				if (currentResult > result) {
-					result = currentResult;
-				}
+				result = Integer.parseInt(matchResult);
 			} catch (NumberFormatException ex) {
 				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
 			}
 		}
 
 		if (result < 1) {
-			LOGGER.warn("Can't parse value {}. Returning default number 48000 Hz.", mediaInfoValue);
-			return 48000;
-		} else {
-			return result;
+			LOGGER.warn("Can't parse sample frequency {}. Returning default value {}.", mediaInfoValue, SAMPLEFREQUENCY_DEFAULT);
+			return SAMPLEFREQUENCY_DEFAULT;
 		}
+		return result;
 	}
 
 	public static int getBitRateFromLibMediaInfo(String mediaInfoValue) {
 		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number 8000.");
-			return 8000;
+			LOGGER.warn("Empty value passed in. Returning default number {}.", BITRATE_DEFAULT);
+			return BITRATE_DEFAULT;
 		}
 
 		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
@@ -341,24 +328,20 @@ public class AudioProperties {
 
 		int result = -1;
 		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
-		while (intMatcher.find()) {
+		if (intMatcher.find()) {
 			String matchResult = intMatcher.group();
 			try {
-				int currentResult = Integer.parseInt(matchResult);
-				if (currentResult > result) {
-					result = currentResult;
-				}
+				result = Integer.parseInt(matchResult);
 			} catch (NumberFormatException ex) {
 				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
 			}
 		}
 
 		if (result < 1) {
-			LOGGER.warn("Can't parse value {}. Returning default number 8000.", mediaInfoValue);
-			return 8000;
-		} else {
-			return result;
+			LOGGER.warn("Can't parse bitrate {}. Returning default value {}.", mediaInfoValue, BITRATE_DEFAULT);
+			return BITRATE_DEFAULT;
 		}
+		return result;
 	}
 
 	@Override
