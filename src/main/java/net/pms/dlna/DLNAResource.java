@@ -49,6 +49,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
+import net.pms.network.UPNPControl.Renderer;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -2430,7 +2431,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		MediaType mediaType = media != null ? media.getMediaType() : MediaType.UNKNOWN;
 		if (!isFolder && mediaType == MediaType.IMAGE) {
-			appendImage(sb);
+			appendImage(sb, mediaRenderer);
 		} else if (!isFolder) {
 			int indexCount = 1;
 			if (mediaRenderer.isDLNALocalizationRequired()) {
@@ -2632,7 +2633,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (!(isFolder && !mediaRenderer.isSendFolderThumbnails())) {
 			if (mediaType != MediaType.IMAGE) {
-				appendThumbnail(sb, mediaType);
+				appendThumbnail(sb, mediaType, mediaRenderer);
 			}
 		}
 
@@ -2686,9 +2687,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * {@code upnp:albumArtURI} entries for the image.
 	 *
 	 * @param sb The {@link StringBuilder} to append the elements to.
+	 * @param renderer the {@link Renderer} used for filtering or {@code null}
+	 *            for no filtering.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private void appendImage(StringBuilder sb) {
+	private void appendImage(StringBuilder sb, Renderer renderer) {
 		/*
 		 * There's no technical difference between the image itself and the
 		 * thumbnail for an object.item.imageItem, they are all simply listed
@@ -2709,16 +2712,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			getMedia() != null && getMedia().getThumb() != null && getMedia().getThumb().getImageInfo() != null ?
 				getMedia().getThumb().getImageInfo() : null;
 
-		// Only include GIF elements if the source is a GIF
-		boolean includeGIF = imageInfo != null && imageInfo.getFormat() == ImageFormat.GIF;
-
-		List<DLNAImageResElement> resElements = new ArrayList<>();
+		// Only include GIF elements if the source is a GIF and it's supported by the renderer.
+		boolean includeGIF =
+			imageInfo != null &&
+			imageInfo.getFormat() == ImageFormat.GIF &&
+			DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.GIF_LRG, renderer);
 
 		// Add elements in any order, it's sorted by priority later
-		resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_TN, thumbnailImageInfo != null ? thumbnailImageInfo : imageInfo, true));
+		List<DLNAImageResElement> resElements = new ArrayList<>();
+
+		// Always offer JPEG_TN as per DLNA standard
 		resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_TN, thumbnailImageInfo != null ? thumbnailImageInfo : imageInfo, true));
+		if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_TN, renderer)) {
+			resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_TN, thumbnailImageInfo != null ? thumbnailImageInfo : imageInfo, true));
+		}
 		if (imageInfo != null) {
-			if (imageInfo.getWidth() > 0 && imageInfo.getHeight() > 0) {
+			if (
+				DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_RES_H_V, renderer) &&
+				imageInfo.getWidth() > 0 &&
+				imageInfo.getHeight() > 0
+			) {
 				// Offer the exact resolution as JPEG_RES_H_V
 				DLNAImageProfile exactResolution =
 					DLNAImageProfile.createJPEG_RES_H_V(imageInfo.getWidth(), imageInfo.getHeight());
@@ -2733,10 +2746,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DLNAImageProfile.JPEG_SM.useThumbnailSource(imageInfo, thumbnailImageInfo)
 			));
 			if (!DLNAImageProfile.PNG_TN.isResolutionCorrect(imageInfo)) {
-				resElements.add(new DLNAImageResElement(
-					DLNAImageProfile.PNG_LRG, imageInfo,
-					DLNAImageProfile.PNG_LRG.useThumbnailSource(imageInfo, thumbnailImageInfo)
-				));
+				if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_LRG, renderer)) {
+					resElements.add(new DLNAImageResElement(
+						DLNAImageProfile.PNG_LRG, imageInfo,
+						DLNAImageProfile.PNG_LRG.useThumbnailSource(imageInfo, thumbnailImageInfo)
+					));
+				}
 				if (includeGIF) {
 					resElements.add(new DLNAImageResElement(
 						DLNAImageProfile.GIF_LRG, imageInfo,
@@ -2744,24 +2759,34 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					));
 				}
 				if (!DLNAImageProfile.JPEG_SM.isResolutionCorrect(imageInfo)) {
-					resElements.add(new DLNAImageResElement(
-						DLNAImageProfile.JPEG_MED, imageInfo,
-						DLNAImageProfile.JPEG_MED.useThumbnailSource(imageInfo, thumbnailImageInfo)
-					));
-					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo)) {
+					if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_MED, renderer)) {
 						resElements.add(new DLNAImageResElement(
-							DLNAImageProfile.JPEG_LRG, imageInfo,
-							DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInfo)
+							DLNAImageProfile.JPEG_MED, imageInfo,
+							DLNAImageProfile.JPEG_MED.useThumbnailSource(imageInfo, thumbnailImageInfo)
 						));
+					}
+					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo)) {
+						if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_LRG, renderer)) {
+							resElements.add(new DLNAImageResElement(
+								DLNAImageProfile.JPEG_LRG, imageInfo,
+								DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInfo)
+							));
+						}
 					}
 				}
 			}
 		} else {
 			// This shouldn't normally be the case, parsing must have failed or
 			// isn't finished yet so we just make a generic offer.
+
+			// Always offer JPEG_SM for images as per DLNA standard
 			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_SM, null, false));
-			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, null, false));
-			resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_LRG, null, false));
+			if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer)) {
+				resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, null, false));
+			}
+			if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_LRG, renderer)) {
+				resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_LRG, null, false));
+			}
 			LOGGER.debug("Warning: Image \"{}\" isn't parsed when DIDL-Lite is generated", this.getName());
 		}
 
@@ -2790,11 +2815,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Generate and append the thumbnail {@code res} and
 	 * {@code upnp:albumArtURI} entries for the thumbnail.
 	 *
-	 * @param mediaType The {@link MediaType} of this {@link DLNAResource}.
-	 * @param sb The {@link StringBuilder} to append the response to.
+	 * @param sb the {@link StringBuilder} to append the response to.
+	 * @param mediaType the {@link MediaType} of this {@link DLNAResource}.
+	 * @param renderer the {@link Renderer} used for filtering or {@code null}
+	 *            for no filtering.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private void appendThumbnail(StringBuilder sb, MediaType mediaType) {
+	private void appendThumbnail(StringBuilder sb, MediaType mediaType, Renderer renderer) {
 
 		/*
 		 * JPEG_TN = Max 160 x 160; EXIF Ver.1.x or later or JFIF 1.02; SRGB or uncalibrated
@@ -2858,20 +2885,33 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				getMedia() != null && getMedia().getThumb() != null && getMedia().getThumb().getImageInfo() != null ?
 					getMedia().getThumb().getImageInfo() : null;
 
-			// Only include GIF elements if the source is a GIF
-			boolean includeGIF = imageInfo != null && imageInfo.getFormat() == ImageFormat.GIF;
-
-			List<DLNAImageResElement> resElements = new ArrayList<>();
-
+			// Only include GIF elements if the source is a GIF and it's supported by the renderer.
+			boolean includeGIF =
+				imageInfo != null &&
+				imageInfo.getFormat() == ImageFormat.GIF &&
+				DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.GIF_LRG, renderer);
 
 			// Add elements in any order, it's sorted by priority later
+			List<DLNAImageResElement> resElements = new ArrayList<>();
+
+			// Always include JPEG_TN as per DLNA standard
 			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_TN, imageInfo, true));
-			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_SM, imageInfo, true));
-			resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_TN, imageInfo, true));
-			resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_LRG, imageInfo, true));
+			if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_SM, renderer)) {
+				resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_SM, imageInfo, true));
+			}
+			if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_TN, renderer)) {
+				resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_TN, imageInfo, true));
+			}
+			if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_LRG, renderer)) {
+				resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_LRG, imageInfo, true));
+			}
 
 			if (imageInfo != null) {
-				if (imageInfo.getWidth() > 0 && imageInfo.getHeight() > 0) {
+				if (
+					DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_RES_H_V, renderer) &&
+					imageInfo.getWidth() > 0 &&
+					imageInfo.getHeight() > 0
+				) {
 					// Offer the exact resolution as JPEG_RES_H_V
 					DLNAImageProfile exactResolution =
 						DLNAImageProfile.createJPEG_RES_H_V(imageInfo.getWidth(), imageInfo.getHeight());
@@ -2881,9 +2921,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					resElements.add(new DLNAImageResElement(DLNAImageProfile.GIF_LRG, imageInfo, true));
 				}
 				if (!DLNAImageProfile.JPEG_SM.isResolutionCorrect(imageInfo)) {
-					resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_MED, imageInfo, true));
+					if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_MED, renderer)) {
+						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_MED, imageInfo, true));
+					}
 					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo)) {
-						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo, true));
+						if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer)) {
+							resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo, true));
+						}
 					}
 				}
 			}

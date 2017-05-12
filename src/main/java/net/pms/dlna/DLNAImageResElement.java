@@ -20,9 +20,13 @@
 package net.pms.dlna;
 
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
+import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
+import net.pms.network.UPNPControl.Renderer;
 
 /**
  * This class is used to represent a {@code <res>} element representing an image
@@ -353,5 +357,50 @@ public class DLNAImageResElement {
 				return 0;
 			}
 		};
+	}
+
+	/**
+	 * Filter out {@link DLNAImageResElement}s not supported by {@code renderer}.
+	 *
+	 * @param resElements the {@link List} of {@link DLNAImageResElement}s to filter.
+	 * @param renderer the {@link Renderer} to use for filtering.
+	 */
+	public static void filterResElements(List<DLNAImageResElement> resElements, Renderer renderer) {
+		if (
+			renderer == null ||
+			renderer.deviceProtocolInfo == null ||
+			renderer.deviceProtocolInfo.isImageProfilesEmpty()
+		) {
+			return;
+		}
+		Iterator<DLNAImageResElement> iterator = resElements.iterator();
+		while (iterator.hasNext()) {
+			DLNAImageResElement resElement = iterator.next();
+			if (!renderer.deviceProtocolInfo.imageProfilesContains(resElement.getProfile())) {
+				iterator.remove();
+			}
+		}
+	}
+
+	/**
+	 * Checks whether a given {@link DLNAImageProfile} is supported by
+	 * {@code renderer} according to acquired {@link ProtocolInfo} information.
+	 * If no information or no supported image profiles are available, it's
+	 * considered supported. The reason is that not all renderers provide this
+	 * information, which means that all must be assumed supported as opposed to
+	 * none.
+	 *
+	 * @param profile the {@link DLNAImageProfile} whose support to examine.
+	 * @param renderer the {@link Renderer} for which to check supported
+	 *            {@link DLNAImageProfile}s.
+	 * @return {@code true} if {@code profile} is supported or no image profile
+	 *         information is available, {@code false} otherwise.
+	 */
+	public static boolean isImageProfileSupported(DLNAImageProfile profile, Renderer renderer) {
+		return
+			renderer == null ||
+			renderer.deviceProtocolInfo == null ||
+			renderer.deviceProtocolInfo.isImageProfilesEmpty() ||
+			renderer.deviceProtocolInfo.imageProfilesContains(profile);
 	}
 }
