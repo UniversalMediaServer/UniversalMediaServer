@@ -230,6 +230,8 @@ public interface ProtocolInfoAttribute extends Serializable {
 				return DLNAOrgPlaySpeeds.FACTORY.getPlaySpeeds(attributeValue);
 			} else if (DLNAOrgProfileName.NAME.equals(attributeName)) {
 				return DLNAOrgProfileName.FACTORY.getProfileName(attributeValue);
+			} else if (PanasonicComProfileName.NAME.equals(attributeName)) {
+				return PanasonicComProfileName.FACTORY.getProfileName(attributeValue);
 			} else if (attributeName.getName().contains("_PN")) {
 				return DefaultGenericProfileName.FACTORY.getProfileName(attributeName, attributeValue);
 			}
@@ -379,6 +381,8 @@ public interface ProtocolInfoAttribute extends Serializable {
 				return flags;
 			} else if (attributeName == DLNAOrgProfileName.NAME) {
 				return DLNAOrgProfileName.FACTORY.createProfileName(attributeValue);
+			} else if (PanasonicComProfileName.NAME.equals(attributeName)) {
+				return PanasonicComProfileName.FACTORY.createProfileName(attributeValue);
 			} else if (attributeName.getName().contains("_PN")) {
 				return DefaultGenericProfileName.FACTORY.createProfileName(attributeName, attributeValue);
 			}

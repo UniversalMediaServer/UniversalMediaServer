@@ -36,6 +36,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
@@ -141,6 +142,8 @@ public class RequestHandler implements Runnable {
 						return;
 					}
 					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+				} else if (renderer != null && headerLine.startsWith("X-PANASONIC-DMP-Profile:")) {
+					PanasonicDmpProfiles.parsePanasonicDmpProfiles(headerLine, renderer);
 				}
 
 				try {
