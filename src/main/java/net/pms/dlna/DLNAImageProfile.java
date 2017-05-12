@@ -23,12 +23,19 @@ import java.awt.Dimension;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.fourthline.cling.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.protocolinfo.DLNAOrgProfileName;
+import net.pms.dlna.protocolinfo.KnownDLNAOrgProfileName;
+import net.pms.dlna.protocolinfo.MimeType;
+import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.image.ColorSpaceType;
 import net.pms.image.GIFInfo;
 import net.pms.image.ImageFormat;
@@ -41,7 +48,6 @@ import net.pms.image.JPEGSubsamplingNotation;
 import net.pms.image.PNGInfo;
 import net.pms.image.ExifInfo.ExifColorSpace;
 import net.pms.image.PNGInfo.InterlaceMethod;
-
 
 /**
  * Definition and validation of the different DLNA media profiles for images.
@@ -57,73 +63,82 @@ import net.pms.image.PNGInfo.InterlaceMethod;
  * is true even if {@code H} and {@code V} are different in the two profiles.
  */
 @SuppressWarnings({"checkstyle:MethodName", "checkstyle:ParameterName"})
-public class DLNAImageProfile implements Serializable {
+public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAImageProfile.class);
 
-	/** Int representation of GIF_LRG. */
-	public static final int GIF_LRG_INT = 1;
+	/** Standard GIF mime-type */
+	public static final MimeType MIMETYPE_GIF = new MimeType("image", "gif");
 
-	/** Int representation of JPEG_LRG. */
-	public static final int JPEG_LRG_INT = 2;
+	/** Standard JPEG mime-type */
+	public static final MimeType MIMETYPE_JPEG = new MimeType("image", "jpeg");
 
-	/** Int representation of JPEG_MED. */
-	public static final int JPEG_MED_INT = 3;
-
-	/** Int representation of JPEG_RES_H_V. */
-	public static final int JPEG_RES_H_V_INT = 4;
-
-	/** Int representation of JPEG_SM. */
-	public static final int JPEG_SM_INT = 5;
-
-	/** Int representation of JPEG_TN. */
-	public static final int JPEG_TN_INT = 6;
-
-	/** Int representation of PNG_LRG. */
-	public static final int PNG_LRG_INT = 7;
-
-	/** Int representation of PNG_TN. */
-	public static final int PNG_TN_INT = 8;
+	/** Standard PNG mime-type */
+	public static final MimeType MIMETYPE_PNG = new MimeType("image", "png");
 
 	/** Integer representation of GIF_LRG. */
-	public static final Integer GIF_LRG_INTEGER = GIF_LRG_INT;
+	public static final int GIF_LRG_INT = 1;
 
 	/** Integer representation of JPEG_LRG. */
-	public static final Integer JPEG_LRG_INTEGER = JPEG_LRG_INT;
+	public static final int JPEG_LRG_INT = 2;
 
 	/** Integer representation of JPEG_MED. */
-	public static final Integer JPEG_MED_INTEGER = JPEG_MED_INT;
+	public static final int JPEG_MED_INT = 3;
 
 	/** Integer representation of JPEG_RES_H_V. */
-	public static final Integer JPEG_RES_H_V_INTEGER = JPEG_RES_H_V_INT;
+	public static final int JPEG_RES_H_V_INT = 4;
 
 	/** Integer representation of JPEG_SM. */
-	public static final Integer JPEG_SM_INTEGER = JPEG_SM_INT;
+	public static final int JPEG_SM_INT = 5;
 
 	/** Integer representation of JPEG_TN. */
-	public static final Integer JPEG_TN_INTEGER = JPEG_TN_INT;
+	public static final int JPEG_TN_INT = 6;
 
 	/** Integer representation of PNG_LRG. */
-	public static final Integer PNG_LRG_INTEGER = PNG_LRG_INT;
+	public static final int PNG_LRG_INT = 7;
 
 	/** Integer representation of PNG_TN. */
-	public static final Integer PNG_TN_INTEGER = PNG_TN_INT;
+	public static final int PNG_TN_INT = 8;
+
+	/** String representation of GIF_LRG. */
+	public static final String GIF_LRG_STRING = "GIF_LRG";
+
+	/** String representation of JPEG_LRG. */
+	public static final String JPEG_LRG_STRING = "JPEG_LRG";
+
+	/** String representation of JPEG_MED. */
+	public static final String JPEG_MED_STRING = "JPEG_MED";
+
+	/** String representation of JPEG_RES_H_V. */
+	public static final String JPEG_RES_H_V_STRING = "JPEG_RES_H_V";
+
+	/** String representation of JPEG_SM. */
+	public static final String JPEG_SM_STRING = "JPEG_SM";
+
+	/** String representation of JPEG_TN. */
+	public static final String JPEG_TN_STRING = "JPEG_TN";
+
+	/** String representation of PNG_LRG. */
+	public static final String PNG_LRG_STRING = "PNG_LRG";
+
+	/** String representation of PNG_TN. */
+	public static final String PNG_TN_STRING = "PNG_TN";
 
 	/**
 	 * {@code GIF_LRG} maximum resolution 1600 x 1200.
 	 */
-	public static final DLNAImageProfile GIF_LRG = new DLNAImageProfile(GIF_LRG_INT, "GIF_LRG", 1600, 1200);
+	public static final DLNAImageProfile GIF_LRG = new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, null);
 
 	/**
 	 * {@code JPEG_LRG} maximum resolution 4096 x 4096.
 	 */
-	public static final DLNAImageProfile JPEG_LRG = new DLNAImageProfile(JPEG_LRG_INT, "JPEG_LRG", 4096, 4096);
+	public static final DLNAImageProfile JPEG_LRG = new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, null);
 
 	/**
 	 * {@code JPEG_MED} maximum resolution 1024 x 768.
 	 */
-	public static final DLNAImageProfile JPEG_MED = new DLNAImageProfile(JPEG_MED_INT, "JPEG_MED", 1024, 768);
+	public static final DLNAImageProfile JPEG_MED = new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, null);
 
 	/**
 	 * {@code JPEG_RES_H_V} exact resolution H x V.<br>
@@ -133,32 +148,33 @@ public class DLNAImageProfile implements Serializable {
 	 * <br>
 	 * To create a valid profile, use {@link #createJPEG_RES_H_V(int, int)} instead.
 	 */
-	public static final DLNAImageProfile JPEG_RES_H_V = new DLNAImageProfile(JPEG_RES_H_V_INT, "JPEG_RES_H_V", -1, -1);
+	public static final DLNAImageProfile JPEG_RES_H_V = new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, null);
 
 	/**
 	 * {@code JPEG_SM} maximum resolution 640 x 480.
 	 */
-	public static final DLNAImageProfile JPEG_SM = new DLNAImageProfile(JPEG_SM_INT, "JPEG_SM", 640, 480);
+	public static final DLNAImageProfile JPEG_SM = new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, null);
 
 	/**
 	 * {@code JPEG_TN} maximum resolution 160 x 160.
 	 */
-	public static final DLNAImageProfile JPEG_TN = new DLNAImageProfile(JPEG_TN_INT, "JPEG_TN", 160, 160);
+	public static final DLNAImageProfile JPEG_TN = new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, null);
 
 	/**
 	 * {@code PNG_LRG} maximum resolution 4096 x 4096.
 	 */
-	public static final DLNAImageProfile PNG_LRG = new DLNAImageProfile(PNG_LRG_INT, "PNG_LRG", 4096, 4096);
+	public static final DLNAImageProfile PNG_LRG = new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, null);
 
 	/**
 	 * {@code PNG_TN} maximum resolution 160 x 160.
 	 */
-	public static final DLNAImageProfile PNG_TN = new DLNAImageProfile(PNG_TN_INT, "PNG_TN", 160, 160);
+	public static final DLNAImageProfile PNG_TN = new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, null);
 
 	/**
 	 * Creates a new {@link #JPEG_RES_H_V} profile instance with the exact
-	 * resolution H x V. Set {@code H} and {@code V} for this instance. Not
-	 * applicable for other profiles.
+	 * resolution H x V. Set {@code H} and {@code V} for this instance. The
+	 * default mime-type {@code image/jpeg} is used. Not applicable for other
+	 * profiles.
 	 *
 	 * @param horizontal the {@code H} value.
 	 * @param vertical the {@code V} value.
@@ -169,26 +185,56 @@ public class DLNAImageProfile implements Serializable {
 			JPEG_RES_H_V_INT,
 			"JPEG_RES_" + Integer.toString(horizontal) + "_" + Integer.toString(vertical),
 			horizontal,
-			vertical
+			vertical,
+			null
 		);
 	}
 
-	/** This profile's int value */
-	public final int imageProfileInt;
+	/**
+	 * Creates a new {@link #JPEG_RES_H_V} profile instance with the exact
+	 * resolution H x V. Set {@code H} and {@code V} for this instance. Not
+	 * applicable for other profiles.
+	 *
+	 * @param horizontal the {@code H} value.
+	 * @param vertical the {@code V} value.
+	 * @param mimeType the {@link MimeType} for this profile.
+	 * @return The new {@link #JPEG_RES_H_V} instance.
+	 */
+	public static DLNAImageProfile createJPEG_RES_H_V(int horizontal, int vertical, MimeType mimeType) {
+		return new DLNAImageProfile(
+			JPEG_RES_H_V_INT,
+			"JPEG_RES_" + Integer.toString(horizontal) + "_" + Integer.toString(vertical),
+			horizontal,
+			vertical,
+			mimeType
+		);
+	}
 
-	/** This profile's Integer value */
-	public final String imageProfileStr;
+	/** This profile's integer value */
+	protected final int imageProfileInt;
+
+	/** This profile's string value */
+	protected final String imageProfileStr;
+	/** This profile's mime type value */
+	protected final MimeType mimeType;
 	private final int horizontal;
 	private final int vertical;
 
 	/**
 	 * Instantiate a {@link DLNAImageProfile} object.
 	 */
-	private DLNAImageProfile(int imageProfileInt, String imageProfileStr, int horizontal, int vertical) {
+	private DLNAImageProfile(
+		int imageProfileInt,
+		String imageProfileStr,
+		int horizontal,
+		int vertical,
+		MimeType mimeType
+	) {
 		this.imageProfileInt = imageProfileInt;
 		this.imageProfileStr = imageProfileStr;
 		this.horizontal = horizontal;
 		this.vertical = vertical;
+		this.mimeType = mimeType;
 	}
 
 	/**
@@ -196,34 +242,6 @@ public class DLNAImageProfile implements Serializable {
 	 */
 	public int toInt() {
 		return imageProfileInt;
-	}
-
-	/**
-	 * Converts a {@link DLNAImageProfile} to an {@link Integer} object.
-	 *
-	 * @return This {@link DLNAImageProfile}'s {@link Integer} mapping.
-	 */
-	public Integer toInteger() {
-		switch (imageProfileInt) {
-			case GIF_LRG_INT:
-				return GIF_LRG_INTEGER;
-			case JPEG_LRG_INT:
-				return JPEG_LRG_INTEGER;
-			case JPEG_MED_INT:
-				return JPEG_MED_INTEGER;
-			case JPEG_RES_H_V_INT:
-				return JPEG_RES_H_V_INTEGER;
-			case JPEG_SM_INT:
-				return JPEG_SM_INTEGER;
-			case JPEG_TN_INT:
-				return JPEG_TN_INTEGER;
-			case PNG_LRG_INT:
-				return PNG_LRG_INTEGER;
-			case PNG_TN_INT:
-				return PNG_TN_INTEGER;
-			default:
-				throw new IllegalStateException("DLNAImageProfile " + imageProfileStr + ", " + imageProfileInt + " is unknown.");
-		}
 	}
 
 	/**
@@ -261,15 +279,45 @@ public class DLNAImageProfile implements Serializable {
 	}
 
 	/**
-	 * Converts the integer passed as argument to a {@link DLNAImageProfile}.
-	 * If the conversion fails, this method returns {@code null}.
+	 * Converts the integer passed as argument to a {@link DLNAImageProfile}
+	 * using the default mime-type for the profile. If the conversion fails,
+	 * this method returns {@code null}.
 	 *
 	 * @param value the integer value to convert to a {@link DLNAImageProfile}.
 	 * @return The resulting {@link DLNAImageProfile} or {@code null} if the
 	 *         conversion failed.
 	 */
 	public static DLNAImageProfile toDLNAImageProfile(int value) {
-		return toDLNAImageProfile(value, null);
+		return toDLNAImageProfile(value, null, null);
+	}
+
+	/**
+	 * Converts the integer passed as argument to a {@link DLNAImageProfile}. If
+	 * the conversion fails, this method returns {@code null}.
+	 *
+	 * @param value the integer value to convert to a {@link DLNAImageProfile}.
+	 * @param mimeType the {@link MimeType} to use for the resulting
+	 *            {@link DLNAImageProfile}.
+	 * @return The resulting {@link DLNAImageProfile} or {@code null} if the
+	 *         conversion failed.
+	 */
+	public static DLNAImageProfile toDLNAImageProfile(int value, MimeType mimeType) {
+		return toDLNAImageProfile(value, null, mimeType);
+	}
+
+	/**
+	 * Converts the integer passed as argument to a {@link DLNAImageProfile}
+	 * using the default mime-type for the profile. If the conversion fails,
+	 * this method returns the specified default.
+	 *
+	 * @param value the integer value to convert to a {@link DLNAImageProfile}.
+	 * @param defaultImageProfile the {@link DLNAImageProfile} to return if the
+	 *            conversion fails.
+	 * @return The resulting {@link DLNAImageProfile} or
+	 *         {@code defaultImageProfile} if the conversion failed.
+	 */
+	public static DLNAImageProfile toDLNAImageProfile(int value, DLNAImageProfile defaultImageProfile) {
+		return toDLNAImageProfile(value, defaultImageProfile, null);
 	}
 
 	/**
@@ -279,30 +327,72 @@ public class DLNAImageProfile implements Serializable {
 	 * @param value the integer value to convert to a {@link DLNAImageProfile}.
 	 * @param defaultImageProfile the {@link DLNAImageProfile} to return if the
 	 *            conversion fails.
+	 * @param mimeType the {@link MimeType} to use for the resulting
+	 *            {@link DLNAImageProfile}.
 	 * @return The resulting {@link DLNAImageProfile} or
 	 *         {@code defaultImageProfile} if the conversion failed.
 	 */
-	public static DLNAImageProfile toDLNAImageProfile(int value, DLNAImageProfile defaultImageProfile) {
+	public static DLNAImageProfile toDLNAImageProfile(
+		int value, DLNAImageProfile
+		defaultImageProfile,
+		MimeType mimeType
+	) {
+		/*
+		 * Note: Even though this will work without checking if the mimeType is
+		 * blank and just sending it as a parameter, doing it this way allows
+		 * reuse of the default instances.
+		 */
 		switch (value) {
 			case GIF_LRG_INT:
-				return GIF_LRG;
+				return mimeType == null ?
+					DLNAImageProfile.GIF_LRG :
+					new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, mimeType);
 			case JPEG_LRG_INT:
-				return JPEG_LRG;
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_LRG :
+					new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType);
 			case JPEG_MED_INT:
-				return JPEG_MED;
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_MED :
+					new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, mimeType);
 			case JPEG_RES_H_V_INT:
-				return JPEG_RES_H_V;
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_RES_H_V :
+					new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, mimeType);
 			case JPEG_SM_INT:
-				return JPEG_SM;
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_SM :
+					new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, mimeType);
 			case JPEG_TN_INT:
-				return JPEG_TN;
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_TN :
+					new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, mimeType);
 			case PNG_LRG_INT:
-				return PNG_LRG;
+				return mimeType == null ?
+					DLNAImageProfile.PNG_LRG :
+					new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType);
 			case PNG_TN_INT:
-				return PNG_TN;
+				return mimeType == null ?
+					DLNAImageProfile.PNG_TN :
+					new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, mimeType);
 			default:
 				return defaultImageProfile;
+
 		}
+	}
+
+	/**
+	 * Converts the {@link String} passed as argument to a
+	 * {@link DLNAImageProfile} using the default mime-type for the profile. If
+	 * the conversion fails, this method returns {@code null}.
+	 *
+	 * @param argument the {@link String} to convert to a
+	 *            {@link DLNAImageProfile}.
+	 * @return The resulting {@link DLNAImageProfile} or {@code null} if the
+	 *         conversion failed.
+	 */
+	public static DLNAImageProfile toDLNAImageProfile(String argument) {
+		return toDLNAImageProfile(argument, null, null);
 	}
 
 	/**
@@ -312,17 +402,19 @@ public class DLNAImageProfile implements Serializable {
 	 *
 	 * @param argument the {@link String} to convert to a
 	 *            {@link DLNAImageProfile}.
+	 * @param mimeType the {@link MimeType} to use for the resulting
+	 *            {@link DLNAImageProfile}.
 	 * @return The resulting {@link DLNAImageProfile} or {@code null} if the
 	 *         conversion failed.
 	 */
-	public static DLNAImageProfile toDLNAImageProfile(String argument) {
-		return toDLNAImageProfile(argument, null);
+	public static DLNAImageProfile toDLNAImageProfile(String argument, MimeType mimeType) {
+		return toDLNAImageProfile(argument, null, mimeType);
 	}
 
 	/**
 	 * Converts the {@link String} passed as argument to a
-	 * {@link DLNAImageProfile}. If the conversion fails, this method returns
-	 * the specified default.
+	 * {@link DLNAImageProfile} using the default mime-type for the profile. If
+	 * the conversion fails, this method returns the specified default.
 	 *
 	 * @param argument the {@link String} to convert to a
 	 *            {@link DLNAImageProfile}.
@@ -335,25 +427,67 @@ public class DLNAImageProfile implements Serializable {
 		if (argument == null) {
 			return defaultImageProfile;
 		}
+		return toDLNAImageProfile(argument, defaultImageProfile, null);
+	}
+
+	/**
+	 * Converts the {@link String} passed as argument to a
+	 * {@link DLNAImageProfile}. If the conversion fails, this method returns
+	 * the specified default.
+	 *
+	 * @param argument the {@link String} to convert to a
+	 *            {@link DLNAImageProfile}.
+	 * @param defaultImageProfile the {@link DLNAImageProfile} to return if the
+	 *            conversion fails.
+	 * @param mimeType the {@link MimeType} to use for the resulting
+	 *            {@link DLNAImageProfile}.
+	 * @return The resulting {@link DLNAImageProfile} or
+	 *         {@code defaultImageProfile} if the conversion failed.
+	 */
+	public static DLNAImageProfile toDLNAImageProfile(String argument, DLNAImageProfile defaultImageProfile, MimeType mimeType) {
+		if (argument == null) {
+			return defaultImageProfile;
+		}
 
 		argument = argument.toUpperCase(Locale.ROOT);
+		/*
+		 * Note: Even though this will work without checking if the mimeType is
+		 * blank and just sending it as a parameter, doing it this way allows
+		 * reuse of the default instances.
+		 */
 		switch (argument) {
-			case "GIF_LRG":
-				return DLNAImageProfile.GIF_LRG;
-			case "JPEG_LRG":
-				return DLNAImageProfile.JPEG_LRG;
-			case "JPEG_MED":
-				return DLNAImageProfile.JPEG_MED;
-			case "JPEG_RES_H_V":
-				return DLNAImageProfile.JPEG_RES_H_V;
-			case "JPEG_SM":
-				return DLNAImageProfile.JPEG_SM;
-			case "JPEG_TN":
-				return DLNAImageProfile.JPEG_TN;
-			case "PNG_LRG":
-				return DLNAImageProfile.PNG_LRG;
-			case "PNG_TN":
-				return DLNAImageProfile.PNG_TN;
+			case GIF_LRG_STRING:
+				return mimeType == null ?
+					DLNAImageProfile.GIF_LRG :
+					new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, mimeType);
+			case JPEG_LRG_STRING:
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_LRG :
+					new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType);
+			case JPEG_MED_STRING:
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_MED :
+					new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, mimeType);
+			case JPEG_RES_H_V_STRING:
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_RES_H_V :
+					new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, mimeType);
+			case JPEG_SM_STRING:
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_SM :
+					new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, mimeType);
+			case JPEG_TN_STRING:
+				return mimeType == null ?
+					DLNAImageProfile.JPEG_TN :
+					new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, mimeType);
+			case PNG_LRG_STRING:
+				return mimeType == null ?
+					DLNAImageProfile.PNG_LRG :
+					new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType);
+			case PNG_TN_STRING:
+				return mimeType == null ?
+					DLNAImageProfile.PNG_TN :
+					new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, mimeType);
 			default:
 				if (argument.startsWith("JPEG_RES")) {
 					Matcher matcher = Pattern.compile("^JPEG_RES_?(\\d+)[X_](\\d+)").matcher(argument);
@@ -362,12 +496,129 @@ public class DLNAImageProfile implements Serializable {
 							JPEG_RES_H_V_INT,
 							"JPEG_RES_" + matcher.group(1) + "_" + matcher.group(2),
 							Integer.parseInt(matcher.group(1)),
-							Integer.parseInt(matcher.group(2))
+							Integer.parseInt(matcher.group(2)),
+							mimeType
 						);
 					}
 				}
 				return defaultImageProfile;
 		}
+	}
+
+	/**
+	 * Parses and converts a {@link ProtocolInfo} to a one or more
+	 * {@link DLNAImageProfile}(s). If the conversion fails, this method returns
+	 * {@code null}.
+	 *
+	 * @param protocolInfo the {@link ProtocolInfo} instance to parse.
+	 * @return The resulting {@link DLNAImageProfile}(s) or {@code null} if the
+	 *         conversion failed.
+	 */
+	public static Set<DLNAImageProfile> toDLNAImageProfiles(ProtocolInfo protocolInfo) {
+		Set<DLNAImageProfile> result = new HashSet<>();
+		if (
+			protocolInfo != null && (
+				protocolInfo.getProtocol() == Protocol.HTTP_GET ||
+				protocolInfo.getProtocol() == Protocol.ALL
+			) &&
+			protocolInfo.getMimeType() != null && (
+				protocolInfo.getMimeType().isAnyType() ||
+				"image".equals(protocolInfo.getMimeType().getType().trim().toLowerCase(Locale.ROOT))
+			)
+		) {
+			DLNAOrgProfileName dlnaProfileName = protocolInfo.getDLNAProfileName();
+			if (dlnaProfileName != null) {
+				if (dlnaProfileName instanceof KnownDLNAOrgProfileName) {
+					switch ((KnownDLNAOrgProfileName) dlnaProfileName) {
+						case GIF_LRG:
+							result.add(GIF_LRG);
+							break;
+						case JPEG_LRG:
+							result.add(JPEG_LRG);
+							break;
+						case JPEG_MED:
+							result.add(JPEG_MED);
+							break;
+						case JPEG_RES_H_V:
+							result.add(JPEG_RES_H_V);
+							break;
+						case JPEG_SM:
+							result.add(JPEG_SM);
+							break;
+						case JPEG_TN:
+							result.add(JPEG_TN);
+							break;
+						case PNG_LRG:
+							result.add(PNG_LRG);
+							break;
+						case PNG_TN:
+							result.add(PNG_TN);
+							break;
+						case JPEG_SM_ICO:
+						case JPEG_LRG_ICO:
+						case PNG_SM_ICO:
+						case PNG_LRG_ICO:
+						default:
+							break;
+					}
+				} else {
+					// Handles specified JPEG_RES_H_V profiles and any other "unknowns"
+					DLNAImageProfile profile = toDLNAImageProfile(dlnaProfileName.getValue(), null, protocolInfo.getMimeType());
+					if (profile != null) {
+						result.add(profile);
+						LOGGER.trace(
+							"DLNAImageProfile parsed \"{}\" as {}",
+							protocolInfo,
+							profile
+						);
+					} else if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug(
+							"DLNAImageProfile was unable to parse DLNA profile from \"{}\"",
+							protocolInfo
+						);
+					}
+				}
+				return result;
+			}
+			if (protocolInfo.getProfileName() != null) {
+				// If we find a profile name that isn't a DLNA profile name, we're not interested
+				return result;
+			}
+			MimeType mimeType = protocolInfo.getMimeType();
+			if (
+				mimeType == null ||
+				mimeType.isAnyType() ||
+				mimeType.isAnySubtype()
+			) {
+				result.add(JPEG_TN);
+				result.add(JPEG_SM);
+				result.add(JPEG_MED);
+				result.add(JPEG_LRG);
+				result.add(JPEG_RES_H_V);
+				result.add(PNG_TN);
+				result.add(PNG_LRG);
+				result.add(GIF_LRG);
+				LOGGER.trace(
+					"DLNAImageProfile parsed \"{}\" as all image profiles",
+					protocolInfo
+				);
+			} else if (MIMETYPE_GIF.equals(mimeType)) {
+				result.add(new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, mimeType));
+				LOGGER.trace("DLNAImageProfile parsed \"{}\" as all GIF profiles", protocolInfo);
+			} else if (MIMETYPE_JPEG.equals(mimeType)) {
+				result.add(new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType));
+				result.add(new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, mimeType));
+				result.add(new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, mimeType));
+				result.add(new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, mimeType));
+				result.add(new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, mimeType));
+				LOGGER.trace("DLNAImageProfile parsed \"{}\" as all JPEG profiles", protocolInfo);
+			} else if (MIMETYPE_PNG.equals(mimeType)) {
+				result.add(new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType));
+				result.add(new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, mimeType));
+				LOGGER.trace("DLNAImageProfile parsed \"{}\" as all PNG profiles", protocolInfo);
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -392,19 +643,38 @@ public class DLNAImageProfile implements Serializable {
 	}
 
 	/**
-	 * @return The mime type for this {@link DLNAImageProfile}.
+	 * @return The {@link MimeType} for this {@link DLNAImageProfile}.
 	 */
-	public String getMimeType() {
+	public MimeType getMimeType() {
+		if (mimeType != null) {
+			return mimeType;
+		}
+		return getDefaultMimeType();
+	}
+
+	/**
+	 * @return The default {@link MimeType} for this
+	 *         {@link DLNAImageProfile}.
+	 */
+	public MimeType getDefaultMimeType() {
 		switch (getFormat()) {
 			case GIF:
-				return "image/gif";
+				return MIMETYPE_GIF;
 			case JPEG:
-				return "image/jpeg";
+				return MIMETYPE_JPEG;
 			case PNG:
-				return "image/png";
+				return MIMETYPE_PNG;
 			default:
 				throw new IllegalStateException("Format is missing from switch statement");
 		}
+	}
+
+	/**
+	 * @return The formatted mime-type {@link String} for this
+	 *         {@link DLNAImageProfile}.
+	 */
+	public String getMimeTypeString() {
+		return getMimeType().toStringWithoutParameters();
 	}
 
 	/**
@@ -1113,6 +1383,28 @@ public class DLNAImageProfile implements Serializable {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public int compareTo(DLNAImageProfile o) {
+		if (o == null) {
+			return -1;
+		}
+		int result = Integer.compare(imageProfileInt, o.imageProfileInt);
+		if (result != 0) {
+			return result;
+		}
+
+		if (imageProfileStr == null && o.imageProfileStr == null) {
+			return 0;
+		}
+		if (imageProfileStr == null) {
+			return 1;
+		}
+		if (o.imageProfileStr == null) {
+			return -1;
+		}
+		return imageProfileStr.compareTo(o.imageProfileStr);
 	}
 
 	/**
