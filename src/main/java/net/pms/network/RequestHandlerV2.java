@@ -78,7 +78,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 		throws Exception {
 		RequestV2 request = null;
-		RendererConfiguration renderer = null;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
@@ -264,8 +263,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */
-	private boolean filterIp(InetAddress inetAddress) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
+	public static boolean filterIp(InetAddress address) {
+		return (!address.isLoopbackAddress() && !PMS.getConfiguration().getIpFiltering().allowed(address)) || !PMS.isReady();
 	}
 
 	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
@@ -298,7 +297,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			}
 		}
 
-		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		final StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+		startStopListenerDelegate.setRenderer(renderer);
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
 		ctx.setAttachment(startStopListenerDelegate);
 

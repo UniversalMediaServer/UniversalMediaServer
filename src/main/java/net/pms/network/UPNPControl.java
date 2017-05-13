@@ -10,6 +10,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
 import static net.pms.network.UPNPHelper.sleep;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
@@ -169,7 +170,10 @@ public class UPNPControl {
 			data.put("TransportState", "STOPPED");
 		}
 
-		public void alert() {
+		/**
+		 * It's synchronized to avoid listeners being modified while it's in progress.
+		 */
+		public synchronized void alert() {
 			if (isUpnpDevice(uuid) && (monitor == null || !monitor.isAlive()) && !"STOPPED".equals(data.get("TransportState"))) {
 				monitor();
 			}
@@ -178,12 +182,12 @@ public class UPNPControl {
 			}
 		}
 
-		public Map<String, String> connect(ActionListener listener) {
+		public synchronized Map<String, String> connect(ActionListener listener) {
 			listeners.add(listener);
 			return data;
 		}
 
-		public void disconnect(ActionListener listener) {
+		public synchronized void disconnect(ActionListener listener) {
 			listeners.remove(listener);
 		}
 
@@ -193,6 +197,8 @@ public class UPNPControl {
 				@Override
 				public void run() {
 					String id = data.get("InstanceID");
+					String name = getMediaInfo(d, id);
+					data.put("AVTransportURI", name);
 					while (active && !"STOPPED".equals(data.get("TransportState"))) {
 						sleep(1000);
 //						if (DEBUG) LOGGER.debug("InstanceID: " + id);
@@ -238,6 +244,7 @@ public class UPNPControl {
 
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
 		try {
+			LOGGER.info(xml);
 			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
 //			doc.getDocumentElement().normalize();
 			NodeList ids = doc.getElementsByTagName("InstanceID");
@@ -519,6 +526,9 @@ public class UPNPControl {
 	}
 
 	protected void rendererRemoved(Device d) {
+		DeviceConfiguration r = (DeviceConfiguration) rendererMap.get(getUUID(d), "0");
+		if (r != null)
+			r.delete(5000);
 		LOGGER.debug(getFriendlyName(d) + " is now offline.");
 	}
 
@@ -637,7 +647,7 @@ public class UPNPControl {
 			// Reason should be null, or it didn't end regularly
 			if (reason != null) {
 				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId() +
-					" on " + uuid + ": " + reason);
+					" on " + getFriendlyName(uuid) + ": " + reason);
 			}
 			rendererMap.mark(uuid, RENEW, true);
 		}
@@ -748,7 +758,7 @@ public class UPNPControl {
 
 	public static String getMediaInfo(Device dev, String instanceID) {
 		return send(dev, instanceID, "AVTransport", "GetMediaInfo")
-			.getOutput("MediaInfo").toString();
+			.getOutput("CurrentURI").toString();
 	}
 
 	public static ActionArgumentValue[] getPositionInfo(Device dev, String instanceID) {

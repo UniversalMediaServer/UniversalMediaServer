@@ -208,6 +208,10 @@ public class PMS {
 		}
 	}
 
+	/**
+	 * Update renderer in status tab in UI
+	 * @param renderer
+	 */
 	public void updateRenderer(RendererConfiguration renderer) {
 		LOGGER.debug("Updating status button for " + renderer.getRendererName());
 		frame.updateRenderer(renderer);
