@@ -103,6 +103,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		LOGGER.trace("Opened request handler on socket " + remoteAddress);
 		PMS.get().getRegistry().disableGoToSleep();
+            try {
 		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
 		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().getText() + " : " + request.getMethod() + " : " + request.getArgument());
 
@@ -254,6 +255,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 
 		writeResponse(ctx, e, request, ia);
+            } finally {
+                PMS.get().getRegistry().reenableGoToSleep();
+            }
+
 	}
 
 	/**

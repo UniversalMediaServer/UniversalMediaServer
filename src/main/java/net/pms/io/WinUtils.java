@@ -73,20 +73,20 @@ public class WinUtils extends BasicSystemUtils {
 	private boolean kerio;
 	private String avsPluginsDir;
 	private String kLiteFiltersDir;
-	public long lastDontSleepCall = 0;
-	public long lastGoToSleepCall = 0;
 
 	/* (non-Javadoc)
 	 * @see net.pms.io.SystemUtils#disableGoToSleep()
 	 */
 	@Override
 	public void disableGoToSleep() {
-		// Disable go to sleep (every 40s)
-		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
-			lastDontSleepCall = System.currentTimeMillis();
-		}
+		// Disable go to sleep
+       		LOGGER.debug("Called disableGoToSleep");
+                if (configuration.isPreventsSleep()) {
+                        // stay always on
+			LOGGER.debug("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED|ES_CONTINUOUS");
+                        Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
+            }
+
 	}
 
 	/* (non-Javadoc)
@@ -94,12 +94,15 @@ public class WinUtils extends BasicSystemUtils {
 	 */
 	@Override
 	public void reenableGoToSleep() {
-		// Reenable go to sleep
-		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
-			LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
-			lastGoToSleepCall = System.currentTimeMillis();
-		}
+		LOGGER.debug("Called reenableGoToSleep");
+                if (configuration.isPreventsSleep()) {
+                    // disable the "permanent on"
+                    LOGGER.debug("Calling SetThreadExecutionState ES_CONTINUOUS");
+                    Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
+                    // retrigger the normal idle timer (is this done automatically?)
+                    LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
+                    Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
+            }
 	}
 
 	/* (non-Javadoc)
