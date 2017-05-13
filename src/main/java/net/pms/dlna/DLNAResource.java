@@ -1878,13 +1878,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String dlnaOrgPnFlags = null;
 
 		if (mediaRenderer.isDLNAOrgPNUsed() || mediaRenderer.isAccurateDLNAOrgPN()) {
-			if (mediaRenderer.isPS3()) {
-				if (mime.equals(DIVX_TYPEMIME)) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
-				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.getHeight() > 700) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=WMVHIGH_PRO";
-				}
-			} else {
 				if (mime.equals(MPEG_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(localizationValue);
 
@@ -2274,7 +2267,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME) || mime.equals(AUDIO_WAV_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=LPCM";
 				}
-			}
 
 			if (dlnaOrgPnFlags != null) {
 				dlnaOrgPnFlags = "DLNA.ORG_PN=" + mediaRenderer.getDLNAPN(dlnaOrgPnFlags.substring(12));
