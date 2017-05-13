@@ -223,7 +223,8 @@ public class UPNPHelper extends UPNPControl {
 				sendMessage(multicastSocket, NT, ALIVE);
 			}
 		} catch (IOException e) {
-			LOGGER.debug("Error sending ALIVE message", e);
+			LOGGER.debug("Error sending ALIVE message, restarting the server quietly as a last resort", e);
+			PMS.get().reset(true);
 		} finally {
 			if (multicastSocket != null) {
 				// Clean up the multicast socket nicely
@@ -231,6 +232,7 @@ public class UPNPHelper extends UPNPControl {
 					InetAddress upnpAddress = getUPNPAddress();
 					multicastSocket.leaveGroup(upnpAddress);
 				} catch (IOException e) {
+					LOGGER.debug("Error cleaning up multicast socket", e);
 				}
 
 				multicastSocket.disconnect();
