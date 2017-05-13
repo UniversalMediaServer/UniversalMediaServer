@@ -7,18 +7,20 @@
 <!--
     Checkstyle-Configuration: UMS
     Description:
-Checkstyle configuration that checks the sun coding conventions.
+Checkstyle configuration for Universal Media Server.
 -->
 <module name="Checker">
   <property name="severity" value="warning"/>
-  <property name="fileExtensions" value="java, properties, xml"/>
+  <property name="fileExtensions" value="java, xml"/>
+  <module name="SuppressWarningsFilter" />
   <module name="TreeWalker">
+    <property name="tabWidth" value="4"/>
     <module name="RegexpSinglelineJava">
       <property name="format" value="^\t*(?! \*) "/>
       <property name="message" value="Indent must use tab characters"/>
       <property name="ignoreComments" value="true"/>
     </module>
-    <property name="tabWidth" value="4"/>
+	<module name="SuppressWarningsHolder" />
     <module name="JavadocMethod">
       <property name="scope" value="protected"/>
     </module>
@@ -29,6 +31,7 @@ Checkstyle configuration that checks the sun coding conventions.
       <property name="scope" value="protected"/>
     </module>
     <module name="JavadocStyle">
+      <property name="endOfSentenceFormat" value="([.?!:][ \t\n\r\f&lt;])|([.?!:]$)"/>
       <property name="tokens" value="INTERFACE_DEF,CLASS_DEF,METHOD_DEF,CTOR_DEF"/>
     </module>
     <module name="ConstantName"/>
@@ -118,7 +121,6 @@ Checkstyle configuration that checks the sun coding conventions.
     <module name="InterfaceIsType"/>
     <module name="VisibilityModifier">
       <property name="protectedAllowed" value="true"/>
-      <property name="allowPublicFinalFields" value="true"/>
       <property name="allowPublicImmutableFields" value="true"/>
     </module>
     <module name="ArrayTypeStyle"/>
