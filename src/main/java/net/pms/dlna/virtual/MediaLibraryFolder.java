@@ -100,6 +100,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 					String nameToDisplay;
 					ArrayList<String> list = database.getStrings(sql);
 					if (list != null) {
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
 						for (String s : list) {
 							nameToDisplay = null;
 							if (s.length() != 4) {
