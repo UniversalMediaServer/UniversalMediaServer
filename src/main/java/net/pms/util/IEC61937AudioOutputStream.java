@@ -83,7 +83,7 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 				framesize = ((data[off + 5] & 0x03) << 12) + ((data[off + 6] & 0xff) << 4) + ((data[off + 7] & 0xf0) >> 4) + 1;
 				int framesize_sup = 0;
 				int dts_rate = 48000;
-				if (!RendererConfiguration.isSkipDTSHDstereo() && off + framesize + 3 < data.length && data[off + framesize] == 100 && data[off + framesize + 1] == 88 && data[off + framesize + 2] == 32 && data[off + framesize + 3] == 37) {
+				if (!RendererConfiguration.isSkipDTSHDStereo() && off + framesize + 3 < data.length && data[off + framesize] == 100 && data[off + framesize + 1] == 88 && data[off + framesize + 2] == 32 && data[off + framesize + 3] == 37) {
 					dtsHD = true;
 					dts_rate = 192000;
 					framesize_sup = ((data[off + framesize + 6] & 0x0f) << 11) + ((data[off + framesize + 7] & 0xff) << 3) + ((data[off + framesize + 8] & 0xf0) >> 5) + 1;

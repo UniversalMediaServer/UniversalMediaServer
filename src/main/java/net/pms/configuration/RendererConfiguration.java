@@ -2943,13 +2943,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isRemoveTagsFromSRTsubs() {
 		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
 	}
-	public boolean isSkipDTSHDst() {
+	public boolean isSkipDTSHDSt() {
 		return getBoolean(SKIP_DTS_HD, true);
 	}
-	public static boolean isSkipDTSHDstereo() {
-//		if (!isSkipDTSHDst()) {
-//			return false;
-//		}
-		return true;
+	public static boolean isSkipDTSHDStereo() {
+		return isSkipDTSHDSt();
 	}
 }
