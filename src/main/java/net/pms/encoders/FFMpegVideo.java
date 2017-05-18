@@ -334,39 +334,6 @@ public class FFMpegVideo extends Player {
 		} else { // MPEGPSMPEG2AC3, MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
 			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
-			// Output audio codec
-			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isAudioEmbedDtsInPcm() &&
-				params.aid != null &&
-				params.aid.isDTS() &&
-				!avisynth() &&
-				renderer.isDTSPlayable();
-
-			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.timeseek > 0;
-
-			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
-				// AC-3 remux
-				if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("copy");
-				}
-			} else {
-				if (dtsRemux) {
-					// Audio is added in a separate process later
-					transcodeOptions.add("-an");
-				} else if (type() == Format.AUDIO) {
-					// Skip
-				} else if (renderer.isTranscodeToAAC()) {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("aac");
-				} else {
-					if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
-						transcodeOptions.add("-c:a");
-						transcodeOptions.add("ac3");
-					}
-				}
-			}
-
 			InputFile newInput = null;
 			if (filename != null) {
 				newInput = new InputFile();
@@ -401,15 +368,36 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("mpeg2video");
 			}
 
-			if (!customFFmpegOptions.contains("-f")) {
-				// Output file format
-				transcodeOptions.add("-f");
+			// Output audio codec
+			dtsRemux = isTsMuxeRVideoEngineEnabled &&
+				configuration.isAudioEmbedDtsInPcm() &&
+				params.aid != null &&
+				params.aid.isDTS() &&
+				!avisynth() &&
+				renderer.isDTSPlayable();
+
+			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.timeseek > 0;
+
+			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
+				// AC-3 remux
+				if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("copy");
+				}
+			} else {
 				if (dtsRemux) {
-					transcodeOptions.add("mpeg2video");
-				} else if (renderer.isTranscodeToMPEGTS()) {
-					transcodeOptions.add("mpegts");
+					// Audio is added in a separate process later
+					transcodeOptions.add("-an");
+				} else if (type() == Format.AUDIO) {
+					// Skip
+				} else if (renderer.isTranscodeToAAC()) {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("aac");
 				} else {
-					transcodeOptions.add("vob");
+					if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("ac3");
+					}
 				}
 			}
 		}
@@ -975,7 +963,7 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(params.timeend));
 		}
 
-		// Add the output options (-f, -c:a, -c:v, etc.)
+		// Add the output options (-f, -c:v, -c:a, etc.)
 
 		// Now that inputs and filtering are complete, see if we should
 		// give the renderer the final say on the command
@@ -989,7 +977,10 @@ public class FFMpegVideo extends Player {
 
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
-			// Audio bitrate
+			// Add the output options (-c:v, -c:a, etc.)
+			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+
+			// Add the audio options (-ac, -ab, -ar)
 			if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 				int channels = 0;
 				if (
@@ -1005,6 +996,8 @@ public class FFMpegVideo extends Player {
 					channels = 2;
 				} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
 					channels = configuration.getAudioChannelCount();
+				} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > 0) {
+					channels = params.aid.getAudioProperties().getNumberOfChannels();
 				}
 
 				if (!customFFmpegOptions.contains("-ac ") && channels > 0) {
@@ -1027,8 +1020,18 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			// Add the output options (-f, -c:a, -c:v, etc.)
-			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+			// Add the output format option (-f)
+			if (!customFFmpegOptions.contains("-f")) {
+				// Output file format
+				cmdList.add("-f");
+				if (dtsRemux) {
+					cmdList.add("mpeg2video");
+				} else if (renderer.isTranscodeToMPEGTS()) {
+					cmdList.add("mpegts");
+				} else {
+					cmdList.add("vob");
+				}
+			}
 
 			// Add custom options
 			if (StringUtils.isNotEmpty(customFFmpegOptions)) {

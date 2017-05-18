@@ -196,11 +196,11 @@ public class TsMuxeRVideo extends Player {
 			} else {
 				ffAudioPipe = new PipeIPCProcess[1];
 				ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "mlpaudio", System.currentTimeMillis() + "audioout", false, true);
-				String depth = "pcm_s16le";
+				String depth = "pcm_s16be";
 				String rate = "48000";
 
 				if (media.getFirstAudioTrack().getBitsperSample() >= 24) {
-					depth = "pcm_s24le";
+					depth = "pcm_s24be";
 				}
 
 				if (media.getFirstAudioTrack().getSampleRate() > 48000) {
@@ -450,7 +450,6 @@ public class TsMuxeRVideo extends Player {
 								"-f", "adts",
 								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
 								"-c:a", "aac",
-								"-strict", "experimental",
 								"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
 								"-y",
 								ffAudioPipe[i].getInputPipe()
