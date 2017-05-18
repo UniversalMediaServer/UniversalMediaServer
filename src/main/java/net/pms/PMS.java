@@ -970,7 +970,7 @@ public class PMS {
 					UPNPHelper.sendByeBye();
 					server.stop();
 					server = null;
-					RendererConfiguration.resetAllRenderers();
+					RendererConfiguration.loadRendererConfigurations(configuration);
 
 					try {
 						Thread.sleep(1000);
