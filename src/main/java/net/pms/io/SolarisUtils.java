@@ -19,8 +19,8 @@
 package net.pms.io;
 
 /**
- * Solaris specific platform code 
- * 
+ * Solaris specific platform code
+ *
  * @author zsombor
  *
  */
@@ -41,5 +41,4 @@ public class SolarisUtils extends BasicSystemUtils {
 	public String[] getPingCommand(String hostAddress, int numberOfPackets, int packetSize) {
 		return new String[] { "ping", "-s",  hostAddress,  /* size */  Integer.toString(packetSize), /* count */  Integer.toString(numberOfPackets) };
 	}
-
 }
