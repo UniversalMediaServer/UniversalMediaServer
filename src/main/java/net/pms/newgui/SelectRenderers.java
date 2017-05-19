@@ -35,6 +35,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.newgui.components.IllegalChildException;
 import net.pms.newgui.components.SearchableMutableTreeNode;
 import net.pms.util.tree.CheckTreeManager;
+import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,12 +147,16 @@ public class SelectRenderers extends JPanel {
 		if (selectRenderers == JOptionPane.OK_OPTION) {
 			TreePath[] selected = checkTreeManager.getSelectionModel().getSelectionPaths();
 			if (selected.length == 0) {
-				configuration.setSelectedRenderers("");
+				if (configuration.setSelectedRenderers("")) {
+					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				}
 			} else if (
 				selected.length == 1 && selected[0].getLastPathComponent() instanceof SearchableMutableTreeNode &&
 				((SearchableMutableTreeNode) selected[0].getLastPathComponent()).getNodeName().equals(allRenderers.getNodeName())
 			) {
-				configuration.setSelectedRenderers(allRenderersTreeName);
+				if (configuration.setSelectedRenderers(allRenderersTreeName)) {
+					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				}
 			} else {
 				List<String> selectedRenderers = new ArrayList<>();
 				for (TreePath path : selected) {
@@ -174,7 +179,9 @@ public class SelectRenderers extends JPanel {
 						LOGGER.warn("Invalid renderer treepath encountered: {}", path.toString());
 					}
 				}
-				configuration.setSelectedRenderers(selectedRenderers);
+				if (configuration.setSelectedRenderers(selectedRenderers)) {
+					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				}
 			}
 		}
 	}
