@@ -125,12 +125,22 @@ public class PMS {
 
 	private JmDNS jmDNS;
 
+	private SleepManager sleepManager = null;
+
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
 	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
+	}
+
+	/**
+	 * @return The {@link SleepManager} instance or {@code null} if not
+	 *         instantiated yet.
+	 */
+	public SleepManager getSleepManager() {
+		return sleepManager;
 	}
 
 	/**
@@ -567,6 +577,9 @@ public class PMS {
 		}
 
 		registry = createSystemUtils();
+
+		// Create SleepManager
+		sleepManager = new SleepManager();
 
 		if (!isHeadless()) {
 			frame = new LooksFrame(autoUpdater, configuration);
