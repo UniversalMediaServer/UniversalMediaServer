@@ -98,7 +98,6 @@ public class RequestHandler implements Runnable {
 				throw new IOException("Access denied for address " + ia + " based on IP filter");
 			}
 
-			PMS.get().getSleepManager().startPlaying();
 
 			// The handler makes a couple of attempts to recognize a renderer from its requests.
 			// IP address matches from previous requests are preferred, when that fails request
@@ -295,7 +294,6 @@ public class RequestHandler implements Runnable {
 			}
 		} finally {
 			try {
-				PMS.get().getSleepManager().stopPlaying();
 				output.close();
 				br.close();
 				socket.close();

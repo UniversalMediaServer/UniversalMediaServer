@@ -110,7 +110,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		PMS.get().getSleepManager().startPlaying();
 		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
 
 		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
