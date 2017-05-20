@@ -584,7 +584,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
 		RendererConfiguration r = addressAssociation.get(sa);
 		if (r != null) {
-			LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on address " + sa);
+			LOGGER.trace("Matched media renderer \"{}\" based on address {}", r.getRendererName(), sa.getHostAddress());
 		}
 		return r;
 	}
@@ -608,7 +608,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			boolean isNew = !addressAssociation.containsKey(ia);
 			r = resolve(ia, ref);
 			if (r != null) {
-				LOGGER.debug("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+				LOGGER.trace(
+					"Matched {}media renderer \"{}\" based on headers {}",
+					isNew ? "new " : "",
+					r.getRendererName(),
+					sortedHeaders
+				);
 			}
 		}
 		return r;
@@ -680,7 +685,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			if (addressAssociation.containsKey(ia)) {
 				// Already seen, finish configuration if required
 				r = (DeviceConfiguration) addressAssociation.get(ia);
-				boolean higher = ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
+				boolean higher = ref != null && ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
 				if (!r.loaded || higher) {
 					LOGGER.debug("Finishing configuration for {}", r);
 					if (higher) {
@@ -701,12 +706,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					r.setUpnpMode(ALLOW);
 				}
 			}
-		} catch (Exception e) {
+		} catch (ConfigurationException e) {
+			LOGGER.error("Configuration error while resolving renderer: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
-			LOGGER.debug("Marking renderer \"{}\" at {} as unrecognized", r, ia);
-			r.loaded = false;
+			LOGGER.trace("Marking renderer \"{}\" at {} as unrecognized", r, ia.getHostAddress());
+			if (r != null) {
+				r.loaded = false;
+			}
 		}
 		return r;
 	}

@@ -670,6 +670,9 @@ public class LibMediaInfoParser {
 	}
 
 	public static int getPixelValue(String value) {
+		if (isBlank(value)) {
+			return 0;
+		}
 		if (value.contains("pixel")) {
 			value = value.substring(0, value.indexOf("pixel"));
 		}
@@ -681,8 +684,13 @@ public class LibMediaInfoParser {
 			value = value.substring(0, value.indexOf('/')).trim();
 		}
 
-		int pixels = Integer.parseInt(value);
-		return pixels;
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			LOGGER.debug("Could not parse pixels \"{}\": {}", value, e.getMessage());
+			LOGGER.trace("", e);
+			return 0;
+		}
 	}
 
 	/**

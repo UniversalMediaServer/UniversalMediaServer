@@ -407,6 +407,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			});
 			webinterface.setToolTipText(Messages.getString("LooksFrame.30"));
 			toolBar.add(webinterface);
+			toolBar.addSeparator(new Dimension(20, 1));
 		}
 
 		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
