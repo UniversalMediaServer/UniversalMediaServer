@@ -577,6 +577,7 @@ public class OpenSubtitle {
 			String tvEpisodeNameFromFilename   = metadataFromFilename[5];
 
 			media.setMovieOrShowName(titleFromFilename);
+			media.setSimplifiedMovieOrShowName(PMS.get().getSimplifiedShowName(titleFromFilename));
 			String titleFromDatabase;
 
 			/**
@@ -593,10 +594,9 @@ public class OpenSubtitle {
 					LOGGER.info("titleFromDatabase: " + titleFromDatabase);
 					LOGGER.info("titleFromFilename: " + titleFromFilename);
 				}
-				if (!"".equals(titleFromDatabase)) {
-					if (StringUtil.isSimilarEnough(titleFromFilename, titleFromDatabase)) {
-						media.setMovieOrShowName(titleFromDatabase);
-					}
+				if (!"".equals(titleFromDatabase) && StringUtil.isSimilarEnough(titleFromFilename, titleFromDatabase)) {
+					media.setMovieOrShowName(titleFromDatabase);
+					media.setSimplifiedMovieOrShowName(PMS.get().getSimplifiedShowName(titleFromDatabase));
 				}
 
 				media.setTVSeason(tvSeasonFromFilename);
@@ -732,6 +732,7 @@ public class OpenSubtitle {
 
 										media.setIMDbID(metadataFromOpenSubtitles[0]);
 										media.setMovieOrShowName(titleFromOpenSubtitles);
+										media.setSimplifiedMovieOrShowName(PMS.get().getSimplifiedShowName(titleFromOpenSubtitles));
 										media.setYear(metadataFromOpenSubtitles[5]);
 										media.setEdition(editionFromFilename);
 

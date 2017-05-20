@@ -1334,26 +1334,41 @@ public class PMS {
 	/**
 	 * Returns a similar TV series name from the database.
 	 *
-	 * This uses the Soundex method of comparing strings, where strings are
-	 * rated between 1-4 with 4 meaning they sound identical.
-	 *
-	 * This prevents "Word of the Word" and "Word Of The Word!" from being
-	 * seen as different shows.
-	 *
 	 * @param title
 	 * @return
 	 */
 	public String getSimilarTVSeriesName(String title) {
+		if (title == null) {
+			return title;
+		}
+
+		title = getSimplifiedShowName(title);
 		title = StringEscapeUtils.escapeSql(title);
 
 		if (getConfiguration().getUseCache()) {
-			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND DIFFERENCE(MOVIEORSHOWNAME, '" + title + "') = 4");
+			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAMESIMPLE='" + title + "'");
 			if (titleList.size() > 0) {
 				return titleList.get(0);
 			}
 		}
 
 		return "";
+	}
+
+	/**
+	 * This reduces the incoming title to a lowercase, alphanumeric string
+	 * for searching in order to prevent titles like "Word of the Word" and
+	 * "Word Of The Word!" from being seen as different shows.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public String getSimplifiedShowName(String title) {
+		if (title == null) {
+			return null;
+		}
+
+		return title.toLowerCase().replaceAll("[^a-z0-9]", "");
 	}
 
 	/**

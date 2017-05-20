@@ -66,7 +66,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "10";
+	private final String latestVersion = "11";
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -276,6 +276,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
 				sb.append(", YEAR                    VARCHAR2(").append(SIZE_YEAR).append(')');
 				sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MOVIEORSHOWNAME).append(')');
+				sb.append(", MOVIEORSHOWNAMESIMPLE   VARCHAR2(").append(SIZE_MOVIEORSHOWNAME).append(')');
 				sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
 				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_TVEPISODENAME).append(')');
@@ -496,6 +497,7 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setIMDbID(rs.getString("IMDBID"));
 					media.setYear(rs.getString("YEAR"));
 					media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
+					media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
 
 					if (rs.getBoolean("ISTVEPISODE")) {
 						media.setTVSeason(rs.getString("TVSEASON"));
@@ -713,7 +715,7 @@ public class DLNAMediaDatabase implements Runnable {
 					"ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, THUMB, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, " +
-					"TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE " +
+					"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ?",
@@ -774,6 +776,7 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
 							rs.updateString("YEAR", left(media.getYear(), SIZE_YEAR));
 							rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
+							rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
 							rs.updateString("TVSEASON", left(media.getTVSeason(), SIZE_TVSEASON));
 							rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
 							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
@@ -791,8 +794,8 @@ public class DLNAMediaDatabase implements Runnable {
 						"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 						"THUMB, CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, " +
-						"TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE) VALUES " +
-						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+						"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE) VALUES " +
+						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 				) {
 					ps.setString(1, name);
 					ps.setTimestamp(2, new Timestamp(modified));
@@ -846,10 +849,11 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setString(28, left(media.getIMDbID(), SIZE_IMDBID));
 						ps.setString(29, left(media.getYear(), SIZE_YEAR));
 						ps.setString(30, left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
-						ps.setString(31, left(media.getTVSeason(), SIZE_TVSEASON));
-						ps.setString(32, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-						ps.setString(33, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
-						ps.setBoolean(34, media.isTVEpisode());
+						ps.setString(31, left(media.getSimplifiedMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
+						ps.setString(32, left(media.getTVSeason(), SIZE_TVSEASON));
+						ps.setString(33, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
+						ps.setString(34, left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
+						ps.setBoolean(35, media.isTVEpisode());
 					} else {
 						ps.setString(4, null);
 						ps.setInt(5, 0);
@@ -881,7 +885,8 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setNull(31, Types.VARCHAR);
 						ps.setNull(32, Types.VARCHAR);
 						ps.setNull(33, Types.VARCHAR);
-						ps.setBoolean(34, false);
+						ps.setNull(34, Types.VARCHAR);
+						ps.setBoolean(35, false);
 					}
 					ps.executeUpdate();
 					try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -938,7 +943,7 @@ public class DLNAMediaDatabase implements Runnable {
 			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
-					"ID, IMDBID, YEAR, MOVIEORSHOWNAME, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE " +
+					"ID, IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ? AND MODIFIED = ?",
@@ -952,6 +957,7 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
 						rs.updateString("YEAR", left(media.getYear(), SIZE_YEAR));
 						rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
+						rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), SIZE_MOVIEORSHOWNAME));
 						rs.updateString("TVSEASON", left(media.getTVSeason(), SIZE_TVSEASON));
 						rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
 						rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_TVEPISODENAME));
