@@ -927,6 +927,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
 	 * @since 5.2.3
 	 */
+	@Deprecated
 	public String getLanguage() {
 		return getLanguageTag();
 	}
@@ -1689,19 +1690,35 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * @param value The comma-separated list of selected renderers.
+	 * @return {@code true} if this call changed the {@link Configuration},
+	 *         {@code false} otherwise.
 	 */
-	public void setSelectedRenderers(String value) {
+	public boolean setSelectedRenderers(String value) {
 		if (value.isEmpty()) {
 			value = "None";
 		}
-		configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {
+			configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
 	 * @param value a string list of renderers.
+	 * @return {@code true} if this call changed the {@link Configuration},
+	 *         {@code false} otherwise.
 	 */
-	public void setSelectedRenderers(List<String> value) {
-		setStringList(KEY_SELECTED_RENDERERS, value);
+	public boolean setSelectedRenderers(List<String> value) {
+		if (value == null) {
+			return setSelectedRenderers("");
+		}
+		List<String> currentValue = getStringList(KEY_SELECTED_RENDERERS, null);
+		if (currentValue == null || value.size() != currentValue.size() || !value.containsAll(currentValue)) {
+			setStringList(KEY_SELECTED_RENDERERS, value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -3210,6 +3227,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @deprecated Use {@link #getCredFile()} instead.
 	 */
+	@Deprecated
 	public String getCredPath() {
 		return getCredFile().getAbsolutePath();
 	}
