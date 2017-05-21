@@ -1,7 +1,29 @@
-6.6.1 - 2017-03-??
+6.7.0 - 2017-03-??
 
 	General:
-		
+		Added a button for the web interface
+		Improved support for MusicBrainz
+		Improved support for CoverArtArchive
+		Improved support for images
+		Improved thumbnailing
+		Updated documentation
+		Improved DIDL-Lite implementation
+		Added support for more RealAudio formats
+		Fixed many bugs
+	Renderers:
+		Added support for Chromecast Ultra
+		Improved support for Samsung 9 Series TVs
+		Improved detection of Onkyo TXNR7xx devices
+		Improved detection of Panasonic Viera ST60 TVs
+		Improved detection of Samsung JU6400 TVs
+	Dependencies:
+		Updated external-maven-plugin to 0.2
+		Updated FFmpeg to latest builds
+		Upgraded LogBack to version 1.2.3
+		Updated maven-surefire-plugin to 2.20
+		Updated MediaInfo to 0.7.94
+		Updated metadata-extractor to 2.10.1
+		Updated TwelveMonkeys ImageIO to version 3.3.1
 
 6.6.0 - 2017-02-25
 
