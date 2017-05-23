@@ -576,9 +576,12 @@ public class OpenSubtitle {
 			String tvEpisodeNumberFromFilename = metadataFromFilename[4];
 			String tvEpisodeNameFromFilename   = metadataFromFilename[5];
 
+			String titleFromFilenameSimplified = PMS.get().getSimplifiedShowName(titleFromFilename);
+
 			media.setMovieOrShowName(titleFromFilename);
-			media.setSimplifiedMovieOrShowName(PMS.get().getSimplifiedShowName(titleFromFilename));
+			media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
 			String titleFromDatabase;
+			String titleFromDatabaseSimplified;
 
 			/**
 			 * Apply the metadata from the filename.
@@ -590,13 +593,13 @@ public class OpenSubtitle {
 				 * like "Word and Word" vs. "Word & Word" from creating two virtual folders.
 				 */
 				titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+				titleFromDatabaseSimplified = PMS.get().getSimplifiedShowName(titleFromDatabase);
 				if (overTheTopLogging) {
 					LOGGER.info("titleFromDatabase: " + titleFromDatabase);
 					LOGGER.info("titleFromFilename: " + titleFromFilename);
 				}
-				if (!"".equals(titleFromDatabase) && StringUtil.isSimilarEnough(titleFromFilename, titleFromDatabase)) {
+				if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
 					media.setMovieOrShowName(titleFromDatabase);
-					media.setSimplifiedMovieOrShowName(PMS.get().getSimplifiedShowName(titleFromDatabase));
 				}
 
 				media.setTVSeason(tvSeasonFromFilename);
@@ -654,9 +657,13 @@ public class OpenSubtitle {
 						String tvEpisodeNumberFromFilename = metadataFromFilename[4];
 
 						String titleFromDatabase;
+						String titleFromDatabaseSimplified;
+						String titleFromFilenameSimplified = PMS.get().getSimplifiedShowName(titleFromFilename);
+						String titleFromOpenSubtitlesSimplified;
 
 						if (metadataFromOpenSubtitles != null) {
 							String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
+							titleFromOpenSubtitlesSimplified = PMS.get().getSimplifiedShowName(titleFromOpenSubtitles);
 							String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
 							String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
 							if (tvEpisodeNumberFromOpenSubtitles.length() == 1) {
@@ -684,12 +691,12 @@ public class OpenSubtitle {
 								)
 							) {
 								/**
-								 * If the name returned from OpenSubtitles has greater than 91% similarity
-								 * to the one from the filename, we regard it as a correct match.
+								 * If the name returned from OpenSubtitles is very similar to the one from the
+								 * filename, we regard it as a correct match.
 								 * This means we get proper case and special characters without worrying about
 								 * incorrect results being used.
 								 */
-								if (StringUtil.isSimilarEnough(titleFromFilename, titleFromOpenSubtitles)) {
+								if (titleFromFilenameSimplified.equals(titleFromOpenSubtitlesSimplified)) {
 									/**
 									 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
 									 * number, so we validate those as well.
@@ -711,6 +718,7 @@ public class OpenSubtitle {
 										)
 									) {
 										titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+										titleFromDatabaseSimplified = PMS.get().getSimplifiedShowName(titleFromDatabase);
 										if (overTheTopLogging) {
 											LOGGER.info("titleFromDatabase: " + titleFromDatabase);
 											LOGGER.info("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
@@ -724,7 +732,7 @@ public class OpenSubtitle {
 										if (
 											!"".equals(titleFromDatabase) &&
 											!titleFromOpenSubtitles.equals(titleFromDatabase) &&
-											StringUtil.isSimilarEnough(titleFromOpenSubtitles, titleFromDatabase)
+											titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)
 										) {
 											// Replace our close-but-not-exact title in the database with the title from OpenSubtitles.
 											PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
@@ -732,7 +740,7 @@ public class OpenSubtitle {
 
 										media.setIMDbID(metadataFromOpenSubtitles[0]);
 										media.setMovieOrShowName(titleFromOpenSubtitles);
-										media.setSimplifiedMovieOrShowName(PMS.get().getSimplifiedShowName(titleFromOpenSubtitles));
+										media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
 										media.setYear(metadataFromOpenSubtitles[5]);
 										media.setEdition(editionFromFilename);
 
