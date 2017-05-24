@@ -18,6 +18,7 @@
  */
 package net.pms.formats;
 
+import java.util.Locale;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
@@ -220,6 +221,7 @@ public abstract class Format implements Cloneable {
 	 *
 	 * @deprecated
 	 */
+	@Deprecated
 	public void setIcon(String filename) {
 		icon = filename;
 	}
@@ -241,7 +243,7 @@ public abstract class Format implements Cloneable {
 			return false;
 		}
 
-		filename = filename.toLowerCase();
+		filename = filename.toLowerCase(Locale.ROOT);
 		String[] supportedExtensions = getSupportedExtensions();
 
 		if (supportedExtensions != null) {
@@ -251,7 +253,7 @@ public abstract class Format implements Cloneable {
 			}
 
 			for (String extension : supportedExtensions) {
-				String ext = extension.toLowerCase();
+				String ext = extension.toLowerCase(Locale.ROOT);
 				if (filename.endsWith("." + ext)) {
 					setMatchedExtension(ext);
 					return true;
