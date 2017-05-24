@@ -697,4 +697,20 @@ public class FormatConfigurationRegressionTest0 {
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "sipro"+ "'", str0.equals("sipro"));
   }
+
+  @Test
+  public void testACELP() throws Throwable {
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.ACELP;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "acelp"+ "'", str0.equals("acelp"));
+  }
+
+    @Test
+  public void testG729() throws Throwable {
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.G729;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "g729"+ "'", str0.equals("g729"));
+  }
 }

@@ -164,6 +164,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is ACELP.
+	 */
+	public boolean isACELP() {
+		return FormatConfiguration.ACELP.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is ADPCM.
 	 */
 	public boolean isADPCM() {
@@ -244,7 +251,14 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is FLAC.
 	 */
 	public boolean isFLAC() {
-		return getCodecA() != null && getCodecA().startsWith("fla");
+		return FormatConfiguration.FLAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is G729.
+	 */
+	public boolean isG729() {
+		return FormatConfiguration.G729.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -447,6 +461,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "AAC-LC";
 		} else if (isAC3()) {
 			return "AC3";
+		} else if (isACELP()) {
+			return "ACELP";
 		} else if (isADPCM()) {
 			return "ADPCM";
 		} else if (isAIFF()) {
@@ -471,6 +487,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "Enhanced AC-3";
 		} else if (isFLAC()) {
 			return "FLAC";
+		} else if (isG729()) {
+			return "G.729";
 		} else if (isHEAAC()) {
 			return "HE-AAC";
 		} else if (isMKA()) {

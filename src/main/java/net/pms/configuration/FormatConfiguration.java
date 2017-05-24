@@ -46,6 +46,7 @@ public class FormatConfiguration {
 	public static final String THREEGA = "3ga";
 	public static final String AAC_LC = "aac-lc";
 	public static final String AC3 = "ac3";
+	public static final String ACELP = "acelp";
 	public static final String ADPCM = "adpcm";
 	public static final String ADTS = "adts";
 	public static final String AIFF = "aiff";
@@ -69,6 +70,7 @@ public class FormatConfiguration {
 	public static final String EAC3 = "eac3";
 	public static final String FLAC = "flac";
 	public static final String FLV = "flv";
+	public static final String G729 = "g729";
 	public static final String GIF = "gif";
 	public static final String H263 = "h263";
 	public static final String H264 = "h264";
