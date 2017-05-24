@@ -169,13 +169,12 @@ public class FormatConfiguration {
 			if (StringUtils.isBlank(format)) { // required
 				LOGGER.warn("No format supplied");
 				return false;
-			} else {
-				try {
-					pFormat = Pattern.compile(format);
-				} catch (PatternSyntaxException pse) {
-					LOGGER.error("Error parsing format: " + format, pse);
-					return false;
-				}
+			}
+			try {
+				pFormat = Pattern.compile(format);
+			} catch (PatternSyntaxException pse) {
+				LOGGER.error("Error parsing format: " + format, pse);
+				return false;
 			}
 
 			if (videoCodec != null) {
@@ -512,31 +511,30 @@ public class FormatConfiguration {
 				media.getHeight(),
 				media.getExtras()
 			);
-		} else {
-			String finalMimeType = null;
-
-			for (DLNAMediaAudio audio : media.getAudioTracksList()) {
-				String mimeType = match(
-					media.getContainer(),
-					media.getCodecV(),
-					audio.getCodecA(),
-					audio.getAudioProperties().getNumberOfChannels(),
-					audio.getSampleRate(),
-					media.getBitrate(),
-					media.getWidth(),
-					media.getHeight(),
-					media.getExtras()
-				);
-
-				finalMimeType = mimeType;
-
-				if (mimeType == null) { // if at least one audio track is not compatible, the file must be transcoded.
-					return null;
-				}
-			}
-
-			return finalMimeType;
 		}
+		String finalMimeType = null;
+
+		for (DLNAMediaAudio audio : media.getAudioTracksList()) {
+			String mimeType = match(
+				media.getContainer(),
+				media.getCodecV(),
+				audio.getCodecA(),
+				audio.getAudioProperties().getNumberOfChannels(),
+				audio.getSampleRate(),
+				media.getBitrate(),
+				media.getWidth(),
+				media.getHeight(),
+				media.getExtras()
+			);
+
+			finalMimeType = mimeType;
+
+			if (mimeType == null) { // if at least one audio track is not compatible, the file must be transcoded.
+				return null;
+			}
+		}
+
+		return finalMimeType;
 	}
 
 	public String match(String container, String videoCodec, String audioCodec) {
@@ -586,7 +584,7 @@ public class FormatConfiguration {
 		return matchedMimeType;
 	}
 
-	private SupportSpec parseSupportLine(String line) {
+	private static SupportSpec parseSupportLine(String line) {
 		StringTokenizer st = new StringTokenizer(line, "\t ");
 		SupportSpec supportSpec = new SupportSpec();
 

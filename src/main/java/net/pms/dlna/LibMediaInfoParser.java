@@ -658,7 +658,7 @@ public class LibMediaInfoParser {
 			}
 		// format not found so set container type based on the file extension. It will be overwritten when the correct type will be found
 		} else if (streamType == StreamType.General && media.getContainer() == null) {
-			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()));
+			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()).toLowerCase(Locale.ROOT));
 		}
 	}
 
@@ -718,20 +718,18 @@ public class LibMediaInfoParser {
 		final String avcLevel = substringAfterLast(lowerCase(value), "@l");
 		if (isNotBlank(avcLevel)) {
 			return avcLevel;
-		} else {
-			LOGGER.warn("Could not parse AvcLevel value {}." , value);
-			return null;
 		}
+		LOGGER.warn("Could not parse AvcLevel value {}." , value);
+		return null;
 	}
 
 	public static String getAvcProfile(String value) {
 		String profile = substringBefore(lowerCase(value), "@l");
 		if (isNotBlank(profile)) {
 			return profile;
-		} else {
-			LOGGER.warn("Could not parse AvcProfile value {}." , value);
-			return null;
 		}
+		LOGGER.warn("Could not parse AvcProfile value {}." , value);
+		return null;
 	}
 
 	public static int getBitrate(String value) {

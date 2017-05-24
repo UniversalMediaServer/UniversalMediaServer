@@ -48,11 +48,10 @@ public class WEB extends Format {
 
 		if (protocol == null) {
 			return false;
-		} else {
-			url = filename;
-			setMatchedExtension(protocol);
-			return true;
 		}
+		url = filename;
+		setMatchedExtension(protocol);
+		return true;
 	}
 
 	@Override
