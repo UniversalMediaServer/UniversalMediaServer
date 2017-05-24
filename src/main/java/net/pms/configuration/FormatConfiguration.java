@@ -399,6 +399,7 @@ public class FormatConfiguration {
 				renderer.isUseMediaInfo() &&
 				ext.getIdentifier() != Identifier.ADPCM &&
 				ext.getIdentifier() != Identifier.DSD &&
+				ext.getIdentifier() != Identifier.RA &&
 				ext.getIdentifier() != Identifier.PNM
 			) {
 				LibMediaInfoParser.parse(media, file, type, renderer);
