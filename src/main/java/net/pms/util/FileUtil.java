@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
@@ -205,7 +206,7 @@ public class FileUtil {
 	public static String getProtocol(String filename) {
 		// Intentionally avoids URI.getScheme(), see above
 		if (isUrl(filename)) {
-			return filename.split("://")[0].toLowerCase();
+			return filename.split("://")[0].toLowerCase(Locale.ROOT);
 		}
 		return null;
 	}

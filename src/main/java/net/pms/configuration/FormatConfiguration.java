@@ -170,20 +170,21 @@ public class FormatConfiguration {
 			if (StringUtils.isBlank(format)) { // required
 				LOGGER.warn("No format supplied");
 				return false;
-			} else {
-				try {
-					pFormat = Pattern.compile(format);
-				} catch (PatternSyntaxException pse) {
-					LOGGER.error("Error parsing format: " + format, pse);
-					return false;
-				}
+			}
+			try {
+				pFormat = Pattern.compile(format);
+			} catch (PatternSyntaxException pse) {
+				LOGGER.error("Error parsing format \"{}\": {}", format, pse.getMessage());
+				LOGGER.trace("", pse);
+				return false;
 			}
 
 			if (videoCodec != null) {
 				try {
 					pVideoCodec = Pattern.compile(videoCodec);
 				} catch (PatternSyntaxException pse) {
-					LOGGER.error("Error parsing video codec: " + videoCodec, pse);
+					LOGGER.error("Error parsing video codec \"{}\": {}", videoCodec, pse.getMessage());
+					LOGGER.trace("", pse);
 					return false;
 				}
 			}
@@ -192,7 +193,8 @@ public class FormatConfiguration {
 				try {
 					pAudioCodec = Pattern.compile(audioCodec);
 				} catch (PatternSyntaxException pse) {
-					LOGGER.error("Error parsing audio codec: " + audioCodec, pse);
+					LOGGER.error("Error parsing audio codec \"{}\": {}", audioCodec, pse.getMessage());
+					LOGGER.trace("", pse);
 					return false;
 				}
 			}
@@ -201,7 +203,8 @@ public class FormatConfiguration {
 				try {
 					iMaxNbChannels = Integer.parseInt(maxNbChannels);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing number of channels: " + maxNbChannels, nfe);
+					LOGGER.error("Error parsing number of channels \"{}\": {}", maxNbChannels, nfe.getMessage());
+					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
@@ -210,7 +213,8 @@ public class FormatConfiguration {
 				try {
 					iMaxFrequency = Integer.parseInt(maxFrequency);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing maximum frequency: " + maxFrequency, nfe);
+					LOGGER.error("Error parsing maximum frequency \"{}\": {}", maxFrequency, nfe.getMessage());
+					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
@@ -219,7 +223,8 @@ public class FormatConfiguration {
 				try {
 					iMaxBitrate = Integer.parseInt(maxBitrate);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing maximum bitrate: " + maxBitrate, nfe);
+					LOGGER.error("Error parsing maximum bitrate \"{}\": {}", maxBitrate, nfe.getMessage());
+					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
@@ -228,7 +233,8 @@ public class FormatConfiguration {
 				try {
 					iMaxVideoWidth = Integer.parseInt(maxVideoWidth);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing maximum video width: " + maxVideoWidth, nfe);
+					LOGGER.error("Error parsing maximum video width \"{}\": {}", maxVideoWidth, nfe.getMessage());
+					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
@@ -237,7 +243,8 @@ public class FormatConfiguration {
 				try {
 					iMaxVideoHeight = Integer.parseInt(maxVideoHeight);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing maximum video height: " + maxVideoHeight, nfe);
+					LOGGER.error("Error parsing maximum video height \"{}\": {}", maxVideoHeight, nfe.getMessage());
+					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
@@ -372,7 +379,7 @@ public class FormatConfiguration {
 				if (supportSpec.isValid()) {
 					supportSpecs.add(supportSpec);
 				} else {
-					LOGGER.warn("Invalid configuration line: " + line);
+					LOGGER.warn("Invalid configuration line: {}", line);
 				}
 			}
 		}
@@ -513,31 +520,30 @@ public class FormatConfiguration {
 				media.getHeight(),
 				media.getExtras()
 			);
-		} else {
-			String finalMimeType = null;
-
-			for (DLNAMediaAudio audio : media.getAudioTracksList()) {
-				String mimeType = match(
-					media.getContainer(),
-					media.getCodecV(),
-					audio.getCodecA(),
-					audio.getAudioProperties().getNumberOfChannels(),
-					audio.getSampleRate(),
-					media.getBitrate(),
-					media.getWidth(),
-					media.getHeight(),
-					media.getExtras()
-				);
-
-				finalMimeType = mimeType;
-
-				if (mimeType == null) { // if at least one audio track is not compatible, the file must be transcoded.
-					return null;
-				}
-			}
-
-			return finalMimeType;
 		}
+		String finalMimeType = null;
+
+		for (DLNAMediaAudio audio : media.getAudioTracksList()) {
+			String mimeType = match(
+				media.getContainer(),
+				media.getCodecV(),
+				audio.getCodecA(),
+				audio.getAudioProperties().getNumberOfChannels(),
+				audio.getSampleRate(),
+				media.getBitrate(),
+				media.getWidth(),
+				media.getHeight(),
+				media.getExtras()
+			);
+
+			finalMimeType = mimeType;
+
+			if (mimeType == null) { // if at least one audio track is not compatible, the file must be transcoded.
+				return null;
+			}
+		}
+
+		return finalMimeType;
 	}
 
 	public String match(String container, String videoCodec, String audioCodec) {
@@ -587,7 +593,7 @@ public class FormatConfiguration {
 		return matchedMimeType;
 	}
 
-	private SupportSpec parseSupportLine(String line) {
+	private static SupportSpec parseSupportLine(String line) {
 		StringTokenizer st = new StringTokenizer(line, "\t ");
 		SupportSpec supportSpec = new SupportSpec();
 
