@@ -579,6 +579,10 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WAV;
 		} else if (value.equals("shorten")) {
 			format = FormatConfiguration.SHORTEN;
+		} else if (value.equals("acelp")) {
+			format = FormatConfiguration.ACELP;
+		} else if (value.equals("g.729") || value.equals("g.729a")) {
+			format = FormatConfiguration.G729;
 		} else if (value.equals("vselp")) {
 			format = FormatConfiguration.REALAUDIO_14_4;
 		} else if (value.equals("g.728")) {
@@ -628,11 +632,10 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WAVPACK;
 		} else if (value.contains("mlp")) {
 			format = FormatConfiguration.MLP;
-		} else if (value.contains("atrac")) {
+		} else if (value.equals("openmg")) {
 			format = FormatConfiguration.ATRAC;
-			if (media.getCodecV() == null && !media.getContainer().equals(FormatConfiguration.RM)) {
-				media.setContainer(FormatConfiguration.ATRAC);
-			}
+		} else if (value.startsWith("atrac")) {
+			format = FormatConfiguration.ATRAC;
 		} else if (value.equals("jpeg")) {
 			format = FormatConfiguration.JPG;
 		} else if (value.equals("png")) {
