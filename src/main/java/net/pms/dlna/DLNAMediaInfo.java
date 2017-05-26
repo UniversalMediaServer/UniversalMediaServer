@@ -354,6 +354,29 @@ public class DLNAMediaInfo implements Cloneable {
 		return audioTracks.size() > 0;
 	}
 
+	/**
+	 * Determines whether this media "is" MPEG-4 SLS.
+	 * <p>
+	 * SLS is MPEG-4's hybrid lossless audio codec. It uses a standard MPEG-4 GA
+	 * core layer. Valid cores include AAC-LC, AAC Scalable (without LTP), ER
+	 * AAC LC, ER AAC Scalable, and ER BSAC.
+	 * <p>
+	 * Since UMS currently only implements AAC-LC among the valid core layer
+	 * codecs, AAC-LC is the only core layer format "approved" by this test. If
+	 * further codecs are added in the future, this test should be modified
+	 * accordingly.
+	 *
+	 * @return {@code true} is this {@link DLNAMediaInfo} instance has two audio
+	 *         tracks where the first has codec AAC-LC and the second has codec
+	 *         SLS, {@code false} otherwise.
+	 */
+	public boolean isSLS() {
+		if (audioTracks.size() != 2) {
+			return false;
+		}
+		return audioTracks.get(0).isAACLC() && audioTracks.get(1).isSLS();
+	}
+
 	public MediaType getMediaType() {
 		if (videoTrackCount > 0) {
 			return MediaType.VIDEO;
@@ -366,7 +389,7 @@ public class DLNAMediaInfo implements Cloneable {
 					return MediaType.IMAGE;
 				}
 			default :
-				return MediaType.UNKNOWN;
+				return isSLS() ? MediaType.AUDIO : MediaType.UNKNOWN;
 		}
 	}
 

@@ -117,6 +117,7 @@ public class FormatConfiguration {
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
 	public static final String SIPRO = "sipro";
+	public static final String SLS = "sls";
 	public static final String SORENSON = "sor";
 	public static final String THEORA = "theora";
 	public static final String TIFF = "tiff";
@@ -523,6 +524,32 @@ public class FormatConfiguration {
 				media.getExtras()
 			);
 		}
+
+		if (media.isSLS()) {
+			/*
+			 * MPEG-4 SLS is a special case and must be treated differently. It
+			 * consists of a MPEG-4 ISO container with two audio tracks, the
+			 * first is the lossy "core" stream and the second is the SLS
+			 * correction stream. When the SLS stream is applied to the core
+			 * stream the result is lossless. It is arranged this way so that
+			 * players that can't play SLS can still play the (lossy) core
+			 * stream. Because of this, only compatibility for the first audio
+			 * track needs to be checked.
+			 */
+			DLNAMediaAudio audio = media.getFirstAudioTrack();
+			return match(
+				media.getContainer(),
+				media.getCodecV(),
+				audio.getCodecA(),
+				audio.getAudioProperties().getNumberOfChannels(),
+				audio.getSampleRate(),
+				audio.getBitRate(),
+				media.getWidth(),
+				media.getHeight(),
+				media.getExtras()
+			);
+		}
+
 		String finalMimeType = null;
 
 		for (DLNAMediaAudio audio : media.getAudioTracksList()) {
