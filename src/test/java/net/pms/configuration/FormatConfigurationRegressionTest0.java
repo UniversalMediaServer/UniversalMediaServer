@@ -1043,4 +1043,16 @@ public class FormatConfigurationRegressionTest0 {
 
   }
 
+  @Test
+  public void test91() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.test91"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.AAC_SSR;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "aac-ssr"+ "'", str0.equals("aac-ssr"));
+
+  }
+
 }

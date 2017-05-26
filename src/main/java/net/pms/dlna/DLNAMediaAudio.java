@@ -1,5 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
+ * PS3 Media Server, for streaming any media to your PS3.
  * Copyright (C) 2008  A.Brochard
  *
  * This program is free software; you can redistribute it and/or
@@ -139,7 +139,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is AAC.
 	 */
 	public boolean isAAC() {
-		return isAACLC() || isHEAAC() || isAACLTP() || isHEAACV2();
+		return isAACLC() || isHEAAC() || isAACLTP() || isAACSSR() || isHEAACV2();
 	}
 
 	/**
@@ -168,6 +168,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isAACLTP() {
 		return FormatConfiguration.AAC_LTP.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is AAC-SSR.
+	 */
+	public boolean isAACSSR() {
+		return FormatConfiguration.AAC_SSR.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -428,9 +435,11 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public String getAudioCodec() {
 		if (isAACLC()) {
-			return "AAC";
+			return "AAC-LC";
 		} else if (isAACLTP()) {
 			return "AAC-LTP";
+		} else if (isAACSSR()) {
+			return "AAC-SSR";
 		} else if (isAC3()) {
 			return "AC3";
 		} else if (isADPCM()) {

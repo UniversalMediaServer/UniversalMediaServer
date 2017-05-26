@@ -48,6 +48,7 @@ public class FormatConfiguration {
 	public static final String AAC = "aac";
 	public static final String AAC_HE = "aac-he";
 	public static final String AAC_LTP = "aac-ltp";
+	public static final String AAC_SSR = "aac-ssr";
 	public static final String AC3 = "ac3";
 	public static final String ADPCM = "adpcm";
 	public static final String ADTS = "adts";

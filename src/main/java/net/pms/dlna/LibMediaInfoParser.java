@@ -324,7 +324,8 @@ public class LibMediaInfoParser {
 					(FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA()) ||
 					FormatConfiguration.AAC_HE.equals(media.getAudioTracksList().get(0).getCodecA()) ||
 					FormatConfiguration.AAC_LTP.equals(media.getAudioTracksList().get(0).getCodecA()) ||
-					FormatConfiguration.HEAACV2.equals(media.getAudioTracksList().get(0).getCodecA())
+					FormatConfiguration.HEAACV2.equals(media.getAudioTracksList().get(0).getCodecA()) ||
+					FormatConfiguration.AAC_SSR.equals(media.getAudioTracksList().get(0).getCodecA())
 					)
 				) {
 				media.setContainer(FormatConfiguration.AAC);
@@ -589,6 +590,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.HEAACV2;
 		} else if (value.equals("ltp")) {
 			format = FormatConfiguration.AAC_LTP;
+		} else if (value.equals("a_aac/mpeg2/ssr") || value.equals("a_aac/mpeg4/ssr") || value.equals("ssr")) {
+			format = FormatConfiguration.AAC_SSR;
 		} else if (value.startsWith("adpcm")) {
 			format = FormatConfiguration.ADPCM;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
