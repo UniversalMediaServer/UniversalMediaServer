@@ -367,6 +367,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is SLS.
+	 */
+	public boolean isSLS() {
+		return FormatConfiguration.SLS.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is TrueHD.
 	 */
 	public boolean isTrueHD() {
@@ -444,7 +451,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			(
 				isAIFF() || isALAC() || isALS() || isFLAC() || isMLP() ||
 				isMonkeysAudio() || isPCM() || isRALF() || isShorten() ||
-				isTrueHD() || isTTA() || isWAV() || isWavPack() ||
+				isSLS() || isTrueHD() || isTTA() || isWAV() || isWavPack() ||
 				isWMALossless()
 			);
 	}
@@ -519,6 +526,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "Shorten";
 		} else if (isSipro()) {
 			return "Sipro";
+		} else if (isSLS()) {
+			return "SLS";
 		} else if (isTrueHD()) {
 			return "TrueHD";
 		} else if (isTTA()) {

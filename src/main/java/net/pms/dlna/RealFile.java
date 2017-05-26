@@ -206,6 +206,9 @@ public class RealFile extends MapFile {
 
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
+					if (getMedia() != null && getMedia().isSLS()) {
+						setFormat(getMedia().getAudioVariantFormat());
+					}
 				} else {
 					// Don't think that will ever happen
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());

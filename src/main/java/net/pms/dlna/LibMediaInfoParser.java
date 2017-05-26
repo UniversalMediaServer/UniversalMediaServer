@@ -435,7 +435,7 @@ public class LibMediaInfoParser {
 	 * @param file
 	 */
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
-		if (value.isEmpty()) {
+		if (isBlank(value)) {
 			return;
 		}
 
@@ -579,6 +579,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WAV;
 		} else if (value.equals("shorten")) {
 			format = FormatConfiguration.SHORTEN;
+		} else if (value.equals("sls")) {
+			format = FormatConfiguration.SLS;
 		} else if (value.equals("acelp")) {
 			format = FormatConfiguration.ACELP;
 		} else if (value.equals("g.729") || value.equals("g.729a")) {
