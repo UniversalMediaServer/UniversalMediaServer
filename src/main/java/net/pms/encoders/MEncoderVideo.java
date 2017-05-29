@@ -2654,7 +2654,7 @@ public class MEncoderVideo extends Player {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
-			PlayerUtil.isVideo(resource, Format.Identifier.ISO) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.ISOVOB) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
 		) {
