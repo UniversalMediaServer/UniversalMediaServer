@@ -61,6 +61,7 @@ public final class FormatFactory {
 		new IDX(),
 		new IFF(),
 		new ISO(),
+		new ISOVOB(),
 		new JPG(),
 		new M4A(),
 		new MicroDVD(),
@@ -149,6 +150,23 @@ public final class FormatFactory {
 		}
 
 		LOGGER.trace("Could not match any format to \"" + filename + "\"");
+		return null;
+	}
+
+	public static Format getFormat(Class<? extends Format> clazz) {
+		if (clazz == null) {
+			return null;
+		}
+		formatsLock.readLock().lock();
+		try {
+			for (Format format : formats) {
+				if (format.getClass().equals(clazz)) {
+					return format.duplicate();
+				}
+			}
+		} finally {
+			formatsLock.readLock().unlock();
+		}
 		return null;
 	}
 

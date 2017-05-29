@@ -68,6 +68,7 @@ public abstract class Format implements Cloneable {
 		IFF,
 		IDX,
 		ISO,
+		ISOVOB,
 		JPG,
 		M4A,
 		MICRODVD,

@@ -27,6 +27,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.FormatFactory;
+import net.pms.formats.ISOVOB;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -272,7 +273,7 @@ public class DVDISOTitle extends DLNAResource {
 	@Override
 	public boolean isValid() {
 		if (getFormat() == null) {
-			setFormat(FormatFactory.getAssociatedFormat("dummy.iso"));
+			setFormat(FormatFactory.getFormat(ISOVOB.class));
 		}
 		return true;
 	}
