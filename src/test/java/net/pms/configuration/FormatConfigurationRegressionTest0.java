@@ -324,7 +324,7 @@ public class FormatConfigurationRegressionTest0 {
 
   @Test
   public void test40() throws Throwable {
-    java.lang.String str0 = net.pms.configuration.FormatConfiguration.CINEPACK;
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.CINEPAK;
 
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "cvid"+ "'", str0.equals("cvid"));
