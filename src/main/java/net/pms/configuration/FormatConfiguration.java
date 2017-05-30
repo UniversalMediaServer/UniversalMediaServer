@@ -58,7 +58,7 @@ public class FormatConfiguration {
 	public static final String AU = "au";
 	public static final String AVI = "avi";
 	public static final String BMP = "bmp";
-	public static final String CINEPACK = "cvid";
+	public static final String CINEPAK = "cvid";
 	public static final String COOK = "cook";
 	public static final String CUR = "cur";
 	public static final String DIVX = "divx";

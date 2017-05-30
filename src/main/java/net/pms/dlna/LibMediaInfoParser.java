@@ -452,8 +452,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MKV;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
-		} else if (value.startsWith("cinepack")) {
-			format = FormatConfiguration.CINEPACK;
+		} else if (value.startsWith("cinepa")) {
+			format = FormatConfiguration.CINEPAK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
 		} else if (value.equals("webm")) {
