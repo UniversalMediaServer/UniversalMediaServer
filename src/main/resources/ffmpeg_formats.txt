@@ -114,7 +114,7 @@ hash            Hash testing
 hds             HDS Muxer
 hevc            raw HEVC video
 hls             Apple HTTP Live Streaming
-hls,applehttp   Apple HTTP Live Streaming
+applehttp       Apple HTTP Live Streaming
 hnm             Cryo HNM v4
 ico             Microsoft Windows ICO
 idcin           id Cinematic
@@ -150,7 +150,7 @@ lvf             LVF
 lxf             VR native stream (LXF)
 m4v             raw MPEG-4 video
 matroska        Matroska
-matroska,webm   Matroska / WebM
+webm            WebM
 md5             MD5 testing
 mgsts           Metal Gear Solid: The Twin Snakes
 microdvd        MicroDVD subtitle format
@@ -162,7 +162,8 @@ mlv             Magic Lantern Video (MLV)
 mm              American Laser Games MM
 mmf             Yamaha SMAF
 mov             QuickTime / MOV
-mov,mp4,m4a,3gp,3g2,mj2 QuickTime / MOV
+m4a             MP4 audio (MPEG-4 Part 14)
+mj2             QuickTime / MOV
 mp2             MP2 (MPEG audio layer 2)
 mp3             MP3 (MPEG audio layer 3)
 mp4             MP4 (MPEG-4 Part 14)
@@ -263,7 +264,8 @@ spdif           IEC 61937 (used on S/PDIF - IEC958)
 spx             Ogg Speex
 srt             SubRip subtitle
 stl             Spruce subtitle format
-stream_segment,ssegment streaming segment muxer
+stream_segment  streaming segment muxer
+ssegment        streaming segment muxer
 subviewer       SubViewer subtitle format
 subviewer1      SubViewer v1 subtitle format
 sunrast_pipe    piped sunrast sequence
