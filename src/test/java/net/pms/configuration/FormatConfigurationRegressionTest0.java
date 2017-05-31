@@ -713,4 +713,12 @@ public class FormatConfigurationRegressionTest0 {
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "g729"+ "'", str0.equals("g729"));
   }
+  @Test
+  public void testWMA10() throws Throwable {
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.WMA10;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "wma10"+ "'", str0.equals("wma10"));
+
+  }
 }

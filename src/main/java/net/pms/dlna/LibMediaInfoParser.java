@@ -191,6 +191,10 @@ public class LibMediaInfoParser {
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
 						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
+						value = MI.Get(audio, i, "CodecID_Description");
+						if (isNotBlank(value) && value.startsWith("Windows Media Audio 10")) {
+							currentAudioTrack.setCodecA(FormatConfiguration.WMA10);
+						}
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
 						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
 						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
@@ -613,9 +617,9 @@ public class LibMediaInfoParser {
 		} else if (
 			streamType == StreamType.Audio && media.getCodecV() == null && audio != null && audio.getCodecA() != null &&
 			audio.getCodecA() == FormatConfiguration.WMA &&
-			(value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A"))
+			(value.equals("160") || value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A") || value.equals("wma10"))
 		) {
-			if (value.equals("161")) {
+			if (value.equals("160") || value.equals("161")) {
 				format = FormatConfiguration.WMA;
 			} else if (value.equals("162")) {
 				format = FormatConfiguration.WMAPRO;
@@ -623,6 +627,8 @@ public class LibMediaInfoParser {
 				format = FormatConfiguration.WMALOSSLESS;
 			} else if (value.equalsIgnoreCase("A")) {
 				format = FormatConfiguration.WMAVOICE;
+			} else if (value.equals("wma10")) {
+				format = FormatConfiguration.WMA10;
 			}
 		} else if (value.equals("flac")) {
 			format = FormatConfiguration.FLAC;

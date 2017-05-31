@@ -138,6 +138,7 @@ public class FormatConfiguration {
 	public static final String WEBM = "webm";
 	public static final String WEBP = "webp";
 	public static final String WMA = "wma";
+	public static final String WMA10 = "wma10";
 	public static final String WMALOSSLESS = "wmalossless";
 	public static final String WMAPRO = "wmapro";
 	public static final String WMAVOICE = "wmavoice";
