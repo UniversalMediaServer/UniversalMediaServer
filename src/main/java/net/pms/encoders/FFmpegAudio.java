@@ -132,7 +132,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(
+	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -267,6 +267,7 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.MLP) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MP3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MPA) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.MPC) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.RA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.SHN) ||
