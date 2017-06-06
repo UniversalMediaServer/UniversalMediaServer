@@ -6,12 +6,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.UMSUtils;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
@@ -98,12 +100,28 @@ public class PlaylistFolder extends DLNAResource {
 		return null;
 	}
 
+
 	@Override
 	protected void resolveOnce() {
 		ArrayList<Entry> entries = new ArrayList<>();
 		boolean m3u = false;
 		boolean pls = false;
-		try (BufferedReader br = getBufferedReader()) {
+		
+		// START - Add lines to deal with UTF-8 encoded m3u8 playlist files
+		
+		//try (BufferedReader br = getBufferedReader()) {
+		try {
+			BufferedReader br = getBufferedReader();
+			File playlistfile = new File(uri);
+						
+			if ( (playlistfile.getName().toLowerCase().endsWith(".m3u8")) ) {
+					br = new BufferedReader(new InputStreamReader(new FileInputStream(playlistfile), "UTF-8"));
+					br.read();  // Skip byte order mark.
+			} else {
+					br = new BufferedReader(new FileReader(playlistfile));
+			}
+		// END
+			
 			String line;
 			while (!m3u && !pls && (line = br.readLine()) != null) {
 				line = line.trim();
