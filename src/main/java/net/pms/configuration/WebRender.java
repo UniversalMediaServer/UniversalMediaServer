@@ -72,6 +72,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private static final Format[] supportedFormats = {
 		new GIF(),
 		new JPG(),
+		new BMP(),
 		new MP3(),
 		new PNG(),
 		new BMP()
@@ -125,6 +126,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:bmp m:image/bmp");
 		configuration.addProperty(SUPPORTED, "f:jpg m:image/jpeg");
 		configuration.addProperty(SUPPORTED, "f:png m:image/png");
+		configuration.addProperty(SUPPORTED, "f:bmp m:image/bmp");
 		configuration.addProperty(SUPPORTED, "f:gif m:image/gif");
 		configuration.addProperty(SUPPORTED, "f:tiff m:image/tiff");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
