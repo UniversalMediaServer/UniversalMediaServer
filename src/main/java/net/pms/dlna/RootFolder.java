@@ -150,6 +150,15 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
+		/**
+		 * Changes to monitored folders trigger a rescan
+		 */
+		if (PMS.getConfiguration().getUseCache()) {
+			for (DLNAResource r : getConfiguredFolders(tags, true)) {
+				FileWatcher.add(new FileWatcher.Watch(r.getSystemName(), LIBRARY_RESCANNER));
+			}
+		}
+
 		for (DLNAResource r : getVirtualFolders(tags)) {
 			addChild(r);
 		}
@@ -279,8 +288,12 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
+		return getConfiguredFolders(tags, false);
+	}
+
+	private List<RealFile> getConfiguredFolders(ArrayList<String> tags, boolean monitored) {
 		List<RealFile> res = new ArrayList<>();
-		File[] files = PMS.get().getSharedFoldersArray(false, tags, configuration);
+		File[] files = PMS.get().getSharedFoldersArray(monitored, tags, configuration);
 		String s = configuration.getFoldersIgnored(tags);
 		String[] skips = null;
 
@@ -1440,6 +1453,22 @@ public class RootFolder extends DLNAResource {
 			if (r != null) {
 				if (watch.flag == RELOAD_WEB_CONF) {
 					r.loadWebConf();
+				}
+			}
+		}
+	};
+
+	/**
+	 * Rescans the media library when a change is made to relevant file or folder.
+	 */
+	public static final FileWatcher.Listener LIBRARY_RESCANNER = new FileWatcher.Listener() {
+		@Override
+		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+			if (PMS.getConfiguration().getUseCache()) {
+				DLNAMediaDatabase database = PMS.get().getDatabase();
+
+				if (database != null && !database.isScanLibraryRunning()) {
+					database.scanLibrary();
 				}
 			}
 		}
