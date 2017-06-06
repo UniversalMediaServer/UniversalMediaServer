@@ -90,7 +90,7 @@ public class DLNAMediaDatabase implements Runnable {
 		dbName = name;
 		File profileDirectory = new File(configuration.getProfileDirectory());
 		dbDir = new File(profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
-		url = Constants.START_URL + dbDir + File.separator + dbName;
+		url = Constants.START_URL + dbDir + File.separator + dbName + ";TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3";
 		LOGGER.debug("Using database URL: " + url);
 		LOGGER.info("Using database located at: " + dbDir);
 
