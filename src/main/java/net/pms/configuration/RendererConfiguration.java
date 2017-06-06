@@ -98,6 +98,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String LPCM = "LPCM";
 	protected static final String MP3 = "MP3";
 	protected static final String WAV = "WAV";
+	protected static final String FLAC = "FLAC";
 	protected static final String WMV = "WMV";
 
 	// Old video transcoding options
@@ -1237,7 +1238,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isTranscodeToMP3() {
 		return getAudioTranscode().equals(MP3);
 	}
-
+	
+	public boolean isTranscodeToFLAC() {
+		return getAudioTranscode().equals(FLAC);
+	}
+	
 	public boolean isTranscodeToLPCM() {
 		return getAudioTranscode().equals(LPCM);
 	}
@@ -1313,6 +1318,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WAV, null, null);
 				} else if (isTranscodeToMP3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MP3, null, null);
+				} else if (isTranscodeToFLAC()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.FLAC, null, null);
 				} else {
 					// Default audio transcoding mime type
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
@@ -1352,6 +1359,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 				} else if (isTranscodeToMP3()) {
 					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else if (isTranscodeToFLAC()) {
+					matchedMimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;	
 				} else {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
