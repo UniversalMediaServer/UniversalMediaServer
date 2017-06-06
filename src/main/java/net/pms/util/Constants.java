@@ -22,6 +22,7 @@ public class Constants {
 	public static final String CHARSET_IBM855		= "IBM855".intern();
 	public static final String CHARSET_IBM866		= "IBM866".intern();
 	public static final String CHARSET_KOI8_R		= "KOI8-R".intern();
+	public static final String CHARSET_TIS_620		= "TIS-620".intern();
 	public static final String CHARSET_MACCYRILLIC	= "MACCYRILLIC".intern();
 	public static final String CHARSET_WINDOWS_874	= "WINDOWS-874".intern();
 	public static final String CHARSET_WINDOWS_1250 = "WINDOWS-1250".intern();
