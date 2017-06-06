@@ -1,0 +1,53 @@
+#----------------------------------------------------------------------------
+# Profile for LG Blu-Ray players.
+# See DefaultRenderer.conf for descriptions of all the available options.
+
+RendererName = LG BD670
+RendererIcon = LG-BP550.png
+
+# ============================================================================
+# This renderer has sent the following string/s:
+#
+# User-Agent: Panasonic MIL DLNA CP UPnP/1.0 DLNADOC/1.50
+# friendlyName=LG BDP DMR--6844
+# uuid:uuid:976b6b76-c14c-123c-988b-92f8f7a79442
+# manufacturer=LG Electronics
+# modelName=MediaRenderer
+# modelNumber=1.0
+# modelDescription=UPnP Media Renderer 1.0
+# manufacturerURL=http://www.lge.com
+# modelURL=http://www.lge.com/
+# ============================================================================
+#
+
+UserAgentSearch = LG BDP DMR , 6844
+UpnpDetailsSearch = LG Electronics , MediaRenderer
+LoadingPriority = 1
+
+TranscodeVideo = MPEGTS-H264-AC3
+TranscodeFastStart = true
+KeepAspectRatioTranscoding = true
+StreamSubsForTranscodedVideo = true
+MediaInfo = true
+
+# Supported video formats:
+Supported = f:3gp|3g2    v:h264|mp4|mpeg1|mpeg2|vc1   a:aac|ac3|dts|mpa|mp3|wma   m:video/3gpp
+Supported = f:avi|divx   v:h264|mp4|mpeg1|mpeg2       a:aac|ac3|dts|mpa|mp3|wma   m:video/x-divx       qpel:no   gmc:0
+Supported = f:flv        v:h264|mp4|mpeg1|mpeg2|vc1   a:aac|ac3|dts|mpa|mp3|wma   m:video/x-flv
+Supported = f:mkv        v:h264|mp4|mpeg1|mpeg2|vc1   a:aac|ac3|dts|mpa|mp3|wma   m:video/x-matroska
+Supported = f:mp4|m4v    v:h264|mp4|mpeg1|mpeg2|vc1   a:aac|ac3|dts|mpa|mp3|wma   m:video/mp4
+Supported = f:mpegps     v:h264|mp4|mpeg1|mpeg2|vc1   a:aac|ac3|dts|mpa|mp3|wma   m:video/mpeg
+Supported = f:mpegts     v:h264|mp4|mpeg1|mpeg2|vc1   a:aac|ac3|dts|mpa|mp3|wma   m:video/mpeg
+Supported = f:wmv|asf    v:h264|mp4|mpeg1|mpeg2|vc1   a:aac|ac3|dts|mpa|mp3|wma   m:video/x-ms-wmv
+
+# Supported audio formats:
+Supported = f:aac    m:audio/x-m4a
+Supported = f:mp3    m:audio/mpeg
+Supported = f:wav    m:audio/wav
+Supported = f:wma    m:audio/x-ms-wma
+
+# Supported image formats:
+Supported = f:jpg    m:image/jpeg
+
+SupportedExternalSubtitlesFormats = ASS,MICRODVD,SAMI,SUBRIP,TEXT
+SupportedInternalSubtitlesFormats = ASS,MICRODVD,SAMI,SUBRIP,TEXT
