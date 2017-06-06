@@ -509,7 +509,7 @@ public class FFMpegVideo extends Player {
 				if (dtsRemux) {
 					defaultMaxBitrates[0] -= 1510;
 				} else {
-					defaultMaxBitrates[0] -= configuration.getAudioBitrate();
+					defaultMaxBitrates[0] -= CodecUtil.getAC3Bitrate(configuration, params.aid);
 				}
 
 				// Round down to the nearest Mb
