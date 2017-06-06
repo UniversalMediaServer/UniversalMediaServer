@@ -69,6 +69,10 @@ import net.pms.newgui.*;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
+import oshi.hardware.GlobalMemory;
+import oshi.hardware.HardwareAbstractionLayer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -396,9 +400,11 @@ public class PMS {
 	 *
 	 * @return <code>true</code> if the server has been initialized correctly.
 	 *         <code>false</code> if initialization was aborted.
+	 * @throws SQLException
+	 * @throws InterruptedException
 	 * @throws Exception
 	 */
-	private boolean init() throws Exception {
+	private boolean init() throws IOException, SQLException, InterruptedException {
 		// Show the language selection dialog before displayBanner();
 		if (
 			!isHeadless() &&
@@ -1395,18 +1401,33 @@ public class PMS {
 		return bitness;
 	}
 
+	private int cpuScore;
+
+	/**
+	 * Returns the CPU benchmark score which can be used to determine the transcoding setting
+	 * in accordance with the CPU power. If null than the CPU is unknown or not benchmarked.
+	 */
+	public int getCpuScore() {
+		return cpuScore;
+	}
+
 	/**
 	 * Log system properties identifying Java, the OS and encoding and log
 	 * warnings where appropriate.
 	 */
 	private void logSystemInfo() {
 		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
+        GlobalMemory memory = new SystemInfo().getHardware().getMemory();
+        configuration.parseCpuInfo();
 
 		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
-		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
-		LOGGER.info("Memory: {} MB", memoryInMB);
+		LOGGER.info("Physical memory: {} MB", memory.getTotal() / 1048576);
+		LOGGER.info("Available physical memory : {} MB", memory.getAvailable() / 1048576);
+		LOGGER.info("Memory accessible by Java: {} MB", memoryInMB);
+		LOGGER.info("CPU: " + configuration.getCpuName() + ", Benchmark score: " + configuration.getCpuScore());
 		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("");
 
 		if (Platform.isMac()) {
