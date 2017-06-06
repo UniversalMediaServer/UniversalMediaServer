@@ -87,6 +87,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
+	}
+
 	@Deprecated
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		this();

@@ -54,6 +54,11 @@ public class VLCWebVideo extends VLCVideo {
 		return "VLC Web Video";
 	}
 
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
