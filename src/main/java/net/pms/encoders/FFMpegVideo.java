@@ -752,12 +752,14 @@ public class FFMpegVideo extends Player {
 		 * chosen to use more or less threads than are available, do not
 		 * specify how many cores to use.
 		 */
-		int nThreads = 1;
+		int nThreads = 0;
 		if (configuration.isFfmpegMultithreading()) {
-			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
-				nThreads = 0;
-			} else {
-				nThreads = configuration.getNumberOfCpuCores();
+			int availableCpuCores = Runtime.getRuntime().availableProcessors();
+			int cpuCoresRequested = configuration.getNumberOfCpuCores();
+			if (cpuCoresRequested < availableCpuCores) {
+				nThreads = cpuCoresRequested;
+			} else if (cpuCoresRequested >= availableCpuCores) {
+				nThreads = availableCpuCores;
 			}
 		}
 
