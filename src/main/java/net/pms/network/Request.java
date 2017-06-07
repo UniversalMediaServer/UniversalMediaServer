@@ -464,7 +464,26 @@ public class Request extends HTTPResource {
 									id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 								appendToHeader(responseHeader, subtitleHttpHeader + ": " + subtitleUrl);
+							} else {
+								LOGGER.trace(
+									"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
+									subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
+								);
 							}
+						} else if (LOGGER.isTraceEnabled()) {
+							ArrayList<String> reasons = new ArrayList<>();
+							if (dlna.getMedia() == null) {
+								reasons.add("dlna.getMedia() is null");
+							}
+							if (configuration.isDisableSubtitles()) {
+								reasons.add("configuration.isDisabledSubtitles() is true");
+							}
+							if (dlna.getMediaSubtitle() == null) {
+								reasons.add("dlna.getMediaSubtitle() is null");
+							} else if (!dlna.getMediaSubtitle().isStreamable()) {
+								reasons.add("dlna.getMediaSubtitle().isStreamable() is false");
+							}
+							LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
 						}
 
 						// Response generation:

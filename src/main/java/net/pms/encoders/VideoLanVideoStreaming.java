@@ -44,7 +44,7 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	public VideoLanVideoStreaming() {
-	}	
+	}
 
 	@Override
 	public int purpose() {
