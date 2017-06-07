@@ -2801,7 +2801,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isDvdIsoThumbnails() {
-		return getBoolean(KEY_DVDISO_THUMBNAILS, false);
+		return getBoolean(KEY_DVDISO_THUMBNAILS, true);
 	}
 
 	public void setDvdIsoThumbnails(boolean value) {

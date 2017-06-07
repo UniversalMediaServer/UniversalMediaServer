@@ -380,7 +380,7 @@ public class DVDISOTitle extends DLNAResource {
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {
-			return getGenericThumbnailInputStream("images/thumbnail-disc.png");
+			return getGenericThumbnailInputStream(null);
 		}
 	}
 
