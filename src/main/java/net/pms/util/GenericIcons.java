@@ -19,6 +19,7 @@
  */
 package net.pms.util;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -37,6 +38,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -156,12 +158,29 @@ public enum GenericIcons {
 				label = StringUtils.capitalize(label);
 			}
 
+			if (isBlank(label)) {
+				label = Messages.getString("General.Unknown");
+			}
+
 			if (imageCache.containsKey(label)) {
 				return DLNAThumbnailInputStream.toThumbnailInputStream(imageCache.get(label));
 			}
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Creating generic {} thumbnail for {} ({})", iconType.toString().toLowerCase(), label.toUpperCase(), imageFormat);
+				if (label != null) {
+					LOGGER.trace(
+						"Creating generic {} {} thumbnail for {}",
+						imageFormat,
+						iconType.toString().toLowerCase(),
+						label.toUpperCase()
+					);
+				} else {
+					LOGGER.warn(
+						"Creating generic {} {} thumbnail without label",
+						imageFormat,
+						iconType.toString().toLowerCase()
+					);
+				}
 			}
 
 			try {
@@ -216,6 +235,8 @@ public enum GenericIcons {
 				return "3GA";
 			case WEBVTT:
 				return "WebVTT";
+			case ISOVOB:
+				return Messages.getString("GenericIcons.DVDVideo");
 			default:
 				return format.getIdentifier().toString();
 		}
@@ -290,6 +311,9 @@ public enum GenericIcons {
 			} finally {
 				g.dispose();
 			}
+		} else if (image != null) {
+			out = new ByteArrayOutputStream();
+			ImageIOTools.imageIOWrite(image, imageFormat.toString(), out);
 		}
 		return out != null ? DLNAThumbnail.toThumbnail(out.toByteArray(), 0, 0, ScaleType.MAX, imageFormat, false) : null;
 	}
