@@ -68,7 +68,7 @@ public class DVDISOFile extends VirtualFolder {
 	}
 
 	public DVDISOFile(File file) {
-		super(getName(file), null);
+		super(getName(file), "images/thumbnail-disc.png");
 		this.file = file;
 
 		/*

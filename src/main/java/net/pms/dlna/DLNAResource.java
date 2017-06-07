@@ -2650,7 +2650,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			mediaType != MediaType.IMAGE && (
 				!isFolder ||
-				mediaRenderer.isSendFolderThumbnails()
+				mediaRenderer.isSendFolderThumbnails() ||
+				this instanceof DVDISOFile
 			)
 		) {
 			appendThumbnail(sb, mediaType, mediaRenderer);
