@@ -76,7 +76,8 @@ public class DVDISOTitle extends DLNAResource {
 			try {
 				params.workDir = configuration.getTempFolder();
 			} catch (IOException e1) {
-				LOGGER.debug("Caught exception", e1);
+				LOGGER.error("Could not create temporary folder, DVD thumbnails won't be generated: {}", e1.getMessage());
+				LOGGER.trace("", e1);
 			}
 			cmd[2] = "-frames";
 			cmd[3] = "2";
@@ -110,52 +111,45 @@ public class DVDISOTitle extends DLNAResource {
 		String aspect = null;
 		String width = null;
 		String height = null;
-		ArrayList<DLNAMediaAudio> audio = new ArrayList<>();
-		ArrayList<DLNAMediaSubtitle> subs = new ArrayList<>();
+		ArrayList<DLNAMediaAudio> audioTracks = new ArrayList<>();
+		ArrayList<DLNAMediaSubtitle> subtitles = new ArrayList<>();
 		if (lines != null) {
 			for (String line : lines) {
 				if (line.startsWith("DVD start=")) {
 					nbsectors = Integer.parseInt(line.substring(line.lastIndexOf('=') + 1).trim());
-				}
-				if (line.startsWith("audio stream:")) {
-					DLNAMediaAudio lang = new DLNAMediaAudio();
-					lang.setId(Integer.parseInt(line.substring(line.indexOf("aid: ") + 5, line.lastIndexOf('.')).trim()));
-					lang.setLang(line.substring(line.indexOf("language: ") + 10, line.lastIndexOf(" aid")).trim());
+				} else if (line.startsWith("audio stream:")) {
+					DLNAMediaAudio audio = new DLNAMediaAudio();
+					audio.setId(Integer.parseInt(line.substring(line.indexOf("aid: ") + 5, line.lastIndexOf('.')).trim()));
+					audio.setLang(line.substring(line.indexOf("language: ") + 10, line.lastIndexOf(" aid")).trim());
 					int end = line.lastIndexOf(" langu");
 					if (line.lastIndexOf('(') < end && line.lastIndexOf('(') > line.indexOf("format: ")) {
 						end = line.lastIndexOf('(');
 					}
-					lang.setCodecA(line.substring(line.indexOf("format: ") + 8, end).trim());
+					audio.setCodecA(line.substring(line.indexOf("format: ") + 8, end).trim());
 					if (line.contains("(stereo)")) {
-						lang.getAudioProperties().setNumberOfChannels(2);
+						audio.getAudioProperties().setNumberOfChannels(2);
 					} else {
-						lang.getAudioProperties().setNumberOfChannels(6);
+						audio.getAudioProperties().setNumberOfChannels(6);
 					}
-					audio.add(lang);
-				}
-				if (line.startsWith("subtitle")) {
-					DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
-					lang.setId(Integer.parseInt(line.substring(line.indexOf("): ") + 3, line.lastIndexOf("language")).trim()));
-					lang.setLang(line.substring(line.indexOf("language: ") + 10).trim());
-					if (lang.getLang().equals("unknown")) {
-						lang.setLang(DLNAMediaLang.UND);
+					audioTracks.add(audio);
+				} else if (line.startsWith("subtitle")) {
+					DLNAMediaSubtitle subtitle = new DLNAMediaSubtitle();
+					subtitle.setId(Integer.parseInt(line.substring(line.indexOf("): ") + 3, line.lastIndexOf("language")).trim()));
+					subtitle.setLang(line.substring(line.indexOf("language: ") + 10).trim());
+					if (subtitle.getLang().equals("unknown")) {
+						subtitle.setLang(DLNAMediaLang.UND);
 					}
-					lang.setType(SubtitleType.UNKNOWN);
-					subs.add(lang);
-				}
-				if (line.startsWith("ID_VIDEO_WIDTH=")) {
+					subtitle.setType(SubtitleType.UNKNOWN);
+					subtitles.add(subtitle);
+				} else if (line.startsWith("ID_VIDEO_WIDTH=")) {
 					width = line.substring(line.indexOf("ID_VIDEO_WIDTH=") + 15).trim();
-				}
-				if (line.startsWith("ID_VIDEO_HEIGHT=")) {
+				} else if (line.startsWith("ID_VIDEO_HEIGHT=")) {
 					height = line.substring(line.indexOf("ID_VIDEO_HEIGHT=") + 16).trim();
-				}
-				if (line.startsWith("ID_VIDEO_FPS=")) {
+				} else if (line.startsWith("ID_VIDEO_FPS=")) {
 					fps = line.substring(line.indexOf("ID_VIDEO_FPS=") + 13).trim();
-				}
-				if (line.startsWith("ID_LENGTH=")) {
+				} else if (line.startsWith("ID_LENGTH=")) {
 					duration = line.substring(line.indexOf("ID_LENGTH=") + 10).trim();
-				}
-				if (line.startsWith("ID_VIDEO_ASPECT=")) {
+				} else if (line.startsWith("ID_VIDEO_ASPECT=")) {
 					aspect = line.substring(line.indexOf("ID_VIDEO_ASPECT=") + 16).trim();
 				}
 			}
@@ -208,7 +202,8 @@ public class DVDISOTitle extends DLNAResource {
 					}
 				}
 			} catch (IOException e) {
-				LOGGER.trace("Error in DVD ISO thumbnail retrieval: " + e.getMessage());
+				LOGGER.error("Error during DVD ISO thumbnail retrieval: {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
 
@@ -219,8 +214,8 @@ public class DVDISOTitle extends DLNAResource {
 			d = Double.parseDouble(duration);
 		}
 
-		getMedia().setAudioTracksList(audio);
-		getMedia().setSubtitleTracksList(subs);
+		getMedia().setAudioTracksList(audioTracks);
+		getMedia().setSubtitleTracksList(subtitles);
 
 		if (duration != null) {
 			getMedia().setDuration(d);
@@ -234,13 +229,13 @@ public class DVDISOTitle extends DLNAResource {
 		try {
 			getMedia().setWidth(Integer.parseInt(width));
 		} catch (NumberFormatException nfe) {
-			LOGGER.debug("Could not parse width \"" + width + "\"");
+			LOGGER.debug("Could not parse DVD video width \"{}\"", width);
 		}
 
 		try {
 			getMedia().setHeight(Integer.parseInt(height));
 		} catch (NumberFormatException nfe) {
-			LOGGER.debug("Could not parse height \"" + height + "\"");
+			LOGGER.debug("Could not parse DVD video height \"{}\"", height);
 		}
 
 		getMedia().setMediaparsed(true);

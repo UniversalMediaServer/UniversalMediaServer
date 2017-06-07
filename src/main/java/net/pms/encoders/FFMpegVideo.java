@@ -1243,7 +1243,8 @@ public class FFMpegVideo extends Player {
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
-			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
+			LOGGER.error("Thread interrupted while waiting for transcode to start", e.getMessage());
+			LOGGER.trace("", e);
 		}
 		configuration = prev;
 		return pw;

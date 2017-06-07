@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
@@ -37,20 +38,20 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 	/** FONTCONFIG_PATH environment variable name */
 	private static final String FONTCONFIG_PATH = "FONTCONFIG_PATH";
+	private static final AtomicInteger PROCESS_COUNTER = new AtomicInteger(1);
 
 	private Process process;
 	private OutputConsumer stdoutConsumer;
 	private OutputConsumer stderrConsumer;
 	private OutputParams params;
-	private boolean destroyed;
+	private volatile boolean destroyed;
 	private String[] cmdArray;
 	private boolean nullable;
 	private ArrayList<ProcessWrapper> attachedProcesses;
 	private BufferedOutputFile bo = null;
 	private boolean keepStdout;
 	private boolean keepStderr;
-	private static int processCounter = 0;
-	private boolean success;
+	private volatile boolean success;
 	private final boolean useByteArrayStdConsumer;
 
 	@Override
@@ -109,7 +110,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			threadName = threadName.substring(threadName.lastIndexOf('\\') + 1);
 		}
 
-		setName(threadName + "-" + getProcessCounter());
+		setName(threadName + "-" + PROCESS_COUNTER.getAndIncrement());
 
 		File exec = new File(cmdArray[0]);
 
@@ -124,10 +125,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		attachedProcesses = new ArrayList<>();
 	}
 
-	private synchronized int getProcessCounter() {
-		return processCounter++;
-	}
-
 	public void attachProcess(ProcessWrapper process) {
 		attachedProcesses.add(process);
 	}
@@ -136,7 +133,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	public void run() {
 		ProcessBuilder pb = new ProcessBuilder(cmdArray);
 		try {
-			LOGGER.debug("Starting " + ProcessUtil.dbgWashCmds(cmdArray));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Starting {}", ProcessUtil.dbgWashCmds(cmdArray));
+			}
 
 			if (params.workDir != null && params.workDir.isDirectory()) {
 				pb.directory(params.workDir);
@@ -204,7 +203,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				stdoutConsumer = new ByteArrayOutputStreamConsumer(process.getInputStream(), params);
 				bo = stdoutConsumer.getBuffer();
 			} else if (params.input_pipes[0] != null) {
-				LOGGER.debug("Reading pipe: " + params.input_pipes[0].getInputPipe());
+				LOGGER.debug("Reading pipe: {}", params.input_pipes[0].getInputPipe());
 				bo = params.input_pipes[0].getDirectBuffer();
 				if (bo == null || params.losslessaudio || params.lossyaudio || params.no_videoencode) {
 					InputStream is = params.input_pipes[0].getInputStream();
@@ -261,9 +260,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			} catch (InterruptedException e) { }
 		} catch (IOException e) {
 			LOGGER.error("Error initializing process: ", e.getMessage());
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("", e);
-			}
+			LOGGER.trace("", e);
 			stopProcess();
 		} finally {
 			try {
@@ -271,7 +268,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					bo.close();
 				}
 			} catch (IOException ioe) {
-				LOGGER.debug("Error closing buffered output file", ioe.getMessage());
+				LOGGER.debug("Error closing buffered output file: {}", ioe.getMessage());
+				LOGGER.trace("", ioe);
 			}
 
 			if (!destroyed && !params.noexitcheck) {

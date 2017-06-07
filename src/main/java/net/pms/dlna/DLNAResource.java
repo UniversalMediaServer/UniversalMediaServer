@@ -353,7 +353,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * format used is <i>number($number)+</i>. A common client that expects a
 	 * different format than the one used here is the XBox360. PMS translates
 	 * the XBox360 queries on the fly. For more info, check
-	 * http://www.mperfect.net/whsUpnp360/ .
+	 * <ul>
+	 * <li><a href="http://www.mperfect.net/whsUpnp360/">whsUpnp360</a></li>
+	 * <li><a href="https://code.google.com/archive/p/jems/wikis/XBox360Notes.wiki">jems - XBox360Notes.wiki</a></li>
+	 * <li><a href="https://web-beta.archive.org/web/20100501042404/http://download.microsoft.com:80/download/0/0/b/00bba048-35e6-4e5b-a3dc-36da83cbb0d1/NetCompat_WMP11.docx">NetCompat_WMP11.docx</a></li>
+	 * </ul>
 	 *
 	 * @return The resource id.
 	 * @since 1.50
@@ -456,13 +460,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public String getParentId() {
 		if (getFakeParentId() != null) {
 			return getFakeParentId();
-		} else {
-			if (parent != null) {
-				return parent.getResourceId();
-			} else {
-				return "-1";
-			}
 		}
+		if (parent != null) {
+			return parent.getResourceId();
+		}
+		return "-1";
 	}
 
 	public DLNAResource() {
@@ -751,7 +753,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
-				if (addResumeFile) {
+				if (addResumeFile && resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes);
 				}
@@ -1178,15 +1180,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						queue
 					);
 
-					for (int i = start; i < start + count; i++) {
-						if (i < dlna.getChildren().size()) {
-							final DLNAResource child = dlna.getChildren().get(i);
-							if (child != null) {
-								tpe.execute(child);
-								resources.add(child);
-							} else {
-								LOGGER.warn("null child at index {} in {}", i, systemName);
-							}
+					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
+						final DLNAResource child = dlna.getChildren().get(i);
+						if (child != null) {
+							tpe.execute(child);
+							resources.add(child);
+						} else {
+							LOGGER.warn("null child at index {} in {}", i, systemName);
 						}
 					}
 
@@ -1227,7 +1227,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configurationSpecificToRenderer.getFolderLimit() && depthLimit()) {
-				if (renderer.getConfName().equalsIgnoreCase("Playstation 3") || renderer.isXbox360()) {
+				if (renderer.isPS3() || renderer.isXbox360()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
 				}
 
@@ -1309,16 +1309,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (id.equals(indexPath[0])) {
 				if (indexPath.length == 1 || indexPath[1].length() == 0) {
 					return this;
-				} else {
-					discoverWithRenderer(renderer, count, false, null);
+				}
+				discoverWithRenderer(renderer, count, false, null);
 
-					for (DLNAResource file : children) {
-						DLNAResource found = file.search(indexPath[1], count, renderer, null);
-						if (found != null) {
-							// Make sure it's ready
-							//found.resolve();
-							return found;
-						}
+				for (DLNAResource file : children) {
+					DLNAResource found = file.search(indexPath[1], count, renderer, null);
+					if (found != null) {
+						// Make sure it's ready
+						//found.resolve();
+						return found;
 					}
 				}
 			} else {
@@ -1353,14 +1352,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (id != null && searchId != null) {
 			if (getResourceId().equals(searchId)) {
 				return this;
-			} else {
-				for (DLNAResource file : children) {
-					DLNAResource found = file.search(searchId);
-					if (found != null) {
-						// Make sure it's ready
-						//found.resolve();
-						return found;
-					}
+			}
+			for (DLNAResource file : children) {
+				DLNAResource found = file.search(searchId);
+				if (found != null) {
+					// Make sure it's ready
+					//found.resolve();
+					return found;
 				}
 			}
 		}
@@ -1560,8 +1558,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				displayName = "[" + player.name() + "]";
 			} else {
 				// Ditlew - WDTV Live don't show durations otherwise, and this is useful for finding the main title
-				if (mediaRenderer != null && mediaRenderer.isShowDVDTitleDuration() && media != null && media.getDvdtrack() > 0) {
-					nameSuffix += " - " + media.getDurationString();
+				if (
+					media != null &&
+					this instanceof DVDISOTitle &&
+					mediaRenderer != null &&
+					media.getDurationInSeconds() > 0 &&
+					mediaRenderer.isShowDVDTitleDuration()
+				) {
+					nameSuffix += " (" + StringUtil.convertTimeToString(media.getDurationInSeconds(), "%01d:%02d:%02.0f") + ")";
 				}
 
 				if (!configurationSpecificToRenderer.isHideEngineNames()) {
@@ -2019,7 +2023,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											String sub = pair.substring(pair.indexOf(',') + 1);
 											audio = audio.trim();
 											sub = sub.trim();
-											LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
+											if (currentLang != null && LOGGER.isTraceEnabled()) {
+												LOGGER.trace("Searching for a match for language \"{}\" with audio \"{}\" and subtitle \"{}\"", currentLang, audio, sub);
+											}
 
 											if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
 												if (sub.equals("off")) {
@@ -2049,15 +2055,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 																if (configurationSpecificToRenderer.isAutoloadExternalSubtitles()) {
 																	// Subtitle is external and we want external subtitles, look no further
 																	matchedSub = present_sub;
-																	LOGGER.trace("Matched external subtitles track: " + matchedSub);
+																	LOGGER.trace("Matched external subtitles track: {}", matchedSub);
 																	break;
-																} else {
-																	// Subtitle is external but we do not want external subtitles, keep searching
-																	LOGGER.trace("External subtitles ignored because of user setting: " + present_sub);
 																}
+																// Subtitle is external but we do not want external subtitles, keep searching
+																LOGGER.trace("External subtitles ignored because of user setting: {}", present_sub);
 															} else if (!matchedInternalSubtitles) {
 																matchedSub = present_sub;
-																LOGGER.trace("Matched internal subtitles track: " + matchedSub);
+																LOGGER.trace("Matched internal subtitles track: {}", matchedSub);
 																if (configurationSpecificToRenderer.isAutoloadExternalSubtitles()) {
 																	// Subtitle is internal and we will wait to see if an external one is available instead
 																	matchedInternalSubtitles = true;
@@ -2631,10 +2636,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (!(isFolder && !mediaRenderer.isSendFolderThumbnails())) {
-			if (mediaType != MediaType.IMAGE) {
-				appendThumbnail(sb, mediaType, mediaRenderer);
-			}
+		if (
+			mediaType != MediaType.IMAGE && (
+				!isFolder ||
+				mediaRenderer.isSendFolderThumbnails()
+			)
+		) {
+			appendThumbnail(sb, mediaType, mediaRenderer);
 		}
 
 		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
@@ -3589,9 +3597,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Or none of the above
 		if (isFolder()) {
 			return GenericIcons.INSTANCE.getGenericFolderIcon();
-		} else {
-			return GenericIcons.INSTANCE.getGenericIcon(this);
 		}
+		return GenericIcons.INSTANCE.getGenericIcon(this);
 	}
 
 	/**
@@ -3648,9 +3655,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public int getType() {
 		if (getFormat() != null) {
 			return getFormat().getType();
-		} else {
-			return Format.UNKNOWN;
 		}
+		return Format.UNKNOWN;
 	}
 
 	/**
@@ -4369,9 +4375,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String resumeStr(String s) {
 		if (isResume()) {
 			return Messages.getString("PMS.134") + ": " + s;
-		} else {
-			return s;
 		}
+		return s;
 	}
 
 	public String resumeName() {
@@ -4428,26 +4433,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		boolean isweb = uri.matches("\\S+://.+");
-		Format f = FormatFactory.getAssociatedFormat(isweb ? "." + FileUtil.getUrlExtension(uri) : uri);
-		int type = f == null ? Format.VIDEO : f.getType();
+		Format format = FormatFactory.getAssociatedFormat(isweb ? "." + FileUtil.getUrlExtension(uri) : uri);
+		int type = format == null ? Format.VIDEO : format.getType();
 		if (name == null) {
 			name = new File(StringUtils.substringBefore(uri, "?")).getName();
 		}
 
-		DLNAResource d = isweb ?
+		DLNAResource resource = isweb ?
 			type == Format.VIDEO ? new WebVideoStream(name, uri, null) :
 			type == Format.AUDIO ? new WebAudioStream(name, uri, null) :
 			type == Format.IMAGE ? new FeedItem(name, uri, null, null, Format.IMAGE) : null
 			:
 			new RealFile(new File(uri));
-		if (f == null && !isweb) {
-			d.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
+		if (format == null && !isweb) {
+			resource.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
 		}
 
-		LOGGER.debug(d == null ?
+		LOGGER.debug(resource == null ?
 			("Could not auto-match " + uri) :
-			("Created auto-matched container: "+ d));
-		return d;
+			("Created auto-matched container: "+ resource));
+		return resource;
 	}
 
 	// A general-purpose free-floating folder
@@ -4546,23 +4551,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	// Returns the DLNAResource pointed to by the uri if it exists
 	// or else a new Temp item (or null)
-	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration r) {
-		LOGGER.debug("Validating uri " + uri);
+	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration renderer) {
+		LOGGER.debug("Validating URI \"{}\"", uri);
 		String objectId = parseObjectId(uri);
 		if (objectId != null) {
 			if (objectId.startsWith("Temp$")) {
 				int index = Temp.indexOf(objectId);
-				return index > -1 ? Temp.getChildren().get(index) : Temp.recreate(objectId, name, r);
-			} else {
-				if (r == null) {
-					r = RendererConfiguration.getDefaultConf();
-				}
-
-				return PMS.get().getRootFolder(r).getDLNAResource(objectId, r);
+				return index > -1 ? Temp.getChildren().get(index) : Temp.recreate(objectId, name, renderer);
 			}
-		} else {
-			return Temp.add(uri, name, r);
+			if (renderer == null) {
+				renderer = RendererConfiguration.getDefaultConf();
+			}
+
+			return PMS.get().getRootFolder(renderer).getDLNAResource(objectId, renderer);
 		}
+		return Temp.add(uri, name, renderer);
 	}
 
 	// Returns the uri if it's ours and exists or else the url of new Temp item (or null)
@@ -4570,11 +4573,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (isResourceUrl(uri)) {
 			// Check existence
 			return PMS.getGlobalRepo().exists(parseResourceId(uri)) ? uri : null; // TODO: attempt repair
-		} else {
-			DLNAResource d = Temp.add(uri, name, r);
-			if (d != null) {
-				return d.getURL("", true);
-			}
+		}
+		DLNAResource d = Temp.add(uri, name, r);
+		if (d != null) {
+			return d.getURL("", true);
 		}
 		return null;
 	}

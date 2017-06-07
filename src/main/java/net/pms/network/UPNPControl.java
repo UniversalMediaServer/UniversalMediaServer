@@ -657,7 +657,7 @@ public class UPNPControl {
 	}
 
 	// Convenience functions for sending various upnp service requests
-	public static ActionInvocation send(final Device dev, String instanceID, String service, String action, String... args) {
+	public static ActionInvocation send(final Device dev, String instanceID, String service, final String action, String... args) {
 		Service svc = dev.findService(ServiceId.valueOf("urn:upnp-org:serviceId:" + service));
 		final String uuid = getUUID(dev);
 		if (svc != null) {
@@ -681,7 +681,10 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						LOGGER.debug("Action failed: {}", defaultMsg);
+						LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
+						if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
+							LOGGER.trace("", invocation.getFailure());
+						}
 						rendererMap.mark(uuid, ACTIVE, false);
 					}
 				}.run();
@@ -693,6 +696,13 @@ public class UPNPControl {
 				}
 				return a;
 			}
+		} else {
+			LOGGER.warn(
+				"Couldn't find UPnP service {} for device {} when trying perform action {}",
+				service,
+				dev.getDetails().getFriendlyName(),
+				action
+			);
 		}
 		return null;
 	}

@@ -18,9 +18,11 @@
  */
 package net.pms.io;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import net.pms.util.DTSAudioOutputStream;
@@ -32,8 +34,8 @@ import org.slf4j.LoggerFactory;
 
 public class PipeIPCProcess extends Thread implements ProcessWrapper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipeIPCProcess.class);
-	private PipeProcess mkin;
-	private PipeProcess mkout;
+	private final PipeProcess mkin;
+	private final PipeProcess mkout;
 	private StreamModifier modifier;
 
 	public StreamModifier getModifier() {
@@ -44,9 +46,9 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 		this.modifier = modifier;
 	}
 
-	public PipeIPCProcess(String pipeName, String pipeNameOut, boolean forcereconnect1, boolean forcereconnect2) {
-		mkin = new PipeProcess(pipeName, forcereconnect1 ? "reconnect" : "dummy");
-		mkout = new PipeProcess(pipeNameOut, "out", forcereconnect2 ? "reconnect" : "dummy");
+	public PipeIPCProcess(String inPipeName, String outPipeName, boolean inForceReconnect, boolean outForcereconnect) {
+		mkin = new PipeProcess(inPipeName, inForceReconnect ? "reconnect" : "dummy");
+		mkout = new PipeProcess(outPipeName, "out", outForcereconnect ? "reconnect" : "dummy");
 	}
 
 	@Override
@@ -82,8 +84,18 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 					debug.write(b, 0, n);
 				}
 			}
+		} catch (InterruptedIOException e) {
+			if (LOGGER.isDebugEnabled()) {
+				if (isNotBlank(e.getMessage())) {
+					LOGGER.debug("IPC pipe interrupted after writing {} bytes, shutting down: {}", e.bytesTransferred, e.getMessage());
+				} else {
+					LOGGER.debug("IPC pipe interrupted after writing {} bytes, shutting down...", e.bytesTransferred);
+				}
+				LOGGER.trace("", e);
+			}
 		} catch (IOException e) {
-			LOGGER.debug("Error :" + e.getMessage());
+			LOGGER.warn("An error occurred duing IPC piping: {}", e.getMessage());
+			LOGGER.trace("", e);
 		} finally {
 			try {
 				// in and out may not have been initialized:
@@ -100,7 +112,8 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 					debug.close();
 				}
 			} catch (IOException e) {
-				LOGGER.debug("Error :" + e.getMessage());
+				LOGGER.debug("Error closing IPC pipe streams: {}" + e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
 	}

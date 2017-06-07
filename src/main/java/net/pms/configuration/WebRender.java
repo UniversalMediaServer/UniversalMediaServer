@@ -309,32 +309,33 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params) {
+	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Player player, OutputParams params) {
 		if (player instanceof FFMpegVideo) {
-			if (dlna.getFormat().isVideo()) {
-				DLNAMediaInfo media = dlna.getMedia();
+			if (resource.getFormat().isVideo()) {
+				DLNAMediaInfo media = resource.getMedia();
 				boolean flash = media != null && "video/flash".equals(media.getMimeType());
 				if (flash) {
-					fflashCmds(cmdList, media);
+					ffFlashCmds(cmdList, media);
 				} else {
-					String mime = getVideoMimeType();
-					switch (mime) {
+					String mimeType = getVideoMimeType();
+					switch (mimeType) {
 						case RemoteUtil.MIME_OGG:
-							ffoggCmd(cmdList);
+							ffOggCmd(cmdList);
 							break;
 						case RemoteUtil.MIME_MP4:
-							ffmp4Cmd(cmdList);
+							ffMp4Cmd(cmdList);
 							break;
 						case RemoteUtil.MIME_WEBM:
 							if (isChromeTrick()) {
-								chromeCmd(cmdList);
+								ffChromeCmd(cmdList);
 							} else {
 								// nothing here yet
-							}	break;
+							}
+							break;
 					}
 				}
 				if (isLowBitrate()) {
-					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, params));
+					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(resource, media, params));
 				}
 			} else {
 				// nothing here yet
@@ -346,7 +347,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	private void fflashCmds(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffFlashCmds(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
@@ -370,7 +371,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("flv");
 	}
 
-	private void ffoggCmd(List<String> cmdList) {
+	private static void ffOggCmd(List<String> cmdList) {
 		/*cmdList.add("-c:v");
 		cmdList.add("libtheora");*/
 		cmdList.add("-qscale:v");
@@ -387,7 +388,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("ogg");
 	}
 
-	private void ffmp4Cmd(List<String> cmdList) {
+	private static void ffMp4Cmd(List<String> cmdList) {
 		// see http://stackoverflow.com/questions/8616855/how-to-output-fragmented-mp4-with-ffmpeg
 		cmdList.add(1, "-re");
 		cmdList.add("-g");
@@ -423,7 +424,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("mp4");
 	}
 
-	private void chromeCmd(List<String> cmdList) {
+	private static void ffChromeCmd(List<String> cmdList) {
 		//-c:v libx264 -profile:v high -level 4.1 -map 0:a -c:a libmp3lame -ac 2 -preset ultrafast -b:v 35000k -bufsize 35000k -f matroska
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
@@ -444,7 +445,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@SuppressWarnings("unused")
-	private void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
@@ -503,10 +504,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		if (dlna instanceof VirtualVideoAction) {
 			return true;
 		}
-		DLNAMediaInfo m = dlna.getMedia();
-		return (m != null && RemoteUtil.directmime(m.getMimeType())) ||
-			(supportedFormat(dlna.getFormat())) ||
-			(dlna.getPlayer() instanceof FFMpegVideo);
+		DLNAMediaInfo media = dlna.getMedia();
+		return
+			media != null && RemoteUtil.directmime(media.getMimeType()) ||
+			supportedFormat(dlna.getFormat()) ||
+			dlna.getPlayer() instanceof FFMpegVideo;
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
@@ -194,11 +195,12 @@ public class StringUtil {
 	/**
 	 * Converts time to string.
 	 *
-	 * @param d time in double.
-	 * @param timeFormat Format string e.g. "%02d:%02d:%02f" or use predefined constants
-	 * SEC_TIME_FORMAT, DURATION_TIME_FORMAT.
+	 * @param d the time in seconds.
+	 * @param timeFormat Format string e.g. "%02d:%02d:%02f" or use the
+	 *            predefined constants {@link #SEC_TIME_FORMAT},
+	 *            {@link #DURATION_TIME_FORMAT}.
 	 *
-	 * @return Converted String.
+	 * @return The converted {@link String}.
 	 */
 	public static String convertTimeToString(double d, String timeFormat) {
 		StringBuilder sb = new StringBuilder();
@@ -484,5 +486,95 @@ public class StringUtil {
 			LOGGER.trace("", e);
 			return xml;
 		}
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form
+	 * "{@code element 1, element2 and element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(Collection<String> strings) {
+		return createReadableCombinedString(strings, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form
+	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(Collection<String> strings, String separator, String lastSeparator) {
+		if (strings == null || strings.isEmpty()) {
+			return "";
+		}
+		return createReadableCombinedString(strings.toArray(new String[strings.size()]), separator, lastSeparator);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form
+	 * "{@code element 1, element2 and element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(String[] strings) {
+		return createReadableCombinedString(strings, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form
+	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(String[] strings, String separator, String lastSeparator) {
+		if (strings == null || strings.length == 0) {
+			return "";
+		}
+		if (separator == null) {
+			separator = ", ";
+		} else {
+			separator += " ";
+		}
+		if (lastSeparator == null) {
+			lastSeparator = " and ";
+		} else if (!isBlank(lastSeparator)) {
+			if (!lastSeparator.substring(0, 1).equals(" ")) {
+				lastSeparator = " " + lastSeparator;
+			}
+			if (!lastSeparator.substring(lastSeparator.length() - 1).equals(" ")) {
+				lastSeparator += " ";
+			}
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < strings.length; i++) {
+			if (i > 0) {
+				if (i == strings.length) {
+					sb.append(lastSeparator);
+				} else {
+					sb.append(separator);
+				}
+			}
+			sb.append(strings[i]);
+		}
+		return sb.toString();
 	}
 }

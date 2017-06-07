@@ -120,6 +120,7 @@ public abstract class Player {
 	/**
 	 * @deprecated Use {@link #launchTranscode(net.pms.dlna.DLNAResource, net.pms.dlna.DLNAMediaInfo, net.pms.io.OutputParams)} instead.
 	 */
+	@Deprecated
 	public final ProcessWrapper launchTranscode(String filename, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		return launchTranscode(dlna, media, params);
 	}
@@ -163,34 +164,35 @@ public abstract class Player {
 	) {
 		if (finalizeTranscoderArgsListeners.isEmpty()) {
 			return cmdArgs;
-		} else {
-			// make it mutable
-			List<String> cmdList = new ArrayList<>(Arrays.asList(cmdArgs));
-
-			for (FinalizeTranscoderArgsListener listener : finalizeTranscoderArgsListeners) {
-				try {
-					cmdList = listener.finalizeTranscoderArgs(
-						this,
-						filename,
-						dlna,
-						media,
-						params,
-						cmdList
-					);
-				} catch (Throwable t) {
-					LOGGER.error(String.format("Failed to call finalizeTranscoderArgs on listener of type=%s", listener.getClass()), t);
-				}
-			}
-
-			String[] cmdArray = new String[cmdList.size()];
-			cmdList.toArray(cmdArray);
-			return cmdArray;
 		}
+		// make it mutable
+		List<String> cmdList = new ArrayList<>(Arrays.asList(cmdArgs));
+
+		for (FinalizeTranscoderArgsListener listener : finalizeTranscoderArgsListeners) {
+			try {
+				cmdList = listener.finalizeTranscoderArgs(
+					this,
+					filename,
+					dlna,
+					media,
+					params,
+					cmdList
+				);
+			} catch (Throwable t) {
+				LOGGER.error("Failed to call finalizeTranscoderArgs on listener of type \"{}\"", listener.getClass().getSimpleName(), t.getMessage());
+				LOGGER.trace("", t);
+			}
+		}
+
+		String[] cmdArray = new String[cmdList.size()];
+		cmdList.toArray(cmdArray);
+		return cmdArray;
 	}
 
 	/**
 	 * @deprecated Use {@link #setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params)} instead.
 	 */
+	@Deprecated
 	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
 		setAudioAndSubs(fileName, media, params);
 	}

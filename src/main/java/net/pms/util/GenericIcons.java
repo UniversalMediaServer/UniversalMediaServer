@@ -47,12 +47,14 @@ import net.pms.image.ImageFormat;
 import net.pms.image.ImageIOTools;
 import net.pms.image.ImagesUtil.ScaleType;
 
-/**
- * This is an singleton class for providing and caching generic file extension
- * icons. Thread-safe.
- */
 
+/**
+ * This is an {@code enum} used as a singleton class for providing and caching
+ * generic file extension icons. Thread-safe.
+ */
 public enum GenericIcons {
+
+	/** The static singleton instance. */
 	INSTANCE;
 
 	private final BufferedImage genericAudioIcon = readBufferedImage("formats/audio.png");
@@ -77,6 +79,14 @@ public enum GenericIcons {
 		genericFolderThumbnail = thumbnail;
 	}
 
+	/**
+	 * Retrieves or creates the appropriate generic icon/thumbnail for
+	 * {@code resource}.
+	 *
+	 * @param resource the {@link DLNAResource} the return a generic icon for.
+	 * @return The appropriate {@link DLNAThumbnailInputStream} or {@code null}
+	 *         if one couldn't be generated.
+	 */
 	public DLNAThumbnailInputStream getGenericIcon(DLNAResource resource) {
 		ImageFormat imageFormat = ImageFormat.JPEG;
 
@@ -124,9 +134,9 @@ public enum GenericIcons {
 		cacheLock.lock();
 		try {
 			if (!cache.containsKey(imageFormat)) {
-				cache.put(imageFormat, new HashMap<IconType, Map<String,DLNAThumbnail>>());
+				cache.put(imageFormat, new HashMap<IconType, Map<String, DLNAThumbnail>>());
 			}
-			Map<IconType, Map<String,DLNAThumbnail>> typeCache = cache.get(imageFormat);
+			Map<IconType, Map<String, DLNAThumbnail>> typeCache = cache.get(imageFormat);
 
 			if (!typeCache.containsKey(iconType)) {
 				typeCache.put(iconType, new HashMap<String, DLNAThumbnail>());
@@ -155,9 +165,13 @@ public enum GenericIcons {
 			}
 
 			try {
-				image = addFormatLabelToImage(label, imageFormat, iconType);
+				image = createGenericIcon(label, imageFormat, iconType);
 			} catch (IOException e) {
-				LOGGER.warn("Unexpected error while generating generic thumbnail for \"{}\": {}", resource.getName(), e.getMessage());
+				LOGGER.warn(
+					"Unexpected error while generating generic thumbnail for \"{}\": {}",
+					resource.getName(),
+					e.getMessage()
+				);
 				LOGGER.trace("", e);
 			}
 
@@ -169,11 +183,14 @@ public enum GenericIcons {
 		return DLNAThumbnailInputStream.toThumbnailInputStream(image);
 	}
 
+	/**
+	 * @return The generic folder icon/thumbnail.
+	 */
 	public DLNAThumbnailInputStream getGenericFolderIcon() {
 		return DLNAThumbnailInputStream.toThumbnailInputStream(genericFolderThumbnail);
 	}
 
-	private String getLabelFromImageFormat(DLNAMediaInfo mediaInfo) {
+	private static String getLabelFromImageFormat(DLNAMediaInfo mediaInfo) {
 		return
 			mediaInfo != null && mediaInfo.isImage() &&
 			mediaInfo.getImageInfo() != null &&
@@ -181,7 +198,7 @@ public enum GenericIcons {
 				mediaInfo.getImageInfo().getFormat().toString() : null;
 	}
 
-	private String getLabelFromFormat(Format format) {
+	private static String getLabelFromFormat(Format format) {
 		if (format == null || format.getIdentifier() == null) {
 			return null;
 		}
@@ -204,20 +221,23 @@ public enum GenericIcons {
 		}
 	}
 
-	private String getLabelFromContainer(DLNAMediaInfo mediaInfo) {
+	private static String getLabelFromContainer(DLNAMediaInfo mediaInfo) {
 		return mediaInfo != null ? mediaInfo.getContainer() : null;
 	}
 
 	/**
-	 * Add the format(container) name of the media to the generic icon image.
+	 * Creates a generic icon image using the given arguments.
 	 *
-	 * @param image BufferdImage to be the label added
-	 * @param label the media container name to be added as a label
-	 * @param renderer the renderer configuration
+	 * @param label The label to use for the new generic icon.
+	 * @param imageFormat the {@link ImageFormat} to create the new generic icon
+	 *            as.
+	 * @param iconType the {@link IconType} to use for the new generic icon.
 	 *
-	 * @return the generic icon with the container label added and scaled in accordance with renderer setting
+	 * @return the generic icon with the container label added and scaled in
+	 *         accordance with renderer setting
+	 * @throws IOException If an error occurs during creation.
 	 */
-	private DLNAThumbnail addFormatLabelToImage(String label, ImageFormat imageFormat, IconType iconType) throws IOException {
+	private DLNAThumbnail createGenericIcon(String label, ImageFormat imageFormat, IconType iconType) throws IOException {
 
 		BufferedImage image;
 		switch (iconType) {
@@ -285,7 +305,7 @@ public enum GenericIcons {
 	 * @return The {@link BufferedImage} created from the specified resource or
 	 *         {@code null} if the path is invalid.
 	 */
-	protected BufferedImage readBufferedImage(String resourcePath) {
+	protected static BufferedImage readBufferedImage(String resourcePath) {
 		InputStream inputStream = getResourceAsStream(resourcePath);
 		if (inputStream != null) {
 			try {
@@ -299,11 +319,32 @@ public enum GenericIcons {
 		return null;
 	}
 
-	protected InputStream getResourceAsStream(String resourcePath) {
+	/**
+	 * Convenience method for retrieving an image resource.
+	 *
+	 * @param resourcePath the image resource path relative to "
+	 *            {@code /resources/images}".
+	 * @return The {@link InputStream} for the specified resource.
+	 */
+	protected static InputStream getResourceAsStream(String resourcePath) {
 		return PMS.class.getResourceAsStream("/resources/images/" + resourcePath);
 	}
 
+	/**
+	 * An {@code enum} representing the type of generic icon/thumbnail.
+	 */
 	protected static enum IconType {
-		AUDIO, IMAGE, UNKNOWN, VIDEO
+
+		/** Audio */
+		AUDIO,
+
+		/** Image */
+		IMAGE,
+
+		/** Unknown type */
+		UNKNOWN,
+
+		/** Video */
+		VIDEO
 	}
 }
