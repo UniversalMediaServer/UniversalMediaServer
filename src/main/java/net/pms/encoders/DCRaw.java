@@ -67,7 +67,7 @@ public class DCRaw extends ImagePlayer {
 			return null;
 		}
 
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		byte[] image = getImage(params, filename, media.getImageInfo());
 
 		if (image == null) {
