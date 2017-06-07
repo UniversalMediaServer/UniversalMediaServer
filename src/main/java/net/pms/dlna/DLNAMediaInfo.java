@@ -1979,7 +1979,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 		int realBitrate = 10000000;
 
-		if (getDurationInSeconds() != 0) {
+		if (getDurationInSeconds() > 0) {
 			realBitrate = (int) (size / getDurationInSeconds());
 		}
 

@@ -92,7 +92,7 @@ public class RemoteMediaHandler implements HttpHandler {
 				mimeType = renderer != null ? renderer.getVideoMimeType() : RemoteUtil.transMime();
 				if (FileUtil.isUrl(resource.getSystemName())) {
 					resource.setPlayer(new FFmpegWebVideo());
-				} else {
+				} else if (!(resource instanceof DVDISOTitle)) {
 					resource.setPlayer(new FFMpegVideo());
 				}
 				//code = 206;

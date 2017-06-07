@@ -78,6 +78,7 @@ public class FormatConfiguration {
 	public static final String HE_AAC = "he-aac";
 	public static final String ICNS = "icns";
 	public static final String ICO = "ico";
+	public static final String ISO = "iso";
 	public static final String JPG = "jpg";
 	public static final String LPCM = "lpcm";
 	public static final String M4A = "m4a";
