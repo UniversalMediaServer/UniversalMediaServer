@@ -1184,7 +1184,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						count,
 						20,
 						TimeUnit.SECONDS,
-						queue
+						queue,
+						new BasicThreadFactory("DLNAResource resolver thread %d-%d")
 					);
 
 					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
