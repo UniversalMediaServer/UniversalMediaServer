@@ -39,6 +39,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -827,6 +828,7 @@ public class MEncoderVideo extends Player {
 		newInput.setPush(params.stdin);
 
 		boolean isDVD = dlna instanceof DVDISOTitle;
+		boolean isWebRenderer = params.mediaRenderer instanceof WebRender;
 
 		ovccopy  = false;
 		pcm      = false;
@@ -2433,6 +2435,79 @@ public class MEncoderVideo extends Player {
 				pw.attachProcess(ffAudio);
 				ffAudio.runInNewThread();
 			}
+		} else if (isDVD && isWebRenderer) { //TODO: (Nad) Plumbing
+			Player ffmpegPlayer = PlayerFactory.getEnabledPlayer(FFMpegVideo.class);
+			if (ffmpegPlayer == null) {
+				throw new IOException("FFmpeg must be enabled to transcode DVDs for the web player");
+			}
+			PipeIPCProcess transferPipe = new PipeIPCProcess("FFmpeg_input_pipe_" + System.currentTimeMillis(), "MEncoder_output_pipe_" + System.currentTimeMillis(), false, true);
+			params.waitbeforestart = 100;
+			cmdList.add("-o");
+			cmdList.add(transferPipe.getInputPipe());
+
+			String[] cmdArray = new String[cmdList.size()];
+			cmdList.toArray(cmdArray);
+			cmdArray = finalizeTranscoderArgs(
+				filename,
+				dlna,
+				media,
+				params,
+				cmdArray
+			);
+
+			ProcessWrapperImpl mencoderProcessWrapper = new ProcessWrapperImpl(cmdArray, params);
+			ProcessWrapper transferPipeProcess = transferPipe.getPipeProcess();
+
+			OutputParams ffParams = new OutputParams(configuration);
+			ffParams.aid = params.aid;// TODO: (Nad) Which, if any, parameters need to be copied?
+			ffParams.cleanup = params.cleanup;
+			ffParams.maxBufferSize = params.maxBufferSize;
+			ffParams.mediaRenderer = params.mediaRenderer;
+			ffParams.minBufferSize = params.minBufferSize;
+			ffParams.noexitcheck = params.noexitcheck;
+			ffParams.secondread_minsize = params.secondread_minsize;
+			ffParams.waitbeforestart = 100;
+			List<String> ffCmdList = new ArrayList<>();
+			ffCmdList.add(configuration.getFfmpegPath());
+			ffCmdList.add("loglevel");
+			ffCmdList.add("trace");
+			ffCmdList.add("-i");
+			ffCmdList.add(transferPipe.getOutputPipe());
+			((RendererConfiguration.OutputOverride) params.mediaRenderer).getOutputOptions(ffCmdList, dlna, ffmpegPlayer, ffParams);
+			pipe = new PipeProcess("FFmpeg_output_pipe_" + System.currentTimeMillis());
+			ffParams.input_pipes[0] = pipe;
+			ffCmdList.add(pipe.getInputPipe());
+
+			pw = new ProcessWrapperImpl(ffCmdList.toArray(new String[ffCmdList.size()]), ffParams);
+			ProcessWrapper ffmpegPipeProcess = pipe.getPipeProcess();
+
+			pw.attachProcess(transferPipeProcess);
+			pw.attachProcess(mencoderProcessWrapper);
+			pw.attachProcess(ffmpegPipeProcess);
+			transferPipeProcess.runInNewThread();
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			ffmpegPipeProcess.runInNewThread();
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			mencoderProcessWrapper.runInNewThread();
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			transferPipe.deleteLater();
+			pipe.deleteLater();
 		} else {
 			boolean directpipe = Platform.isMac() || Platform.isFreeBSD();
 
@@ -2480,8 +2555,10 @@ public class MEncoderVideo extends Player {
 		pw.runInNewThread();
 
 		try {
-			Thread.sleep(100);
+			Thread.sleep(200);
 		} catch (InterruptedException e) {
+			LOGGER.error("Thread interrupted while waiting for transcode to start", e.getMessage());
+			LOGGER.trace("", e);
 		}
 
 		configuration = prev;

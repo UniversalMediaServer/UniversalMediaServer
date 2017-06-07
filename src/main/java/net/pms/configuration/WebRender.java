@@ -347,7 +347,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			return true;
 		} else if (player instanceof MEncoderVideo) { //TODO: (Nad) Hook to manipulate commands
 			if (resource != null && resource.getFormat() != null && resource.getMedia().isVideo()) {
-				mencoderMP4Cmd(cmdList);
+				//mencoderMP4Cmd(cmdList); //TODO: (Nad) Disabled
 				return true;
 			}
 			// nothing here yet
