@@ -442,7 +442,7 @@ public class VLCVideo extends Player {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		boolean isWindows = Platform.isWindows();
 		setAudioAndSubs(filename, media, params);
 
