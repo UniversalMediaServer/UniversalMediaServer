@@ -2188,6 +2188,10 @@ public class MEncoderVideo extends Player {
 			cmdList.add("8192");
 		}
 
+		if (params.mediaRenderer instanceof RendererConfiguration.OutputOverride) { //TODO: (Nad) Commands override
+			((RendererConfiguration.OutputOverride) params.mediaRenderer).getOutputOptions(cmdList, dlna, this, params);
+		}
+
 		PipeProcess pipe = null;
 
 		ProcessWrapperImpl pw;
