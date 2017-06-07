@@ -257,6 +257,11 @@ public class DVDISOTitle extends DLNAResource {
 
 	@Override
 	public String getSystemName() {
+		return file.getAbsolutePath() + File.separator + "Title " + title;
+	}
+
+	@Override
+	public String getFileName() {
 		return file.getAbsolutePath();
 	}
 

@@ -420,6 +420,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public abstract String getSystemName();
 
+	/**
+	 * @return The path to the media source.
+	 */
+	public String getFileName() {
+		return getSystemName();
+	}
+
 	public abstract long length();
 
 	// Ditlew

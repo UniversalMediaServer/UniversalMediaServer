@@ -130,7 +130,7 @@ public class FFmpegDVRMSRemux extends Player {
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<>();
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 
 		if (ffmpegAlternativePath != null && ffmpegAlternativePath.length() > 0) {
 			cmdList.add(ffmpegAlternativePath);

@@ -34,17 +34,18 @@ public class DVDISOFile extends VirtualFolder {
 	private boolean isVideoTS;
 
 	private static String getName(File file) {
-		return String.format(NAME, getFilename(file));
+		return String.format(NAME, getFileName(file));
 	}
 
 	// FIXME the logic here (all folders are VIDEO_TS folders) isn't
 	// consistent with the logic used to set isVideoTS
-	private static String getFilename(File file) {
+	private static String getFileName(File file) {
 		return file.isFile() ? file.getName() : "VIDEO_TS";
 	}
 
-	public String getFilename() {
-		return getFilename(file);
+	@Override
+	public String getFileName() {
+		return getFileName(file);
 	}
 
 	public DVDISOFile(File file) {
