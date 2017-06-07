@@ -885,6 +885,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
 				LOGGER.trace(prependTraceReason + "transcoding is forced by configuration", getName());
+			} else if (this instanceof DVDISOTitle) {
+				forceTranscode = true;
+				LOGGER.trace("DVD video track \"{}\" will be transcoded because streaming isn't supported", getName());
 			} else if (!format.isCompatible(media, renderer)) {
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "it is not supported by the renderer", getName());
@@ -2660,32 +2663,40 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String uclass;
 		if (first != null && media != null && !media.isSecondaryFormatValid()) {
 			uclass = "dummy";
-		} else {
-			if (isFolder) {
-				uclass = "object.container.storageFolder";
-				if (xbox360 && getFakeParentId() != null) {
-					switch (getFakeParentId()) {
-						case "7":
-							uclass = "object.container.album.musicAlbum";
-							break;
-						case "6":
-							uclass = "object.container.person.musicArtist";
-							break;
-						case "5":
-							uclass = "object.container.genre.musicGenre";
-							break;
-						case "F":
-							uclass = "object.container.playlistContainer";
-							break;
-					}
+		} else if (isFolder) {
+			uclass = "object.container.storageFolder";
+			if (xbox360 && getFakeParentId() != null) {
+				switch (getFakeParentId()) {
+					case "7":
+						uclass = "object.container.album.musicAlbum";
+						break;
+					case "6":
+						uclass = "object.container.person.musicArtist";
+						break;
+					case "5":
+						uclass = "object.container.genre.musicGenre";
+						break;
+					case "F":
+						uclass = "object.container.playlistContainer";
+						break;
 				}
-			} else if (mediaType == MediaType.IMAGE) {
-				uclass = "object.item.imageItem.photo";
-			} else if (mediaType == MediaType.AUDIO) {
-				uclass = "object.item.audioItem.musicTrack";
-			} else {
-				uclass = "object.item.videoItem";
 			}
+		} else if (
+			mediaType == MediaType.IMAGE ||
+			mediaType == MediaType.UNKNOWN &&
+			format != null &&
+			format.isImage()
+		) {
+			uclass = "object.item.imageItem.photo";
+		} else if (
+			mediaType == MediaType.AUDIO ||
+			mediaType == MediaType.UNKNOWN &&
+			format != null &&
+			format.isAudio()
+		) {
+			uclass = "object.item.audioItem.musicTrack";
+		} else {
+			uclass = "object.item.videoItem";
 		}
 
 		addXMLTagAndAttribute(sb, "upnp:class", uclass);
