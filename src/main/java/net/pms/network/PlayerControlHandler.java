@@ -171,8 +171,10 @@ public class PlayerControlHandler implements HttpHandler {
 		if (player == null) {
 			try {
 				RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByUUID(uuid);
-				player = (Logical) renderer.getPlayer();
-				players.put(uuid, player);
+				if (renderer != null) {
+					player = (Logical) renderer.getPlayer();
+					players.put(uuid, player);
+				}
 			} catch (Exception e) {
 				LOGGER.debug("Error retrieving player {}: {}", uuid, e.getMessage());
 				LOGGER.trace("", e);
