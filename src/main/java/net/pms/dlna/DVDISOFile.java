@@ -18,9 +18,11 @@
  */
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.text.WordUtils;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
@@ -30,6 +32,7 @@ import net.pms.util.ProcessUtil;
 
 public class DVDISOFile extends VirtualFolder {
 	private static final String NAME = "[DVD ISO] %s";
+	private String volumeId;
 	private File file;
 	private boolean isVideoTS;
 
@@ -46,6 +49,22 @@ public class DVDISOFile extends VirtualFolder {
 	@Override
 	public String getFileName() {
 		return getFileName(file);
+	}
+
+	@Override
+	public String getName() {
+		if (isNotBlank(volumeId)) {
+			if (configuration.isPrettifyFilenames()) {
+				return "[DVD] " + volumeId;
+			}
+			return super.getName() + " (" + volumeId + ")";
+		}
+		return super.getName();
+	}
+
+	@Override
+	public String getSystemName() {
+		return file == null ? "Unknown" : file.getAbsolutePath();
 	}
 
 	public DVDISOFile(File file) {
@@ -82,7 +101,6 @@ public class DVDISOFile extends VirtualFolder {
 			"-identify",
 			"-endpos",
 			"0",
-			"-v",
 			"-ao",
 			"null",
 			"-vc",
@@ -91,7 +109,7 @@ public class DVDISOFile extends VirtualFolder {
 			"null",
 			"-dvd-device",
 			ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()),
-			"dvd://1"
+			"dvd://"
 		};
 		OutputParams params = new OutputParams(configuration);
 		params.maxBufferSize = 1;
@@ -117,6 +135,15 @@ public class DVDISOFile extends VirtualFolder {
 					int rank = Integer.parseInt(line.substring(13, line.indexOf("_LENGT")));
 					double duration = Double.parseDouble(line.substring(line.lastIndexOf("LENGTH=") + 7));
 					titles[rank] = duration;
+				} else if (line.startsWith("ID_DVD_VOLUME_ID")) {
+					String volumeId = line.substring(line.lastIndexOf("_ID=") + 4).trim();
+					if (configuration.isPrettifyFilenames()) {
+						volumeId = volumeId.replaceAll("_", " ");
+						if (isNotBlank(volumeId) && volumeId.equals(volumeId.toUpperCase(PMS.getLocale()))) {
+							volumeId = WordUtils.capitalize(volumeId.toLowerCase(PMS.getLocale()));
+						}
+					}
+					this.volumeId = volumeId;
 				}
 			}
 		}
@@ -131,7 +158,7 @@ public class DVDISOFile extends VirtualFolder {
 			 * Common-sense is a single video track on a DVD is usually greater than 1h
 			 */
 			if (titles[i] > 10 && (titles[i] != oldduration || oldduration < 3600)) {
-				DVDISOTitle dvd = new DVDISOTitle(file, i);
+				DVDISOTitle dvd = new DVDISOTitle(file, volumeId, i);
 				addChild(dvd);
 				oldduration = titles[i];
 			}
