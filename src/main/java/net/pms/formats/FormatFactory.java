@@ -33,9 +33,7 @@ import org.slf4j.LoggerFactory;
  * This class matches and instantiates formats.
  */
 public final class FormatFactory {
-	/**
-	 * Logger used for all logging.
-	 */
+	/** The {@link Logger} used for all logging for this class. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatFactory.class);
 
 	/**
@@ -139,7 +137,7 @@ public final class FormatFactory {
 		try {
 			for (Format format : formats) {
 				if (format.match(filename)) {
-					LOGGER.trace("Matched format " + format + " to \"" + filename + "\"");
+					LOGGER.trace("Matched format {} to \"{}\"", format, filename);
 
 					// Return a fresh instance
 					return format.duplicate();
@@ -149,7 +147,7 @@ public final class FormatFactory {
 			formatsLock.readLock().unlock();
 		}
 
-		LOGGER.trace("Could not match any format to \"" + filename + "\"");
+		LOGGER.trace("Could not match any format to \"{}\"", filename);
 		return null;
 	}
 

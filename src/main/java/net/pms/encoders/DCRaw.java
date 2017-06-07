@@ -101,6 +101,7 @@ public class DCRaw extends ImagePlayer {
 	 * @return A byte array containing the converted image or {@code null}.
 	 * @throws IOException if an IO error occurs.
 	 */
+	@Override
 	public byte[] getImage(OutputParams params, String fileName, ImageInfo imageInfo) {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Decoding image \"{}\" with DCRaw", fileName);
@@ -154,6 +155,7 @@ public class DCRaw extends ImagePlayer {
 	 * @return A byte array containing the thumbnail or {@code null}.
 	 * @throws IOException if an IO error occurs.
 	 */
+	@Override
 	public byte[] getThumbnail(OutputParams params, String fileName, ImageInfo imageInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 		if (trace) {
@@ -298,7 +300,8 @@ public class DCRaw extends ImagePlayer {
 	 *            results in.
 	 * @param file the {@link File} to parse.
 	 */
-    public void parse(DLNAMediaInfo media, File file) {
+    @Override
+	public void parse(DLNAMediaInfo media, File file) {
     	if (media == null) {
     		throw new NullPointerException("media cannot be null");
     	}
