@@ -63,14 +63,16 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 			in = mkin.getInputStream();
 			out = mkout.getOutputStream();
 
-			if (modifier != null && modifier.isH264AnnexB()) {
-				in = new H264AnnexBInputStream(in, modifier.getHeader());
-			} else if (modifier != null && modifier.isEncodedAudioPassthrough()) {
-				out = new IEC61937AudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample()));
-			} else if (modifier != null && modifier.isDtsEmbed()) {
-				out = new DTSAudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample()));
-			} else if (modifier != null && modifier.isPcm()) {
-				out = new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample());
+			if (modifier != null) {
+				if (modifier.isH264AnnexB()) {
+					in = new H264AnnexBInputStream(in, modifier.getHeader());
+				} else if (modifier.isEncodedAudioPassthrough()) {
+					out = new IEC61937AudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample()));
+				} else if (modifier.isDtsEmbed()) {
+					out = new DTSAudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample()));
+				} else if (modifier.isPcm()) {
+					out = new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample());
+				}
 			}
 
 			if (modifier != null && modifier.getHeader() != null && !modifier.isH264AnnexB()) {

@@ -2442,7 +2442,17 @@ public class MEncoderVideo extends Player {
 			}
 			PipeIPCProcess transferPipe = new PipeIPCProcess("FFmpeg_input_pipe_" + System.currentTimeMillis(), "MEncoder_output_pipe_" + System.currentTimeMillis(), false, true);
 			params.waitbeforestart = 100;
-			cmdList.add("-o");
+
+			//TODO: (Nad) Test
+			cmdList.set(0, configuration.getMplayerPath());
+			cmdList.remove(1);
+			cmdList.remove(1);
+
+			cmdList.retainAll(cmdList.subList(0, 4));
+			cmdList.add("-dumpstream");
+
+			cmdList.add("-dumpfile");
+			//cmdList.add("-o");
 			cmdList.add(transferPipe.getInputPipe());
 
 			String[] cmdArray = new String[cmdList.size()];
@@ -2493,7 +2503,7 @@ public class MEncoderVideo extends Player {
 			}
 			ffmpegPipeProcess.runInNewThread();
 			try {
-				Thread.sleep(100);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
