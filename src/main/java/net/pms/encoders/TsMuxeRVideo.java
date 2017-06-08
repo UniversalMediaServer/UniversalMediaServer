@@ -450,7 +450,6 @@ public class TsMuxeRVideo extends Player {
 								"-f", "adts",
 								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
 								"-c:a", "aac",
-								"-strict", "experimental",
 								"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
 								"-y",
 								ffAudioPipe[i].getInputPipe()
