@@ -68,7 +68,9 @@ public class SelectRenderers extends JPanel {
 				SearchableMutableTreeNode node = null;
 				try {
 					 node = allRenderers.findChild(match.group(1));
-				} catch (IllegalChildException e) {}
+				} catch (IllegalChildException e) {
+					// Just catch
+				}
 				if (node == null) {
 					node = new SearchableMutableTreeNode(match.group(1));
 					allRenderers.add(node);
@@ -122,7 +124,9 @@ public class SelectRenderers extends JPanel {
 				for (String selectedRenderer : selectedRenderers) {
 					try {
 						node = rootNode.findInBranch(selectedRenderer, true);
-					} catch (IllegalChildException e) {}
+					} catch (IllegalChildException e) {
+						// Just catch
+					}
 					if (node != null) {
 						selectedRenderersPath.add(new TreePath(node.getPath()));
 					}
@@ -160,20 +164,20 @@ public class SelectRenderers extends JPanel {
 			} else {
 				List<String> selectedRenderers = new ArrayList<>();
 				for (TreePath path : selected) {
-					String rendererName = "";
+					StringBuilder rendererName = new StringBuilder();
 					if (path.getPathComponent(0).equals(allRenderers)) {
 						for (int i = 1; i < path.getPathCount(); i++) {
 							if (path.getPathComponent(i) instanceof SearchableMutableTreeNode) {
-								if (!rendererName.isEmpty()) {
-									rendererName += " ";
+								if (rendererName.length() > 0) {
+									rendererName.append(" ");
 								}
-								rendererName += ((SearchableMutableTreeNode) path.getPathComponent(i)).getNodeName();
+								rendererName.append(((SearchableMutableTreeNode) path.getPathComponent(i)).getNodeName());
 							} else {
 								LOGGER.error("Invalid tree node component class {}", path.getPathComponent(i).getClass().getSimpleName());
 							}
 						}
-						if (!rendererName.isEmpty()) {
-							selectedRenderers.add(rendererName);
+						if (rendererName.length() > 0) {
+							selectedRenderers.add(rendererName.toString());
 						}
 					} else {
 						LOGGER.warn("Invalid renderer treepath encountered: {}", path.toString());

@@ -26,6 +26,7 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -47,11 +48,11 @@ public class CodecUtil {
 	 * parsing the "ffmpeg_formats.txt" resource.
 	 */
 	private static void initCodecs() {
-		InputStream is = CodecUtil.class.getClassLoader().getResourceAsStream("resources/ffmpeg_formats.txt");
-		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-		String line = null;
-
-		try {
+		try (
+			InputStream is = CodecUtil.class.getClassLoader().getResourceAsStream("resources/ffmpeg_formats.txt");
+			BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+		) {
+			String line;
 			while ((line = br.readLine()) != null) {
 				if (line.contains(" ")) {
 					codecs.add(line.substring(0, line.indexOf(' ')));
@@ -60,10 +61,10 @@ public class CodecUtil {
 				}
 			}
 
-			br.close();
 			codecs.add("iso");
 		} catch (IOException e) {
-			LOGGER.error("Error while retrieving codec list", e);
+			LOGGER.error("Error while retrieving codec list: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 

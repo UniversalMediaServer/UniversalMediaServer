@@ -21,6 +21,7 @@ package net.pms.encoders;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,12 +52,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	private static List<String> protocols;
 	public static final PatternMap<Object> excludes = new PatternMap<>();
 
-	public static final PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
+	public static final PatternMap<ArrayList<String>> autoOptions = new PatternMap<ArrayList<String>>() {
 		private static final long serialVersionUID = 5225786297932747007L;
 
 		@Override
-		public ArrayList add(String key, Object value) {
-			return put(key, (ArrayList) parseOptions((String) value));
+		public ArrayList<String> add(String key, Object value) {
+			return put(key, parseOptions((String) value));
 		}
 	};
 
@@ -86,7 +87,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public boolean isTimeSeekable() {
 		return false;
 	}
-
+	/**
+	 * Not in use by UMS but kept for backwards compatibility.
+	 *
+	 * @deprecated Use {@link #FFmpegWebVideo()} instead.
+	 */
+	@SuppressWarnings("unused")
 	@Deprecated
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		this();
@@ -106,7 +112,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(
+	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -145,7 +151,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 		// - (http) header options
 		if (params.header != null && params.header.length > 0) {
-			String hdr = new String(params.header);
+			String hdr = new String(params.header, StandardCharsets.UTF_8);
 			customOptions.addAll(parseOptions(hdr));
 		}
 		// - attached options
@@ -250,13 +256,13 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 
 		if (!override) {
-			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+			cmdList.addAll(getVideoTranscodeOptions(params));
 
 			// Add video bitrate options
-			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
+			cmdList.addAll(getVideoBitrateOptions(media, params));
 
 			// Add audio bitrate options
-			cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
+			cmdList.addAll(getAudioBitrateOptions(params));
 
 			// Add any remaining custom options
 			if (!customOptions.isEmpty()) {
@@ -354,7 +360,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	public boolean readWebFilters(String filename) {
-		PatternMap filter = null;
+		PatternMap<?> filter = null;
 		String line;
 		try {
 			LineIterator it = FileUtils.lineIterator(new File(filename));

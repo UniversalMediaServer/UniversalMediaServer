@@ -27,6 +27,7 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -79,7 +80,9 @@ public class OpenSubtitle {
 			long tailChunkPosition = length - chunkSizeForFile;
 
 			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks
-			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
+			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0) {
+				;
+			}
 
 			// Second chunk, or the rest of the data if length is smaller than two chunks
 			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
@@ -119,7 +122,7 @@ public class OpenSubtitle {
 		}
 
 		StringBuilder page;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 			page = new StringBuilder();
 			String str;
 			while ((str = in.readLine()) != null) {
@@ -439,7 +442,9 @@ public class OpenSubtitle {
 		String dir = PMS.getConfiguration().getDataFile(SUB_DIR);
 		File path = new File(dir);
 		if (!path.exists()) {
-			path.mkdirs();
+			if (!path.mkdirs()) {
+				LOGGER.error("Failed to create folder \"{}\"", path.getAbsolutePath());
+			}
 		}
 		return path.getAbsolutePath() + File.separator + name + ".srt";
 	}
@@ -460,17 +465,16 @@ public class OpenSubtitle {
 		URLConnection connection = u.openConnection();
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
-		InputStream in = connection.getInputStream();
-		OutputStream out;
-		try (GZIPInputStream gzipInputStream = new GZIPInputStream(in)) {
-			out = new FileOutputStream(f);
+		try (
+			GZIPInputStream gzipInputStream = new GZIPInputStream(connection.getInputStream());
+			OutputStream out = new FileOutputStream(f)
+		) {
 			byte[] buf = new byte[4096];
 			int len;
 			while ((len = gzipInputStream.read(buf)) > 0) {
 				out.write(buf, 0, len);
 			}
 		}
-		out.close();
 		if (!PMS.getConfiguration().isLiveSubtitlesKeep()) {
 			int tmo = PMS.getConfiguration().getLiveSubtitlesTimeout();
 			if (tmo <= 0) {
@@ -509,8 +513,10 @@ public class OpenSubtitle {
 			return;
 		}
 		File[] files = path.listFiles();
-		for (File file : files) {
-			PMS.get().addTempFile(file);
+		if (files != null) {
+			for (File file : files) {
+				PMS.get().addTempFile(file);
+			}
 		}
 	}
 }

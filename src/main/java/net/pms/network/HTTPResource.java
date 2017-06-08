@@ -186,12 +186,12 @@ public class HTTPResource {
 	 * Returns a byte array representation of the file given by the URL. The file is downloaded and optionally stored on the filesystem.
 	 * @param u URL to retrieve.
 	 * @param saveOnDisk If true, store the file on the filesystem.
-	 * @param f If saveOnDisk is true, then store the contents of the file represented by u in the associated File. f needs to be opened before
+	 * @param file If saveOnDisk is true, then store the contents of the file represented by u in the associated File. f needs to be opened before
 	 * calling this function.
 	 * @return The byte array
 	 * @throws IOException
 	 */
-	protected static byte[] downloadAndSendBinary(String u, boolean saveOnDisk, File f) throws IOException {
+	protected static byte[] downloadAndSendBinary(String u, boolean saveOnDisk, File file) throws IOException {
 		URL url = new URL(u);
 
 		// The URL may contain user authentication information
@@ -204,26 +204,22 @@ public class HTTPResource {
 
 		// GameTrailers blocks user-agents that identify themselves as "Java"
 		conn.setRequestProperty("User-agent", PropertiesUtil.getProjectProperties().get("project.name") + " " + PMS.getVersion());
-		FileOutputStream fOUT;
+
 		try (InputStream in = conn.getInputStream()) {
-			fOUT = null;
-			if (saveOnDisk && f != null) {
-				// fileName = convertURLToFileName(fileName);
-				fOUT = new FileOutputStream(f);
-			}
 			byte[] buf = new byte[4096];
 			int n;
-			while ((n = in.read(buf)) > -1) {
-				bytes.write(buf, 0, n);
-
-				if (fOUT != null) {
-					fOUT.write(buf, 0, n);
+			if (saveOnDisk && file != null) {
+				try (FileOutputStream fOUT = new FileOutputStream(file)) {
+					while ((n = in.read(buf)) > -1) {
+						bytes.write(buf, 0, n);
+						fOUT.write(buf, 0, n);
+					}
+				}
+			} else {
+				while ((n = in.read(buf)) > -1) {
+					bytes.write(buf, 0, n);
 				}
 			}
-		}
-
-		if (fOUT != null) {
-			fOUT.close();
 		}
 
 		return bytes.toByteArray();
@@ -243,7 +239,7 @@ public class HTTPResource {
 		return 3;
 	}
 
-	public final String getMPEG_PS_PALLocalizedValue(int index) {
+	public final static String getMPEG_PS_PALLocalizedValue(int index) {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
@@ -251,7 +247,7 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMPEG_TS_SD_EU_ISOLocalizedValue(int index) {
+	public final static String getMPEG_TS_SD_EU_ISOLocalizedValue(int index) {
 		if (index == 1) {
 			return "MPEG_TS_SD_NA_ISO";
 		}
@@ -263,7 +259,7 @@ public class HTTPResource {
 		return "MPEG_TS_SD_EU_ISO";
 	}
 
-	public final String getMPEG_TS_SD_EULocalizedValue(int index) {
+	public final static String getMPEG_TS_SD_EULocalizedValue(int index) {
 		if (index == 1) {
 			return "MPEG_TS_SD_NA";
 		}
@@ -275,7 +271,7 @@ public class HTTPResource {
 		return "MPEG_TS_SD_EU";
 	}
 
-	public final String getMPEG_TS_EULocalizedValue(int index, boolean isHD) {
+	public final static String getMPEG_TS_EULocalizedValue(int index, boolean isHD) {
 		String definition = "SD";
 		if (isHD) {
 			definition = "HD";

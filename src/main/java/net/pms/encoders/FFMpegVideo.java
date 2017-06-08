@@ -26,6 +26,7 @@ import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -88,6 +89,12 @@ public class FFMpegVideo extends Player {
 	public FFMpegVideo() {
 	}
 
+	/**
+	 * Not used by UMS but kept for backwards compatibility.
+	 *
+	 * @deprecated Use {@link #FFMpegVideo()} instead.
+	 */
+	@SuppressWarnings("unused")
 	@Deprecated
 	public FFMpegVideo(PmsConfiguration configuration) {
 		this();
@@ -117,24 +124,38 @@ public class FFMpegVideo extends Player {
 		final RendererConfiguration renderer = params.mediaRenderer;
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
-		boolean isResolutionTooHighForRenderer = isMediaValid && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight());
+		boolean isResolutionTooHighForRenderer =
+			media != null &&
+			isMediaValid &&
+			!params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight());
 
 		int scaleWidth = 0;
 		int scaleHeight = 0;
-		if (media.getWidth() > 0 && media.getHeight() > 0) {
+		if (media != null && media.getWidth() > 0 && media.getHeight() > 0) {
 			scaleWidth = media.getWidth();
 			scaleHeight = media.getHeight();
 		}
 
-		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+		boolean is3D = media != null && media.is3d() && !media.stereoscopyIsAnaglyph();
 
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
-		boolean keepAR = (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) &&
-				!media.is3dFullSbsOrOu() &&
-				!"16:9".equals(media.getAspectRatioContainer());
+		boolean keepAR =
+			media != null &&
+			(renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) &&
+			!media.is3dFullSbsOrOu() &&
+			!"16:9".equals(media.getAspectRatioContainer());
 
 		// Scale and pad the video if necessary
-		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+		if (
+			media != null &&
+			(isResolutionTooHighForRenderer ||
+				(
+					!renderer.isRescaleByRenderer() &&
+					renderer.isMaximumResolutionSpecified() &&
+					media.getWidth() < 720
+				)
+			)
+		) { // Do not rescale for SD video and higher
 			if (media.is3dFullSbsOrOu()) {
 				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 			} else {
@@ -144,7 +165,7 @@ public class FFMpegVideo extends Player {
 					scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				}
 			}
-		} else if (keepAR && isMediaValid) {
+		} else if (keepAR && media != null && isMediaValid) {
 			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
 				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
@@ -192,9 +213,7 @@ public class FFMpegVideo extends Player {
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
 				} else if (params.sid.isExternal()) {
-					if (params.sid.isStreamable() && renderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
-						originalSubsFilename = null;
-					} else {
+					if (!params.sid.isStreamable() || !renderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
 				} else if (params.sid.isEmbedded()) {
@@ -229,7 +248,7 @@ public class FFMpegVideo extends Player {
 						}
 
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-						subsFilter.append(",Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
+						subsFilter.append(",Fontsize=").append(15 * Double.parseDouble(configuration.getAssScale()));
 						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4StylesHexValue());
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
@@ -237,8 +256,8 @@ public class FFMpegVideo extends Player {
 						subsFilter.append("'");
 					}
 				}
-			} else if (params.sid.getType().isPicture()) {
-				if (params.sid.getId() < 100) {
+			} else if (params.sid != null && params.sid.getType().isPicture()) {
+				if (media != null && params.sid.getId() < 100) {
 					// Embedded
 					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
 					isSubsManualTiming = false;
@@ -268,6 +287,7 @@ public class FFMpegVideo extends Player {
 
 		// Convert 3D video to the other output 3D format
 		if (
+			media != null &&
 			is3D &&
 			media.get3DLayout() != null &&
 			isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
@@ -285,6 +305,17 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
+	 * Not in use by UMS but kept for backwards compatibility.
+	 *
+	 * @deprecated Use {@link #getVideoTranscodeOptions(DLNAResource, OutputParams)} instead.
+	 */
+	@SuppressWarnings("unused")
+	@Deprecated
+	public List<String> getVideoTranscodeOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+		return getVideoTranscodeOptions(params);
+	}
+
+	/**
 	 * Returns a list of <code>String</code>s representing ffmpeg output
 	 * options (i.e. options that define the output file's video codec,
 	 * audio codec and container) compatible with the renderer's
@@ -297,9 +328,8 @@ public class FFMpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public synchronized List<String> getVideoTranscodeOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+	public synchronized List<String> getVideoTranscodeOptions(OutputParams params) {
 		List<String> transcodeOptions = new ArrayList<>();
-		final String filename = dlna.getSystemName();
 		final RendererConfiguration renderer = params.mediaRenderer;
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
@@ -359,13 +389,6 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			InputFile newInput = null;
-			if (filename != null) {
-				newInput = new InputFile();
-				newInput.setFilename(filename);
-				newInput.setPush(params.stdin);
-			}
-
 			// Output video codec
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				if (!customFFmpegOptions.contains("-c:v")) {
@@ -410,6 +433,17 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
+	 * Not in use by UMS but kept for backwards compatibility.
+	 *
+	 * @deprecated Use {@link #getVideoBitrateOptions(DLNAMediaInfo, OutputParams)} instead.
+	 */
+	@SuppressWarnings("unused")
+	@Deprecated
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+		return getVideoBitrateOptions(media, params);
+	}
+
+	/**
 	 * Returns the video bitrate spec for the current transcode according
 	 * to the limits/requirements of the renderer and the user's settings.
 	 *
@@ -418,7 +452,7 @@ public class FFMpegVideo extends Player {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+	public List<String> getVideoBitrateOptions(DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
 
@@ -598,15 +632,24 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
+	 * Not in use by UMS but kept for backwards compatibility.
+	 *
+	 * @deprecated Use {@link #getAudioBitrateOptions(OutputParams)} instead.
+	 */
+	@SuppressWarnings("unused")
+	@Deprecated
+	public List<String> getAudioBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+		return getAudioBitrateOptions(params);
+	}
+
+	/**
 	 * Returns the audio bitrate spec for the current transcode according
 	 * to the limits/requirements of the renderer.
 	 *
-	 * @param dlna
-	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
-	public List<String> getAudioBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+	public List<String> getAudioBitrateOptions(OutputParams params) {
 		List<String> audioBitrateOptions = new ArrayList<>();
 
 		audioBitrateOptions.add("-q:a");
@@ -678,7 +721,7 @@ public class FFMpegVideo extends Player {
 		return defaultArgsArray;
 	}
 
-	private int[] getVideoBitrateConfig(String bitrate) {
+	private static int[] getVideoBitrateConfig(String bitrate) {
 		int bitrates[] = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
@@ -761,7 +804,7 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		List<String> cmdList = new ArrayList<>();
+		ArrayList<String> cmdList = new ArrayList<>();
 		boolean avisynth = avisynth();
 		if (params.timeseek > 0) {
 			params.waitbeforestart = 1;
@@ -977,7 +1020,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (!override) {
-			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
+			cmdList.addAll(getVideoBitrateOptions(media, params));
 
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
@@ -1020,7 +1063,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Add the output options (-f, -c:a, -c:v, etc.)
-			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+			cmdList.addAll(getVideoTranscodeOptions(params));
 
 			// Add custom options
 			if (StringUtils.isNotEmpty(customFFmpegOptions)) {
@@ -1067,7 +1110,7 @@ public class FFMpegVideo extends Player {
 
 		setOutputParsing(dlna, pw, false);
 
-		if (!dtsRemux) {
+		if (pipe!= null && !dtsRemux) {
 			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
 			/**
@@ -1178,7 +1221,15 @@ public class FFMpegVideo extends Player {
 			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(cmdArrayDTS, ffaudioparams);
 
 			params.stdin = null;
-			try (PrintWriter pwMux = new PrintWriter(f)) {
+			try (
+				PrintWriter pwMux = new PrintWriter(
+					new BufferedWriter(new OutputStreamWriter(
+						new FileOutputStream(f),
+						StandardCharsets.UTF_8)
+					),
+					false
+				)
+			) {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
 
@@ -1322,11 +1373,11 @@ public class FFMpegVideo extends Player {
 	/**
 	 * A simple arg parser with basic quote comprehension
 	 */
-	protected static List<String> parseOptions(String str) {
+	protected static ArrayList<String> parseOptions(String str) {
 		return str == null ? null : parseOptions(str, new ArrayList<String>());
 	}
 
-	protected static List<String> parseOptions(String str, List<String> cmdList) {
+	protected static ArrayList<String> parseOptions(String str, ArrayList<String> cmdList) {
 		int start, pos = 0, len = str.length();
 		while (pos < len) {
 			// New arg
@@ -1416,32 +1467,6 @@ public class FFMpegVideo extends Player {
 				};
 				ffParser.setFiltered(true);
 				pw.setStderrConsumer(ffParser);
-			}
-		}
-	}
-
-	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
-		String line;
-		boolean resolved = false;
-		while ((line = input.readLine()) != null) {
-			if (line.contains("[Script Info]")) {
-				while ((line = input.readLine()) != null) {
-					if (isNotBlank(line)) {
-						if (line.contains("PlayResX:")) {
-							subtitlesWidth = Integer.parseInt(line.substring(9).trim());
-						} else if (line.contains("PlayResY:")) {
-							subtitlesHeight = Integer.parseInt(line.substring(9).trim());
-						}
-					} else {
-						resolved = true;
-						break;
-					}
-				}
-			}
-			if (resolved) {
-				input.close();
-				break;
 			}
 		}
 	}

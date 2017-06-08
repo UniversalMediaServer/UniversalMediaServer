@@ -102,12 +102,13 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public void push(final OutputStream out) throws IOException {
+		if (out == null) {
+			throw new IllegalArgumentException("out cannot be null");
+		}
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				Archive rarFile = null;
-				try {
-					rarFile = new Archive(file);
+				try (Archive rarFile = new Archive(file)) {
 					FileHeader header = null;
 					for (FileHeader fh : rarFile.getFileHeaders()) {
 						if (fh.getFileNameString().equals(fileHeaderName)) {
@@ -116,19 +117,18 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 						}
 					}
 					if (header != null) {
-						LOGGER.trace("Starting the extraction of " + header.getFileNameString());
+						LOGGER.trace("Starting the extraction of \"{}\"", header.getFileNameString());
 						rarFile.extractFile(header, out);
 					}
 				} catch (RarException | IOException e) {
-					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
+					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: {}", e.getMessage());
+					LOGGER.trace("", e);
 				} finally {
 					try {
-						if (rarFile != null) {
-							rarFile.close();
-						}
 						out.close();
 					} catch (IOException e) {
-						LOGGER.debug("Caught exception", e);
+						LOGGER.error("An error occurred while closing output stream: {}", e.getMessage());
+						LOGGER.trace("", e);
 					}
 				}
 			}
@@ -168,8 +168,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
-		} else {
-			return super.getThumbnailInputStream();
 		}
+		return super.getThumbnailInputStream();
 	}
 }
