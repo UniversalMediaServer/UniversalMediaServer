@@ -18,13 +18,13 @@
  */
 package net.pms.formats.audio;
 
-public class OGG extends AudioBase {
+public class OGA extends AudioBase {
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.OGG;
+		return Identifier.OGA;
 	}
 
 	/**
@@ -34,7 +34,6 @@ public class OGG extends AudioBase {
 	public String[] getSupportedExtensions() {
 		return new String[] {
 			"oga",
-			"ogg",
 			"spx",
 			"opus",
 		};
