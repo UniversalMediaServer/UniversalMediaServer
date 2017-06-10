@@ -168,10 +168,10 @@ public class FormatFactoryTest {
 		testSingleFormat("test.mp2", "MPGAudio", Format.AUDIO);
 		testSingleFormat("test.sub", "MicroDVD", Format.SUBTITLE);
 		testSingleFormat("test.ape", "MonkeysAudio", Format.AUDIO);
-		testSingleFormat("test.oga", "OGG", Format.AUDIO);
-		testSingleFormat("test.ogg", "OGG", Format.AUDIO);
-		testSingleFormat("test.spx", "OGG", Format.AUDIO);
-		testSingleFormat("test.opus", "OGG", Format.AUDIO);
+		testSingleFormat("test.oga", "OGA", Format.AUDIO);
+		testSingleFormat("test.ogg", "OGG", Format.VIDEO);
+		testSingleFormat("test.spx", "OGA", Format.AUDIO);
+		testSingleFormat("test.opus", "OGA", Format.AUDIO);
 		testSingleFormat("test.pls", "PLAYLIST", Format.PLAYLIST);
 		testSingleFormat("test.m3u", "PLAYLIST", Format.PLAYLIST);
 		testSingleFormat("test.m3u8", "PLAYLIST", Format.PLAYLIST);
