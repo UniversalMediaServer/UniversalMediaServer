@@ -172,26 +172,29 @@ public class RootFolder extends DLNAResource {
 
 		loadWebConf();
 
-		if (Platform.isMac() && configuration.isShowIphotoLibrary()) {
-			DLNAResource iPhotoRes = getiPhotoFolder();
-			if (iPhotoRes != null) {
-				addChild(iPhotoRes);
-			}
+		switch(Platform.getOSType()) {
+			case Platform.MAC:
+				if (configuration.isShowIphotoLibrary()) {
+					DLNAResource iPhotoRes = getiPhotoFolder();
+					if (iPhotoRes != null) {
+						addChild(iPhotoRes);
+					}
+				}
+				if (configuration.isShowApertureLibrary()) {
+					DLNAResource apertureRes = getApertureFolder();
+					if (apertureRes != null) {
+						addChild(apertureRes);
+					}
+				}
+			case Platform.WINDOWS:
+				if (configuration.isShowItunesLibrary()) {
+					DLNAResource iTunesRes = getiTunesFolder();
+					if (iTunesRes != null) {
+						addChild(iTunesRes);
+					}
+				}
 		}
 
-		if (Platform.isMac() && configuration.isShowApertureLibrary()) {
-			DLNAResource apertureRes = getApertureFolder();
-			if (apertureRes != null) {
-				addChild(apertureRes);
-			}
-		}
-
-		if ((Platform.isMac() || Platform.isWindows()) && configuration.isShowItunesLibrary()) {
-			DLNAResource iTunesRes = getiTunesFolder();
-			if (iTunesRes != null) {
-				addChild(iTunesRes);
-			}
-		}
 
 		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
 			addChild(r);
@@ -1464,28 +1467,58 @@ public class RootFolder extends DLNAResource {
 	public static final FileWatcher.Listener LIBRARY_RESCANNER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache() && !isDir) {
+			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
-					if ("ENTRY_DELETE".equals(event)) {
-						LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-						PMS.get().getDatabase().removeMediaEntry(filename);
-					} else if ("ENTRY_CREATE".equals(event)) {
-						LOGGER.trace("File {} was created on the hard drive", filename);
-						File file = new File(filename);
-						RealFile rf = new RealFile(file);
-						rf.setParent(rf);
-						rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
-						rf.resolveFormat();
-						rf.syncResolve();
+					/**
+					 * If a new directory is created with files, the listener may not
+					 * give us information about those new files, as it wasn't listening
+					 * when they were created, so make sure we parse them.
+					 */
+					if (isDir) {
+						if ("ENTRY_CREATE".equals(event)) {
+							LOGGER.trace("Folder {} was created on the hard drive", filename);
 
-						if (rf.isValid()) {
-							LOGGER.trace("File {} should now be in the database", filename);
+							File[] files = new File(filename).listFiles();
+							if (files != null) {
+								LOGGER.trace("Crawling {}", filename);
+								for (File file : files) {
+									if (file.isFile()) {
+										LOGGER.trace("File {} found in {}", file.getName(), filename);
+										parseFileForDatabase(file);
+									}
+								}
+							} else {
+								LOGGER.trace("Folder {} is empty", filename);
+							}
+						}
+					} else {
+						if ("ENTRY_DELETE".equals(event)) {
+							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
+							PMS.get().getDatabase().removeMediaEntry(filename);
+						} else if ("ENTRY_CREATE".equals(event)) {
+							LOGGER.trace("File {} was created on the hard drive", filename);
+							File file = new File(filename);
+							parseFileForDatabase(file);
 						}
 					}
 				}
 			}
+		}
+	};
+
+	public static final void parseFileForDatabase(File file) {
+		RealFile rf = new RealFile(file);
+		rf.setParent(rf);
+		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		rf.resolveFormat();
+		rf.syncResolve();
+
+		if (rf.isValid()) {
+			LOGGER.trace("File {} should now be in the database", file.getName());
+		} else {
+			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
 	};
 }
