@@ -11,6 +11,8 @@
 		Improved DIDL-Lite implementation
 		Added support for more RealAudio formats
 		Fixed many bugs
+	Languages:
+		Synchronized translations with Crowdin
 	Renderers:
 		Added support for Chromecast Ultra
 		Added support for MXPlayer on Google Android
