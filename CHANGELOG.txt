@@ -1,3 +1,11 @@
+6.7.1 - 2017-06-11
+
+	General:
+		Fixed playback on Linux
+		Fixed support for OGA and 3GA files
+	Dependencies:
+		Updated MediaInfo to 0.7.96
+
 6.7.0 - 2017-06-10
 
 	General:
@@ -10,6 +18,7 @@
 		Updated documentation
 		Improved DIDL-Lite implementation
 		Added support for more RealAudio formats
+		Fixed DVD support
 		Fixed many bugs
 	Languages:
 		Synchronized translations with Crowdin
