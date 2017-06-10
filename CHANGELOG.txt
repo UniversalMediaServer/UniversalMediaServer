@@ -1,4 +1,4 @@
-6.7.0 - 2017-06-??
+6.7.0 - 2017-06-10
 
 	General:
 		Added a button for the web interface
