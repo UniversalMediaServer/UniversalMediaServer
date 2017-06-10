@@ -1,7 +1,8 @@
-6.7.0 - 2017-03-??
+6.7.0 - 2017-06-??
 
 	General:
 		Added a button for the web interface
+		Expanded support for preventing sleep mode on Windows and macOS
 		Improved support for MusicBrainz
 		Improved support for CoverArtArchive
 		Improved support for images
@@ -12,10 +13,17 @@
 		Fixed many bugs
 	Renderers:
 		Added support for Chromecast Ultra
+		Added support for MXPlayer on Google Android
+		Added support for Microsoft Windows Media Player
+		Improved support for Chromecast
 		Improved support for Samsung 9 Series TVs
+		Improved support for Sony BRAVIA EX TVs
 		Improved detection of Onkyo TXNR7xx devices
 		Improved detection of Panasonic Viera ST60 TVs
+		Improved detection of Samsung J6400 TVs
 		Improved detection of Samsung JU6400 TVs
+		Improved detection of Samsung Galaxy S5 phones
+		Improved detection of Sony BRAVIA XE TVs
 	Dependencies:
 		Updated external-maven-plugin to 0.2
 		Updated FFmpeg to latest builds
