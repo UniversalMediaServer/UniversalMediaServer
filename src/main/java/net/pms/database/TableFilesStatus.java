@@ -107,7 +107,7 @@ public final class TableFilesStatus extends Tables{
 					} else {
 						if (trace) {
 							LOGGER.trace(
-								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYER set to \"{}\"",
+								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to \"{}\"",
 								fullPathToFile,
 								isFullyPlayed
 							);
