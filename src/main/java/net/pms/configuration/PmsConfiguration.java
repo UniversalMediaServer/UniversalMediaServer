@@ -243,7 +243,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
-	protected static final String KEY_OLD_PREVENTS_SLEEP = "prevents_sleep_mode";
+	/**
+	 * This key was used in older versions, only supports {@code true} or
+	 * {@code false}. Kept for backwards-compatibility for now.
+	 *
+	 * @deprecated Use {@link #KEY_PREVENT_SLEEP} instead.
+	 */
+	@Deprecated
+	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
 	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
 	protected static final String KEY_PROFILE_NAME = "name";
 	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
@@ -2733,13 +2740,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	public PreventSleepMode getPreventSleep() {
 		PreventSleepMode sleepMode = null;
 		String value = getString(KEY_PREVENT_SLEEP, null);
-		if (value == null && configuration.containsKey(KEY_OLD_PREVENTS_SLEEP)) {
+		if (value == null && configuration.containsKey(KEY_PREVENTS_SLEEP)) {
 			// Backwards compatibility
-				sleepMode =
-				getBoolean(KEY_OLD_PREVENTS_SLEEP, true) ?
-					PreventSleepMode.PLAYBACK :
-					PreventSleepMode.NEVER;
-			configuration.clearProperty(KEY_OLD_PREVENTS_SLEEP);
+			sleepMode = getBoolean(KEY_PREVENTS_SLEEP, true) ? PreventSleepMode.PLAYBACK : PreventSleepMode.NEVER;
+			configuration.clearProperty(KEY_PREVENTS_SLEEP);
 			configuration.setProperty(KEY_PREVENT_SLEEP, sleepMode.getValue());
 		} else if (value != null) {
 			sleepMode = PreventSleepMode.typeOf(value);
