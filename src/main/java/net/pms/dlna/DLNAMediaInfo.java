@@ -102,7 +102,7 @@ public class DLNAMediaInfo implements Cloneable {
 		// Map container formats to their "audio variant".
 		mutableAudioOrVideoContainers.put(FormatConfiguration.MP4, new AudioVariantInfo(new M4A(), FormatConfiguration.M4A));
 		mutableAudioOrVideoContainers.put(FormatConfiguration.MKV, new AudioVariantInfo(new MKA(), FormatConfiguration.MKA));
-		mutableAudioOrVideoContainers.put(FormatConfiguration.OGG, new AudioVariantInfo(new OGG(), FormatConfiguration.OGA));
+		mutableAudioOrVideoContainers.put(FormatConfiguration.OGG, new AudioVariantInfo(new OGA(), FormatConfiguration.OGA));
 		mutableAudioOrVideoContainers.put(FormatConfiguration.RM, new AudioVariantInfo(new RA(), FormatConfiguration.RA));
 		// XXX Not technically correct, but should work until MPA is implemented
 		mutableAudioOrVideoContainers.put(FormatConfiguration.MPEG1, new AudioVariantInfo(new MP3(), FormatConfiguration.MPA));
@@ -1596,7 +1596,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.MPEG_TYPEMIME;
 				}
 			} else if (codecV == null && codecA != null) {
-				if ("ogg".equals(container)) {
+				if ("ogg".equals(container) || "oga".equals(container)) {
 					mimeType = HTTPResource.AUDIO_OGA_TYPEMIME;
 				} else if ("3gp".equals(container)) {
 					mimeType = HTTPResource.AUDIO_THREEGPPA_TYPEMIME;

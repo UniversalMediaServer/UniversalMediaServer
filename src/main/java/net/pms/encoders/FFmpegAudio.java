@@ -268,7 +268,7 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.MP3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MPA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MPC) ||
-			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.OGA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.RA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.SHN) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.THREEGA) ||

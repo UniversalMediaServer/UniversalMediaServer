@@ -71,6 +71,7 @@ public final class FormatFactory {
 		new MPC(),
 		new MPG(),
 		new MPGAudio(),
+		new OGA(),
 		new OGG(),
 		new PCX(),
 		new PICT(),
