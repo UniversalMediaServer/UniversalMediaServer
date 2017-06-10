@@ -73,7 +73,7 @@ public class SleepManager {
 	 */
 	public synchronized void startPlaying() {
 		playingCount++;
-		if (!sleepPrevented && mode == PreventSleepMode.PLAYBACK) {
+		if (isPreventSleepSupported() && !sleepPrevented && mode == PreventSleepMode.PLAYBACK) {
 			preventSleep();
 		}
 	}
@@ -88,7 +88,7 @@ public class SleepManager {
 			return;
 		}
 		playingCount--;
-		if (playingCount == 0 && sleepPrevented && mode == PreventSleepMode.PLAYBACK) {
+		if (isPreventSleepSupported() && playingCount == 0 && sleepPrevented && mode == PreventSleepMode.PLAYBACK) {
 			allowSleep();
 		}
 	}
@@ -97,7 +97,7 @@ public class SleepManager {
 	 * Resets the system sleep timer if configured and necessary.
 	 */
 	public synchronized void postponeSleep() {
-		if (mode == PreventSleepMode.PLAYBACK && !sleepPrevented) {
+		if (isPreventSleepSupported() && mode == PreventSleepMode.PLAYBACK && !sleepPrevented) {
 			resetSleepTimer();
 		}
 	}
@@ -162,7 +162,7 @@ public class SleepManager {
 				preventSleep();
 			}
 		} else {
-			LOGGER.debug("SleepManager doesn't support current Platform");
+			LOGGER.debug("SleepManager doesn't support current platform");
 		}
 	}
 
