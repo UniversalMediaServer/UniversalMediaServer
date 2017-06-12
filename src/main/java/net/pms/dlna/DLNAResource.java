@@ -3040,8 +3040,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String albumArtURL = getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(albumArtURL)) {
 			openTag(sb, "upnp:albumArtURI");
-			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			addAttribute(sb, "dlna:profileID", thumbnailProfile);
+			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			endTag(sb);
 			sb.append(albumArtURL);
 			closeTag(sb, "upnp:albumArtURI");
