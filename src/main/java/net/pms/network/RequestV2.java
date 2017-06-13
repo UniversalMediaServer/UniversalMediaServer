@@ -646,8 +646,6 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 			}
 
-			response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
-			response.append(CRLF);
 			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
