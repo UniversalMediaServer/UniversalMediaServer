@@ -737,6 +737,9 @@ public class UPNPControl {
 							}
 							if (sb.length() > 0) {
 								LOGGER.trace("Received GetProtocolInfo from \"{}\": {}", name, sb.toString());
+								// XXX Logging the parsing results might be a bit excessive,
+								// but is needed while the parsing is evolving
+								LOGGER.trace("Parsing results from GetProtocolInfo:\n{}", rendererMap.get(uuid, "0").deviceProtocolInfo.toString(true));
 							} else {
 								LOGGER.trace("Received empty reply to GetProtocolInfo from \"{}\"", name);
 							}

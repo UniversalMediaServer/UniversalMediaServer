@@ -132,11 +132,19 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	}
 
 	/**
-	 * @return Whether the {@code subtype} (second) part of this
+	 * @return Whether or not the {@code subtype} (second) part of this
 	 *         {@link MimeType} matches anything.
 	 */
 	public boolean isAnySubtype() {
 		return ANY.equals(subtype);
+	}
+
+	/**
+	 * @return Whether or not the {@code type} (first) part of this
+	 *         {@link MimeType} is {@code "image"}.
+	 */
+	public boolean isImage() {
+		return isNotBlank(type) && type.toLowerCase(Locale.ROOT).equals("image");
 	}
 
 	/**

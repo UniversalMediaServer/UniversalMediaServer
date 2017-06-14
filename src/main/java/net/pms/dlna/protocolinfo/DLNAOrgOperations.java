@@ -108,7 +108,7 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 	 * @return {@code true} if the validation succeeded, false otherwise.
 	 */
 	public boolean validate(ProtocolInfo protocolInfo) {
-		return validate(protocolInfo.getFlags());
+		return validate(protocolInfo.getDLNAFlags());
 		// XXX When implemented in ProtocolInfo, verify that Size is given if B
 		// flag is true
 		// XXX When implemented in ProtocolInfo, verify that Duration is given

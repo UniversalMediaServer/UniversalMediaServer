@@ -383,7 +383,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 * @return The {@code DLNA.ORG_FLAGS} of this {@link ProtocolInfo} or
 	 *         {@code null} if it isn't defined.
 	 */
-	public DLNAOrgFlags getFlags() {
+	public DLNAOrgFlags getDLNAFlags() {
 		ProtocolInfoAttribute flagsAttribute =
 			attributes.get(KnownProtocolInfoAttributeName.DLNA_ORG_FLAGS);
 		return flagsAttribute instanceof DLNAOrgFlags ?
@@ -412,6 +412,17 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Determines whether this {@link ProtocolInfo} follows the DLNA
+	 * specification. A full compliance check isn't performed, it's simply
+	 * checked if the profile name (if any) is a {@link DLNAOrgProfileName}.
+	 *
+	 * @return {@code true} if this instance is DLNA, {@code false} otherwise.
+	 */
+	public boolean isDLNA() {
+		return getDLNAProfileName() != null;
 	}
 
 	/**

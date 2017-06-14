@@ -32,6 +32,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
 import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.fourthline.cling.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAImageProfile;
@@ -111,8 +112,11 @@ public class DeviceProtocolInfo implements Serializable {
 	/** The {@link Map} of {@link ProtocolInfo} {@link Set}s. */
 	protected final HashMap<DeviceProtocolInfoSource<?>, SortedSet<ProtocolInfo>> protocolInfoSets = new HashMap<>();
 
-	/** The image profile set. */
+	/** The DLNA image profile set. */
 	protected final SortedSet<DLNAImageProfile> imageProfileSet = new TreeSet<>();
+
+	/** The HTTP UPnP image mime types */
+	protected final SortedSet<MimeType> imageHTTPMimeTypesSet = new TreeSet<>();
 
 	/**
 	 * Creates a new empty instance.
@@ -148,6 +152,9 @@ public class DeviceProtocolInfo implements Serializable {
 	 *         {@code false} this already contains the specified element(s).
 	 */
 	public boolean add(DeviceProtocolInfoSource<?> type, String protocolInfoString) {
+		if (type == null) {
+			throw new IllegalArgumentException("type cannot be null");
+		}
 		if (StringUtils.isBlank(protocolInfoString)) {
 			return false;
 		}
@@ -185,7 +192,7 @@ public class DeviceProtocolInfo implements Serializable {
 					LOGGER.trace("", e);
 				}
 			}
-			updateImageProfiles();
+			addImageProfiles(type);
 		} finally {
 			setsLock.writeLock().unlock();
 		}
@@ -193,16 +200,121 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Re-parses {@code protocolInfoSet} and stores the results in
-	 * {@code imageProfileSet}.
+	 * Parses {@code protocolInfos} and adds all results to
+	 * {@code imageProfileSet} and {@code imageHTTPMimeTypesSet}, if they're not
+	 * already there.
+	 *
+	 * @param protocolInfos the {@link ProtocolInfo} instance(s) to parse.
 	 */
-	protected void updateImageProfiles() {
+	protected void addImageProfiles(ProtocolInfo... protocolInfos) {
+		if (protocolInfos != null && protocolInfos.length > 0) {
+			updateImageProfiles(true, null, protocolInfos);
+		}
+	}
+
+	/**
+	 * Parses and adds all results to {@code imageProfileSet} and
+	 * {@code imageHTTPMimeTypesSet} for the given {@code source}, if they're
+	 * not already there.
+	 *
+	 * @param source the {@link DeviceProtocolInfoSource} whose entries to
+	 *            parse.
+	 */
+	protected void addImageProfiles(DeviceProtocolInfoSource<?> source) {
+		if (source == null) {
+			throw new IllegalArgumentException("source cannot be null");
+		}
+		updateImageProfiles(true, source);
+	}
+
+	/**
+	 * Clears {@code imageProfileSet} and {@code imageHTTPMimeTypesSet} and
+	 * parses all entries in {@code protocolInfoSet}, storing the results in
+	 * {@code imageProfileSet} and {@code imageHTTPMimeTypesSet}.
+	 */
+	protected void parseAllImageProfile() {
+		updateImageProfiles(false, null);
+	}
+
+	/**
+	 * Parses {@code protocolInfoSet} or {@code protocolInfos} and stores the
+	 * results in {@code imageProfileSet} and {@code imageHTTPMimeTypesSet}.
+	 *
+	 * @param addOnly Whether specified {@link ProtocolInfo} instances should be
+	 *            added or {@code imageProfileSet} and
+	 *            {@code imageHTTPMimeTypesSet} cleared and all
+	 *            {@code protocolInfoSet} entries parsed.
+	 * @param source the {@link DeviceProtocolInfoSource} type for which to
+	 *            parse all {@link ProtocolInfo} entries.
+	 * @param protocolInfos the specified {@link ProtocolInfo} instances to use
+	 *            if {@code addOnly} is true.
+	 */
+	protected void updateImageProfiles(boolean addOnly, DeviceProtocolInfoSource<?> source, ProtocolInfo... protocolInfos) {
+		if (!addOnly && (protocolInfos != null && protocolInfos.length > 0 || source != null)) {
+			throw new IllegalArgumentException("specific ProtocolInfo instances can only be used with addOnly");
+		}
+		if (addOnly && source == null && (protocolInfos == null || protocolInfos.length == 0)) {
+			throw new IllegalArgumentException("specific ProtocolInfo instances must be specified with addOnly");
+		}
 		setsLock.writeLock().lock();
 		try {
-			imageProfileSet.clear();
-			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
+			if (addOnly && protocolInfos != null && protocolInfos.length > 0) {
+				// Only parse specific instances
+				for (ProtocolInfo protocolInfo : protocolInfos) {
+					parseProtocolInfo(protocolInfo);
+				}
+			} else if (addOnly) {
+				// Only parse entries for a given source
+				SortedSet<ProtocolInfo> set = protocolInfoSets.get(source);
+				if (set == null || set.size() == 0) {
+					return;
+				}
 				for (ProtocolInfo protocolInfo : set) {
-					imageProfileSet.addAll(DLNAImageProfile.toDLNAImageProfiles(protocolInfo));
+					parseProtocolInfo(protocolInfo);
+				}
+			} else {
+				// Since multiple ProtocolInfo instances can result in the same profile or mime-type,
+				// it isn't possible to remove only specific instances without also reparsing all the
+				// other entries. Clearing and reparsing all is thus just as good.
+				imageProfileSet.clear();
+				imageHTTPMimeTypesSet.clear();
+
+				for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
+					for (ProtocolInfo protocolInfo : set) {
+						parseProtocolInfo(protocolInfo);
+					}
+				}
+			}
+		} finally {
+			setsLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Parses a {@link ProtocolInfo} instance and stores the result in
+	 * {@code imageProfileSet} and {@code imageHTTPMimeTypesSet}.
+	 *
+	 * @param protocolInfo the {@link ProtocolInfo} instance to parse.
+	 */
+	protected void parseProtocolInfo(ProtocolInfo protocolInfo) {
+		if (protocolInfo == null) {
+			return;
+		}
+		setsLock.writeLock().lock();
+		try {
+			if (
+				protocolInfo.getProtocol() == Protocol.HTTP_GET &&
+				ProtocolInfo.WILDCARD.equals(protocolInfo.getNetwork()) &&
+				protocolInfo.getMimeType() != null &&
+				protocolInfo.getMimeType().isImage() &&
+				ProtocolInfo.WILDCARD.equals(protocolInfo.getAdditionalInfo())
+			) {
+				// The above is "the definition" of a UPnP HTTP protocolInfo filtered for "image" types
+				imageHTTPMimeTypesSet.add(protocolInfo.getMimeType());
+			} else {
+				DLNAImageProfile profile = DLNAImageProfile.toDLNAImageProfile(protocolInfo);
+				if (profile != null) {
+					imageProfileSet.add(profile);
 				}
 			}
 		} finally {
@@ -448,7 +560,7 @@ public class DeviceProtocolInfo implements Serializable {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
 			if (set != null) {
 				set.clear();
-				updateImageProfiles();
+				parseAllImageProfile();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -464,6 +576,7 @@ public class DeviceProtocolInfo implements Serializable {
 		try {
 			protocolInfoSets.clear();
 			imageProfileSet.clear();
+			imageHTTPMimeTypesSet.clear();
 		} finally {
 			setsLock.writeLock().unlock();
 		}
@@ -493,7 +606,7 @@ public class DeviceProtocolInfo implements Serializable {
 			}
 
 			if (currentSet.add(protocolInfo)) {
-				updateImageProfiles();
+				addImageProfiles(protocolInfo);
 				return true;
 			}
 			return false;
@@ -526,7 +639,7 @@ public class DeviceProtocolInfo implements Serializable {
 			}
 
 			if (currentSet.addAll(collection)) {
-				updateImageProfiles();
+				addImageProfiles(collection.toArray(new ProtocolInfo[collection.size()]));
 				return true;
 			}
 			return false;
@@ -554,7 +667,7 @@ public class DeviceProtocolInfo implements Serializable {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
 			if (set != null) {
 				if (set.remove(protocolInfo)) {
-					updateImageProfiles();
+					parseAllImageProfile();
 					return true;
 				}
 			}
@@ -584,7 +697,7 @@ public class DeviceProtocolInfo implements Serializable {
 				result |= set != null && set.remove(protocolInfo);
 			}
 			if (result) {
-				updateImageProfiles();
+				parseAllImageProfile();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -613,7 +726,7 @@ public class DeviceProtocolInfo implements Serializable {
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
 			if (set != null && set.removeAll(collection)) {
-				updateImageProfiles();
+				parseAllImageProfile();
 				return true;
 			}
 			return false;
@@ -644,7 +757,7 @@ public class DeviceProtocolInfo implements Serializable {
 				result |= set != null && set.removeAll(collection);
 			}
 			if (result) {
-				updateImageProfiles();
+				parseAllImageProfile();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -674,7 +787,7 @@ public class DeviceProtocolInfo implements Serializable {
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
 			if (set != null && set.retainAll(collection)) {
-				updateImageProfiles();
+				parseAllImageProfile();
 				return true;
 			}
 			return false;
@@ -707,7 +820,7 @@ public class DeviceProtocolInfo implements Serializable {
 				result |= set != null && set.retainAll(collection);
 			}
 			if (result) {
-				updateImageProfiles();
+				parseAllImageProfile();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -736,7 +849,7 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Checks if is image profiles empty.
+	 * Checks if {@link #imageProfileSet} is empty.
 	 *
 	 * @return {@code true} if this contains no {@link DLNAImageProfile}
 	 *         elements.
@@ -769,26 +882,6 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Returns an array containing all the {@link DLNAImageProfile} instances in
-	 * an unspecified order.
-	 * <p>
-	 * The returned array will be "safe" in that no references to it are
-	 * maintained. (In other words, this method must allocate a new array). The
-	 * caller is thus free to modify the returned array.
-	 *
-	 * @return An array containing all the {@link DLNAImageProfile} instances.
-	 */
-	public DLNAImageProfile[] imageProfilesToArray() {
-		setsLock.readLock().lock();
-		try {
-			return imageProfileSet.toArray(new DLNAImageProfile[imageProfileSet.size()]);
-		} finally {
-			setsLock.readLock().unlock();
-		}
-	}
-
-
-	/**
 	 * Returns {@code true} if this contains all the {@link DLNAImageProfile} instances in the
 	 * specified collection.
 	 *
@@ -806,6 +899,120 @@ public class DeviceProtocolInfo implements Serializable {
 			setsLock.readLock().unlock();
 		}
 	}
+
+	/**
+	 * Returns an array containing all the {@link DLNAImageProfile} instances.
+	 * <p>
+	 * The returned array will be "safe" in that no reference to it is
+	 * maintained. (In other words, this method must allocate a new array). The
+	 * caller is thus free to modify the returned array.
+	 *
+	 * @return An array containing all the {@link DLNAImageProfile} instances.
+	 */
+	public DLNAImageProfile[] imageProfilesToArray() {
+		setsLock.readLock().lock();
+		try {
+			return imageProfileSet.toArray(new DLNAImageProfile[imageProfileSet.size()]);
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+
+	// imageHTTPMimeTypesSet "java.util.Collection methods" getters
+
+
+	/**
+	 * Returns the number of UPnP HTTP image {@link MimeType} entries. If this
+	 * contains more than {@link Integer#MAX_VALUE} elements, returns
+	 * {@link Integer#MAX_VALUE}.
+	 *
+	 * @return The number of {@link MimeType} entries.
+	 */
+	public int imageHTTPMimesSize() {
+		setsLock.readLock().lock();
+		try {
+			return imageHTTPMimeTypesSet.size();
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Checks if {@link #imageHTTPMimeTypesSet} is empty.
+	 *
+	 * @return {@code true} if this contains no UPnP HTTP image {@link MimeType}
+	 *         entries.
+	 */
+	public boolean isImageHTTPMimesEmpty() {
+		setsLock.readLock().lock();
+		try {
+			return imageHTTPMimeTypesSet.isEmpty();
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns {@code true} if this contains the specified UPnP HTTP image
+	 * {@link MimeType} instance.
+	 *
+	 * @param imageMimeType the {@link MimeType} instance whose presence is to
+	 *            be tested.
+	 * @return {@code true} if this contains the specified UPnP HTTP image
+	 *         {@link MimeType} instance.
+	 */
+	public boolean imageHTTPMimesContains(MimeType imageMimeType) {
+		setsLock.readLock().lock();
+		try {
+			return imageHTTPMimeTypesSet.contains(imageMimeType);
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns {@code true} if this contains all the UPnP HTTP image
+	 * {@link MimeType} instances in the specified collection.
+	 *
+	 * @param collection a {@link Collection} to be checked for containment.
+	 * @return {@code true} if {@link #imageHTTPMimeTypesSet} contains all of the
+	 *         {@link MimeType} instances in {@code collection}.
+	 *
+	 * @see #imageHTTPMimesContains(MimeType)
+	 */
+	public boolean imageHTTPMimesContainsAll(Collection<MimeType> collection) {
+		setsLock.readLock().lock();
+		try {
+			return imageHTTPMimeTypesSet.containsAll(collection);
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns an array containing all the UPnP HTTP image {@link MimeType}
+	 * entries.
+	 * <p>
+	 * The returned array will be "safe" in that no reference to it is
+	 * maintained. (In other words, this method must allocate a new array). The
+	 * caller is thus free to modify the returned array.
+	 *
+	 * @return An array containing all the UPnP HTTP image {@link MimeType}
+	 *         entries.
+	 */
+	public MimeType[] imageHTTPMimesToArray() {
+		setsLock.readLock().lock();
+		try {
+			return imageHTTPMimeTypesSet.toArray(new MimeType[imageHTTPMimeTypesSet.size()]);
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+
+	// String instance methods
+
 
 	@Override
 	public String toString() {
@@ -869,18 +1076,110 @@ public class DeviceProtocolInfo implements Serializable {
 					}
 				}
 			}
-			if (imageProfileSet != null && !imageProfileSet.isEmpty()) {
-				sb.append("DLNAImageProfile entries:\n");
-				for (DLNAImageProfile imageProfile : imageProfileSet) {
-					if (imageProfile != null) {
-						sb.append("  ").append(imageProfile).append("\n");
-					}
+			if (debug) {
+				imageProfilesToString(sb);
+				if (!imageProfileSet.isEmpty() && !imageHTTPMimeTypesSet.isEmpty()) {
+					sb.append("\n");
 				}
+				imageHTTPMimeTypesToString(sb);
 			}
 		} finally {
 			setsLock.readLock().unlock();
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * @return A {@link String} representation of the registered
+	 *         {@link DLNAImageProfile}s for this {@link ProtocolInfo} instance.
+	 */
+	public String imageProfilesToString() {
+		setsLock.readLock().lock();
+		try {
+			if (imageProfileSet == null || imageProfileSet.isEmpty()) {
+				return "None";
+			}
+			StringBuilder sb = new StringBuilder();
+			imageProfilesToString(sb);
+			return sb.toString();
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Adds {@link String} representations of the registered
+	 * {@link DLNAImageProfile}s for this {@link ProtocolInfo} instance to
+	 * {@code sb}.
+	 *
+	 * @param sb the {@link StringBuilder} to add the {@link String}
+	 *            representations to.
+	 */
+	public void imageProfilesToString(StringBuilder sb) {
+		if (sb == null) {
+			throw new IllegalArgumentException("sb cannot be null");
+		}
+
+		setsLock.readLock().lock();
+		try {
+			if (imageProfileSet.isEmpty()) {
+				return;
+			}
+			sb.append("DLNAImageProfile entries:\n");
+			for (DLNAImageProfile imageProfile : imageProfileSet) {
+				if (imageProfile != null) {
+					sb.append("  ").append(imageProfile).append("\n");
+				}
+			}
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * @return A {@link String} representation of the registered UPnP HTTP image
+	 *         {@link MimeType}s for this {@link ProtocolInfo} instance.
+	 */
+	public String imageHTTPMimeTypesToString() {
+		setsLock.readLock().lock();
+		try {
+			if (imageHTTPMimeTypesSet == null || imageHTTPMimeTypesSet.isEmpty()) {
+				return "None";
+			}
+			StringBuilder sb = new StringBuilder();
+			imageHTTPMimeTypesToString(sb);
+			return sb.toString();
+		} finally {
+			setsLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Adds {@link String} representations of the registered UPnP HTTP image
+	 * {@link MimeType}s for this {@link ProtocolInfo} instance to {@code sb}.
+	 *
+	 * @param sb the {@link StringBuilder} to add the {@link String}
+	 *            representations to.
+	 */
+	public void imageHTTPMimeTypesToString(StringBuilder sb) {
+		if (sb == null) {
+			throw new IllegalArgumentException("sb cannot be null");
+		}
+
+		setsLock.readLock().lock();
+		try {
+			if (imageHTTPMimeTypesSet.isEmpty()) {
+				return;
+			}
+			sb.append("UPnP HTTP image mime types:\n");
+			for (MimeType imageMimeType : imageHTTPMimeTypesSet) {
+				if (imageMimeType != null) {
+					sb.append("  ").append(imageMimeType).append("\n");
+				}
+			}
+		} finally {
+			setsLock.readLock().unlock();
+		}
 	}
 
 
