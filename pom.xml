@@ -1455,14 +1455,17 @@
 								<configuration>
 									<target>
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.1.UMS.jar"/>
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.2.UMS.jar"/>
 										<bundleapp outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 										           name="${project.name}"
 										           displayname="${project.name}"
+										           executableName="UMS"
 										           identifier="net.pms.PMS"
 										           shortversion="${project.version}"
+										           version="${project.version}"
 										           icon="${project.basedir}/src/main/resources/images/logo.icns"
-										           applicationCategory="public.app-category.developer-tools"
+										           applicationCategory="public.app-category.entertainment"
+										           workingdirectory="$APP_ROOT/Contents/Resources"
 										           mainclassname="net.pms.PMS">
 											<!--<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_21.jdk/Contents/Home"/>-->
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
@@ -1633,14 +1636,17 @@
 								<configuration>
 									<target>
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.1.UMS.jar"/>
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.2.UMS.jar"/>
 										<bundleapp outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 										           name="${project.name}"
 										           displayname="${project.name}"
+										           executableName="UMS"
 										           identifier="net.pms.PMS"
 										           shortversion="${project.version}"
+										           version="${project.version}"
 										           icon="${project.basedir}/src/main/resources/images/logo.icns"
-										           applicationCategory="public.app-category.developer-tools"
+										           applicationCategory="public.app-category.entertainment"
+										           workingdirectory="$APP_ROOT/Contents/Resources"
 										           mainclassname="net.pms.PMS">
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx768M"/>
