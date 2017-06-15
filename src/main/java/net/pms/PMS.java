@@ -1413,12 +1413,17 @@ public class PMS {
 	 * warnings where appropriate.
 	 */
 	private void logSystemInfo() {
-		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
-
 		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
+		try {
+			LOGGER.info("CPU benchmark time: {} milliseconds.", Long.toString(CPUbechchmark.run(5)));
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
-		LOGGER.info("Memory: {} MB", memoryInMB);
+		LOGGER.info("Memory: {} MB", Runtime.getRuntime().maxMemory() / 1048576);
 		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("");
 
