@@ -74,7 +74,7 @@
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
-		
+
 		<twelvemonkeys-imageio-version>3.3.2</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -87,8 +87,25 @@
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
+
+		<!--
+			org.slf4j:slf4j-api is shared with
+				- su.litvak.chromecast:api-v2
+				- fm.last:coverartarchive-api
+				- com.github.oshi:oshi-core
+
+			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+		-->
 		<logback-version>1.2.3</logback-version>
 		<surefire-version>2.20</surefire-version>
+
+		<!--
+			net.java.dev.jna:jna-platform is shared with
+				- com.github.oshi:oshi-core
+
+			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
+		-->
+		<jna-version>4.4.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -133,26 +150,35 @@
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
+			<!--
+				commons-logging:commons-logging is shared with
+					- commons-httpclient:commons-httpclient
+					- com.github.junrar:junrar
+					- fm.last:coverartarchive-api
+
+				Check the commons-logging:commons-logging version of the other libraries before upgrading
+			-->
 			<version>1.10</version>
-			<exclusions>
-				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
-				<exclusion>
-					<artifactId>commons-logging</artifactId>
-					<groupId>commons-logging</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId> <!-- TODO this should be changed to org.apache.httpcomponents which is the follower. -->
 			<version>3.1</version>
 			<exclusions>
-				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
 				<exclusion>
+					<!--
+						commons-logging:commons-logging is shared with
+							- commons-configuration:commons-configuration
+							- com.github.junrar:junrar
+							- fm.last:coverartarchive-api
+
+						The other libraries use a much newer version since commons-httpclient is ancient and abandoned
+					-->
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 				<exclusion>
+					<!-- fm.last:coverartarchive-api uses a much newer version since commons-httpclient is ancient and abandoned -->
 					<groupId>commons-codec</groupId>
 					<artifactId>commons-codec</artifactId>
 				</exclusion>
@@ -161,6 +187,12 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
+			<!--
+				commons-io:commons-io is shared with
+					- fm.last:coverartarchive-api
+
+				Check the commons-io:commons-io version of the library before upgrading
+			-->
 			<version>2.5</version>
 		</dependency>
 		<dependency>
@@ -211,8 +243,8 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>[0.4, 0.5)</version>
 		</dependency>
-		
-		<!-- 
+
+		<!--
 			If any ImageIO plugins are added or removed, corresponding changes
 		 	must be made in src/main/external-resources/META-INF/services
 		 -->
@@ -290,7 +322,7 @@
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
 			<version>2.10.1</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>net.jthink</groupId>
 			<artifactId>jaudiotagger</artifactId>
@@ -309,6 +341,14 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
+			<!--
+				commons-logging:commons-logging is shared with
+					- commons-configuration:commons-configuration
+					- commons-httpclient:commons-httpclient
+					- fm.last:coverartarchive-api
+
+				Check the commons-logging:commons-logging version of the other libraries before upgrading
+			-->
 			<version>0.7</version>
 		</dependency>
 
@@ -355,12 +395,12 @@
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
-			<version>4.4.0</version>
+			<version>${jna-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna-platform</artifactId>
-			<version>4.4.0</version>
+			<version>${jna-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
@@ -395,6 +435,14 @@
 		<dependency>
 			<groupId>su.litvak.chromecast</groupId>
 			<artifactId>api-v2</artifactId>
+			<!--
+				org.slf4j:slf4j-api is shared with
+					- ch.qos.logback:logback-classic
+					- fm.last:coverartarchive-api
+					- com.github.oshi:oshi-core
+
+				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+			-->
 			<version>0.10.0</version>
 		</dependency>
 		<dependency>
@@ -410,8 +458,29 @@
 		<dependency>
 			<groupId>fm.last</groupId>
 			<artifactId>coverartarchive-api</artifactId>
+			<!--
+				org.slf4j:slf4j-api is shared with
+					- ch.qos.logback:logback-classic
+					- su.litvak.chromecast
+					- com.github.oshi:oshi-core
+
+				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+
+				commons-logging:commons-logging is shared with
+					- commons-configuration:commons-configuration
+					- commons-httpclient:commons-httpclient
+					- com.github.junrar:junrar
+
+				Check the commons-logging:commons-logging version of the other libraries before upgrading
+
+				commons-io:commons-io is shared with
+					- net.pms:ums
+
+				Check the commons-io:commons-io version before upgrading
+			-->
 			<version>2.1.0</version>
 			<exclusions>
+				<!-- This should never have been a dependency in the first place -->
 				<exclusion>
 					<groupId>com.google.code.findbugs</groupId>
 					<artifactId>jsr305</artifactId>
@@ -425,6 +494,19 @@
 		<dependency>
 			<groupId>com.github.oshi</groupId>
 			<artifactId>oshi-core</artifactId>
+			<!--
+				org.slf4j:slf4j-api is shared with
+					- ch.qos.logback:logback-classic
+					- su.litvak.chromecast
+					- fm.last:coverartarchive-api
+
+				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+
+				net.java.dev.jna:jna-platform is shared with
+					- net.pms:ums
+
+				Check the net.java.dev.jna:jna-platform version before upgrading
+			-->
 			<version>3.4.2</version>
 			<exclusions>
 				<exclusion>
@@ -539,9 +621,9 @@
 					<version>${surefire-version}</version>
 				</plugin>
 
-				<!-- 
+				<!--
 					This plugin's configuration is used to run crowdin plugin from the command line,
-					it has no influence on the Maven build itself. 
+					it has no influence on the Maven build itself.
 				-->
 				<plugin>
 					<groupId>com.universalmediaserver</groupId>
@@ -618,7 +700,7 @@
 										</artifactId>
 										<versionRange>
 											[0.1,)
-										</versionRange>										
+										</versionRange>
 										<goals>
 											<goal>clean</goal>
 											<goal>deploy</goal>
@@ -1418,7 +1500,7 @@
 								</configuration>
 							</execution>
 							<!--
-								Assemble the UMS files in the right place before 
+								Assemble the UMS files in the right place before
 								moving them to the app Bundle.
 							-->
 							<execution>
@@ -1595,7 +1677,7 @@
 								</configuration>
 							</execution>
 							<!--
-								Assemble the UMS files in the right place before 
+								Assemble the UMS files in the right place before
 								moving them to the app Bundle.
 							-->
 							<execution>
