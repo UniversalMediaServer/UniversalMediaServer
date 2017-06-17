@@ -1,5 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
+ * PS3 Media Server, for streaming any media to your PS3.
  * Copyright (C) 2008  A.Brochard
  *
  * This program is free software; you can redistribute it and/or
@@ -324,7 +324,7 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-c:v");
 			transcodeOptions.add("wmv2");
 
-			if (!customFFmpegOptions.contains("-c:a ")) {
+			if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
 				transcodeOptions.add("-c:a");
 				transcodeOptions.add("wmav2");
 			}
@@ -346,7 +346,7 @@ public class FFMpegVideo extends Player {
 
 			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
 				// AC-3 remux
-				if (!customFFmpegOptions.contains("-c:a ")) {
+				if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("copy");
 				}
@@ -360,7 +360,7 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("aac");
 				} else {
-					if (!customFFmpegOptions.contains("-c:a ")) {
+					if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
 						transcodeOptions.add("-c:a");
 						transcodeOptions.add("ac3");
 					}
@@ -376,7 +376,7 @@ public class FFMpegVideo extends Player {
 
 			// Output video codec
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
-				if (!customFFmpegOptions.contains("-c:v")) {
+				if (!customFFmpegOptions.contains("-c:v")|!customFFmpegOptions.contains("-vcodec ")|!customFFmpegOptions.contains("-codec:v ")) {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {
 						transcodeOptions.add("libx264");
