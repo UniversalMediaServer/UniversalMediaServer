@@ -1,5 +1,5 @@
 /*
- * PS3 Media Server, for streaming any media to your PS3.
+ * PS3 Media Server, for streaming any medias to your PS3.
  * Copyright (C) 2008  A.Brochard
  *
  * This program is free software; you can redistribute it and/or
@@ -324,7 +324,7 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-c:v");
 			transcodeOptions.add("wmv2");
 
-			if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
+			if (!customFFmpegOptions.contains("-c:a ") || !customFFmpegOptions.contains("-acodec ") || !customFFmpegOptions.contains("-codec:a ")) {
 				transcodeOptions.add("-c:a");
 				transcodeOptions.add("wmav2");
 			}
@@ -343,7 +343,7 @@ public class FFMpegVideo extends Player {
 
 			// Output video codec
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
-				if (!customFFmpegOptions.contains("-c:v")|!customFFmpegOptions.contains("-vcodec ")|!customFFmpegOptions.contains("-codec:v ")) {
+				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {
 						transcodeOptions.add("libx264");
@@ -361,8 +361,10 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-level");
 					transcodeOptions.add("31");
 				}
-				transcodeOptions.add("-pix_fmt");
-				transcodeOptions.add("yuv420p");
+				if (!customFFmpegOptions.contains("-pix_fmt")) {
+					transcodeOptions.add("-pix_fmt");
+					transcodeOptions.add("yuv420p");
+				}
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
@@ -380,7 +382,7 @@ public class FFMpegVideo extends Player {
 
 			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
 				// AC-3 remux
-				if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
+				if (!customFFmpegOptions.contains("-c:a ") || !customFFmpegOptions.contains("-acodec ") || !customFFmpegOptions.contains("-codec:a ")) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("copy");
 				}
@@ -394,7 +396,7 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("aac");
 				} else {
-					if (!customFFmpegOptions.contains("-c:a ")|!customFFmpegOptions.contains("-acodec ")|!customFFmpegOptions.contains("-codec:a ")) {
+					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
 						transcodeOptions.add("ac3");
 					}
@@ -835,6 +837,15 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+		// Avoid no audio for a better renderer DLNA support compatibility
+		if (params.aid == null) {
+			cmdList.add("-f");
+			cmdList.add("lavfi");
+			cmdList.add("-i");
+			cmdList.add("anullsrc");
+			cmdList.add("-shortest");
+		}
+
 		/**
 		 * Defer to MEncoder for subtitles if:
 		 * - The setting is enabled
@@ -1020,22 +1031,24 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			// Add the output format option (-f)
-			if (!customFFmpegOptions.contains("-f")) {
-				// Output file format
-				cmdList.add("-f");
-				if (dtsRemux) {
-					cmdList.add("mpeg2video");
-				} else if (renderer.isTranscodeToMPEGTS()) {
-					cmdList.add("mpegts");
-				} else {
-					cmdList.add("vob");
-				}
-			}
-
 			// Add custom options
 			if (StringUtils.isNotEmpty(customFFmpegOptions)) {
 				parseOptions(customFFmpegOptions, cmdList);
+			}
+
+			// Add the output format option (-f)
+			if (!customFFmpegOptions.contains("-f ")) {
+				// Output file format
+				if (dtsRemux) {
+					cmdList.add("-f");
+					cmdList.add("mpeg2video");
+				} else if (renderer.isTranscodeToMPEGTS()) {
+					cmdList.add("-f");
+					cmdList.add("mpegts");
+				} else {
+					cmdList.add("-f");
+					cmdList.add("vob");
+				}
 			}
 		}
 
@@ -1165,14 +1178,14 @@ public class FFMpegVideo extends Player {
 				cmdListDTS.add("1");
 			}
 
-			cmdListDTS.add("-ac");
-			cmdListDTS.add("2");
-
 			cmdListDTS.add("-f");
 			cmdListDTS.add("dts");
 
 			cmdListDTS.add("-c:a");
 			cmdListDTS.add("copy");
+
+			cmdListDTS.add("-ac");
+			cmdListDTS.add("2");
 
 			cmdListDTS.add(ffAudioPipe.getInputPipe());
 
