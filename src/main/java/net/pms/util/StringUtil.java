@@ -24,8 +24,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
@@ -61,6 +65,18 @@ public class StringUtil {
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
 	public static final String NEWLINE_CHARACTER = System.getProperty("line.separator");
+	public static final long KIBI = 1L << 10;
+	public static final long MEBI = 1L << 20;
+	public static final long GIBI = 1L << 30;
+	public static final long TEBI = 1L << 40;
+	public static final long PEBI = 1L << 50;
+	public static final long EXBI = 1L << 60;
+	public static final long KILO = 1000L;
+	public static final long MEGA = 1000000L;
+	public static final long GIGA = 1000000000L;
+	public static final long TERA = 1000000000000L;
+	public static final long PETA = 1000000000000000L;
+	public static final long EXA  = 1000000000000000000L;
 
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
@@ -192,11 +208,12 @@ public class StringUtil {
 	/**
 	 * Converts time to string.
 	 *
-	 * @param d time in double.
-	 * @param timeFormat Format string e.g. "%02d:%02d:%02f" or use predefined constants
-	 * SEC_TIME_FORMAT, DURATION_TIME_FORMAT.
+	 * @param d the time in seconds.
+	 * @param timeFormat Format string e.g. "%02d:%02d:%02f" or use the
+	 *            predefined constants {@link #SEC_TIME_FORMAT},
+	 *            {@link #DURATION_TIME_FORMAT}.
 	 *
-	 * @return Converted String.
+	 * @return The converted {@link String}.
 	 */
 	public static String convertTimeToString(double d, String timeFormat) {
 		StringBuilder sb = new StringBuilder();
@@ -208,6 +225,19 @@ public class StringUtil {
 		}
 
 		return sb.toString();
+	}
+
+	/**
+	 * Converts a duration in seconds to the DIDL-Lite specified duration
+	 * format.
+	 *
+	 * @param duration the duration in seconds
+	 * @return The formatted duration.
+	 */
+	public static String formatDidlLiteDuration(double duration) {
+		SimpleDateFormat format = new SimpleDateFormat("H:mm:ss", Locale.ROOT);
+		format.setTimeZone(TimeZone.getTimeZone("UTC"));
+		return format.format(new Date((long) (duration * 1000)));
 	}
 
 	/**
@@ -341,7 +371,7 @@ public class StringUtil {
 		Pattern pattern = Pattern.compile("<body>(.*)</body>", Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
 		Matcher matcher = pattern.matcher(html);
 		if (matcher.find()) {
-			return matcher.group(1).replaceAll("\n    ", "").trim().replaceAll("(?i)<br>", "\n").replaceAll("<.*?>","");
+			return matcher.group(1).replaceAll("\n    ", "").trim().replaceAll("(?i)<br>", "\n").replaceAll("<.*?>", "");
 		}
 		throw new IllegalArgumentException("HTML text not as expected, must have <body> section");
 	}
@@ -358,10 +388,10 @@ public class StringUtil {
 	}
 
 	/**
-	 * Escapes {@link org.apache.lucene} special characters with backslash
+	 * Escapes {@link org.apache.lucene} special characters with backslash.
 	 *
-	 * @param s the {@link String} to evaluate
-	 * @return The converted String
+	 * @param s the {@link String} to evaluate.
+	 * @return The converted String.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	public static String luceneEscape(final String s) {
@@ -398,10 +428,10 @@ public class StringUtil {
 	}
 
 	/**
-	 * Escapes special characters with backslashes for FFmpeg subtitles
+	 * Escapes special characters with backslashes for FFmpeg subtitles.
 	 *
-	 * @param s the {@link String} to evaluate
-	 * @return The converted String
+	 * @param s the {@link String} to evaluate.
+	 * @return The converted String.
 	 */
 	public static String ffmpegEscape(String s) {
 		StringBuilder sb = new StringBuilder();
@@ -430,7 +460,21 @@ public class StringUtil {
 		return sb.toString();
 	}
 
-	public static String prettifyXML(String xml, int indentWidth) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
+	/**
+	 * Formats a XML string to be easier to read with newlines and indentations.
+	 *
+	 * @param xml the {@link String} to "prettify".
+	 * @param indentWidth the width of one indentation in number of characters.
+	 * @return The "prettified" {@link String}.
+	 * @throws SAXException If a parsing error occurs.
+	 * @throws ParserConfigurationException If a parsing error occurs.
+	 * @throws XPathExpressionException If a parsing error occurs.
+	 * @throws TransformerException If a parsing error occurs.
+	 */
+	public static String prettifyXML(
+		String xml,
+		int indentWidth
+	) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
 		try {
 			// Turn XML string into a document
 			Document xmlDocument =
@@ -469,5 +513,150 @@ public class StringUtil {
 			LOGGER.trace("", e);
 			return xml;
 		}
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form
+	 * "{@code element 1, element2 and element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(Collection<String> strings) {
+		return createReadableCombinedString(strings, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form
+	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(Collection<String> strings, String separator, String lastSeparator) {
+		if (strings == null || strings.isEmpty()) {
+			return "";
+		}
+		return createReadableCombinedString(strings.toArray(new String[strings.size()]), separator, lastSeparator);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form
+	 * "{@code element 1, element2 and element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(String[] strings) {
+		return createReadableCombinedString(strings, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form
+	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(String[] strings, String separator, String lastSeparator) {
+		if (strings == null || strings.length == 0) {
+			return "";
+		}
+		if (separator == null) {
+			separator = ", ";
+		} else {
+			separator += " ";
+		}
+		if (lastSeparator == null) {
+			lastSeparator = " and ";
+		} else if (!isBlank(lastSeparator)) {
+			if (!lastSeparator.substring(0, 1).equals(" ")) {
+				lastSeparator = " " + lastSeparator;
+			}
+			if (!lastSeparator.substring(lastSeparator.length() - 1).equals(" ")) {
+				lastSeparator += " ";
+			}
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < strings.length; i++) {
+			if (i > 0) {
+				if (i == strings.length) {
+					sb.append(lastSeparator);
+				} else {
+					sb.append(separator);
+				}
+			}
+			sb.append(strings[i]);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Formats bytes into a rounded {@link String} representation in either
+	 * binary/power of 2 or SI notation using {@link Locale#ROOT}.
+	 *
+	 * @param bytes the value to format.
+	 * @param binary whether the representation should be binary/power of 2 or
+	 *            SI/metric.
+	 * @return The formatted byte value and unit.
+	 */
+	public static String formatBytes(long bytes, boolean binary) {
+		return formatBytes(bytes, binary, Locale.ROOT);
+	}
+
+	/**
+	 * Formats bytes into a rounded {@link String} representation in either
+	 * binary/power of 2 or SI notation.
+	 *
+	 * @param bytes the value to format.
+	 * @param binary whether the representation should be binary/power of 2 or
+	 *            SI/metric.
+	 * @param locale the {@link Locale} to use when formatting.
+	 * @return The formatted byte value and unit.
+	 */
+	public static String formatBytes(long bytes, boolean binary, Locale locale) {
+		if ((binary && bytes < 1L << 10) || bytes < KILO) {
+			return String.format("%d %s", bytes, bytes == 1L ? "byte" : "bytes");
+		}
+
+		long divisor;
+		String unit;
+		if ((binary && bytes < MEBI) || bytes < MEGA) { // kibi/kilo
+			divisor = binary ? KIBI : KILO;
+			unit = binary ? "KiB" : "kB";
+		} else if ((binary && bytes < GIBI) || bytes < GIGA) { // mebi/mega
+			divisor = binary ? MEBI : MEGA;
+			unit = binary ? "MiB" : "MB";
+		} else if ((binary && bytes < TEBI) || bytes < TERA) { // gibi/giga
+			divisor = binary ? GIBI : GIGA;
+			unit = binary ? "GiB" : "GB";
+		} else if ((binary && bytes < PEBI) || bytes < PETA) { // tebi/tera
+			divisor = binary ? TEBI : TERA;
+			unit = binary ? "TiB" : "TB";
+		} else if ((binary && bytes < EXBI) || bytes < EXA) { // pebi/peta
+			divisor = binary ? PEBI : PETA;
+			unit = binary ? "PiB" : "PB";
+		} else { // exbi/exa
+			divisor = binary ? EXBI : EXA;
+			unit = binary ? "EiB" : "EB";
+		}
+		if (bytes % divisor == 0) {
+			return String.format(locale, "%d %s", bytes / divisor, unit);
+		}
+		return String.format(locale, "%.1f %s", (double) bytes / divisor, unit);
 	}
 }

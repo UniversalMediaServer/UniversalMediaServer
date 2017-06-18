@@ -132,7 +132,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(
+	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -140,7 +140,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		PmsConfiguration prev = configuration;
 		// Use device-specific pms conf
 		configuration = (DeviceConfiguration)params.mediaRenderer;
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		params.maxBufferSize = configuration.getMaxAudioBuffer();
 		params.waitbeforestart = 2000;
 		params.manageFastStart();
@@ -267,7 +267,8 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.MLP) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MP3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.MPA) ||
-			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.MPC) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.OGA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.RA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.SHN) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.THREEGA) ||

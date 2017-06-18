@@ -198,7 +198,7 @@ public class FFMpegVideo extends Player {
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
 				} else if (params.sid.isEmbedded()) {
-					originalSubsFilename = dlna.getSystemName();
+					originalSubsFilename = dlna.getFileName();
 				}
 
 				if (originalSubsFilename != null) {
@@ -299,7 +299,7 @@ public class FFMpegVideo extends Player {
 	 */
 	public synchronized List<String> getVideoTranscodeOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> transcodeOptions = new ArrayList<>();
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		final RendererConfiguration renderer = params.mediaRenderer;
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
@@ -725,7 +725,7 @@ public class FFMpegVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
@@ -1243,7 +1243,8 @@ public class FFMpegVideo extends Player {
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
-			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
+			LOGGER.error("Thread interrupted while waiting for transcode to start", e.getMessage());
+			LOGGER.trace("", e);
 		}
 		configuration = prev;
 		return pw;
@@ -1383,6 +1384,7 @@ public class FFMpegVideo extends Player {
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.OGG) ||
 			"m3u8".equals(resource.getFormat().getMatchedExtension())
 		) {
 			return true;

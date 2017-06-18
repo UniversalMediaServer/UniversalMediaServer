@@ -47,6 +47,7 @@ import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
+import net.pms.util.PreventSleepMode;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
@@ -236,7 +237,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
-	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
+	protected static final String KEY_OLD_PREVENTS_SLEEP = "prevents_sleep_mode";
+	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
 	protected static final String KEY_PROFILE_NAME = "name";
 	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
 	protected static final String KEY_RENDERER_DEFAULT = "renderer_default";
@@ -1690,19 +1692,35 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * @param value The comma-separated list of selected renderers.
+	 * @return {@code true} if this call changed the {@link Configuration},
+	 *         {@code false} otherwise.
 	 */
-	public void setSelectedRenderers(String value) {
+	public boolean setSelectedRenderers(String value) {
 		if (value.isEmpty()) {
 			value = "None";
 		}
-		configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {
+			configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
 	 * @param value a string list of renderers.
+	 * @return {@code true} if this call changed the {@link Configuration},
+	 *         {@code false} otherwise.
 	 */
-	public void setSelectedRenderers(List<String> value) {
-		setStringList(KEY_SELECTED_RENDERERS, value);
+	public boolean setSelectedRenderers(List<String> value) {
+		if (value == null) {
+			return setSelectedRenderers("");
+		}
+		List<String> currentValue = getStringList(KEY_SELECTED_RENDERERS, null);
+		if (currentValue == null || value.size() != currentValue.size() || !value.containsAll(currentValue)) {
+			setStringList(KEY_SELECTED_RENDERERS, value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -2712,12 +2730,29 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_IP_FILTER, value);
 	}
 
-	public void setPreventsSleep(boolean value) {
-		configuration.setProperty(KEY_PREVENTS_SLEEP, value);
+	public void setPreventSleep(PreventSleepMode value) {
+		if (value == null) {
+			throw new NullPointerException("value cannot be null");
+		}
+		configuration.setProperty(KEY_PREVENT_SLEEP, value.getValue());
+		PMS.get().getSleepManager().setMode(value);
 	}
 
-	public boolean isPreventsSleep() {
-		return getBoolean(KEY_PREVENTS_SLEEP, true);
+	public PreventSleepMode getPreventSleep() {
+		PreventSleepMode sleepMode = null;
+		String value = getString(KEY_PREVENT_SLEEP, null);
+		if (value == null && configuration.containsKey(KEY_OLD_PREVENTS_SLEEP)) {
+			// Backwards compatibility
+				sleepMode =
+				getBoolean(KEY_OLD_PREVENTS_SLEEP, true) ?
+					PreventSleepMode.PLAYBACK :
+					PreventSleepMode.NEVER;
+			configuration.clearProperty(KEY_OLD_PREVENTS_SLEEP);
+			configuration.setProperty(KEY_PREVENT_SLEEP, sleepMode.getValue());
+		} else if (value != null) {
+			sleepMode = PreventSleepMode.typeOf(value);
+		}
+		return sleepMode != null ? sleepMode : PreventSleepMode.PLAYBACK; // Default
 	}
 
 	public void setHTTPEngineV2(boolean value) {
@@ -2809,7 +2844,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isDvdIsoThumbnails() {
-		return getBoolean(KEY_DVDISO_THUMBNAILS, false);
+		return getBoolean(KEY_DVDISO_THUMBNAILS, true);
 	}
 
 	public void setDvdIsoThumbnails(boolean value) {

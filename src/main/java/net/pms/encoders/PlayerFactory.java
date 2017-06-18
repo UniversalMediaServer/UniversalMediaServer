@@ -238,9 +238,8 @@ public final class PlayerFactory {
 		Player player = getPlayer(profileClass, ext);
 		if (player != null && configuration.getEnginesAsList(utils).contains(player.id())) {
 			return player;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	/**
@@ -284,9 +283,8 @@ public final class PlayerFactory {
 		if (resource == null) {
 			LOGGER.warn("Invalid resource (null): no player found");
 			return null;
-		} else {
-			LOGGER.trace("Getting player for resource \"{}\"", resource.getName());
 		}
+		LOGGER.trace("Getting player for resource \"{}\"", resource.getName());
 		boolean isImage = resource.getMedia() != null ? resource.getMedia().isImage() : false;
 
 		List<String> enabledEngines = configuration.getEnginesAsList(utils);
@@ -301,9 +299,8 @@ public final class PlayerFactory {
 					// Player is enabled and compatible
 					LOGGER.trace("Returning compatible player \"{}\"", player.name());
 					return player;
-				} else {
-					LOGGER.trace("Player \"{}\" is incompatible", player.name());
 				}
+				LOGGER.trace("Player \"{}\" is incompatible", player.name());
 			} else {
 				if (!isImage || player instanceof ImagePlayer) {
 					LOGGER.trace("Player \"{}\" is disabled", player.name());

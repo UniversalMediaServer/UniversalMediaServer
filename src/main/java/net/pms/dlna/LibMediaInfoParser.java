@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,7 +18,6 @@ import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.FileUtil;
 import net.pms.util.UnknownFormatException;
-import net.pms.util.OpenSubtitle;
 import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -306,36 +306,16 @@ public class LibMediaInfoParser {
 					addSub(currentSubTrack, media);
 				}
 			}
-
-			/**
-			 * Native M4A/AAC streaming bug: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=16691
-			 * Some M4A files have generic codec id "mp42" instead of "M4A". For example:
-			 *
-			 * General
-			 * Format                                   : MPEG-4
-			 * Format profile                           : Apple audio with iTunes info
-			 * Codec ID                                 : M4A
-			 *
-			 * vs
-			 *
-			 * General
-			 * Format                                   : MPEG-4
-			 * Format profile                           : Base Media / Version 2
-			 * Codec ID                                 : mp42
-			 *
-			 * As a workaround, set container type to AAC for MP4 files that have a single AAC audio track and no video.
+			/*
+			 * Some container formats (like MP4/M4A) can represent both audio
+			 * and video media. UMS initially recognized this as video, but this
+			 * is corrected here it the content is only audio.
 			 */
-			if (
-				FormatConfiguration.MP4.equals(media.getContainer()) &&
-				isBlank(media.getCodecV()) &&
-				media.getAudioTracksList() != null &&
-				media.getAudioTracksList().size() == 1 &&
-				FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
-			) {
-				media.setContainer(FormatConfiguration.AAC);
+			if (media.isAudioOrVideoContainer() && media.isAudio()) {
+				media.setContainer(media.getAudioVariantFormatConfigurationString());
 			}
 
-			/**
+			/*
 			 * Recognize 3D layout from the filename.
 			 *
 			 * First we check for our custom naming convention, for which the filename
@@ -458,11 +438,11 @@ public class LibMediaInfoParser {
 	 * @param file
 	 */
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
-		if (value.isEmpty()) {
+		if (isBlank(value)) {
 			return;
 		}
 
-		value = value.toLowerCase();
+		value = value.toLowerCase(Locale.ROOT);
 		String format = null;
 
 		if (isBlank(value)) {
@@ -472,18 +452,26 @@ public class LibMediaInfoParser {
 		} else if (value.startsWith("3gp")) {
 			format = FormatConfiguration.THREEGPP;
 		} else if (value.startsWith("matroska")) {
-			format = FormatConfiguration.MATROSKA;
+			format = FormatConfiguration.MKV;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
-		} else if (value.startsWith("cinepack")) {
-			format = FormatConfiguration.CINEPACK;
+		} else if (value.startsWith("cinepa")) {
+			format = FormatConfiguration.CINEPAK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
 		} else if (value.equals("webm")) {
 			format = FormatConfiguration.WEBM;
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
-		} else if (value.equals("isom") || value.startsWith("mp4") || value.equals("20") || value.equals("m4v") || value.startsWith("mpeg-4")) {
+		} else if (
+			value.equals("isom") ||
+			value.startsWith("mp4") ||
+			value.equals("20") ||
+			value.equals("m4v") ||
+			value.startsWith("mpeg-4") ||
+			value.contains("m4a") ||
+			value.contains("xvid")
+		) {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
 			format = FormatConfiguration.MPEGPS;
@@ -569,7 +557,7 @@ public class LibMediaInfoParser {
 		} else if (value.startsWith("qdesign")) {
 			format = FormatConfiguration.QDESIGN;
 		} else if (value.equals("realaudio lossless")) {
-			format = FormatConfiguration.REALAUDIO_LOSSLESS;
+			format = FormatConfiguration.RALF;
 		} else if (value.equals("e-ac-3")) {
 			format = FormatConfiguration.EAC3;
 		} else if (value.contains("truehd")) {
@@ -579,19 +567,33 @@ public class LibMediaInfoParser {
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
 		} else if (value.equals("lc")) {
-			format = FormatConfiguration.AAC;
+			format = FormatConfiguration.AAC_LC;
 		} else if (value.contains("he-aac")) {
-			format = FormatConfiguration.AAC_HE;
+			format = FormatConfiguration.HE_AAC;
 		} else if (value.startsWith("adpcm")) {
 			format = FormatConfiguration.ADPCM;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {
 			format = FormatConfiguration.ALAC;
+		} else if (value.equals("als")) {
+			format = FormatConfiguration.ALS;
 		} else if (value.equals("wave")) {
 			format = FormatConfiguration.WAV;
 		} else if (value.equals("shorten")) {
 			format = FormatConfiguration.SHORTEN;
+		} else if (value.equals("sls")) {
+			format = FormatConfiguration.SLS;
+		} else if (value.equals("acelp")) {
+			format = FormatConfiguration.ACELP;
+		} else if (value.equals("g.729") || value.equals("g.729a")) {
+			format = FormatConfiguration.G729;
+		} else if (value.equals("vselp")) {
+			format = FormatConfiguration.REALAUDIO_14_4;
+		} else if (value.equals("g.728")) {
+			format = FormatConfiguration.REALAUDIO_28_8;
+		} else if (value.equals("a_real/sipr") || value.equals("kevin")) {
+			format = FormatConfiguration.SIPRO;
 		} else if (
 			(
 				value.equals("dts") ||
@@ -635,11 +637,10 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WAVPACK;
 		} else if (value.contains("mlp")) {
 			format = FormatConfiguration.MLP;
-		} else if (value.contains("atrac3")) {
+		} else if (value.equals("openmg")) {
 			format = FormatConfiguration.ATRAC;
-			if (media.getCodecV() == null) {
-				media.setContainer(FormatConfiguration.ATRAC);
-			}
+		} else if (value.startsWith("atrac")) {
+			format = FormatConfiguration.ATRAC;
 		} else if (value.equals("jpeg")) {
 			format = FormatConfiguration.JPG;
 		} else if (value.equals("png")) {
@@ -665,7 +666,7 @@ public class LibMediaInfoParser {
 			}
 		// format not found so set container type based on the file extension. It will be overwritten when the correct type will be found
 		} else if (streamType == StreamType.General && media.getContainer() == null) {
-			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()));
+			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()).toLowerCase(Locale.ROOT));
 		}
 	}
 
@@ -725,20 +726,18 @@ public class LibMediaInfoParser {
 		final String avcLevel = substringAfterLast(lowerCase(value), "@l");
 		if (isNotBlank(avcLevel)) {
 			return avcLevel;
-		} else {
-			LOGGER.warn("Could not parse AvcLevel value {}." , value);
-			return null;
 		}
+		LOGGER.warn("Could not parse AvcLevel value {}." , value);
+		return null;
 	}
 
 	public static String getAvcProfile(String value) {
 		String profile = substringBefore(lowerCase(value), "@l");
 		if (isNotBlank(profile)) {
 			return profile;
-		} else {
-			LOGGER.warn("Could not parse AvcProfile value {}." , value);
-			return null;
 		}
+		LOGGER.warn("Could not parse AvcProfile value {}." , value);
+		return null;
 	}
 
 	public static int getBitrate(String value) {

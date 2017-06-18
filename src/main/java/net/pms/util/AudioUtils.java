@@ -176,7 +176,7 @@ public final class AudioUtils {
 			int reportedHeaderSize = 0;
 			int reportedDataSize = 0;
 			if (version == 3) {
-				audio.setCodecA("RealAudio 14.4");
+				audio.setCodecA(FormatConfiguration.REALAUDIO_14_4);
 				audio.getAudioProperties().setNumberOfChannels(1);
 				audio.getAudioProperties().setSampleFrequency(8000);
 				short headerSize = buffer.getShort();
@@ -248,27 +248,27 @@ public final class AudioUtils {
 				String fourCCString = new String(fourCC, StandardCharsets.US_ASCII).toLowerCase(Locale.ROOT);
 				switch (fourCCString) {
 					case "lpcJ":
-						audio.setCodecA("RealAudio 14.4");
+						audio.setCodecA(FormatConfiguration.REALAUDIO_14_4);
 						break;
 					case "28_8":
-						audio.setCodecA("RealAudio 28.8");
+						audio.setCodecA(FormatConfiguration.REALAUDIO_28_8);
 						break;
 					case "dnet":
 						audio.setCodecA(FormatConfiguration.AC3);
 						break;
 					case "sipr":
-						audio.setCodecA("Sipro");
+						audio.setCodecA(FormatConfiguration.SIPRO);
 						break;
 					case "cook":
 						audio.setCodecA(FormatConfiguration.COOK);
 					case "atrc":
 						audio.setCodecA(FormatConfiguration.ATRAC);
 					case "ralf":
-						audio.setCodecA(FormatConfiguration.REALAUDIO_LOSSLESS);
+						audio.setCodecA(FormatConfiguration.RALF);
 					case "raac":
-						audio.setCodecA(FormatConfiguration.AAC);
+						audio.setCodecA(FormatConfiguration.AAC_LC);
 					case "racp":
-						audio.setCodecA(FormatConfiguration.AAC_HE);
+						audio.setCodecA(FormatConfiguration.HE_AAC);
 					default:
 						LOGGER.debug("Unknown RealMedia codec FourCC \"{}\" - parsing failed", fourCCString);
 						return false;
@@ -348,6 +348,7 @@ public final class AudioUtils {
 			}
 		}
 		media.setThumbready(true);
+		media.setMediaparsed(true);
 
 		return true;
 	}

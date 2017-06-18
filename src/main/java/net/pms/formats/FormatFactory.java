@@ -33,9 +33,7 @@ import org.slf4j.LoggerFactory;
  * This class matches and instantiates formats.
  */
 public final class FormatFactory {
-	/**
-	 * Logger used for all logging.
-	 */
+	/** The {@link Logger} used for all logging for this class. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatFactory.class);
 
 	/**
@@ -61,6 +59,7 @@ public final class FormatFactory {
 		new IDX(),
 		new IFF(),
 		new ISO(),
+		new ISOVOB(),
 		new JPG(),
 		new M4A(),
 		new MicroDVD(),
@@ -72,6 +71,7 @@ public final class FormatFactory {
 		new MPC(),
 		new MPG(),
 		new MPGAudio(),
+		new OGA(),
 		new OGG(),
 		new PCX(),
 		new PICT(),
@@ -138,7 +138,7 @@ public final class FormatFactory {
 		try {
 			for (Format format : formats) {
 				if (format.match(filename)) {
-					LOGGER.trace("Matched format " + format + " to \"" + filename + "\"");
+					LOGGER.trace("Matched format {} to \"{}\"", format, filename);
 
 					// Return a fresh instance
 					return format.duplicate();
@@ -148,7 +148,24 @@ public final class FormatFactory {
 			formatsLock.readLock().unlock();
 		}
 
-		LOGGER.trace("Could not match any format to \"" + filename + "\"");
+		LOGGER.trace("Could not match any format to \"{}\"", filename);
+		return null;
+	}
+
+	public static Format getFormat(Class<? extends Format> clazz) {
+		if (clazz == null) {
+			return null;
+		}
+		formatsLock.readLock().lock();
+		try {
+			for (Format format : formats) {
+				if (format.getClass().equals(clazz)) {
+					return format.duplicate();
+				}
+			}
+		} finally {
+			formatsLock.readLock().unlock();
+		}
 		return null;
 	}
 

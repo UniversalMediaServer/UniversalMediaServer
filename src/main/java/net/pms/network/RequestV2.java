@@ -483,10 +483,25 @@ public class RequestV2 extends HTTPResource {
 
 								output.headers().set(subtitleHttpHeader, subtitleUrl);
 							} else {
-								LOGGER.trace("Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader returned either null or blank");
+								LOGGER.trace(
+									"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
+									subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
+								);
 							}
-						} else {
-							LOGGER.trace("Did not send subtitle headers because dlna.getMedia returned null or configuration.isDisableSubtitles was true");
+						} else if (LOGGER.isTraceEnabled()) {
+							ArrayList<String> reasons = new ArrayList<>();
+							if (dlna.getMedia() == null) {
+								reasons.add("dlna.getMedia() is null");
+							}
+							if (configuration.isDisableSubtitles()) {
+								reasons.add("configuration.isDisabledSubtitles() is true");
+							}
+							if (dlna.getMediaSubtitle() == null) {
+								reasons.add("dlna.getMediaSubtitle() is null");
+							} else if (!dlna.getMediaSubtitle().isStreamable()) {
+								reasons.add("dlna.getMediaSubtitle().isStreamable() is false");
+							}
+							LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
 						}
 					}
 
@@ -987,7 +1002,6 @@ public class RequestV2 extends HTTPResource {
 					@Override
 					public void operationComplete(ChannelFuture future) {
 						try {
-							PMS.get().getRegistry().reenableGoToSleep();
 							inputStream.close();
 						} catch (IOException e) {
 							LOGGER.error("Caught exception", e);
@@ -1002,7 +1016,6 @@ public class RequestV2 extends HTTPResource {
 			} else {
 				// HEAD method is being used, so simply clean up after the response was sent.
 				try {
-					PMS.get().getRegistry().reenableGoToSleep();
 					inputStream.close();
 				} catch (IOException ioe) {
 					LOGGER.error("Caught exception", ioe);
