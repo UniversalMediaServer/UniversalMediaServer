@@ -470,15 +470,16 @@ public class LibMediaInfoParser {
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
 		} else if (
-			value.equals("isom") ||
-			value.startsWith("mp4") ||
-			value.equals("20") ||
-			value.equals("m4v") ||
-			value.startsWith("mpeg-4") ||
-			value.contains("m4a") ||
-			value.contains("xvid")
-		) {
-			format = FormatConfiguration.MP4;
+				value.contains("isom") ||
+				value.startsWith("mp4") ||
+				value.equals("20") ||
+				value.equals("isml") ||
+				value.startsWith("m4a") ||
+				value.startsWith("m4v") ||
+				value.equals("mpeg-4 visual") ||
+				value.equals("xvid")
+			) {
+				format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
 			format = FormatConfiguration.MPEGPS;
 		} else if (value.contains("mpeg-ts") || value.equals("bdav")) {
@@ -495,12 +496,31 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.RM;
 		} else if (value.startsWith("theora")) {
 			format = FormatConfiguration.THEORA;
-		} else if (value.contains("windows media") || value.equals("wmv1") || value.equals("wmv2") || value.equals("wmv7") || value.equals("wmv8")) {
-			format = FormatConfiguration.WMV;
-		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
-			format = FormatConfiguration.MJPEG;
-		} else if (value.startsWith("h263") || value.startsWith("s263") || value.startsWith("u263")) {
-			format = FormatConfiguration.H263;
+		} else if (
+				value.startsWith("windows media") ||
+				value.equals("wmv1") ||
+				value.equals("wmv2")
+			) {
+				format = FormatConfiguration.WMV;
+		} else if (streamType == StreamType.Video &&
+				(
+					value.contains("mjpg") ||
+					value.startsWith("mjpeg") ||
+					value.equals("mjpa") ||
+					value.equals("mjpb") ||
+					value.equals("jpeg") ||
+					value.equals("jpeg2000")
+				)
+			) {
+				format = FormatConfiguration.MJPEG;
+		} else if (value.equals("h261")) {
+			format = FormatConfiguration.H261;
+		} else if (
+				value.equals("h263") ||
+				value.equals("s263") ||
+				value.equals("u263")
+			) {
+				format = FormatConfiguration.H263;
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
@@ -519,14 +539,30 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.contains("div") || value.contains("dx")) {
-			format = FormatConfiguration.DIVX;
+		} else if (
+				value.startsWith("div") ||
+				value.equals("dx50") ||
+				value.equals("dvx1")
+			) {
+				format = FormatConfiguration.DIVX;
+		} else if (value.startsWith("indeo")) { // Intel Indeo Video: IV31, IV32, IV41 and IV50
+			format = FormatConfiguration.INDEO;
+		} else if (streamType == StreamType.Video && value.equals("yuv")) {
+			format = FormatConfiguration.YUV;
+		} else if (streamType == StreamType.Video && (value.equals("rgb") || value.equals("rgba"))) {
+			format = FormatConfiguration.RGB;
 		} else if (value.matches("(?i)(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(sdcc)|(sl25)|(sl50)|(sldv)")) {
 			format = FormatConfiguration.DV;
 		} else if (value.contains("mpeg video")) {
 			format = FormatConfiguration.MPEG2;
-		} else if (value.equals("vc-1") || value.equals("vc1") || value.equals("wvc1") || value.equals("wmv3") || value.equals("wmv9") || value.equals("wmva")) {
-			format = FormatConfiguration.VC1;
+		} else if (
+				value.equals("vc-1") ||
+				value.equals("wvc1") ||
+				value.equals("wmv3") ||
+				value.equals("wmvp") ||
+				value.equals("wmva")
+			) {
+				format = FormatConfiguration.VC1;
 		} else if (value.startsWith("version 1")) {
 			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
 				format = FormatConfiguration.MPEG1;
@@ -556,8 +592,12 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.ADTS;
 		} else if (value.startsWith("amr")) {
 			format = FormatConfiguration.AMR;
-		} else if (value.equals("ac-3") || value.equals("a_ac3") || value.equals("2000")) {
-			format = FormatConfiguration.AC3;
+		} else if (
+				value.equals("ac-3") ||
+				value.equals("a_ac3") ||
+				value.equals("2000")
+			) {
+				format = FormatConfiguration.AC3;
 		} else if (value.startsWith("cook")) {
 			format = FormatConfiguration.COOK;
 		} else if (value.startsWith("qdesign")) {

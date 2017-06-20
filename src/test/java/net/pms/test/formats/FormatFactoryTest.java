@@ -148,6 +148,8 @@ public class FormatFactoryTest {
 		testSingleFormat("test.m2t", "MPG", Format.VIDEO);
 		testSingleFormat("test.m2ts", "MPG", Format.VIDEO);
 		testSingleFormat("test.m4v", "MPG", Format.VIDEO);
+		testSingleFormat("test.mj2", "MPG", Format.VIDEO);
+		testSingleFormat("test.mjp2", "MPG", Format.VIDEO);
 		testSingleFormat("test.mod", "MPG", Format.VIDEO);
 		testSingleFormat("test.mp4", "MPG", Format.VIDEO);
 		testSingleFormat("test.mpe", "MPG", Format.VIDEO);
