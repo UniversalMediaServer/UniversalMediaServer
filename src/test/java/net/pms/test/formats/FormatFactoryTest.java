@@ -128,6 +128,7 @@ public class FormatFactoryTest {
 		testSingleFormat("test.dv", "MKV", Format.VIDEO);
 		testSingleFormat("test.evo", "MKV", Format.VIDEO);
 		testSingleFormat("test.flv", "MKV", Format.VIDEO);
+		testSingleFormat("test.h264", "MPG", Format.VIDEO);
 		testSingleFormat("test.hdmov", "MKV", Format.VIDEO);
 		testSingleFormat("test.hdm", "MKV", Format.VIDEO);
 		testSingleFormat("test.m2v", "MKV", Format.VIDEO);
