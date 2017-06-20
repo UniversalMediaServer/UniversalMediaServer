@@ -2885,12 +2885,16 @@ public class DLNAMediaInfo implements Cloneable {
 	 * Used by FFmpeg for 3D video format naming
 	 */
 	public enum Mode3D {
+		ML,
+		MR,
 		SBSL,
 		SBSR,
-		HSBSL,
-		OUL,
-		OUR,
-		HOUL,
+		SBS2L,
+		SBS2R,
+		ABL,
+		ABR,
+		AB2L,
+		AB2R,
 		ARCG,
 		ARCH,
 		ARCC,
@@ -2916,11 +2920,11 @@ public class DLNAMediaInfo implements Cloneable {
 			case "oulf":
 			case "top-bottom (left eye first)":
 				isAnaglyph = false;
-				return Mode3D.OUL;
+				return Mode3D.ABL;
 			case "ourf":
 			case "top-bottom (right eye first)":
 				isAnaglyph = false;
-				return Mode3D.OUR;
+				return Mode3D.ABR;
 			case "sbslf":
 			case "side by side (left eye first)":
 				isAnaglyph = false;
@@ -2931,10 +2935,10 @@ public class DLNAMediaInfo implements Cloneable {
 				return Mode3D.SBSR;
 			case "half top-bottom (left eye first)":
 				isAnaglyph = false;
-				return Mode3D.HOUL;
+				return Mode3D.AB2L;
 			case "half side by side (left eye first)":
 				isAnaglyph = false;
-				return Mode3D.HSBSL;
+				return Mode3D.SBS2L;
 			case "arcg":
 				return Mode3D.ARCG;
 			case "arch":
