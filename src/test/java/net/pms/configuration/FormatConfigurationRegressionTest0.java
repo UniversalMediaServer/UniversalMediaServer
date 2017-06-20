@@ -721,4 +721,41 @@ public class FormatConfigurationRegressionTest0 {
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "wma10"+ "'", str0.equals("wma10"));
 
   }
+
+  @Test
+  public void testH261() throws Throwable {
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.H261;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "h261"+ "'", str0.equals("h261"));
+
+  }
+
+  @Test
+  public void testINDEO() throws Throwable {
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.INDEO;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "indeo"+ "'", str0.equals("indeo"));
+
+  }
+
+  @Test
+  public void testRGB() throws Throwable {
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.RGB;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "rgb"+ "'", str0.equals("rgb"));
+
+  }
+
+  @Test
+  public void testYUV() throws Throwable {
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.YUV;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "yuv"+ "'", str0.equals("yuv"));
+
+  }
+
 }

@@ -72,14 +72,18 @@ public class FormatConfiguration {
 	public static final String FLV = "flv";
 	public static final String G729 = "g729";
 	public static final String GIF = "gif";
+	public static final String H261 = "h261";
 	public static final String H263 = "h263";
 	public static final String H264 = "h264";
 	public static final String H265 = "h265";
 	public static final String HE_AAC = "he-aac";
 	public static final String ICNS = "icns";
 	public static final String ICO = "ico";
+	public static final String INDEO = "indeo";
 	public static final String ISO = "iso";
 	public static final String JPG = "jpg";
+	public static final String JPEG = "jpeg";
+	public static final String JPEG2000 = "jpeg2000";
 	public static final String LPCM = "lpcm";
 	public static final String M4A = "m4a";
 	public static final String MKV = "mkv";
@@ -115,6 +119,8 @@ public class FormatConfiguration {
 	public static final String RAW = "raw";
 	public static final String REALAUDIO_14_4 = "ra14.4";
 	public static final String REALAUDIO_28_8 = "ra28.8";
+	/** Used as a "video codec" when sequences of raw, uncompressed RGB or RGBA is used as a video stream in AVI, MP4 or MOV files */
+	public static final String RGB = "rgb";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
 	public static final String SIPRO = "sipro";
@@ -143,6 +149,8 @@ public class FormatConfiguration {
 	public static final String WMAPRO = "wmapro";
 	public static final String WMAVOICE = "wmavoice";
 	public static final String WMV = "wmv";
+	/** Used as a "video codec" when sequences of raw, uncompressed YUV is used as a video stream in AVI, MP4 or MOV files */
+	public static final String YUV = "yuv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
 	public static final String und = "und";
 
