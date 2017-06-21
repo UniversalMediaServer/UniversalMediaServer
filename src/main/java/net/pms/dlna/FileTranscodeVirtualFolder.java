@@ -188,8 +188,8 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 
 			// create copies of the audio/subtitle track lists as we're making (local)
 			// modifications to them
-			List<DLNAMediaAudio> audioTracks = new ArrayList<>(child.getMedia().getAudioTracksList());
-			List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>(child.getMedia().getSubtitleTracksList());
+			List<DLNAMediaAudio> audioTracks = new ArrayList<>(child.getMedia().getAudioTracks());
+			List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>(child.getMedia().getSubtitleTracks());
 
 			// assemble copies for each combination of audio, subtitle and player
 			ArrayList<DLNAResource> entries = new ArrayList<>();

@@ -348,7 +348,7 @@ public class SubtitleUtils {
 
 		if (params.sid.isEmbedded()) {
 			cmdList.add("-map");
-			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.sid)));
+			cmdList.add("0:s:" + (media.getSubtitleTracks().indexOf(params.sid)));
 		}
 
 		try {

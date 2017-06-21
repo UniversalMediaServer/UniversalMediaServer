@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -28,6 +29,7 @@ public class LibMediaInfoParser {
 
 	// Regular expression to parse a 4 digit year number from a string
 	private static final String YEAR_REGEX = ".*([\\d]{4}).*";
+	private static final Pattern intPattern = Pattern.compile("([\\+-]?\\d+)([eE][\\+-]?\\d+)?");
 
 	// Pattern to parse the year from a string
 	private static final Pattern yearPattern = Pattern.compile(YEAR_REGEX);
@@ -87,8 +89,8 @@ public class LibMediaInfoParser {
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
 				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
-				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
-				media.setTruncated(getTruncated(MI.Get(general, 0, "IsTruncated")));
+				media.setBitrate(parseBitRate(MI.Get(general, 0, "OverallBitRate")));
+				media.setTruncated(getTruncated(MI.Get(general, 0, "IsTruncated"))); //TODO: (Nad) What?
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
 					try {
@@ -128,7 +130,7 @@ public class LibMediaInfoParser {
 							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "Format")));
 							// Second attempt to detect subtitle track format (CodecID usually is more accurate)
 							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "CodecID")));
-							currentSubTrack.setId(media.getSubtitleTracksList().size());
+							currentSubTrack.setId(media.getSubtitleTracks().size());
 							addSub(currentSubTrack, media);
 						} else {
 							getFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format"), file);
@@ -198,12 +200,12 @@ public class LibMediaInfoParser {
 						}
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
 						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
-						currentAudioTrack.getAudioProperties().setBitRate(MI.Get(audio, i, "BitRate"));
-						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
-						currentAudioTrack.getAudioProperties().setBitsperSample(MI.Get(audio, i, "BitDepth"));
-						currentAudioTrack.getAudioProperties().setSampleFrequency(MI.Get(audio, i, "SamplingRate"));
-						currentAudioTrack.getAudioProperties().setAudioDelay(MI.Get(audio, i, "Video_Delay"));
-						currentAudioTrack.setRawBitRateMode(MI.Get(audio, i, "BitRate_Mode"));
+						currentAudioTrack.setBitRate(parseBitRate(MI.Get(audio, i, "BitRate"))); //TODO: (Nad) Should use converter instead
+						currentAudioTrack.setNumberOfChannels(parseNumberOfChannels(MI.Get(audio, i, "Channel(s)"))); //TODO: (Nad) Should use converter instead
+						currentAudioTrack.getAudioProperties().setBitsperSample(MI.Get(audio, i, "BitDepth")); //TODO: (Nad) Should use converter instead
+						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate"))); //TODO: (Nad) Should use converter instead
+						currentAudioTrack.getAudioProperties().setAudioDelay(MI.Get(audio, i, "Video_Delay")); //TODO: (Nad) Should use converter instead
+						currentAudioTrack.setRawBitRateMode(MI.Get(audio, i, "BitRate_Mode"));//TODO: (Nad) Should use ??
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
 
 						if (
@@ -235,7 +237,7 @@ public class LibMediaInfoParser {
 							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 								currentAudioTrack.setId(getSpecificID(value));
 							} else {
-								currentAudioTrack.setId(media.getAudioTracksList().size());
+								currentAudioTrack.setId(media.getAudioTracks().size());
 							}
 						}
 
@@ -298,7 +300,7 @@ public class LibMediaInfoParser {
 							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 								currentSubTrack.setId(getSpecificID(value));
 							} else {
-								currentSubTrack.setId(media.getSubtitleTracksList().size());
+								currentSubTrack.setId(media.getSubtitleTracks().size());
 							}
 						}
 
@@ -400,7 +402,7 @@ public class LibMediaInfoParser {
 			currentAudioTrack.setCodecA(DLNAMediaLang.UND);
 		}
 
-		media.getAudioTracksList().add(currentAudioTrack);
+		media.getAudioTracks().add(currentAudioTrack);
 	}
 
 	public static void addSub(DLNAMediaSubtitle currentSubTrack, DLNAMediaInfo media) {
@@ -412,7 +414,7 @@ public class LibMediaInfoParser {
 			currentSubTrack.setLang(DLNAMediaLang.UND);
 		}
 
-		media.getSubtitleTracksList().add(currentSubTrack);
+		media.getSubtitleTracks().add(currentSubTrack);
 	}
 
 	@Deprecated
@@ -578,7 +580,17 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.HE_AAC;
 		} else if (value.startsWith("adpcm")) {
 			format = FormatConfiguration.ADPCM;
-		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS) || !audio.getCodecA().equals(FormatConfiguration.DTSHD)))) {
+		} else if (
+			value.equals("pcm") ||
+			(
+				value.equals("1") &&
+				(
+					audio.getCodecA() == null ||
+					!audio.getCodecA().equals(FormatConfiguration.DTS) ||
+					!audio.getCodecA().equals(FormatConfiguration.DTSHD)
+				)
+			)
+		) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {
 			format = FormatConfiguration.ALAC;
@@ -702,6 +714,38 @@ public class LibMediaInfoParser {
 		}
 	}
 
+	public static int[] parseNumberOfChannels(String value) {
+		if (isBlank(value)) {
+			LOGGER.debug("MediaInfo returned a blank value for number of audio channels, falling back to default");
+			return new int[0];
+		}
+
+		// examples of libmediainfo  (mediainfo --Full --Language=raw file):
+		// Channel(s) : 2
+		// Channel(s) : 6
+		// Channel(s) : 2 channels / 1 channel / 1 channel
+
+		ArrayList<Integer> channels = new ArrayList<>();
+		Matcher intMatcher = intPattern.matcher(value);
+		while (intMatcher.find()) {
+			String matchResult = intMatcher.group();
+			try {
+				channels.add(0, Integer.valueOf(matchResult));
+			} catch (NumberFormatException ex) {
+				LOGGER.warn("NumberFormatException while parsing substring {} from value {}", matchResult, value);
+			}
+		}
+
+		if (channels.isEmpty() || channels.get(0).intValue() == 0) {
+			LOGGER.warn("Can't parse the number of channels from \"{}\"", value);
+		}
+		int[] result = new int[channels.size()];
+		for (int i = 0; i < channels.size(); i++) {
+			result[i] = channels.get(i).intValue();
+		}
+		return result;
+	}
+
 	/**
 	 * @param value {@code Format_Settings_RefFrames/String} value to parse.
 	 * @return reference frame count or {@code -1} if could not parse.
@@ -748,29 +792,40 @@ public class LibMediaInfoParser {
 		return null;
 	}
 
-	public static String getTruncated(String value) {
+	public static String getTruncated(String value) { //TODO: (Nad) Whot?
 		if (isNotBlank(value)) {
 			return value;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
-	public static int getBitrate(String value) {
-		if (value.isEmpty()) {
-			return 0;
+	public static int parseBitRate(String value) { //TODO: (Nad) Check parser in audioproperties
+		if (isEmpty(value)) {
+			LOGGER.warn("Empty value passed in. Returning default bit rate {}", DLNAMediaAudio.BITRATE_DEFAULT);
+			return DLNAMediaAudio.BITRATE_DEFAULT;
 		}
 
-		if (value.contains("/")) {
-			value = value.substring(0, value.indexOf('/')).trim();
+		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// BitRate : 1509000
+		// BitRate : Unknown / Unknown / 1509000
+
+		int result = -1;
+		Matcher intMatcher = intPattern.matcher(value);
+		if (intMatcher.find()) {
+			String matchResult = intMatcher.group();
+			try {
+				result = Integer.parseInt(matchResult);
+			} catch (NumberFormatException ex) {
+				LOGGER.warn("Can't convert bitrate \"{}\" from \"{}\" to a valid integer", matchResult, value);
+				return DLNAMediaAudio.BITRATE_DEFAULT;
+			}
 		}
 
-		try {
-			return Integer.parseInt(value);
-		} catch (NumberFormatException e) {
-			LOGGER.trace("Could not parse bitrate \"{}\": ", value, e.getMessage());
-			return 0;
+		if (result < 1) {
+			LOGGER.warn("Invalid bitrate {}, returning default value {}", result, DLNAMediaAudio.BITRATE_DEFAULT);
+			return DLNAMediaAudio.BITRATE_DEFAULT;
 		}
+		return result;
 	}
 
 	public static int getSpecificID(String value) {
@@ -788,9 +843,9 @@ public class LibMediaInfoParser {
 	}
 
 	public static String getSampleFrequency(String value) {
-		/**
-		 * Some tracks show several values, e.g. "48000 / 48000 / 24000" for HE-AAC.
-		 * We store only the first value.
+		/*
+		 * Some tracks show several values, e.g. "48000 / 48000 / 24000" for
+		 * HE-AAC. We store the first value only.
 		 */
 		if (value.indexOf('/') > -1) {
 			value = value.substring(0, value.indexOf('/'));
@@ -840,8 +895,7 @@ public class LibMediaInfoParser {
 	 */
 	@Deprecated
 	public static String getFlavor(String value) {
-		value = value.trim();
-		return value;
+		return value.trim();
 	}
 
 	private static double getDuration(String value) {

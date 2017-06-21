@@ -240,7 +240,7 @@ public class FFMpegVideo extends Player {
 			} else if (params.sid.getType().isPicture()) {
 				if (params.sid.getId() < 100) {
 					// Embedded
-					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
+					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracks().indexOf(params.sid)).append("]overlay");
 					isSubsManualTiming = false;
 				} else {
 					// External
@@ -944,14 +944,14 @@ public class FFMpegVideo extends Player {
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Map the output streams if necessary
-		if (media.getAudioTracksList().size() > 1) {
+		if (media.getAudioTracks().size() > 1) {
 			// Set the video stream
 			cmdList.add("-map");
 			cmdList.add("0:v");
 
 			// Set the proper audio stream
 			cmdList.add("-map");
-			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
+			cmdList.add("0:a:" + (media.getAudioTracks().indexOf(params.aid)));
 		}
 
 		// Now configure the output streams

@@ -1,5 +1,5 @@
 /*
- * PS3 Media Server, for streaming any media to your PS3.
+ * PS3 Media Server, for streaming any medias to your PS3.
  * Copyright (C) 2012  I. Sokolov
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNAMediaAudio;
 
 /**
  * Class for storing and parsing from libmediainfo output audio track's properties
@@ -38,78 +39,42 @@ public class AudioProperties {
 	private static final Pattern intPattern = Pattern.compile("([\\+-]?\\d+)([eE][\\+-]?\\d+)?");
 //	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
 
-	public static final int BITRATE_DEFAULT = 8000;
-	public static final int NUMBEROFCHANNELS_DEFAULT = 2;
-	public static final int BITSPERSAMPLE_DEFAULT = 16;
-	public static final int AUDIODELAY_DEFAULT = 0;
-	public static final int SAMPLEFREQUENCY_DEFAULT = 48000;
-
-	private int bitRate;
 	private int numberOfChannels;
-	private int bitsperSample;
 	private int audioDelay;
 	private int sampleFrequency;
 
 	public int getAttribute(AudioAttribute attribute) {
 		switch (attribute) {
-			case BITRATE:
-				return getBitRate();
 			case CHANNELS_NUMBER:
 				return getNumberOfChannels();
 			case DELAY:
 				return getAudioDelay();
 			case SAMPLE_FREQUENCY:
 				return getSampleFrequency();
-			case BITS_PERSAMPLE:
-				return getBitsperSample();
 			default:
 				throw new IllegalArgumentException("Unimplemented attribute");
 		}
 	}
 
 	/**
-	 * Get bitrate for this audio track.
-	 *
-	 * @return The bitrate, or {@link #BITRATE_DEFAULT} if {@code bitRate} is
-	 *         invalid.
-	 */
-	public int getBitRate() {
-		return bitRate > 0 ? bitRate : BITRATE_DEFAULT;
-	}
-
-	/**
-	 * Set bitrate for this audio track.
-	 *
-	 * @param bitrate to set.
-	 */
-	public void setBitRate(int bitRate) {
-		this.bitRate = bitRate;
-	}
-
-	/**
-	 * Set bitrate for this audio track with libmediainfo value.
-	 *
-	 * @param mediaInfoValue libmediainfo "BitRate" value to parse.
-	 */
-	public void setBitRate(String mediaInfoValue) {
-		this.bitRate = getBitRateFromLibMediaInfo(mediaInfoValue);
-	}
-
-	/**
 	 * Get number of channels for this audio track.
 	 *
-	 * @return The number of channels, or {@link #NUMBEROFCHANNELS_DEFAULT} if {@code numberOfChannels} is
-	 *         invalid.
+	 * @return The number of channels, or {@link #NUMBEROFCHANNELS_DEFAULT} if
+	 *         {@code numberOfChannels} is invalid.
+	 * @deprecated Use {@link DLNAMediaAudio#getNumberOfChannels()} instead.
 	 */
+	@Deprecated
 	public int getNumberOfChannels() {
-		return numberOfChannels > 0 ? numberOfChannels : NUMBEROFCHANNELS_DEFAULT;
+		return numberOfChannels > 0 ? numberOfChannels : DLNAMediaAudio.NUMBEROFCHANNELS_DEFAULT;
 	}
 
 	/**
 	 * Set number of channels for this audio track.
 	 *
 	 * @param numberOfChannels number of channels to set.
+	 * @deprecated Use {@link DLNAMediaAudio#setNumberOfChannels(int)} instead.
 	 */
+	@Deprecated
 	public void setNumberOfChannels(int numberOfChannels) {
 		this.numberOfChannels = numberOfChannels;
 	}
@@ -119,7 +84,7 @@ public class AudioProperties {
 	 *
 	 * @param mediaInfoValue libmediainfo "Channel(s)" value to parse.
 	 */
-	public void setNumberOfChannels(String mediaInfoValue) {
+	public void setNumberOfChannels(String mediaInfoValue) { //TODO: (Nad) Remove
 		this.numberOfChannels = getChannelsNumberFromLibMediaInfo(mediaInfoValue);
 	}
 
@@ -312,34 +277,6 @@ public class AudioProperties {
 		if (result < 1) {
 			LOGGER.warn("Can't parse sample frequency {}. Returning default value {}.", mediaInfoValue, SAMPLEFREQUENCY_DEFAULT);
 			return SAMPLEFREQUENCY_DEFAULT;
-		}
-		return result;
-	}
-
-	public static int getBitRateFromLibMediaInfo(String mediaInfoValue) {
-		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number {}.", BITRATE_DEFAULT);
-			return BITRATE_DEFAULT;
-		}
-
-		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
-		// BitRate : 1509000
-		// BitRate : Unknown / Unknown / 1509000
-
-		int result = -1;
-		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
-		if (intMatcher.find()) {
-			String matchResult = intMatcher.group();
-			try {
-				result = Integer.parseInt(matchResult);
-			} catch (NumberFormatException ex) {
-				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
-			}
-		}
-
-		if (result < 1) {
-			LOGGER.warn("Can't parse bitrate {}. Returning default value {}.", mediaInfoValue, BITRATE_DEFAULT);
-			return BITRATE_DEFAULT;
 		}
 		return result;
 	}

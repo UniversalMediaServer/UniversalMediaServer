@@ -256,7 +256,7 @@ public class MEncoderVideo extends Player {
 					fakemedia.setHeight(720);
 					audio.setSampleFrequency("48000");
 					fakemedia.setFrameRate("23.976");
-					fakemedia.getAudioTracksList().add(audio);
+					fakemedia.getAudioTracks().add(audio);
 					String result[] = getSpecificCodecOptions(newCodecparam, fakemedia, new OutputParams(configuration), "dummy.mpg", "dummy.srt", false, true);
 
 					if (result.length > 0 && result[0].startsWith("@@")) {
@@ -1629,7 +1629,7 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if (!dtsRemux && !encodedAudioPassthrough && !pcm && !avisynth() && params.aid != null && media.getAudioTracksList().size() > 1) {
+		if (!dtsRemux && !encodedAudioPassthrough && !pcm && !avisynth() && params.aid != null && media.getAudioTracks().size() > 1) {
 			cmdList.add("-aid");
 			boolean lavf = false; // TODO Need to add support for LAVF demuxing
 			cmdList.add("" + (lavf ? params.aid.getId() + 1 : params.aid.getId()));
@@ -2287,7 +2287,7 @@ public class MEncoderVideo extends Player {
 				ffVideo.runInNewThread();
 
 				String aid = null;
-				if (media.getAudioTracksList().size() > 1 && params.aid != null) {
+				if (media.getAudioTracks().size() > 1 && params.aid != null) {
 					if (media.getContainer() != null && (media.getContainer().equals(FormatConfiguration.AVI) || media.getContainer().equals(FormatConfiguration.FLV))) {
 						// TODO confirm (MP4s, OGMs and MOVs already tested: first aid is 0; AVIs: first aid is 1)
 						// For AVIs, FLVs and MOVs MEncoder starts audio tracks numbering from 1
