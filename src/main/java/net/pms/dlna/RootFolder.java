@@ -1508,6 +1508,11 @@ public class RootFolder extends DLNAResource {
 		}
 	};
 
+	/**
+	 * Parses a file so it gets added to the Media Library along the way.
+	 *
+	 * @param file the file to parse
+	 */
 	public static final void parseFileForDatabase(File file) {
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);

@@ -228,9 +228,11 @@ public class MediaMonitor extends VirtualFolder {
 						if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
 							// Move the video to a different folder
 							boolean moved = false;
+							File newFile = null;
 
 							if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
 								LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+								newFile = new File(newDirectory + playedFile.getName());
 								moved = true;
 							} else {
 								LOGGER.debug("Moving {} failed, trying again in 3 seconds", playedFile.getName());
@@ -240,6 +242,7 @@ public class MediaMonitor extends VirtualFolder {
 
 									if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
 										LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+										newFile = new File(newDirectory + playedFile.getName());
 										moved = true;
 									} else {
 										LOGGER.info("Failed to move {}", playedFile.getName());
@@ -255,6 +258,7 @@ public class MediaMonitor extends VirtualFolder {
 							}
 
 							if (moved) {
+								RootFolder.parseFileForDatabase(newFile);
 								setFullyPlayed(newDirectory + playedFile.getName(), true);
 							}
 						} else if (StringUtils.isBlank(newDirectory)) {
