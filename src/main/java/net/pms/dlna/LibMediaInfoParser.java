@@ -17,6 +17,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.util.BitRateMode;
 import net.pms.util.FileUtil;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.codec.binary.Base64;
@@ -202,10 +203,10 @@ public class LibMediaInfoParser {
 						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
 						currentAudioTrack.setBitRate(parseBitRate(MI.Get(audio, i, "BitRate"))); //TODO: (Nad) Should use converter instead
 						currentAudioTrack.setNumberOfChannels(parseNumberOfChannels(MI.Get(audio, i, "Channel(s)"))); //TODO: (Nad) Should use converter instead
-						currentAudioTrack.getAudioProperties().setBitsperSample(MI.Get(audio, i, "BitDepth")); //TODO: (Nad) Should use converter instead
-						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate"))); //TODO: (Nad) Should use converter instead
-						currentAudioTrack.getAudioProperties().setAudioDelay(MI.Get(audio, i, "Video_Delay")); //TODO: (Nad) Should use converter instead
-						currentAudioTrack.setRawBitRateMode(MI.Get(audio, i, "BitRate_Mode"));//TODO: (Nad) Should use ??
+						currentAudioTrack.setBitsPerSample(parseBitsPerSample(MI.Get(audio, i, "BitDepth")));
+						currentAudioTrack.setSampleRates(parseSampleRate(MI.Get(audio, i, "SamplingRate")));
+						currentAudioTrack.setDelay(parseDelay(MI.Get(audio, i, "Video_Delay"))); //TODO: (Nad) Should use converter instead
+						currentAudioTrack.setBitRateModes(parseBitRateModes(MI.Get(audio, i, "BitRate_Mode")));
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
 
 						if (
@@ -716,7 +717,7 @@ public class LibMediaInfoParser {
 
 	public static int[] parseNumberOfChannels(String value) {
 		if (isBlank(value)) {
-			LOGGER.debug("MediaInfo returned a blank value for number of audio channels, falling back to default");
+			LOGGER.debug("MediaInfo returned a blank value for the number of audio channels, falling back to default");
 			return new int[0];
 		}
 
@@ -742,6 +743,38 @@ public class LibMediaInfoParser {
 		int[] result = new int[channels.size()];
 		for (int i = 0; i < channels.size(); i++) {
 			result[i] = channels.get(i).intValue();
+		}
+		return result;
+	}
+
+	public static int[] parseBitsPerSample(String value) {
+		if (isBlank(value)) {
+			LOGGER.debug("MediaInfo returned a blank bits per sample value, falling back to default");
+			return new int[0];
+		}
+
+		// examples of libmediainfo  (mediainfo --Full --Language=raw file):
+		// Bit depth : 16
+		// Bit depth : 24
+		// Bit depth : / 24 / 24
+
+		ArrayList<Integer> bitsPerSample = new ArrayList<>();
+		Matcher intMatcher = intPattern.matcher(value);
+		while (intMatcher.find()) {
+			String matchResult = intMatcher.group();
+			try {
+				bitsPerSample.add(0, Integer.valueOf(matchResult));
+			} catch (NumberFormatException ex) {
+				LOGGER.warn("NumberFormatException while parsing substring {} from value {}", matchResult, value);
+			}
+		}
+
+		if (bitsPerSample.isEmpty() || bitsPerSample.get(0).intValue() == 0) {
+			LOGGER.warn("Can't parse bits per sample from \"{}\"", value);
+		}
+		int[] result = new int[bitsPerSample.size()];
+		for (int i = 0; i < bitsPerSample.size(); i++) {
+			result[i] = bitsPerSample.get(i).intValue();
 		}
 		return result;
 	}
@@ -842,21 +875,84 @@ public class LibMediaInfoParser {
 		return id;
 	}
 
-	public static String getSampleFrequency(String value) {
-		/*
-		 * Some tracks show several values, e.g. "48000 / 48000 / 24000" for
-		 * HE-AAC. We store the first value only.
-		 */
-		if (value.indexOf('/') > -1) {
-			value = value.substring(0, value.indexOf('/'));
+	public static int[] parseSampleRate(String value) {
+		if (isBlank(value)) {
+			LOGGER.debug("MediaInfo returned a blank sample rate value, falling back to default");
+			return new int[0];
 		}
 
-		if (value.contains("khz")) {
-			value = value.substring(0, value.indexOf("khz"));
+		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// SamplingRate : 48000
+		// SamplingRate : 44100 / 22050
+		// SamplingRate : 48000 / 48000 / 24000
+
+		ArrayList<Integer> rates = new ArrayList<>();
+		Matcher intMatcher = intPattern.matcher(value);
+		while (intMatcher.find()) {
+			String matchResult = intMatcher.group();
+			try {
+				rates.add(0, Integer.valueOf(matchResult));
+			} catch (NumberFormatException ex) {
+				LOGGER.warn("NumberFormatException while parsing substring {} from value {}", matchResult, value);
+			}
 		}
 
-		value = value.trim();
-		return value;
+		if (rates.isEmpty() || rates.get(0).intValue() == 0) {
+			LOGGER.warn("Can't parse the sample rate from \"{}\"", value);
+		}
+		int[] result = new int[rates.size()];
+		for (int i = 0; i < rates.size(); i++) {
+			result[i] = rates.get(i).intValue();
+		}
+		return result;
+	}
+
+	public static int parseDelay(String value) {
+		if (isBlank(value)) {
+			LOGGER.debug("MediaInfo returned a blank delay value, falling back to default");
+			return 0;
+		}
+
+		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// Video_Delay : -408
+
+		Matcher intMatcher = intPattern.matcher(value);
+		if (intMatcher.find()) {
+			String matchResult = intMatcher.group();
+			try {
+				return Integer.parseInt(matchResult);
+			} catch (NumberFormatException ex) {
+				LOGGER.warn("NumberFormatException while parsing substring {} from value {}", matchResult, value);
+			}
+		}
+		return DLNAMediaAudio.AUDIODELAY_DEFAULT;
+	}
+
+	public static BitRateMode[] parseBitRateModes(String value) {
+		if (isBlank(value)) {
+			LOGGER.debug("MediaInfo returned a blank bit rate mode value, falling back to default");
+			return new BitRateMode[0];
+		}
+
+		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// Bit rate mode : Variable / Variable / Constant
+		// Bit rate mode : Variable
+
+		ArrayList<BitRateMode> bitRateModes = new ArrayList<>();
+		String[] values = value.split("/");
+		for (String singleValue : values) {
+			BitRateMode bitRateMode = BitRateMode.typeOf(singleValue);
+			if (bitRateMode != null) {
+				bitRateModes.add(0, bitRateMode);
+			} else if (isNotBlank(singleValue)) {
+				LOGGER.warn("Unable to parse bitrate mode from \"{}\"", singleValue);
+			}
+		}
+
+		if (bitRateModes.isEmpty()) {
+			LOGGER.warn("Unable to parse bitrate modes from \"{}\"", value);
+		}
+		return bitRateModes.toArray(new BitRateMode[bitRateModes.size()]);
 	}
 
 	public static String getFPSValue(String value) {

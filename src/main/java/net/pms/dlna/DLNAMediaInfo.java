@@ -766,15 +766,14 @@ public class DLNAMediaInfo implements Cloneable {
 		return pw;
 	}
 
-	private String getFfmpegPath() {
+	private static String getFfmpegPath() {
 		String value = configuration.getFfmpegPath();
 
 		if (value == null) {
 			LOGGER.info("No FFmpeg - unable to thumbnail");
 			throw new RuntimeException("No FFmpeg - unable to thumbnail");
-		} else {
-			return value;
 		}
+		return value;
 	}
 
 	@Deprecated
@@ -835,22 +834,22 @@ public class DLNAMediaInfo implements Cloneable {
 							int rate = ah.getSampleRateAsNumber();
 
 							if (ah.getEncodingType() != null && ah.getEncodingType().toLowerCase().contains("flac 24")) {
-								audio.setBitsperSample(24);
+								audio.setBitsPerSample(24);
 							}
 
-							audio.setSampleFrequency("" + rate);
+							audio.setSampleRate(rate);
 							durationSec = (double) length;
 							bitrate = (int) ah.getBitRateAsNumber();
 
-							audio.getAudioProperties().setNumberOfChannels(2); // set default value of channels to 2
+							audio.setNumberOfChannels(2); // set default value of channels to 2
 							String channels = ah.getChannels().toLowerCase(Locale.ROOT);
 							if (StringUtils.isNotBlank(channels)) {
 								if (channels.equals("1") || channels.contains("mono")) { // parse value "1" or "Mono"
-									audio.getAudioProperties().setNumberOfChannels(1);
+									audio.setNumberOfChannels(1);
 								} else if (!(channels.equals("2") || channels.equals("0") || channels.contains("stereo"))) {
 									// No need to parse stereo as it's set as default
 									try {
-										audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(channels));
+										audio.setNumberOfChannels(Integer.parseInt(channels));
 									} catch (IllegalArgumentException e) {
 										LOGGER.debug("Could not parse number of audio channels from \"{}\"", channels);
 									}
@@ -1229,25 +1228,29 @@ public class DLNAMediaInfo implements Cloneable {
 							if (token.startsWith("Stream")) {
 								audio.setCodecA(token.substring(token.indexOf("Audio: ") + 7));
 							} else if (token.endsWith("Hz")) {
-								audio.setSampleFrequency(token.substring(0, token.indexOf("Hz")).trim());
+								try {
+									audio.setSampleRate(Integer.parseInt(token.substring(0, token.indexOf("Hz")).trim()));
+								} catch (NumberFormatException e) {
+									LOGGER.warn("Could not parse sample rate \"{}\"", token.substring(0, token.indexOf("Hz")).trim());
+								}
 							} else if (token.equals("mono")) {
-								audio.getAudioProperties().setNumberOfChannels(1);
+								audio.setNumberOfChannels(1);
 							} else if (token.equals("stereo")) {
-								audio.getAudioProperties().setNumberOfChannels(2);
+								audio.setNumberOfChannels(2);
 							} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels")) {
-								audio.getAudioProperties().setNumberOfChannels(6);
+								audio.setNumberOfChannels(6);
 							} else if (token.equals("5 channels")) {
-								audio.getAudioProperties().setNumberOfChannels(5);
+								audio.setNumberOfChannels(5);
 							} else if (token.equals("4 channels")) {
-								audio.getAudioProperties().setNumberOfChannels(4);
+								audio.setNumberOfChannels(4);
 							} else if (token.equals("2 channels")) {
-								audio.getAudioProperties().setNumberOfChannels(2);
+								audio.setNumberOfChannels(2);
 							} else if (token.equals("s32")) {
-								audio.setBitsperSample(32);
+								audio.setBitsPerSample(32);
 							} else if (token.equals("s24")) {
-								audio.setBitsperSample(24);
+								audio.setBitsPerSample(24);
 							} else if (token.equals("s16")) {
-								audio.setBitsperSample(16);
+								audio.setBitsPerSample(16);
 							}
 						}
 						int FFmpegMetaDataNr = FFmpegMetaData.nextIndex();
@@ -1648,7 +1651,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		}
 
-		if (getFirstAudioTrack() == null || !(type == Format.AUDIO && getFirstAudioTrack().getBitsperSample() == 24 && getFirstAudioTrack().getSampleRate() > 48000)) {
+		if (getFirstAudioTrack() == null || !(type == Format.AUDIO && getFirstAudioTrack().getBitsPerSample() == 24 && getFirstAudioTrack().getSampleRate() > 48000)) {
 			secondaryFormatValid = false;
 		}
 
@@ -2111,7 +2114,7 @@ public class DLNAMediaInfo implements Cloneable {
 		DLNAMediaInfo mediaCloned = (DLNAMediaInfo) super.clone();
 		mediaCloned.setAudioTracks(new ArrayList<DLNAMediaAudio>());
 		for (DLNAMediaAudio audio : audioTracks) {
-			mediaCloned.getAudioTracks().add((DLNAMediaAudio) audio.clone());
+			mediaCloned.getAudioTracks().add(audio.clone());
 		}
 
 		mediaCloned.setSubtitleTracks(new ArrayList<DLNAMediaSubtitle>());

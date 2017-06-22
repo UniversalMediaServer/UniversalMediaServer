@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNAMediaAudio;
 
 public class AudioPropertiesTest {
 	private AudioProperties properties;
@@ -38,11 +39,9 @@ public class AudioPropertiesTest {
 
 	@Test
 	public void testDefaultValues() {
-		assertThat(properties.getBitRate()).isEqualTo(AudioProperties.BITRATE_DEFAULT);
-		assertThat(properties.getNumberOfChannels()).isEqualTo(AudioProperties.NUMBEROFCHANNELS_DEFAULT);
-		assertThat(properties.getAudioDelay()).isEqualTo(AudioProperties.AUDIODELAY_DEFAULT);
-		assertThat(properties.getSampleFrequency()).isEqualTo(AudioProperties.SAMPLEFREQUENCY_DEFAULT);
-		assertThat(properties.getBitsperSample()).isEqualTo(AudioProperties.BITSPERSAMPLE_DEFAULT);
+		assertThat(properties.getNumberOfChannels()).isEqualTo(DLNAMediaAudio.NUMBEROFCHANNELS_DEFAULT);
+		assertThat(properties.getAudioDelay()).isEqualTo(DLNAMediaAudio.AUDIODELAY_DEFAULT);
+		assertThat(properties.getSampleFrequency()).isEqualTo(DLNAMediaAudio.SAMPLERATE_DEFAULT);
 	}
 
 	@Test
@@ -50,18 +49,6 @@ public class AudioPropertiesTest {
 		for (AudioAttribute attribute : AudioAttribute.values()) {
 			properties.getAttribute(attribute);
 		}
-	}
-
-	@Test
-	public void testSetBitRate() {
-		properties.setBitRate(5000);
-		assertThat(properties.getBitRate()).isEqualTo(5000);
-		properties.setBitRate("unknown / unknown / 1509000");
-		assertThat(properties.getBitRate()).isEqualTo(1509000);
-		properties.setBitRate("0");
-		assertThat(properties.getBitRate()).isEqualTo(AudioProperties.BITRATE_DEFAULT);
-		properties.setBitRate("-3");
-		assertThat(properties.getBitRate()).isEqualTo(AudioProperties.BITRATE_DEFAULT);
 	}
 
 	@Test
@@ -96,18 +83,6 @@ public class AudioPropertiesTest {
 		assertThat(properties.getSampleFrequency()).isEqualTo(AudioProperties.SAMPLEFREQUENCY_DEFAULT);
 		properties.setSampleFrequency("-3");
 		assertThat(properties.getSampleFrequency()).isEqualTo(AudioProperties.SAMPLEFREQUENCY_DEFAULT);
-	}
-
-	@Test
-	public void testSetBitsperSample() {
-		properties.setBitsperSample(24);
-		assertThat(properties.getBitsperSample()).isEqualTo(24);
-		properties.setBitsperSample("24 / 16");
-		assertThat(properties.getBitsperSample()).isEqualTo(24);
-		properties.setBitsperSample("0");
-		assertThat(properties.getBitsperSample()).isEqualTo(AudioProperties.BITSPERSAMPLE_DEFAULT);
-		properties.setBitsperSample("-3");
-		assertThat(properties.getBitsperSample()).isEqualTo(AudioProperties.BITSPERSAMPLE_DEFAULT);
 	}
 
 	@Test

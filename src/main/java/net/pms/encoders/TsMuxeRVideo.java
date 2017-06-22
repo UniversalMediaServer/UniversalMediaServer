@@ -174,7 +174,7 @@ public class TsMuxeRVideo extends Player {
 
 			if (
 				filename.toLowerCase().endsWith(".flac") &&
-				media.getFirstAudioTrack().getBitsperSample() >= 24 &&
+				media.getFirstAudioTrack().getBitsPerSample() >= 24 &&
 				media.getFirstAudioTrack().getSampleRate() % 48000 == 0
 			) {
 				ffAudioPipe = new PipeIPCProcess[1];
@@ -199,7 +199,7 @@ public class TsMuxeRVideo extends Player {
 				String depth = "pcm_s16le";
 				String rate = "48000";
 
-				if (media.getFirstAudioTrack().getBitsperSample() >= 24) {
+				if (media.getFirstAudioTrack().getBitsPerSample() >= 24) {
 					depth = "pcm_s24le";
 				}
 
