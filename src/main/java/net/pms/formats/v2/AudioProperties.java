@@ -116,7 +116,7 @@ public class AudioProperties implements Cloneable {
 	 * Get sample frequency for this audio track.
 	 *
 	 * @param returnDefault Whether to return the default value if not known.
-	 * @return The sample frequency in HZ.
+	 * @return The sample frequency in Hz.
 	 * @deprecated Use {@link DLNAMediaAudio#isSampleRateKnown()} instead.
 	 */
 	@Deprecated

@@ -8,18 +8,18 @@ import java.util.Locale;
  */
 public enum BitRateMode {
 
-	/** Constant bit rate mode*/
-	CBR,
+	/** Constant bit rate mode (CBR) */
+	CONSTANT,
 
-	/** Variable bit rate mode */
-	VBR;
+	/** Variable bit rate mode (VBR) */
+	VARIABLE;
 
 	@Override
 	public String toString() {
 		switch (this) {
-			case CBR:
+			case CONSTANT:
 				return "Constant";
-			case VBR:
+			case VARIABLE:
 				return "Variable";
 			default:
 				return super.toString();
@@ -41,10 +41,10 @@ public enum BitRateMode {
 		switch (value) {
 			case "CBR":
 			case "CONSTANT":
-				return CBR;
+				return CONSTANT;
 			case "VBR":
 			case "VARIABLE":
-				return VBR;
+				return VARIABLE;
 			default:
 				return null;
 		}

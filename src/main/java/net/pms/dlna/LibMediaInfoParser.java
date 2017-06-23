@@ -17,6 +17,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.util.BitRate;
 import net.pms.util.BitRateMode;
 import net.pms.util.FileUtil;
 import net.pms.util.UnknownFormatException;
@@ -90,7 +91,7 @@ public class LibMediaInfoParser {
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
 				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
-				media.setBitrate(parseBitRate(MI.Get(general, 0, "OverallBitRate")));
+				media.setBitRates(parseBitRate(MI.Get(general, 0, "OverallBitRate"), MI.Get(general, 0, "OverallBitRate_Mode"), false));
 				media.setTruncated(getTruncated(MI.Get(general, 0, "IsTruncated"))); //TODO: (Nad) What?
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
@@ -201,12 +202,11 @@ public class LibMediaInfoParser {
 						}
 						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
 						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
-						currentAudioTrack.setBitRate(parseBitRate(MI.Get(audio, i, "BitRate"))); //TODO: (Nad) Should use converter instead
+						currentAudioTrack.setBitRates(parseBitRate(MI.Get(audio, i, "BitRate"), MI.Get(audio, i, "BitRate_Mode"), true)); //TODO: (Nad) Should use converter instead
 						currentAudioTrack.setNumberOfChannels(parseNumberOfChannels(MI.Get(audio, i, "Channel(s)"))); //TODO: (Nad) Should use converter instead
 						currentAudioTrack.setBitsPerSample(parseBitsPerSample(MI.Get(audio, i, "BitDepth")));
 						currentAudioTrack.setSampleRates(parseSampleRate(MI.Get(audio, i, "SamplingRate")));
 						currentAudioTrack.setDelay(parseDelay(MI.Get(audio, i, "Video_Delay"))); //TODO: (Nad) Should use converter instead
-						currentAudioTrack.setBitRateModes(parseBitRateModes(MI.Get(audio, i, "BitRate_Mode")));
 						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
 
 						if (
@@ -721,7 +721,7 @@ public class LibMediaInfoParser {
 			return new int[0];
 		}
 
-		// examples of libmediainfo  (mediainfo --Full --Language=raw file):
+		// Examples of libmediainfo  (mediainfo --Full --Language=raw file):
 		// Channel(s) : 2
 		// Channel(s) : 6
 		// Channel(s) : 2 channels / 1 channel / 1 channel
@@ -753,7 +753,7 @@ public class LibMediaInfoParser {
 			return new int[0];
 		}
 
-		// examples of libmediainfo  (mediainfo --Full --Language=raw file):
+		// Examples of libmediainfo  (mediainfo --Full --Language=raw file):
 		// Bit depth : 16
 		// Bit depth : 24
 		// Bit depth : / 24 / 24
@@ -832,33 +832,40 @@ public class LibMediaInfoParser {
 		return null;
 	}
 
-	public static int parseBitRate(String value) { //TODO: (Nad) Check parser in audioproperties
-		if (isEmpty(value)) {
-			LOGGER.warn("Empty value passed in. Returning default bit rate {}", DLNAMediaAudio.BITRATE_DEFAULT);
-			return DLNAMediaAudio.BITRATE_DEFAULT;
+	public static BitRate[] parseBitRate(String bitRateString, String modeString, boolean isAudioBitRate) { //TODO: (Nad) Check parser in audioproperties
+		if (isBlank(bitRateString) && isBlank(modeString)) {
+			return new BitRate[] {null};
 		}
 
-		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// Examples of libmediainfo output (mediainfo --Full --Language=raw file):
 		// BitRate : 1509000
 		// BitRate : Unknown / Unknown / 1509000
+		// Bit rate mode : Variable / Variable / Constant
+		// Bit rate mode : Variable
 
-		int result = -1;
-		Matcher intMatcher = intPattern.matcher(value);
-		if (intMatcher.find()) {
-			String matchResult = intMatcher.group();
-			try {
-				result = Integer.parseInt(matchResult);
-			} catch (NumberFormatException ex) {
-				LOGGER.warn("Can't convert bitrate \"{}\" from \"{}\" to a valid integer", matchResult, value);
-				return DLNAMediaAudio.BITRATE_DEFAULT;
-			}
+		ArrayList<BitRate> bitRatesArray = new ArrayList<>();
+		String[] bitRates = bitRateString == null ? new String[0] : bitRateString.split("/");
+		String[] modes = modeString == null ? new String[0] : modeString.split("/");
+		int max = Math.max(bitRates.length, modes.length);
+		if (LOGGER.isTraceEnabled() && bitRates.length != modes.length) {
+			LOGGER.trace("Warning: Unequal number of bitrates ({}) and bitrate modes ({})", bitRates.length, modes.length);
+		}
+		int bitRatesDiff = max - bitRates.length; //TODO: (Nad) Change/fix logic, the "last" value should be used for the remaining
+		int modesDiff = max - modes.length;
+		for (int i = max - 1; i >= 0; i--) {
+			String bitRate = i >= bitRatesDiff ? bitRates[i - bitRatesDiff] : null;
+			String mode = i >= modesDiff ? modes[i - modesDiff] : null;
+			bitRatesArray.add(new BitRate(mode, bitRate, isAudioBitRate ? DLNAMediaAudio.BITRATE_DEFAULT : null));
 		}
 
-		if (result < 1) {
-			LOGGER.warn("Invalid bitrate {}, returning default value {}", result, DLNAMediaAudio.BITRATE_DEFAULT);
-			return DLNAMediaAudio.BITRATE_DEFAULT;
+		if (bitRatesArray.isEmpty()) {
+			LOGGER.warn(
+				"Unable to parse bitrate(s) from bitrates \"{}\" and bitrate modes \"{}\"",
+				bitRateString,
+				modeString
+			);
 		}
-		return result;
+		return bitRatesArray.toArray(new BitRate[bitRatesArray.size()]);
 	}
 
 	public static int getSpecificID(String value) {
@@ -881,7 +888,7 @@ public class LibMediaInfoParser {
 			return new int[0];
 		}
 
-		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// Examples of libmediainfo output (mediainfo --Full --Language=raw file):
 		// SamplingRate : 48000
 		// SamplingRate : 44100 / 22050
 		// SamplingRate : 48000 / 48000 / 24000
@@ -913,7 +920,7 @@ public class LibMediaInfoParser {
 			return 0;
 		}
 
-		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// Examples of libmediainfo output (mediainfo --Full --Language=raw file):
 		// Video_Delay : -408
 
 		Matcher intMatcher = intPattern.matcher(value);
@@ -928,13 +935,13 @@ public class LibMediaInfoParser {
 		return DLNAMediaAudio.AUDIODELAY_DEFAULT;
 	}
 
-	public static BitRateMode[] parseBitRateModes(String value) {
+	public static BitRateMode[] parseBitRateModes(String value) { //TODO: (Nad) Remove
 		if (isBlank(value)) {
 			LOGGER.debug("MediaInfo returned a blank bit rate mode value, falling back to default");
 			return new BitRateMode[0];
 		}
 
-		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// Examples of libmediainfo output (mediainfo --Full --Language=raw file):
 		// Bit rate mode : Variable / Variable / Constant
 		// Bit rate mode : Variable
 

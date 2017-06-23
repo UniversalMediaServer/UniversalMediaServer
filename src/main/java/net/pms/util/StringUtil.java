@@ -629,7 +629,7 @@ public class StringUtil {
 	 */
 	public static String formatBytes(long bytes, boolean binary, Locale locale) {
 		if ((binary && bytes < 1L << 10) || bytes < KILO) {
-			return String.format("%d %s", bytes, bytes == 1L ? "byte" : "bytes");
+			return String.format(locale, "%d %s", bytes, bytes == 1L ? "byte" : "bytes");
 		}
 
 		long divisor;
@@ -657,5 +657,60 @@ public class StringUtil {
 			return String.format(locale, "%d %s", bytes / divisor, unit);
 		}
 		return String.format(locale, "%.1f %s", (double) bytes / divisor, unit);
+	}
+
+	/**
+	 * Formats bits into a rounded {@link String} representation in either
+	 * binary/power of 2 or SI notation using {@link Locale#ROOT}.
+	 *
+	 * @param bits the value to format.
+	 * @param binary whether the representation should be binary/power of 2 or
+	 *            SI/metric.
+	 * @return The formatted bit value and unit.
+	 */
+	public static String formatBits(long bits, boolean binary) {
+		return formatBits(bits, binary, Locale.ROOT);
+	}
+
+	/**
+	 * Formats bits into a rounded {@link String} representation in either
+	 * binary/power of 2 or SI notation.
+	 *
+	 * @param bits the value to format.
+	 * @param binary whether the representation should be binary/power of 2 or
+	 *            SI/metric.
+	 * @param locale the {@link Locale} to use when formatting.
+	 * @return The formatted bit value and unit.
+	 */
+	public static String formatBits(long bits, boolean binary, Locale locale) {
+		if ((binary && bits < 1L << 10) || bits < KILO) {
+			return String.format(locale, "%d %s", bits, bits == 1L ? "bit" : "bits");
+		}
+
+		long divisor;
+		String unit;
+		if ((binary && bits < MEBI) || bits < MEGA) { // kibi/kilo
+			divisor = binary ? KIBI : KILO;
+			unit = binary ? "Kibit" : "kbit";
+		} else if ((binary && bits < GIBI) || bits < GIGA) { // mebi/mega
+			divisor = binary ? MEBI : MEGA;
+			unit = binary ? "Mibit" : "Mbit";
+		} else if ((binary && bits < TEBI) || bits < TERA) { // gibi/giga
+			divisor = binary ? GIBI : GIGA;
+			unit = binary ? "Gibit" : "Gbit";
+		} else if ((binary && bits < PEBI) || bits < PETA) { // tebi/tera
+			divisor = binary ? TEBI : TERA;
+			unit = binary ? "Tibit" : "Tbit";
+		} else if ((binary && bits < EXBI) || bits < EXA) { // pebi/peta
+			divisor = binary ? PEBI : PETA;
+			unit = binary ? "Pibit" : "Pbit";
+		} else { // exbi/exa
+			divisor = binary ? EXBI : EXA;
+			unit = binary ? "Eibit" : "Ebit";
+		}
+		if (bits % divisor == 0) {
+			return String.format(locale, "%d %s", bits / divisor, unit);
+		}
+		return String.format(locale, "%.1f %s", (double) bits / divisor, unit);
 	}
 }

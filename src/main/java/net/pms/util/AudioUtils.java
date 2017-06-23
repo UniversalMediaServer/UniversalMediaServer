@@ -201,8 +201,9 @@ public final class AudioUtils {
 					buffer.get(artist);
 					audio.setArtist(new String(artist, StandardCharsets.US_ASCII));
 				}
-				audio.setBitRate(bytesPerMinute * 8 / 60);
-				media.setBitrate(bytesPerMinute * 8 / 60);
+				BitRate bitRate = new BitRate(BitRateMode.CONSTANT, bytesPerMinute * 8 / 60, DLNAMediaAudio.BITRATE_DEFAULT);
+				audio.setBitRate(bitRate);
+				media.setBitRate(bitRate);
 			} else if (version == 4 || version == 5) {
 				buffer = ByteBuffer.allocate(14);
 				channel.read(buffer);
@@ -278,8 +279,9 @@ public final class AudioUtils {
 					parseRealAudioMetaData(buffer, audio, version);
 				}
 
-				audio.setBitRate((int) (bytesPerMinute * 8 / 60));
-				media.setBitrate((int) (bytesPerMinute * 8 / 60));
+				BitRate bitRate = new BitRate(BitRateMode.CONSTANT, (int) (bytesPerMinute * 8 / 60), DLNAMediaAudio.BITRATE_DEFAULT);
+				audio.setBitRate(bitRate);
+				media.setBitRate(bitRate);
 				audio.setBitsPerSample(sampleSize);
 				audio.setNumberOfChannels(nrChannels);
 				audio.setSampleRate(sampleRate);
@@ -295,7 +297,8 @@ public final class AudioUtils {
 				media.setSize(fileSize);
 			}
 			// Duration is estimated based on bitrate and might not be accurate
-			if (audio.getBitRate() > 0) {
+
+			if (!audio.getBitRate().isUnknown()) {
 				int dataSize;
 				if (fileSize > 0 && reportedHeaderSize > 0) {
 					int fullHeaderSize = reportedHeaderSize + (version == 3 ? 8 : 16);
@@ -307,9 +310,8 @@ public final class AudioUtils {
 				} else {
 					dataSize = reportedDataSize;
 				}
-				media.setDuration((double) dataSize / audio.getBitRate() * 8);
+				media.setDuration((double) dataSize / audio.getBitRate().bitRate * 8);
 			}
-
 		} catch (IOException e) {
 			LOGGER.debug("Error while trying to parse RealAudio version 1 or 2: {}", e.getMessage());
 			LOGGER.trace("", e);

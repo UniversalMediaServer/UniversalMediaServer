@@ -18,10 +18,10 @@
  */
 package net.pms.dlna;
 
-import java.util.Arrays;
 import java.util.Locale;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
+import net.pms.util.BitRate;
 import net.pms.util.BitRateMode;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -45,7 +45,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private AudioProperties audioProperties = new AudioProperties();
 
 	/** The default bit rate used if the actual value is unknown */
-	public static final int BITRATE_DEFAULT = 8000;
+	public static final BitRate BITRATE_DEFAULT = BitRate.DEFAULT_AUDIO;
 
 	/** The default number of audio channels used if the actual value is unknown */
 	public static final int NUMBEROFCHANNELS_DEFAULT = 2;
@@ -59,9 +59,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/** The default sample rate used if the actual value is unknown */
 	public static final int SAMPLERATE_DEFAULT = 48000;
 
-	/** The default bit rate mode used if the actual value is unknown */
-	public static final BitRateMode BITRATEMODE_DEFAULT = BitRateMode.CBR;
-
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
@@ -69,8 +66,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	public int bitsperSample;
 	private int[] bitsPerSampleArray;
 
-	private int bitRate;
-	private BitRateMode[] BitRateModes;
+	private BitRate[] bitRates;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -595,16 +591,30 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		}
 		result.append("Audio Codec: ").append(getAudioCodec());
 
-		result.append(", Bitrate: ").append(getBitRate());
+		if (isBitRateKnown()) {
+			if (bitRates.length > 1) {
+				result.append(" BitRates: [");
+			} else {
+				result.append(" Bitrate: ");
+			}
+			for (int i = 0; i < bitRates.length; i++) {
+				if (i > 0) {
+					result.append(", ");
+				}
+				if (bitRates[i] == null || bitRates[i].isUnknown()) {
+					result.append("Unknown (").append(BITRATE_DEFAULT).append(")"); //TODO: (Nad) BitRate.toString()
+				} else {
+					result.append(bitRates[i]);
+				}
+			}
+			if (bitRates.length > 1) {
+				result.append("]");
+			}
+		} else {
+			result.append(", Unknown Bitrate (").append(BITRATE_DEFAULT).append(")");
+		}
 		if (getBitsperSample() != 16) {
 			result.append(", Bits per Sample: ").append(getBitsperSample());
-		}
-		if (isBitRateModeKnown()) {
-			if (BitRateModes.length > 1) {
-				result.append(", Bitrate Modes: ").append(Arrays.toString(BitRateModes));
-			} else {
-				result.append(", Bitrate Mode: ").append(BitRateModes[0]);
-			}
 		}
 		if (getAudioProperties() != null) {
 			result.append(", ").append(getAudioProperties());
@@ -754,98 +764,106 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Returns the bit rate for this audio track.
-	 *
-	 * @return The bit rate, or {@link #BITRATE_DEFAULT} if {@code bitRate} is
-	 *         invalid.
+	 * @return Whether bitrate is an actual value or just a default.
 	 */
-	public int getBitRate() {
-		return bitRate > 0 ? bitRate : BITRATE_DEFAULT;
-	}
-
-	/**
-	 * Sets the audio bit rate.
-	 *
-	 * @param bitRate the audio bit rate to set.
-	 */
-	public void setBitRate(int bitRate) {
-		this.bitRate = bitRate;
-	}
-
-	/**
-	 * @return Whether bit rate mode is an actual value or just a default.
-	 */
-	public boolean isBitRateModeKnown() {
-		return BitRateModes != null && BitRateModes.length > 0;
-	}
-
-	/**
-	 * Gets the array of bit rate modes, with the "base" layer at index 0.
-	 *
-	 * @return The array of bit rate modes or an array containing only
-	 *         {@link #BITRATEMODE_DEFAULT} if unknown.
-	 */
-	public BitRateMode[] getBitRateModes() {
-		if (BitRateModes != null && BitRateModes.length > 0) {
-			BitRateMode[] result = new BitRateMode[BitRateModes.length];
-			System.arraycopy(BitRateModes, 0, result, 0, BitRateModes.length);
-			return result;
+	public boolean isBitRateKnown() {
+		if (bitRates == null) {
+			return false;
 		}
-		return new BitRateMode[] {getBitRateMode()};
+		for (BitRate bitRate : bitRates) {
+			if (bitRate != null && !bitRate.isUnknown()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
-	 * If known, returns {@link BitRateMode#VBR} if one of the bit rate mode
-	 * values are {@link BitRateMode#VBR}, otherwise {@link BitRateMode#CBR}. If
-	 * unknown, {@value #BITRATEMODE_DEFAULT} is returned.
+	 * Gets the array of bit rates, with the "base" layer at index 0.
 	 *
-	 * @return The bit rate mode with preference to {@link BitRateMode#VBR} or
-	 *         {@link #BITRATEMODE_DEFAULT} if unknown.
-	 * @since 6.7.2
+	 * @return The array of bit rates or an array containing only
+	 *         {@link #BITRATE_DEFAULT} if unknown.
 	 */
-	public BitRateMode getBitRateMode() {
-		if (BitRateModes != null && BitRateModes.length > 0) {
-			boolean isVariable = false;
-			for (BitRateMode bitRateMode : BitRateModes) {
-				if (bitRateMode == BitRateMode.VBR) {
-					isVariable = true;
-					break;
+	public BitRate[] getBitRates(boolean returnDefault) {
+		if (bitRates != null && bitRates.length > 0) {
+			BitRate[] result = new BitRate[bitRates.length];
+			System.arraycopy(bitRates, 0, result, 0, bitRates.length);
+			if (returnDefault) {
+				for (int i = 0; i < result.length; i++) {
+					if (result[i] == null) {
+						result[i] = BITRATE_DEFAULT;
+					}
 				}
 			}
-			return isVariable ? BitRateMode.VBR : BitRateMode.CBR;
+			return result;
 		}
-		return BITRATEMODE_DEFAULT;
+		return returnDefault ? new BitRate[] {BITRATE_DEFAULT} : new BitRate[0];
 	}
 
 	/**
-	 * Sets the bit rate mode.
+	 * If known, returns the "highest" {@link BitRate}, otherwise
+	 * {@link #BITRATE_DEFAULT}. The "highest" bitrate is defined such that a
+	 * variable bitrate is always "higher" than a constant bitrate, while
+	 * constant bitrates are compared by bitrate value.
 	 *
-	 * @param bitRateMode the bit rate mode to set, use {@code null} if unknown.
+	 * @return The {@link BitRate} or {@link #BITRATE_DEFAULT} if unknown.
 	 * @since 6.7.2
 	 */
-	public void setBitRateMode(BitRateMode bitRateMode) {
-		if (bitRateMode == null && this.BitRateModes != null && this.BitRateModes.length > 0) {
-			BitRateModes = new BitRateMode[0];
-		} else if (bitRateMode != null) {
-			setBitRateModes(new BitRateMode[] {bitRateMode});
-		}
-	}
-
-	/**
-	 * Sets an array of bit rate modes.
-	 *
-	 * @param bitRateModes the array of bit rate modes to set, use
-	 *            {@code null} or an empty array if unknown.
-	 * @since 6.7.2
-	 */
-	public void setBitRateModes(BitRateMode[] bitRateModes) {
-		if (bitRateModes == null && this.BitRateModes != null && this.BitRateModes.length > 0) {
-			BitRateModes = new BitRateMode[0];
-		} else if (bitRateModes != null) {
-			if (this.BitRateModes == null || this.BitRateModes.length != bitRateModes.length) {
-				this.BitRateModes = new BitRateMode[bitRateModes.length];
+	public BitRate getBitRate() {
+		if (bitRates != null && bitRates.length > 0) {
+			BitRate highest = null;
+			for (BitRate bitRate : bitRates) {
+				if (bitRate != null && !bitRate.isUnknown()) {
+					if (bitRate.isVariable(false)) {
+						return bitRate;
+					}
+					if (bitRate.isConstant() && (highest == null || bitRate.compareTo(highest) > 0)) {
+						highest = bitRate;
+					}
+				}
 			}
-			System.arraycopy(bitRateModes, 0, this.BitRateModes, 0, bitRateModes.length);
+			if (highest != null && !highest.isUnknown()) {
+				return highest;
+			}
+		}
+		return BITRATE_DEFAULT;
+	}
+
+	/**
+	 * Sets the constant audio bit rate.
+	 *
+	 * @param bitRate the constant audio bit rate value to set.
+	 * @deprecated Use {@link #setBitRate(BitRate)} instead.
+	 */
+	@Deprecated
+	public void setBitRate(int bitRate) { //TODO: (Nad) Check references
+		bitRates = new BitRate[] {new BitRate(BitRateMode.CONSTANT, bitRate, BITRATE_DEFAULT)};
+	}
+
+	/**
+	 * Sets the audio {@link BitRate}.
+	 *
+	 * @param bitRate the audio {@link BitRate} to set.
+	 * @since 6.7.2
+	 */
+	public void setBitRate(BitRate bitRate) {
+		this.bitRates = new BitRate[] {bitRate};
+	}
+
+	/**
+	 * Sets an array of {@link BitRate}s.
+	 *
+	 * @param bitRates the array of {@link BitRate}s to set, use
+	 *            {@code null} or an empty array if unknown.
+	 */
+	public void setBitRates(BitRate[] bitRates) {
+		if (bitRates == null && this.bitRates != null) {
+			this.bitRates = null;
+		} else if (bitRates != null) {
+			if (this.bitRates == null || this.bitRates.length != bitRates.length) {
+				this.bitRates = new BitRate[bitRates.length];
+			}
+			System.arraycopy(bitRates, 0, this.bitRates, 0, bitRates.length);
 		}
 	}
 
@@ -897,7 +915,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return The sample rate or {@link #SAMPLERATE_DEFAULT} if unknown.
 	 * @since 6.7.2
 	 */
-	public int getSampleRate() {
+	public int getSampleRate() { //TODO: (Nad) Change "highest" to "last"
 		if (sampleRatesArray != null && sampleRatesArray.length > 0) {
 			int highest = UMSUtils.getIntArrayMaxValue(sampleRatesArray, 0);
 			if (highest > 0) {
