@@ -2533,18 +2533,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Get the renderer setting of the output video 3D format to which the video should be converted.
 	 *
 	 * @return the lowercase string of the output video 3D format or an
-	 * empty string if not specified or the format is not implemented or wrongly typed.
+	 * empty string when the output format is not specified or not implemented.
 	 */
 	public String getOutput3DFormat() {
 		String value = getString(OUTPUT_3D_FORMAT, "").toLowerCase(Locale.ROOT);
 		// check if the parameter is specified correctly
-		for (Mode3D format : DLNAMediaInfo.Mode3D.values()) {
-			if (value.equals(format.toString().toLowerCase(Locale.ROOT))) {
-				return value;
+		if (StringUtils.isNotBlank(value)) {
+			for (Mode3D format : DLNAMediaInfo.Mode3D.values()) {
+				if (value.equals(format.toString().toLowerCase(Locale.ROOT))) {
+					return value;
+				}
 			}
+
+			LOGGER.debug("The output 3D format `{}` specified in the `Output3DFormat` is not implemented or incorrectly specified.", value);
 		}
 
-		LOGGER.debug("The output 3D format `{}` specified in the `Output3DFormat` is not implemented or incorrectly specified.", value);
 		return "";
 	}
 
