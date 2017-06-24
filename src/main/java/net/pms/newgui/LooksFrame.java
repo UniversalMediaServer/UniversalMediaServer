@@ -184,6 +184,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			if (selectedLaf != null) {
 				try {
 					UIManager.setLookAndFeel(selectedLaf);
+					// Workaround for JDK-8179014: JFileChooser with Windows look and feel crashes on win 10
+					// https://bugs.openjdk.java.net/browse/JDK-8179014
+					if (selectedLaf instanceof WindowsLookAndFeel) {
+						UIManager.put("FileChooser.useSystemExtensionHiding", false);
+					}
 				} catch (UnsupportedLookAndFeelException e) {
 					LOGGER.warn("Can't change look and feel", e);
 				}
@@ -660,6 +665,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		getNt().setScanLibraryEnabled(flag);
 	}
 
+	@Override
 	public String getLog() {
 		return getTt().getList().getText();
 	}
