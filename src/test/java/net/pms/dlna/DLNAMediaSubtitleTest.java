@@ -174,6 +174,15 @@ public class DLNAMediaSubtitleTest {
 		assertThat(sub6.isExternalFileUtf16()).isFalse();
 		assertThat(sub6.isExternalFileUtf()).isFalse();
 		assertThat(sub6.getLang()).isEqualTo("ru");
+
+		File file_iso_8859_8 = FileUtils.toFile(CLASS.getResource("../util/hebrew-iso-8859-8.srt"));
+		DLNAMediaSubtitle sub7 = new DLNAMediaSubtitle();
+		sub7.setExternalFile(file_iso_8859_8, null);
+		assertThat(sub7.getSubCharacterSet()).isEqualTo(CHARSET_ISO_8859_8);
+		assertThat(sub7.isExternalFileUtf8()).isFalse();
+		assertThat(sub7.isExternalFileUtf16()).isFalse();
+		assertThat(sub7.isExternalFileUtf()).isFalse();
+		assertThat(sub7.getLang()).isEqualTo("he");
 	}
 
 	@Test

@@ -200,11 +200,17 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
 					subsCharacterSet = match.getName().toUpperCase(Locale.ROOT);
+					// returned Charset can have additional info like ISO-8859-8-I but
+					// FFmpeg video filter knows only ISO-8859-8 so extract the additional "-I".
+					if (subsCharacterSet.split("-").length > 3) {
+						subsCharacterSet = subsCharacterSet.substring(0, subsCharacterSet.lastIndexOf("-"));
+					}
+
 					if (forcedLang == null) { // set the detected language when the language is not specified in the filename
 						lang = match.getLanguage();
 					}
 
-					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", match.getName(), lang, externalFile.getAbsolutePath());
+					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", subsCharacterSet, lang, externalFile.getAbsolutePath());
 				} else {
 					subsCharacterSet = null;
 					LOGGER.debug("No charset detected for {}", externalFile.getAbsolutePath());
