@@ -415,11 +415,6 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
-		// Splash
-		Splash splash = null;
-		if (!isHeadless()) {
-			splash = new Splash(configuration);
-		}
 
 		// Show the language selection dialog before displayBanner();
 		if (
@@ -434,6 +429,12 @@ public class PMS {
 					return false;
 				}
 			}
+		}
+
+		// Initialize splash screen
+		Splash splash = null;
+		if (!isHeadless()) {
+			splash = new Splash(configuration);
 		}
 
 		// Call this as early as possible
@@ -463,6 +464,10 @@ public class PMS {
 
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
+			// Hide splash screen
+			if (splash != null) {
+				splash.setVisible(false);
+			}
 			// Ask the user if they want to run the wizard
 			int whetherToRunWizard = JOptionPane.showConfirmDialog(
 				null,
@@ -566,6 +571,11 @@ public class PMS {
 				configuration.setRunWizard(false);
 				save();
 			}
+
+			// Unhide splash screen
+			if (splash != null) {
+				splash.setVisible(true);
+			}
 		}
 
 		// The public VERSION field is deprecated.
@@ -595,8 +605,10 @@ public class PMS {
 			frame = new DummyFrame();
 		}
 
+		// Close splash screen
 		if (splash != null) {
 			splash.dispose();
+			splash = null;
 		}
 
 		/*
