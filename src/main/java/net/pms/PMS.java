@@ -415,6 +415,12 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+		// Splash
+		Splash splash = null;
+		if (!isHeadless()) {
+			splash = new Splash(configuration);
+		}
+
 		// Show the language selection dialog before displayBanner();
 		if (
 			!isHeadless() &&
@@ -560,12 +566,6 @@ public class PMS {
 				configuration.setRunWizard(false);
 				save();
 			}
-		}
-
-		// Splash
-		Splash splash = null;
-		if (!isHeadless()) {
-			splash = new Splash(configuration);
 		}
 
 		// The public VERSION field is deprecated.
