@@ -1533,17 +1533,8 @@ public class PMS {
 		} catch ( IOException e) {
 			LOGGER.error("Error killing old process: " + e);
 		}
-
-		try {
-			dumpPid();
-		} catch (FileNotFoundException e) {
-			LOGGER.error(
-				"Failed to write PID file: "+ e.getMessage() +
-				(Platform.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
-			);
-		} catch (IOException e) {
-			LOGGER.error("Error dumping PID " + e);
-		}
+		
+		writePidFile();
 	}
 
 	/*
@@ -1586,14 +1577,10 @@ public class PMS {
 		return tmp[0].equals("javaw.exe") && ums;
 	}
 
-	private static String pidFile() {
-		return configuration.getDataFile("pms.pid");
-	}
-
 	private static void killProc() throws AccessControlException, IOException{
 		ProcessBuilder pb = null;
 		String pid;
-		String pidFile = pidFile();
+		String pidFile = configuration.getPidFilePath();
 		if (!FileUtil.getFilePermissions(pidFile).isReadable()) {
 			throw new AccessControlException("Cannot read " + pidFile);
 		}
@@ -1635,13 +1622,32 @@ public class PMS {
 		return Long.parseLong(processName.split("@")[0]);
 	}
 
-	private static void dumpPid() throws IOException {
-		try (FileOutputStream out = new FileOutputStream(pidFile())) {
-			long pid = getPID();
-			LOGGER.debug("Writing PID: " + pid);
-			String data = String.valueOf(pid) + "\r\n";
+	private static void writePidFile()  
+	{
+		String pidFile=configuration.getPidFilePath();
+		
+		long pid = getPID();
+		LOGGER.debug("Writing PID {} into {} ", pid, pidFile);
+		
+		try (FileOutputStream out = new FileOutputStream(pidFile)) 
+		{			
+			String data = String.valueOf(pid);
+			if (Platform.isLinux())
+				data+="\n";
+			else
+				data+="\r\n";
 			out.write(data.getBytes(StandardCharsets.US_ASCII));
 			out.flush();
+		}		
+		catch (FileNotFoundException e) 
+		{
+			LOGGER.error("Failed to write PID file: "+ e.getMessage());
+			if (Platform.isWindows())
+				LOGGER.error("UMS might need to run as an administrator to enforce single instance");
+		}
+		catch (IOException e) 
+		{
+			LOGGER.error("Error dumping PID: " + e.getMessage());
 		}
 	}
 

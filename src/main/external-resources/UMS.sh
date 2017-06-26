@@ -3,6 +3,9 @@
 CMD=`readlink -f $0`
 DIRNAME=`dirname "$CMD"`
 
+export UMS_PROFILE=$DIRNAME
+#export UMS_LOGPATH=/var/log/UMS
+
 # OS specific support (must be 'true' or 'false').
 cygwin=false;
 case "`uname`" in
