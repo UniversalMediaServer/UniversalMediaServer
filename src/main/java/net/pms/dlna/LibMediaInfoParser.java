@@ -38,13 +38,21 @@ public class LibMediaInfoParser {
 		MI = new MediaInfo();
 
 		if (MI.isValid()) {
-			MI.Option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
+			MI.Option("Internet", "0"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
 			MI.Option("File_TestContinuousFileNames", "0");
 			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
+			MI.Option("File_RiskyBitRateEstimation", "1");
+			LOGGER.debug("Option 'File_RiskyBitRateEstimation' is set to: " + MI.Option("File_RiskyBitRateEstimation_Get"));
 			MI.Option("ParseSpeed", "0");
 			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
+			MI.Option("ReadByHuman", "0");
+			LOGGER.debug("Option 'ReadByHuman' is set to: " + MI.Option("ReadByHuman_Get"));
+			MI.Option("Legacy", "0");
+			LOGGER.debug("Option 'Legacy' is set to: " + MI.Option("Legacy_Get"));
+			MI.Option("Verbosity", "0");
+			LOGGER.debug("Option 'Verbosity' is set to: " + MI.Option("Verbosity_Get"));
 //			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
 		}
 	}
