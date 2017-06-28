@@ -19,7 +19,6 @@
 
 package net.pms;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
@@ -70,11 +69,7 @@ import net.pms.newgui.*;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
-import oshi.SystemInfo;
-import oshi.hardware.CentralProcessor;
-import oshi.hardware.GlobalMemory;
-import oshi.hardware.HardwareAbstractionLayer;
-import oshi.software.os.OperatingSystem;
+import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -415,6 +410,15 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+		// Gather and log system information from a separate thread
+		LogSystemInformationMode logSystemInfo = configuration.getLogSystemInformation();
+		if (
+			logSystemInfo == LogSystemInformationMode.ALWAYS ||
+			logSystemInfo == LogSystemInformationMode.TRACE_ONLY &&
+			LOGGER.isTraceEnabled()
+		) {
+			new SystemInformation().start();
+		}
 
 		// Show the language selection dialog before displayBanner();
 		if (
@@ -423,11 +427,9 @@ public class PMS {
 			!Languages.isValid(configuration.getLanguageRawString()))
 		) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
-			if (languageDialog != null) {
-				languageDialog.show();
-				if (languageDialog.isAborted()) {
-					return false;
-				}
+			languageDialog.show();
+			if (languageDialog.isAborted()) {
+				return false;
 			}
 		}
 
@@ -904,6 +906,7 @@ public class PMS {
 	/**
 	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
 	 */
+	@SuppressWarnings("unused")
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
 		return getSharedFoldersArray(false, getConfiguration());
@@ -1409,18 +1412,12 @@ public class PMS {
 	 * only detects the bitness of Java, not of the operating system.
 	 *
 	 * @return The bitness of the operating system.
+	 *
+	 * @deprecated Use {@link SystemInformation#getOSBitness()} instead.
 	 */
+	@Deprecated
 	public static int getOSBitness() {
-		int bitness = 32;
-
-		if (
-			(System.getProperty("os.name").contains("Windows") && System.getenv("ProgramFiles(x86)") != null) ||
-			System.getProperty("os.arch").contains("64")
-		) {
-			bitness = 64;
-		}
-
-		return bitness;
+		return SystemInformation.getOSBitness();
 	}
 
 	/**
@@ -1429,19 +1426,6 @@ public class PMS {
 	 */
 	private static void logSystemInfo() {
 		long jvmMemory = Runtime.getRuntime().maxMemory();
-		OperatingSystem os = null;
-		CentralProcessor processor = null;
-		GlobalMemory memory = null;
-		try {
-			SystemInfo systemInfo = new SystemInfo();
-			HardwareAbstractionLayer hardware = systemInfo.getHardware();
-			os = systemInfo.getOperatingSystem();
-			processor = hardware.getProcessor();
-			memory = hardware.getMemory();
-		} catch (Error e) {
-			LOGGER.debug("Could not retrieve OS and hardware information: {}", e.getMessage());
-			LOGGER.trace("", e);
-		}
 
 		LOGGER.info(
 			"Java: {} {} ({}-bit) by {}",
@@ -1450,56 +1434,33 @@ public class PMS {
 			System.getProperty("sun.arch.data.model"),
 			System.getProperty("java.vendor")
 		);
-		if (os != null && isNotBlank(os.toString())) {
-			LOGGER.info("OS: {} {}-bit", os.toString(), getOSBitness());
-		} else {
-			LOGGER.info("OS: {} {}-bit {}", System.getProperty("os.name"), getOSBitness(), System.getProperty("os.version"));
-		}
-		if (processor != null) {
-			LOGGER.info(
-				"CPU: {} with {} cores ({} virtual cores)",
-				processor.getName(),
-				processor.getPhysicalProcessorCount(),
-				processor.getLogicalProcessorCount()
-			);
-		}
-		if (memory != null) {
-			LOGGER.info("Physical Memory: {}", StringUtil.formatBytes(memory.getTotal(), true));
-			LOGGER.info("Free memory: {}", StringUtil.formatBytes(memory.getAvailable(), true));
-
-		}
-		LOGGER.info("Maximum JVM Memory: {}", jvmMemory == Long.MAX_VALUE ? "Unlimited" : StringUtil.formatBytes(jvmMemory, true));
+		LOGGER.info(
+			"OS: {} {}-bit {}",
+			System.getProperty("os.name"),
+			SystemInformation.getOSBitness(),
+			System.getProperty("os.version")
+		);
+		LOGGER.info(
+			"Maximum JVM Memory: {}",
+			jvmMemory == Long.MAX_VALUE ? "Unlimited" : StringUtil.formatBytes(jvmMemory, true)
+		);
 		LOGGER.info("Language: {}", WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
 		LOGGER.info("Encoding: {}", System.getProperty("file.encoding"));
 		LOGGER.info("");
 
-		if (Platform.isMac()) {
-			// The binaries shipped with the Mac OS X version of PMS are being
+		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
+			// The binaries shipped with the Mac OS X version of UMS are being
 			// compiled against specific OS versions, making them incompatible
 			// with older versions. Warn the user about this when necessary.
-			String osVersion = System.getProperty("os.version");
-
-			// Split takes a regular expression, so escape the dot.
-			String[] versionNumbers = osVersion.split("\\.");
-
-			if (versionNumbers.length > 1) {
-				try {
-					int osVersionMinor = Integer.parseInt(versionNumbers[1]);
-
-					if (osVersionMinor < 6) {
-						LOGGER.warn("-----------------------------------------------------------------");
-						LOGGER.warn("WARNING!");
-						LOGGER.warn("UMS ships with binaries compiled for Mac OS X 10.6 or higher.");
-						LOGGER.warn("You are running an older version of Mac OS X so UMS may not work!");
-						LOGGER.warn("More information in the FAQ:");
-						LOGGER.warn("http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=66371#p66371");
-						LOGGER.warn("-----------------------------------------------------------------");
-						LOGGER.warn("");
-					}
-				} catch (NumberFormatException e) {
-					LOGGER.debug("Cannot parse minor os.version number");
-				}
-			}
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("WARNING!");
+			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
+			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
+			LOGGER.warn("that these binaries used for example for transcoding may not work!");
+			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
+			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("");
 		}
 	}
 
