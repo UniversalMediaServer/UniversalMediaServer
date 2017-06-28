@@ -36,8 +36,6 @@ import org.slf4j.LoggerFactory;
 public class Splash extends JFrame implements MouseListener {
 	private static final long serialVersionUID = 2357524127613134620L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Splash.class);
-	private JLabel imglabel;
-	private ImageIcon img;
 	private PmsConfiguration configuration;
 
 	/**
@@ -53,8 +51,8 @@ public class Splash extends JFrame implements MouseListener {
 			return;
 		}
 
-		img = new ImageIcon(getClass().getResource("/resources/images/splash.png"));
-		imglabel = new JLabel(img);
+		ImageIcon img = new ImageIcon(getClass().getResource("/resources/images/splash.png"));
+		JLabel imglabel = new JLabel(img);
 		imglabel.setBounds(0, 0, img.getIconWidth(), img.getIconHeight());
 		setSize(imglabel.getWidth(), imglabel.getHeight());
 		setUndecorated(true);
@@ -63,6 +61,8 @@ public class Splash extends JFrame implements MouseListener {
 		setLayout(null);
 		add(imglabel);
 		imglabel.addMouseListener(this);
+		img = new ImageIcon(getClass().getResource("/resources/images/icon-32.png"));
+		setIconImage(img.getImage());
 		if (System.getProperty("console") == null) {
 			setVisible(true);
 		}
