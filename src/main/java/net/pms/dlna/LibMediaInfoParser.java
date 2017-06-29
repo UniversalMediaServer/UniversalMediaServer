@@ -650,16 +650,9 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.DTS;
 		} else if (value.equals("mpeg audio")) {
 			format = FormatConfiguration.MPA;
-		} else if (value.startsWith("wma")) {
+		} else if (value.equals("wma")) {
 			format = FormatConfiguration.WMA;
-			if (media.getCodecV() == null) {
-				media.setContainer(format);
-			}
-		} else if (
-			streamType == StreamType.Audio && media.getCodecV() == null && audio != null && audio.getCodecA() != null &&
-			audio.getCodecA() == FormatConfiguration.WMA &&
-			(value.equals("160") || value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A") || value.equals("wma10"))
-		) {
+		} else if (FormatConfiguration.WMA.equals(audio.getCodecA())) {
 			if (value.equals("160") || value.equals("161")) {
 				format = FormatConfiguration.WMA;
 			} else if (value.equals("162")) {

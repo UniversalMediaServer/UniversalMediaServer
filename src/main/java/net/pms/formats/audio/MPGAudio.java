@@ -33,6 +33,10 @@ public class MPGAudio extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "mpa", "mp2" };
+		return new String[] {
+			"mpa",
+			"mp1",
+			"mp2"
+		};
 	}
 }

@@ -167,6 +167,7 @@ public class FormatFactoryTest {
 		testSingleFormat("test.wmv", "MPG", Format.VIDEO);
 		testSingleFormat("test.wtv", "MPG", Format.VIDEO);
 		testSingleFormat("test.mpa", "MPGAudio", Format.AUDIO);
+		testSingleFormat("test.mp1", "MPGAudio", Format.AUDIO);
 		testSingleFormat("test.mp2", "MPGAudio", Format.AUDIO);
 		testSingleFormat("test.sub", "MicroDVD", Format.SUBTITLE);
 		testSingleFormat("test.ape", "MonkeysAudio", Format.AUDIO);
