@@ -112,6 +112,7 @@ public class DLNAMediaInfo implements Cloneable {
 		mutableAudioOrVideoContainers.put(FormatConfiguration.THREEGPP2, new AudioVariantInfo(new THREEG2A(), FormatConfiguration.THREEGA));
 		// XXX WEBM Audio is NOT MKA, but it will have to stay this way until WEBM Audio is implemented.
 		mutableAudioOrVideoContainers.put(FormatConfiguration.WEBM, new AudioVariantInfo(new MKA(), FormatConfiguration.WEBA));
+		mutableAudioOrVideoContainers.put(FormatConfiguration.WMV, new AudioVariantInfo(new WMA(), FormatConfiguration.WMA));
 
 		audioOrVideoContainers = Collections.unmodifiableMap(mutableAudioOrVideoContainers);
 	}
@@ -1576,6 +1577,7 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.AUDIO_WEBM_TYPEMIME;
 					break;
 				case FormatConfiguration.WMA:
+				case FormatConfiguration.WMA10:
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
 					break;
 			}

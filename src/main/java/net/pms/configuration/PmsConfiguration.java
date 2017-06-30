@@ -47,6 +47,7 @@ import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
+import net.pms.util.LogSystemInformationMode;
 import net.pms.util.PreventSleepMode;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SubtitleColor;
@@ -179,6 +180,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
+	protected static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
 	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
 	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
@@ -237,7 +239,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
-	protected static final String KEY_OLD_PREVENTS_SLEEP = "prevents_sleep_mode";
+	/**
+	 * This key was used in older versions, only supports {@code true} or
+	 * {@code false}. Kept for backwards-compatibility for now.
+	 *
+	 * @deprecated Use {@link #KEY_PREVENT_SLEEP} instead.
+	 */
+	@Deprecated
+	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
 	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
 	protected static final String KEY_PROFILE_NAME = "name";
 	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
@@ -628,7 +637,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
-	private String verifyLogFolder(File folder, String fallbackTo) {
+	private static String verifyLogFolder(File folder, String fallbackTo) {
 		try {
 			FilePermissions permissions = FileUtil.getFilePermissions(folder);
 			if (LOGGER.isTraceEnabled()) {
@@ -718,9 +727,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
 		if (FileUtil.isValidFileName(s)) {
 			return s;
-		} else {
-			return "debug.log";
 		}
+		return "debug.log";
 	}
 
 	public String getDefaultLogFilePath() {
@@ -769,6 +777,13 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getInterFramePath() {
 		return programPaths.getInterFramePath();
+	}
+
+	public LogSystemInformationMode getLogSystemInformation() {
+		LogSystemInformationMode defaultValue = LogSystemInformationMode.TRACE_ONLY;
+		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
+		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
+		return result != null ? result : defaultValue;
 	}
 
 	/**
@@ -2741,13 +2756,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	public PreventSleepMode getPreventSleep() {
 		PreventSleepMode sleepMode = null;
 		String value = getString(KEY_PREVENT_SLEEP, null);
-		if (value == null && configuration.containsKey(KEY_OLD_PREVENTS_SLEEP)) {
+		if (value == null && configuration.containsKey(KEY_PREVENTS_SLEEP)) {
 			// Backwards compatibility
-				sleepMode =
-				getBoolean(KEY_OLD_PREVENTS_SLEEP, true) ?
-					PreventSleepMode.PLAYBACK :
-					PreventSleepMode.NEVER;
-			configuration.clearProperty(KEY_OLD_PREVENTS_SLEEP);
+			sleepMode = getBoolean(KEY_PREVENTS_SLEEP, true) ? PreventSleepMode.PLAYBACK : PreventSleepMode.NEVER;
+			configuration.clearProperty(KEY_PREVENTS_SLEEP);
 			configuration.setProperty(KEY_PREVENT_SLEEP, sleepMode.getValue());
 		} else if (value != null) {
 			sleepMode = PreventSleepMode.typeOf(value);
@@ -3967,7 +3979,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isShowSplashScreen() {
-		return getBoolean(KEY_SHOW_SPLASH_SCREEN, false);
+		return getBoolean(KEY_SHOW_SPLASH_SCREEN, true);
 	}
 
 	public void setShowSplashScreen(boolean value) {

@@ -416,6 +416,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is WMA10.
+	 */
+	public boolean isWMA10() {
+		return FormatConfiguration.WMA10.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is WMA Lossless.
 	 */
 	public boolean isWMALossless() {
@@ -540,6 +547,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "WavPack";
 		} else if (isWMA()) {
 			return "WMA";
+		} else if (isWMA10()) {
+			return "WMA 10";
 		} else if (isWMALossless()) {
 			return "WMA Lossless";
 		} else if (isWMAPro()) {

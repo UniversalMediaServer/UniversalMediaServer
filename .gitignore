@@ -19,3 +19,4 @@ plugins/
 target/
 /web/
 win32/
+.vscode/settings.json

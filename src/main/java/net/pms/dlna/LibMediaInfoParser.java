@@ -149,62 +149,66 @@ public class LibMediaInfoParser {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							}
 
-						value = MI.Get(video, i, "Format_Settings_GMC");
-						if (!value.isEmpty()) {
-							media.putExtra(FormatConfiguration.MI_GMC, value);
-						}
-
-						value = MI.Get(video, i, "Format_Settings_GOP");
-						if (!value.isEmpty()) {
-							media.putExtra(FormatConfiguration.MI_GOP, value);
-						}
-
-						media.setMuxingMode(MI.Get(video, i, "MuxingMode"));
-						if (!media.isEncrypted()) {
-							media.setEncrypted("encrypted".equals(MI.Get(video, i, "Encryption")));
-						}
-
-						value = MI.Get(video, i, "BitDepth");
-						if (!value.isEmpty()) {
-							try {
-								media.setVideoBitDepth(Integer.parseInt(value));
-							} catch (NumberFormatException nfe) {
-								LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
+							value = MI.Get(video, i, "Format_Settings_GMC");
+							if (!value.isEmpty()) {
+								media.putExtra(FormatConfiguration.MI_GMC, value);
 							}
-						}
 
-						value = MI.Get(video, i, "Format_Profile");
-						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
-							media.setAvcLevel(getAvcLevel(value));
+							value = MI.Get(video, i, "Format_Settings_GOP");
+							if (!value.isEmpty()) {
+								media.putExtra(FormatConfiguration.MI_GOP, value);
+							}
+
+							media.setMuxingMode(MI.Get(video, i, "MuxingMode"));
+							if (!media.isEncrypted()) {
+								media.setEncrypted("encrypted".equals(MI.Get(video, i, "Encryption")));
+							}
+
+							value = MI.Get(video, i, "BitDepth");
+							if (!value.isEmpty()) {
+								try {
+									media.setVideoBitDepth(Integer.parseInt(value));
+								} catch (NumberFormatException nfe) {
+									LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
+								}
+							}
+
+							value = MI.Get(video, i, "Format_Profile");
+							if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
+								media.setAvcLevel(getAvcLevel(value));
+							}
 						}
 					}
 				}
-			}
 
-			// set Audio
-			int audioTracks = MI.Count_Get(audio);
-			if (audioTracks > 0) {
-				for (int i = 0; i < audioTracks; i++) {
-					currentAudioTrack = new DLNAMediaAudio();
-					getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format"), file);
-					getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
-					getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
-					getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
-					currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
-					currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
-					currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
-					currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
-					currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
-					currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
+				// set Audio
+				int audioTracks = MI.Count_Get(audio);
+				if (audioTracks > 0) {
+					for (int i = 0; i < audioTracks; i++) {
+						currentAudioTrack = new DLNAMediaAudio();
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
+						getFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
+						value = MI.Get(audio, i, "CodecID_Description");
+						if (isNotBlank(value) && value.startsWith("Windows Media Audio 10")) {
+							currentAudioTrack.setCodecA(FormatConfiguration.WMA10);
+						}
+						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
+						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
+						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
+						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
+						currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
+						currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
 
-					if (
-						renderer.isPrependTrackNumbers() &&
-						currentAudioTrack.getTrack() > 0 &&
-						currentAudioTrack.getSongname() != null &&
-						currentAudioTrack.getSongname().length() > 0
-					) {
-						currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
-					}
+						if (
+							renderer.isPrependTrackNumbers() &&
+							currentAudioTrack.getTrack() > 0 &&
+							currentAudioTrack.getSongname() != null &&
+							currentAudioTrack.getSongname().length() > 0
+						) {
+							currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
+						}
 
 					currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
 					currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
@@ -616,9 +620,9 @@ public class LibMediaInfoParser {
 		} else if (
 			streamType == StreamType.Audio && media.getCodecV() == null && audio != null && audio.getCodecA() != null &&
 			audio.getCodecA() == FormatConfiguration.WMA &&
-			(value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A"))
+			(value.equals("160") || value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A") || value.equals("wma10"))
 		) {
-			if (value.equals("161")) {
+			if (value.equals("160") || value.equals("161")) {
 				format = FormatConfiguration.WMA;
 			} else if (value.equals("162")) {
 				format = FormatConfiguration.WMAPRO;
@@ -626,6 +630,8 @@ public class LibMediaInfoParser {
 				format = FormatConfiguration.WMALOSSLESS;
 			} else if (value.equalsIgnoreCase("A")) {
 				format = FormatConfiguration.WMAVOICE;
+			} else if (value.equals("wma10")) {
+				format = FormatConfiguration.WMA10;
 			}
 		} else if (value.equals("flac")) {
 			format = FormatConfiguration.FLAC;
