@@ -440,32 +440,11 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	 */
 	DTCP_WMVMED_PRO,
 
-	/** Profile for image media class content of high resolution. */
-	GIF_LRG,
-
-	/** Profile for image media class content of high resolution. */
-	JPEG_LRG,
-
 	/** Profile for large icons */
 	JPEG_LRG_ICO,
 
-	/** Profile for image media class content of medium resolution. */
-	JPEG_MED,
-
-	/**
-	 * Profile for image media class content. Values &lt;H&gt; and &lt;V&gt;
-	 * indicate the horizontal and vertical resolutions in pixel numbers.
-	 */
-	JPEG_RES_H_V,
-
-	/** Profile for image media class content of small resolution. */
-	JPEG_SM,
-
 	/** Profile for small icons */
 	JPEG_SM_ICO,
-
-	/** Profile for image thumbnails. */
-	JPEG_TN,
 
 	/**
 	 * Profile defining ES encapsulation for transport of MPEG_PS_PAL over RTP.
@@ -647,17 +626,11 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	 */
 	MPEG_TS_SD_KO_T,
 
-	/** Profile for image class content of high resolution. */
-	PNG_LRG,
-
 	/** Profile for large icons */
 	PNG_LRG_ICO,
 
 	/** Profile for small icons */
 	PNG_SM_ICO,
-
-	/** Profile for image thumbnails */
-	PNG_TN,
 
 	/** Unofficial, unspecified WAV */
 	WAV,
@@ -784,5 +757,4 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	public String toString() {
 		return NAME + " = " + super.toString();
 	}
-
 }

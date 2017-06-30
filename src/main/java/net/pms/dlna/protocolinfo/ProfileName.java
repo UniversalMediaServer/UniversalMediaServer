@@ -144,7 +144,7 @@ public interface ProfileName extends ProtocolInfoAttribute {
 					}
 				}
 
-				// None was found, create the instance
+				// None were found, create the instance
 				instance = getNewInstance(value);
 				instanceCache.add(instance);
 				LOGGER.trace("{} added unknown profile \"{}\"", getClass().getSimpleName(), value);

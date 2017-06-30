@@ -78,6 +78,7 @@ public class ImagesUtil {
 	 * @throws IOException if an IO error occurs or no information can be parsed.
 	 *
 	 */
+	@SuppressWarnings("null")
 	public static void parseImage(File file, DLNAMediaInfo media) throws IOException {
 		final int MAX_BUFFER = 1048576; // 1 MB
 		if (file == null) {
@@ -92,6 +93,7 @@ public class ImagesUtil {
 			LOGGER.trace("Parsing image file \"{}\"", file.getAbsolutePath());
 		}
 		long size = file.length();
+		@SuppressWarnings("resource")
 		ResettableInputStream inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), MAX_BUFFER);
 		try  {
 			Metadata metadata = null;
@@ -149,7 +151,6 @@ public class ImagesUtil {
 					try {
 						imageInfo = ImageInfo.create(metadata, format, size, true, true);
 					} catch (ParseException pe) {
-						imageInfo = null;
 						LOGGER.debug("Unable to parse metadata for \"{}\": {}", file.getAbsolutePath(), pe.getMessage());
 						LOGGER.trace("", pe);
 					}
@@ -1131,6 +1132,7 @@ public class ImagesUtil {
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
+	@SuppressWarnings("null")
 	protected static Image transcodeImage(
 		byte[] inputByteArray,
 		Image inputImage,
@@ -1520,6 +1522,7 @@ public class ImagesUtil {
 	 * @return A byte array containing the thumbnail or {@code null} if no
 	 *         thumbnail was found/could be extracted.
 	 */
+	@SuppressWarnings("unused")
 	public static byte[] getThumbnailFromMetadata(File file, Metadata metadata) {
 		if (metadata == null) {
 			return null;
@@ -1640,6 +1643,7 @@ public class ImagesUtil {
 	 * @throws ImageProcessingException
 	 * @throws IOException
 	 */
+	@SuppressWarnings("null")
 	public static Metadata getMetadata(InputStream inputStream, ImageFormat format, FileType fileType) throws ImageProcessingException, IOException {
 		if (inputStream == null) {
 			return null;
@@ -1761,10 +1765,9 @@ public class ImagesUtil {
 			fileName = fileName.substring(13);
 
 			return parseImageRequest(fileName, DLNAImageProfile.JPEG_TN);
-		} else {
-			LOGGER.warn("Could not parse thumbnail DLNAImageProfile from \"{}\"");
-			return DLNAImageProfile.JPEG_TN;
 		}
+		LOGGER.warn("Could not parse thumbnail DLNAImageProfile from \"{}\"");
+		return DLNAImageProfile.JPEG_TN;
 	}
 
 	/**
@@ -1814,9 +1817,8 @@ public class ImagesUtil {
 				int[] tmpArray = new int[bitDepthArray.length - 1];
 				System.arraycopy(bitDepthArray, 0, tmpArray, 0, bitDepthArray.length - 1);
 				return getConstantIntArrayValue(tmpArray);
-			} else {
-				throw e;
 			}
+			throw e;
 		}
 	}
 
@@ -1845,9 +1847,8 @@ public class ImagesUtil {
 				byte[] tmpArray = new byte[bitDepthArray.length - 1];
 				System.arraycopy(bitDepthArray, 0, tmpArray, 0, bitDepthArray.length - 1);
 				return getConstantByteArrayValue(tmpArray);
-			} else {
-				throw e;
 			}
+			throw e;
 		}
 	}
 
@@ -1881,6 +1882,9 @@ public class ImagesUtil {
 				}
 			}
 		}
+		if (result == null) {
+			throw new InvalidStateException("The array contains no values");
+		}
 		return result.intValue();
 	}
 
@@ -1913,6 +1917,9 @@ public class ImagesUtil {
 					throw new InvalidStateException("The array doesn't have a constant value: " + Arrays.toString(byteArray));
 				}
 			}
+		}
+		if (result == null) {
+			throw new InvalidStateException("The array contains no values");
 		}
 		return result.byteValue();
 	}

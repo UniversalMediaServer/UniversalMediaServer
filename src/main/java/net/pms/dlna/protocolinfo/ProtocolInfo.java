@@ -891,4 +891,141 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 
 		return 0;
 	}
+
+	/**
+	 * Creates a copy of this instance where the {@link DLNAOrgConversionIndicator} attribute is set to {@code ciFlag}.
+	 *
+	 * @param ciFlag the {@link DLNAOrgConversionIndicator} to set or {@code null} to remote the attribute.
+	 * @return The new partially copied instance.
+	 */
+	public ProtocolInfo modify(DLNAOrgConversionIndicator ciFlag) {
+		TreeMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> tmpAttributes = createEmptyAttributesMap();
+		tmpAttributes.putAll(attributes);
+		if (ciFlag == null) {
+			tmpAttributes.remove(DLNAOrgConversionIndicator.NAME);
+		} else {
+			tmpAttributes.put(ciFlag.getName(), ciFlag);
+		}
+		return modify(tmpAttributes);
+	}
+
+	/**
+	 * Creates a new instance using the fields from this instance for the
+	 * arguments that is <b>not</b> specified. The new instance will be a
+	 * combination of the given arguments and the fields of this instance.
+	 *
+	 * @param protocol the {@link Protocol} to set or {@code null} to copy
+	 *            from this instance.
+	 * @return The new partially copied instance.
+	 */
+	public ProtocolInfo modify(Protocol protocol) {
+		return modify(protocol, network, mimeType, attributes);
+	}
+
+	/**
+	 * Creates a new instance using the fields from this instance for the
+	 * arguments that is <b>not</b> specified. The new instance will be a
+	 * combination of the given arguments and the fields of this instance.
+	 *
+	 * @param mimeType the {@link MimeType} to set or {@code null} to copy
+	 *            from this instance.
+	 * @return The new partially copied instance.
+	 */
+	public ProtocolInfo modify(MimeType mimeType) {
+		return modify(protocol, network, mimeType, attributes);
+	}
+
+	/**
+	 * Creates a new instance using the fields from this instance for the
+	 * arguments that is <b>not</b> specified. The new instance will be a
+	 * combination of the given arguments and the fields of this instance.
+	 *
+	 * @param additionalInfo the additional info {@link String} to set or
+	 *            {@code null} to copy from this instance.
+	 * @return The new partially copied instance.
+	 */
+	public ProtocolInfo modify(String additionalInfo) {
+		return modify(protocol, additionalInfo, mimeType, additionalInfo);
+	}
+
+	/**
+	 * Creates a new instance using the fields from this instance for the
+	 * arguments that is <b>not</b> specified. The new instance will be a
+	 * combination of the given arguments and the fields of this instance.
+	 *
+	 * @param attributes the {@link Map} of attributes to set or {@code null} to
+	 *            copy from this instance.
+	 * @return The new partially copied instance.
+	 */
+	public ProtocolInfo modify(SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> attributes) {
+		return modify(protocol, network, mimeType, attributes);
+	}
+
+	/**
+	 * Creates a new instance using the fields from this instance for the
+	 * arguments that is <b>not</b> specified. The new instance will be a
+	 * combination of the given arguments and the fields of this instance.
+	 *
+	 * @param protocol the {@link Protocol} to set or {@code null} to copy
+	 *            from this instance.
+	 * @param network the network {@link String} to set or {@code null} to
+	 *            copy from this instance.
+	 * @param mimeType the {@link MimeType} to set or {@code null} to copy
+	 *            from this instance.
+	 * @param additionalInfo the additional info {@link String} to set or
+	 *            {@code null} to copy from this instance.
+	 * @return The new partially copied instance.
+	 */
+	public ProtocolInfo modify(Protocol protocol, String network, MimeType mimeType, String additionalInfo) {
+		if (protocol == null) {
+			protocol = this.protocol;
+		}
+		if (network == null) {
+			network = this.network;
+		}
+		if (mimeType == null) {
+			mimeType = this.mimeType;
+		}
+		if (additionalInfo == null) {
+			additionalInfo = this.additionalInfo;
+		}
+		return new ProtocolInfo(protocol, network, mimeType, additionalInfo);
+	}
+
+	/**
+	 * Creates a new instance using the fields from this instance for the
+	 * arguments that is <b>not</b> specified. The new instance will be a
+	 * combination of the given arguments and the fields of this instance.
+	 *
+	 * @param protocol the {@link Protocol} to set or {@code null} to copy from
+	 *            this instance.
+	 * @param network the network {@link String} to set or {@code null} to copy
+	 *            from this instance.
+	 * @param mimeType the {@link MimeType} to set or {@code null} to copy from
+	 *            this instance.
+	 * @param attributes the {@link Map} of attributes to set or {@code null} to
+	 *            copy from this instance.
+	 * @return The new partially copied instance.
+	 */
+	public ProtocolInfo modify(
+		Protocol protocol,
+		String network,
+		MimeType mimeType,
+		SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> attributes
+	) {
+		if (protocol == null) {
+			protocol = this.protocol;
+		}
+		if (network == null) {
+			network = this.network;
+		}
+		if (mimeType == null) {
+			mimeType = this.mimeType;
+		}
+		if (attributes == null) {
+			attributes = this.attributes;
+		}
+		return new ProtocolInfo(protocol, network, mimeType, attributes);
+	}
+
 }

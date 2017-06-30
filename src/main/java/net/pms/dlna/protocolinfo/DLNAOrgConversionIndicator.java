@@ -98,6 +98,13 @@ public final class DLNAOrgConversionIndicator implements ProtocolInfoAttribute {
 		return state ? "1" : "0";
 	}
 
+	/**
+	 * @return The CI flag state as an integer ({@code 0} or {@code 1}).
+	 */
+	public int getIntValue() {
+		return state ? 1 : 0;
+	}
+
 	/*
 	 * XXX This currently returns blank for 0/false. While this isn't
 	 * technically correct, it avoids a confusion with some old Panasonic Viera
@@ -154,6 +161,18 @@ public final class DLNAOrgConversionIndicator implements ProtocolInfoAttribute {
 		 * Retrieves a static {@link DLNAOrgConversionIndicator} instance
 		 * corresponding to the given argument.
 		 *
+		 * @param value the {@code DLNA.ORG_CI} flag value.
+		 * @return The corresponding {@link DLNAOrgConversionIndicator}
+		 *         instance.
+		 */
+		public DLNAOrgConversionIndicator getConversionIndicator(int value) {
+			return value > 0 ? TRUE : FALSE;
+		}
+
+		/**
+		 * Retrieves a static {@link DLNAOrgConversionIndicator} instance
+		 * corresponding to the given argument.
+		 *
 		 * @param ci the {@code DLNA.ORG_CI} flag value.
 		 * @return The corresponding {@link DLNAOrgConversionIndicator}
 		 *         instance.
@@ -162,5 +181,4 @@ public final class DLNAOrgConversionIndicator implements ProtocolInfoAttribute {
 			return ci ? TRUE : FALSE;
 		}
 	}
-
 }

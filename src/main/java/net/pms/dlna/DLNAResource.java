@@ -430,6 +430,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public abstract long length();
 
 	// Ditlew
+	@SuppressWarnings("unused")
 	public long length(RendererConfiguration mediaRenderer) {
 		return length();
 	}
@@ -1218,7 +1219,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	protected void refreshChildrenIfNeeded(String search) {
-		if (isDiscovered() && shouldRefresh(search)) {
+		if (isDiscovered() && shouldRefresh()) {
 			refreshChildren(search);
 			notifyRefresh();
 		}
@@ -1277,7 +1278,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			} else {
 				// if not, then the regular isRefreshNeeded/doRefreshChildren pair.
-				if (shouldRefresh(searchStr)) {
+				if (shouldRefresh()) {
 					doRefreshChildren(searchStr);
 					notifyRefresh();
 				}
@@ -1285,7 +1286,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-	private boolean shouldRefresh(String searchStr) {
+	private boolean shouldRefresh() {
 		return isRefreshNeeded();
 	}
 
@@ -1313,8 +1314,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param searchStr
 	 * @return Item found, or null otherwise.
 	 * @see #getId()
+	 * @deprecated Use {@link #search(String, int, RendererConfiguration)} instead.
 	 */
+	@SuppressWarnings("unused")
+	@Deprecated
 	public DLNAResource search(String searchId, int count, RendererConfiguration renderer, String searchStr) {
+		return search(searchId, count, renderer);
+	}
+
+	/**
+	 * Recursive function that searches for a given ID.
+	 *
+	 * @param searchId ID to search for.
+	 * @param count
+	 * @param renderer
+	 * @param searchStr
+	 * @return Item found, or null otherwise.
+	 * @see #getId()
+	 */
+	public DLNAResource search(String searchId, int count, RendererConfiguration renderer) {
 		if (id != null && searchId != null) {
 			String[] indexPath = searchId.split("\\$", 2);
 			if (id.equals(indexPath[0])) {
@@ -1324,7 +1342,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				discoverWithRenderer(renderer, count, false, null);
 
 				for (DLNAResource file : children) {
-					DLNAResource found = file.search(indexPath[1], count, renderer, null);
+					DLNAResource found = file.search(indexPath[1], count, renderer);
 					if (found != null) {
 						// Make sure it's ready
 						//found.resolve();
@@ -1339,7 +1357,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
-	private DLNAResource search(String[] searchIds, RendererConfiguration renderer) {
+	private static DLNAResource search(String[] searchIds, RendererConfiguration renderer) {
 		DLNAResource dlna;
 		for (String searchId : searchIds) {
 			if (searchId.equals("0")) {
@@ -1383,6 +1401,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void discoverChildren() {
 	}
 
+	@SuppressWarnings("unused")
 	public void discoverChildren(String str) {
 		discoverChildren();
 	}
@@ -1393,6 +1412,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param count
 	 * @return Returns true
 	 */
+	@SuppressWarnings("unused")
 	public boolean analyzeChildren(int count) {
 		return true;
 	}
@@ -1403,6 +1423,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void doRefreshChildren() {
 	}
 
+	@SuppressWarnings("unused")
 	public void doRefreshChildren(String search) {
 		doRefreshChildren();
 	}
@@ -1433,7 +1454,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public boolean refreshChildren(String search) {
-		if (shouldRefresh(search)) {
+		if (shouldRefresh()) {
 			doRefreshChildren(search);
 			return true;
 		}
@@ -1693,8 +1714,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
 		if (profile != null) {
 			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
-				sb.append("JPEG_RES").append(profile.getH()).append("x");
-				sb.append(profile.getV()).append("_");
+				sb.append("JPEG_RES").append(profile.getH()).append("x").append(profile.getV()).append("_");
 			} else {
 				sb.append(profile).append("_");
 			}
@@ -1793,7 +1813,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			o.resolved = false;
 
 			if (media != null) {
-				o.media = (DLNAMediaInfo) media.clone();
+				o.media = media.clone();
 			}
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(null, e);
@@ -2995,7 +3015,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			url = getURL(
 				(DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
 					"JPEG_RES" + resElement.getWidth() + "x" + resElement.getHeight() :
-					resElement.getProfile().toString()
+					resElement.getProfile().getValue()
 				) + "_"
 			);
 		}
@@ -3344,124 +3364,123 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			lastStartSystemTime = System.currentTimeMillis();
 			return fis;
-		} else {
-			// Pipe transcoding result
-			OutputParams params = new OutputParams(configurationSpecificToRenderer);
-			params.aid = getMediaAudio();
-			params.sid = media_subtitle;
-			params.header = getHeaders();
-			params.mediaRenderer = mediarenderer;
-			timeRange.limit(getSplitRange());
-			params.timeseek = timeRange.getStartOrZero();
-			params.timeend = timeRange.getEndOrZero();
-			params.shift_scr = timeseek_auto;
-			if (this instanceof IPushOutput) {
-				params.stdin = (IPushOutput) this;
+		}
+		// Pipe transcoding result
+		OutputParams params = new OutputParams(configurationSpecificToRenderer);
+		params.aid = getMediaAudio();
+		params.sid = media_subtitle;
+		params.header = getHeaders();
+		params.mediaRenderer = mediarenderer;
+		timeRange.limit(getSplitRange());
+		params.timeseek = timeRange.getStartOrZero();
+		params.timeend = timeRange.getEndOrZero();
+		params.shift_scr = timeseek_auto;
+		if (this instanceof IPushOutput) {
+			params.stdin = (IPushOutput) this;
+		}
+
+		if (resume != null) {
+			if (range.isTimeRange()) {
+				resume.update((Range.Time) range, this);
 			}
 
-			if (resume != null) {
-				if (range.isTimeRange()) {
-					resume.update((Range.Time) range, this);
+			params.timeseek = resume.getTimeOffset() / 1000;
+			if (player == null) {
+				player = new FFMpegVideo();
+			}
+		}
+
+		if (System.currentTimeMillis() - lastStartSystemTime < 500) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				LOGGER.error(null, e);
+			}
+		}
+
+		// (Re)start transcoding process if necessary
+		if (externalProcess == null || externalProcess.isDestroyed()) {
+			// First playback attempt => start new transcoding process
+			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
+			lastStartSystemTime = System.currentTimeMillis();
+			externalProcess = player.launchTranscode(this, media, params);
+			if (params.waitbeforestart > 0) {
+				LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
+				try {
+					Thread.sleep(params.waitbeforestart);
+				} catch (InterruptedException e) {
+					LOGGER.error(null, e);
 				}
 
-				params.timeseek = resume.getTimeOffset() / 1000;
-				if (player == null) {
-					player = new FFMpegVideo();
+				LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
+			}
+		} else if (
+			params.timeseek > 0 &&
+			media != null &&
+			media.isMediaparsed() &&
+			media.getDurationInSeconds() > 0
+		) {
+			// Time seek request => stop running transcode process and start a new one
+			LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
+			params.minBufferSize = 1;
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					externalProcess.stopProcess();
 				}
+			};
+
+			new Thread(r, "External Process Stopper").start();
+			lastStartSystemTime = System.currentTimeMillis();
+			ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				LOGGER.error(null, e);
 			}
 
-			if (System.currentTimeMillis() - lastStartSystemTime < 500) {
+			if (newExternalProcess == null) {
+				LOGGER.trace("External process instance is null... sounds not good");
+			}
+
+			externalProcess = newExternalProcess;
+		}
+
+		if (externalProcess == null) {
+			return null;
+		}
+
+		InputStream is = null;
+		int timer = 0;
+		while (is == null && timer < 10) {
+			is = externalProcess.getInputStream(low);
+			timer++;
+			if (is == null) {
+				LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
-					LOGGER.error(null, e);
 				}
 			}
-
-			// (Re)start transcoding process if necessary
-			if (externalProcess == null || externalProcess.isDestroyed()) {
-				// First playback attempt => start new transcoding process
-				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
-				lastStartSystemTime = System.currentTimeMillis();
-				externalProcess = player.launchTranscode(this, media, params);
-				if (params.waitbeforestart > 0) {
-					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
-					try {
-						Thread.sleep(params.waitbeforestart);
-					} catch (InterruptedException e) {
-						LOGGER.error(null, e);
-					}
-
-					LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
-				}
-			} else if (
-				params.timeseek > 0 &&
-				media != null &&
-				media.isMediaparsed() &&
-				media.getDurationInSeconds() > 0
-			) {
-				// Time seek request => stop running transcode process and start a new one
-				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
-				params.minBufferSize = 1;
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						externalProcess.stopProcess();
-					}
-				};
-
-				new Thread(r, "External Process Stopper").start();
-				lastStartSystemTime = System.currentTimeMillis();
-				ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					LOGGER.error(null, e);
-				}
-
-				if (newExternalProcess == null) {
-					LOGGER.trace("External process instance is null... sounds not good");
-				}
-
-				externalProcess = newExternalProcess;
-			}
-
-			if (externalProcess == null) {
-				return null;
-			}
-
-			InputStream is = null;
-			int timer = 0;
-			while (is == null && timer < 10) {
-				is = externalProcess.getInputStream(low);
-				timer++;
-				if (is == null) {
-					LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-					}
-				}
-			}
-
-			// fail fast: don't leave a process running indefinitely if it's
-			// not producing output after params.waitbeforestart milliseconds + 5 seconds
-			// this cleans up lingering MEncoder web video transcode processes that hang
-			// instead of exiting
-			if (is == null && !externalProcess.isDestroyed()) {
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						LOGGER.error("External input stream instance is null... stopping process");
-						externalProcess.stopProcess();
-					}
-				};
-
-				new Thread(r, "Hanging External Process Stopper").start();
-			}
-
-			return is;
 		}
+
+		// fail fast: don't leave a process running indefinitely if it's
+		// not producing output after params.waitbeforestart milliseconds + 5 seconds
+		// this cleans up lingering MEncoder web video transcode processes that hang
+		// instead of exiting
+		if (is == null && !externalProcess.isDestroyed()) {
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					LOGGER.error("External input stream instance is null... stopping process");
+					externalProcess.stopProcess();
+				}
+			};
+
+			new Thread(r, "Hanging External Process Stopper").start();
+		}
+
+		return is;
 	}
 
 	/**
@@ -3479,7 +3498,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *            The low value.
 	 * @return The resulting input stream.
 	 */
-	private InputStream wrap(InputStream input, long high, long low) {
+	private static InputStream wrap(InputStream input, long high, long low) {
 		if (input != null && high > low) {
 			long bytes = (high - (low < 0 ? 0 : low)) + 1;
 			LOGGER.trace("Using size-limiting stream (" + bytes + " bytes)");
@@ -4465,7 +4484,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			type == Format.IMAGE ? new FeedItem(name, uri, null, null, Format.IMAGE) : null
 			:
 			new RealFile(new File(uri));
-		if (format == null && !isweb) {
+		if (format == null && !isweb && resource != null) {
 			resource.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
 		}
 

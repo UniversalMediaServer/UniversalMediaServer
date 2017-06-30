@@ -157,6 +157,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @deprecated use {@link #FileUtil.convertFileFromUtf16ToUtf8()} for UTF-16 -> UTF-8 conversion.
 	 */
+	@Deprecated
 	public File getPlayableExternalFile() {
 		return getExternalFile();
 	}
@@ -169,9 +170,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Set external subs file, detect its Character Set and Language. When the {@code forcedLang} is not {@code null}, 
+	 * Set external subs file, detect its Character Set and Language. When the {@code forcedLang} is not {@code null},
 	 * based on the language tag in the file name e.g {@code subsname.en.srt}, than it has priority over the detected language.
-	 * 
+	 *
 	 * @param externalFile the externalFile to set
 	 * @param forcedLang language forced by file name language tag
 	 */
@@ -189,9 +190,10 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Detects and set Character Set and language of the subs file. When the {@code forcedLang} is not {@code null}
 	 * than it as priority over the detected language.
-	 * 
+	 *
 	 * @param forcedLang forced language
 	 */
+	@SuppressWarnings("deprecation")
 	private void setFileSubsCharacterSet(String forcedLang) {
 		if (type.isPicture()) {
 			subsCharacterSet = null;
@@ -226,6 +228,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @deprecated use {@link #setSubCharacterSet(String)}
 	 */
+	@Deprecated
 	public void setExternalFileCharacterSet(String charSet) {
 		setSubCharacterSet(charSet);
 	}
@@ -237,6 +240,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @deprecated use {@link #getSubCharacterSet()}
 	 */
+	@Deprecated
 	public String getExternalFileCharacterSet() {
 		return getSubCharacterSet();
 	}

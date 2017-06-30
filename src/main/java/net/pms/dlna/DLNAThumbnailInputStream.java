@@ -224,9 +224,8 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 			byte[] result = new byte[buf.length];
 			System.arraycopy(buf, 0, result, 0, buf.length);
 			return result;
-		} else {
-			return buf;
 		}
+		return buf;
 	}
 
 

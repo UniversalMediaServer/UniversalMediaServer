@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,7 +52,7 @@ public class MacSystemUtils extends BasicSystemUtils {
 		try {
 			Process process = Runtime.getRuntime().exec(new String[] { "ifconfig", ni.getName(), "ether" });
 			inputStream = process.getInputStream();
-			List<String> lines = IOUtils.readLines(inputStream);
+			List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
 			String aMacStr = null;
 			Pattern aMacPattern = Pattern.compile("\\s*ether\\s*([a-d0-9]{2}:[a-d0-9]{2}:[a-d0-9]{2}:[a-d0-9]{2}:[a-d0-9]{2}:[a-d0-9]{2})");
 

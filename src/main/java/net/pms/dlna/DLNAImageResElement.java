@@ -23,10 +23,14 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
+import net.pms.dlna.protocolinfo.DLNAOrgConversionIndicator;
 import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 import net.pms.network.UPNPControl.Renderer;
+import static net.pms.util.StringUtil.*;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 
 /**
  * This class is used to represent a {@code <res>} element representing an image
@@ -35,15 +39,17 @@ import net.pms.network.UPNPControl.Renderer;
  * @author Nadahar
  */
 public class DLNAImageResElement {
-	private final DLNAImageProfile profile;
-	private final Integer ciFlag;
+	//private final DLNAImageProfile profile;
+	//private final Integer ciFlag;
+	protected final ProtocolInfo protocolInfo;
+	//TODO: (Nad) desc
 	private final boolean thumbnail;
 	private final HypotheticalResult hypotheticalResult;
 
 	/**
 	 * Instantiates a new DLNA image {@code <res>} element.
 	 *
-	 * @param profile the {@link DLNAImageProfile} for this {@code <res>}
+	 * @param protocolInfo the {@link ProtocolInfo} for this {@code <res>}
 	 *            element.
 	 * @param imageInfo the {@link ImageInfo} for the image represented by this
 	 *            {@code <res>} element.
@@ -52,14 +58,14 @@ public class DLNAImageResElement {
 	 *
 	 * @see #isThumbnail()
 	 */
-	public DLNAImageResElement(DLNAImageProfile profile, ImageInfo imageInfo, boolean thumbnail) {
-		this(profile, imageInfo, thumbnail, null);
+	public DLNAImageResElement(ProtocolInfo protocolInfo, ImageInfo imageInfo, boolean thumbnail) {
+		this(protocolInfo, imageInfo, thumbnail, null);
 	}
 
 	/**
 	 * Instantiates a new DLNA image {@code <res>} element.
 	 *
-	 * @param profile the {@link DLNAImageProfile} for this {@code <res>}
+	 * @param protocolInfo the {@link ProtocolInfo} for this {@code <res>}
 	 *            element.
 	 * @param imageInfo the {@link ImageInfo} for the image represented by this
 	 *            {@code <res>} element.
@@ -71,20 +77,31 @@ public class DLNAImageResElement {
 	 *
 	 * @see #isThumbnail()
 	 */
-	public DLNAImageResElement(DLNAImageProfile profile, ImageInfo imageInfo, boolean thumbnail, Integer overrideCIFlag) {
-		this.profile = profile;
-		if (profile != null && imageInfo != null) {
+	public DLNAImageResElement(ProtocolInfo protocolInfo, ImageInfo imageInfo, boolean thumbnail, Integer overrideCIFlag) {
+		if (!(protocolInfo.getDLNAProfileName() instanceof DLNAImageProfile)) {
+			throw new IllegalArgumentException("protocolInfo must be a DLNAImageProfile instance");
+		}
+		DLNAImageProfile profile = (DLNAImageProfile) protocolInfo.getDLNAProfileName();
+		if (imageInfo != null) {
 			hypotheticalResult = profile.calculateHypotheticalProperties(imageInfo);
-			ciFlag = overrideCIFlag == null ?
-				(hypotheticalResult.conversionNeeded ?
-					Integer.valueOf(1) :
-					Integer.valueOf(0)
-				) :
-				overrideCIFlag;
+			if (overrideCIFlag == null) {
+				protocolInfo = protocolInfo.modify(
+					DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(hypotheticalResult.conversionNeeded)
+				);
+			} else {
+				protocolInfo = protocolInfo.modify(
+					DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(overrideCIFlag)
+				);
+			}
 		} else {
 			hypotheticalResult = null;
-			ciFlag = overrideCIFlag;
+			if (overrideCIFlag != null) {
+				protocolInfo = protocolInfo.modify(
+					DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(overrideCIFlag)
+				);
+			}
 		}
+		this.protocolInfo = protocolInfo;
 		this.thumbnail = thumbnail;
 	}
 
@@ -92,14 +109,14 @@ public class DLNAImageResElement {
 	 * @return The {@link DLNAImageProfile}.
 	 */
 	public DLNAImageProfile getProfile() {
-		return profile;
+		return (DLNAImageProfile) protocolInfo.getDLNAProfileName();
 	}
 
 	/**
-	 * @return The CI flag value or {@code null}.
+	 * @return The CI flag instance or {@code null}.
 	 */
-	public Integer getCiFlag() {
-		return ciFlag;
+	public DLNAOrgConversionIndicator getCiFlag() {
+		return protocolInfo.getDLNAConversionIndicator();
 	}
 
 	/**
@@ -157,42 +174,35 @@ public class DLNAImageResElement {
 
 	@Override
 	public String toString() {
-		return
-			"DLNAImageResElement [profile=" + profile + ", ciFlag=" + ciFlag +
-			", thumbnail=" + thumbnail + ", hypotheticalResult=" +
-			hypotheticalResult + "]";
+		return "DLNAImageResElement [" +
+			"protocolInfo=" + protocolInfo +
+			", thumbnail=" + thumbnail +
+			", hypotheticalResult=" + hypotheticalResult +
+		"]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((ciFlag == null) ? 0 : ciFlag.hashCode());
 		result = prime * result + ((hypotheticalResult == null) ? 0 : hypotheticalResult.hashCode());
-		result = prime * result + ((profile == null) ? 0 : profile.hashCode());
+		result = prime * result + ((protocolInfo == null) ? 0 : protocolInfo.hashCode());
 		result = prime * result + (thumbnail ? 1231 : 1237);
 		return result;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object object) {
+		if (this == object) {
 			return true;
 		}
-		if (obj == null) {
+		if (object == null) {
 			return false;
 		}
-		if (!(obj instanceof DLNAImageResElement)) {
+		if (!(object instanceof DLNAImageResElement)) {
 			return false;
 		}
-		DLNAImageResElement other = (DLNAImageResElement) obj;
-		if (ciFlag == null) {
-			if (other.ciFlag != null) {
-				return false;
-			}
-		} else if (!ciFlag.equals(other.ciFlag)) {
-			return false;
-		}
+		DLNAImageResElement other = (DLNAImageResElement) object;
 		if (hypotheticalResult == null) {
 			if (other.hypotheticalResult != null) {
 				return false;
@@ -200,11 +210,11 @@ public class DLNAImageResElement {
 		} else if (!hypotheticalResult.equals(other.hypotheticalResult)) {
 			return false;
 		}
-		if (profile == null) {
-			if (other.profile != null) {
+		if (protocolInfo == null) {
+			if (other.protocolInfo != null) {
 				return false;
 			}
-		} else if (!profile.equals(other.profile)) {
+		} else if (!protocolInfo.equals(other.protocolInfo)) {
 			return false;
 		}
 		if (thumbnail != other.thumbnail) {
@@ -221,7 +231,7 @@ public class DLNAImageResElement {
 	 *            decide the preferred {@link DLNAImageProfile}s.
 	 * @return The {@link Comparator}.
 	 */
-	public static Comparator<DLNAImageResElement> getComparator(ImageFormat sourceFormat) {
+	public static Comparator<DLNAImageResElement> getComparator(ImageFormat sourceFormat) { //TODO: (Nad) Remake
 		// This defines what DLNA format should be preferred for per source format
 		final ImageFormat preferredFormat;
 		if (sourceFormat != null) {
@@ -276,14 +286,16 @@ public class DLNAImageResElement {
 				}
 
 				int i =
-					(o1.getCiFlag() == null ? 2 : o1.getCiFlag()) -
-					(o2.getCiFlag() == null ? 2 : o2.getCiFlag());
+					(o1.protocolInfo.getDLNAConversionIndicator() == DLNAOrgConversionIndicator.TRUE ? 1 : 0) -
+					(o2.protocolInfo.getDLNAConversionIndicator() == DLNAOrgConversionIndicator.TRUE ? 1 : 0);
 				if (i != 0) {
 					return i;
 				}
 
-				ImageFormat o1Format = o1.getProfile() != null ? o1.getProfile().getFormat() : null;
-				ImageFormat o2Format = o2.getProfile() != null ? o2.getProfile().getFormat() : null;
+				DLNAImageProfile o1Profile = o1.getProfile();
+				DLNAImageProfile o2Profile = o2.getProfile();
+				ImageFormat o1Format = o1Profile != null ? o1Profile.getFormat() : null;
+				ImageFormat o2Format = o2Profile != null ? o2Profile.getFormat() : null;
 
 				if (o1Format != o2Format) {
 					if (o1Format == null) {
@@ -301,12 +313,15 @@ public class DLNAImageResElement {
 				}
 
 				if (
-					(DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile()) ||
-					DLNAImageProfile.JPEG_RES_H_V.equals(o2.getProfile())) &&
-					(!DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile()) ||
-					!DLNAImageProfile.JPEG_RES_H_V.equals(o2.getProfile()))
+					(
+						DLNAImageProfile.JPEG_RES_H_V.equals(o1Profile) ||
+						DLNAImageProfile.JPEG_RES_H_V.equals(o2Profile)
+					) && (
+						!DLNAImageProfile.JPEG_RES_H_V.equals(o1Profile) ||
+						!DLNAImageProfile.JPEG_RES_H_V.equals(o2Profile)
+					)
 				) {
-					if (DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile())) {
+					if (DLNAImageProfile.JPEG_RES_H_V.equals(o1Profile)) {
 						return -1;
 					}
 					return 1;
@@ -320,19 +335,19 @@ public class DLNAImageResElement {
 					return o2.getHeight() - o1.getHeight();
 				}
 
-				if (o1.getProfile() != null || o2.getProfile() != null) {
-					if (o1.getProfile() == null) {
+				if (o1Profile != null || o2Profile != null) {
+					if (o1Profile == null) {
 						return 1;
 					}
-					if (o2.getProfile() == null) {
+					if (o2Profile == null) {
 						return -1;
 					}
-					if (!o1.getProfile().equals(o2.getProfile())) {
-						return o1.getProfile().toInt() - o2.getProfile().toInt();
+					if (!o1Profile.equals(o2Profile)) {
+						return o1Profile.toInt() - o2Profile.toInt();
 					}
 				}
 
-				long l =
+				long l = //TODO: (Nad) super..?
 					(o2.getSize() == null ? 0 : o2.getSize()) -
 					(o1.getSize() == null ? 0 : o1.getSize());
 				if (l != 0) {
@@ -400,7 +415,44 @@ public class DLNAImageResElement {
 		return
 			renderer == null ||
 			renderer.deviceProtocolInfo == null ||
-			renderer.deviceProtocolInfo.isImageProfilesEmpty() ||
+			renderer.deviceProtocolInfo.isImageProfilesEmpty() || //TODO: (Nad) Refactor
 			renderer.deviceProtocolInfo.imageProfilesContains(profile);
+	}
+
+	public String toResString(DLNAResource resource) {
+		StringBuilder sb = new StringBuilder();
+		appendResString(sb, resource);
+		return sb.toString();
+	}
+
+	public void appendResString(StringBuilder sb, DLNAResource resource) {
+		DLNAImageProfile profile = (DLNAImageProfile) protocolInfo.getDLNAProfileName();
+		if (!isResolutionKnown() && DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
+			throw new IllegalArgumentException("Resolution cannot be unknown for DLNAImageProfile.JPEG_RES_H_V");
+		}
+		String url;
+		if (thumbnail) {
+			url = resource.getThumbnailURL(profile);
+		} else if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
+			url = resource.getURL("JPEG_RES" + getWidth() + "x" + getHeight() + "_");
+		} else {
+			url = resource.getURL(profile + "_");
+		}
+		if (isNotBlank(url)) {
+			openTag(sb, "res");
+			//TODO: (Nad) dc:date
+			if (getSize() != null && getSize() > 0) {
+				addAttribute(sb, "size", getSize());
+			}
+			if (isResolutionKnown()) {
+				addAttribute(sb, "resolution", Integer.toString(getWidth()) + "x" + Integer.toString(getHeight()));
+			}
+
+			addAttribute(sb, "protocolInfo", protocolInfo);
+			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
+			endTag(sb);
+			sb.append(url);
+			closeTag(sb, "res");
+		}
 	}
 }

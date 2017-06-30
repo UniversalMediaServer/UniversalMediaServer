@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
@@ -55,6 +56,7 @@ public class MapFileConfiguration {
 		files = new ArrayList<>();
 	}
 
+	@SuppressWarnings("unused")
 	@Deprecated
 	public static List<MapFileConfiguration> parse(String conf) {
 		return parseVirtualFolders(null);
@@ -70,7 +72,7 @@ public class MapFileConfiguration {
 			conf = null;
 
 			try {
-				conf = FileUtils.readFileToString(file);
+				conf = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 			} catch (FileNotFoundException ex) {
 				LOGGER.warn("Can't read file: {}", ex.getMessage());
 				return null;
@@ -143,10 +145,9 @@ class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 			FilePermissions permissions = FileUtil.getFilePermissions(file);
 			if (permissions.isBrowsable()) {
 				return file;
-			} else {
-				LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
-				return null;
 			}
+			LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
+			return null;
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Folder not found: {}", e.getMessage());
 			return null;

@@ -307,7 +307,7 @@ public class RootFolder extends DLNAResource {
 		return res;
 	}
 
-	private boolean skipPath(String[] skips, String path) {
+	private static boolean skipPath(String[] skips, String path) {
 		for (String s : skips) {
 			if (StringUtils.isBlank(s)) {
 				continue;
@@ -321,7 +321,7 @@ public class RootFolder extends DLNAResource {
 		return false;
 	}
 
-	private List<DLNAResource> getVirtualFolders(ArrayList<String> tags) {
+	private static List<DLNAResource> getVirtualFolders(ArrayList<String> tags) {
 		List<DLNAResource> res = new ArrayList<>();
 		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parseVirtualFolders(tags);
 
@@ -446,7 +446,7 @@ public class RootFolder extends DLNAResource {
 	 * @param spec (String) to be split
 	 * @return Array of (String) that represents the tokenized entry.
 	 */
-	private String[] parseFeedKey(String spec) {
+	private static String[] parseFeedKey(String spec) {
 		String[] pair = StringUtils.split(spec, ".", 2);
 
 		if (pair == null || pair.length < 2) {
@@ -467,7 +467,7 @@ public class RootFolder extends DLNAResource {
 	 * @param spec (String) to be split
 	 * @return Array of (String) that represents the tokenized entry.
 	 */
-	private String[] parseFeedValue(String spec) {
+	private static String[] parseFeedValue(String spec) {
 		StringTokenizer st = new StringTokenizer(spec, ",");
 		String[] triple = new String[3];
 		int i = 0;
@@ -486,7 +486,7 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @return iPhotoVirtualFolder the populated <code>VirtualFolder</code>, or null if one couldn't be created.
 	 */
-	private DLNAResource getiPhotoFolder() {
+	private static DLNAResource getiPhotoFolder() {
 		VirtualFolder iPhotoVirtualFolder = null;
 
 		if (Platform.isMac()) {
@@ -497,7 +497,7 @@ public class RootFolder extends DLNAResource {
 				// This command will show the XML files for recently opened iPhoto databases
 				Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
 				inputStream = process.getInputStream();
-				List<String> lines = IOUtils.readLines(inputStream);
+				List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
 				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
 
 				if (lines.size() >= 2) {
@@ -1406,7 +1406,7 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	private boolean illegalPlugin(String[] plugs, String name) {
+	private static boolean illegalPlugin(String[] plugs, String name) {
 		if (StringUtils.isBlank(name)) {
 			if (plugs == null || plugs.length == 0) {
 				// only allowed without plugins filter
