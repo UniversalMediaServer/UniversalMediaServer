@@ -45,7 +45,7 @@ public class LibMediaInfoParser {
 			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
 			MI.Option("File_RiskyBitRateEstimation", "1");
 			LOGGER.debug("Option 'File_RiskyBitRateEstimation' is set to: " + MI.Option("File_RiskyBitRateEstimation_Get"));
-			MI.Option("ParseSpeed", "0");
+			MI.Option("ParseSpeed", "0.5");
 			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
 //			MI.Option("ReadByHuman", "0");
 //			LOGGER.debug("Option 'ReadByHuman' is set to: " + MI.Option("ReadByHuman_Get"));
