@@ -49,8 +49,8 @@ public class LibMediaInfoParser {
 			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
 			MI.Option("ReadByHuman", "0");
 			LOGGER.debug("Option 'ReadByHuman' is set to: " + MI.Option("ReadByHuman_Get"));
-			MI.Option("Legacy", "0");
-			LOGGER.debug("Option 'Legacy' is set to: " + MI.Option("Legacy_Get"));
+//			MI.Option("Legacy", "0");
+//			LOGGER.debug("Option 'Legacy' is set to: " + MI.Option("Legacy_Get"));
 			MI.Option("Verbosity", "0");
 			LOGGER.debug("Option 'Verbosity' is set to: " + MI.Option("Verbosity_Get"));
 //			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
