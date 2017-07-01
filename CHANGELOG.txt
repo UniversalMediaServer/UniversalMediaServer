@@ -1,13 +1,16 @@
-6.7.2 - 2017-06-??
+6.7.2 - 2017-07-??
 
 	General:
 		Added support for WMA10
+		Improved splash screen timing and enabled it by default
 		Improved support for MediaInfo on non-Windows platforms
 		Improved CPU and memory logging
 		Updated comments in DefaultRenderer.conf
 		Updated documentation
 		Fixed trace logging on macOS
 		Fixed a crash on Windows 10
+	Languages:
+		Synchronized translations with Crowdin
 		Fixed Hebrew language support
 	Dependencies:
 		Updated FFmpeg
@@ -59,6 +62,35 @@
 		Updated MediaInfo to 0.7.94
 		Updated metadata-extractor to 2.10.1
 		Updated TwelveMonkeys ImageIO to version 3.3.1
+
+7.0.0-b2 - 2017-04-02
+
+	General:
+		Fixed bugs with the fully played feature
+	Languages:
+		Synchronized translations with Crowdin
+
+7.0.0-b1 - 2017-03-26 - Changes since 7.0.0-a1
+
+	General:
+		Added "Unwatched" folder to the videos folder if "Hide fully played media" is not enabled
+		File addition/removal is handled specifically instead of doing a library scan
+		Optimized database storage
+		Reduced memory use
+		Fixed the setting to hide fully played media in the Media Library
+		Fixed sorting in Media Library virtual folders
+		Fixed thread-safety/concurrency bugs
+		All changes in 6.5.3 and 6.6.0
+		Improved logging
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Improved support for Samsung 9 series TVs
+		Improved detection of Panasonic ST60 TVs
+		Improved detection of Samsung JU6400 TVs
+	Dependencies:
+		Updated external-maven-plugin to 0.2
+		Updated FFmpeg to the latest builds
 
 6.6.0 - 2017-02-25
 
@@ -114,6 +146,18 @@
 		Updated Maven Site plugin to 3.6
 		Updated Maven Surefire plugin to 2.19.1
 		Updated Maven Surefire Report plugin to 2.19.1
+
+7.0.0-a1 - 2016-12-31
+
+	General:
+		Added "TV Shows", "Movies", "3D Movies", and "Unsorted" folders to the "Media Library" folder
+		Added right-click menu to navigation pane
+		Renamed "Cache" folder to "Media Library" folder and enabled it by default
+		Changed "Hide" options to "Show", e.g. "Hide Media Library folder" becomes "Show Media Library folder"
+		Library is re-scanned whenever a file is added/changed/removed in a shared folder
+		Fixed bug where removing a directory in UMS does not remove its contents from the Media Library.
+		Fixed sorting in dynamic folders
+		Fully played tracking is stored in the SQL database
 
 6.5.2 - 2016-11-27
 
