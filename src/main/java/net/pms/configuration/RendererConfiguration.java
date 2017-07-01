@@ -1,5 +1,6 @@
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
@@ -2538,25 +2540,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public String calculatedSpeed() throws InterruptedException, ExecutionException {
 		String max = getString(MAX_VIDEO_BITRATE, "");
-		for (InetAddress sa : addressAssociation.keySet()) {
-			if (addressAssociation.get(sa) == this) {
-				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
-				if (max == null) {
-					return String.valueOf(speed.get());
-				}
-				try {
-					Integer i = Integer.parseInt(max);
-					if (speed.get() > i && i != 0) {
-						return max;
-					} else {
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			if (entry.getValue() == this) {
+				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey(), getRendererName());
+				if (speed != null) {
+					if (max == null) {
 						return String.valueOf(speed.get());
 					}
-				} catch (NumberFormatException e) {
-					return String.valueOf(speed.get());
+					try {
+						Integer i = Integer.parseInt(max);
+						if (speed.get() > i && i > 0) {
+							return max;
+						}
+						return String.valueOf(speed.get());
+					} catch (NumberFormatException e) {
+						return String.valueOf(speed.get());
+					}
 				}
 			}
 		}
-		return max;
+		return isBlank(max) ? "0" : max;
 	}
 
 	/**
