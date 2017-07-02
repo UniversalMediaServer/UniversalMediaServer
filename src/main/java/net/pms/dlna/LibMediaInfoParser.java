@@ -47,8 +47,8 @@ public class LibMediaInfoParser {
 			LOGGER.debug("Option 'File_RiskyBitRateEstimation' is set to: " + MI.Option("File_RiskyBitRateEstimation_Get"));
 			MI.Option("ParseSpeed", "0.5");
 			LOGGER.debug("Option 'ParseSpeed' is set to: " + MI.Option("ParseSpeed_Get"));
-//			MI.Option("ReadByHuman", "0");
-//			LOGGER.debug("Option 'ReadByHuman' is set to: " + MI.Option("ReadByHuman_Get"));
+			MI.Option("ReadByHuman", "0");
+			LOGGER.debug("Option 'ReadByHuman' is set to: " + MI.Option("ReadByHuman_Get"));
 			MI.Option("Legacy", "0");
 			LOGGER.debug("Option 'Legacy' is set to: " + MI.Option("Legacy_Get"));
 			MI.Option("Verbosity", "0");
@@ -94,7 +94,7 @@ public class LibMediaInfoParser {
 				// set General
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
-				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
+				media.setDuration(getDuration(MI.Get(general, 0, "Duration")));
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
