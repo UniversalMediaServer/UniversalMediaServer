@@ -223,6 +223,11 @@ public class BasicSystemUtils implements SystemUtils {
 		return timeString;
 	}
 
+	@Override
+	public int getPingPacketFragments(int packetSize) {
+		return ((packetSize + 8) / 1500) + 1;
+	}
+
 	/**
 	 * Return the proper tray icon for the operating system.
 	 *

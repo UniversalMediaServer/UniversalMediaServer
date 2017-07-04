@@ -2542,7 +2542,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		String max = getString(MAX_VIDEO_BITRATE, "");
 		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
 			if (entry.getValue() == this) {
-				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey(), getRendererName());
+				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey());
 				if (speed != null) {
 					if (max == null) {
 						return String.valueOf(speed.get());

@@ -70,4 +70,12 @@ public interface SystemUtils {
 	String[] getPingCommand(String hostAddress, int count, int packetSize);
 
 	String parsePingLine(String line);
+
+	/**
+	 * This is't an actual but an estimated value assuming default MTU size.
+	 * 
+	 * @param packetSize the size of the packet in bytes.
+	 * @return The estimated number of fragments.
+	 */
+	int getPingPacketFragments(int packetSize);
 }
