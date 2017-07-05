@@ -22,6 +22,7 @@ package net.pms.dlna;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
+import net.pms.dlna.protocolinfo.DeviceProtocolInfoOrigin.ProtocolInfoType;
 import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.network.UPNPControl.Renderer;
 import static net.pms.util.StringUtil.*;
@@ -76,28 +77,38 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>, Seri
 	protected abstract void appendResAttributes(StringBuilder sb);
 
 	/**
-	 * Checks whether a given {@link UPnPResElement} is supported by
-	 * {@code renderer} according to acquired {@link ProtocolInfo} information.
-	 * If no information is available, it's considered supported. The reason is
-	 * that not all renderers provide this information, in which case all must
-	 * be assumed supported as opposed to none.
+	 * Checks whether this is supported by {@code renderer} according to
+	 * acquired {@link ProtocolInfo} information. If no information is
+	 * available, it's considered supported. The reason is that not all
+	 * renderers provide this information, in which case all must be assumed
+	 * supported as opposed to none.
 	 *
 	 * @param renderer the {@link Renderer} for which to check supported
 	 *            {@link UPnPResElement}s.
 	 * @return {@code true} if this is supported or no information is available,
 	 *         {@code false} otherwise.
 	 */
-	public static boolean isSupported(Renderer renderer) { //TODO: (Nad) Carefully verify
-		if (renderer == null || renderer.deviceProtocolInfo == null || renderer.deviceProtocolInfo.isEmpty(type)) {
+	public boolean isSupported(Renderer renderer) { //TODO: (Nad) Carefully verify
+		if (renderer == null || renderer.deviceProtocolInfo == null || renderer.deviceProtocolInfo.isEmpty(ProtocolInfoType.SINK)) {
 			return true;
 		}
 
-
-		return
-			renderer == null ||
-			renderer.deviceProtocolInfo == null ||
-			renderer.deviceProtocolInfo.isImageProfilesEmpty() ||
-			renderer.deviceProtocolInfo.imageProfilesContains(profile);
+		for (ProtocolInfo protocolInfoEntry : renderer.deviceProtocolInfo.toArray(ProtocolInfoType.SINK)) {
+			if (protocolInfo.isDLNA() == protocolInfoEntry.isDLNA()) {
+				if (protocolInfo.isDLNA()) {
+					if (protocolInfo.getDLNAProfileName().getValue().equals(protocolInfoEntry.getDLNAProfileName().getValue())) {
+						if (protocolInfo.getMimeType().isCompatible(protocolInfoEntry.getMimeType(), false, true)) {
+							return true; //TODO: (Nad) Verify
+						}
+					}
+				} else {
+					if (protocolInfo.getMimeType().isCompatible(protocolInfoEntry.getMimeType(), false, false)) {
+						return true; //TODO: (Nad) Verify
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override

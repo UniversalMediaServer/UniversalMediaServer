@@ -158,50 +158,52 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	}
 
 	/**
-	 * Determines whether this and {@code other} is compatible. That means being
-	 * either equal or having {@link #ANY} in {@code type} or {@code subtype} is
-	 * such a way that they can describe the same content without taking
-	 * parameters into account.
+	 * Determines whether {@code other} is compatible with this. That means
+	 * being either equal or having {@link #ANY} in {@code type} or
+	 * {@code subtype} is such a way that they can describe the same content.
 	 *
 	 * @param other the {@link MimeType} to check compatibility against.
+	 * @param includeAnyType Determines if matches for {@code type} of value
+	 *            {@link #ANY} is allowed for {@code other}. It true and
+	 *            {@code other} is {@link #ANYANY}, {@code true} will always be
+	 *            returned.
+	 * @param includeParameters Determines if the {@code parameters} map should
+	 *            be evaluated.
 	 * @return {@code true} of this and {@code other} is compatible,
 	 *         {@code false} otherwise.
 	 */
-	public boolean isCompatible(MimeType other) {
+	public boolean isCompatible(MimeType other, boolean includeAnyType, boolean includeParameters) {
 		if (other == null) {
 			return false;
 		}
-		if (
-			(isBlank(type) || ANY.equals(type)) &&
-			isBlank(subtype) ||
-			(isBlank(other.type) || ANY.equals(other.type)) &&
-			isBlank(other.subtype)
-		) {
-			return true;
-		} else if (isBlank(type) || (isBlank(other.type))) {
-			return
-				isBlank(subtype) ||
-				isBlank(other.subtype) ||
-				ANY.equals(subtype) ||
-				ANY.equals(other.subtype) ||
-				subtype.toLowerCase(Locale.ROOT).equals(other.subtype.toLowerCase(Locale.ROOT));
-		} else if (
-			type.toLowerCase(Locale.ROOT).equals(other.type.toLowerCase(Locale.ROOT)) &&
-			(
-				isBlank(subtype) ||
-				ANY.equals(subtype) ||
-				isBlank(other.subtype) ||
-				ANY.equals(other.subtype)
-			)
-		) {
-			return true;
-		} else if (isBlank(subtype) || isBlank(other.subtype)) {
+		if (includeParameters && !parameters.equals(other.parameters)) {
 			return false;
-		} else {
-			return
-				type.toLowerCase(Locale.ROOT).equals(other.type.toLowerCase(Locale.ROOT)) &&
-				subtype.toLowerCase(Locale.ROOT).equals(other.subtype.toLowerCase(Locale.ROOT));
 		}
+		String thisType = isBlank(type) || type.trim().equals(ANY) ?
+			ANY :
+			type.trim().toLowerCase(Locale.ROOT);
+		if (ANY.equals(thisType)) {
+			return true;
+		}
+		String otherType = isBlank(other.type) || other.type.trim().equals(ANY) ?
+			ANY :
+			other.type.trim().toLowerCase(Locale.ROOT);
+		if (includeAnyType && ANY.equals(otherType)) {
+			return true;
+		}
+		if (!thisType.equals(otherType)) {
+			return false;
+		}
+		String thisSubtype = isBlank(subtype) || subtype.trim().equals(ANY) ?
+			ANY :
+			subtype.trim().toLowerCase(Locale.ROOT);
+		String otherSubtype = isBlank(other.subtype) || other.subtype.trim().equals(ANY) ?
+			ANY :
+			other.subtype.trim().toLowerCase(Locale.ROOT);
+		if (ANY.equals(thisSubtype) || ANY.equals(otherSubtype)) {
+			return true;
+		}
+		return thisSubtype.equals(otherSubtype);
 	}
 
 	/**
@@ -304,7 +306,7 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 			}
 		} else if (other.subtype == null) {
 			return false;
-		} else if (!subtype.toLowerCase(Locale.ROOT).equals(other.subtype.toLowerCase(Locale.ROOT))) {
+		} else if (!subtype.equals(other.subtype)) {
 			return false;
 		}
 		if (type == null) {
@@ -313,7 +315,39 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 			}
 		} else if (other.type == null) {
 			return false;
-		} else if (!type.toLowerCase(Locale.ROOT).equals(other.type.toLowerCase(Locale.ROOT))) {
+		} else if (!type.equals(other.type)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Does the same as {@link #equals} but also {@link String#trim()}s and
+	 * {@link String#toLowerCase} {@code type} and {@code subtype} before
+	 * comparing. This method also considers {@code null} == empty (after
+	 * trimming) == {@code *} (after trimming) for {@code type} and
+	 * {@code subtype}.
+	 *
+	 * @param other the reference {@link MimeType} with which to compare.
+	 * @return {@code true} if this {@link MimeType} has an equal value as
+	 *         {@code other}, {@code false} otherwise.
+	 */
+	public boolean valueEquals(MimeType other) {
+		if (equals(other)) {
+			return true;
+		}
+		String effectiveSubtype = isBlank(subtype) || subtype.trim().equals(ANY) ?
+			ANY :
+			subtype.trim().toLowerCase(Locale.ROOT);
+		String effectiveOtherSubtype = isBlank(other.subtype) || other.subtype.trim().equals(ANY) ?
+			ANY :
+			other.subtype.trim().toLowerCase(Locale.ROOT);
+		if (!effectiveSubtype.equals(effectiveOtherSubtype)) {
+			return false;
+		}
+		String effectiveType = isBlank(type) || type.trim().equals(ANY) ? ANY : type.trim().toLowerCase(Locale.ROOT);
+		String effectiveOthertype = isBlank(other.type) || other.type.trim().equals(ANY) ? ANY : other.type.trim().toLowerCase(Locale.ROOT);
+		if (!effectiveType.equals(effectiveOthertype)) {
 			return false;
 		}
 		return true;
