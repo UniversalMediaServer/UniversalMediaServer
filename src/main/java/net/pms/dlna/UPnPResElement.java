@@ -19,8 +19,11 @@
  */
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import java.io.Serializable;
 import net.pms.dlna.protocolinfo.ProtocolInfo;
+import net.pms.network.UPNPControl.Renderer;
 import static net.pms.util.StringUtil.*;
 
 /**
@@ -29,16 +32,18 @@ import static net.pms.util.StringUtil.*;
  *
  * @author Nadahar
  */
-public abstract class UPnPResElement implements Comparable<UPnPResElement>{
+public abstract class UPnPResElement implements Comparable<UPnPResElement>, Serializable {
 
+	private static final long serialVersionUID = 1L;
 	protected final ProtocolInfo protocolInfo;
+	protected final String url;
 
-
-	public UPnPResElement(ProtocolInfo protocolInfo) {
+	public UPnPResElement(ProtocolInfo protocolInfo, String url) {
 		if (protocolInfo == null) {
 			throw new IllegalArgumentException("protocolInfo cannot be null");
 		}
 		this.protocolInfo = protocolInfo;
+		this.url = isBlank(url) ? "" : url;
 	}
 
 	public boolean isDLNA() {
@@ -46,23 +51,17 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>{
 	}
 
 	@Override
-	public int compareTo(UPnPResElement o) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public String toString() {
-		return toResString("<url>");
+		return toResString();
 	}
 
-	public String toResString(String url) {
+	public String toResString() {
 		StringBuilder sb = new StringBuilder();
-		appendResString(sb, url);
+		appendResString(sb);
 		return sb.toString();
 	}
 
-	public void appendResString(StringBuilder sb, String url) {
+	public void appendResString(StringBuilder sb) {
 		if (isNotBlank(url)) {
 			openTag(sb, "res");
 			appendResAttributes(sb);
@@ -76,181 +75,96 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>{
 
 	protected abstract void appendResAttributes(StringBuilder sb);
 
-//	protected final Integer ciFlag;
-
 	/**
-	 * Instantiates a new DLNA image {@code <res>} element.
+	 * Checks whether a given {@link UPnPResElement} is supported by
+	 * {@code renderer} according to acquired {@link ProtocolInfo} information.
+	 * If no information is available, it's considered supported. The reason is
+	 * that not all renderers provide this information, in which case all must
+	 * be assumed supported as opposed to none.
 	 *
-	 * @param profile the {@link DLNAImageProfile} for this {@code <res>}
-	 *            element.
-	 * @param imageInfo the {@link ImageInfo} for the image represented by this
-	 *            {@code <res>} element.
-	 * @param thumbnail whether the source for this {@code <res>} element is a
-	 *            thumbnail.
-	 *
-	 * @see #isThumbnail()
+	 * @param renderer the {@link Renderer} for which to check supported
+	 *            {@link UPnPResElement}s.
+	 * @return {@code true} if this is supported or no information is available,
+	 *         {@code false} otherwise.
 	 */
-//	public UPnPResElement(DLNAImageProfile profile, ImageInfo imageInfo, boolean thumbnail) {
-//		this(profile, imageInfo, thumbnail, null);
-//	}
+	public static boolean isSupported(Renderer renderer) { //TODO: (Nad) Carefully verify
+		if (renderer == null || renderer.deviceProtocolInfo == null || renderer.deviceProtocolInfo.isEmpty(type)) {
+			return true;
+		}
 
-	/**
-	 * Instantiates a new DLNA image {@code <res>} element.
-	 *
-	 * @param profile the {@link DLNAImageProfile} for this {@code <res>}
-	 *            element.
-	 * @param imageInfo the {@link ImageInfo} for the image represented by this
-	 *            {@code <res>} element.
-	 * @param thumbnail whether the source for this {@code <res>} element is a
-	 *            thumbnail.
-	 * @param overrideCIFlag The overridden CI flag for this {@code <res>}
-	 *            element. Pass {@code null} for automatic setting of the CI
-	 *            flag.
-	 *
-	 * @see #isThumbnail()
-	 */
-//	public UPnPResElement(DLNAImageProfile profile, ImageInfo imageInfo, boolean thumbnail, Integer overrideCIFlag) {
-//		this.profile = profile;
-//		if (profile != null && imageInfo != null) {
-//			hypotheticalResult = profile.calculateHypotheticalProperties(imageInfo);
-//			ciFlag = overrideCIFlag == null ?
-//				(hypotheticalResult.conversionNeeded ?
-//					Integer.valueOf(1) :
-//					Integer.valueOf(0)
-//				) :
-//				overrideCIFlag;
-//		} else {
-//			hypotheticalResult = null;
-//			ciFlag = overrideCIFlag;
-//		}
-//		this.thumbnail = thumbnail;
-//	}
 
-	/**
-	 * @return The {@link DLNAImageProfile}.
-	 */
-//	public DLNAImageProfile getProfile() {
-//		return profile;
-//	}
+		return
+			renderer == null ||
+			renderer.deviceProtocolInfo == null ||
+			renderer.deviceProtocolInfo.isImageProfilesEmpty() ||
+			renderer.deviceProtocolInfo.imageProfilesContains(profile);
+	}
 
-	/**
-	 * @return The CI flag value or {@code null}.
-	 */
-//	public Integer getCiFlag() {
-//		return ciFlag;
-//	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((protocolInfo == null) ? 0 : protocolInfo.hashCode());
+		result = prime * result + ((url == null) ? 0 : url.hashCode());
+		return result;
+	}
 
-	/**
-	 * Note: This can be confusing. This doesn't indicate whether the res
-	 * element is <b>used</b> as a thumbnail, but if the res element's source is
-	 * a thumbnail from UMS' point of view. For low resolution images (where the
-	 * resolution is equal or smaller than the cached thumbnail), the thumbnail
-	 * source can be used also for the image itself for increased performance.
-	 *
-	 * @return Whether this element has a thumbnail source.
-	 */
-//	public boolean isThumbnail() {
-//		return thumbnail;
-//	}
-//
-//	/**
-//	 * @return Whether the resolution for this image is known.
-//	 */
-//	public boolean isResolutionKnown() {
-//		return hypotheticalResult != null && hypotheticalResult.width > 0 && hypotheticalResult.height > 0;
-//	}
-//
-//	/**
-//	 * @return The calculated image width or {@link ImageInfo#UNKNOWN} if
-//	 *         unknown.
-//	 */
-//	public int getWidth() {
-//		return hypotheticalResult != null ? hypotheticalResult.width : ImageInfo.UNKNOWN;
-//	}
-//
-//	/**
-//	 * @return The calculated image height or {@link ImageInfo#UNKNOWN} if
-//	 *         unknown.
-//	 */
-//	public int getHeight() {
-//		return hypotheticalResult != null ? hypotheticalResult.height : ImageInfo.UNKNOWN;
-//	}
-//
-//	/**
-//	 * @return The image size or {@code null} if unknown.
-//	 */
-//	public Long getSize() {
-//		return hypotheticalResult != null ? hypotheticalResult.size : null;
-//	}
-//
-//	/**
-//	 * Only useful for the {@link Comparator}. Use the individual getter to
-//	 * obtain the actual values.
-//	 *
-//	 * @return The {@link HypotheticalResult}.
-//	 */
-//	private HypotheticalResult getHypotheticalResult() {
-//		return hypotheticalResult;
-//	}
-//
-//	@Override
-//	public String toString() {
-//		return
-//			"DLNAImageResElement [profile=" + profile + ", ciFlag=" + ciFlag +
-//			", thumbnail=" + thumbnail + ", hypotheticalResult=" +
-//			hypotheticalResult + "]";
-//	}
-//
-//	@Override
-//	public int hashCode() {
-//		final int prime = 31;
-//		int result = 1;
-//		result = prime * result + ((ciFlag == null) ? 0 : ciFlag.hashCode());
-//		result = prime * result + ((hypotheticalResult == null) ? 0 : hypotheticalResult.hashCode());
-//		result = prime * result + ((profile == null) ? 0 : profile.hashCode());
-//		result = prime * result + (thumbnail ? 1231 : 1237);
-//		return result;
-//	}
-//
-//	@Override
-//	public boolean equals(Object obj) {
-//		if (this == obj) {
-//			return true;
-//		}
-//		if (obj == null) {
-//			return false;
-//		}
-//		if (!(obj instanceof UPnPResElement)) {
-//			return false;
-//		}
-//		UPnPResElement other = (UPnPResElement) obj;
-//		if (ciFlag == null) {
-//			if (other.ciFlag != null) {
-//				return false;
-//			}
-//		} else if (!ciFlag.equals(other.ciFlag)) {
-//			return false;
-//		}
-//		if (hypotheticalResult == null) {
-//			if (other.hypotheticalResult != null) {
-//				return false;
-//			}
-//		} else if (!hypotheticalResult.equals(other.hypotheticalResult)) {
-//			return false;
-//		}
-//		if (profile == null) {
-//			if (other.profile != null) {
-//				return false;
-//			}
-//		} else if (!profile.equals(other.profile)) {
-//			return false;
-//		}
-//		if (thumbnail != other.thumbnail) {
-//			return false;
-//		}
-//		return true;
-//	}
-//
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof UPnPResElement)) {
+			return false;
+		}
+		UPnPResElement other = (UPnPResElement) obj;
+		if (protocolInfo == null) {
+			if (other.protocolInfo != null) {
+				return false;
+			}
+		} else if (!protocolInfo.equals(other.protocolInfo)) {
+			return false;
+		}
+		if (url == null) {
+			if (other.url != null) {
+				return false;
+			}
+		} else if (!url.equals(other.url)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public int compareTo(UPnPResElement other) {
+		if (other == null) {
+			return -1;
+		}
+		if (protocolInfo == null && other.protocolInfo != null) {
+			return 1;
+		}
+		if (protocolInfo != null && other.protocolInfo == null) {
+			return -1;
+		}
+		if (protocolInfo != null) {
+			if (protocolInfo.isDLNA() != other.protocolInfo.isDLNA()) {
+				if (protocolInfo.isDLNA()) {
+					return -1;
+				}
+				return 1;
+			}
+			int result = protocolInfo.compareTo(other.protocolInfo);
+			if (result != 0) {
+				return result;
+			}
+		}
+		return url.compareTo(other.url);
+	}
+
+
 //	/**
 //	 * Constructs a {@link Comparator} for sorting {@link UPnPResElement}s
 //	 * by priority with the highest priority first.

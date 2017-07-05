@@ -36,6 +36,7 @@ import org.fourthline.cling.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.protocolinfo.DeviceProtocolInfoOrigin.ProtocolInfoType;
 import net.pms.util.ParseException;
 
 /**
@@ -54,24 +55,34 @@ public class DeviceProtocolInfo implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceProtocolInfo.class);
 
 	/** The static singleton {@code GetProtocolInfo} {@code Source} identifier */
-	public static final DeviceProtocolInfoSource<DeviceProtocolInfo> GET_PROTOCOLINFO_SOURCE = new GetProtocolInfoType() {
+	public static final DeviceProtocolInfoOrigin<DeviceProtocolInfo> GET_PROTOCOLINFO_SOURCE = new GetProtocolInfoType() {
 
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public String getType() {
+		public String getOrigin() {
 			return "GetProtocolInfo Source";
+		}
+
+		@Override
+		public ProtocolInfoType getType() {
+			return ProtocolInfoType.SOURCE;
 		}
 	};
 
 	/** The static singleton {@code GetProtocolInfo} {@code Sink} identifier */
-	public static final DeviceProtocolInfoSource<DeviceProtocolInfo> GET_PROTOCOLINFO_SINK = new GetProtocolInfoType() {
+	public static final DeviceProtocolInfoOrigin<DeviceProtocolInfo> GET_PROTOCOLINFO_SINK = new GetProtocolInfoType() {
 
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public String getType() {
+		public String getOrigin() {
 			return "GetProtocolInfo Sink";
+		}
+
+		@Override
+		public ProtocolInfoType getType() {
+			return ProtocolInfoType.SINK;
 		}
 	};
 
@@ -110,7 +121,7 @@ public class DeviceProtocolInfo implements Serializable {
 	protected final ReentrantReadWriteLock setsLock = new ReentrantReadWriteLock();
 
 	/** The {@link Map} of {@link ProtocolInfo} {@link Set}s. */
-	protected final HashMap<DeviceProtocolInfoSource<?>, SortedSet<ProtocolInfo>> protocolInfoSets = new HashMap<>();
+	protected final HashMap<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> protocolInfoSets = new HashMap<>();
 
 	/** The DLNA image profile set. */
 	protected final SortedSet<DLNAImageProfile> imageProfileSet = new TreeSet<>();
@@ -128,32 +139,32 @@ public class DeviceProtocolInfo implements Serializable {
 	 * Creates a new instance containing the content from the parsing of
 	 * {@code protocolInfoString}.
 	 *
-	 * @param type The {@link DeviceProtocolInfoSource} of
+	 * @param origin The {@link DeviceProtocolInfoOrigin} of
 	 *            {@code protocolInfoString}, must be either
 	 *            {@link #GET_PROTOCOLINFO_SINK} or
 	 *            {@link #GET_PROTOCOLINFO_SOURCE}.
 	 * @param protocolInfoString a comma separated string of
 	 *            {@code protocolInfo} representations.
 	 */
-	public DeviceProtocolInfo(GetProtocolInfoType type, String protocolInfoString) {
-		add(type, protocolInfoString);
+	public DeviceProtocolInfo(GetProtocolInfoType origin, String protocolInfoString) {
+		add(origin, protocolInfoString);
 	}
 
 	/**
 	 * Tries to parse {@code protocolInfoString} and add the resulting
 	 * {@link ProtocolInfo} instances.
 	 *
-	 * @param type The {@link DeviceProtocolInfoSource} that identifies the
-	 *            source of these {@code protocolInfo}s.
+	 * @param origin The {@link DeviceProtocolInfoOrigin} that identifies the
+	 *            origin of these {@code protocolInfo}s.
 	 * @param protocolInfoString a comma separated string of
 	 *            {@code protocolInfo} representations whose presence is to be
 	 *            ensured.
 	 * @return {@code true} if this changed as a result of the call. Returns
 	 *         {@code false} this already contains the specified element(s).
 	 */
-	public boolean add(DeviceProtocolInfoSource<?> type, String protocolInfoString) {
-		if (type == null) {
-			throw new IllegalArgumentException("type cannot be null");
+	public boolean add(DeviceProtocolInfoOrigin<?> origin, String protocolInfoString) {
+		if (origin == null) {
+			throw new IllegalArgumentException("origin cannot be null");
 		}
 		if (StringUtils.isBlank(protocolInfoString)) {
 			return false;
@@ -164,11 +175,11 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.writeLock().lock();
 		try {
 			SortedSet<ProtocolInfo> currentSet;
-			if (protocolInfoSets.containsKey(type)) {
-				currentSet = protocolInfoSets.get(type);
+			if (protocolInfoSets.containsKey(origin)) {
+				currentSet = protocolInfoSets.get(origin);
 			} else {
 				currentSet = new TreeSet<ProtocolInfo>();
-				protocolInfoSets.put(type, currentSet);
+				protocolInfoSets.put(origin, currentSet);
 			}
 
 			SortedSet<ProtocolInfo> tempSet = null;
@@ -192,7 +203,7 @@ public class DeviceProtocolInfo implements Serializable {
 					LOGGER.trace("", e);
 				}
 			}
-			addImageProfiles(type);
+			addImageProfiles(origin);
 		} finally {
 			setsLock.writeLock().unlock();
 		}
@@ -214,17 +225,17 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Parses and adds all results to {@code imageProfileSet} and
-	 * {@code imageHTTPMimeTypesSet} for the given {@code source}, if they're
+	 * {@code imageHTTPMimeTypesSet} for the given {@code origin}, if they're
 	 * not already there.
 	 *
-	 * @param source the {@link DeviceProtocolInfoSource} whose entries to
+	 * @param origin the {@link DeviceProtocolInfoOrigin} whose entries to
 	 *            parse.
 	 */
-	protected void addImageProfiles(DeviceProtocolInfoSource<?> source) {
-		if (source == null) {
+	protected void addImageProfiles(DeviceProtocolInfoOrigin<?> origin) {
+		if (origin == null) {
 			throw new IllegalArgumentException("source cannot be null");
 		}
-		updateImageProfiles(true, source);
+		updateImageProfiles(true, origin);
 	}
 
 	/**
@@ -232,7 +243,7 @@ public class DeviceProtocolInfo implements Serializable {
 	 * parses all entries in {@code protocolInfoSet}, storing the results in
 	 * {@code imageProfileSet} and {@code imageHTTPMimeTypesSet}.
 	 */
-	protected void parseAllImageProfile() {
+	protected void parseAllImageProfiles() {
 		updateImageProfiles(false, null);
 	}
 
@@ -244,16 +255,16 @@ public class DeviceProtocolInfo implements Serializable {
 	 *            added or {@code imageProfileSet} and
 	 *            {@code imageHTTPMimeTypesSet} cleared and all
 	 *            {@code protocolInfoSet} entries parsed.
-	 * @param source the {@link DeviceProtocolInfoSource} type for which to
-	 *            parse all {@link ProtocolInfo} entries.
+	 * @param origin the {@link DeviceProtocolInfoOrigin} for which to parse all
+	 *            {@link ProtocolInfo} entries.
 	 * @param protocolInfos the specified {@link ProtocolInfo} instances to use
 	 *            if {@code addOnly} is true.
 	 */
-	protected void updateImageProfiles(boolean addOnly, DeviceProtocolInfoSource<?> source, ProtocolInfo... protocolInfos) {
-		if (!addOnly && (protocolInfos != null && protocolInfos.length > 0 || source != null)) {
+	protected void updateImageProfiles(boolean addOnly, DeviceProtocolInfoOrigin<?> origin, ProtocolInfo... protocolInfos) {
+		if (!addOnly && (protocolInfos != null && protocolInfos.length > 0 || origin != null)) {
 			throw new IllegalArgumentException("specific ProtocolInfo instances can only be used with addOnly");
 		}
-		if (addOnly && source == null && (protocolInfos == null || protocolInfos.length == 0)) {
+		if (addOnly && origin == null && (protocolInfos == null || protocolInfos.length == 0)) {
 			throw new IllegalArgumentException("specific ProtocolInfo instances must be specified with addOnly");
 		}
 		setsLock.writeLock().lock();
@@ -265,7 +276,7 @@ public class DeviceProtocolInfo implements Serializable {
 				}
 			} else if (addOnly) {
 				// Only parse entries for a given source
-				SortedSet<ProtocolInfo> set = protocolInfoSets.get(source);
+				SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 				if (set == null || set.size() == 0) {
 					return;
 				}
@@ -328,17 +339,17 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Returns the number of elements of the given
-	 * {@link DeviceProtocolInfoSource} type. If this contains more than
+	 * {@link DeviceProtocolInfoOrigin}. If this contains more than
 	 * {@link Integer#MAX_VALUE} elements, returns {@link Integer#MAX_VALUE}.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type to get the number
-	 *            of elements for.
-	 * @return The number of elements in the {@link Set} for {@code type}.
+	 * @param origin the {@link DeviceProtocolInfoOrigin} for which to get the
+	 *            number of elements.
+	 * @return The number of elements in the {@link Set} for {@code origin}.
 	 */
-	public int size(DeviceProtocolInfoSource<?> type) {
+	public int size(DeviceProtocolInfoOrigin<?> origin) {
 		setsLock.readLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			return set == null ? 0 : set.size();
 		} finally {
 			setsLock.readLock().unlock();
@@ -346,19 +357,32 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Returns the total number of elements of all
-	 * {@link DeviceProtocolInfoSource} types. If the result is greater than
+	 * Returns the total number of elements of the given
+	 * {@link ProtocolInfoType}. If the result is greater than
 	 * {@link Integer#MAX_VALUE} elements, returns {@link Integer#MAX_VALUE}.
 	 *
 	 * @return The number of elements.
 	 */
 	public int size() {
+		return size((ProtocolInfoType) null);
+	}
+
+	/**
+	 * Returns the total number of elements of all
+	 * {@link DeviceProtocolInfoOrigin}s. If the result is greater than
+	 * {@link Integer#MAX_VALUE} elements, returns {@link Integer#MAX_VALUE}.
+	 *
+	 * @param type the {@link ProtocolInfoType} for which to get the number of
+	 *            elements.
+	 * @return The number of elements of {@code type}.
+	 */
+	public int size(ProtocolInfoType type) {
 		long result = 0;
 		setsLock.readLock().lock();
 		try {
-			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
-				if (set != null) {
-					result += set.size();
+			for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> entry : protocolInfoSets.entrySet()) {
+				if (entry.getValue() != null && (type == null || type == entry.getKey().getType())) {
+					result += entry.getValue().size();
 				}
 			}
 		} finally {
@@ -368,17 +392,17 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Checks if the {@link Set} for the given {@link DeviceProtocolInfoSource}
-	 * type is empty.
+	 * Checks if the {@link Set} for the given {@link DeviceProtocolInfoOrigin}
+	 * is empty.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type to check.
+	 * @param origin the {@link DeviceProtocolInfoOrigin} to check.
 	 * @return {@code true} if {@code protocolInfoSets} contains no elements of
-	 *         {@code type}.
+	 *         {@code origin}.
 	 */
-	public boolean isEmpty(DeviceProtocolInfoSource<?> type) {
+	public boolean isEmpty(DeviceProtocolInfoOrigin<?> origin) {
 		setsLock.readLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			return set == null ? true : set.isEmpty();
 		} finally {
 			setsLock.readLock().unlock();
@@ -386,17 +410,37 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Checks if all the {@link DeviceProtocolInfoSource} {@link Set}s are
+	 * Checks if all the {@link DeviceProtocolInfoOrigin} {@link Set}s are
 	 * empty.
 	 *
-	 * @return {@code true} if neither of the {@link DeviceProtocolInfoSource}
+	 * @return {@code true} if neither of the {@link DeviceProtocolInfoOrigin}
 	 *         {@link Set}s contain any elements, {@code false} otherwise.
 	 */
 	public boolean isEmpty() {
+		return isEmpty((ProtocolInfoType) null);
+	}
+
+	/**
+	 * Checks if all the {@link DeviceProtocolInfoOrigin} {@link Set}s of
+	 * {@code type} are empty.
+	 *
+	 * @param type the {@link ProtocolInfoType} to check.
+	 * @return {@code true} if neither of the {@link DeviceProtocolInfoOrigin}
+	 *         {@link Set}s of {@code type} contain any elements, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isEmpty(ProtocolInfoType type) {
 		setsLock.readLock().lock();
 		try {
-			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
-				if (set != null && !set.isEmpty()) {
+			for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> entry : protocolInfoSets.entrySet()) {
+				if (
+					entry.getValue() != null &&
+					(
+						type == null ||
+						type == entry.getKey().getType()
+					) &&
+					!entry.getValue().isEmpty()
+				) {
 					return false;
 				}
 			}
@@ -408,18 +452,18 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Returns {@code true} if the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource} contains the specified element.
+	 * {@link DeviceProtocolInfoOrigin} contains the specified element.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type to check.
+	 * @param origin the {@link DeviceProtocolInfoOrigin} to check.
 	 * @param protocolInfo the element whose presence is to be tested.
 	 * @return {@code true} if the {@link Set} for the given
-	 *         {@link DeviceProtocolInfoSource} contains the specified element,
+	 *         {@link DeviceProtocolInfoOrigin} contains the specified element,
 	 *         {@code false} otherwise.
 	 */
-	public boolean contains(DeviceProtocolInfoSource<?> type, ProtocolInfo protocolInfo) {
+	public boolean contains(DeviceProtocolInfoOrigin<?> origin, ProtocolInfo protocolInfo) {
 		setsLock.readLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			return set == null ? false : set.contains(protocolInfo);
 		} finally {
 			setsLock.readLock().unlock();
@@ -427,19 +471,40 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Returns {@code true} if any of the {@link DeviceProtocolInfoSource}
+	 * Returns {@code true} if any of the {@link DeviceProtocolInfoOrigin}
 	 * {@link Set}s contains the specified element.
 	 *
 	 * @param protocolInfo the element whose presence is to be tested.
-	 * @return {@code true} if any of the {@link DeviceProtocolInfoSource}
+	 * @return {@code true} if any of the {@link DeviceProtocolInfoOrigin}
 	 *         {@link Set}s contains the specified element {@code false}
 	 *         otherwise.
 	 */
 	public boolean contains(ProtocolInfo protocolInfo) {
+		return contains((ProtocolInfoType) null, protocolInfo);
+	}
+
+	/**
+	 * Returns {@code true} if any of the {@link DeviceProtocolInfoOrigin}
+	 * {@link Set}s of {@code type} contains the specified element.
+	 *
+	 * @param type the {@link ProtocolInfoType} to check.
+	 * @param protocolInfo the element whose presence is to be tested.
+	 * @return {@code true} if any of the {@link DeviceProtocolInfoOrigin}
+	 *         {@link Set}s of {@code type} contains the specified element
+	 *         {@code false} otherwise.
+	 */
+	public boolean contains(ProtocolInfoType type, ProtocolInfo protocolInfo) {
 		setsLock.readLock().lock();
 		try {
-			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
-				if (set != null && set.contains(protocolInfo)) {
+			for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> entry : protocolInfoSets.entrySet()) {
+				if (
+					entry.getValue() != null &&
+					(
+						type == null ||
+						type == entry.getKey().getType()
+					) &&
+					!entry.getValue().contains(protocolInfo)
+				) {
 					return true;
 				}
 			}
@@ -451,21 +516,21 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Returns a sorted array containing all of the elements in the {@link Set}
-	 * for the given {@link DeviceProtocolInfoSource}.
+	 * for the given {@link DeviceProtocolInfoOrigin}.
 	 * <p>
 	 * The returned array will be "safe" in that no reference to it is
 	 * maintained. (In other words, this method must allocate a new array). The
 	 * caller is thus free to modify the returned array.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type whose elements to
+	 * @param origin the {@link DeviceProtocolInfoOrigin} whose elements to
 	 *            convert to an {@code array}.
 	 * @return An array containing all the {@link ProtocolInfo} instances in the
-	 *         {@link Set} for {@code type}.
+	 *         {@link Set} for {@code origin}.
 	 */
-	public ProtocolInfo[] toArray(DeviceProtocolInfoSource<?> type) {
+	public ProtocolInfo[] toArray(DeviceProtocolInfoOrigin<?> origin) {
 		setsLock.readLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			return set == null ? null : set.toArray(new ProtocolInfo[protocolInfoSets.size()]);
 		} finally {
 			setsLock.readLock().unlock();
@@ -474,7 +539,7 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Returns a sorted array containing all of the elements for all of the
-	 * {@link DeviceProtocolInfoSource} {@link Set}s.
+	 * {@link DeviceProtocolInfoOrigin} {@link Set}s.
 	 * <p>
 	 * The returned array will be "safe" in that no reference to it is
 	 * maintained. (In other words, this method must allocate a new array). The
@@ -483,12 +548,34 @@ public class DeviceProtocolInfo implements Serializable {
 	 * @return An array containing all the {@link ProtocolInfo} instances.
 	 */
 	public ProtocolInfo[] toArray() {
+		return toArray((ProtocolInfoType) null);
+	}
+
+	/**
+	 * Returns a sorted array containing all of the elements of the
+	 * {@link DeviceProtocolInfoOrigin} {@link Set}s of {@code type}.
+	 * <p>
+	 * The returned array will be "safe" in that no reference to it is
+	 * maintained. (In other words, this method must allocate a new array). The
+	 * caller is thus free to modify the returned array.
+	 *
+	 * @param type the {@link ProtocolInfoType} to include.
+	 * @return An array containing all the {@link ProtocolInfo} instances in the
+	 *         {@link Set}s of {@code type}.
+	 */
+	public ProtocolInfo[] toArray(ProtocolInfoType type) {
 		SortedSet<ProtocolInfo> result = new TreeSet<>();
 		setsLock.readLock().lock();
 		try {
-			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
-				if (set != null) {
-					result.addAll(set);
+			for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> entry : protocolInfoSets.entrySet()) {
+				if (
+					entry.getValue() != null &&
+					(
+						type == null ||
+						type == entry.getKey().getType()
+					)
+				) {
+					result.addAll(entry.getValue());
 				}
 			}
 		} finally {
@@ -499,23 +586,19 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Returns {@code true} if the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource} contains all of the elements in the
+	 * {@link DeviceProtocolInfoOrigin} contains all of the elements in the
 	 * specified collection.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type to check.
+	 * @param origin the {@link DeviceProtocolInfoOrigin} to check.
 	 * @param collection a {@link Collection} to be checked for containment.
-	 * @return {@code true} if {@link Set} for {@code type} contains all of the
-	 *         elements in {@code collection}.
-	 *
-	 * @see #contains(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #contains(ProtocolInfo)
-	 * @see #containsAll(Collection)
+	 * @return {@code true} if {@link Set} for {@code origin} contains all of
+	 *         the elements in {@code collection}.
 	 */
 
-	public boolean containsAll(DeviceProtocolInfoSource<?> type, Collection<ProtocolInfo> collection) {
+	public boolean containsAll(DeviceProtocolInfoOrigin<?> origin, Collection<ProtocolInfo> collection) {
 		setsLock.readLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			return set == null ? false : set.containsAll(collection);
 		} finally {
 			setsLock.readLock().unlock();
@@ -523,22 +606,33 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Returns {@code true} if any of the {@link DeviceProtocolInfoSource}
+	 * Returns {@code true} if any of the {@link DeviceProtocolInfoOrigin}
 	 * {@link Set}s contains the elements in the specified collection.
 	 *
 	 * @param collection a {@link Collection} to be checked for containment.
-	 * @return {@code true} if any of the {@link DeviceProtocolInfoSource}
+	 * @return {@code true} if any of the {@link DeviceProtocolInfoOrigin}
 	 *         {@link Set}s contains the elements in {@code collection}.
-	 *
-	 * @see #contains(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #contains(ProtocolInfo)
-	 * @see #containsAll(DeviceProtocolInfoSource, Collection)
 	 */
 	public boolean containsAll(Collection<ProtocolInfo> collection) {
+		return containsAll((ProtocolInfoType) null, collection);
+	}
+
+	/**
+	 * Returns {@code true} if any of the {@link DeviceProtocolInfoOrigin}
+	 * {@link Set}s of {@code type} contains the elements in the specified
+	 * collection.
+	 *
+	 * @param type the {@link ProtocolInfoType} to check.
+	 * @param collection a {@link Collection} to be checked for containment.
+	 * @return {@code true} if any of the {@link DeviceProtocolInfoOrigin}
+	 *         {@link Set}s of {@code type} contains the elements in
+	 *         {@code collection}.
+	 */
+	public boolean containsAll(ProtocolInfoType type, Collection<ProtocolInfo> collection) {
 		setsLock.readLock().lock();
 		try {
 			for (ProtocolInfo protocolInfo : collection) {
-				if (!contains(protocolInfo)) {
+				if (!contains(type, protocolInfo)) {
 					return false;
 				}
 			}
@@ -550,17 +644,17 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Removes all elements in the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource}.
+	 * {@link DeviceProtocolInfoOrigin}.
 	 *
-	 * @param type The {@link DeviceProtocolInfoSource} type to clear.
+	 * @param origin The {@link DeviceProtocolInfoOrigin} to clear.
 	 */
-	public void clear(DeviceProtocolInfoSource<?> type) {
+	public void clear(DeviceProtocolInfoOrigin<?> origin) {
 		setsLock.writeLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			if (set != null) {
 				set.clear();
-				parseAllImageProfile();
+				parseAllImageProfiles();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -568,15 +662,39 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Removes all elements in all of the {@link DeviceProtocolInfoSource}
+	 * Removes all elements in all of the {@link DeviceProtocolInfoOrigin}
 	 * {@link Set}s.
 	 */
 	public void clear() {
+		clear((ProtocolInfoType) null);
+	}
+
+	/**
+	 * Removes all elements in the {@link DeviceProtocolInfoOrigin} {@link Set}s
+	 * of {@code type}.
+	 *
+	 * @param type the {@link ProtocolInfoType} to clear.
+	 */
+	public void clear(ProtocolInfoType type) {
 		setsLock.writeLock().lock();
 		try {
-			protocolInfoSets.clear();
-			imageProfileSet.clear();
-			imageHTTPMimeTypesSet.clear();
+			for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> entry : protocolInfoSets.entrySet()) {
+				if (
+					entry.getValue() != null &&
+					(
+						type == null ||
+						type == entry.getKey().getType()
+					)
+				) {
+					entry.getValue().clear();
+				}
+			}
+			if (type == null) {
+				imageProfileSet.clear();
+				imageHTTPMimeTypesSet.clear();
+			} else {
+				parseAllImageProfiles();
+			}
 		} finally {
 			setsLock.writeLock().unlock();
 		}
@@ -584,25 +702,25 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Ensures that the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource} contains the specified element. Returns
+	 * {@link DeviceProtocolInfoOrigin} contains the specified element. Returns
 	 * {@code true} if {@code protocolInfo} was added a result of the call, or
 	 * {@code false} the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource} already contains the specified element.
+	 * {@link DeviceProtocolInfoOrigin} already contains the specified element.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type.
+	 * @param origin the {@link DeviceProtocolInfoOrigin}.
 	 * @param protocolInfo element whose presence is to be ensured.
-	 * @return {@code true} if the {@link Set} for {@code type} changed as a
+	 * @return {@code true} if the {@link Set} for {@code origin} changed as a
 	 *         result of the call, {@code false} otherwise.
 	 */
-	public boolean add(DeviceProtocolInfoSource<?> type, ProtocolInfo protocolInfo) {
+	public boolean add(DeviceProtocolInfoOrigin<?> origin, ProtocolInfo protocolInfo) {
 		setsLock.writeLock().lock();
 		try {
 			SortedSet<ProtocolInfo> currentSet;
-			if (protocolInfoSets.containsKey(type)) {
-				currentSet = protocolInfoSets.get(type);
+			if (protocolInfoSets.containsKey(origin)) {
+				currentSet = protocolInfoSets.get(origin);
 			} else {
 				currentSet = new TreeSet<ProtocolInfo>();
-				protocolInfoSets.put(type, currentSet);
+				protocolInfoSets.put(origin, currentSet);
 			}
 
 			if (currentSet.add(protocolInfo)) {
@@ -617,25 +735,25 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Ensures that the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource} contains all of the elements in the
+	 * {@link DeviceProtocolInfoOrigin} contains all of the elements in the
 	 * specified collection.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type.
+	 * @param origin the {@link DeviceProtocolInfoOrigin}.
 	 * @param collection a {@link Collection} containing elements to be added.
-	 * @return {@code true} if the {@link Set} for {@code type} changed as a
+	 * @return {@code true} if the {@link Set} for {@code origin} changed as a
 	 *         result of the call, {@code false} otherwise.
 	 *
-	 * @see #add(DeviceProtocolInfoSource, ProtocolInfo)
+	 * @see #add(DeviceProtocolInfoOrigin, ProtocolInfo)
 	 */
-	public boolean addAll(DeviceProtocolInfoSource<?> type, Collection<? extends ProtocolInfo> collection) {
+	public boolean addAll(DeviceProtocolInfoOrigin<?> origin, Collection<? extends ProtocolInfo> collection) {
 		setsLock.writeLock().lock();
 		try {
 			SortedSet<ProtocolInfo> currentSet;
-			if (protocolInfoSets.containsKey(type)) {
-				currentSet = protocolInfoSets.get(type);
+			if (protocolInfoSets.containsKey(origin)) {
+				currentSet = protocolInfoSets.get(origin);
 			} else {
 				currentSet = new TreeSet<ProtocolInfo>();
-				protocolInfoSets.put(type, currentSet);
+				protocolInfoSets.put(origin, currentSet);
 			}
 
 			if (currentSet.addAll(collection)) {
@@ -649,25 +767,25 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Removes a given instance of {@link ProtocolInfo}, if it is present in the
-	 * {@link Set} for the given {@link DeviceProtocolInfoSource}. Returns
+	 * Removes an instance of {@link ProtocolInfo}, if it is present in the
+	 * {@link Set} for the given {@link DeviceProtocolInfoOrigin}. Returns
 	 * {@code true} if the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource} contained the specified element (or
+	 * {@link DeviceProtocolInfoOrigin} contained the specified element (or
 	 * equivalently, if the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource} changed as a result of the call).
+	 * {@link DeviceProtocolInfoOrigin} changed as a result of the call).
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type.
+	 * @param origin the {@link DeviceProtocolInfoOrigin}.
 	 * @param protocolInfo element to be removed, if present.
 	 * @return {@code true} if an element was removed from the {@link Set} for
-	 *         {@code type} as a result of this call, {@code false} otherwise.
+	 *         {@code origin} as a result of this call, {@code false} otherwise.
 	 */
-	public boolean remove(DeviceProtocolInfoSource<?> type, ProtocolInfo protocolInfo) {
+	public boolean remove(DeviceProtocolInfoOrigin<?> origin, ProtocolInfo protocolInfo) {
 		setsLock.writeLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			if (set != null) {
 				if (set.remove(protocolInfo)) {
-					parseAllImageProfile();
+					parseAllImageProfiles();
 					return true;
 				}
 			}
@@ -678,11 +796,11 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Removes all instances of {@code protocolInfo} from all the
-	 * {@link DeviceProtocolInfoSource} {@link Set}s, if it is present. Returns
-	 * {@code true} if any of the {@link DeviceProtocolInfoSource} {@link Set}s
+	 * Removes an instance of {@code protocolInfo} from all the
+	 * {@link DeviceProtocolInfoOrigin} {@link Set}s, if it is present. Returns
+	 * {@code true} if any of the {@link DeviceProtocolInfoOrigin} {@link Set}s
 	 * contained the specified element (or equivalently, if any of the
-	 * {@link DeviceProtocolInfoSource} {@link Set}s changed as a result of the
+	 * {@link DeviceProtocolInfoOrigin} {@link Set}s changed as a result of the
 	 * call).
 	 *
 	 * @param protocolInfo element to be removed, if present.
@@ -690,14 +808,38 @@ public class DeviceProtocolInfo implements Serializable {
 	 *         {@code false} otherwise.
 	 */
 	public boolean remove(ProtocolInfo protocolInfo) {
+		return remove((ProtocolInfoType) null, protocolInfo);
+	}
+
+	/**
+	 * Removes an instance of {@link ProtocolInfo}, if it is present in the
+	 * {@link DeviceProtocolInfoOrigin} {@link Set}s of the given
+	 * {@link ProtocolInfoType}. Returns {@code true} if any of the {@link Set}s
+	 * contained the specified element (or equivalently, if the {@link Set}s for
+	 * the given {@link ProtocolInfoType} changed as a result of the call).
+	 *
+	 * @param type the {@link ProtocolInfoType} to use.
+	 * @param protocolInfo element to be removed, if present.
+	 * @return {@code true} if an element was removed as a result of this call,
+	 *         {@code false} otherwise.
+	 */
+	public boolean remove(ProtocolInfoType type, ProtocolInfo protocolInfo) {
 		boolean result = false;
 		setsLock.writeLock().lock();
 		try {
-			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
-				result |= set != null && set.remove(protocolInfo);
+			for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> entry : protocolInfoSets.entrySet()) {
+				if (
+					entry.getValue() != null &&
+					(
+						type == null ||
+						type == entry.getKey().getType()
+					)
+				) {
+					result |= entry.getValue().remove(protocolInfo);
+				}
 			}
 			if (result) {
-				parseAllImageProfile();
+				parseAllImageProfiles();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -707,26 +849,20 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Removes all elements from the {@link Set} for the given
-	 * {@link DeviceProtocolInfoSource} that are also contained in
+	 * {@link DeviceProtocolInfoOrigin} that are also contained in
 	 * {@code collection}.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type.
+	 * @param origin the {@link DeviceProtocolInfoOrigin}.
 	 * @param collection a {@link Collection} containing the elements to be
 	 *            removed.
 	 * @return {@code true} if this call resulted in a change.
-	 *
-	 * @see #remove(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #remove(ProtocolInfo)
-	 * @see #contains(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #contains(ProtocolInfo)
-	 * @see #removeAll(Collection)
 	 */
-	public boolean removeAll(DeviceProtocolInfoSource<?> type, Collection<ProtocolInfo> collection) {
+	public boolean removeAll(DeviceProtocolInfoOrigin<?> origin, Collection<ProtocolInfo> collection) {
 		setsLock.writeLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			if (set != null && set.removeAll(collection)) {
-				parseAllImageProfile();
+				parseAllImageProfiles();
 				return true;
 			}
 			return false;
@@ -736,28 +872,44 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Removes all elements from all the {@link DeviceProtocolInfoSource}
+	 * Removes all elements from all the {@link DeviceProtocolInfoOrigin}
 	 * {@link Set}s that are also contained in {@code collection}.
 	 *
 	 * @param collection a {@link Collection} containing the elements to be
 	 *            removed.
 	 * @return {@code true} if this call resulted in a change.
-	 *
-	 * @see #remove(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #remove(ProtocolInfo)
-	 * @see #contains(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #contains(ProtocolInfo)
-	 * @see #removeAll(DeviceProtocolInfoSource, Collection)
 	 */
 	public boolean removeAll(Collection<ProtocolInfo> collection) {
+		return removeAll((ProtocolInfoType) null, collection);
+	}
+
+	/**
+	 * Removes all elements from the {@link DeviceProtocolInfoOrigin}
+	 * {@link Set}s of the given {@link ProtocolInfoType} that are also
+	 * contained in {@code collection}.
+	 *
+	 * @param type the {@link ProtocolInfoType} to use.
+	 * @param collection a {@link Collection} containing the elements to be
+	 *            removed.
+	 * @return {@code true} if this call resulted in a change.
+	 */
+	public boolean removeAll(ProtocolInfoType type, Collection<ProtocolInfo> collection) {
 		boolean result = false;
 		setsLock.writeLock().lock();
 		try {
-			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
-				result |= set != null && set.removeAll(collection);
+			for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> entry : protocolInfoSets.entrySet()) {
+				if (
+					entry.getValue() != null &&
+					(
+						type == null ||
+						type == entry.getKey().getType()
+					)
+				) {
+					result |= entry.getValue().removeAll(collection);
+				}
 			}
 			if (result) {
-				parseAllImageProfile();
+				parseAllImageProfiles();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -766,28 +918,22 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Retains only the elements that are contained in {@code collection} from
-	 * the {@link Set} for the given {@link DeviceProtocolInfoSource}. In other
+	 * Retains only the elements that are contained in {@code collection} in the
+	 * {@link Set} for the given {@link DeviceProtocolInfoOrigin}. In other
 	 * words, removes all elements that are not contained in {@code collection}
-	 * from the {@link Set} for the given {@link DeviceProtocolInfoSource}.
+	 * from the {@link Set} for the given {@link DeviceProtocolInfoOrigin}.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type.
+	 * @param origin the {@link DeviceProtocolInfoOrigin}.
 	 * @param collection a {@link Collection} containing elements to be
 	 *            retained.
 	 * @return {@code true} if this call resulted in a change.
-	 *
-	 * @see #remove(ProtocolInfo)
-	 * @see #remove(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #contains(ProtocolInfo)
-	 * @see #contains(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #retainAll(Collection)
 	 */
-	public boolean retainAll(DeviceProtocolInfoSource<?> type, Collection<ProtocolInfo> collection) {
+	public boolean retainAll(DeviceProtocolInfoOrigin<?> origin, Collection<ProtocolInfo> collection) {
 		setsLock.writeLock().lock();
 		try {
-			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
+			SortedSet<ProtocolInfo> set = protocolInfoSets.get(origin);
 			if (set != null && set.retainAll(collection)) {
-				parseAllImageProfile();
+				parseAllImageProfiles();
 				return true;
 			}
 			return false;
@@ -798,29 +944,47 @@ public class DeviceProtocolInfo implements Serializable {
 
 	/**
 	 * Retains only the elements that are contained in {@code collection} in all
-	 * the {@link DeviceProtocolInfoSource} {@link Set}s. In other words,
-	 * removes all elements from all the {@link DeviceProtocolInfoSource}
+	 * the {@link DeviceProtocolInfoOrigin} {@link Set}s. In other words,
+	 * removes all elements from all the {@link DeviceProtocolInfoOrigin}
 	 * {@link Set}s that are not contained in {@code collection}.
 	 *
 	 * @param collection a {@link Collection} containing elements to be
 	 *            retained.
 	 * @return {@code true} if this call resulted in a change.
-	 *
-	 * @see #remove(ProtocolInfo)
-	 * @see #remove(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #contains(ProtocolInfo)
-	 * @see #contains(DeviceProtocolInfoSource, ProtocolInfo)
-	 * @see #retainAll(DeviceProtocolInfoSource, Collection)
 	 */
 	public boolean retainAll(Collection<ProtocolInfo> collection) {
+		return retainAll((ProtocolInfoType) null, collection);
+	}
+
+	/**
+	 * Retains only the elements that are contained in {@code collection} in the
+	 * {@link DeviceProtocolInfoOrigin} {@link Set}s of the given
+	 * {@link ProtocolInfoType}. In other words, removes all elements from the
+	 * {@link DeviceProtocolInfoOrigin} {@link Set}s of {@code type} that are
+	 * not contained in {@code collection}.
+	 *
+	 * @param type the {@link ProtocolInfoType} to use.
+	 * @param collection a {@link Collection} containing elements to be
+	 *            retained.
+	 * @return {@code true} if this call resulted in a change.
+	 */
+	public boolean retainAll(ProtocolInfoType type, Collection<ProtocolInfo> collection) {
 		boolean result = false;
 		setsLock.writeLock().lock();
 		try {
-			for (SortedSet<ProtocolInfo> set : protocolInfoSets.values()) {
-				result |= set != null && set.retainAll(collection);
+			for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>> entry : protocolInfoSets.entrySet()) {
+				if (
+					entry.getValue() != null &&
+					(
+						type == null ||
+						type == entry.getKey().getType()
+					)
+				) {
+					result |= entry.getValue().retainAll(collection);
+				}
 			}
 			if (result) {
-				parseAllImageProfile();
+				parseAllImageProfiles();
 			}
 		} finally {
 			setsLock.writeLock().unlock();
@@ -1016,20 +1180,7 @@ public class DeviceProtocolInfo implements Serializable {
 
 	@Override
 	public String toString() {
-		return toString(null, false);
-	}
-
-	/**
-	 * Returns a string representation of this {@link DeviceProtocolInfo}
-	 * instance showing only the {@link ProtocolInfo} instances of the given
-	 * {@link DeviceProtocolInfoSource} type. If {@code debug} is {@code true},
-	 * verbose output is returned.
-	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type to include.
-	 * @return A string representation of this {@link DeviceProtocolInfo}.
-	 */
-	public String toString(DeviceProtocolInfoSource<?> type) {
-		return toString(type, false);
+		return toString(null, null, false);
 	}
 
 	/**
@@ -1040,29 +1191,67 @@ public class DeviceProtocolInfo implements Serializable {
 	 * @return A string representation of this {@link DeviceProtocolInfo}.
 	 */
 	public String toString(boolean debug) {
-		return toString(null, debug);
+		return toString(null, null, debug);
 	}
 
 	/**
 	 * Returns a string representation of this {@link DeviceProtocolInfo}
 	 * instance showing only the {@link ProtocolInfo} instances of the given
-	 * {@link DeviceProtocolInfoSource} type. If {@code debug} is {@code true},
+	 * {@link DeviceProtocolInfoOrigin}. If {@code debug} is {@code true},
 	 * verbose output is returned.
 	 *
-	 * @param type the {@link DeviceProtocolInfoSource} type to include. Use
+	 * @param origin the {@link DeviceProtocolInfoOrigin} type to include.
+	 * @param debug whether or not verbose output should be generated.
+	 * @return A string representation of this {@link DeviceProtocolInfo}.
+	 */
+	public String toString(DeviceProtocolInfoOrigin<?> origin, boolean debug) {
+		return toString(origin, null, debug);
+	}
+
+	/**
+	 * Returns a string representation of this {@link DeviceProtocolInfo}
+	 * instance showing only the {@link ProtocolInfo} instances of the given
+	 * {@link ProtocolInfoType}. If {@code debug} is {@code true}, verbose
+	 * output is returned.
+	 *
+	 * @param type the {@link ProtocolInfoType} type to include.
+	 * @param debug whether or not verbose output should be generated.
+	 * @return A string representation of this {@link DeviceProtocolInfo}.
+	 */
+	public String toString(ProtocolInfoType type, boolean debug) {
+		return toString(null, type, debug);
+	}
+
+	/**
+	 * Returns a string representation of this {@link DeviceProtocolInfo}
+	 * instance showing only the {@link ProtocolInfo} instances of the given
+	 * {@link DeviceProtocolInfoOrigin} and {@link ProtocolInfoType}. If
+	 * {@code debug} is {@code true}, verbose output is returned.
+	 *
+	 * @param origin the {@link DeviceProtocolInfoOrigin} to include. Use
+	 *            {@code null} for all origins.
+	 * @param type the {@link ProtocolInfoType} type to include. Use
 	 *            {@code null} for all types.
 	 * @param debug whether or not verbose output should be generated.
 	 * @return A string representation of this {@link DeviceProtocolInfo}.
 	 */
-	public String toString(DeviceProtocolInfoSource<?> type, boolean debug) {
+	public String toString(DeviceProtocolInfoOrigin<?> origin, ProtocolInfoType type, boolean debug) {
 		StringBuilder sb = new StringBuilder();
 		setsLock.readLock().lock();
 		try {
 			if (protocolInfoSets != null && !protocolInfoSets.isEmpty()) {
-				for (Entry<DeviceProtocolInfoSource<?>, SortedSet<ProtocolInfo>>  entry : protocolInfoSets.entrySet()) {
-					if (type == null || type.equals(entry.getKey())) {
+				for (Entry<DeviceProtocolInfoOrigin<?>, SortedSet<ProtocolInfo>>  entry : protocolInfoSets.entrySet()) {
+					if (
+						(
+							origin == null ||
+							origin.equals(entry.getKey())
+						) && (
+							type == null ||
+							type == entry.getKey().getType()
+						)
+					) {
 						if (!entry.getValue().isEmpty()) {
-							sb.append(entry.getKey().getType()).append(" entries:\n");
+							sb.append(entry.getKey().getOrigin()).append(" entries:\n");
 							for (ProtocolInfo protocolInfo : entry.getValue()) {
 								if (protocolInfo != null) {
 									sb.append("  ").append(debug ?
@@ -1238,12 +1427,12 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * This is an abstract implementation of {@link DeviceProtocolInfoSource}
+	 * This is an abstract implementation of {@link DeviceProtocolInfoOrigin}
 	 * where {@link DeviceProtocolInfo} is the parsing class.
 	 *
 	 * @author Nadahar
 	 */
-	public abstract static class GetProtocolInfoType extends DeviceProtocolInfoSource<DeviceProtocolInfo> {
+	public abstract static class GetProtocolInfoType extends DeviceProtocolInfoOrigin<DeviceProtocolInfo> {
 
 		private static final long serialVersionUID = 1L;
 
