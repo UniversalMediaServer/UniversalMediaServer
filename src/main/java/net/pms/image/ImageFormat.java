@@ -19,6 +19,7 @@
  */
 package net.pms.image;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
@@ -93,6 +94,12 @@ public enum ImageFormat {
 
 	public static final int TAG_DNG_VERSION = 0xC612;
 
+	/**
+	 * Converts from {@link DLNAImageProfile} to {@link ImageFormat}.
+	 *
+	 * @param imageProfile the {@link DLNAImageProfile} to convert.
+	 * @return The corresponding {@link ImageFormat}.
+	 */
 	public static ImageFormat toImageFormat(DLNAImageProfile imageProfile) {
 		if (imageProfile == null) {
 			return null;
@@ -100,6 +107,12 @@ public enum ImageFormat {
 		return imageProfile.getFormat();
 	}
 
+	/**
+	 * Converts from {@link FileType} to {@link ImageFormat}.
+	 *
+	 * @param fileType the {@link FileType} to convert.
+	 * @return The corresponding {@link ImageFormat}.
+	 */
 	public static ImageFormat toImageFormat(FileType fileType) {
 		if (fileType == null) {
 			return null;
@@ -152,69 +165,69 @@ public enum ImageFormat {
 	 *         fails.
 	 */
 	public static ImageFormat toImageFormat(String formatName) {
-    	ImageFormat result = null;
-        if (formatName != null) {
-        	formatName = formatName.toUpperCase(Locale.ROOT);
-        	if (formatName.contains("BMP")) {
-        		result = ImageFormat.BMP;
-        	} else if (formatName.contains("CUR")) {
-        		result = ImageFormat.CUR;
-        	} else if (formatName.contains("DCX")) {
-        		result = ImageFormat.DCX;
-        	} else if (formatName.contains("GIF")) {
-        		result = ImageFormat.GIF;
-        	} else if (formatName.contains("ICNS")) {
-        		result = ImageFormat.ICNS;
-        	} else if (formatName.contains("ICO")) {
-        		result = ImageFormat.ICO;
-        	} else if (formatName.equals("IFF")) {
-        		result = ImageFormat.IFF;
-        	} else if (formatName.contains("JPEG")) {
-        		result = ImageFormat.JPEG;
-        	} else if (formatName.contains("PCX")) {
-        		result = ImageFormat.PCX;
-        	} else if (
-        		formatName.contains("PIC") ||
-        		formatName.contains("PCT")
-        	) {
-        		result = ImageFormat.PICT;
-        	} else if (formatName.contains("PNG")) {
-        		result = ImageFormat.PNG;
-        	} else if (
-        		formatName.contains("PNM") ||
-        		formatName.contains("PBM") ||
-        		formatName.contains("PGM") ||
-        		formatName.contains("PPM") ||
-        		formatName.contains("PAM") ||
-        		formatName.contains("PFM")
-        	) {
-        		result = ImageFormat.PNM;
-        	} else if (formatName.contains("PSD")) {
-        		result = ImageFormat.PSD;
-        	} else if (
-        		formatName.contains("RGBE") ||
-        		formatName.contains("HDR") ||
-        		formatName.contains("XYZE")
-        	) {
-        		result = ImageFormat.RGBE;
-        	} else if (
-        		formatName.contains("SGI") ||
-        		formatName.equals("RLE")
-        	) {
-        		result = ImageFormat.SGI;
-        	} else if (
-        		formatName.contains("TGA") ||
-        		formatName.contains("TARGA")
-        	) {
-        		result = ImageFormat.TGA;
-        	} else if (formatName.contains("TIFF")) {
-        		result = ImageFormat.TIFF;
-        	} else if (formatName.contains("WBMP")) {
-        		result = ImageFormat.WBMP;
-        	}
-        }
-        return result;
-    }
+		ImageFormat result = null;
+		if (formatName != null) {
+			formatName = formatName.toUpperCase(Locale.ROOT);
+			if (formatName.contains("BMP")) {
+				result = ImageFormat.BMP;
+			} else if (formatName.contains("CUR")) {
+				result = ImageFormat.CUR;
+			} else if (formatName.contains("DCX")) {
+				result = ImageFormat.DCX;
+			} else if (formatName.contains("GIF")) {
+				result = ImageFormat.GIF;
+			} else if (formatName.contains("ICNS")) {
+				result = ImageFormat.ICNS;
+			} else if (formatName.contains("ICO")) {
+				result = ImageFormat.ICO;
+			} else if (formatName.equals("IFF")) {
+				result = ImageFormat.IFF;
+			} else if (formatName.contains("JPEG")) {
+				result = ImageFormat.JPEG;
+			} else if (formatName.contains("PCX")) {
+				result = ImageFormat.PCX;
+			} else if (
+				formatName.contains("PIC") ||
+				formatName.contains("PCT")
+			) {
+				result = ImageFormat.PICT;
+			} else if (formatName.contains("PNG")) {
+				result = ImageFormat.PNG;
+			} else if (
+				formatName.contains("PNM") ||
+				formatName.contains("PBM") ||
+				formatName.contains("PGM") ||
+				formatName.contains("PPM") ||
+				formatName.contains("PAM") ||
+				formatName.contains("PFM")
+			) {
+				result = ImageFormat.PNM;
+			} else if (formatName.contains("PSD")) {
+				result = ImageFormat.PSD;
+			} else if (
+				formatName.contains("RGBE") ||
+				formatName.contains("HDR") ||
+				formatName.contains("XYZE")
+			) {
+				result = ImageFormat.RGBE;
+			} else if (
+				formatName.contains("SGI") ||
+				formatName.equals("RLE")
+			) {
+				result = ImageFormat.SGI;
+			} else if (
+				formatName.contains("TGA") ||
+				formatName.contains("TARGA")
+			) {
+				result = ImageFormat.TGA;
+			} else if (formatName.contains("TIFF")) {
+				result = ImageFormat.TIFF;
+			} else if (formatName.contains("WBMP")) {
+				result = ImageFormat.WBMP;
+			}
+		}
+		return result;
+	}
 
 	/**
 	 * Tries to parse {@link ImageFormat} from a {@link Metadata} instance.
@@ -377,6 +390,23 @@ public enum ImageFormat {
 	}
 
 	/**
+	 * @return The default file extension for this {@link ImageFormat}.
+	 */
+	public String getDefaultExtension() {
+		// Only override those where the identifier and "standard extension" differ.
+		switch (this) {
+			case JPEG:
+				return "jpg";
+			case RGBE:
+				return "hdr";
+			case SOURCE:
+				return "";
+			default:
+				return "" + super.toString().toLowerCase(Locale.ROOT);
+		}
+	}
+
+	/**
 	 * @return The {@link FormatConfiguration} value for this image format.
 	 */
 	public String toFormatConfiguration() {
@@ -428,5 +458,26 @@ public enum ImageFormat {
 			default:
 				return toString().toLowerCase(Locale.ROOT);
 		}
+	}
+
+	/**
+	 * Returns the {@link ImageFormat} instance with identifier {@code enumName}
+	 * (case sensitive). Performs basically the same as
+	 * {@link ImageFormat#valueOf(String)}, but returns {@code null} instead of
+	 * throwing exceptions if no match is found.
+	 *
+	 * @param enumName the identifier for the {@link ImageFormat} instance.
+	 * @return The {@link ImageFormat} instance or {@code null}.
+	 */
+	public static ImageFormat typeOf(String enumName) {
+		if (isBlank(enumName)) {
+			return null;
+		}
+		for (ImageFormat format : ImageFormat.values()) {
+			if (enumName.equals(format.toString())) {
+				return format;
+			}
+		}
+		return null;
 	}
 }

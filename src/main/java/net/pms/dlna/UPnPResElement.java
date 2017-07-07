@@ -22,8 +22,10 @@ package net.pms.dlna;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
+import java.util.Comparator;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfoOrigin.ProtocolInfoType;
 import net.pms.dlna.protocolinfo.ProtocolInfo;
+import net.pms.image.ImageFormat;
 import net.pms.network.UPNPControl.Renderer;
 import static net.pms.util.StringUtil.*;
 
@@ -36,6 +38,9 @@ import static net.pms.util.StringUtil.*;
 public abstract class UPnPResElement implements Comparable<UPnPResElement>, Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	/** The "{@code null} value" for {@code int} and {@code long} */
+	public static int UNKNOWN = -1;
 	protected final ProtocolInfo protocolInfo;
 	protected final String url;
 
@@ -73,6 +78,20 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>, Seri
 			closeTag(sb, "res");
 		}
 	}
+
+	public ProtocolInfo getProtocolInfo() {
+		return protocolInfo;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	/**
+	 * @return The size in bytes of the media represented by this {@code res}
+	 *         element or {@link #UNKNOWN} if unknown.
+	 */
+	public abstract Long getSize();
 
 	protected abstract void appendResAttributes(StringBuilder sb);
 
@@ -115,6 +134,7 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>, Seri
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + getClass().hashCode();
 		result = prime * result + ((protocolInfo == null) ? 0 : protocolInfo.hashCode());
 		result = prime * result + ((url == null) ? 0 : url.hashCode());
 		return result;
@@ -129,6 +149,9 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>, Seri
 			return false;
 		}
 		if (!(obj instanceof UPnPResElement)) {
+			return false;
+		}
+		if (!getClass().equals(obj.getClass())) {
 			return false;
 		}
 		UPnPResElement other = (UPnPResElement) obj;
@@ -151,7 +174,7 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>, Seri
 
 	@Override
 	public int compareTo(UPnPResElement other) {
-		if (other == null) {
+		if (other == null) { //TODO: (Nad) Implement Comparator here instead, handling all subclasses, use ImageInfo for source.
 			return -1;
 		}
 		if (protocolInfo == null && other.protocolInfo != null) {
@@ -175,195 +198,166 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>, Seri
 		return url.compareTo(other.url);
 	}
 
+	/**
+	 * Constructs a {@link Comparator} for sorting image entries of
+	 * {@link UPnPResElement} and subclasses by priority with the highest
+	 * priority first.
+	 *
+	 * <b>This method must handle all subclasses as well</b>.
+	 *
+	 * @param sourceFormat the {@link ImageFormat} of the source image, used
+	 *            when determining priorities.
+	 * @return The {@link Comparator}.
+	 */
+	public static Comparator<UPnPResElement> getComparator(ImageFormat sourceFormat) {
+		// This defines what format should be preferred depending on the source format
+		final ImageFormat preferredFormat;
+		if (sourceFormat != null) {
+			switch (sourceFormat) {
+				case GIF:
+					preferredFormat = ImageFormat.GIF;
+					break;
+				case CUR:
+				case ICNS:
+				case ICO:
+				case PNG:
+				case PSD:
+				case TIFF:
+				case WEBP:
+					preferredFormat = ImageFormat.PNG;
+					break;
+				case ARW:
+				case BMP:
+				case CR2:
+				case CRW:
+				case DCX:
+				case JPEG:
+				case NEF:
+				case ORF:
+				case PCX:
+				case PNM:
+				case RAF:
+				case RW2:
+				case WBMP:
+				default:
+					preferredFormat = ImageFormat.JPEG;
+					break;
 
-//	/**
-//	 * Constructs a {@link Comparator} for sorting {@link UPnPResElement}s
-//	 * by priority with the highest priority first.
-//	 *
-//	 * @param sourceFormat the {@link ImageFormat} of the source image, use to
-//	 *            decide the preferred {@link DLNAImageProfile}s.
-//	 * @return The {@link Comparator}.
-//	 */
-//	public static Comparator<UPnPResElement> getComparator(ImageFormat sourceFormat) {
-//		// This defines what DLNA format should be preferred for per source format
-//		final ImageFormat preferredFormat;
-//		if (sourceFormat != null) {
-//			switch (sourceFormat) {
-//				case GIF:
-//					preferredFormat = ImageFormat.GIF;
-//					break;
-//				case CUR:
-//				case ICNS:
-//				case ICO:
-//				case PNG:
-//				case PSD:
-//				case TIFF:
-//				case WEBP:
-//					preferredFormat = ImageFormat.PNG;
-//					break;
-//				case ARW:
-//				case BMP:
-//				case CR2:
-//				case CRW:
-//				case DCX:
-//				case JPEG:
-//				case NEF:
-//				case ORF:
-//				case PCX:
-//				case PNM:
-//				case RAF:
-//				case RW2:
-//				case WBMP:
-//				default:
-//					preferredFormat = ImageFormat.JPEG;
-//					break;
-//
-//			}
-//		} else {
-//			preferredFormat = ImageFormat.JPEG;
-//		}
-//		return new Comparator<UPnPResElement>() {
-//
-//			@Override
-//			public int compare(UPnPResElement o1, UPnPResElement o2) {
-//				if (o1 == null && o2 == null) {
-//					return 0;
-//				} else if (o1 == null) {
-//					return 1;
-//				} else if (o2 == null) {
-//					return -1;
-//				}
-//
-//				if (o1.isThumbnail() != o2.isThumbnail()) {
-//					return (o1.isThumbnail() ? 1 : 0) - (o2.isThumbnail() ? 1 : 0);
-//				}
-//
-//				int i =
-//					(o1.getCiFlag() == null ? 2 : o1.getCiFlag()) -
-//					(o2.getCiFlag() == null ? 2 : o2.getCiFlag());
-//				if (i != 0) {
-//					return i;
-//				}
-//
-//				ImageFormat o1Format = o1.getProfile() != null ? o1.getProfile().getFormat() : null;
-//				ImageFormat o2Format = o2.getProfile() != null ? o2.getProfile().getFormat() : null;
-//
-//				if (o1Format != o2Format) {
-//					if (o1Format == null) {
-//						return 1;
-//					} else if (o2Format == null) {
-//						return -1;
+			}
+		} else {
+			preferredFormat = ImageFormat.JPEG;
+		}
+		return new Comparator<UPnPResElement>() { //TODO: (Nad) Change type
+
+			@Override
+			public int compare(UPnPResElement o1, UPnPResElement o2) {
+				if (o1 == null && o2 == null) {
+					return 0;
+				} else if (o1 == null) {
+					return 1;
+				} else if (o2 == null) {
+					return -1;
+				}
+
+				if (o1.isDLNA() != o2.isDLNA()) {
+					// DLNA entries sort before UPnP entries
+					if (o1.isDLNA()) {
+						return -1;
+					}
+					return 1;
+				}
+				if (o1.isDLNA()) {
+					// DLNA entries
+//					if (o1.isThumbnail() != o2.isThumbnail()) {
+//						return (o1.isThumbnail() ? 1 : 0) - (o2.isThumbnail() ? 1 : 0);
 //					}
-//					if (o1Format == preferredFormat) {
-//						return -1;
+//
+//					int i =
+//						(o1.getCiFlag() == null ? 2 : o1.getCiFlag()) -
+//						(o2.getCiFlag() == null ? 2 : o2.getCiFlag());
+//					if (i != 0) {
+//						return i;
 //					}
-//					if (o2Format == preferredFormat) {
+//
+//					ImageFormat o1Format = o1.getProfile() != null ? o1.getProfile().getFormat() : null;
+//					ImageFormat o2Format = o2.getProfile() != null ? o2.getProfile().getFormat() : null;
+//
+//					if (o1Format != o2Format) {
+//						if (o1Format == null) {
+//							return 1;
+//						} else if (o2Format == null) {
+//							return -1;
+//						}
+//						if (o1Format == preferredFormat) {
+//							return -1;
+//						}
+//						if (o2Format == preferredFormat) {
+//							return 1;
+//						}
+//						return o1Format.compareTo(o2Format);
+//					}
+//
+//					if (
+//						(DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile()) ||
+//						DLNAImageProfile.JPEG_RES_H_V.equals(o2.getProfile())) &&
+//						(!DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile()) ||
+//						!DLNAImageProfile.JPEG_RES_H_V.equals(o2.getProfile()))
+//					) {
+//						if (DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile())) {
+//							return -1;
+//						}
 //						return 1;
 //					}
-//					return o1Format.compareTo(o2Format);
-//				}
 //
-//				if (
-//					(DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile()) ||
-//					DLNAImageProfile.JPEG_RES_H_V.equals(o2.getProfile())) &&
-//					(!DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile()) ||
-//					!DLNAImageProfile.JPEG_RES_H_V.equals(o2.getProfile()))
-//				) {
-//					if (DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile())) {
-//						return -1;
+//					if (o1.getWidth() != o2.getWidth()) {
+//						return o2.getWidth() - o1.getWidth();
 //					}
-//					return 1;
-//				}
 //
-//				if (o1.getWidth() != o2.getWidth()) {
-//					return o2.getWidth() - o1.getWidth();
-//				}
-//
-//				if (o1.getHeight() != o2.getHeight()) {
-//					return o2.getHeight() - o1.getHeight();
-//				}
-//
-//				if (o1.getProfile() != null || o2.getProfile() != null) {
-//					if (o1.getProfile() == null) {
-//						return 1;
+//					if (o1.getHeight() != o2.getHeight()) {
+//						return o2.getHeight() - o1.getHeight();
 //					}
-//					if (o2.getProfile() == null) {
-//						return -1;
-//					}
-//					if (!o1.getProfile().equals(o2.getProfile())) {
-//						return o1.getProfile().toInt() - o2.getProfile().toInt();
-//					}
-//				}
 //
-//				long l =
-//					(o2.getSize() == null ? 0 : o2.getSize()) -
-//					(o1.getSize() == null ? 0 : o1.getSize());
-//				if (l != 0) {
-//					return (int) l;
-//				}
-//
-//				if (o1.getHypotheticalResult() != null || o2.getHypotheticalResult() != null) {
-//					// This comparison serves no practical purpose other than
-//					// to fulfill the contract with equals().
-//					if (o1.getHypotheticalResult() == null) {
-//						return 1;
+//					if (o1.getProfile() != null || o2.getProfile() != null) {
+//						if (o1.getProfile() == null) {
+//							return 1;
+//						}
+//						if (o2.getProfile() == null) {
+//							return -1;
+//						}
+//						if (!o1.getProfile().equals(o2.getProfile())) {
+//							return o1.getProfile().toInt() - o2.getProfile().toInt();
+//						}
 //					}
-//					if (o2.getHypotheticalResult() == null) {
-//						return -1;
-//					}
-//					if (o1.getHypotheticalResult().conversionNeeded != o2.getHypotheticalResult().conversionNeeded) {
-//						return
-//							(o1.getHypotheticalResult().conversionNeeded ? 1 : 0) -
-//							(o2.getHypotheticalResult().conversionNeeded ? 1 : 0);
-//					}
-//				}
-//				return 0;
-//			}
-//		};
-//	}
 //
-//	/**
-//	 * Filter out {@link UPnPResElement}s not supported by {@code renderer}.
-//	 *
-//	 * @param resElements the {@link List} of {@link UPnPResElement}s to filter.
-//	 * @param renderer the {@link Renderer} to use for filtering.
-//	 */
-//	public static void filterResElements(List<UPnPResElement> resElements, Renderer renderer) {
-//		if (
-//			renderer == null ||
-//			renderer.deviceProtocolInfo == null ||
-//			renderer.deviceProtocolInfo.isImageProfilesEmpty()
-//		) {
-//			return;
-//		}
-//		Iterator<UPnPResElement> iterator = resElements.iterator();
-//		while (iterator.hasNext()) {
-//			UPnPResElement resElement = iterator.next();
-//			if (!renderer.deviceProtocolInfo.imageProfilesContains(resElement.getProfile())) {
-//				iterator.remove();
-//			}
-//		}
-//	}
+//					long l =
+//						(o2.getSize() == null ? 0 : o2.getSize()) -
+//						(o1.getSize() == null ? 0 : o1.getSize());
+//					if (l != 0) {
+//						return (int) l;
+//					}
 //
-//	/**
-//	 * Checks whether a given {@link DLNAImageProfile} is supported by
-//	 * {@code renderer} according to acquired {@link ProtocolInfo} information.
-//	 * If no information or no supported image profiles are available, it's
-//	 * considered supported. The reason is that not all renderers provide this
-//	 * information, which means that all must be assumed supported as opposed to
-//	 * none.
-//	 *
-//	 * @param profile the {@link DLNAImageProfile} whose support to examine.
-//	 * @param renderer the {@link Renderer} for which to check supported
-//	 *            {@link DLNAImageProfile}s.
-//	 * @return {@code true} if {@code profile} is supported or no image profile
-//	 *         information is available, {@code false} otherwise.
-//	 */
-//	public static boolean isImageProfileSupported(DLNAImageProfile profile, Renderer renderer) {
-//		return
-//			renderer == null ||
-//			renderer.deviceProtocolInfo == null ||
-//			renderer.deviceProtocolInfo.isImageProfilesEmpty() ||
-//			renderer.deviceProtocolInfo.imageProfilesContains(profile);
-//	}
+//					if (o1.getHypotheticalResult() != null || o2.getHypotheticalResult() != null) {
+//						// This comparison serves no practical purpose other than
+//						// to fulfill the contract with equals().
+//						if (o1.getHypotheticalResult() == null) {
+//							return 1;
+//						}
+//						if (o2.getHypotheticalResult() == null) {
+//							return -1;
+//						}
+//						if (o1.getHypotheticalResult().conversionNeeded != o2.getHypotheticalResult().conversionNeeded) {
+//							return
+//								(o1.getHypotheticalResult().conversionNeeded ? 1 : 0) -
+//								(o2.getHypotheticalResult().conversionNeeded ? 1 : 0);
+//						}
+//					}
+					return 0;
+				} else {
+					// UPnP entries
+					// TODO: (Nad) Sort
+					return 0;
+				}
+			}
+		};
+	}
 }

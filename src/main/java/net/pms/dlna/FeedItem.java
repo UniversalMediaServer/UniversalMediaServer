@@ -23,11 +23,11 @@ import java.io.InputStream;
 
 public class FeedItem extends DLNAResource {
 	@Override
-	protected String getThumbnailURL(DLNAImageProfile profile) {
+	protected String getThumbnailURL(String namePrefix, String extension) {
 		if (thumbURL == null) {
 			return null;
 		}
-		return super.getThumbnailURL(profile);
+		return super.getThumbnailURL(namePrefix, extension);
 	}
 
 	@Override

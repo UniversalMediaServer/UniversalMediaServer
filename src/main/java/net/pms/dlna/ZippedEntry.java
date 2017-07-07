@@ -37,13 +37,13 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	private ZipFile zipFile;
 
 	@Override
-	protected String getThumbnailURL(DLNAImageProfile profile) {
+	protected String getThumbnailURL(String namePrefix, String extension) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) {
 			// no thumbnail support for now for zipped videos
 			return null;
 		}
 
-		return super.getThumbnailURL(profile);
+		return super.getThumbnailURL(namePrefix, extension);
 	}
 
 	public ZippedEntry(File file, String zeName, long length) {

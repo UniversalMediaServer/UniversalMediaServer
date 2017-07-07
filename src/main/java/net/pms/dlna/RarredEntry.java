@@ -38,12 +38,12 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	private long length;
 
 	@Override
-	protected String getThumbnailURL(DLNAImageProfile profile) {
+	protected String getThumbnailURL(String namePrefix, String extension) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) { // no thumbnail support for now for rarred videos
 			return null;
 		}
 
-		return super.getThumbnailURL(profile);
+		return super.getThumbnailURL(namePrefix, extension);
 	}
 
 	public RarredEntry(String name, File file, String fileHeaderName, long length) {

@@ -52,6 +52,7 @@ import net.pms.network.HTTPResource;
 import net.pms.network.UPNPControl.Renderer;
 import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -1709,42 +1710,152 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return Returns an URL pointing to an image representing the item. If
 	 * none is available, "thumbnail0000.png" is used.
 	 */
+
+	/**
+	 * Builds the thumbnail URL using {@code profile}. If both
+	 * {@link #getName()} and {@code profile} are blank,
+	 * {@code "thumbnail0000.png"} is used.
+	 *
+	 * @param profile the {@link DLNAImageProfile} to use.
+	 * @return The generated thumbnail URL.
+	 */
 	protected String getThumbnailURL(DLNAImageProfile profile) {
-		StringBuilder sb = new StringBuilder(PMS.get().getServer().getURL());
-		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
+		String namePrefix = null;
+		String extension = null;
 		if (profile != null) {
 			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
-				sb.append("JPEG_RES").append(profile.getH()).append("x").append(profile.getV()).append("_");
+				namePrefix = "JPEG_RES" + profile.getH() + "x" +profile.getV() + "_";
 			} else {
-				sb.append(profile).append("_");
+				namePrefix = profile + "_";
+			}
+			extension = profile.getDefaultExtension();
+		}
+		return getThumbnailURL(namePrefix, extension);
+	}
+
+	/**
+	 * Builds the thumbnail URL using the given parameters. If both
+	 * {@link #getName()} and {@code extension} are blank,
+	 * {@code "thumbnail0000.png"} is used.
+	 *
+	 * @param namePrefix the prefix to insert before the name or {@code null}.
+	 *            Is <b>not</b> URL encoded.
+	 * @param extension the file extension to use if transcoding or {@code null}
+	 *            . Is <b>not</b> URL encoded.
+	 * @return The generated thumbnail URL.
+	 */
+	protected String getThumbnailURL(String namePrefix, String extension) {
+		return getThumbnailURL(namePrefix, getName(), extension);
+	}
+
+	/**
+	 * Builds the thumbnail URL using the given parameters. If both {@code name}
+	 * and {@code extension} are blank, {@code "thumbnail0000.png"} is used.
+	 *
+	 * @param namePrefix the prefix to insert before the name or {@code null}.
+	 *            Is <b>not</b> URL encoded.
+	 * @param name the name to use. <b>Is</b> URL encoded.
+	 * @param extension the file extension to use if transcoding or {@code null}
+	 *            . Is <b>not</b> URL encoded.
+	 * @return The generated thumbnail URL.
+	 */
+	protected String getThumbnailURL(String namePrefix, String name, String extension) {
+		if (!isBlank(namePrefix) && !namePrefix.endsWith("_")) {
+			namePrefix += "_";
+		}
+		StringBuilder sb = new StringBuilder(PMS.get().getServer().getURL());
+		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
+		if (namePrefix != null) {
+			sb.append(namePrefix);
+		}
+		if (isBlank(name)) {
+			if (isBlank(extension)) {
+				extension = ".png";
+			}
+		} else {
+			sb.append(encode(name));
+		}
+		if (!isBlank(extension)) {
+			if (!extension.startsWith(".")) {
+				sb.append(".");
+			}
+			if (!sb.toString().toLowerCase(Locale.ROOT).endsWith(extension)) {
+				sb.append(extension);
 			}
 		}
-		sb.append(encode(getName())).append(".");
-		if (profile != null) {
-			sb.append(profile.getDefaultExtension());
-		} else {
-			LOGGER.debug("Warning: Thumbnail without DLNA image profile requested, resulting URL is: \"{}\"", sb.toString());
-		}
-
 		return sb.toString();
 	}
 
 	/**
-	 * @param prefix
-	 * @return Returns a URL for a given media item. Not used for container types.
+	 * Builds the URL for a this {@link DLNAResource} using the given
+	 * parameters.
+	 *
+	 * @param namePrefix the prefix to insert before the name or {@code null}.
+	 *            Is <b>not</b> URL encoded.
+	 * @return The generated media URL.
 	 */
-	public String getURL(String prefix) {
-		return getURL(prefix, false);
+	public String getURL(String namePrefix) {
+		return getURL(namePrefix, false);
 	}
 
-	public String getURL(String prefix, boolean useSystemName) {
+	/**
+	 * Builds the URL for a this {@link DLNAResource} using the given
+	 * parameters.
+	 *
+	 * @param namePrefix the prefix to insert before the name or {@code null}.
+	 *            Is <b>not</b> URL encoded.
+	 * @param extension the file extension to use if transcoding or {@code null}
+	 *            . Is <b>not</b> URL encoded.
+	 * @return The generated media URL.
+	 */
+	public String getURL(String namePrefix, String extension) {
+		return getURL(namePrefix, extension, false);
+	}
+
+	/**
+	 * Builds the URL for a this {@link DLNAResource} using the given
+	 * parameters.
+	 *
+	 * @param namePrefix the prefix to insert before the name or {@code null}.
+	 *            Is <b>not</b> URL encoded.
+	 * @param useSystemName whether to use {@link #getSystemName()} instead of
+	 *            {@link #getName()} for the "name part" of the URL.
+	 * @return The generated media URL.
+	 */
+	public String getURL(String namePrefix, boolean useSystemName) {
+		return getURL(namePrefix, null, useSystemName);
+	}
+
+	/**
+	 * Builds the URL for a this {@link DLNAResource} using the given
+	 * parameters.
+	 *
+	 * @param namePrefix the prefix to insert before the name or {@code null}.
+	 *            Is <b>not</b> URL encoded.
+	 * @param extension the file extension to use if transcoding or {@code null}
+	 *            . Is <b>not</b> URL encoded.
+	 * @param useSystemName whether to use {@link #getSystemName()} instead of
+	 *            {@link #getName()} for the "name part" of the URL.
+	 * @return The generated media URL.
+	 */
+	public String getURL(String namePrefix, String extension, boolean useSystemName) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); //id
 		sb.append('/');
-		sb.append(prefix);
+		if (!isBlank(namePrefix)) {
+			sb.append(namePrefix);
+		}
 		sb.append(encode(useSystemName ? getSystemName() : getName()));
+		if (!isBlank(extension)) {
+			if (!extension.startsWith(".")) {
+				sb.append(".");
+			}
+			if (!sb.toString().toLowerCase(Locale.ROOT).endsWith(extension)) {
+				sb.append(extension);
+			}
+		}
 		return sb.toString();
 	}
 
@@ -3009,7 +3120,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			throw new IllegalArgumentException("Resolution cannot be unknown for DLNAImageProfile.JPEG_RES_H_V");
 		}
 		String url;
-		if (resElement.isThumbnail()) {
+		if (resElement.isThumbnailSource()) {
 			url = getThumbnailURL(resElement.getProfile());
 		} else {
 			url = getURL(

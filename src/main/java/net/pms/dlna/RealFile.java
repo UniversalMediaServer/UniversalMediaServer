@@ -332,11 +332,11 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	protected String getThumbnailURL(DLNAImageProfile profile) {
+	protected String getThumbnailURL(String namePrefix, String extension) {
 		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
 			return null;
 		}
-		return super.getThumbnailURL(profile);
+		return super.getThumbnailURL(namePrefix, extension);
 	}
 
 	@Override

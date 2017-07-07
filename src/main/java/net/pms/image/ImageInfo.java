@@ -122,6 +122,7 @@ public abstract class ImageInfo implements Serializable {
 	 *            applied to the {@code metadata} argument instance</b>.
 	 * @param imageIOSupport whether or not {@link ImageIO} can read/parse this
 	 *            image.
+	 * @return The new instance.
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
 	 *             format from {@code metadata} fails or parsing of
 	 *             {@code metadata} fails.
@@ -351,6 +352,7 @@ public abstract class ImageInfo implements Serializable {
 	 *            applied to the {@code metadata} argument instance</b>.
 	 * @param imageIOSupport whether or not {@link ImageIO} can read/parse this
 	 *            image.
+	 * @return The new instance.
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
 	 *             format from {@code metadata} fails or parsing of
 	 *             {@code metadata} fails.
@@ -588,6 +590,7 @@ public abstract class ImageInfo implements Serializable {
 	 * @param throwOnParseFailure if a {@link ParseException} should be thrown
 	 *            instead of returning an instance with invalid resolution if
 	 *            parsing of resolution fails.
+	 * @return The new instance.
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
 	 *             format from {@code metadata} fails or parsing of
 	 *             {@code metadata} fails.
@@ -623,6 +626,7 @@ public abstract class ImageInfo implements Serializable {
 	 * @param throwOnParseFailure if a {@link ParseException} should be thrown
 	 *            instead of returning an instance with invalid resolution if
 	 *            parsing of resolution fails.
+	 * @return The new instance.
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
 	 *             format from {@code metadata} fails or parsing of
 	 *             {@code metadata} fails.
@@ -803,7 +807,18 @@ public abstract class ImageInfo implements Serializable {
 	}
 
 	/**
-	 * Copy constructor
+	 * Copy constructor.
+	 *
+	 * @param width the width.
+	 * @param height the height.
+	 * @param format the {@link ImageFormat}.
+	 * @param size the size.
+	 * @param bitDepth the bit depth.
+	 * @param numComponents the number of components.
+	 * @param colorSpace the {@link ColorSpace}.
+	 * @param colorSpaceType the {@link ColorSpaceType}.
+	 * @param imageIOSupport whether or not {@link ImageIO} can parse this
+	 *            image.
 	 */
 	protected ImageInfo(
 		int width,
@@ -920,8 +935,7 @@ public abstract class ImageInfo implements Serializable {
 
 		return ((ExifInfo) this).exifOrientation != null ?
 			((ExifInfo) this).exifOrientation :
-			ExifOrientation.TOP_LEFT
-		;
+			ExifOrientation.TOP_LEFT;
 	}
 
 	/**
@@ -929,6 +943,11 @@ public abstract class ImageInfo implements Serializable {
 	 */
 	public abstract ImageInfo copy();
 
+	/**
+	 * Used internally to let subclasses add information to {@link #toString()}.
+	 *
+	 * @param sb the {@link StringBuilder} to add information to.
+	 */
 	protected abstract void buildToString(StringBuilder sb);
 
 	@Override
@@ -964,6 +983,10 @@ public abstract class ImageInfo implements Serializable {
 	/**
 	 * Compares the parsed and the given resolution and logs a warning if they
 	 * mismatch.
+	 *
+	 * @param width the width to compare with {@code parsedInfo}.
+	 * @param height the height to compare with {@code parsedInfo}.
+	 * @param parsedInfo the {@link ParseInfo} to compare.
 	 */
 	protected void compareResolution(int width, int height, ParseInfo parsedInfo) {
 		if (parsedInfo == null) {
@@ -971,7 +994,7 @@ public abstract class ImageInfo implements Serializable {
 		}
 
 		int parsedWidth = parsedInfo.width != null ? parsedInfo.width.intValue() : UNKNOWN;
-		int parsedHeight = parsedInfo.height!= null ? parsedInfo.height.intValue() : UNKNOWN;
+		int parsedHeight = parsedInfo.height != null ? parsedInfo.height.intValue() : UNKNOWN;
 		if (this instanceof RAWInfo) {
 			// DCRaw decodes pixels that's normally hidden because they are too
 			// expensive to decode for CPU restrained devices, so the resolution
@@ -1002,6 +1025,9 @@ public abstract class ImageInfo implements Serializable {
 	/**
 	 * Compares the parsed and the given {@link ImageFormat} and logs a warning
 	 * if they mismatch.
+	 *
+	 * @param format the {@link ImageFormat} to compare with {@code parsedInfo}.
+	 * @param parsedInfo the {@link ParseInfo} to compare.
 	 */
 	protected void compareFormat(ImageFormat format, ParseInfo parsedInfo) {
 		if (parsedInfo == null) {
@@ -1021,6 +1047,13 @@ public abstract class ImageInfo implements Serializable {
 	/**
 	 * Compares the parsed and the given color model information and logs a
 	 * warning if any information mismatch.
+	 *
+	 * @param bitDepth the bit depth to compare with {@code parsedInfo}.
+	 * @param numComponents the number of components to compare with
+	 *            {@code parsedInfo}.
+	 * @param colorSpaceType the {@link ColorSpaceType} to compare with
+	 *            {@code parsedInfo}.
+	 * @param parsedInfo the {@link ParseInfo} to compare.
 	 */
 	protected void compareColorModel(int bitDepth, int numComponents, ColorSpaceType colorSpaceType, ParseInfo parsedInfo) {
 		if (parsedInfo == null) {
@@ -1068,6 +1101,80 @@ public abstract class ImageInfo implements Serializable {
 		}
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + bitDepth;
+		result = prime * result + ((colorSpace == null) ? 0 : colorSpace.getNumComponents());
+		result = prime * result + ((colorSpace == null) ? 0 : colorSpace.getType());
+		result = prime * result + ((colorSpaceType == null) ? 0 : colorSpaceType.hashCode());
+		result = prime * result + ((format == null) ? 0 : format.hashCode());
+		result = prime * result + height;
+		result = prime * result + (imageIOSupport ? 1231 : 1237);
+		result = prime * result + numComponents;
+		result = prime * result + (int) (size ^ (size >>> 32));
+		result = prime * result + width;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof ImageInfo)) {
+			return false;
+		}
+		ImageInfo other = (ImageInfo) obj;
+		if (bitDepth != other.bitDepth) {
+			return false;
+		}
+		if (colorSpace == null) {
+			if (other.colorSpace != null) {
+				return false;
+			}
+		} else if (other.colorSpace == null) {
+			return false;
+		} else {
+			if (
+				colorSpace.getNumComponents() != other.colorSpace.getNumComponents() ||
+				colorSpace.getType() != other.colorSpace.getType()
+			) {
+				return false;
+			}
+		}
+		if (colorSpaceType != other.colorSpaceType) {
+			return false;
+		}
+		if (format != other.format) {
+			return false;
+		}
+		if (height != other.height) {
+			return false;
+		}
+		if (imageIOSupport != other.imageIOSupport) {
+			return false;
+		}
+		if (numComponents != other.numComponents) {
+			return false;
+		}
+		if (size != other.size) {
+			return false;
+		}
+		if (width != other.width) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Internal class for passing parsed information during construction.
+	 */
+	@SuppressWarnings("checkstyle:VisibilityModifier")
 	protected static class ParseInfo {
 		Integer width;
 		Integer height;
