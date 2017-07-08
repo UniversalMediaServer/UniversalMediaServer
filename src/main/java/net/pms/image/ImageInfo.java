@@ -26,6 +26,7 @@ import java.util.Arrays;
 import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.drew.imaging.png.PngColorType;
 import com.drew.metadata.Metadata;
 import net.pms.dlna.DLNAImage;
 import net.pms.dlna.DLNAImageInputStream;
@@ -911,8 +912,8 @@ public abstract class ImageInfo implements Serializable {
 	 * @return The number of bits per color "channel" or {@link #UNKNOWN} if
 	 *         unknown.
 	 *
-	 * @see #getBitPerPixel()
-	 * @see #getNumColorComponents()
+	 * @see #getBitsPerPixel()
+	 * @see #getNumComponents()
 	 */
 	public int getBitDepth() {
 		return bitDepth;
@@ -936,6 +937,78 @@ public abstract class ImageInfo implements Serializable {
 		return ((ExifInfo) this).exifOrientation != null ?
 			((ExifInfo) this).exifOrientation :
 			ExifOrientation.TOP_LEFT;
+	}
+
+	/**
+	 * @return The {@code res@size} formatted size in bytes or {@code null} if
+	 *         unknown.
+	 */
+	public String getResSize() {
+		if (size < 1) {
+			return null;
+		}
+		return Long.toString(size);
+	}
+
+	/**
+	 * @return The {@code res@resolution} formatted resolution in pixels or
+	 *         {@code null} if unknown.
+	 */
+	public String getResResolution() {
+		if (width < 1 || height < 1) {
+			return null;
+		}
+		return width + "x" + height;
+	}
+
+	/**
+	 * @return The {@code res@colorDepth} formatted bits per pixel or
+	 *         {@code null} if unknown.
+	 */
+	public String getResColorDepth() {
+		/*
+		 * DLNA defines res@colorDepth value for the most common PNG and JPEG
+		 * variants as follows:
+		 *
+		 * --------------------------------------------------------------------
+		 * | PNG  | Grayscale: 8 bits                                    |  8 |
+		 * |      | ---------------------------------------------------- | -- |
+		 * |      | Grayscale: 16 bits                                   | 16 |
+		 * |      | ---------------------------------------------------- | -- |
+		 * |      | Truecolor: 24 bits (triplet of 8 bits R/G/B samples) | 24 |
+		 * |      | ---------------------------------------------------- | -- |
+		 * |      | Indexed – color bits 24 bits (palette entry is a     |    |
+		 * |      | triplet of 8 bits R/G/B samples)                     | 24 |
+		 * |      | ---------------------------------------------------- | -- |
+		 * |      | Grayscale w/ alpha: 8 bits (with matching alpha      |    |
+		 * |      | channel depth)                                       |  8 |
+		 * |      | ---------------------------------------------------- | -- |
+		 * |      | Grayscale w/ alpha: 16 bits (with matching alpha     |    |
+		 * |      | channel depth)                                       | 16 |
+		 * |      | ---------------------------------------------------- | -- |
+		 * |      | Truecolor w/ alpha: 24 bits (triplet of 8 bit R/G/B  |    |
+		 * |      | samples, alpha channel shall be 8 bits)              | 24 |
+		 * --------------------------------------------------------------------
+		 * | JPEG | (8 bits Y/Cr/Cb samples)                             | 24 |
+		 * --------------------------------------------------------------------
+		 *
+		 */
+		if (this instanceof PNGInfo) {
+			PngColorType colorType = ((PNGInfo) this).getColorType();
+			if (colorType != null) {
+				switch (colorType) {
+					case Greyscale:
+					case GreyscaleWithAlpha:
+						return  Integer.toString(bitDepth);
+					case TrueColor:
+					case TrueColorWithAlpha:
+					case IndexedColor:
+						return Integer.toString(bitDepth * 3);
+				}
+			}
+		}
+		int result = getBitsPerPixel();
+		return result < 1 ? null : Integer.toString(result);
 	}
 
 	/**

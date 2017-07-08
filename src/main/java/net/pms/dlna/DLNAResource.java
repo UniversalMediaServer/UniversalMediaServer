@@ -1786,6 +1786,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return sb.toString();
 	}
 
+	protected String getURL(DLNAImageProfile profile) {
+		String namePrefix = null;
+		String extension = null;
+		if (profile != null) {
+			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
+				namePrefix = "JPEG_RES" + profile.getH() + "x" +profile.getV() + "_";
+			} else {
+				namePrefix = profile + "_";
+			}
+			extension = profile.getDefaultExtension();
+		}
+		return getURL(namePrefix, extension);
+	}
+
 	/**
 	 * Builds the URL for a this {@link DLNAResource} using the given
 	 * parameters.

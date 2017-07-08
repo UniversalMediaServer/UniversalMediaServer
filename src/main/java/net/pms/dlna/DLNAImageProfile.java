@@ -1083,18 +1083,18 @@ public class DLNAImageProfile implements DLNAOrgProfileName, Comparable<DLNAImag
 	 *
 	 * @param imageInfo the {@link ImageInfo} for the image in question.
 	 *
-	 * @return The result in a {@link HypotheticalResult} data structure.
+	 * @return The result in a {@link CalculatedImage} data structure.
 	 */
-	public HypotheticalResult calculateHypotheticalProperties(ImageInfo imageInfo) {
+	public CalculatedImage calculateHypotheticalProperties(ImageInfo imageInfo) {
 		if (imageInfo == null) {
 			throw new IllegalArgumentException("calculateHypotheticalProperties: imageInfo cannot be null");
 		}
 		if (imageInfo.getWidth() < 1 || imageInfo.getHeight() < 1) {
-			return new HypotheticalResult(ImageInfo.UNKNOWN, ImageInfo.UNKNOWN, null, true);
+			return new CalculatedImage(ImageInfo.UNKNOWN, ImageInfo.UNKNOWN, null, true);
 		}
 		DLNAComplianceResult complianceResult = checkCompliance(imageInfo);
 		if (complianceResult.isAllCorrect()) {
-			return new HypotheticalResult(
+			return new CalculatedImage(
 				imageInfo.getWidth(),
 				imageInfo.getHeight(),
 				imageInfo.getSize(),
@@ -1102,7 +1102,7 @@ public class DLNAImageProfile implements DLNAOrgProfileName, Comparable<DLNAImag
 			);
 		}
 		if (complianceResult.resolutionCorrect) {
-			return new HypotheticalResult(imageInfo.getWidth(), imageInfo.getHeight(), null, true);
+			return new CalculatedImage(imageInfo.getWidth(), imageInfo.getHeight(), null, true);
 		}
 		Dimension scaledResolution = ImagesUtil.calculateScaledResolution(
 			imageInfo,
@@ -1111,7 +1111,7 @@ public class DLNAImageProfile implements DLNAOrgProfileName, Comparable<DLNAImag
 			vertical
 		);
 
-		return new HypotheticalResult(
+		return new CalculatedImage(
 			scaledResolution.width,
 			scaledResolution.height,
 			null,
@@ -1172,10 +1172,10 @@ public class DLNAImageProfile implements DLNAOrgProfileName, Comparable<DLNAImag
 	}
 
 	/**
-	 * Immutable {@link #calculateHypotheticalProperties(ImageInfo)}
-	 * result data structure. Please note that {@code size} might be {@code null}.
+	 * Immutable {@link #calculateHypotheticalProperties(ImageInfo)} data
+	 * structure. Please note that {@code size} might be {@code null}.
 	 */
-	public static class HypotheticalResult {
+	public static class CalculatedImage {
 		/**
 		 * The calculated width or {@link ImageInfo#UNKNOWN} if unknown.
 		 */
@@ -1194,14 +1194,14 @@ public class DLNAImageProfile implements DLNAOrgProfileName, Comparable<DLNAImag
 		public final boolean conversionNeeded;
 
 		/**
-		 * Instantiates a new hypothetical result.
+		 * Instantiates a new calculated image.
 		 *
-		 * @param width the estimated image width.
-		 * @param height the estimated image height.
-		 * @param size the estimated image size.
+		 * @param width the calculated image width.
+		 * @param height the calculated image height.
+		 * @param size the calculated image size.
 		 * @param conversionNeeded the "conversion needed" evaluation result.
 		 */
-		public HypotheticalResult(int width, int height, Long size, boolean conversionNeeded) {
+		public CalculatedImage(int width, int height, Long size, boolean conversionNeeded) {
 			if (width < 1 || height < 1) {
 				// Use ImageInfo.UNKNOWN for unknown
 				this.width = ImageInfo.UNKNOWN;
@@ -1217,7 +1217,7 @@ public class DLNAImageProfile implements DLNAOrgProfileName, Comparable<DLNAImag
 		@Override
 		public String toString() {
 			return
-				"HypotheticalResult [width=" + width + ", height=" + height +
+				"CalculatedImage [width=" + width + ", height=" + height +
 				", size=" + size + ", conversionNeeded=" + conversionNeeded +
 				"]";
 		}
@@ -1241,10 +1241,10 @@ public class DLNAImageProfile implements DLNAOrgProfileName, Comparable<DLNAImag
 			if (obj == null) {
 				return false;
 			}
-			if (!(obj instanceof HypotheticalResult)) {
+			if (!(obj instanceof CalculatedImage)) {
 				return false;
 			}
-			HypotheticalResult other = (HypotheticalResult) obj;
+			CalculatedImage other = (CalculatedImage) obj;
 			if (conversionNeeded != other.conversionNeeded) {
 				return false;
 			}

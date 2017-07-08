@@ -495,9 +495,12 @@ public class CoverArtArchiveUtil extends CoverUtil {
 						LOGGER.debug("Cover for MBID \"{}\" was not found at CoverArtArchive", mBID);
 						TableCoverArtArchive.writeMBID(mBID, null);
 						return null;
-					} else {
-						LOGGER.warn("Got HTTP response {} while trying to download over for MBID \"{}\" from CoverArtArchive: {}", e.getStatusCode(), mBID, e.getMessage());
 					}
+					LOGGER.warn(
+						"Got HTTP response {} while trying to download over for MBID \"{}\" from CoverArtArchive: {}",
+						e.getStatusCode(),
+						mBID, e.getMessage()
+					);
 				} catch (IOException e) {
 					LOGGER.error("An error occurred while downloading cover for MBID \"{}\": {}", mBID, e.getMessage());
 					LOGGER.trace("", e);
@@ -510,7 +513,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		return null;
 	}
 
-	private String fuzzString(String s) {
+	private static String fuzzString(String s) {
 		String[] words = s.split(" ");
 		StringBuilder sb = new StringBuilder("(");
 		for (String word : words) {
@@ -755,9 +758,9 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 						ArrayList<ReleaseRecord> releaseList;
 						if (round < 3) {
-							releaseList = parseRelease(document, tagInfo);
+							releaseList = parseRelease(document);
 						} else {
-							releaseList = parseRecording(document, tagInfo);
+							releaseList = parseRecording(document);
 						}
 
 						if (releaseList != null && !releaseList.isEmpty()) {
@@ -823,17 +826,16 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				LOGGER.debug("MusicBrainz release ID \"{}\" found for \"{}\"", mBID, tagInfo);
 				TableMusicBrainzReleases.writeMBID(mBID, tagInfo);
 				return mBID;
-			} else {
-				LOGGER.debug("No MusicBrainz release found for \"{}\"", tagInfo);
-				TableMusicBrainzReleases.writeMBID(null, tagInfo);
-				return null;
 			}
+			LOGGER.debug("No MusicBrainz release found for \"{}\"", tagInfo);
+			TableMusicBrainzReleases.writeMBID(null, tagInfo);
+			return null;
 		} finally {
 			releaseTagLatch(latch);
 		}
 	}
 
-	private ArrayList<ReleaseRecord> parseRelease(final Document document, final CoverArtArchiveTagInfo tagInfo) {
+	private ArrayList<ReleaseRecord> parseRelease(final Document document) {
 		NodeList nodeList = document.getDocumentElement().getElementsByTagName("release-list");
 		if (nodeList.getLength() < 1) {
 			return null;
@@ -907,7 +909,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		return releaseList;
 	}
 
-	private ArrayList<ReleaseRecord> parseRecording(final Document document, final CoverArtArchiveTagInfo tagInfo) {
+	private ArrayList<ReleaseRecord> parseRecording(final Document document) {
 		NodeList nodeList = document.getDocumentElement().getElementsByTagName("recording-list");
 		if (nodeList.getLength() < 1) {
 			return null;

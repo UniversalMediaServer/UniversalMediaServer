@@ -1,25 +1,27 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Universal Media Server, for streaming any media to DLNA compatible renderers
+ * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
+ * developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import java.awt.Dimension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import net.pms.dlna.protocolinfo.DLNAOrgConversionIndicator;
 import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.image.Image;
 import net.pms.image.ImageFormat;
@@ -35,6 +37,8 @@ import static net.pms.util.StringUtil.*;
 public class UPnPImageResElement extends UPnPResElement {
 
 	private static final long serialVersionUID = 1L;
+	private static final Logger LOGGER = LoggerFactory.getLogger(UPnPImageResElement.class);
+
 	/**
 	 * Whether or not this image {@code res} element's source is a (cached)
 	 * thumbnail.
@@ -48,109 +52,167 @@ public class UPnPImageResElement extends UPnPResElement {
 	 */
 	protected final boolean thumbnailSource;
 
-	/** The {@link ImageInfo} describing the {@link Image}. */
-	protected final ImageInfo imageInfo;
+	/** The {@link ImageInfo} describing the source {@link Image}. */
+	protected final ImageInfo sourceImageInfo;
 
-	public UPnPImageResElement(
-		ProtocolInfo protocolInfo,
-		ImageFormat format,
-		DLNAResource resource,
-		boolean thumbnailSource
-	) {
-		this(
-			protocolInfo,
-			getURL(protocolInfo, format, resource, thumbnailSource),
-			resource != null && resource.getMedia() != null ? resource.getMedia().getImageInfo() : null,
-			thumbnailSource
-		);
-	}
+	/** The {@link ImageFormat} this {@link UPnPImageResElement} represents. */
+	protected final ImageFormat format;
+
+	/** Whether or not the source image must be converted. */
+	protected final boolean convert;
 
 	/**
-	 * Creates a new instance using the given information.
+	 * For internal use only, use {@link UPnPImageResElement#create} instead.
 	 *
 	 * @param protocolInfo the {@link ProtocolInfo} to use.
+	 * @param format the {@link ImageFormat} to use.
 	 * @param url the URL to use.
-	 * @param imageInfo the {@link ImageInfo} describing this {@link Image}.
-	 * @param thumbnailSource Whether or not the source is a thumbnail, see
-	 *            {@link #thumbnailSource}.
+	 * @param sourceImageInfo the {@link ImageInfo} describing this
+	 *            {@link Image}.
+	 * @param convert Whether or not the source image must be converted.
+	 * @param thumbnailSource Whether or not the source image is a thumbnail,
+	 *            see {@link #thumbnailSource}.
 	 */
-	public UPnPImageResElement(ProtocolInfo protocolInfo, String url, ImageInfo imageInfo, boolean thumbnailSource) {
+	protected UPnPImageResElement(
+		ProtocolInfo protocolInfo,
+		ImageFormat format,
+		String url,
+		ImageInfo sourceImageInfo,
+		boolean convert,
+		boolean thumbnailSource
+	) {
 		super(protocolInfo, url);
 		if (!"image".equals(protocolInfo.getMimeType().getType())) {
 			throw new IllegalArgumentException("protocolInfo must be an image type");
 		}
-		this.imageInfo = imageInfo;
+		if (format == null) {
+			throw new IllegalArgumentException("format cannot be null");
+		}
+		this.format = format;
+		this.sourceImageInfo = sourceImageInfo;
+		this.convert = convert;
 		this.thumbnailSource = thumbnailSource;
 	}
 
-	@Override
-	public void appendResString(StringBuilder sb) {
-		if (isNotBlank(url)) { //TODO: (Nad) fix?
-			openTag(sb, "res");
-			appendResAttributes(sb);
-			addAttribute(sb, "protocolInfo", protocolInfo);
-			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
-			endTag(sb);
-			sb.append(url);
-			closeTag(sb, "res");
-		}
-	}
-
 	/**
-	 * This is only an extension of the constructor caused by Java's stupid
-	 * requirement that calls to other constructors must be done on the first
-	 * line.
+	 * Creates a new image {@code <res>} element instance.
 	 * <p>
-	 * As static methods aren't inheritable, something similar will have to
-	 * exist in subclasses.
+	 * A static factory method must be used instead of a constructor here
+	 * because of Java's flawed constructor design. A constructor isn't allow to
+	 * generate appropriate super arguments before calling the super
+	 * constructor.
 	 *
+	 * @param protocolInfo the {@link ProtocolInfo} to use.
 	 * @param resource the {@link DLNAResource}.
+	 * @param format the {@link ImageFormat} to use.
 	 * @param thumbnailSource whether the thumbnail should be used as source.
 	 * @return The URL.
 	 */
-	protected static String getURL(
+	public static UPnPImageResElement create(
 		ProtocolInfo protocolInfo,
-		ImageFormat format,
 		DLNAResource resource,
+		ImageFormat format,
 		boolean thumbnailSource
 	) {
-		if (format == null || format == ImageFormat.SOURCE) {
-			if (resource != null && resource.getMedia() != null) {
-				if (thumbnailSource) {
-					if (resource.getMedia().getThumb() != null && resource.getMedia().getThumb().getFormat() != null) {
-						format = resource.getMedia().getThumb().getFormat();
-					}
-				} else {
-					if (resource.getMedia().getImageInfo() != null && resource.getMedia().getImageInfo().getFormat() != null) {
-						format = resource.getMedia().getImageInfo().getFormat();
-					}
+		return create(protocolInfo, resource, format, thumbnailSource, null);
+	}
+
+	/**
+	 * Creates a new image {@code <res>} element instance.
+	 * <p>
+	 * A static factory method must be used instead of a constructor here
+	 * because of Java's flawed constructor design. A constructor isn't allow to
+	 * generate appropriate super arguments before calling the super
+	 * constructor.
+	 *
+	 * @param protocolInfo the {@link ProtocolInfo} to use.
+	 * @param resource the {@link DLNAResource}.
+	 * @param format the {@link ImageFormat} to use.
+	 * @param thumbnailSource whether the thumbnail should be used as source.
+	 * @param overrideCIFlag The overridden CI flag for this {@code <res>}
+	 *            element. Pass {@code null} for automatic setting of the CI
+	 *            flag.
+	 * @return The URL.
+	 */
+	public static UPnPImageResElement create(ProtocolInfo protocolInfo, DLNAResource resource, ImageFormat format, boolean thumbnailSource,
+		Integer overrideCIFlag) {
+		if (resource == null) {
+			return null;
+		}
+		ImageInfo imageInfo = null;
+		ImageFormat sourceFormat = null;
+		if (resource.getMedia() != null) {
+			if (thumbnailSource) {
+				if (resource.getMedia().getThumb() != null) {
+					imageInfo = resource.getMedia().getThumb().getImageInfo();
 				}
+			} else {
+				imageInfo = resource.getMedia().getImageInfo();
 			}
-			if (format == null || format == ImageFormat.SOURCE) {
+		}
+		if (imageInfo != null) {
+			sourceFormat = imageInfo.getFormat();
+		}
+		if (sourceFormat == null && LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Warning: Could not figure out source image format for {}", resource.getSystemName());
+			LOGGER.trace("protocolInfo: {}\nresource: {}\nimageInfo: {}\nthumbnailSource: {}", protocolInfo, resource, imageInfo,
+				thumbnailSource ? "True" : "False");
+		}
+
+		if (format == null || format == ImageFormat.SOURCE) {
+			if (sourceFormat != null) {
+				format = sourceFormat;
+			} else {
 				// Default to JPEG
 				format = ImageFormat.JPEG;
 			}
 		}
-		String prefix = "UPnP_" + format.toString();
-		String extension = format.getDefaultExtension();
-		String result;
-		if (thumbnailSource) {
-			return resource.getThumbnailURL(prefix, extension);
+		boolean convert = format != sourceFormat;
+		int ciFlag;
+		if (overrideCIFlag != null) {
+			ciFlag = overrideCIFlag.intValue();
 		} else {
-			result = resource.getURL(//TODO: (Nad) Override CI, override extension, set JPEG_RES_H_V
-				(DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
-					"JPEG_RES" + resElement.getWidth() + "x" + resElement.getHeight() :
-					resElement.getProfile().getValue()
-				) + "_"
-			);
+			ciFlag = convert ? 1 : 0;
 		}
+		if (protocolInfo.getDLNAConversionIndicator().getIntValue() != ciFlag) {
+			protocolInfo = protocolInfo.modify(DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(ciFlag));
+		}
+
+		String prefix = "UPnP_" + format.toString();
+		String extension = convert ? format.getDefaultExtension() : null;
+		String url;
+		if (thumbnailSource) {
+			url = resource.getThumbnailURL(prefix, extension);
+		} else {
+			url = resource.getURL(prefix, extension);
+		}
+		return new UPnPImageResElement(protocolInfo, format, url, imageInfo, convert, thumbnailSource);
 	}
 
 	@Override
 	protected void appendResAttributes(StringBuilder sb) {
-		//TODO: (Nad) Implement
+		if (sourceImageInfo == null) {
+			return;
+		}
+		String s;
+		if (!convert) {
+			s = sourceImageInfo.getResSize();
+			if (s != null) {
+				addAttribute(sb, "size", s);
+			}
+		}
+		// No resolution conversion for UPnP elements
+		s = sourceImageInfo.getResResolution();
+		if (s != null) {
+			addAttribute(sb, "resolution", s);
+		}
+		if (!convert) {
+			s = sourceImageInfo.getResColorDepth();
+			if (s != null) {
+				addAttribute(sb, "colorDepth", s);
+			}
+		}
 	}
-
 
 	/**
 	 * returns whether or not this image {@code res} element's source is a
@@ -170,28 +232,65 @@ public class UPnPImageResElement extends UPnPResElement {
 		return thumbnailSource;
 	}
 
-
 	/**
-	 * @return The {@link ImageInfo} describing the image represented by this
-	 *         instance.
+	 * @return The {@link ImageInfo} describing the source {@link Image}
+	 *         represented by this instance.
 	 */
-	public ImageInfo getImageInfo() {
-		return imageInfo;
+	public ImageInfo getSourceImageInfo() {
+		return sourceImageInfo;
 	}
 
 	@Override
 	public Long getSize() {
-		if (imageInfo == null || imageInfo.getSize() < 1) {
+		if (
+			convert ||
+			sourceImageInfo == null ||
+			sourceImageInfo.getSize() < 1
+		) {
 			return (long) UNKNOWN;
 		}
-		return imageInfo.getSize();
+		return sourceImageInfo.getSize();
+	}
+
+	/**
+	 * @return The resolution of the image represented by this {@code res}
+	 *         element or {@code null} if unknown.
+	 */
+	public Dimension getResolution() {
+		if (
+			sourceImageInfo == null ||
+			sourceImageInfo.getWidth() < 1 ||
+			sourceImageInfo.getHeight() < 1
+		) {
+			return null;
+		}
+		return new Dimension(sourceImageInfo.getWidth(), sourceImageInfo.getHeight());
+	}
+
+
+	/**
+	 * @return The {@link ImageFormat} this {@link UPnPImageResElement}
+	 *         represents.
+	 */
+	public ImageFormat getFormat() {
+		return format;
+	}
+
+
+	/**
+	 * @return Whether or not the source image must be converted for this
+	 *         {@link UPnPImageResElement}.
+	 */
+	public boolean isConvert() {
+		return convert;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((imageInfo == null) ? 0 : imageInfo.hashCode());
+		result = prime * result + ((format == null) ? 0 : format.hashCode());
+		result = prime * result + ((sourceImageInfo == null) ? 0 : sourceImageInfo.hashCode());
 		result = prime * result + (thumbnailSource ? 1231 : 1237);
 		return result;
 	}
@@ -208,11 +307,14 @@ public class UPnPImageResElement extends UPnPResElement {
 			return false;
 		}
 		UPnPImageResElement other = (UPnPImageResElement) obj;
-		if (imageInfo == null) {
-			if (other.imageInfo != null) {
+		if (format != other.format) {
+			return false;
+		}
+		if (sourceImageInfo == null) {
+			if (other.sourceImageInfo != null) {
 				return false;
 			}
-		} else if (!imageInfo.equals(other.imageInfo)) {
+		} else if (!sourceImageInfo.equals(other.sourceImageInfo)) {
 			return false;
 		}
 		if (thumbnailSource != other.thumbnailSource) {

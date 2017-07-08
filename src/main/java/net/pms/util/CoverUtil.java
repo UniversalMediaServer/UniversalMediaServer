@@ -42,13 +42,17 @@ import org.w3c.dom.NodeList;
 public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
-	protected static final String encoding = StandardCharsets.UTF_8.name();
-	protected static final DLNAMediaDatabase database = PMS.get().getDatabase();
+
+	/** The constant encoding string */
+	protected static final String ENCODING = StandardCharsets.UTF_8.name();
+
+	/** The {@link DLNAMediaDatabase} instance */
+	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
 	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 
 	/**
-	 * Do not instantiate this class, use {@link #get()}
+	 * Do not instantiate this class, use {@link #get()}.
 	 */
 	protected CoverUtil() {
 	}
@@ -98,14 +102,15 @@ public abstract class CoverUtil {
 	}
 
 	/**
-	 * Convenience method to URL encode a string with {@link #encoding} without
-	 * handling the hypothetical {@link UnsupportedEncodingException}
+	 * Convenience method to URL encode a string with {@link #ENCODING} without
+	 * handling the hypothetical {@link UnsupportedEncodingException}.
+	 *
 	 * @param url {@link String} to encode
 	 * @return The encoded {@link String}
 	 */
 	protected String urlEncode(String url) {
 		try {
-			return URLEncoder.encode(url, encoding);
+			return URLEncoder.encode(url, ENCODING);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("UTF-8 is unsupported :O", e);
 			return "";
@@ -113,15 +118,25 @@ public abstract class CoverUtil {
 	}
 
 	/**
-	 * Gets a thumbnail from the configured cover utility based on a {@link Tag}
-	 * @param tag the {@link tag} to use while searching for a cover
-	 * @return The thumbnail or <code>null</code> if none was found
+	 * Gets a thumbnail from the configured cover utility based on a
+	 * {@link Tag}.
+	 *
+	 * @param tag the {@link tag} to use while searching for a cover.
+	 * @return The thumbnail or {@code null} if none was found.
 	 */
 	public final byte[] getThumbnail(Tag tag) {
 		boolean externalNetwork = PMS.getConfiguration().getExternalNetwork();
 		return doGetThumbnail(tag, externalNetwork);
 	}
 
-	abstract protected byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
-
+	/**
+	 * Gets a thumbnail from the configured cover utility based on a
+	 * {@link Tag}.
+	 *
+	 * @param tag the {@link tag} to use while searching for a cover.
+	 * @param externalNetwork whether or not accessing external networks
+	 *            (Internet) is allowed.
+	 * @return The thumbnail or {@code null} if none was found.
+	 */
+	protected abstract byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
 }

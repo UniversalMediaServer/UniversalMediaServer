@@ -22,7 +22,7 @@ package net.pms.dlna;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
+import net.pms.dlna.DLNAImageProfile.CalculatedImage;
 import net.pms.dlna.protocolinfo.DLNAOrgConversionIndicator;
 import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.image.ImageFormat;
@@ -41,66 +41,108 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class DLNAImageResElement extends UPnPImageResElement {
 
 	private static final long serialVersionUID = 1L;
-	protected final ProtocolInfo protocolInfo;
-	private final HypotheticalResult hypotheticalResult;
+	protected final CalculatedImage calculatedImage;
 
 	/**
-	 * Instantiates a new DLNA image {@code <res>} element.
+	 * For internal use only, use {@link DLNAImageResElement#create} instead.
 	 *
-	 * @param protocolInfo the {@link ProtocolInfo} for this {@code <res>}
-	 *            element.
-	 * @param imageInfo the {@link ImageInfo} for the image represented by this
-	 *            {@code <res>} element.
-	 * @param thumbnail whether the source for this {@code <res>} element is a
-	 *            thumbnail.
-	 *
-	 * @see #isThumbnailSource()
+	 * @param protocolInfo the {@link ProtocolInfo} to use.
+	 * @param format the {@link ImageFormat} to use.
+	 * @param url the URL to use.
+	 * @param sourceImageInfo the {@link ImageInfo} describing this {@link Image}.
+	 * @param convert Whether or not the source image must be converted.
+	 * @param thumbnailSource Whether or not the source is a thumbnail, see
+	 *            {@link #thumbnailSource}.
+	 * @param calculatedImage the {@link CalculatedImage} to use.
 	 */
-	public DLNAImageResElement(ProtocolInfo protocolInfo, ImageInfo imageInfo, boolean thumbnail) {
-		this(protocolInfo, imageInfo, thumbnail, null);
+	protected DLNAImageResElement(
+		ProtocolInfo protocolInfo,
+		ImageFormat format,
+		String url,
+		ImageInfo sourceImageInfo,
+		boolean convert,
+		boolean thumbnailSource,
+		CalculatedImage calculatedImage
+	) {
+		super(protocolInfo, format, url, sourceImageInfo, convert, thumbnailSource);
+		this.calculatedImage = calculatedImage;
 	}
 
 	/**
-	 * Instantiates a new DLNA image {@code <res>} element.
+	 * Creates a new image {@code <res@dlna>} element instance.
+	 * <p>
+	 * A static factory method must be used instead of a constructor here
+	 * because of Java's flawed constructor design. A constructor isn't allow to
+	 * generate appropriate super arguments before calling the super
+	 * constructor.
 	 *
 	 * @param protocolInfo the {@link ProtocolInfo} for this {@code <res>}
 	 *            element.
-	 * @param imageInfo the {@link ImageInfo} for the image represented by this
+	 * @param sourceImageInfo the {@link ImageInfo} for the image represented by this
 	 *            {@code <res>} element.
 	 * @param thumbnail whether the source for this {@code <res>} element is a
 	 *            thumbnail.
+	 */
+	public static DLNAImageResElement create(ProtocolInfo protocolInfo, ImageInfo sourceImageInfo, boolean thumbnail) {
+		return create(protocolInfo, sourceImageInfo, thumbnail, null);
+	}
+
+	/**
+	 * Creates a new image {@code <res@dlna>} element instance.
+	 * <p>
+	 * A static factory method must be used instead of a constructor here
+	 * because of Java's flawed constructor design. A constructor isn't allow to
+	 * generate appropriate super arguments before calling the super
+	 * constructor.
+	 *
+	 * @param protocolInfo the {@link ProtocolInfo} for this {@code <res>}
+	 *            element.
+	 * @param sourceImageInfo the {@link ImageInfo} for the image represented by this
+	 *            {@code <res>} element.
+	 * @param thumbnailSource whether the source for this {@code <res@dlna>}
+	 *            element is a thumbnail.
 	 * @param overrideCIFlag The overridden CI flag for this {@code <res>}
 	 *            element. Pass {@code null} for automatic setting of the CI
 	 *            flag.
-	 *
-	 * @see #isThumbnailSource()
 	 */
-	public DLNAImageResElement(ProtocolInfo protocolInfo, ImageInfo imageInfo, boolean thumbnail, Integer overrideCIFlag) {
+	public static DLNAImageResElement create(
+		ProtocolInfo protocolInfo,
+		DLNAResource resource,
+		boolean thumbnailSource,
+		Integer overrideCIFlag
+	) {
+		if (resource == null) {
+			return null;
+		}
 		if (!(protocolInfo.getDLNAProfileName() instanceof DLNAImageProfile)) {
 			throw new IllegalArgumentException("protocolInfo must be a DLNAImageProfile instance");
 		}
-		DLNAImageProfile profile = (DLNAImageProfile) protocolInfo.getDLNAProfileName();
+
+		CalculatedImage calculatedImage = null;
+		ImageInfo imageInfo; //TODO: (Nad) ...
+		Integer ciFlag = null;
 		if (imageInfo != null) {
-			hypotheticalResult = profile.calculateHypotheticalProperties(imageInfo);
+			DLNAImageProfile profile = (DLNAImageProfile) protocolInfo.getDLNAProfileName();
+			calculatedImage = profile.calculateHypotheticalProperties(imageInfo);
 			if (overrideCIFlag == null) {
-				protocolInfo = protocolInfo.modify(
-					DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(hypotheticalResult.conversionNeeded)
-				);
+				ciFlag = calculatedImage.conversionNeeded ? Integer.valueOf(1) : Integer.valueOf(0);
 			} else {
-				protocolInfo = protocolInfo.modify(
-					DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(overrideCIFlag)
-				);
+				ciFlag = overrideCIFlag;
 			}
-		} else {
-			hypotheticalResult = null;
-			if (overrideCIFlag != null) {
-				protocolInfo = protocolInfo.modify(
-					DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(overrideCIFlag)
-				);
-			}
+		} else if (overrideCIFlag != null) {
+			ciFlag = overrideCIFlag;
 		}
-		this.protocolInfo = protocolInfo;
-		this.thumbnailSource = thumbnail;
+		if (ciFlag != null && protocolInfo.getDLNAConversionIndicator().getIntValue() != ciFlag.intValue()) {
+			protocolInfo = protocolInfo.modify(
+				DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(ciFlag)
+			);
+		}
+		String url;
+		if (thumbnailSource) {
+			url = resource.getThumbnailURL(prefix, extension);
+		} else {
+			url = resource.getURL(prefix, extension);
+		}
 	}
 
 	@Override
@@ -136,7 +178,7 @@ public class DLNAImageResElement extends UPnPImageResElement {
 	 * @return Whether the resolution for this image is known.
 	 */
 	public boolean isResolutionKnown() {
-		return hypotheticalResult != null && hypotheticalResult.width > 0 && hypotheticalResult.height > 0;
+		return calculatedImage != null && calculatedImage.width > 0 && calculatedImage.height > 0;
 	}
 
 	/**
@@ -144,7 +186,7 @@ public class DLNAImageResElement extends UPnPImageResElement {
 	 *         unknown.
 	 */
 	public int getWidth() {
-		return hypotheticalResult != null ? hypotheticalResult.width : ImageInfo.UNKNOWN;
+		return calculatedImage != null ? calculatedImage.width : ImageInfo.UNKNOWN;
 	}
 
 	/**
@@ -152,24 +194,25 @@ public class DLNAImageResElement extends UPnPImageResElement {
 	 *         unknown.
 	 */
 	public int getHeight() {
-		return hypotheticalResult != null ? hypotheticalResult.height : ImageInfo.UNKNOWN;
+		return calculatedImage != null ? calculatedImage.height : ImageInfo.UNKNOWN;
 	}
 
 	/**
 	 * @return The image size or {@code null} if unknown.
 	 */
+	@Override
 	public Long getSize() {
-		return hypotheticalResult != null ? hypotheticalResult.size : null;
+		return calculatedImage != null ? calculatedImage.size : null;
 	}
 
 	/**
 	 * Only useful for the {@link Comparator}. Use the individual getter to
 	 * obtain the actual values.
 	 *
-	 * @return The {@link HypotheticalResult}.
+	 * @return The {@link CalculatedImage}.
 	 */
-	private HypotheticalResult getHypotheticalResult() {
-		return hypotheticalResult;
+	private CalculatedImage getCalculatedImage() {
+		return calculatedImage;
 	}
 
 	@Override
@@ -177,7 +220,7 @@ public class DLNAImageResElement extends UPnPImageResElement {
 		return "DLNAImageResElement [" +
 			"protocolInfo=" + protocolInfo +
 			", thumbnail=" + thumbnailSource +
-			", hypotheticalResult=" + hypotheticalResult +
+			", calculatedImage=" + calculatedImage +
 		"]";
 	}
 
@@ -185,7 +228,7 @@ public class DLNAImageResElement extends UPnPImageResElement {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((hypotheticalResult == null) ? 0 : hypotheticalResult.hashCode());
+		result = prime * result + ((calculatedImage == null) ? 0 : calculatedImage.hashCode());
 		result = prime * result + ((protocolInfo == null) ? 0 : protocolInfo.hashCode());
 		result = prime * result + (thumbnailSource ? 1231 : 1237);
 		return result;
@@ -203,11 +246,11 @@ public class DLNAImageResElement extends UPnPImageResElement {
 			return false;
 		}
 		DLNAImageResElement other = (DLNAImageResElement) object;
-		if (hypotheticalResult == null) {
-			if (other.hypotheticalResult != null) {
+		if (calculatedImage == null) {
+			if (other.calculatedImage != null) {
 				return false;
 			}
-		} else if (!hypotheticalResult.equals(other.hypotheticalResult)) {
+		} else if (!calculatedImage.equals(other.calculatedImage)) {
 			return false;
 		}
 		if (protocolInfo == null) {
@@ -354,19 +397,19 @@ public class DLNAImageResElement extends UPnPImageResElement {
 					return (int) l;
 				}
 
-				if (o1.getHypotheticalResult() != null || o2.getHypotheticalResult() != null) {
+				if (o1.getCalculatedImage() != null || o2.getCalculatedImage() != null) {
 					// This comparison serves no practical purpose other than
 					// to fulfill the contract with equals().
-					if (o1.getHypotheticalResult() == null) {
+					if (o1.getCalculatedImage() == null) {
 						return 1;
 					}
-					if (o2.getHypotheticalResult() == null) {
+					if (o2.getCalculatedImage() == null) {
 						return -1;
 					}
-					if (o1.getHypotheticalResult().conversionNeeded != o2.getHypotheticalResult().conversionNeeded) {
+					if (o1.getCalculatedImage().conversionNeeded != o2.getCalculatedImage().conversionNeeded) {
 						return
-							(o1.getHypotheticalResult().conversionNeeded ? 1 : 0) -
-							(o2.getHypotheticalResult().conversionNeeded ? 1 : 0);
+							(o1.getCalculatedImage().conversionNeeded ? 1 : 0) -
+							(o2.getCalculatedImage().conversionNeeded ? 1 : 0);
 					}
 				}
 				return 0;

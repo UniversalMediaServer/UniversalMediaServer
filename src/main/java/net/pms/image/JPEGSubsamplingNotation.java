@@ -34,7 +34,7 @@ import com.drew.metadata.jpeg.JpegDirectory;
  * {@link #toString()} to get a formatted {@link String}.
  * <p>
  * {@link #calculateJPEGSubsampling(Metadata)} and
- * {@link #calculateJPEGSubsampling(JpegComponent[], int, int)} are factory
+ * {@link #calculateJPEGSubsampling(JpegComponent[], int)} are factory
  * methods to create {@link JPEGSubsamplingNotation} instances from the
  * {@link Metadata} of a JPEG image or for from a {@link JpegComponent}
  * respectively.
@@ -138,7 +138,7 @@ public class JPEGSubsamplingNotation implements Serializable {
 		JPEGSubsamplingNotation result = null;
 		for (int i = 0; i < numComponents; i++) {
 			if (i != luminanceIdx) {
-				JPEGSubsamplingNotation componentResult = calculateJPEGSubsampling(components, luminanceIdx, i);
+				JPEGSubsamplingNotation componentResult = calculateJPEGSubsampling(components, i);
 				if (result == null) {
 					result = componentResult;
 				} else {
@@ -163,19 +163,14 @@ public class JPEGSubsamplingNotation implements Serializable {
 	/**
 	 * Calculates the J:a:b subsampling notation values for a given
 	 * {@link JpegComponent} indicated by {@code componentIdx}.
-	 * {@code luminanceIdx} is used to identify the luminance component which is
-	 * needed as a reference.
 	 *
 	 * @param components the array of {@link JpegComponent} to calculate from.
-	 * @param luminanceIdx the index of the luminance component within
-	 *            {@code components}.
 	 * @param componentIdx the index of the component within {@code components}
 	 *            for which to calculate the subsampling notation values.
 	 * @return A {@link JPEGSubsamplingNotation} with the result.
 	 */
 	public static JPEGSubsamplingNotation calculateJPEGSubsampling(
 		JpegComponent[] components,
-		int luminanceIdx,
 		int componentIdx
 	) {
 		double[] result = new double[3];
