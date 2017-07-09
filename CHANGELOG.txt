@@ -1,4 +1,4 @@
-6.7.2 - 2017-07-??
+6.7.2 - 2017-07-09
 
 	General:
 		Added support for WMA10
