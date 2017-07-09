@@ -115,7 +115,7 @@ public abstract class UPnPResElement implements Comparable<UPnPResElement>, Seri
 		for (ProtocolInfo protocolInfoEntry : renderer.deviceProtocolInfo.toArray(ProtocolInfoType.SINK)) {
 			if (protocolInfo.isDLNA() == protocolInfoEntry.isDLNA()) {
 				if (protocolInfo.isDLNA()) {
-					if (protocolInfo.getDLNAProfileName().getValue().equals(protocolInfoEntry.getDLNAProfileName().getValue())) {
+					if (protocolInfo.getDLNAProfileName().getValue().equals(protocolInfoEntry.getDLNAProfileName().getValue())) { //TODO: (Nad) Not good enough
 						if (protocolInfo.getMimeType().isCompatible(protocolInfoEntry.getMimeType(), false, true)) {
 							return true; //TODO: (Nad) Verify
 						}

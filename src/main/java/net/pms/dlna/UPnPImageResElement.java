@@ -164,21 +164,20 @@ public class UPnPImageResElement extends UPnPResElement {
 			protocol = Protocol.HTTP_GET;
 		}
 
-		ImageInfo imageInfo = null;
+		ImageInfo sourceImageInfo = null;
 		ImageFormat sourceFormat = null;
 		if (resource.getMedia() != null) {
 			if (thumbnailSource) {
 				if (resource.getMedia().getThumb() != null) {
-					imageInfo = resource.getMedia().getThumb().getImageInfo();
+					sourceImageInfo = resource.getMedia().getThumb().getImageInfo();
 				}
 			} else {
-				imageInfo = resource.getMedia().getImageInfo();
+				sourceImageInfo = resource.getMedia().getImageInfo();
 			}
 		}
-		if (imageInfo != null) {
-			sourceFormat = imageInfo.getFormat();
-		}
-		if (sourceFormat == null && LOGGER.isDebugEnabled()) {
+		if (sourceImageInfo != null) {
+			sourceFormat = sourceImageInfo.getFormat();
+		} else if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Warning: Could not figure out source image format for {}", resource.getSystemName());
 			LOGGER.trace(
 				"protocol: {}\nmimeType: {}\nthumbnailSource: {}\noverrideCIFlag: {}",
@@ -206,7 +205,7 @@ public class UPnPImageResElement extends UPnPResElement {
 		attributes.put(ciFlag.getName(), ciFlag);
 
 		ProtocolInfo protocolInfo = new ProtocolInfo(protocol, network, mimeType, attributes);
-		return create(protocolInfo, format, resource, convert, thumbnailSource);
+		return create(protocolInfo, format, resource, sourceImageInfo, convert, thumbnailSource);
 	}
 
 
@@ -222,6 +221,8 @@ public class UPnPImageResElement extends UPnPResElement {
 	 * @param format the {@link ImageFormat} this {@code <res>} element
 	 *            represents.
 	 * @param resource the {@link DLNAResource}.
+	 * @param sourceImageInfo the {@link ImageInfo} instance describing the
+	 *            source {@link Image}.
 	 * @param convert Whether or not the source image format is different from
 	 *            {@code format}.
 	 * @param thumbnailSource whether the thumbnail should be used as source.
@@ -231,6 +232,7 @@ public class UPnPImageResElement extends UPnPResElement {
 		ProtocolInfo protocolInfo,
 		ImageFormat format,
 		DLNAResource resource,
+		ImageInfo sourceImageInfo,
 		boolean convert,
 		boolean thumbnailSource
 	) {
@@ -239,25 +241,6 @@ public class UPnPImageResElement extends UPnPResElement {
 		}
 		if (resource == null) {
 			throw new IllegalArgumentException("resource cannot be null");
-		}
-		ImageInfo imageInfo = null;
-		ImageFormat sourceFormat = null;
-		if (resource.getMedia() != null) {
-			if (thumbnailSource) {
-				if (resource.getMedia().getThumb() != null) {
-					imageInfo = resource.getMedia().getThumb().getImageInfo();
-				}
-			} else {
-				imageInfo = resource.getMedia().getImageInfo();
-			}
-		}
-		if (imageInfo != null) {
-			sourceFormat = imageInfo.getFormat();
-		}
-		if (sourceFormat == null && LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Warning: Could not figure out source image format for {}", resource.getSystemName());
-			LOGGER.trace("protocolInfo: {}\nresource: {}\nimageInfo: {}\nthumbnailSource: {}", protocolInfo, resource, imageInfo,
-				thumbnailSource ? "True" : "False");
 		}
 
 		String prefix = "UPnP_" + format.toString();
@@ -268,7 +251,7 @@ public class UPnPImageResElement extends UPnPResElement {
 		} else {
 			url = resource.getURL(prefix, extension);
 		}
-		return new UPnPImageResElement(protocolInfo, format, url, imageInfo, convert, thumbnailSource);
+		return new UPnPImageResElement(protocolInfo, format, url, sourceImageInfo, convert, thumbnailSource);
 	}
 
 	@Override
@@ -349,7 +332,6 @@ public class UPnPImageResElement extends UPnPResElement {
 		return new Dimension(sourceImageInfo.getWidth(), sourceImageInfo.getHeight());
 	}
 
-
 	/**
 	 * @return The {@link ImageFormat} this {@link UPnPImageResElement}
 	 *         represents.
@@ -357,7 +339,6 @@ public class UPnPImageResElement extends UPnPResElement {
 	public ImageFormat getFormat() {
 		return format;
 	}
-
 
 	/**
 	 * @return Whether or not the source image must be converted for this
