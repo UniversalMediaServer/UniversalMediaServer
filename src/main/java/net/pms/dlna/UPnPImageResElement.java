@@ -19,10 +19,15 @@
 package net.pms.dlna;
 
 import java.awt.Dimension;
+import java.util.TreeMap;
+import org.fourthline.cling.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.protocolinfo.DLNAOrgConversionIndicator;
+import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.dlna.protocolinfo.ProtocolInfo;
+import net.pms.dlna.protocolinfo.ProtocolInfoAttribute;
+import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName;
 import net.pms.image.Image;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -102,19 +107,23 @@ public class UPnPImageResElement extends UPnPResElement {
 	 * generate appropriate super arguments before calling the super
 	 * constructor.
 	 *
-	 * @param protocolInfo the {@link ProtocolInfo} to use.
+	 * @param protocol the {@link Protocol} to use, or {@code null} for
+	 *            {@link Protocol#HTTP_GET}.
+	 * @param network the network string to use, or {@code null} for
+	 *            {@link ProtocolInfo#WILDCARD}.
+	 * @param mimeType the {@link MimeType} to use.
 	 * @param resource the {@link DLNAResource}.
-	 * @param format the {@link ImageFormat} to use.
 	 * @param thumbnailSource whether the thumbnail should be used as source.
-	 * @return The URL.
+	 * @return The new {@link UPnPImageResElement} instance.
 	 */
 	public static UPnPImageResElement create(
-		ProtocolInfo protocolInfo,
+		Protocol protocol,
+		String network,
+		MimeType mimeType,
 		DLNAResource resource,
-		ImageFormat format,
 		boolean thumbnailSource
 	) {
-		return create(protocolInfo, resource, format, thumbnailSource, null);
+		return create(protocol, network, mimeType, resource, thumbnailSource, null);
 	}
 
 	/**
@@ -125,19 +134,111 @@ public class UPnPImageResElement extends UPnPResElement {
 	 * generate appropriate super arguments before calling the super
 	 * constructor.
 	 *
-	 * @param protocolInfo the {@link ProtocolInfo} to use.
+	 * @param protocol the {@link Protocol} to use, or {@code null} for
+	 *            {@link Protocol#HTTP_GET}.
+	 * @param network the network string to use, or {@code null} for
+	 *            {@link ProtocolInfo#WILDCARD}.
+	 * @param mimeType the {@link MimeType} to use.
 	 * @param resource the {@link DLNAResource}.
-	 * @param format the {@link ImageFormat} to use.
 	 * @param thumbnailSource whether the thumbnail should be used as source.
 	 * @param overrideCIFlag The overridden CI flag for this {@code <res>}
 	 *            element. Pass {@code null} for automatic setting of the CI
 	 *            flag.
-	 * @return The URL.
+	 * @return The new {@link UPnPImageResElement} instance.
 	 */
-	public static UPnPImageResElement create(ProtocolInfo protocolInfo, DLNAResource resource, ImageFormat format, boolean thumbnailSource,
-		Integer overrideCIFlag) {
+	public static UPnPImageResElement create(
+		Protocol protocol,
+		String network,
+		MimeType mimeType,
+		DLNAResource resource,
+		boolean thumbnailSource,
+		Integer overrideCIFlag
+	) {
 		if (resource == null) {
-			return null;
+			throw new IllegalArgumentException("resource cannot be null");
+		}
+		if (mimeType == null) {
+			throw new IllegalArgumentException("mimeType cannot be null");
+		}
+		if (protocol == null) {
+			protocol = Protocol.HTTP_GET;
+		}
+
+		ImageInfo imageInfo = null;
+		ImageFormat sourceFormat = null;
+		if (resource.getMedia() != null) {
+			if (thumbnailSource) {
+				if (resource.getMedia().getThumb() != null) {
+					imageInfo = resource.getMedia().getThumb().getImageInfo();
+				}
+			} else {
+				imageInfo = resource.getMedia().getImageInfo();
+			}
+		}
+		if (imageInfo != null) {
+			sourceFormat = imageInfo.getFormat();
+		}
+		if (sourceFormat == null && LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Warning: Could not figure out source image format for {}", resource.getSystemName());
+			LOGGER.trace(
+				"protocol: {}\nmimeType: {}\nthumbnailSource: {}\noverrideCIFlag: {}",
+				protocol,
+				mimeType,
+				thumbnailSource ? "True" : "False",
+				overrideCIFlag
+			);
+		}
+
+		ImageFormat format = ImageFormat.toImageFormat(mimeType);
+		if (format == null) {
+			throw new IllegalStateException("Unable to resolve an image format from \"" + mimeType + "\"");
+		}
+		boolean convert = format != sourceFormat;
+
+		// Set protocolInfo attributes
+		TreeMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> attributes = ProtocolInfo.createEmptyAttributesMap();
+		DLNAOrgConversionIndicator ciFlag;
+		if (overrideCIFlag != null) {
+			ciFlag = DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(overrideCIFlag.intValue());
+		} else {
+			ciFlag = DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(convert);
+		}
+		attributes.put(ciFlag.getName(), ciFlag);
+
+		ProtocolInfo protocolInfo = new ProtocolInfo(protocol, network, mimeType, attributes);
+		return create(protocolInfo, format, resource, convert, thumbnailSource);
+	}
+
+
+	/**
+	 * Creates a new image {@code <res>} element instance.
+	 * <p>
+	 * A static factory method must be used instead of a constructor here
+	 * because of Java's flawed constructor design. A constructor isn't allow to
+	 * generate appropriate super arguments before calling the super
+	 * constructor.
+	 *
+	 * @param protocolInfo the {@link ProtocolInfo} to use.
+	 * @param format the {@link ImageFormat} this {@code <res>} element
+	 *            represents.
+	 * @param resource the {@link DLNAResource}.
+	 * @param convert Whether or not the source image format is different from
+	 *            {@code format}.
+	 * @param thumbnailSource whether the thumbnail should be used as source.
+	 * @return The new {@link UPnPImageResElement} instance.
+	 */
+	public static UPnPImageResElement create(
+		ProtocolInfo protocolInfo,
+		ImageFormat format,
+		DLNAResource resource,
+		boolean convert,
+		boolean thumbnailSource
+	) {
+		if (protocolInfo == null) {
+			throw new IllegalArgumentException("protocolInfo cannot be null");
+		}
+		if (resource == null) {
+			throw new IllegalArgumentException("resource cannot be null");
 		}
 		ImageInfo imageInfo = null;
 		ImageFormat sourceFormat = null;
@@ -157,25 +258,6 @@ public class UPnPImageResElement extends UPnPResElement {
 			LOGGER.debug("Warning: Could not figure out source image format for {}", resource.getSystemName());
 			LOGGER.trace("protocolInfo: {}\nresource: {}\nimageInfo: {}\nthumbnailSource: {}", protocolInfo, resource, imageInfo,
 				thumbnailSource ? "True" : "False");
-		}
-
-		if (format == null || format == ImageFormat.SOURCE) {
-			if (sourceFormat != null) {
-				format = sourceFormat;
-			} else {
-				// Default to JPEG
-				format = ImageFormat.JPEG;
-			}
-		}
-		boolean convert = format != sourceFormat;
-		int ciFlag;
-		if (overrideCIFlag != null) {
-			ciFlag = overrideCIFlag.intValue();
-		} else {
-			ciFlag = convert ? 1 : 0;
-		}
-		if (protocolInfo.getDLNAConversionIndicator().getIntValue() != ciFlag) {
-			protocolInfo = protocolInfo.modify(DLNAOrgConversionIndicator.FACTORY.getConversionIndicator(ciFlag));
 		}
 
 		String prefix = "UPnP_" + format.toString();

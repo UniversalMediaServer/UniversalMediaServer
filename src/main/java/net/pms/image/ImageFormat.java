@@ -20,9 +20,12 @@
 package net.pms.image;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.drew.imaging.FileType;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
@@ -40,6 +43,7 @@ import com.drew.metadata.png.PngDirectory;
 import com.drew.metadata.webp.WebpDirectory;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.image.ExifInfo.ExifCompression;
 
 
@@ -92,6 +96,7 @@ public enum ImageFormat {
 	WBMP,
 	WEBP;
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ImageFormat.class);
 	public static final int TAG_DNG_VERSION = 0xC612;
 
 	/**
@@ -329,6 +334,163 @@ public enum ImageFormat {
 		}
 
 		// Parsing failed
+		return null;
+	}
+
+	/**
+	 * Returns an {@link ImageFormat} based on a predefined list of
+	 * {@link MimeType}s.
+	 *
+	 * @param mimeType the {@link MimeType} to resolve.
+	 * @return The resolved {@link ImageFormat} or {@code null} if the
+	 *         {@link MimeType} isn't among the predefined.
+	 */
+	public static ImageFormat toImageFormat(MimeType mimeType) {
+		if (mimeType == null || isBlank(mimeType.getType())) {
+			return null;
+		}
+
+		String type = mimeType.getType().toLowerCase(Locale.ROOT);
+		if ("image".equals(type) && isNotBlank(mimeType.getSubtype())) {
+			// image/
+			switch (mimeType.getSubtype().toLowerCase(Locale.ROOT)) {
+				case "arw":
+				case "x-sony-arw":
+					return ARW;
+				case "bmp":
+				case "x-bmp":
+				case "x-bitmap":
+				case "x-xbitmap":
+				case "x-win-bitmap":
+				case "x-windows-bmp":
+				case "image/ms-bmp":
+				case "x-ms-bmp":
+					return BMP;
+				case "cr2":
+					return CR2;
+				case "crw":
+				case "x-canon-crw":
+					return CRW;
+				case "x-kodak-dcr":
+					return DCR;
+				case "dcx":
+				case "x-dcx":
+					return DCX;
+				case "dng":
+				case "x-adobe-dng":
+					return DNG;
+				case "gif":
+				case "gi_":
+					return GIF;
+				case "icns":
+					return ICNS;
+				case "x-icon":
+				case "vnd.microsoft.icon":
+				case "ico":
+				case "icon":
+					return ICO;
+				case "iff":
+				case "x-iff":
+					return IFF;
+				case "jpeg":
+				case "jpg":
+				case "jpe_":
+				case "pjpeg":
+				case "vnd.swiftview-jpeg":
+					return JPEG;
+				case "x-kodak-kdc":
+					return KDC;
+				case "x-nikon-nef":
+				case "nef":
+					return NEF;
+				case "x-olympus-orf":
+					return ORF;
+				case "pcx":
+				case "x-pcx":
+				case "x-pc-paintbrush":
+					return PCX;
+				case "pict":
+				case "x-pict":
+					return PICT;
+				case "x-pentax-pef":
+				case "/x-pentax-raw":
+					return PEF;
+				case "png":
+				case "x-png":
+					return PNG;
+				case "x-portable-anymap":
+				case "x‑portable‑bitmap":
+				case "x‑portable‑graymap,":
+				case "x‑portable‑pixmap":
+				case "pbm":
+				case "pgm":
+				case "ppm":
+				case "pnm":
+					return PNM;
+				case "vnd.adobe.photoshop":
+				case "photoshop":
+				case "x-photoshop":
+				case "psd":
+				case "x-psd":
+					return PSD;
+				case "x-fuji-raf":
+				case "x-fujifilm-raf":
+					return RAF;
+				case "vnd.radiance":
+					return RGBE;
+				case "x-panasonic-raw":
+				case "x-panasonic-rw2":
+					return RW2;
+				case "sgi":
+				case "x-sgi":
+				case "x-sgi-rgba":
+					return SGI;
+				case "tga":
+				case "x-tga":
+				case "x-targa":
+					return TGA;
+				case "tiff":
+				case "x-tiff":
+				case "tiff-fx":
+					return TIFF;
+				case "vnd.wap.wbmp":
+					return WBMP;
+				case "webp":
+				case "x-webp":
+					return WEBP;
+				default:
+					LOGGER.debug("Unable to resolve an image format from \"{}\"", mimeType);
+			}
+		} else if ("application".equals(type) && isNotBlank(mimeType.getSubtype())) {
+			// application/
+			switch (mimeType.getSubtype().toLowerCase(Locale.ROOT)) {
+				case "bmp":
+				case "x-bmp":
+				case "x-win-bitmap":
+					return BMP;
+				case "ico":
+				case "x-ico":
+				case "octet-stream":
+					return ICO;
+				case "iff":
+				case "x-iff":
+					return IFF;
+				case "pcx":
+				case "x-pcx":
+					return PCX;
+				case "png":
+				case "x-png":
+					return PNG;
+				case "photoshop":
+				case "psd":
+					return PSD;
+				case "tga":
+				case "x-tga":
+					return TGA;
+				default:
+					LOGGER.debug("Unable to resolve an image format from \"{}\"", mimeType);
+			}
+		}
 		return null;
 	}
 
