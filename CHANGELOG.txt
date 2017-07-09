@@ -5,6 +5,7 @@
 		Improved splash screen timing and enabled it by default
 		Improved support for MediaInfo on non-Windows platforms
 		Improved CPU and memory logging
+		Improved detection of network speed
 		Updated comments in DefaultRenderer.conf
 		Updated documentation
 		Fixed trace logging on macOS
