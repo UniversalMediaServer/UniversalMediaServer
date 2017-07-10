@@ -3023,13 +3023,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addAttribute(sb, "resolution", Integer.toString(resElement.getWidth()) + "x" + Integer.toString(resElement.getHeight()));
 			}
 
+			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			addAttribute(sb,
 				"protocolInfo",
 				"http-get:*:" + resElement.getProfile().getMimeType() + ":DLNA.ORG_PN=" +
 				resElement.getProfile() +
 				ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000"
 			);
-			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			endTag(sb);
 			sb.append(url);
 			closeTag(sb, "res");
