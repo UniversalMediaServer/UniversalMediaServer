@@ -18,29 +18,26 @@
  */
 package net.pms.formats.v2;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.LibMediaInfoParser;
 
 /**
- * Class for storing and parsing from libmediainfo output audio track's properties
- * (bitrate, channels number, etc) and meta information (title, album, etc)
+ * Deprecated class for storing and parsing from libmediainfo output audio
+ * track's properties (bitrate, channels number, etc) and meta information
+ * (title, album, etc).
  *
- * This class is not thread-safe
+ * This class is not thread-safe.
  *
+ * @deprecated Use {@link DLNAMediaAudio} to store values,
+ *             {@link LibMediaInfoParser} to parse them.
  * @since 1.60.0
  */
-public class AudioProperties {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AudioProperties.class);
+@Deprecated
+public class AudioProperties implements Cloneable {
 
-	private static final Pattern intPattern = Pattern.compile("([\\+-]?\\d+)([eE][\\+-]?\\d+)?");
-//	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
-
-	private int numberOfChannels = 2;
-	private int audioDelay = 0;
-	private int sampleFrequency = 48000;
+	private int numberOfChannels;
+	private int audioDelay;
+	private int sampleFrequency;
 
 	public int getAttribute(AudioAttribute attribute) {
 		switch (attribute) {
@@ -57,182 +54,123 @@ public class AudioProperties {
 
 	/**
 	 * Get number of channels for this audio track.
-	 * @return number of channels (default is 2)
+	 *
+	 * @param returnDefault Whether to return the default value if not known.
+	 * @return The number of channels.
+	 * @deprecated Use {@link DLNAMediaAudio#isNumberOfChannelsKnown()} instead.
 	 */
-	public int getNumberOfChannels() {
+	@Deprecated
+	public int getNumberOfChannels(boolean returnDefault) {
+		if (returnDefault) {
+			return getNumberOfChannels();
+		}
 		return numberOfChannels;
 	}
 
 	/**
-	 * Set number of channels for this audio track.
-	 * @param numberOfChannels number of channels to set
+	 * Get number of channels for this audio track.
+	 *
+	 * @return The number of channels, or {@link #NUMBEROFCHANNELS_DEFAULT} if
+	 *         {@code numberOfChannels} is invalid.
+	 * @deprecated Use {@link DLNAMediaAudio#getNumberOfChannels()} instead.
 	 */
+	@Deprecated
+	public int getNumberOfChannels() {
+		return numberOfChannels > 0 ? numberOfChannels : DLNAMediaAudio.NUMBEROFCHANNELS_DEFAULT;
+	}
+
+	/**
+	 * Set number of channels for this audio track.
+	 *
+	 * @param numberOfChannels number of channels to set.
+	 * @deprecated Use {@link DLNAMediaAudio#setNumberOfChannels(int)} instead.
+	 */
+	@Deprecated
 	public void setNumberOfChannels(int numberOfChannels) {
-		if (numberOfChannels < 1) {
-			throw new IllegalArgumentException("Channel number can't be less than 1.");
-		}
 		this.numberOfChannels = numberOfChannels;
 	}
 
 	/**
-	 * Set number of channels for this audio track with libmediainfo value
-	 * @param mediaInfoValue libmediainfo "Channel(s)" value to parse
-	 */
-	public void setNumberOfChannels(String mediaInfoValue) {
-		this.numberOfChannels = getChannelsNumberFromLibMediaInfo(mediaInfoValue);
-	}
-
-	/**
 	 * Get delay for this audio track.
-	 * @return audio delay in ms. May be negative.
+	 *
+	 * @return The audio delay in milliseconds.
+	 * @deprecated Use {@link DLNAMediaAudio#getDelay()} instead.
 	 */
+	@Deprecated
 	public int getAudioDelay() {
 		return audioDelay;
 	}
 
 	/**
 	 * Set delay for this audio track.
-	 * @param audioDelay audio delay in ms to set. May be negative.
+	 *
+	 * @param audioDelay audio delay in milliseconds to set. May be negative.
+	 * @deprecated Use {@link DLNAMediaAudio#setDelay(int)} instead.
 	 */
+	@Deprecated
 	public void setAudioDelay(int audioDelay) {
 		this.audioDelay = audioDelay;
 	}
 
 	/**
-	 * Set delay for this audio track with libmediainfo value
-	 * @param mediaInfoValue libmediainfo "Video_Delay" value to parse
-	 */
-	public void setAudioDelay(String mediaInfoValue) {
-		this.audioDelay = getAudioDelayFromLibMediaInfo(mediaInfoValue);
-	}
-
-	/**
 	 * Get sample frequency for this audio track.
-	 * @return sample frequency in Hz
+	 *
+	 * @param returnDefault Whether to return the default value if not known.
+	 * @return The sample frequency in Hz.
+	 * @deprecated Use {@link DLNAMediaAudio#isSampleRateKnown()} instead.
 	 */
-	public int getSampleFrequency() {
+	@Deprecated
+	public int getSampleFrequency(boolean returnDefault) {
+		if (returnDefault) {
+			return getSampleFrequency();
+		}
 		return sampleFrequency;
 	}
 
 	/**
-	 * Set sample frequency for this audio track.
-	 * @param sampleFrequency sample frequency in Hz
+	 * Get sample frequency for this audio track.
+	 *
+	 * @return The sample frequency in Hz, or
+	 *         {@link DLNAMediaAudio#SAMPLERATE_DEFAULT} if
+	 *         {@code sampleFrequency} is invalid.
+	 * @deprecated Use {@link DLNAMediaAudio#getSampleRatesArray()} or
+	 *             {@link DLNAMediaAudio#getSampleRate()} instead.
 	 */
-	public void setSampleFrequency(int sampleFrequency) {
-		if (sampleFrequency < 1) {
-			throw new IllegalArgumentException("Sample frequency can't be less than 1 Hz.");
-		}
-		this.sampleFrequency = sampleFrequency;
+	@Deprecated
+	public int getSampleFrequency() {
+		return sampleFrequency > 0 ? sampleFrequency : DLNAMediaAudio.SAMPLERATE_DEFAULT;
 	}
 
 	/**
-	 * Set sample frequency for this audio track with libmediainfo value
-	 * @param mediaInfoValue libmediainfo "Sampling rate" value to parse
+	 * Set sample frequency for this audio track.
+	 *
+	 * @param sampleFrequency sample frequency in Hz.
+	 * @deprecated Use {@link DLNAMediaAudio#setSampleRates(int[])} or
+	 *             {@link DLNAMediaAudio#setSampleRate(int)} instead.
 	 */
-	public void setSampleFrequency(String mediaInfoValue) {
-		this.sampleFrequency = getSampleFrequencyFromLibMediaInfo(mediaInfoValue);
-	}
-
-	public static int getChannelsNumberFromLibMediaInfo(String mediaInfoValue) {
-		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number 2.");
-			return 2;
-		}
-
-		// examples of libmediainfo  (mediainfo --Full --Language=raw file):
-		// Channel(s) : 2
-		// Channel(s) : 6
-		// Channel(s) : 2 channels / 1 channel / 1 channel
-
-		int result = -1;
-		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
-		while (intMatcher.find()) {
-			String matchResult = intMatcher.group();
-			try {
-				int currentResult = Integer.parseInt(matchResult);
-				if (currentResult > result) {
-					result = currentResult;
-				}
-			} catch (NumberFormatException ex) {
-				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
-			}
-		}
-
-		if (result <= 0) {
-			LOGGER.warn("Can't parse value {}. Returning default number 2.", mediaInfoValue);
-			return 2;
-		} else {
-			return result;
-		}
-	}
-
-	public static int getAudioDelayFromLibMediaInfo(String mediaInfoValue) {
-		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number 0.");
-			return 0;
-		}
-
-		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
-		// Video_Delay : 0
-
-		int result = 0;
-		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
-		if (intMatcher.find()) {
-			String matchResult = intMatcher.group();
-			try {
-				result = Integer.parseInt(matchResult);
-			} catch (NumberFormatException ex) {
-				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
-			}
-		}
-		return result;
-	}
-
-	public static int getSampleFrequencyFromLibMediaInfo(String mediaInfoValue) {
-		if (isEmpty(mediaInfoValue)) {
-			LOGGER.warn("Empty value passed in. Returning default number 48000 Hz.");
-			return 48000;
-		}
-
-		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
-		// SamplingRate : 48000
-		// SamplingRate : 44100 / 22050
-
-		int result = -1;
-		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
-		while (intMatcher.find()) {
-			String matchResult = intMatcher.group();
-			try {
-				int currentResult = Integer.parseInt(matchResult);
-				if (currentResult > result) {
-					result = currentResult;
-				}
-			} catch (NumberFormatException ex) {
-				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
-			}
-		}
-
-		if (result < 1) {
-			LOGGER.warn("Can't parse value {}. Returning default number 48000 Hz.", mediaInfoValue);
-			return 48000;
-		} else {
-			return result;
-		}
+	@Deprecated
+	public void setSampleFrequency(int sampleFrequency) {
+		this.sampleFrequency = sampleFrequency;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		if (getNumberOfChannels() == 1) {
-			result.append("Channel: ").append(getNumberOfChannels());
+			result.append(", Channel: ").append(getNumberOfChannels());
 		} else {
-			result.append("Channels: ").append(getNumberOfChannels());
+			result.append(", Channels: ").append(getNumberOfChannels());
 		}
 		result.append(", Sample Frequency: ").append(getSampleFrequency()).append(" Hz");
 		if (getAudioDelay() != 0) {
-			result.append(", Delay: ").append(getAudioDelay());
+			result.append(", Delay: ").append(getAudioDelay()).append(" ms");
 		}
 
 		return result.toString();
+	}
+
+	@Override
+	public AudioProperties clone() throws CloneNotSupportedException {
+		return (AudioProperties) super.clone();
 	}
 }

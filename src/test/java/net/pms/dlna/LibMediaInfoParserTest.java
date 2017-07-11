@@ -60,14 +60,14 @@ public class LibMediaInfoParserTest {
 	
 	@Test
 	public void testGetBitrate() throws Exception {
-		assertThat(LibMediaInfoParser.getBitrate("256")).isEqualTo(256);
-		assertThat(LibMediaInfoParser.getBitrate("128/192")).isEqualTo(128);
+		assertThat(LibMediaInfoParser.parseBitRate("256")).isEqualTo(256);
+		assertThat(LibMediaInfoParser.parseBitRate("128/192")).isEqualTo(128);
 	}
 	
 	@Test
 	public void testGetBitrateInvalidInput() throws Exception {
-		assertThat(LibMediaInfoParser.getBitrate("")).isEqualTo(0);
-		assertThat(LibMediaInfoParser.getBitrate("asfd")).isEqualTo(0);
+		assertThat(LibMediaInfoParser.parseBitRate("")).isEqualTo(0);
+		assertThat(LibMediaInfoParser.parseBitRate("asfd")).isEqualTo(0);
 	}
 	
 	@Test
@@ -80,9 +80,9 @@ public class LibMediaInfoParserTest {
 	
 	@Test
 	public void testGetSampleFrequency() throws Exception {
-		assertThat(LibMediaInfoParser.getSampleFrequency("44100")).isEqualTo("44100");
-		assertThat(LibMediaInfoParser.getSampleFrequency("24000khz")).isEqualTo("24000");
-		assertThat(LibMediaInfoParser.getSampleFrequency("48000 / 44100")).isEqualTo("48000");
+		assertThat(LibMediaInfoParser.parseSampleRate("44100")).isEqualTo("44100");
+		assertThat(LibMediaInfoParser.parseSampleRate("24000khz")).isEqualTo("24000");
+		assertThat(LibMediaInfoParser.parseSampleRate("48000 / 44100")).isEqualTo("48000");
 	}
 	
 	@Test

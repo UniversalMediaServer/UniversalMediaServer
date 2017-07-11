@@ -24,14 +24,10 @@ import org.junit.Test;
 public class DLNAMediaAudioTest {
 
 	@Test
-	public void testDefaultAudioProperties() {
-		DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
-		assertThat(dlnaMediaAudio.getAudioProperties()).isNotNull();
+	public void testDefaultAudioProperties() { //TODO: (Nad) Some tests
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetAudioProperties_withNullAudioProperties() {
-		DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
-		dlnaMediaAudio.setAudioProperties(null);
 	}
 }

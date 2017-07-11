@@ -105,7 +105,7 @@ public final class AudioUtils {
 		//  SR : Surround Right
 		//  LFE : Low Frequency Effects (Sub)
 		String mixer = null;
-		int numberOfInputChannels = audioTrack.getAudioProperties().getNumberOfChannels();
+		int numberOfInputChannels = audioTrack.getNumberOfChannels();
 
 		if (numberOfInputChannels == 6) { // 5.1
 			// we are using PCM output and have to manually remap channels because of MEncoder's incorrect PCM mappings
@@ -177,8 +177,8 @@ public final class AudioUtils {
 			int reportedDataSize = 0;
 			if (version == 3) {
 				audio.setCodecA(FormatConfiguration.REALAUDIO_14_4);
-				audio.getAudioProperties().setNumberOfChannels(1);
-				audio.getAudioProperties().setSampleFrequency(8000);
+				audio.setNumberOfChannels(1);
+				audio.setSampleRate(8000);
 				short headerSize = buffer.getShort();
 
 				buffer = ByteBuffer.allocate(headerSize);
@@ -201,8 +201,9 @@ public final class AudioUtils {
 					buffer.get(artist);
 					audio.setArtist(new String(artist, StandardCharsets.US_ASCII));
 				}
-				audio.setBitRate(bytesPerMinute * 8 / 60);
-				media.setBitrate(bytesPerMinute * 8 / 60);
+				BitRate bitRate = new BitRate(BitRateMode.CONSTANT, bytesPerMinute * 8 / 60, DLNAMediaAudio.BITRATE_DEFAULT);
+				audio.setBitRate(bitRate);
+				media.setBitRate(bitRate);
 			} else if (version == 4 || version == 5) {
 				buffer = ByteBuffer.allocate(14);
 				channel.read(buffer);
@@ -278,24 +279,26 @@ public final class AudioUtils {
 					parseRealAudioMetaData(buffer, audio, version);
 				}
 
-				audio.setBitRate((int) (bytesPerMinute * 8 / 60));
-				media.setBitrate((int) (bytesPerMinute * 8 / 60));
-				audio.setBitsperSample(sampleSize);
-				audio.getAudioProperties().setNumberOfChannels(nrChannels);
-				audio.getAudioProperties().setSampleFrequency(sampleRate);
+				BitRate bitRate = new BitRate(BitRateMode.CONSTANT, (int) (bytesPerMinute * 8 / 60), DLNAMediaAudio.BITRATE_DEFAULT);
+				audio.setBitRate(bitRate);
+				media.setBitRate(bitRate);
+				audio.setBitsPerSample(sampleSize);
+				audio.setNumberOfChannels(nrChannels);
+				audio.setSampleRate(sampleRate);
 			} else {
 				LOGGER.error("Could not parse RealAudio format - unknown format version {}", version);
 				return false;
 			}
 
-			media.getAudioTracksList().add(audio);
+			media.getAudioTracks().add(audio);
 			long fileSize = 0;
 			if (channel instanceof FileChannel) {
 				fileSize = ((FileChannel) channel).size();
 				media.setSize(fileSize);
 			}
 			// Duration is estimated based on bitrate and might not be accurate
-			if (audio.getBitRate() > 0) {
+
+			if (!audio.getBitRate().isUnknown()) {
 				int dataSize;
 				if (fileSize > 0 && reportedHeaderSize > 0) {
 					int fullHeaderSize = reportedHeaderSize + (version == 3 ? 8 : 16);
@@ -307,9 +310,8 @@ public final class AudioUtils {
 				} else {
 					dataSize = reportedDataSize;
 				}
-				media.setDuration((double) dataSize / audio.getBitRate() * 8);
+				media.setDuration((double) dataSize / audio.getBitRate().bitRate * 8);
 			}
-
 		} catch (IOException e) {
 			LOGGER.debug("Error while trying to parse RealAudio version 1 or 2: {}", e.getMessage());
 			LOGGER.trace("", e);

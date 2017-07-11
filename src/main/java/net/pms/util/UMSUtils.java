@@ -25,7 +25,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.Collator;
 import java.util.*;
-import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
@@ -63,9 +62,9 @@ public class UMSUtils {
 			boolean keep = res.getName().toLowerCase().contains(searchCriteria);
 			final DLNAMediaInfo media = res.getMedia();
 
-			if (!keep && media != null && media.getAudioTracksList() != null) {
-				for (int j = 0; j < media.getAudioTracksList().size(); j++) {
-					DLNAMediaAudio audio = media.getAudioTracksList().get(j);
+			if (!keep && media != null && media.getAudioTracks() != null) {
+				for (int j = 0; j < media.getAudioTracks().size(); j++) {
+					DLNAMediaAudio audio = media.getAudioTracks().get(j);
 					if (audio.getAlbum() != null) {
 						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
 					}
@@ -507,5 +506,28 @@ public class UMSUtils {
 			}
 			return null;
 		}
+	}
+
+	/**
+	 * Finds the highest (closes to {@link Integer#MAX_VALUE}) value in an
+	 * {@code int} array that is equal to or greater than {@code minimumValue}.
+	 *
+	 * @param intArray the array of {@code int} for which to find the highest
+	 *            value.
+	 * @param minimumValue the lowest possible return value, returned if
+	 *            {@code intArray} is {@code null} or empty.
+	 * @return The highest value of the array including {@code minimumValue}.
+	 */
+	public static int getIntArrayMaxValue(int[] intArray, int minimumValue) {
+		if (intArray == null || intArray.length == 0) {
+			return minimumValue;
+		}
+		int result = minimumValue;
+		for (int i : intArray) {
+			if (i > result) {
+				result = i;
+			}
+		}
+		return result;
 	}
 }
