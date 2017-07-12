@@ -110,10 +110,10 @@ public class IOKitUtils {
 	}
 
 	/**
-	 * Determines if the current macOS version has is of a version equal or
-	 * greater to the arguments. Since {@code "10"} is fixed for all versions of
-	 * macOS, only the major and minor versions are needed. The format is
-	 * interpreted as {@code 10.major.minor}.
+	 * Determines if the current macOS version is of a version equal or greater
+	 * to the arguments. Since {@code "10"} is fixed for all versions of macOS,
+	 * only the major and minor versions are needed. The format is interpreted
+	 * as {@code 10.major.minor}.
 	 *
 	 * @param major the second part of the macOS version number.
 	 * @param minor the third part of the macOS version number.
