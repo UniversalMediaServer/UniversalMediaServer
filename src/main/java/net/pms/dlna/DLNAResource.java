@@ -936,8 +936,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						isIncompatible = true;
 						LOGGER.trace(prependTraceReason + "the H.264 level is unknown.", getName());
 					}
+				} else if (media.is3d() && StringUtils.isNotBlank(renderer.getOutput3DFormat()) && (!media.get3DLayout().toString().toLowerCase(Locale.ROOT).equals(renderer.getOutput3DFormat()))) {
+					forceTranscode = true;
+					LOGGER.trace("Video \"{}\" is 3D and is forced to transcode to the format \"{}\"", getName(), renderer.getOutput3DFormat());
 				}
-			}
+			} 
 
 			// Prefer transcoding over streaming if:
 			// 1) the media is unsupported by the renderer, or

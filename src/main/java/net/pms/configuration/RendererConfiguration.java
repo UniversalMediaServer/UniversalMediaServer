@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
+import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
@@ -2530,8 +2531,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return null;
 	}
 
+	/**
+	 * Get the renderer setting of the output video 3D format to which the video should be converted.
+	 *
+	 * @return the lowercase string of the output video 3D format or an
+	 * empty string when the output format is not specified or not implemented.
+	 */
 	public String getOutput3DFormat() {
-		return getString(OUTPUT_3D_FORMAT, "");
+		String value = getString(OUTPUT_3D_FORMAT, "").toLowerCase(Locale.ROOT);
+		// check if the parameter is specified correctly
+		if (StringUtils.isNotBlank(value)) {
+			for (Mode3D format : DLNAMediaInfo.Mode3D.values()) {
+				if (value.equals(format.toString().toLowerCase(Locale.ROOT))) {
+					return value;
+				}
+			}
+
+			LOGGER.debug("The output 3D format `{}` specified in the `Output3DFormat` is not implemented or incorrectly specified.", value);
+		}
+
+		return "";
 	}
 
 	public boolean ignoreTranscodeByteRangeRequests() {

@@ -88,6 +88,7 @@ public class LibMediaInfoParser {
 				getFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
 				media.setDuration(getDuration(MI.Get(general, 0, "Duration/String1")));
 				media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
+				media.setStereoscopy(MI.Get(general, 0, "StereoscopicLayout"));
 				value = MI.Get(general, 0, "Cover_Data");
 				if (!value.isEmpty()) {
 					try {
@@ -111,6 +112,7 @@ public class LibMediaInfoParser {
 						LOGGER.trace("", e);
 					}
 				}
+
 				value = MI.Get(general, 0, "Title");
 				if (!value.isEmpty()) {
 					media.setFileTitleFromMetadata(value);
@@ -136,7 +138,10 @@ public class LibMediaInfoParser {
 							media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
 							media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
 							media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
-							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
+							if (!media.is3d()) {
+								media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
+							}
+
 							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
 							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
