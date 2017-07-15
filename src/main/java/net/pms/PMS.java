@@ -1181,7 +1181,7 @@ public class PMS {
 		if (args.length > 0) {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
-				switch (arg) {
+				switch (arg.trim().toLowerCase(Locale.ROOT)) {
 					case HEADLESS:
 					case CONSOLE:
 						forceHeadless();
