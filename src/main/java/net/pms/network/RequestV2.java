@@ -319,7 +319,6 @@ public class RequestV2 extends HTTPResource {
 
 			if (dlna != null) {
 				// DLNAresource was found.
-
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
 					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
@@ -341,6 +340,20 @@ public class RequestV2 extends HTTPResource {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
 					inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+					if (contentFeatures != null && inputStream instanceof DLNAThumbnailInputStream) {
+						output.headers().set(
+							"ContentFeatures.DLNA.ORG",
+							dlna.getDlnaContentFeatures(((DLNAThumbnailInputStream) inputStream).getDLNAImageProfile())
+						);
+					}
+					if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+						if (lowRange > 0) {
+							inputStream.skip(lowRange);
+						}
+						inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
+					}
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 				} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 					// This is a request for an image
 					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
@@ -381,6 +394,20 @@ public class RequestV2 extends HTTPResource {
 							LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
 						} else {
 							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
+							if (contentFeatures != null && inputStream instanceof DLNAImageInputStream) {
+								output.headers().set(
+									"ContentFeatures.DLNA.ORG",
+									dlna.getDlnaContentFeatures(((DLNAImageInputStream) inputStream).getDLNAImageProfile())
+								);
+							}
+							if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+								if (lowRange > 0) {
+									inputStream.skip(lowRange);
+								}
+								inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
+							}
+							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+							output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 						}
 					} catch (IOException ie) {
 						output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
