@@ -21,6 +21,7 @@ import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,13 +101,13 @@ public class RemoteRawHandler implements HttpHandler {
 		}
 		Headers hdr = t.getResponseHeaders();
 		LOGGER.debug("Sending media \"{}\" with mime type \"{}\"", dlna, mime);
-		hdr.add("Content-Type", mime);
-		hdr.add("Accept-Ranges", "bytes");
-		hdr.add("Server", PMS.get().getServerName());
-		hdr.add("Connection", "keep-alive");
-		hdr.add("Transfer-Encoding", "chunked");
+		hdr.add(HttpHeaders.Names.CONTENT_TYPE, mime);
+		hdr.add(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+		hdr.add(HttpHeaders.Names.SERVER, PMS.get().getServerName());
+		hdr.add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+		hdr.add(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED);
 		if (in.available() != len) {
-			hdr.add("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
+			hdr.add(HttpHeaders.Names.CONTENT_RANGE, HttpHeaders.Values.BYTES + range.getStart() + "-" + in.available() + "/" + len);
 			t.sendResponseHeaders(206, in.available());
 		} else {
 			t.sendResponseHeaders(200, 0);

@@ -15,6 +15,7 @@ import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.FFmpegAudio;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.util.FileUtil;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,18 +123,18 @@ public class RemoteMediaHandler implements HttpHandler {
 			range.setEnd(resource.length());
 		}
 		Headers headers = httpExchange.getResponseHeaders();
-		headers.add("Content-Type", mimeType);
-		headers.add("Accept-Ranges", "bytes");
+		headers.add(HttpHeaders.Names.CONTENT_TYPE, mimeType);
+		headers.add(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		long end = range.getEnd();
 		long start = range.getStart();
 		String rStr = start + "-" + end + "/*" ;
-		headers.add("Content-Range", "bytes " + rStr);
+		headers.add(HttpHeaders.Names.CONTENT_RANGE, HttpHeaders.Values.BYTES + rStr);
 		if (start != 0) {
 			code = 206;
 		}
 
-		headers.add("Server", PMS.get().getServerName());
-		headers.add("Connection", "keep-alive");
+		headers.add(HttpHeaders.Names.SERVER, PMS.get().getServerName());
+		headers.add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		httpExchange.sendResponseHeaders(code, 0);
 		OutputStream os = httpExchange.getResponseBody();
 		if (renderer != null) {

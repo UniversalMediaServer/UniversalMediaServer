@@ -324,9 +324,9 @@ public class RequestV2 extends HTTPResource {
 					// This is a request for a thumbnail file.
 					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 
 					DLNAThumbnailInputStream thumbInputStream;
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
@@ -362,9 +362,9 @@ public class RequestV2 extends HTTPResource {
 						}
 					}
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 						output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 						try {
 						InputStream imageInputStream;
 						if (dlna.getPlayer() instanceof ImagePlayer) {
@@ -575,8 +575,8 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
-						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
-						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 					}
 					if (origRendering != null) {
 						// Restore original rendering details
@@ -591,16 +591,16 @@ public class RequestV2 extends HTTPResource {
 				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
 			}
 
-			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
-			output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 			output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			output.headers().set(HttpHeaders.Names.CACHE_CONTROL, "no-cache");
+			output.headers().set(HttpHeaders.Names.CACHE_CONTROL, HttpHeaders.Values.NO_CACHE);
 			output.headers().set(HttpHeaders.Names.EXPIRES, "0");
-			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
-			output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
 
 			if (argument.equals("description/fetch")) {

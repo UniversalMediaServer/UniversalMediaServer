@@ -59,6 +59,7 @@ import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -334,10 +335,10 @@ public class Request extends HTTPResource {
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
 					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
-					appendToHeader(responseHeader, "Content-Type: " + imageProfile.getMimeType());
-					appendToHeader(responseHeader, "Accept-Ranges: bytes");
-					appendToHeader(responseHeader, "Expires: " + getFUTUREDATE() + " GMT");
-					appendToHeader(responseHeader, "Connection: keep-alive");
+					appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_TYPE + ": " + imageProfile.getMimeType());
+					appendToHeader(responseHeader, HttpHeaders.Names.ACCEPT_RANGES + ": " + HttpHeaders.Values.BYTES);
+					appendToHeader(responseHeader, HttpHeaders.Names.EXPIRES + ": " + getFUTUREDATE() + " GMT");
+					appendToHeader(responseHeader, HttpHeaders.Names.CONNECTION + ": " + HttpHeaders.Values.KEEP_ALIVE);
 					DLNAThumbnailInputStream thumbInputStream;
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						thumbInputStream = dlna.getGenericThumbnailInputStream(null);
@@ -371,10 +372,10 @@ public class Request extends HTTPResource {
 							imageProfile = DLNAImageProfile.JPEG_LRG;
 						}
 					}
-					appendToHeader(responseHeader, "Content-Type: " + imageProfile.getMimeType());
-					appendToHeader(responseHeader, "Accept-Ranges: bytes");
-					appendToHeader(responseHeader, "Expires: " + getFUTUREDATE() + " GMT");
-					appendToHeader(responseHeader, "Connection: keep-alive");
+					appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_TYPE + ": " + imageProfile.getMimeType());
+					appendToHeader(responseHeader, HttpHeaders.Names.ACCEPT_RANGES + ": " + HttpHeaders.Values.BYTES);
+					appendToHeader(responseHeader, HttpHeaders.Names.EXPIRES + ": " + getFUTUREDATE() + " GMT");
+					appendToHeader(responseHeader, HttpHeaders.Names.CONNECTION + ": " + HttpHeaders.Values.KEEP_ALIVE);
 					try {
 						InputStream imageInputStream;
 						if (dlna.getPlayer() instanceof ImagePlayer) {
@@ -389,7 +390,7 @@ public class Request extends HTTPResource {
 							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
 						}
 					} catch (IOException e) {
-						appendToHeader(responseHeader, "Content-Length: 0");
+						appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_LENGTH + ": 0");
 						appendToHeader(responseHeader, "");
 						responseHeader.set(0, http10 ? HTTP_415_UNSUPPORTED_MEDIA_TYPE_10 : HTTP_415_UNSUPPORTED_MEDIA_TYPE);
 						sendHeader(responseHeader);
@@ -399,8 +400,8 @@ public class Request extends HTTPResource {
 					}
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
-					appendToHeader(responseHeader, "Content-Type: text/plain");
-					appendToHeader(responseHeader, "Expires: " + getFUTUREDATE() + " GMT");
+					appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_TYPE + ": text/plain");
+					appendToHeader(responseHeader, HttpHeaders.Names.EXPIRES + ": " + getFUTUREDATE() + " GMT");
 					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 					if (sub != null) {
 						// XXX external file is null if the first subtitle track is embedded:
@@ -446,7 +447,7 @@ public class Request extends HTTPResource {
 						LOGGER.error("There is no inputstream to return for " + name);
 					} else {
 						startStopListenerDelegate.start(dlna);
-						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia()));
+						appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_TYPE + ": " + getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia()));
 
 						if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
 							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
@@ -535,10 +536,10 @@ public class Request extends HTTPResource {
 						}
 
 						if (dlna.getPlayer() == null || xbox360) {
-							appendToHeader(responseHeader, "Accept-Ranges: bytes");
+							appendToHeader(responseHeader, HttpHeaders.Names.ACCEPT_RANGES + ": " + HttpHeaders.Values.BYTES);
 						}
 
-						appendToHeader(responseHeader, "Connection: keep-alive");
+						appendToHeader(responseHeader, HttpHeaders.Names.CONNECTION + ": " + HttpHeaders.Values.KEEP_ALIVE);
 					}
 					if (origRendering != null) {
 						// Restore original rendering details
@@ -548,21 +549,21 @@ public class Request extends HTTPResource {
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
 			if (argument.toLowerCase().endsWith(".png")) {
-				appendToHeader(responseHeader, "Content-Type: image/png");
+				appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_TYPE + ": image/png");
 			} else {
-				appendToHeader(responseHeader, "Content-Type: image/jpeg");
+				appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_TYPE + ": image/jpeg");
 			}
 
-			appendToHeader(responseHeader, "Accept-Ranges: bytes");
-			appendToHeader(responseHeader, "Connection: keep-alive");
-			appendToHeader(responseHeader, "Expires: " + getFUTUREDATE() + " GMT");
+			appendToHeader(responseHeader, HttpHeaders.Names.ACCEPT_RANGES + ": " + HttpHeaders.Values.BYTES);
+			appendToHeader(responseHeader, HttpHeaders.Names.CONNECTION + ": " + HttpHeaders.Values.KEEP_ALIVE);
+			appendToHeader(responseHeader, HttpHeaders.Names.EXPIRES + ": " + getFUTUREDATE() + " GMT");
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
 			appendToHeader(responseHeader, CONTENT_TYPE);
-			appendToHeader(responseHeader, "Cache-Control: no-cache");
-			appendToHeader(responseHeader, "Expires: 0");
-			appendToHeader(responseHeader, "Accept-Ranges: bytes");
-			appendToHeader(responseHeader, "Connection: keep-alive");
+			appendToHeader(responseHeader, HttpHeaders.Names.CACHE_CONTROL + ": " + HttpHeaders.Values.NO_CACHE);
+			appendToHeader(responseHeader, HttpHeaders.Names.EXPIRES + ": 0");
+			appendToHeader(responseHeader, HttpHeaders.Names.ACCEPT_RANGES + ": " + HttpHeaders.Values.BYTES);
+			appendToHeader(responseHeader, HttpHeaders.Names.CONNECTION + ": " + HttpHeaders.Values.KEEP_ALIVE);
 			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
 
 			if (argument.equals("description/fetch")) {
@@ -830,10 +831,10 @@ public class Request extends HTTPResource {
 				return;
 			}
 			appendToHeader(responseHeader, CONTENT_TYPE_UTF8);
-			appendToHeader(responseHeader, "Content-Length: 0");
-			appendToHeader(responseHeader, "Connection: close");
+			appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_LENGTH + ": 0");
+			appendToHeader(responseHeader, HttpHeaders.Names.CONNECTION + ": " + HttpHeaders.Values.CLOSE);
 			appendToHeader(responseHeader, "SID: " + PMS.get().usn());
-			appendToHeader(responseHeader, "Server: " + PMS.get().getServerName());
+			appendToHeader(responseHeader, HttpHeaders.Names.SERVER + ": " + PMS.get().getServerName());
 			appendToHeader(responseHeader, "Timeout: Second-1800");
 			appendToHeader(responseHeader, "");
 			sendHeader(responseHeader);
@@ -879,12 +880,12 @@ public class Request extends HTTPResource {
 			}
 		}
 
-		appendToHeader(responseHeader, "Server: " + PMS.get().getServerName());
+		appendToHeader(responseHeader, HttpHeaders.Names.SERVER + ": " + PMS.get().getServerName());
 
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
 			byte responseData[] = response.toString().getBytes("UTF-8");
-			appendToHeader(responseHeader, "Content-Length: " + responseData.length);
+			appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_LENGTH + ": " + responseData.length);
 			appendToHeader(responseHeader, "");
 			sendHeader(responseHeader);
 
@@ -907,7 +908,7 @@ public class Request extends HTTPResource {
 			} else {
 				int cl = inputStream.available();
 				LOGGER.trace("Available Content-Length: " + cl);
-				appendToHeader(responseHeader, "Content-Length: " + cl);
+				appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_LENGTH + ": " + cl);
 			}
 
 			if (timeseek > 0 && dlna != null) {
@@ -934,7 +935,7 @@ public class Request extends HTTPResource {
 				startStopListenerDelegate.stop();
 			}
 		} else { // inputStream is null
-			appendToHeader(responseHeader, "Content-Length: 0");
+			appendToHeader(responseHeader, HttpHeaders.Names.CONTENT_LENGTH + ": 0");
 			appendToHeader(responseHeader, "");
 			responseHeader.set(0, http10 ? HTTP_204_NO_CONTENT_10 : HTTP_204_NO_CONTENT);
 			sendHeader(responseHeader);

@@ -29,6 +29,7 @@ import net.pms.newgui.DbgPacker;
 import net.pms.util.FullyPlayed;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -302,9 +303,9 @@ public class RemoteWeb {
 				in = FullyPlayed.addFullyPlayedOverlay(in);
 			}
 			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type", ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
-			hdr.add("Accept-Ranges", "bytes");
-			hdr.add("Connection", "keep-alive");
+			hdr.add(HttpHeaders.Names.CONTENT_TYPE, ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
+			hdr.add(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+			hdr.add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 			t.sendResponseHeaders(200, in.getSize());
 			OutputStream os = t.getResponseBody();
 			LOGGER.trace("Web thumbnail: Input is {} output is {}", in, os);
