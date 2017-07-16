@@ -84,7 +84,7 @@ public class Request extends HTTPResource {
 	private final static String HTTP_500_10 = "HTTP/1.0 500 Internal Server Error";
 	private final static String CONTENT_TYPE_UTF8 = "CONTENT-TYPE: text/xml; charset=\"utf-8\"";
 	private final static String CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
-	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(.*?)</Result>");
+	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private final String method;
 
