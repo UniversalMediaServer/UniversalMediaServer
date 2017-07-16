@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -18,7 +19,6 @@ import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.FileUtil;
 import net.pms.util.UnknownFormatException;
-import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +93,7 @@ public class LibMediaInfoParser {
 				if (!value.isEmpty()) {
 					try {
 						media.setThumb(DLNAThumbnail.toThumbnail(
-							new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)),
+							Base64.getDecoder().decode(value.getBytes(StandardCharsets.US_ASCII)),
 							640,
 							480,
 							ScaleType.MAX,
