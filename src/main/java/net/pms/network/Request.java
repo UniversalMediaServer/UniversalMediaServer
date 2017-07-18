@@ -812,6 +812,8 @@ public class Request extends HTTPResource {
 
 				if (files != null && filessize > 0) {
 					parentFolder = files.get(0).getParent();
+				} else {
+					parentFolder = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(objectID, mediaRenderer);
 				}
 
 				if (browseDirectChildren && mediaRenderer.isUseMediaInfo() && mediaRenderer.isDLNATreeHack()) {
