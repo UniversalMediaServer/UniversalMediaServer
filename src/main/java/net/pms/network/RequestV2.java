@@ -800,9 +800,12 @@ public class RequestV2 extends HTTPResource {
 							uf.setFakeParentId(containerID);
 						}
 
-						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
-							response.append(uf.getDidlString(mediaRenderer));
-						} else if (!(files.get(0).getParent() instanceof FileTranscodeVirtualFolder)) {
+						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null
+							|| uf.getPlayer().isPlayerCompatible(mediaRenderer))
+							 // do not check compatibility of the media when it is in the FileTranscodeVirtualFolder because the renderer setting could be wrong 
+							|| files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
+								response.append(uf.getDidlString(mediaRenderer));
+						} else {
 							minus++;
 						}
 					}
