@@ -802,7 +802,7 @@ public class RequestV2 extends HTTPResource {
 
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
 							response.append(uf.getDidlString(mediaRenderer));
-						} else {
+						} else if (!(files.get(0).getParent() instanceof FileTranscodeVirtualFolder)) {
 							minus++;
 						}
 					}
