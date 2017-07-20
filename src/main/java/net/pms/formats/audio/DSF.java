@@ -1,7 +1,7 @@
 	/*
-	 * Universal Media Server, for streaming any medias to DLNA
-	 * compatible renderers based on the http://www.ps3mediaserver.org.
-	 * Copyright (C) 2012 UMS developers.
+	 * Digital Media Server, for streaming digital media to DLNA compatible devices
+	 * based on www.ps3mediaserver.org and www.universalmediaserver.com.
+	 * Copyright (C) 2016 Digital Media Server developers.
 	 *
 	 * This program is a free software; you can redistribute it and/or
 	 * modify it under the terms of the GNU General Public License
@@ -19,20 +19,15 @@
 	 */
 	package net.pms.formats.audio;
 
-	public class DSDAudio extends AudioBase {
-		/**
-		 * {@inheritDoc}
-		 */
+	public class DSF extends AudioBase {
+
 		@Override
 		public Identifier getIdentifier() {
-			return Identifier.DSD;
+			return Identifier.DSF;
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		public String[] getSupportedExtensions() {
-			return new String[] { "dff", "dsf" };
+			return new String[] { "dsf" };
 		}
 	}

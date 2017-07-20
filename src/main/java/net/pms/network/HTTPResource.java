@@ -51,7 +51,8 @@ public class HTTPResource {
 	public static final String AUDIO_APE_TYPEMIME = "audio/x-ape";
 	public static final String AUDIO_ATRAC_TYPEMIME = "audio/x-sony-oma";
 	public static final String AUDIO_AU_TYPEMIME = "audio/basic";
-	public static final String AUDIO_DSD_TYPEMIME = "audio/x-dsf";
+	public static final String AUDIO_DSF_TYPEMIME = "audio/x-dsf";
+	public static final String AUDIO_DFF_TYPEMIME = "audio/x-dff";
 	public static final String AUDIO_DTS_TYPEMIME = "audio/vnd.dts";
 	public static final String AUDIO_DTSHD_TYPEMIME = "audio/vnd.dts.hd";
 	public static final String AUDIO_EAC3_TYPEMIME = "audio/eac3";
