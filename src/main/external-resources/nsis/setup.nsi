@@ -281,6 +281,7 @@ Section "Program Files"
 	Delete /REBOOTOK "$INSTDIR\renderers\XboxOne.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXA1010.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV671.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Yamaha-RXV675.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV3900.conf"
 
 	; Store install folder
