@@ -98,8 +98,8 @@ public class FormatFactoryTest {
 		testSingleFormat("test.omg", "ATRAC", Format.AUDIO);
 		testSingleFormat("test.au", "AU", Format.AUDIO);
 		testSingleFormat("test.snd", "AU", Format.AUDIO);
-		testSingleFormat("test.dff", "DSDAudio", Format.AUDIO);
-		testSingleFormat("test.dsf", "DSDAudio", Format.AUDIO);
+		testSingleFormat("test.dff", "DFF", Format.AUDIO);
+		testSingleFormat("test.dsf", "DSF", Format.AUDIO);
 		testSingleFormat("test.dvr", "DVRMS", Format.VIDEO);
 		testSingleFormat("test.dts", "DTS", Format.AUDIO);
 		testSingleFormat("test.eac3", "EAC3", Format.AUDIO);
