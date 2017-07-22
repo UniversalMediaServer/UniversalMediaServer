@@ -31,15 +31,10 @@ import java.text.Normalizer;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.external.AdditionalFolderAtRoot;
-import net.pms.external.AdditionalFoldersAtRoot;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.io.StreamGobbler;
 import net.pms.newgui.IFrame;
@@ -213,8 +208,11 @@ public class RootFolder extends DLNAResource {
 				}
 		}
 
-		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
-			addChild(r, true, isAddGlobally);
+		if (configuration.isShowMediaLibraryFolder()) {
+			DLNAResource libraryRes = PMS.get().getLibrary();
+			if (libraryRes != null) {
+				addChild(libraryRes, true, isAddGlobally);
+			}
 		}
 
 		if (configuration.isShowServerSettingsFolder()) {
@@ -1118,26 +1116,6 @@ public class RootFolder extends DLNAResource {
 			res.addChild(vsf);
 		}
 
-		res.addChild(new VirtualFolder(Messages.getString("NetworkTab.39"), null) {
-			@Override
-			public void discoverChildren() {
-				final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
-				for (final DownloadPlugins plugin : plugins) {
-					addChild(new VirtualVideoAction(plugin.getName(), true) {
-						@Override
-						public boolean enable() {
-							try {
-								plugin.install(null);
-							} catch (Exception e) {
-							}
-
-							return true;
-						}
-					});
-				}
-			}
-		});
-
 		if (configuration.getScriptDir() != null) {
 			final File scriptDir = new File(configuration.getScriptDir());
 
@@ -1370,61 +1348,6 @@ public class RootFolder extends DLNAResource {
 		return res;
 	}
 
-	/**
-	 * Returns as many folders as plugins providing root folders are loaded
-	 * into memory (need to implement AdditionalFolder(s)AtRoot)
-	 */
-	private List<DLNAResource> getAdditionalFoldersAtRoot() {
-		List<DLNAResource> res = new ArrayList<>();
-		String[] legalPlugs = null;
-		String tmp = configuration.getPlugins(tags);
-		if (StringUtils.isNotBlank(tmp)) {
-			legalPlugs = tmp.split(",");
-		}
-
-		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (illegalPlugin(legalPlugs, listener.name())) {
-				LOGGER.debug("plugin " + listener.name() + " is not legal for render");
-				continue;
-			}
-			if (listener instanceof AdditionalFolderAtRoot) {
-				AdditionalFolderAtRoot afar = (AdditionalFolderAtRoot) listener;
-
-				try {
-					DLNAResource resource = afar.getChild();
-					LOGGER.debug("add ext list " + listener);
-					if (resource == null) {
-						continue;
-					}
-					resource.setMasterParent(listener);
-					for (DLNAResource r : resource.getChildren()) {
-						r.setMasterParent(listener);
-					}
-					res.add(resource);
-				} catch (Throwable t) {
-					LOGGER.error(String.format("Failed to append AdditionalFolderAtRoot with name=%s, class=%s", afar.name(), afar.getClass()), t);
-				}
-			} else if (listener instanceof AdditionalFoldersAtRoot) {
-				Iterator<DLNAResource> folders = ((AdditionalFoldersAtRoot) listener).getChildren();
-
-				while (folders.hasNext()) {
-					DLNAResource resource = folders.next();
-					resource.setMasterParent(listener);
-					for (DLNAResource r : resource.getChildren()) {
-						r.setMasterParent(listener);
-					}
-					try {
-						res.add(resource);
-					} catch (Throwable t) {
-						LOGGER.error(String.format("Failed to append AdditionalFolderAtRoots with class=%s for DLNAResource=%s", listener.getClass(), resource.getClass()), t);
-					}
-				}
-			}
-		}
-
-		return res;
-	}
-
 	@Override
 	public String toString() {
 		return "RootFolder[" + getChildren() + "]";
@@ -1441,25 +1364,6 @@ public class RootFolder extends DLNAResource {
 		if (last != null) {
 			last.add(res);
 		}
-	}
-
-	private boolean illegalPlugin(String[] plugs, String name) {
-		if (StringUtils.isBlank(name)) {
-			if (plugs == null || plugs.length == 0) {
-				// only allowed without plugins filter
-				return false;
-			}
-			return true;
-		}
-		if (plugs == null || plugs.length == 0) {
-			return false;
-		}
-		for (String p : plugs) {
-			if (name.equals(p)) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public ArrayList<String> getTags() {

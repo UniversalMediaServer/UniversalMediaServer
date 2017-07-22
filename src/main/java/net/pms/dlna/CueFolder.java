@@ -172,7 +172,7 @@ public class CueFolder extends DLNAResource {
 
 						if (realFile.getMedia() != null) {
 							try {
-								realFile.setMedia((DLNAMediaInfo) originalMedia.clone());
+								realFile.setMedia(originalMedia.clone());
 							} catch (CloneNotSupportedException e) {
 								LOGGER.info("Error in cloning media info: " + e.getMessage());
 							}
