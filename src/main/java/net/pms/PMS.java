@@ -60,10 +60,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
 import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
-import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
@@ -662,40 +659,11 @@ public class PMS {
 
 		server = new HTTPServer(configuration.getServerPort());
 
-		/*
-		 * XXX: keep this here (i.e. after registerExtensions and before registerPlayers) so that plugins
-		 * can register custom players correctly (e.g. in the GUI) and/or add/replace custom formats
-		 *
-		 * XXX: if a plugin requires initialization/notification even earlier than
-		 * this, then a new external listener implementing a new callback should be added
-		 * e.g. StartupListener.registeredExtensions()
-		 */
-		try {
-			ExternalFactory.lookup();
-		} catch (Exception e) {
-			LOGGER.error("Error loading plugins", e);
-		}
-
 		// Initialize a player factory to register all players
 		PlayerFactory.initialize();
 
-		// Instantiate listeners that require registered players.
-		ExternalFactory.instantiateLateListeners();
-
-		// a static block in Player doesn't work (i.e. is called too late).
-		// this must always be called *after* the plugins have loaded.
-		// here's as good a place as any
-		Player.initializeFinalizeTranscoderArgsListeners();
-
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
-
-		// To make the credentials stuff work cross plugins read credentials
-		// file AFTER plugins are started
-		if (!isHeadless()) {
-			// but only if we got a GUI of course
-			((LooksFrame)frame).getPt().init();
-		}
 
 		boolean binding = false;
 
@@ -750,10 +718,6 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
-					for (ExternalListener l : ExternalFactory.getExternalListeners()) {
-						l.shutdown();
-					}
-
 					UPNPHelper.shutDownListener();
 					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");

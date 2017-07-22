@@ -603,8 +603,7 @@ public class VLCVideo extends Player {
 		// Pass to process wrapper
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-		cmdArray = finalizeTranscoderArgs(filename, dlna, media, params, cmdArray);
-		LOGGER.trace("Finalized args: " + StringUtils.join(cmdArray, " "));
+
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(pipe_process);
 
