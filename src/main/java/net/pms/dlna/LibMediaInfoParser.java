@@ -535,10 +535,6 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.VP8;
 		} else if (value.startsWith("vp9")) {
 			format = FormatConfiguration.VP9;
-		} else if (value.contains("xvid")) {
-			format = FormatConfiguration.MP4;
-		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
-			format = FormatConfiguration.MJPEG;
 		} else if (
 				value.startsWith("div") ||
 				value.equals("dx50") ||
