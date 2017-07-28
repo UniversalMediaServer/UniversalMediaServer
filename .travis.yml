@@ -10,6 +10,7 @@ matrix:
     - os: linux
       jdk: openjdk7
     - os: linux
+      dist: precise
       jdk: oraclejdk7
     - os: linux
       jdk: oraclejdk8
