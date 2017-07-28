@@ -2505,8 +2505,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					if (media.getDuration() != null) {
 						if (getSplitRange().isEndLimitAvailable()) {
-							wireshark.append(" duration=").append(StringUtil.formatDidlLiteDuration(getSplitRange().getDuration()));
-							addAttribute(sb, "duration", StringUtil.formatDidlLiteDuration(getSplitRange().getDuration()));
+							wireshark.append(" duration=").append(StringUtil.formatDLNADuration(getSplitRange().getDuration()));
+							addAttribute(sb, "duration", StringUtil.formatDLNADuration(getSplitRange().getDuration()));
 						} else {
 							wireshark.append(" duration=").append(media.getDurationString());
 							addAttribute(sb, "duration", media.getDurationString());
@@ -2549,8 +2549,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							addAttribute(sb, "bitrate", media.getBitrate());
 						}
 						if (media.getDuration() != null && media.getDuration().doubleValue() != 0.0) {
-							wireshark.append(" duration=").append(StringUtil.formatDidlLiteDuration(media.getDuration()));
-							addAttribute(sb, "duration", StringUtil.formatDidlLiteDuration(media.getDuration()));
+							wireshark.append(" duration=").append(StringUtil.formatDLNADuration(media.getDuration()));
+							addAttribute(sb, "duration", StringUtil.formatDLNADuration(media.getDuration()));
 						}
 
 						int transcodeFrequency = -1;

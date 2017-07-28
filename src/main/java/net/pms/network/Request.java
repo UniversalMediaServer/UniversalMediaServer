@@ -788,7 +788,7 @@ public class Request extends HTTPResource {
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null
 							|| uf.getPlayer().isPlayerCompatible(mediaRenderer))
 							// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-							 // all possible combination not only those supported by renderer because the renderer setting could be wrong. 
+							 // all possible combination not only those supported by renderer because the renderer setting could be wrong.
 							|| files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
 								response.append(uf.getDidlString(mediaRenderer));
 						} else {
@@ -946,7 +946,7 @@ public class Request extends HTTPResource {
 
 			if (timeseek > 0 && dlna != null) {
 				// Add timeseek information headers.
-				String timeseekValue = StringUtil.convertTimeToString(timeseek, StringUtil.DURATION_TIME_FORMAT);
+				String timeseekValue = StringUtil.formatDLNADuration(timeseek);
 				String timetotalValue = dlna.getMedia().getDurationString();
 				appendToHeader(responseHeader, "TimeSeekRange.dlna.org: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
 				appendToHeader(responseHeader, "X-Seek-Range: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);

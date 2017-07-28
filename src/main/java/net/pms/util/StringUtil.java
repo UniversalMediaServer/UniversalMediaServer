@@ -63,6 +63,7 @@ public class StringUtil {
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
+	public static final String DLNA_DURATION_FORMAT = "%01d:%02d:%06.3f";
 	public static final String NEWLINE_CHARACTER = System.getProperty("line.separator");
 	public static final long KIBI = 1L << 10;
 	public static final long MEBI = 1L << 20;
@@ -230,13 +231,31 @@ public class StringUtil {
 	 * Converts a duration in seconds to the DIDL-Lite specified duration
 	 * format.
 	 *
-	 * @param duration the duration in seconds
+	 * @param duration the duration in seconds.
 	 * @return The formatted duration.
 	 */
-	public static String formatDidlLiteDuration(double duration) {
-		SimpleDateFormat format = new SimpleDateFormat("H:mm:ss", Locale.ROOT);
-		format.setTimeZone(TimeZone.getTimeZone("UTC"));
-		return format.format(new Date((long) (duration * 1000)));
+	public static String formatDLNADuration(double duration) {
+		double seconds;
+		int hours;
+		int minutes;
+		if (duration < 0) {
+			seconds = 0.0;
+			hours = 0;
+			minutes = 0;
+		} else {
+			seconds = duration % 60;
+			hours = (int) (duration / 3600);
+			minutes = ((int) (duration / 60)) % 60;
+		}
+		if (hours > 99999) {
+			// As per DLNA standard
+			hours = 99999;
+		}
+		StringBuilder sb = new StringBuilder();
+		try (Formatter formatter = new Formatter(sb, Locale.ROOT)) {
+			formatter.format(DLNA_DURATION_FORMAT, hours, minutes, seconds);
+		}
+		return sb.toString();
 	}
 
 	/**
