@@ -29,6 +29,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JCheckBox;
@@ -266,14 +267,21 @@ public class FFMpegVideo extends Player {
 			filterChain.add(overrideVF);
 		}
 
-		// Convert 3D video to the other output 3D format
+		// Convert 3D video to the other output 3D format or to 2D using "Output3DFormat = ml" or "Output3DFormat = mr" in the renderer conf
+		String stereoLayout = null;
+		String renderer3DOutputFormat = null;
+		if (media.get3DLayout() != null) {
+			stereoLayout = media.get3DLayout().toString().toLowerCase(Locale.ROOT);
+			renderer3DOutputFormat = params.mediaRenderer.getOutput3DFormat();
+		}
+		
 		if (
 			is3D &&
-			media.get3DLayout() != null &&
-			isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
-			!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim())
+			stereoLayout != null &&
+			isNotBlank(renderer3DOutputFormat) &&
+			!stereoLayout.equals(renderer3DOutputFormat)
 		) {
-			filterChain.add("stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim().toLowerCase());
+			filterChain.add("stereo3d=" + stereoLayout + ":" + renderer3DOutputFormat);
 		}
 
 		if (filterChain.size() > 0) {

@@ -1,5 +1,6 @@
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
@@ -16,6 +18,7 @@ import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
+import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
@@ -2528,8 +2531,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return null;
 	}
 
+	/**
+	 * Get the renderer setting of the output video 3D format to which the video should be converted.
+	 *
+	 * @return the lowercase string of the output video 3D format or an
+	 * empty string when the output format is not specified or not implemented.
+	 */
 	public String getOutput3DFormat() {
-		return getString(OUTPUT_3D_FORMAT, "");
+		String value = getString(OUTPUT_3D_FORMAT, "").toLowerCase(Locale.ROOT);
+		// check if the parameter is specified correctly
+		if (StringUtils.isNotBlank(value)) {
+			for (Mode3D format : DLNAMediaInfo.Mode3D.values()) {
+				if (value.equals(format.toString().toLowerCase(Locale.ROOT))) {
+					return value;
+				}
+			}
+
+			LOGGER.debug("The output 3D format `{}` specified in the `Output3DFormat` is not implemented or incorrectly specified.", value);
+		}
+
+		return "";
 	}
 
 	public boolean ignoreTranscodeByteRangeRequests() {
@@ -2538,25 +2559,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public String calculatedSpeed() throws InterruptedException, ExecutionException {
 		String max = getString(MAX_VIDEO_BITRATE, "");
-		for (InetAddress sa : addressAssociation.keySet()) {
-			if (addressAssociation.get(sa) == this) {
-				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
-				if (max == null) {
-					return String.valueOf(speed.get());
-				}
-				try {
-					Integer i = Integer.parseInt(max);
-					if (speed.get() > i && i != 0) {
-						return max;
-					} else {
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			if (entry.getValue() == this) {
+				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey());
+				if (speed != null) {
+					if (max == null) {
 						return String.valueOf(speed.get());
 					}
-				} catch (NumberFormatException e) {
-					return String.valueOf(speed.get());
+					try {
+						Integer i = Integer.parseInt(max);
+						if (speed.get() > i && i > 0) {
+							return max;
+						}
+						return String.valueOf(speed.get());
+					} catch (NumberFormatException e) {
+						return String.valueOf(speed.get());
+					}
 				}
 			}
 		}
-		return max;
+		return isBlank(max) ? "0" : max;
 	}
 
 	/**
