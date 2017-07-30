@@ -91,6 +91,7 @@
 				<include>DummyInput.ass</include>
 				<include>DummyInput.jpg</include>
 				<include>web/**</include>
+				<include>ffmpeg.webfilters</include>
 			</includes>
 		</fileSet>
 
