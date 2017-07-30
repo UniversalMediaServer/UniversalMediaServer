@@ -11,10 +11,39 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	// XXX Add profiles, there are lots missing
 
 	/**
+	 * AVC wrapped in MP4 baseline profile CIF30 with AAC LC audio.
+	 */
+	AVC_MP4_BL_CIF30_AAC_940,
+
+	/**
+	 * AVC HD/SD video with AC-3 audio including dual-mono channel mode, wrapped
+	 * in MPEG-2 TS with valid timestamp for 24 Hz system.
+	 */
+	AVC_TS_HD_24_AC3_X_T,
+
+	/**
+	 * AVC HD/SD video with LPCM audio, wrapped in MPEG-2 TS with valid
+	 * timestamp for 24 Hz system.
+	 */
+	AVC_TS_HD_24_LPCM_T,
+
+	/**
+	 * AVC HD/SD video with AC-3 audio including dual-mono channel mode, wrapped
+	 * in MPEG-2 TS with valid timestamp for 50 Hz system.
+	 */
+	AVC_TS_HD_50_AC3_X_T,
+
+	/**
 	 * AVC HD/SD video with AC-3 audio including dual-mono channel mode,
 	 * wrapped in MPEG-2 TS with valid timestamp for 60 Hz system.
 	 */
 	AVC_TS_HD_60_AC3_X_T,
+
+	/**
+	 * AVC HD/SD video with LPCM audio, wrapped in MPEG-2 TS with valid
+	 * timestamp for 60 Hz system.
+	 */
+	AVC_TS_HD_60_LPCM_T,
 
 	/**
 	 * AVC wrapped in MPEG-2 transport stream, Main/High profile, with
@@ -119,6 +148,33 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	 */
 	DTCP_AVC_TS_MP_HD_AAC_LTP_T,
 
+	/** DTCP-IP Link Protection, Profile for AV class media. */
+	DTCP_MPEG1,
+
+	/**
+	 * DTCP-IP Link Protection, Profile defining ES encapsulation for transport
+	 * of MPEG_PS_PAL over RTP.
+	 */
+	DTCP_MPEG_ES_PAL,
+
+	/**
+	 * DTCP-IP Link Protection, Profile defining ES encapsulation for transport
+	 * of MPEG_PS_NTSC over RTP.
+	 */
+	DTCP_MPEG_ES_NTSC,
+
+	/**
+	 * DTCP-IP Link Protection, Profile defining ES encapsulation for transport
+	 * of MPEG_PS_PAL_XAC3 over RTP.
+	 */
+	DTCP_MPEG_ES_PAL_XAC3,
+
+	/**
+	 * DTCP-IP Link Protection, Profile defining ES encapsulation for transport
+	 * of MPEG_PS_NTSC_ XAC3 over RTP.
+	 */
+	DTCP_MPEG_ES_NTSC_XAC3,
+
 	/** DTCP-IP Link Protection, Profile for NTSC-formatted AV class media. */
 	DTCP_MPEG_PS_NTSC,
 
@@ -150,6 +206,42 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	DTCP_MPEG_TS_HD_KO_T,
 
 	/**
+	 * DTCP-IP Link Protection, Korea region profile for transcoded High
+	 * Definition AV class media with a zero value timestamp.
+	 */
+	DTCP_MPEG_TS_HD_KO_XAC3,
+
+	/**
+	 * DTCP-IP Link Protection, Korea region profile for transcoded High Definition AV class media with a
+	 * valid non-zero timestamp.
+	 */
+	DTCP_MPEG_TS_HD_KO_XAC3_T,
+
+	/**
+	 * DTCP-IP Link Protection, Korea region profile for transcoded High
+	 * Definition AV class media without a Timestamp field.
+	 */
+	DTCP_MPEG_TS_HD_KO_XAC3_ISO,
+
+	/**
+	 * DTCP-IP Link Protection, North America region profile for transcoded High
+	 * Definition AV class media with a zero value timestamp.
+	 */
+	DTCP_MPEG_TS_HD_NA_XAC3,
+
+	/**
+	 * DTCP-IP Link Protection, North America region profile for transcoded High
+	 * Definition AV class media with a valid non-zero timestamp.
+	 */
+	DTCP_MPEG_TS_HD_NA_XAC3_T,
+
+	/**
+	 * DTCP-IP Link Protection, North America region profile for transcoded High
+	 * Definition AV class media without a Timestamp field.
+	 */
+	DTCP_MPEG_TS_HD_NA_XAC3_ISO,
+
+	/**
 	 * DTCP-IP Link Protection, North America region profile for High
 	 * Definition AV class utilizing a DLNA Transport Packet with zero value
 	 * timestamp.
@@ -176,6 +268,24 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	 * timestamp.
 	 */
 	DTCP_MPEG_TS_JP_T,
+
+	/**
+	 * DTCP-IP Link Protection, MPEG-2 Main Profile at Low Level with AAC LC
+	 * audio encapsulated in MPEG-2 transport stream with zero value timestamp.
+	 */
+	DTCP_MPEG_TS_MP_LL_AAC,
+
+	/**
+	 * DTCP-IP Link Protection, MPEG-2 Main Profile at Low Level with AAC LC
+	 * audio encapsulated in MPEG-2 transport stream with valid timestamp.
+	 */
+	DTCP_MPEG_TS_MP_LL_AAC_T,
+
+	/**
+	 * DTCP-IP Link Protection, MPEG-2 Main Profile at Low Level with AAC LC
+	 * audio encapsulated in MPEG-2 transport stream without a Timestamp field.
+	 */
+	DTCP_MPEG_TS_MP_LL_AAC_ISO,
 
 	/**
 	 * DTCP-IP Link Protection, MPEG-2 Main Profile at Main Level with AC-3
@@ -244,6 +354,24 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	DTCP_MPEG_TS_SD_KO_T,
 
 	/**
+	 * DTCP-IP Link Protection, Korea region profile for Standard Definition AV
+	 * class media with a zero value timestamp.
+	 */
+	DTCP_MPEG_TS_SD_KO_XAC3,
+
+	/**
+	 * DTCP-IP Link Protection, Korea region profile for Standard Definition AV
+	 * class media with a valid non-zero timestamp.
+	 */
+	DTCP_MPEG_TS_SD_KO_XAC3_T,
+
+	/**
+	 * DTCP-IP Link Protection, Korea region profile for Standard Definition AV
+	 * class media without a Timestamp field.
+	 */
+	DTCP_MPEG_TS_SD_KO_XAC3_ISO,
+
+	/**
 	 * DTCP-IP Link Protection, North America region profile for Standard
 	 * Definition AV class utilizing a DLNA Transport Packet with zero value
 	 * timestamp.
@@ -263,6 +391,24 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	 * non-zero timestamp.
 	 */
 	DTCP_MPEG_TS_SD_NA_T,
+
+	/**
+	 * DTCP-IP Link Protection, North America region profile for Standard
+	 * Definition AV class media with a zero value timestamp.
+	 */
+	DTCP_MPEG_TS_SD_NA_XAC3,
+
+	/**
+	 * DTCP-IP Link Protection, North America region profile for Standard
+	 * Definition AV class media with a valid non-zero timestamp.
+	 */
+	DTCP_MPEG_TS_SD_NA_XAC3_T,
+
+	/**
+	 * DTCP-IP Link Protection, North America region profile for Standard
+	 * Definition AV class media without a Timestamp field.
+	 */
+	DTCP_MPEG_TS_SD_NA_XAC3_ISO,
 
 	/**
 	 * DTCP-IP Link Protection, High resolution video (Main Profile at High
@@ -322,6 +468,28 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	JPEG_TN,
 
 	/**
+	 * Profile defining ES encapsulation for transport of MPEG_PS_PAL over RTP.
+	 */
+	MPEG_ES_PAL,
+
+	/**
+	 * Profile defining ES encapsulation for transport of MPEG_PS_PAL_XAC3 over
+	 * RTP.
+	 */
+	MPEG_ES_PAL_XAC3,
+
+	/**
+	 * Profile defining ES encapsulation for transport of MPEG_PS_NTSC over RTP.
+	 */
+	MPEG_ES_NTSC,
+
+	/**
+	 * Profile defining ES encapsulation for transport of MPEG_PS_NTSC_ XAC3
+	 * over RTP.
+	 */
+	MPEG_ES_NTSC_XAC3,
+
+	/**
 	 * Korea region profile for High Definition AV class utilizing a DLNA
 	 * Transport Packet with zero value timestamp.
 	 */
@@ -338,6 +506,96 @@ public enum KnownDLNAOrgProfileName implements DLNAOrgProfileName {
 	 * Transport Packet with a valid non-zero timestamp.
 	 */
 	MPEG_TS_HD_KO_T,
+
+	/**
+	 * Korea region profile for transcoded High Definition AV class media with a
+	 * zero value timestamp.
+	 */
+	MPEG_TS_HD_KO_XAC3,
+
+	/**
+	 * Korea region profile for transcoded High Definition AV class media with a
+	 * valid non-zero timestamp.
+	 */
+	MPEG_TS_HD_KO_XAC3_T,
+
+	/**
+	 * Korea region profile for transcoded High Definition AV class media
+	 * without a Timestamp field.
+	 */
+	MPEG_TS_HD_KO_XAC3_ISO,
+
+	/**
+	 * North America region profile for transcoded High Definition AV class
+	 * media with a zero value timestamp.
+	 */
+	MPEG_TS_HD_NA_XAC3,
+
+	/**
+	 * North America region profile for transcoded High Definition AV class
+	 * media with a valid non-zero timestamp.
+	 */
+	MPEG_TS_HD_NA_XAC3_T,
+
+	/**
+	 * North America region profile for transcoded High Definition AV class
+	 * media without a Timestamp field.
+	 */
+	MPEG_TS_HD_NA_XAC3_ISO,
+
+	/**
+	 * MPEG-2 Main Profile at Low Level with AAC LC audio encapsulated in MPEG-2
+	 * transport stream with zero value timestamp.
+	 */
+	MPEG_TS_MP_LL_AAC,
+
+	/**
+	 * MPEG-2 Main Profile at Low Level with AAC LC audio encapsulated in MPEG-2
+	 * transport stream with valid timestamp.
+	 */
+	MPEG_TS_MP_LL_AAC_T,
+
+	/**
+	 * MPEG-2 Main Profile at Low Level with AAC LC audio encapsulated in MPEG-2
+	 * transport stream without a Timestamp field.
+	 */
+	MPEG_TS_MP_LL_AAC_ISO,
+
+	/**
+	 * Korea region profile for Standard Definition AV class media with a zero
+	 * value timestamp.
+	 */
+	MPEG_TS_SD_KO_XAC3,
+
+	/**
+	 * Korea region profile for Standard Definition AV class media with a valid
+	 * non-zero timestamp.
+	 */
+	MPEG_TS_SD_KO_XAC3_T,
+
+	/**
+	 * Korea region profile for Standard Definition AV class media without a
+	 * Timestamp field.
+	 */
+	MPEG_TS_SD_KO_XAC3_ISO,
+
+	/**
+	 * North America region profile for Standard Definition AV class media with
+	 * a zero value timestamp.
+	 */
+	MPEG_TS_SD_NA_XAC3,
+
+	/**
+	 * North America region profile for Standard Definition AV class media with
+	 * a valid non-zero timestamp.
+	 */
+	MPEG_TS_SD_NA_XAC3_T,
+
+	/**
+	 * North America region profile for Standard Definition AV class media
+	 * without a Timestamp field.
+	 */
+	MPEG_TS_SD_NA_XAC3_ISO,
 
 	/**
 	 * MPEG-2 Main Profile at Main, High-1 440 and High Level with MPEG-2

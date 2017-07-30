@@ -445,6 +445,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer) + ";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
+	public String getDlnaContentFeatures(DLNAImageProfile profile) {
+		if (profile == null || media == null || media.getImageInfo() == null) {
+			return null;
+		}
+		DLNAImageResElement resElement = new DLNAImageResElement(profile, media.getImageInfo(), false);
+		String ciFlag;
+		/*
+		 * Some Panasonic TV's can't handle if the thumbnails have the CI
+		 * flag set to 0 while the main resource doesn't have a CI flag.
+		 * DLNA dictates that a missing CI flag should be interpreted as
+		 * if it were 0, so the result should be the same.
+		 */
+		if (resElement.getCiFlag() == null || resElement.getCiFlag() == 0) {
+			ciFlag = "";
+		} else {
+			ciFlag = ";DLNA.ORG_CI=" + resElement.getCiFlag().toString();
+		}
+		return "DLNA.ORG_PN=" + profile + ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000";
+	}
+
 	public DLNAResource getPrimaryResource() {
 		return first;
 	}
@@ -940,7 +960,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					forceTranscode = true;
 					LOGGER.trace("Video \"{}\" is 3D and is forced to transcode to the format \"{}\"", getName(), renderer.getOutput3DFormat());
 				}
-			} 
+			}
 
 			// Prefer transcoding over streaming if:
 			// 1) the media is unsupported by the renderer, or
@@ -2485,8 +2505,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					if (media.getDuration() != null) {
 						if (getSplitRange().isEndLimitAvailable()) {
-							wireshark.append(" duration=").append(StringUtil.formatDidlLiteDuration(getSplitRange().getDuration()));
-							addAttribute(sb, "duration", StringUtil.formatDidlLiteDuration(getSplitRange().getDuration()));
+							wireshark.append(" duration=").append(StringUtil.formatDLNADuration(getSplitRange().getDuration()));
+							addAttribute(sb, "duration", StringUtil.formatDLNADuration(getSplitRange().getDuration()));
 						} else {
 							wireshark.append(" duration=").append(media.getDurationString());
 							addAttribute(sb, "duration", media.getDurationString());
@@ -2529,8 +2549,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							addAttribute(sb, "bitrate", media.getBitrate());
 						}
 						if (media.getDuration() != null && media.getDuration().doubleValue() != 0.0) {
-							wireshark.append(" duration=").append(StringUtil.formatDidlLiteDuration(media.getDuration()));
-							addAttribute(sb, "duration", StringUtil.formatDidlLiteDuration(media.getDuration()));
+							wireshark.append(" duration=").append(StringUtil.formatDLNADuration(media.getDuration()));
+							addAttribute(sb, "duration", StringUtil.formatDLNADuration(media.getDuration()));
 						}
 
 						int transcodeFrequency = -1;
@@ -3023,13 +3043,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addAttribute(sb, "resolution", Integer.toString(resElement.getWidth()) + "x" + Integer.toString(resElement.getHeight()));
 			}
 
+			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			addAttribute(sb,
 				"protocolInfo",
 				"http-get:*:" + resElement.getProfile().getMimeType() + ":DLNA.ORG_PN=" +
 				resElement.getProfile() +
 				ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000"
 			);
-			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			endTag(sb);
 			sb.append(url);
 			closeTag(sb, "res");
@@ -3040,8 +3060,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String albumArtURL = getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(albumArtURL)) {
 			openTag(sb, "upnp:albumArtURI");
-			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			addAttribute(sb, "dlna:profileID", thumbnailProfile);
+			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 			endTag(sb);
 			sb.append(albumArtURL);
 			closeTag(sb, "upnp:albumArtURI");
@@ -3482,7 +3502,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *            The low value.
 	 * @return The resulting input stream.
 	 */
-	private InputStream wrap(InputStream input, long high, long low) {
+	public static InputStream wrap(InputStream input, long high, long low) {
 		if (input != null && high > low) {
 			long bytes = (high - (low < 0 ? 0 : low)) + 1;
 			LOGGER.trace("Using size-limiting stream (" + bytes + " bytes)");
