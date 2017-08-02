@@ -1451,7 +1451,7 @@
 										           displayname="${project.name}"
 										           executableName="UMS"
 										           identifier="net.pms.PMS"
-										           shortversion="${project.version}"
+										           shortversion="${project.version.short}"
 										           version="${project.version}"
 										           icon="${project.basedir}/src/main/resources/images/logo.icns"
 										           applicationCategory="public.app-category.entertainment"
@@ -1463,6 +1463,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=&quot;UMS&quot;"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -1632,7 +1633,7 @@
 										           displayname="${project.name}"
 										           executableName="UMS"
 										           identifier="net.pms.PMS"
-										           shortversion="${project.version}"
+										           shortversion="${project.version.short}"
 										           version="${project.version}"
 										           icon="${project.basedir}/src/main/resources/images/logo.icns"
 										           applicationCategory="public.app-category.entertainment"
@@ -1643,6 +1644,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=&quot;UMS&quot;"/>
 										</bundleapp>
 									</target>
 								</configuration>
