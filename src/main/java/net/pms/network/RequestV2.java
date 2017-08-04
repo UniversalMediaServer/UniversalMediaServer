@@ -72,7 +72,7 @@ import org.xml.sax.SAXException;
 public class RequestV2 extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
 	private final static String CRLF = "\r\n";
-	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(.*?)</Result>");
+	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
 	private final String method;
@@ -319,14 +319,13 @@ public class RequestV2 extends HTTPResource {
 
 			if (dlna != null) {
 				// DLNAresource was found.
-
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
 					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 
 					DLNAThumbnailInputStream thumbInputStream;
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
@@ -341,6 +340,20 @@ public class RequestV2 extends HTTPResource {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
 					inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+					if (contentFeatures != null && inputStream instanceof DLNAThumbnailInputStream) {
+						output.headers().set(
+							"ContentFeatures.DLNA.ORG",
+							dlna.getDlnaContentFeatures(((DLNAThumbnailInputStream) inputStream).getDLNAImageProfile())
+						);
+					}
+					if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+						if (lowRange > 0) {
+							inputStream.skip(lowRange);
+						}
+						inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
+					}
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 				} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 					// This is a request for an image
 					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
@@ -362,9 +375,9 @@ public class RequestV2 extends HTTPResource {
 						}
 					}
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
+						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 						output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 						try {
 						InputStream imageInputStream;
 						if (dlna.getPlayer() instanceof ImagePlayer) {
@@ -381,6 +394,20 @@ public class RequestV2 extends HTTPResource {
 							LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
 						} else {
 							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
+							if (contentFeatures != null && inputStream instanceof DLNAImageInputStream) {
+								output.headers().set(
+									"ContentFeatures.DLNA.ORG",
+									dlna.getDlnaContentFeatures(((DLNAImageInputStream) inputStream).getDLNAImageProfile())
+								);
+							}
+							if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+								if (lowRange > 0) {
+									inputStream.skip(lowRange);
+								}
+								inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
+							}
+							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+							output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 						}
 					} catch (IOException ie) {
 						output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
@@ -575,8 +602,8 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
 						}
 
-						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
-						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 					}
 					if (origRendering != null) {
 						// Restore original rendering details
@@ -591,16 +618,16 @@ public class RequestV2 extends HTTPResource {
 				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
 			}
 
-			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
-			output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 			output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			output.headers().set(HttpHeaders.Names.CACHE_CONTROL, "no-cache");
+			output.headers().set(HttpHeaders.Names.CACHE_CONTROL, HttpHeaders.Values.NO_CACHE);
 			output.headers().set(HttpHeaders.Names.EXPIRES, "0");
-			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
-			output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
 
 			if (argument.equals("description/fetch")) {
@@ -646,8 +673,6 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 			}
 
-			response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
-			response.append(CRLF);
 			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
@@ -803,7 +828,7 @@ public class RequestV2 extends HTTPResource {
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null
 							|| uf.getPlayer().isPlayerCompatible(mediaRenderer))
 							 // do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-							 // all possible combination not only those supported by renderer because the renderer setting could be wrong. 
+							 // all possible combination not only those supported by renderer because the renderer setting could be wrong.
 							|| files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
 								response.append(uf.getDidlString(mediaRenderer));
 						} else {
@@ -827,6 +852,8 @@ public class RequestV2 extends HTTPResource {
 
 				if (files != null && filessize > 0) {
 					parentFolder = files.get(0).getParent();
+				} else {
+					parentFolder = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(objectID, mediaRenderer);
 				}
 
 				if (browseDirectChildren && mediaRenderer.isUseMediaInfo() && mediaRenderer.isDLNATreeHack()) {
@@ -947,7 +974,7 @@ public class RequestV2 extends HTTPResource {
 			response.append("</e:propertyset>");
 		}
 
-		output.headers().set("Server", PMS.get().getServerName());
+		output.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
 
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
@@ -987,9 +1014,9 @@ public class RequestV2 extends HTTPResource {
 
 			if (range.isStartOffsetAvailable() && dlna != null) {
 				// Add timeseek information headers.
-				String timeseekValue = StringUtil.convertTimeToString(range.getStartOrZero(), StringUtil.DURATION_TIME_FORMAT);
+				String timeseekValue = StringUtil.formatDLNADuration(range.getStartOrZero());
 				String timetotalValue = dlna.getMedia().getDurationString();
-				String timeEndValue = range.isEndLimitAvailable() ? StringUtil.convertTimeToString(range.getEnd(), StringUtil.DURATION_TIME_FORMAT) : timetotalValue;
+				String timeEndValue = range.isEndLimitAvailable() ? StringUtil.formatDLNADuration(range.getEnd()) : timetotalValue;
 				output.headers().set("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 				output.headers().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 			}

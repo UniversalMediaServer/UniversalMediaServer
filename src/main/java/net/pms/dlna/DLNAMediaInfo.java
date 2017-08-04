@@ -1468,15 +1468,15 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getDurationString() {
-		return durationSec != null ? StringUtil.formatDidlLiteDuration(durationSec) : null;
+		return durationSec != null ? StringUtil.formatDLNADuration(durationSec) : null;
 	}
 
 	/**
-	 * @deprecated Use {@link StringUtil#formatDidlLiteDuration} instead.
+	 * @deprecated Use {@link StringUtil#formatDLNADuration} instead.
 	 */
 	@Deprecated
 	public static String getDurationString(double d) {
-		return StringUtil.formatDidlLiteDuration(d);
+		return StringUtil.formatDLNADuration(d);
 	}
 
 	public static Double parseDurationString(String duration) {

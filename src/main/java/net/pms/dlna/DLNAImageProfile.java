@@ -584,39 +584,6 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 				// If we find a profile name that isn't a DLNA profile name, we're not interested
 				return result;
 			}
-			MimeType mimeType = protocolInfo.getMimeType();
-			if (
-				mimeType == null ||
-				mimeType.isAnyType() ||
-				mimeType.isAnySubtype()
-			) {
-				result.add(JPEG_TN);
-				result.add(JPEG_SM);
-				result.add(JPEG_MED);
-				result.add(JPEG_LRG);
-				result.add(JPEG_RES_H_V);
-				result.add(PNG_TN);
-				result.add(PNG_LRG);
-				result.add(GIF_LRG);
-				LOGGER.trace(
-					"DLNAImageProfile parsed \"{}\" as all image profiles",
-					protocolInfo
-				);
-			} else if (MIMETYPE_GIF.equals(mimeType)) {
-				result.add(new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, mimeType));
-				LOGGER.trace("DLNAImageProfile parsed \"{}\" as all GIF profiles", protocolInfo);
-			} else if (MIMETYPE_JPEG.equals(mimeType)) {
-				result.add(new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType));
-				result.add(new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, mimeType));
-				result.add(new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, mimeType));
-				result.add(new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, mimeType));
-				result.add(new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, mimeType));
-				LOGGER.trace("DLNAImageProfile parsed \"{}\" as all JPEG profiles", protocolInfo);
-			} else if (MIMETYPE_PNG.equals(mimeType)) {
-				result.add(new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType));
-				result.add(new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, mimeType));
-				LOGGER.trace("DLNAImageProfile parsed \"{}\" as all PNG profiles", protocolInfo);
-			}
 		}
 		return result;
 	}

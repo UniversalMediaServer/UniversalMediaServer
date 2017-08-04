@@ -508,7 +508,7 @@ public class LibMediaInfoParser {
 		} else if (streamType == StreamType.Video &&
 				(
 					value.contains("mjpg") ||
-					value.startsWith("mjpeg") ||
+					value.contains("mjpeg") ||
 					value.equals("mjpa") ||
 					value.equals("mjpb") ||
 					value.equals("jpeg") ||

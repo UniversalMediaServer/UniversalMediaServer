@@ -33,6 +33,7 @@ import net.pms.util.ParseException;
 import net.pms.util.ResettableInputStream;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.drew.imaging.FileType;
@@ -149,7 +150,6 @@ public class ImagesUtil {
 					try {
 						imageInfo = ImageInfo.create(metadata, format, size, true, true);
 					} catch (ParseException pe) {
-						imageInfo = null;
 						LOGGER.debug("Unable to parse metadata for \"{}\": {}", file.getAbsolutePath(), pe.getMessage());
 						LOGGER.trace("", pe);
 					}
@@ -1368,13 +1368,14 @@ public class ImagesUtil {
 				} else {
 					LOGGER.trace(
 						"Image conversion DLNA compliance check for {}: " +
-						"The source image colors are {}, format is {} and resolution ({} x {}) is {}",
+						"The source image colors are {}, format is {} and resolution ({} x {}) is {}.\nFailures:\n  {}",
 						outputProfile,
 						complianceResult.isColorsCorrect() ? "compliant" : "non-compliant",
 						complianceResult.isFormatCorrect() ? "compliant" : "non-compliant",
 						bufferedImage.getWidth(),
 						bufferedImage.getHeight(),
-						complianceResult.isResolutionCorrect() ? "compliant" : "non-compliant"
+						complianceResult.isResolutionCorrect() ? "compliant" : "non-compliant",
+						StringUtils.join(complianceResult.getFailures(), "\n  ")
 					);
 				}
 			}
@@ -1444,8 +1445,10 @@ public class ImagesUtil {
 						dlnaCompliant && outputProfile != null ? "profile: " + outputProfile : "format: " + outputFormat
 					);
 				}
-
 				return result;
+			} else if (!reencode) {
+				// Convert format
+				reencode = true;
 			}
 		} else {
 			boolean force = DLNAImageProfile.JPEG_RES_H_V.equals(outputProfile);
@@ -1496,8 +1499,7 @@ public class ImagesUtil {
 			.append(", Re-encode = ").append(reencode ? "True" : "False");
 
 			LOGGER.trace(
-				"Finished converting {} {} image{}. " +
-				"Output image resolution: {}, {}. Flags: {}",
+				"Finished converting {} {} image{}. Output image resolution: {}, {}. Flags: {}",
 				inputResult.width + "×" + inputResult.height,
 				inputResult.imageFormat,
 				orientation != ExifOrientation.TOP_LEFT ? " with orientation " + orientation : "",
@@ -1761,10 +1763,9 @@ public class ImagesUtil {
 			fileName = fileName.substring(13);
 
 			return parseImageRequest(fileName, DLNAImageProfile.JPEG_TN);
-		} else {
-			LOGGER.warn("Could not parse thumbnail DLNAImageProfile from \"{}\"");
-			return DLNAImageProfile.JPEG_TN;
 		}
+		LOGGER.warn("Could not parse thumbnail DLNAImageProfile from \"{}\"");
+		return DLNAImageProfile.JPEG_TN;
 	}
 
 	/**
@@ -1814,9 +1815,8 @@ public class ImagesUtil {
 				int[] tmpArray = new int[bitDepthArray.length - 1];
 				System.arraycopy(bitDepthArray, 0, tmpArray, 0, bitDepthArray.length - 1);
 				return getConstantIntArrayValue(tmpArray);
-			} else {
-				throw e;
 			}
+			throw e;
 		}
 	}
 
@@ -1845,9 +1845,8 @@ public class ImagesUtil {
 				byte[] tmpArray = new byte[bitDepthArray.length - 1];
 				System.arraycopy(bitDepthArray, 0, tmpArray, 0, bitDepthArray.length - 1);
 				return getConstantByteArrayValue(tmpArray);
-			} else {
-				throw e;
 			}
+			throw e;
 		}
 	}
 
