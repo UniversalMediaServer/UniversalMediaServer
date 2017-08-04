@@ -1,4 +1,4 @@
-7.0.0-rc1 - 2017-08-?? - Changes since 7.0.0-b2
+7.0.0-rc1 - 2017-08-04 - Changes since 7.0.0-b2
 
 	General:
 		Increased speed of Media Library features
