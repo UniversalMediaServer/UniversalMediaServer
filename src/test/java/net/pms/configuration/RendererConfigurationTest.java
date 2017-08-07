@@ -84,6 +84,9 @@ public class RendererConfigurationTest {
 
 		// DLinkDSM510:
 		testHeaders("D-Link DSM-510", "User-Agent: DLNADOC/1.50 INTEL_NMPR/2.1");
+		
+		// Fetch TV
+		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
 		// iPad-iPhone:
 		testHeaders("Apple iPad / iPhone", "User-Agent: 8player lite 2.2.3 (iPad; iPhone OS 5.0.1; nl_NL)");
