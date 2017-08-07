@@ -1,21 +1,20 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on www.ps3mediaserver.org and www.universalmediaserver.com.
+ * Digital Media Server, for streaming digital media to UPnP AV or DLNA
+ * compatible devices based on PS3 Media Server and Universal Media Server.
  * Copyright (C) 2016 Digital Media Server developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see http://www.gnu.org/licenses/.
  */
 package net.pms.newgui.components;
 
@@ -23,7 +22,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JToolTip;
 import javax.swing.UIManager;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
@@ -122,12 +120,6 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 	}
 
 	@Override
-	public JToolTip createToolTip() {
-		JToolTip tip = new HyperLinkToolTip();
-		tip.setComponent(this);
-		return tip;
-	}
-
 	public void setNextIcon(AnimatedIconStage stage) {
 		switch (stage.iconType) {
 			case PRESSEDICON:
