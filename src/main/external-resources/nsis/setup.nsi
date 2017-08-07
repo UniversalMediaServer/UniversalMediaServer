@@ -217,6 +217,9 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
+	SetOutPath "$INSTDIR\win32\service"
+	File "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper\*.*"
+
 	${GetWindowsVersion} $R0
 	${If} $R0 == "XP"
 		SetOutPath "$INSTDIR\win32"
