@@ -133,16 +133,22 @@ public class FileWatcher {
 	 * @param w The watch object.
 	 */
 	public static void add(Watch w) {
-		Path dir = Paths.get(FilenameUtils.getFullPath(w.fspec));
-		w.init(dir);
-		if (keys.contains(w)) {
-			// Ignore duplicates
-			return;
-		}
-		if (Watch.isRecursive(w)) {
-			addRecursive(w, dir);
-		} else {
-			add(w, dir);
+		LOGGER.trace("FileWatcher: Adding " + w.fspec);
+		try {
+			Path dir = Paths.get(FilenameUtils.getFullPath(w.fspec));
+			LOGGER.trace("FileWatcher: path " + dir);
+			w.init(dir);
+			if (keys.contains(w)) {
+				// Ignore duplicates
+				return;
+			}
+			if (Watch.isRecursive(w)) {
+				addRecursive(w, dir);
+			} else {
+				add(w, dir);
+			}
+		} catch (NullPointerException e) {
+			LOGGER.info("Not watching invalid path {} for changes", w.fspec);
 		}
 	}
 

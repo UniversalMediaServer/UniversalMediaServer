@@ -161,8 +161,18 @@ public class RootFolder extends DLNAResource {
 		 * Changes to monitored folders trigger a rescan
 		 */
 		if (PMS.getConfiguration().getUseCache()) {
-			for (DLNAResource r : getConfiguredFolders(tags, true)) {
-				FileWatcher.add(new FileWatcher.Watch(r.getSystemName() + File.separator + "**", LIBRARY_RESCANNER));
+			for (DLNAResource resource : getConfiguredFolders(tags, true)) {
+				File file = new File(resource.getSystemName());
+				if (file.exists()) {
+					if (!file.isDirectory()) {
+						LOGGER.trace("Skip adding a FileWatcher for non-folder \"{}\"", file);
+					} else {
+						LOGGER.trace("Creating FileWatcher for " + resource.getSystemName());
+						FileWatcher.add(new FileWatcher.Watch(resource.getSystemName() + File.separator + "**", LIBRARY_RESCANNER));
+					}
+				} else {
+					LOGGER.trace("Skip adding a FileWatcher for non-existent \"{}\"", file);
+				}
 			}
 		}
 
