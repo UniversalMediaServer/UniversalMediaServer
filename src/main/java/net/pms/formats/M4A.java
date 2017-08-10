@@ -27,6 +27,10 @@ public class M4A extends AudioFile {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "m4a" };
+		return new String[] {
+			"m4a",
+			"m4b",
+			"m4r"
+		};
 	}
 }

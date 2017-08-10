@@ -1024,4 +1024,15 @@ public class FormatsRegressionTest0 {
 
 	}
 
+	@Test
+	public void test68() throws Throwable {
+
+		if (debug) {
+			System.out.format("%n%s%n", "FormatsRegressionTest0.test68");
+		}
+
+		net.pms.formats.OGA oGA0 = new net.pms.formats.OGA();
+
+	}
+
 }

@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -18,22 +19,13 @@
  */
 package net.pms.formats;
 
-public class MPG extends Format {
+public class OGA extends AudioFile {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
-		return Identifier.MPG;
-	}
-
-	@Override
-	public boolean transcodable() {
-		return true;
-	}
-
-	public MPG() {
-		type = VIDEO;
+		return Identifier.OGA;
 	}
 
 	/**
@@ -41,31 +33,6 @@ public class MPG extends Format {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] {
-			"avi",
-			"div",
-			"divx",
-			"m2p",
-			"m2t",
-			"m2ts",
-			"m4p",
-			"m4v",
-			"mod",
-			"mp4",
-			"mpe",
-			"mpeg",
-			"mpg",
-			"mts",
-			"tivo",
-			"tmf",
-			"tp",
-			"ts",
-			"ty",
-			"vdr",
-			"vob",
-			"wm",
-			"wmv",
-			"wtv"
-		};
+		return new String[] { "oga" };
 	}
 }

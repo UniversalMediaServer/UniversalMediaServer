@@ -291,15 +291,15 @@ public class LibMediaInfoParser {
 				 *
 				 * As a workaround, set container type to AAC for MP4 files that have a single AAC audio track and no video.
 				 */
-				if (
-					FormatConfiguration.MP4.equals(media.getContainer()) &&
-					isBlank(media.getCodecV()) &&
-					media.getAudioTracksList() != null &&
-					media.getAudioTracksList().size() == 1 &&
-					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
-				) {
-					media.setContainer(FormatConfiguration.AAC);
-				}
+//				if (
+//					FormatConfiguration.MP4.equals(media.getContainer()) &&
+//					isBlank(media.getCodecV()) &&
+//					media.getAudioTracksList() != null &&
+//					media.getAudioTracksList().size() == 1 &&
+//					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
+//				) {
+//					media.setContainer(FormatConfiguration.AAC);
+//				}
 
 				/**
 				 * Recognize 3D layout from the filename.
@@ -409,7 +409,7 @@ public class LibMediaInfoParser {
 
 	/**
 	 * Sends the correct information to media.setContainer(),
-	 * media.setCodecV() or media.setCodecA, depending on streamType.
+	 * media.setCodecV() or audio.setCodecA, depending on streamType.
 	 *
 	 * TODO: Rename to something like setFormat - this is not a getter.
 	 *
@@ -429,52 +429,62 @@ public class LibMediaInfoParser {
 
 		if (isBlank(value)) {
 			return;
-		} else if (value.startsWith("3g2")) {
+		} else if ("mpeg-ps".equals(value)) {
+			format = FormatConfiguration.MPEGPS;
+		} else if ("mpeg-ts".equals(value) || "bdav".equals(value)) {
+			format = FormatConfiguration.MPEGTS;
+		} else if (value.contains("isom") || value.contains("mp4") || "xvid".equals(value) || "20".equals(value) || value.startsWith("m4v") || value.equals("v_mpeg4/iso/asp") || value.equals("v_mpeg4/iso/sp")) {
+			format = FormatConfiguration.MP4;
+		} else if (value.contains("m4a") || value.contains("mp42 (mp42")) {
+			if (value.contains("aac")) {
+//			if (media.getAudioTracksList() != null && media.getAudioTracksList().get(0).getCodecA().equals("aac")) {
+				format = FormatConfiguration.AAC;
+				media.setContainer(FormatConfiguration.AAC);
+			} else {
+				format = FormatConfiguration.M4A;
+			}
+		} else if (value.startsWith("3gpp2")) {
 			format = FormatConfiguration.THREEGPP2;
-		} else if (value.startsWith("3gp")) {
+		} else if (value.startsWith("3gpp media")) {
 			format = FormatConfiguration.THREEGPP;
-		} else if (value.startsWith("matroska")) {
-			format = FormatConfiguration.MATROSKA;
-		} else if (value.equals("avi") || value.equals("opendml")) {
-			format = FormatConfiguration.AVI;
-		} else if (value.startsWith("cinepack")) {
-			format = FormatConfiguration.CINEPACK;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
-		} else if (value.equals("webm")) {
+		} else if ("webm".equals(value)) {
 			format = FormatConfiguration.WEBM;
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
-		} else if (value.equals("isom") || value.startsWith("mp4") || value.equals("20") || value.equals("m4v") || value.startsWith("mpeg-4")) {
-			format = FormatConfiguration.MP4;
-		} else if (value.contains("mpeg-ps")) {
-			format = FormatConfiguration.MPEGPS;
-		} else if (value.contains("mpeg-ts") || value.equals("bdav")) {
-			format = FormatConfiguration.MPEGTS;
-		} else if (value.contains("aiff")) {
-			format = FormatConfiguration.AIFF;
-		} else if (value.startsWith("atmos") || value.equals("131")) {
-			format = FormatConfiguration.ATMOS;
-		} else if (value.contains("ogg")) {
+		} else if ("avi".equals(value) || "opendml".equals(value)) {
+			format = FormatConfiguration.AVI;
+		} else if ("matroska".equals(value)) {
+			format = FormatConfiguration.MATROSKA;
+		} else if (value.startsWith("ogg")) {
 			format = FormatConfiguration.OGG;
-		} else if (value.contains("opus")) {
+		} else if (value.startsWith("aif")) {
+			format = FormatConfiguration.AIFF;
+		} else if (value.startsWith("atmos") || "131".equals(value)) {
+			format = FormatConfiguration.ATMOS;
+		} else if ("cinepak".equals(value)) {
+			format = FormatConfiguration.CINEPAK;
+		} else if ("opus".equals(value)) {
 			format = FormatConfiguration.OPUS;
 		} else if (value.contains("realmedia") || value.startsWith("rv")) {
 			format = FormatConfiguration.RM;
-		} else if (value.startsWith("theora")) {
+		} else if ("theora".equals(value)) {
 			format = FormatConfiguration.THEORA;
-		} else if (value.contains("windows media") || value.equals("wmv1") || value.equals("wmv2") || value.equals("wmv7") || value.equals("wmv8")) {
+		} else if (value.contains("windows media") || "wmv1".equals(value) || "wmv2".equals(value)) {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.startsWith("h263") || value.startsWith("s263") || value.startsWith("u263")) {
+		} else if (value.startsWith("h263") || value.startsWith("s263") || value.startsWith("u263") || value.startsWith("l263")) {
 			format = FormatConfiguration.H263;
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
 			format = FormatConfiguration.H265;
-		} else if (value.startsWith("sorenson")) {
+		} else if ("sorenson".startsWith(value)) {
 			format = FormatConfiguration.SORENSON;
+		} else if ("speex".equals(value)) {
+			format = FormatConfiguration.SPEEX;
 		} else if (value.startsWith("vp6")) {
 			format = FormatConfiguration.VP6;
 		} else if (value.startsWith("vp7")) {
@@ -483,25 +493,25 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.VP8;
 		} else if (value.startsWith("vp9")) {
 			format = FormatConfiguration.VP9;
-		} else if (value.contains("xvid")) {
-			format = FormatConfiguration.MP4;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.contains("div") || value.contains("dx")) {
+		} else if (value.contains("div") || value.startsWith("dx")) {
 			format = FormatConfiguration.DIVX;
 		} else if (value.matches("(?i)(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(sdcc)|(sl25)|(sl50)|(sldv)")) {
 			format = FormatConfiguration.DV;
-		} else if (value.contains("mpeg video")) {
-			format = FormatConfiguration.MPEG2;
-		} else if (value.equals("vc-1") || value.equals("vc1") || value.equals("wvc1") || value.equals("wmv3") || value.equals("wmv9") || value.equals("wmva")) {
-			format = FormatConfiguration.VC1;
-		} else if (value.startsWith("version 1")) {
-			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
+		} else if ("mpeg video".equals(value)) {
+			if (media.getCodecV() != null && media.getCodecV().equals("version 2")) {
+				format = FormatConfiguration.MPEG2;
+			} else {
 				format = FormatConfiguration.MPEG1;
 			}
-		} else if (value.equals("au") || value.equals("uLaw/AU Audio File")) {
+		} else if ("wmv3".equals(value)) {
+			format = FormatConfiguration.VC1;
+		} else if ("wvc1".equals(value) || "wmva".equals(value)) {
+			format = FormatConfiguration.WMVAP;
+		} else if ("au".equals(value) || value.contains("au audio file")) {
 			format = FormatConfiguration.AU;
-		} else if (value.equals("layer 3")) {
+		} else if ("layer 3".equals(value)) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.MPA)) {
 				format = FormatConfiguration.MP3;
 				// special case:
@@ -509,7 +519,7 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.MP3);
 				}
 			}
-		} else if (value.equals("layer 2") && audio.getCodecA() != null && media.getContainer() != null &&
+		} else if ("layer 2".equals(value) && audio.getCodecA() != null && media.getContainer() != null &&
 				   audio.getCodecA().equals(FormatConfiguration.MPA) && media.getContainer().equals(FormatConfiguration.MPA)) {
 			// only for audio files:
 			format = FormatConfiguration.MP2;
@@ -518,16 +528,30 @@ public class LibMediaInfoParser {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;
 			}
-		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
+		} else if ("vorbis".equals(value)) {
 			format = FormatConfiguration.VORBIS;
-		} else if (value.equals("adts")) {
+		} else if ("adts".equals(value)) {
 			format = FormatConfiguration.ADTS;
-		} else if (value.startsWith("amr")) {
+		} else if (value.equals("agsm")) {
+			format = FormatConfiguration.AGSM;
+		} else if (value.equals("als")) {
+			format = FormatConfiguration.ALS;
+		} else if (value.equals("amr")) {
 			format = FormatConfiguration.AMR;
-		} else if (value.equals("ac-3") || value.equals("a_ac3") || value.equals("2000")) {
+		} else if (value.equals("ac-3") || value.equals("ac3") || value.equals("2000")) {
 			format = FormatConfiguration.AC3;
+		} else if (value.equals("celp")) {
+			format = FormatConfiguration.CELP;
+		} else if (value.equals("acelp")) {
+			format = FormatConfiguration.ACELP;
+		} else if (value.equals("evrc")) {
+			format = FormatConfiguration.EVRC;
 		} else if (value.startsWith("cook")) {
 			format = FormatConfiguration.COOK;
+		} else if (value.equals("qcelp") || value.equals("qlcm")) {
+			format = FormatConfiguration.QLCM;
+		} else if (value.equals("smv")) {
+			format = FormatConfiguration.SMV;
 		} else if (value.startsWith("qdesign")) {
 			format = FormatConfiguration.QDESIGN;
 		} else if (value.equals("realaudio lossless")) {
@@ -538,27 +562,25 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.TRUEHD;
 		} else if (value.equals("tta")) {
 			format = FormatConfiguration.TTA;
-		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
-			format = FormatConfiguration.MP3;
 		} else if (value.equals("lc")) {
 			format = FormatConfiguration.AAC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.AAC_HE;
-		} else if (value.startsWith("adpcm")) {
+		} else if (value.equals("adpcm")) {
 			format = FormatConfiguration.ADPCM;
-		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
+		} else if (value.equals("pcm")) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {
 			format = FormatConfiguration.ALAC;
-		} else if (value.equals("wave")) {
-			format = FormatConfiguration.WAV;
 		} else if (value.equals("shorten")) {
 			format = FormatConfiguration.SHORTEN;
+		} else if (value.equals("twinvq")) {
+			format = FormatConfiguration.VQF;
 		} else if (
 			(
-				value.equals("dts") ||
-				value.equals("a_dts") ||
-				value.equals("8")
+				"dts".equals(value) ||
+				"a_dts".equals(value) ||
+				"8".equals(value)
 			) &&
 			(
 				audio.getCodecA() == null ||
@@ -566,30 +588,38 @@ public class LibMediaInfoParser {
 			)
 		) {
 			format = FormatConfiguration.DTS;
-		} else if (value.equals("mpeg audio")) {
-			format = FormatConfiguration.MPA;
+//		} else if ("mpeg audio".equals(value)) {
+//			if (media.getCodecV() == null && audio.getCodecA() != null && media.getContainer().equals("mpeg-ps")) {
+//				if (audio.getCodecA().equals("layer 3")) {
+//					format = FormatConfiguration.MP3;
+//				} else if (audio.getCodecA().equals("layer 2")) {
+//					format = FormatConfiguration.MP2;
+//				} else {
+//					format = FormatConfiguration.MPA;
+//				}
+//			}
 		} else if (value.startsWith("wma")) {
 			format = FormatConfiguration.WMA;
-			if (media.getCodecV() == null) {
+			if (isBlank(media.getFrameRate())) {
 				media.setContainer(format);
 			}
 		} else if (
-			streamType == StreamType.Audio && media.getCodecV() == null && audio != null && audio.getCodecA() != null &&
+			streamType == StreamType.Audio && isBlank(media.getFrameRate()) && audio != null && audio.getCodecA() != null &&
 			audio.getCodecA() == FormatConfiguration.WMA &&
-			(value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A"))
+			("161".equals(value) || "162".equals(value) || "163".equals(value) || "A".equalsIgnoreCase(value))
 		) {
-			if (value.equals("161")) {
+			if ("161".equals(value)) {
 				format = FormatConfiguration.WMA;
-			} else if (value.equals("162")) {
+			} else if ("162".equals(value)) {
 				format = FormatConfiguration.WMAPRO;
-			} else if (value.equals("163")) {
+			} else if ("163".equals(value)) {
 				format = FormatConfiguration.WMALOSSLESS;
-			} else if (value.equalsIgnoreCase("A")) {
+			} else if ("A".equalsIgnoreCase(value)) {
 				format = FormatConfiguration.WMAVOICE;
 			}
-		} else if (value.equals("flac")) {
+		} else if ("flac".equals(value)) {
 			format = FormatConfiguration.FLAC;
-		} else if (value.equals("monkey's audio")) {
+		} else if ("monkey's audio".equals(value)) {
 			format = FormatConfiguration.MONKEYS_AUDIO;
 		} else if (value.contains("musepack")) {
 			format = FormatConfiguration.MPC;
@@ -597,20 +627,17 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WAVPACK;
 		} else if (value.contains("mlp")) {
 			format = FormatConfiguration.MLP;
-		} else if (value.contains("atrac3")) {
+		} else if (value.contains("atrac")) {
 			format = FormatConfiguration.ATRAC;
-			if (media.getCodecV() == null) {
-				media.setContainer(FormatConfiguration.ATRAC);
-			}
-		} else if (value.equals("jpeg")) {
+		} else if ("jpeg".equals(value)) {
 			format = FormatConfiguration.JPG;
-		} else if (value.equals("png")) {
+		} else if ("png".equals(value)) {
 			format = FormatConfiguration.PNG;
-		} else if (value.equals("gif")) {
+		} else if ("gif".equals(value)) {
 			format = FormatConfiguration.GIF;
-		} else if (value.equals("bitmap")) {
+		} else if ("bitmap".equals(value)) {
 			format = FormatConfiguration.BMP;
-		} else if (value.equals("tiff")) {
+		} else if ("tiff".equals(value)) {
 			format = FormatConfiguration.TIFF;
 		} else if (containsIgnoreCase(value, "@l") && streamType == StreamType.Video) {
 			media.setAvcLevel(getAvcLevel(value));

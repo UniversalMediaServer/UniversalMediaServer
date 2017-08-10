@@ -33,7 +33,6 @@ public class OGG extends AudioFile {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
-			"oga",
 			"ogg",
 			"spx",
 			"opus",

@@ -30,6 +30,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
+import net.pms.formats.FLV;
 import net.pms.formats.GIF;
 import net.pms.formats.ISO;
 import net.pms.formats.JPG;
@@ -253,6 +254,13 @@ public class FormatRecognitionTest {
 		Format format = new DVRMS();
 		format.match("test.dvr");
 		assertFalse("isCompatible() gives the outcome false for DVRMS",	conf.isCompatible(info, format, configuration));
+
+		// FLV: false
+		info = new DLNAMediaInfo();
+		info.setContainer("flv");
+		format = new FLV();
+		format.match("test.flv");
+		assertFalse("isCompatible() gives the outcome false for FLV", conf.isCompatible(info, format, configuration));
 
 		// ISO: false
 		info = new DLNAMediaInfo();

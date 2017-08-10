@@ -35,8 +35,9 @@ public class THREEGA extends AudioFile {
 	public String[] getSupportedExtensions() {
 		return new String[] {
 			"3ga",
-			"amr",
 			"3gpa",
+			"amr",
+			"awb"
 		};
 	}
 }

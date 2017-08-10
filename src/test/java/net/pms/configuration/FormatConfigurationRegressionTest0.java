@@ -485,7 +485,7 @@ public class FormatConfigurationRegressionTest0 {
 
     if (debug) { System.out.format("%n%s%n","RegressionTest0.test40"); }
 
-    java.lang.String str0 = net.pms.configuration.FormatConfiguration.CINEPACK;
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.CINEPAK;
 
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "cvid"+ "'", str0.equals("cvid"));
@@ -970,6 +970,75 @@ public class FormatConfigurationRegressionTest0 {
     // Regression assertion (captures the current behavior of the code)
     org.junit.Assert.assertTrue("'" + str0 + "' != '" + "aiff"+ "'", str0.equals("aiff"));
 
+  }
+
+  @Test
+  public void test81() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.test81"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.EVRC;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "evrc"+ "'", str0.equals("evrc"));
+
+  }
+
+  @Test
+  public void test82() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.test82"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.QLCM;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "qcelp"+ "'", str0.equals("qcelp"));
+
+  }
+
+  @Test
+  public void test83() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.test83"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.FlashAudio;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "f4a"+ "'", str0.equals("f4a"));
+
+  }
+
+  @Test
+  public void test84() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.test84"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.VQF;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "vqf"+ "'", str0.equals("vqf"));
+  }
+  
+  @Test
+  public void test85() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.test85"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.CAF;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "caf"+ "'", str0.equals("caf"));
+  }
+  
+  @Test
+  public void test86() throws Throwable {
+
+    if (debug) { System.out.format("%n%s%n","RegressionTest0.test86"); }
+
+    java.lang.String str0 = net.pms.configuration.FormatConfiguration.OGA;
+
+    // Regression assertion (captures the current behavior of the code)
+    org.junit.Assert.assertTrue("'" + str0 + "' != '" + "oga"+ "'", str0.equals("oga"));
   }
 
 }

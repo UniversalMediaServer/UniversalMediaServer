@@ -40,7 +40,6 @@ public class MKV extends MPG {
 			"asx",
 			"dv",
 			"evo",
-			"flv",
 			"hdmov",
 			"hdm",
 			"m2v",
