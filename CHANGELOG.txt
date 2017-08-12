@@ -1,7 +1,23 @@
-6.7.3 - 2017-??-??
+6.7.3 - 2017-08-13
 
 	General:
-
+		Improved support for AVI and MJPEG
+		Improved general DLNA implementation
+		Fixed duplicate entries in transcode folders
+		Fixed logging in macOS
+		Fixed menu name in macOS
+	Renderers:
+		Added renderer configuration for conversion of 3D video to 2D
+		Added support for Fetch TV
+		Added support for Onkyo TXNR8xx
+		Improved support for Cambridge Audio Azur BD
+		Improved support for OPPO BDP
+		Improved support for Panasonic VIERA TXL32V10E
+		Improved support for Sony BRAVIA 5500 and EX TVs
+		Improved support for Sony SMP-N100
+		Improved support for Sony STR-DA5800ES
+		Fixed album art for Onkyo receivers (and probably others)
+		Fixed support for Xbox 360
 	Dependencies:
 		Updated MediaInfo to 0.7.97, which:
 			Improves support for HEVC (H.265), FLV, MKV, TIFF and more
