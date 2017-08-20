@@ -1,28 +1,322 @@
-6.3.3 - 2016-06-??
+6.7.3 - 2017-08-13
 
 	General:
-		Added renderer config setting HalveBitrate
+		Improved support for AVI and MJPEG
+		Improved general DLNA implementation
+		Fixed duplicate entries in transcode folders
+		Fixed logging in macOS
+		Fixed menu name in macOS
+	Renderers:
+		Added renderer configuration for conversion of 3D video to 2D
+		Added support for Fetch TV
+		Added support for Onkyo TXNR8xx
+		Improved support for Cambridge Audio Azur BD
+		Improved support for OPPO BDP
+		Improved support for Panasonic VIERA TXL32V10E
+		Improved support for Sony BRAVIA 5500 and EX TVs
+		Improved support for Sony SMP-N100
+		Improved support for Sony STR-DA5800ES
+		Fixed album art for Onkyo receivers (and probably others)
+		Fixed support for Xbox 360
+	Dependencies:
+		Updated MediaInfo to 0.7.97, which:
+			Improves support for HEVC (H.265), FLV, MKV, TIFF and more
+
+6.7.2 - 2017-07-09
+
+	General:
+		Added support for WMA10
+		Improved splash screen timing and enabled it by default
+		Improved support for MediaInfo on non-Windows platforms
+		Improved CPU and memory logging
+		Improved detection of network speed
+		Updated comments in DefaultRenderer.conf
+		Updated documentation
+		Fixed trace logging on macOS
+		Fixed a crash on Windows 10
+	Languages:
+		Synchronized translations with Crowdin
+		Fixed Hebrew language support
+	Dependencies:
+		Updated FFmpeg
+		Updated JNA to 4.4.0
+		Updated Surefire to 2.20
+
+6.7.1 - 2017-06-11
+
+	General:
+		Fixed playback on Linux
+		Fixed support for OGA and 3GA files
+	Dependencies:
+		Updated MediaInfo to 0.7.96
+
+6.7.0 - 2017-06-10
+
+	General:
+		Added a button for the web interface
+		Expanded support for preventing sleep mode on Windows and macOS
+		Improved support for MusicBrainz
+		Improved support for CoverArtArchive
+		Improved support for images
+		Improved thumbnailing
+		Updated documentation
+		Improved DIDL-Lite implementation
+		Added support for more RealAudio formats
+		Fixed DVD support
+		Fixed many bugs
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added support for Chromecast Ultra
+		Added support for MXPlayer on Google Android
+		Added support for Microsoft Windows Media Player
+		Improved support for Chromecast
+		Improved support for Samsung 9 Series TVs
+		Improved support for Sony BRAVIA EX TVs
+		Improved detection of Onkyo TXNR7xx devices
+		Improved detection of Panasonic Viera ST60 TVs
+		Improved detection of Samsung J6400 TVs
+		Improved detection of Samsung JU6400 TVs
+		Improved detection of Samsung Galaxy S5 phones
+		Improved detection of Sony BRAVIA XE TVs
+	Dependencies:
+		Updated external-maven-plugin to 0.2
+		Updated FFmpeg to latest builds
+		Upgraded LogBack to version 1.2.3
+		Updated maven-surefire-plugin to 2.20
+		Updated MediaInfo to 0.7.94
+		Updated metadata-extractor to 2.10.1
+		Updated TwelveMonkeys ImageIO to version 3.3.1
+
+7.0.0-b2 - 2017-04-02
+
+	General:
+		Fixed bugs with the fully played feature
+	Languages:
+		Synchronized translations with Crowdin
+
+7.0.0-b1 - 2017-03-26 - Changes since 7.0.0-a1
+
+	General:
+		Added "Unwatched" folder to the videos folder if "Hide fully played media" is not enabled
+		File addition/removal is handled specifically instead of doing a library scan
+		Optimized database storage
+		Reduced memory use
+		Fixed the setting to hide fully played media in the Media Library
+		Fixed sorting in Media Library virtual folders
+		Fixed thread-safety/concurrency bugs
+		All changes in 6.5.3 and 6.6.0
+		Improved logging
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Improved support for Samsung 9 series TVs
+		Improved detection of Panasonic ST60 TVs
+		Improved detection of Samsung JU6400 TVs
+	Dependencies:
+		Updated external-maven-plugin to 0.2
+		Updated FFmpeg to the latest builds
+
+6.6.0 - 2017-02-25
+
+	General:
+		Added support for AIFF files
+		Improved detection of the language of subtitles
+		Debugging and logging improvements
+		Fixed forcing the usage of discrete GPUs on Apple computers with dual GPUs
+		Fixed minor bugs
+	Languages:
+		Added Thai translation
+		Synchronized translations with Crowdin
+	Renderers:
+		Added support for Panasonic DMR Blu-ray recorders
+		Added support for Pioneer Blu-ray players
+		Added support for Sony BRAVIA XD 70/75 series TVs
+		Added support for Yamaha RX-A2050
+		Enabled UPnP control support on Panasonic TVs
+		Improved support for Google Chromecast
+		Improved support for LG WebOS TVs
+		Improved support for Panasonic Viera VT60 TVs
+		Improved support for Philips PFL TVs
+		Improved support for Sony BRAVIA KDL-NX800 series TVs
+		Improved support for Sony BRAVIA XD 70/75/80/83/85/93/94 series TVs
+		Fixed image stretching on Sony BRAVIA 5500 series TVs
+	Dependencies:
+		Updated Apache commons-lang to 3.5
+		Updated ChromeCast Java API to 0.9.2
+		Updated dcraw to 9.27
+		Updated ICU4J to 58.2
+		Updated logback to 1.1.8
+		Updated MediaInfo to 0.7.91
+
+6.5.3 - 2017-01-07
+
+	General:
+		Added detection of the Chromium and Vivaldi web browsers
+		Fixed bug where video container and codec settings weren't saved
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added support for Sony Bravia X series TVs
+	Dependencies:
+		Updated Git Commit ID plugin to 2.2.1
+		Updated Maven Antrun plugin to 1.8
+		Updated Maven Assembly plugin to 3.0.0
+		Updated Maven Compiler plugin to 3.6.0
+		Updated Maven Enforcer plugin to 1.4.1
+		Updated Maven Findbugs plugin to 3.0.4
+		Updated Maven Javadoc plugin to 2.10.4
+		Updated Maven PMD plugin to 3.7
+		Updated Maven Project Info Reports plugin to 2.9
+		Updated Maven Site plugin to 3.6
+		Updated Maven Surefire plugin to 2.19.1
+		Updated Maven Surefire Report plugin to 2.19.1
+
+7.0.0-a1 - 2016-12-31
+
+	General:
+		Added "TV Shows", "Movies", "3D Movies", and "Unsorted" folders to the "Media Library" folder
+		Added right-click menu to navigation pane
+		Renamed "Cache" folder to "Media Library" folder and enabled it by default
+		Changed "Hide" options to "Show", e.g. "Hide Media Library folder" becomes "Show Media Library folder"
+		Library is re-scanned whenever a file is added/changed/removed in a shared folder
+		Fixed bug where removing a directory in UMS does not remove its contents from the Media Library.
+		Fixed sorting in dynamic folders
+		Fully played tracking is stored in the SQL database
+
+6.5.2 - 2016-11-27
+
+	General:
+		Respect the renderer setting H264Level41Limited when deciding whether to stream or transcode
+		Search for subtitles in alternative folder even when a subtitle was already found (thanks, tdcosta100!)
+		Logging improvements
+		Improved program shutdown stability
+		Updated docs
+		Updated image parsing from MediaInfo and Sanselan to Imaging
+		Fixed manual renderer selection
+		Improved support for OGA, MKA, ADTS, WEBM, 3GA and 3G2A files
+		Made disabling transcoding more reliable
+		Minor bugfixes
+	Languages:
+		Minor English updates
+		Synchronized translations with Crowdin
+	Renderers:
+		Added FLAC support on Sony PS4
+		Improved AAC support on LG LM620 TVs
+		Improved detection of Sony Bravia W series TVs
+		Improved AVI/DivX support on Panasonic TX-L32V10E TVs
+		Improved Google Chromecast support
+		Fixed LPCM audio on Sony PS3
+		Fixed aspect ratios on Sony Bravia 5500 series TVs
+	Dependencies:
+		Updated h2database to 1.4.193
+
+6.5.1 - 2016-10-02
+
+	General:
+		Added Dolby Atmos detection
+		Added renderer config setting RemoveTagsFromSRTSubtitles
+		Config file fixes and improvements
+		Reduced CPU usage
+		Improved adherence to DLNA standards
+		Restart button changes to red when a restart is required
+		Fixed audio channel parsing
+		Fixed audio pitch when transcoding some files
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added support for VLC for desktop
+		Improved seeking support on AnyCast
+		Improved support for some filetypes on VLC for iOS
+		Improved support for Panasonic E6 TVs
+		Improved support for AVI files on XBMC
+	Dependencies:
+		Updated jaudiotagger to 2.2.5
+		Updated MediaInfo to 0.7.88
+		Updated NSIS to 2.5.1
+
+6.5.0 - 2016-08-01
+
+	General:
+		Use ellipses for overflowing text in the left menu on the web interface
+		Improved speed of parsing files
+		Improved documentation in DefaultRenderer.conf, UMS.conf and the code
+		Fixed support for semicolons in paths in FFmpeg
+		Fixed the cancellation of media library scans
+		Fixed videos being transcoded too often because of bitrate halving
+		Fixed support for video files within compressed folders
+		Fixed the MIME type for WAV DTS files
+	Renderers:
+		Added support for LG Blu-ray players
+		Added support for Naim Mu-So wireless audio systems
+		Improved detection of LG TVs
+		Improved support for AC-3 audio on VLC on iOS and Apple TVs
+		Improved support for XviD codec on Panasonic TVs and VLC on iOS and Apple TVs
+		Improved support for images on Panasonic TXL32V10E TVs
+		Fixed support for virtual folders like New Media and Cache on Panasonic TVs
+		Fixed support for WebVTT subtitles on Samsung TVs
+	Languages:
+		Synchronized translations with Crowdin
+		Danish translation was completed and validated (thanks, jensen83, nba, squadjot, The_lonely_Glowstone and the_slayer_dk!)
+		Portuguese translation was completed (thanks, arqmatiasreis, El_Locco, Nadahar and plucas!)
+	External Components:
+		Updated assertj to 2.5.0
+		Updated ChromeCast Java API to 0.9.2
+		Updated Cling to 2.1.1
+		Updated commons-io to 2.5
+		Updated doxia plugin to 1.7
+		Updated exec maven plugin to 1.5.0
+		Updated gson to 2.7
+		Updated logback to 1.1.7
+		Updated maven antrun plugin to 1.8
+		Updated maven compiler plugin to 3.5.1
+		Updated maven enforcer plugin to 1.4.1
+		Updated maven site plugin to 3.5.1
+		Updated maven source plugin to 3.0.1
+		Updated MediaInfo to 0.7.87
+		Updated Netty to 3.10.6
+
+6.4.0 - 2016-06-26
+
+	General:
+		Regularly initiate UPnP searches for new renderers
+		Added renderer config settings HalveBitrate and SupportedVideoBitDepths
 		Prevent sleep mode while streaming by default
 		Tweaked language
 		Improved/fixed some documentation (thanks, Sami32!)
 		Improved file parsing speed
 		Improved logging
+		FFmpeg no longer defers to MEncoder for embedded fonts since it supports them
+		FFmpeg no longer defers to MEncoder for internal ASS subtitles
+		ALIVE messages send less frequently by default
 		Fixed support for CMYK JPEG images
 		Fixed 24-bit FLAC fake videos showing up for non-PS3 renderers
 		Fixed unsupported subtitles being streamed
 		Fixed transcoding bitrate in rare cases
+		Fixed MIME types for WAV audio and TIFF images
+		Fixed renderer TextWrap
+		Fixed renderers only being detected if they are started before UMS
 	Renderers:
+		Added support for VLC on Apple TV
 		Improved video quality on wireless networks for Panasonic VT60
+		Improved support for subtitles on Panasonic CX700 Series TVs
+		Improved support for Panasonic CX680 Series TVs
+		Improved support for Panasonic E6 Series TVs
 		Improved support for Sony Bravia NX800 TVs (thanks, prescott66!)
+		Improved detection of Vizio TVs
 	Languages:
 		Czech translation was completed (thanks, jirkapas and panther7!)
 		French translation was completed and validated (thanks, archaos, Kielo, Kirvx, misterfred and Nadar!)
+		Italian translation was completed (thanks, alebrambilla1986, av3c01, bonatigennaro7, FoxGhost07, fsc_mar, johnjonh, jumputer, morag87, RickyReds, supp and vladiesel!)
 		Polish translation was completed and validated (thanks, anonymodmous, K4r0lSz, Nadar and robo25!)
 		Russian translation was completed (thanks, antonyfg, dronidzer, guzu-guzu, lxnderty, Nadar and Tianuchka!)
 		Swedish translation was completed (thanks, klebom, linushg111, mattias_karlsson_89, millenniumb, Nadar, qwert352, rchk, richarda, Rowly, sebastianboos, Stetoskop, strayhat and swarish!)
 		Turkish translation was completed and validated (thanks, hasanbahcekapili, OnarEngincan and onuroztemizel!)
 	External Components:
+		Updated FFmpeg to builds from this month
+		Updated FLAC to 1.3.1 (thanks, Sami32!)
 		Updated h2database to 1.4.192
+		Updated MediaInfo to 0.7.86
 
 6.3.2 - 2016-05-27
 

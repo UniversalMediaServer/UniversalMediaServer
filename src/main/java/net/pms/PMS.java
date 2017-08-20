@@ -24,11 +24,11 @@ import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -38,7 +38,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
+import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.spi.ImageWriterSpi;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
@@ -67,6 +69,7 @@ import net.pms.newgui.*;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
+import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -123,7 +126,7 @@ public class PMS {
 
 	private JmDNS jmDNS;
 
-	public static BufferedImage thumbnailOverlayImage;
+	private SleepManager sleepManager = null;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -131,6 +134,14 @@ public class PMS {
 	 */
 	public IFrame getFrame() {
 		return frame;
+	}
+
+	/**
+	 * @return The {@link SleepManager} instance or {@code null} if not
+	 *         instantiated yet.
+	 */
+	public SleepManager getSleepManager() {
+		return sleepManager;
 	}
 
 	/**
@@ -252,12 +263,6 @@ public class PMS {
 	public SystemUtils getRegistry() {
 		return registry;
 	}
-
-	/**
-	 * @see System#err
-	 */
-	@SuppressWarnings("unused")
-	private final PrintStream stderr = System.err;
 
 	/**
 	 * Main resource database that supports search capabilities. Also known as media cache.
@@ -405,25 +410,66 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+		// Gather and log system information from a separate thread
+		LogSystemInformationMode logSystemInfo = configuration.getLogSystemInformation();
+		if (
+			logSystemInfo == LogSystemInformationMode.ALWAYS ||
+			logSystemInfo == LogSystemInformationMode.TRACE_ONLY &&
+			LOGGER.isTraceEnabled()
+		) {
+			new SystemInformation().start();
+		}
+
 		// Show the language selection dialog before displayBanner();
-		if (configuration.getLanguageRawString() == null || !Languages.isValid(configuration.getLanguageRawString())) {
+		if (
+			!isHeadless() &&
+			(configuration.getLanguageRawString() == null ||
+			!Languages.isValid(configuration.getLanguageRawString()))
+		) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
-			if (languageDialog != null) {
-				languageDialog.show();
-				if (languageDialog.isAborted()) {
-					return false;
-				}
+			languageDialog.show();
+			if (languageDialog.isAborted()) {
+				return false;
 			}
 		}
 
-		// call this as early as possible
+		// Initialize splash screen
+		Splash splash = null;
+		if (!isHeadless()) {
+			splash = new Splash(configuration);
+		}
+
+		// Call this as early as possible
 		displayBanner();
 
-		// initialize database
+		// Initialize database
 		Tables.checkTables();
+
+		// Log registered ImageIO plugins
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("");
+			LOGGER.trace("Registered ImageIO reader classes:");
+			Iterator<ImageReaderSpi> readerIterator = IIORegistry.getDefaultInstance().getServiceProviders(ImageReaderSpi.class, true);
+			while (readerIterator.hasNext()) {
+				ImageReaderSpi reader = readerIterator.next();
+				LOGGER.trace("Reader class: {}", reader.getPluginClassName());
+			}
+			LOGGER.trace("");
+			LOGGER.trace("Registered ImageIO writer classes:");
+			Iterator<ImageWriterSpi> writerIterator = IIORegistry.getDefaultInstance().getServiceProviders(ImageWriterSpi.class, true);
+			while (writerIterator.hasNext()) {
+				ImageWriterSpi writer = writerIterator.next();
+				LOGGER.trace("Writer class: {}", writer.getPluginClassName());
+			}
+			LOGGER.trace("");
+		}
 
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
+			// Hide splash screen
+			if (splash != null) {
+				splash.setVisible(false);
+			}
 			// Ask the user if they want to run the wizard
 			int whetherToRunWizard = JOptionPane.showConfirmDialog(
 				null,
@@ -527,12 +573,11 @@ public class PMS {
 				configuration.setRunWizard(false);
 				save();
 			}
-		}
 
-		// Splash
-		Splash splash = null;
-		if (!isHeadless()) {
-			splash = new Splash(configuration);
+			// Unhide splash screen
+			if (splash != null) {
+				splash.setVisible(true);
+			}
 		}
 
 		// The public VERSION field is deprecated.
@@ -551,6 +596,9 @@ public class PMS {
 
 		registry = createSystemUtils();
 
+		// Create SleepManager
+		sleepManager = new SleepManager();
+
 		if (!isHeadless()) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
@@ -559,8 +607,10 @@ public class PMS {
 			frame = new DummyFrame();
 		}
 
+		// Close splash screen
 		if (splash != null) {
 			splash.dispose();
+			splash = null;
 		}
 
 		/*
@@ -612,7 +662,7 @@ public class PMS {
 
 		// launch ChromecastMgr
 		jmDNS = null;
-		launchJmDNSRenders();
+		launchJmDNSRenderers();
 
 		OutputParams outputParams = new OutputParams(configuration);
 
@@ -819,17 +869,13 @@ public class PMS {
 		});
 
 		configuration.setAutoSave();
+		UPNPHelper.sendByeBye();
+		LOGGER.trace("Waiting 250 milliseconds...");
+		Thread.sleep(250);
 		UPNPHelper.sendAlive();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
-
-		// Load the fully played overlay image, in case it's needed later
-		try {
-			thumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream("/resources/images/icon-fullyplayed.png"));
-		} catch (IOException ex) {
-			java.util.logging.Logger.getLogger(FullyPlayed.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		}
 
 		return true;
 	}
@@ -844,25 +890,23 @@ public class PMS {
 		return mediaLibrary;
 	}
 
-	private SystemUtils createSystemUtils() {
+	private static SystemUtils createSystemUtils() {
 		if (Platform.isWindows()) {
 			return new WinUtils();
-		} else {
-			if (Platform.isMac()) {
-				return new MacSystemUtils();
-			} else {
-				if (Platform.isSolaris()) {
-					return new SolarisUtils();
-				} else {
-					return new BasicSystemUtils();
-				}
-			}
 		}
+		if (Platform.isMac()) {
+			return new MacSystemUtils();
+		}
+		if (Platform.isSolaris()) {
+			return new SolarisUtils();
+		}
+		return new BasicSystemUtils();
 	}
 
 	/**
 	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
 	 */
+	@SuppressWarnings("unused")
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
 		return getSharedFoldersArray(false, getConfiguration());
@@ -921,10 +965,16 @@ public class PMS {
 
 			if (file.exists()) {
 				if (!file.isDirectory()) {
-					LOGGER.warn("The file " + folder + " is not a directory! Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
+					LOGGER.warn(
+						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+						folder,  Messages.getString("LooksFrame.22")
+					);
 				}
 			} else {
-				LOGGER.warn("The directory " + folder + " does not exist. Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
+				LOGGER.warn(
+					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+					folder,  Messages.getString("LooksFrame.22")
+				);
 			}
 
 			// add the file even if there are problems so that the user can update the shared folders as required.
@@ -951,7 +1001,7 @@ public class PMS {
 					UPNPHelper.sendByeBye();
 					server.stop();
 					server = null;
-					RendererConfiguration.resetAllRenderers();
+					RendererConfiguration.loadRendererConfigurations(configuration);
 
 					try {
 						Thread.sleep(1000);
@@ -1061,7 +1111,7 @@ public class PMS {
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
 			sb.append('-');
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
-			sb.append(", UPnP/1.0, UMS/").append(getVersion());
+			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(getVersion());
 			serverName = sb.toString();
 		}
 
@@ -1131,7 +1181,7 @@ public class PMS {
 		if (args.length > 0) {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
-				switch (arg) {
+				switch (arg.trim().toLowerCase(Locale.ROOT)) {
 					case HEADLESS:
 					case CONSOLE:
 						forceHeadless();
@@ -1171,8 +1221,8 @@ public class PMS {
 		if (isHeadless() && denyHeadless) {
 			System.err.println(
 				"Either a graphics environment isn't available or headless " +
-			    "mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
-			    " can't start, exiting."
+				"mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
+				" can't start, exiting."
 			);
 			System.exit(1);
 		} else if (!isHeadless()) {
@@ -1287,8 +1337,16 @@ public class PMS {
 	}
 
 	public void storeFileInCache(File file, int formatType) {
-		if (getConfiguration().getUseCache() && !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
-			getDatabase().insertData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+		if (
+			getConfiguration().getUseCache() &&
+			!getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())
+		) {
+			try {
+				getDatabase().insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+			} catch (SQLException e) {
+				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
 	}
 
@@ -1310,10 +1368,11 @@ public class PMS {
 	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
 	 * is known or can be determined.
 	 *
-	 * @return The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 * @param  renderer The renderer configuration.
+	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
 	 */
-	public static PmsConfiguration getConfiguration(RendererConfiguration r) {
-		return (r != null && (r instanceof DeviceConfiguration)) ? (DeviceConfiguration)r : configuration;
+	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
+		return (renderer != null && (renderer instanceof DeviceConfiguration)) ? (DeviceConfiguration) renderer : configuration;
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
@@ -1353,61 +1412,55 @@ public class PMS {
 	 * only detects the bitness of Java, not of the operating system.
 	 *
 	 * @return The bitness of the operating system.
+	 *
+	 * @deprecated Use {@link SystemInformation#getOSBitness()} instead.
 	 */
+	@Deprecated
 	public static int getOSBitness() {
-		int bitness = 32;
-
-		if (
-			(System.getProperty("os.name").contains("Windows") && System.getenv("ProgramFiles(x86)") != null) ||
-			System.getProperty("os.arch").contains("64")
-		) {
-			bitness = 64;
-		}
-
-		return bitness;
+		return SystemInformation.getOSBitness();
 	}
 
 	/**
 	 * Log system properties identifying Java, the OS and encoding and log
 	 * warnings where appropriate.
 	 */
-	private void logSystemInfo() {
-		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
+	private static void logSystemInfo() {
+		long jvmMemory = Runtime.getRuntime().maxMemory();
 
-		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
-		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
-		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
-		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
-		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		LOGGER.info(
+			"Java: {} {} ({}-bit) by {}",
+			System.getProperty("java.vm.name"),
+			System.getProperty("java.version"),
+			System.getProperty("sun.arch.data.model"),
+			System.getProperty("java.vendor")
+		);
+		LOGGER.info(
+			"OS: {} {}-bit {}",
+			System.getProperty("os.name"),
+			SystemInformation.getOSBitness(),
+			System.getProperty("os.version")
+		);
+		LOGGER.info(
+			"Maximum JVM Memory: {}",
+			jvmMemory == Long.MAX_VALUE ? "Unlimited" : StringUtil.formatBytes(jvmMemory, true)
+		);
+		LOGGER.info("Language: {}", WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		LOGGER.info("Encoding: {}", System.getProperty("file.encoding"));
 		LOGGER.info("");
 
-		if (Platform.isMac()) {
-			// The binaries shipped with the Mac OS X version of PMS are being
+		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
+			// The binaries shipped with the Mac OS X version of UMS are being
 			// compiled against specific OS versions, making them incompatible
 			// with older versions. Warn the user about this when necessary.
-			String osVersion = System.getProperty("os.version");
-
-			// Split takes a regular expression, so escape the dot.
-			String[] versionNumbers = osVersion.split("\\.");
-
-			if (versionNumbers.length > 1) {
-				try {
-					int osVersionMinor = Integer.parseInt(versionNumbers[1]);
-
-					if (osVersionMinor < 6) {
-						LOGGER.warn("-----------------------------------------------------------------");
-						LOGGER.warn("WARNING!");
-						LOGGER.warn("UMS ships with binaries compiled for Mac OS X 10.6 or higher.");
-						LOGGER.warn("You are running an older version of Mac OS X so UMS may not work!");
-						LOGGER.warn("More information in the FAQ:");
-						LOGGER.warn("http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=66371#p66371");
-						LOGGER.warn("-----------------------------------------------------------------");
-						LOGGER.warn("");
-					}
-				} catch (NumberFormatException e) {
-					LOGGER.debug("Cannot parse minor os.version number");
-				}
-			}
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("WARNING!");
+			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
+			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
+			LOGGER.warn("that these binaries used for example for transcoding may not work!");
+			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
+			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("");
 		}
 	}
 
@@ -1644,9 +1697,8 @@ public class PMS {
 		try {
 			if (locale != null) {
 				return locale;
-			} else {
-				return Locale.getDefault();
 			}
+			return Locale.getDefault();
 		} finally {
 			localeLock.readLock().unlock();
 		}
@@ -1854,7 +1906,7 @@ public class PMS {
 		return dynamicPls;
 	}
 
-	private void launchJmDNSRenders() {
+	private void launchJmDNSRenderers() {
 		if (configuration.useChromecastExt()) {
 			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
 				try {
@@ -1865,7 +1917,7 @@ public class PMS {
 				}
 			}
 			else {
-				LOGGER.info("No Chromecast render found. Please enable one and restart.");
+				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
 			}
 		}
 	}
@@ -1904,7 +1956,7 @@ public class PMS {
 		return instance.credMgr.getTag(owner, username);
 	}
 
-	public static boolean verifyCred(String owner,String tag, String user, String pwd) {
+	public static boolean verifyCred(String owner, String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
 	}
 

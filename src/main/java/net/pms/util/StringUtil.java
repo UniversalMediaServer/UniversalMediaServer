@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -20,27 +20,63 @@
 
 package net.pms.util;
 
-import java.awt.Color;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class StringUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
+	public static final String DLNA_DURATION_FORMAT = "%01d:%02d:%06.3f";
 	public static final String NEWLINE_CHARACTER = System.getProperty("line.separator");
+	public static final long KIBI = 1L << 10;
+	public static final long MEBI = 1L << 20;
+	public static final long GIBI = 1L << 30;
+	public static final long TEBI = 1L << 40;
+	public static final long PEBI = 1L << 50;
+	public static final long EXBI = 1L << 60;
+	public static final long KILO = 1000L;
+	public static final long MEGA = 1000000L;
+	public static final long GIGA = 1000000000L;
+	public static final long TERA = 1000000000000L;
+	public static final long PETA = 1000000000000000L;
+	public static final long EXA  = 1000000000000000000L;
 
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
@@ -172,11 +208,12 @@ public class StringUtil {
 	/**
 	 * Converts time to string.
 	 *
-	 * @param d time in double.
-	 * @param timeFormat Format string e.g. "%02d:%02d:%02f" or use predefined constants
-	 * SEC_TIME_FORMAT, DURATION_TIME_FORMAT.
+	 * @param d the time in seconds.
+	 * @param timeFormat Format string e.g. "%02d:%02d:%02f" or use the
+	 *            predefined constants {@link #SEC_TIME_FORMAT},
+	 *            {@link #DURATION_TIME_FORMAT}.
 	 *
-	 * @return Converted String.
+	 * @return The converted {@link String}.
 	 */
 	public static String convertTimeToString(double d, String timeFormat) {
 		StringBuilder sb = new StringBuilder();
@@ -187,6 +224,37 @@ public class StringUtil {
 			formatter.format(timeFormat, h, m, s);
 		}
 
+		return sb.toString();
+	}
+
+	/**
+	 * Converts a duration in seconds to the DIDL-Lite specified duration
+	 * format.
+	 *
+	 * @param duration the duration in seconds.
+	 * @return The formatted duration.
+	 */
+	public static String formatDLNADuration(double duration) {
+		double seconds;
+		int hours;
+		int minutes;
+		if (duration < 0) {
+			seconds = 0.0;
+			hours = 0;
+			minutes = 0;
+		} else {
+			seconds = duration % 60;
+			hours = (int) (duration / 3600);
+			minutes = ((int) (duration / 60)) % 60;
+		}
+		if (hours > 99999) {
+			// As per DLNA standard
+			hours = 99999;
+		}
+		StringBuilder sb = new StringBuilder();
+		try (Formatter formatter = new Formatter(sb, Locale.ROOT)) {
+			formatter.format(DLNA_DURATION_FORMAT, hours, minutes, seconds);
+		}
 		return sb.toString();
 	}
 
@@ -245,39 +313,6 @@ public class StringUtil {
 			}
 			return 0;
 		}
-	}
-
-	/**
-	 * Interprets color strings of these forms:
-	 *    integer: r,g,b[,a]          - e.g. '125,184,47' or '125,184,47,128'
-	 *    hex: #[aa]rrggbb            - e.g. '#04DCF9' or '#8004DCF9'
-	 *    java.awt.Color named color  - e.g. 'blue' or 'LIGHT_GRAY'
-	 */
-	public static Color parseColor(String colorString) {
-		try {
-			colorString = colorString.trim();
-			if (colorString.contains(",")) {
-				// Integer r,g,b[,a]
-				String[] colorElements = colorString.split("\\s*,\\s*");
-				int r = Integer.parseInt(colorElements[0]);
-				int g = Integer.parseInt(colorElements[1]);
-				int b = Integer.parseInt(colorElements[2]);
-				int a = colorElements.length > 3 ? Integer.parseInt(colorElements[3]) : 255;
-				return new Color(r, g, b, a);
-
-			} else if (colorString.charAt(0) == '#') {
-				// Hex #[aa]rrggbb
-				long argb = Long.parseLong(colorString.substring(1), 16);
-				return new Color((int)argb, colorString.length() > 8);
-
-			} else {
-				// java.awt.Color named color
-				return (Color) Color.class.getField(colorString).get(null);
-			}
-		} catch (Exception e) {
-		}
-		LOGGER.warn("Unknown color '{}'. Color string must be rgb (integer R,G,B[,A] or hex #[AA]RRGGBB) or a standard java.awt.Color name", colorString);
-		return null;
 	}
 
 	/**
@@ -354,10 +389,9 @@ public class StringUtil {
 		Pattern pattern = Pattern.compile("<body>(.*)</body>", Pattern.CASE_INSENSITIVE + Pattern.DOTALL);
 		Matcher matcher = pattern.matcher(html);
 		if (matcher.find()) {
-			return matcher.group(1).replaceAll("\n    ", "").trim().replaceAll("(?i)<br>", "\n").replaceAll("<.*?>","");
-		} else {
-			throw new IllegalArgumentException("HTML text not as expected, must have <body> section");
+			return matcher.group(1).replaceAll("\n    ", "").trim().replaceAll("(?i)<br>", "\n").replaceAll("<.*?>", "");
 		}
+		throw new IllegalArgumentException("HTML text not as expected, must have <body> section");
 	}
 
 	/**
@@ -372,11 +406,12 @@ public class StringUtil {
 	}
 
 	/**
-	 * Escapes {@link org.apache.lucene} special characters with backslash
-	 * 
-	 * @param s the {@link String} to evaluate
-	 * @return The converted String
+	 * Escapes {@link org.apache.lucene} special characters with backslash.
+	 *
+	 * @param s the {@link String} to evaluate.
+	 * @return The converted String.
 	 */
+	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	public static String luceneEscape(final String s) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < s.length(); i++) {
@@ -411,10 +446,10 @@ public class StringUtil {
 	}
 
 	/**
-	 * Escapes special characters with backslashes for FFmpeg subtitles
-	 * 
-	 * @param s the {@link String} to evaluate
-	 * @return The converted String
+	 * Escapes special characters with backslashes for FFmpeg subtitles.
+	 *
+	 * @param s the {@link String} to evaluate.
+	 * @return The converted String.
 	 */
 	public static String ffmpegEscape(String s) {
 		StringBuilder sb = new StringBuilder();
@@ -433,6 +468,7 @@ public class StringUtil {
 				case ']':
 				case '[':
 				case ',':
+				case ';':
 					sb.append("\\");
 				default:
 					sb.append(ch);
@@ -440,5 +476,205 @@ public class StringUtil {
 		}
 
 		return sb.toString();
+	}
+
+	/**
+	 * Formats a XML string to be easier to read with newlines and indentations.
+	 *
+	 * @param xml the {@link String} to "prettify".
+	 * @param indentWidth the width of one indentation in number of characters.
+	 * @return The "prettified" {@link String}.
+	 * @throws SAXException If a parsing error occurs.
+	 * @throws ParserConfigurationException If a parsing error occurs.
+	 * @throws XPathExpressionException If a parsing error occurs.
+	 * @throws TransformerException If a parsing error occurs.
+	 */
+	public static String prettifyXML(
+		String xml,
+		int indentWidth
+	) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
+		try {
+			// Turn XML string into a document
+			Document xmlDocument =
+				DocumentBuilderFactory.newInstance().
+				newDocumentBuilder().
+				parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+
+			// Remove whitespaces outside tags
+			xmlDocument.normalize();
+			XPath xPath = XPathFactory.newInstance().newXPath();
+			NodeList nodeList = (NodeList) xPath.evaluate(
+				"//text()[normalize-space()='']",
+				xmlDocument,
+				XPathConstants.NODESET
+			);
+
+			for (int i = 0; i < nodeList.getLength(); ++i) {
+				Node node = nodeList.item(i);
+				node.getParentNode().removeChild(node);
+			}
+
+			// Setup pretty print options
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			transformerFactory.setAttribute("indent-number", indentWidth);
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+			// Return pretty print XML string
+			StringWriter stringWriter = new StringWriter();
+			transformer.transform(new DOMSource(xmlDocument), new StreamResult(stringWriter));
+			return stringWriter.toString();
+		} catch (IOException e) {
+			LOGGER.warn("Failed to read XML document, returning the source document: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return xml;
+		}
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form
+	 * "{@code element 1, element2 and element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(Collection<String> strings) {
+		return createReadableCombinedString(strings, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form
+	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(Collection<String> strings, String separator, String lastSeparator) {
+		if (strings == null || strings.isEmpty()) {
+			return "";
+		}
+		return createReadableCombinedString(strings.toArray(new String[strings.size()]), separator, lastSeparator);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form
+	 * "{@code element 1, element2 and element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(String[] strings) {
+		return createReadableCombinedString(strings, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form
+	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(String[] strings, String separator, String lastSeparator) {
+		if (strings == null || strings.length == 0) {
+			return "";
+		}
+		if (separator == null) {
+			separator = ", ";
+		} else {
+			separator += " ";
+		}
+		if (lastSeparator == null) {
+			lastSeparator = " and ";
+		} else if (!isBlank(lastSeparator)) {
+			if (!lastSeparator.substring(0, 1).equals(" ")) {
+				lastSeparator = " " + lastSeparator;
+			}
+			if (!lastSeparator.substring(lastSeparator.length() - 1).equals(" ")) {
+				lastSeparator += " ";
+			}
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < strings.length; i++) {
+			if (i > 0) {
+				if (i == strings.length) {
+					sb.append(lastSeparator);
+				} else {
+					sb.append(separator);
+				}
+			}
+			sb.append(strings[i]);
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Formats bytes into a rounded {@link String} representation in either
+	 * binary/power of 2 or SI notation using {@link Locale#ROOT}.
+	 *
+	 * @param bytes the value to format.
+	 * @param binary whether the representation should be binary/power of 2 or
+	 *            SI/metric.
+	 * @return The formatted byte value and unit.
+	 */
+	public static String formatBytes(long bytes, boolean binary) {
+		return formatBytes(bytes, binary, Locale.ROOT);
+	}
+
+	/**
+	 * Formats bytes into a rounded {@link String} representation in either
+	 * binary/power of 2 or SI notation.
+	 *
+	 * @param bytes the value to format.
+	 * @param binary whether the representation should be binary/power of 2 or
+	 *            SI/metric.
+	 * @param locale the {@link Locale} to use when formatting.
+	 * @return The formatted byte value and unit.
+	 */
+	public static String formatBytes(long bytes, boolean binary, Locale locale) {
+		if ((binary && bytes < 1L << 10) || bytes < KILO) {
+			return String.format("%d %s", bytes, bytes == 1L ? "byte" : "bytes");
+		}
+
+		long divisor;
+		String unit;
+		if ((binary && bytes < MEBI) || bytes < MEGA) { // kibi/kilo
+			divisor = binary ? KIBI : KILO;
+			unit = binary ? "KiB" : "kB";
+		} else if ((binary && bytes < GIBI) || bytes < GIGA) { // mebi/mega
+			divisor = binary ? MEBI : MEGA;
+			unit = binary ? "MiB" : "MB";
+		} else if ((binary && bytes < TEBI) || bytes < TERA) { // gibi/giga
+			divisor = binary ? GIBI : GIGA;
+			unit = binary ? "GiB" : "GB";
+		} else if ((binary && bytes < PEBI) || bytes < PETA) { // tebi/tera
+			divisor = binary ? TEBI : TERA;
+			unit = binary ? "TiB" : "TB";
+		} else if ((binary && bytes < EXBI) || bytes < EXA) { // pebi/peta
+			divisor = binary ? PEBI : PETA;
+			unit = binary ? "PiB" : "PB";
+		} else { // exbi/exa
+			divisor = binary ? EXBI : EXA;
+			unit = binary ? "EiB" : "EB";
+		}
+		if (bytes % divisor == 0) {
+			return String.format(locale, "%d %s", bytes / divisor, unit);
+		}
+		return String.format(locale, "%.1f %s", (double) bytes / divisor, unit);
 	}
 }

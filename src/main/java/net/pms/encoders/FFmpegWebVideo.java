@@ -117,7 +117,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
-		String filename = dlna.getSystemName();
+		String filename = dlna.getFileName();
 		setAudioAndSubs(filename, media, params);
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
@@ -346,7 +346,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (PlayerUtil.isWebVideo(resource)) {
-			String url = resource.getSystemName();
+			String url = resource.getFileName();
 			return protocols.contains(url.split(":")[0]) && excludes.match(url) == null;
 		}
 

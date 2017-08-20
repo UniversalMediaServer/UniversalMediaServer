@@ -45,8 +45,12 @@ import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
+import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
+import net.pms.util.LogSystemInformationMode;
+import net.pms.util.PreventSleepMode;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
@@ -130,6 +134,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
+	protected static final String KEY_DISABLE_TRANSCODING = "disable_transcoding";
 	protected static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	protected static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
 	protected static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
@@ -181,6 +186,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
+	protected static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
 	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
 	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
@@ -239,7 +245,15 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
+	/**
+	 * This key was used in older versions, only supports {@code true} or
+	 * {@code false}. Kept for backwards-compatibility for now.
+	 *
+	 * @deprecated Use {@link #KEY_PREVENT_SLEEP} instead.
+	 */
+	@Deprecated
 	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
+	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
 	protected static final String KEY_PROFILE_NAME = "name";
 	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
 	protected static final String KEY_RENDERER_DEFAULT = "renderer_default";
@@ -366,6 +380,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_AUDIO_THUMBNAILS_METHOD,
 			KEY_CHAPTER_SUPPORT,
 			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
+			KEY_DISABLE_TRANSCODING,
 			KEY_ENGINES,
 			KEY_FOLDERS,
 			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
@@ -536,9 +551,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
-	 * @throws org.apache.commons.configuration.ConfigurationException
 	 */
-	public PmsConfiguration(boolean loadFile) throws ConfigurationException {
+	public PmsConfiguration(boolean loadFile) {
 		super(0);
 
 		if (loadFile) {
@@ -623,7 +637,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
-	private String verifyLogFolder(File folder, String fallbackTo) {
+	private static String verifyLogFolder(File folder, String fallbackTo) {
 		try {
 			FilePermissions permissions = FileUtil.getFilePermissions(folder);
 			if (LOGGER.isTraceEnabled()) {
@@ -713,9 +727,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
 		if (FileUtil.isValidFileName(s)) {
 			return s;
-		} else {
-			return "debug.log";
 		}
+		return "debug.log";
 	}
 
 	public String getDefaultLogFilePath() {
@@ -764,6 +777,13 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getInterFramePath() {
 		return programPaths.getInterFramePath();
+	}
+
+	public LogSystemInformationMode getLogSystemInformation() {
+		LogSystemInformationMode defaultValue = LogSystemInformationMode.TRACE_ONLY;
+		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
+		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
+		return result != null ? result : defaultValue;
 	}
 
 	/**
@@ -924,6 +944,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
 	 * @since 5.2.3
 	 */
+	@Deprecated
 	public String getLanguage() {
 		return getLanguageTag();
 	}
@@ -1686,19 +1707,35 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * @param value The comma-separated list of selected renderers.
+	 * @return {@code true} if this call changed the {@link Configuration},
+	 *         {@code false} otherwise.
 	 */
-	public void setSelectedRenderers(String value) {
+	public boolean setSelectedRenderers(String value) {
 		if (value.isEmpty()) {
 			value = "None";
 		}
-		configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {
+			configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
 	 * @param value a string list of renderers.
+	 * @return {@code true} if this call changed the {@link Configuration},
+	 *         {@code false} otherwise.
 	 */
-	public void setSelectedRenderers(List<String> value) {
-		setStringList(KEY_SELECTED_RENDERERS, value);
+	public boolean setSelectedRenderers(List<String> value) {
+		if (value == null) {
+			return setSelectedRenderers("");
+		}
+		List<String> currentValue = getStringList(KEY_SELECTED_RENDERERS, null);
+		if (currentValue == null || value.size() != currentValue.size() || !value.containsAll(currentValue)) {
+			setStringList(KEY_SELECTED_RENDERERS, value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -2266,7 +2303,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				"mencoderwebvideo",
 				"vlcaudio", // (VideoLanAudioStreaming) TODO (legacy web audio engine): remove
 				"ffmpegdvrmsremux",
-				"rawthumbs"
+				"dcraw"
 			},
 			","
 		);
@@ -2280,6 +2317,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 
 		engines = hackAvs(registry, engines);
+		// Backwards compatibility, can be removed when sufficient time has passed - 2017-01
+		int i = engines.indexOf("rawthumbs");
+		if (i >= 0) {
+			engines.set(i, "dcraw");
+		}
+
 		return engines;
 	}
 
@@ -2376,6 +2419,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setDisableTranscodeForExtensions(String value) {
 		configuration.setProperty(KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS, value);
+	}
+
+	public boolean isDisableTranscoding() {
+		return getBoolean(KEY_DISABLE_TRANSCODING, false);
 	}
 
 	public String getForceTranscodeForExtensions() {
@@ -2690,12 +2737,26 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_IP_FILTER, value);
 	}
 
-	public void setPreventsSleep(boolean value) {
-		configuration.setProperty(KEY_PREVENTS_SLEEP, value);
+	public void setPreventSleep(PreventSleepMode value) {
+		if (value == null) {
+			throw new NullPointerException("value cannot be null");
+		}
+		configuration.setProperty(KEY_PREVENT_SLEEP, value.getValue());
+		PMS.get().getSleepManager().setMode(value);
 	}
 
-	public boolean isPreventsSleep() {
-		return getBoolean(KEY_PREVENTS_SLEEP, true);
+	public PreventSleepMode getPreventSleep() {
+		PreventSleepMode sleepMode = null;
+		String value = getString(KEY_PREVENT_SLEEP, null);
+		if (value == null && configuration.containsKey(KEY_PREVENTS_SLEEP)) {
+			// Backwards compatibility
+			sleepMode = getBoolean(KEY_PREVENTS_SLEEP, true) ? PreventSleepMode.PLAYBACK : PreventSleepMode.NEVER;
+			configuration.clearProperty(KEY_PREVENTS_SLEEP);
+			configuration.setProperty(KEY_PREVENT_SLEEP, sleepMode.getValue());
+		} else if (value != null) {
+			sleepMode = PreventSleepMode.typeOf(value);
+		}
+		return sleepMode != null ? sleepMode : PreventSleepMode.PLAYBACK; // Default
 	}
 
 	public void setHTTPEngineV2(boolean value) {
@@ -2771,7 +2832,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isDvdIsoThumbnails() {
-		return getBoolean(KEY_DVDISO_THUMBNAILS, false);
+		return getBoolean(KEY_DVDISO_THUMBNAILS, true);
 	}
 
 	public void setDvdIsoThumbnails(boolean value) {
@@ -2802,12 +2863,29 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_CHAPTER_INTERVAL, value);
 	}
 
-	public int getSubsColor() {
-		return getInt(KEY_SUBS_COLOR, 0xffffffff);
+	public SubtitleColor getSubsColor() {
+		String colorString = getString(KEY_SUBS_COLOR, null);
+		if (StringUtils.isNotBlank(colorString)) {
+			try {
+				return new SubtitleColor(colorString);
+			} catch (InvalidArgumentException e) {
+				LOGGER.error("Using default subtitle color: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		return new SubtitleColor(0xFF, 0xFF, 0xFF);
 	}
 
-	public void setSubsColor(int value) {
-		configuration.setProperty(KEY_SUBS_COLOR, value);
+	public void setSubsColor(Color color) {
+		setSubsColor(new SubtitleColor(color));
+	}
+
+	public void setSubsColor(SubtitleColor color) {
+		if (color.getAlpha() != 0xFF) {
+			configuration.setProperty(KEY_SUBS_COLOR, color.get0xRRGGBBAA());
+		} else {
+			configuration.setProperty(KEY_SUBS_COLOR, color.get0xRRGGBB());
+		}
 	}
 
 	public boolean isFix25FPSAvMismatch() {
@@ -3180,6 +3258,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @deprecated Use {@link #getCredFile()} instead.
 	 */
+	@Deprecated
 	public String getCredPath() {
 		return getCredFile().getAbsolutePath();
 	}
@@ -3850,7 +3929,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isShowSplashScreen() {
-		return getBoolean(KEY_SHOW_SPLASH_SCREEN, false);
+		return getBoolean(KEY_SHOW_SPLASH_SCREEN, true);
 	}
 
 	public void setShowSplashScreen(boolean value) {

@@ -70,7 +70,7 @@
 			<fileMode>0644</fileMode>
 			<lineEnding>unix</lineEnding>
 			<includes>
-				<include>README.txt</include>
+				<include>README.md</include>
 				<include>CHANGELOG.txt</include>
 				<include>INSTALL.txt</include>
 				<include>LICENSE.txt</include>

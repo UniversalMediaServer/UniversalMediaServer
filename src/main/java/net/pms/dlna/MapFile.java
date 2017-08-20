@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import net.pms.configuration.MapFileConfiguration;
-import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +104,7 @@ public class MapFile extends DLNAResource {
 						}
 						if (!emptyFoldersToRescan.contains(f)) {
 							emptyFoldersToRescan.add(f);
-						}									
+						}
 					} else { // Otherwise add the file
 						RealFile rf = new RealFile(f);
 						if (searchList != null) {
@@ -116,7 +115,6 @@ public class MapFile extends DLNAResource {
 				}
 			}
 
-			// FIXME this causes folder thumbnails to take precedence over file thumbnails
 			if (f.isFile() && (lcFilename.equals("folder.jpg") || lcFilename.equals("folder.png") || (lcFilename.contains("albumart") && lcFilename.endsWith(".jpg")))) {
 				potentialCover = f;
 			}
@@ -218,7 +216,7 @@ public class MapFile extends DLNAResource {
 					}
 					if (!emptyFoldersToRescan.contains(f)) {
 						emptyFoldersToRescan.add(f);
-					}				
+					}
 					continue;
 				}
 
@@ -280,16 +278,16 @@ public class MapFile extends DLNAResource {
 				modified = Math.max(modified, f.lastModified());
 			}
 		}
-		
+
 		// Check if any of our previously empty folders now have content
 		boolean emptyFolderNowNotEmpty = false;
-		if (emptyFoldersToRescan != null) {			
+		if (emptyFoldersToRescan != null) {
 			for (File emptyFile : emptyFoldersToRescan) {
 				if (FileUtil.isFolderRelevant(emptyFile, configuration)) {
 					emptyFolderNowNotEmpty = true;
 					break;
 				}
-			}			
+			}
 		}
 		return (getLastRefreshTime() < modified) || (configuration.getSortMethod(getPath()) == UMSUtils.SORT_RANDOM || emptyFolderNowNotEmpty);
 	}
@@ -311,22 +309,6 @@ public class MapFile extends DLNAResource {
 	@Override
 	public String getSystemName() {
 		return getName();
-	}
-
-	@Override
-	public String getThumbnailContentType() {
-		String thumbnailIcon = this.getConf().getThumbnailIcon();
-		if (thumbnailIcon != null && thumbnailIcon.toLowerCase().endsWith(".png")) {
-			return HTTPResource.PNG_TYPEMIME;
-		}
-		return super.getThumbnailContentType();
-	}
-
-	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
-		return this.getConf().getThumbnailIcon() != null
-			? getResourceInputStream(this.getConf().getThumbnailIcon())
-			: super.getThumbnailInputStream();
 	}
 
 	@Override

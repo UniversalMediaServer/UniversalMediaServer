@@ -36,25 +36,30 @@ public class InfoDb implements DbHandler {
 
 
 	private void askAndInsert(File f, String formattedName) {
-		try {
-			String[] tmp = OpenSubtitle.getInfo(f, formattedName);
-			Object obj = db.nullObj();
-			if (tmp != null) {
-				obj = create(tmp, 0);
+		synchronized (db) {
+			try {
+				String[] tmp = OpenSubtitle.getInfo(f, formattedName);
+				Object obj = db.nullObj();
+				if (tmp != null) {
+					obj = create(tmp, 0);
+				}
+				db.add(f.getAbsolutePath(), obj);
+			} catch (Exception e) {
+				LOGGER.error("Error while inserting in InfoDb: {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
-			db.add(f.getAbsolutePath(), obj);
-		} catch (Exception e) {
-			LOGGER.debug("info db ex "+e.toString());
 		}
 	}
 
 	public void backgroundAdd(final File f, final String formattedName) {
-		if (db.get(f.getAbsolutePath()) != null) {
-			// we need to use the raw get to see so it's
-			// truly null
-			// also see if we should redo
-			redoNulls();
-			return;
+		synchronized (db) {
+			if (db.get(f.getAbsolutePath()) != null) {
+				// we need to use the raw get to see so it's
+				// truly null
+				// also see if we should redo
+				redoNulls();
+				return;
+			}
 		}
 		Runnable r = new Runnable() {
 			@Override
@@ -66,11 +71,13 @@ public class InfoDb implements DbHandler {
 	}
 
 	public void moveInfo(File old_file, File new_file) {
-		InfoDbData data = get(old_file);
-		if (data != null) {
-			db.removeNoSync(old_file.getAbsolutePath());
-			db.addNoSync(new_file.getAbsolutePath(), data);
-			db.sync();
+		synchronized (db) {
+			InfoDbData data = get(old_file);
+			if (data != null) {
+				db.removeNoSync(old_file.getAbsolutePath());
+				db.addNoSync(new_file.getAbsolutePath(), data);
+				db.sync();
+			}
 		}
 	}
 
@@ -79,8 +86,10 @@ public class InfoDb implements DbHandler {
 	}
 
 	public InfoDbData get(String f) {
-		Object obj = db.get(f);
-		return (InfoDbData) (db.isNull(obj) ? null : obj);
+		synchronized (db) {
+			Object obj = db.get(f);
+			return (InfoDbData) (db.isNull(obj) ? null : obj);
+		}
 	}
 
 	@Override
@@ -91,16 +100,7 @@ public class InfoDb implements DbHandler {
 	public Object create(String[] args, int off) {
 		InfoDbData data = new InfoDbData();
 		data.imdb = FileDb.safeGetArg(args, off);
-
-		/**
-		 * Sometimes if IMDb doesn't have an episode title they call it
-		 * something like "Episode #1.4", so discard that.
-		 */
 		data.ep_name = FileDb.safeGetArg(args, off + 1);
-		if (data.ep_name.startsWith("Episode #")) {
-			data.ep_name = "";
-		}
-
 		data.title = FileDb.safeGetArg(args, off + 2);
 		data.season = FileDb.safeGetArg(args, off + 3);
 		data.episode = FileDb.safeGetArg(args, off + 4);
@@ -138,47 +138,54 @@ public class InfoDb implements DbHandler {
 	}
 
 	private void redoNulls() {
-		// no nulls in db skip this
-		if (!db.hasNulls()) {
-			return;
+		synchronized (db) {
+			// no nulls in db skip this
+			if (!db.hasNulls()) {
+				return;
+			}
+			if (!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
+				// no redo
+				return;
+			}
 		}
-		if (!redo() || !PMS.getConfiguration().isInfoDbRetry()) {
-			// no redo
-			return;
-		}
+
 		// update this first to make redo() return false for other
 		PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				// this whole iterator stuff is to avoid
-				// CMEs
-				Iterator it = db.iterator();
-				boolean sync = false;
-				while (it.hasNext()) {
-					Map.Entry kv = (Map.Entry) it.next();
-					String key = (String) kv.getKey();
+				synchronized (db) {
+					// this whole iterator stuff is to avoid
+					// CMEs
+					Iterator it = db.iterator();
+					boolean sync = false;
+					while (it.hasNext()) {
+						Map.Entry kv = (Map.Entry) it.next();
+						String key = (String) kv.getKey();
 
-					// nonNull -> no need to ask again
-					if (!db.isNull(kv.getValue())) {
-						continue;
-					}
-					File f = new File(key);
-					String name = f.getName();
-					try {
-						String[] tmp = OpenSubtitle.getInfo(f, name);
-						// if we still get nothing from opensubs
-						// we don't fiddle with the db
-						if (tmp != null) {
-							kv.setValue(create(tmp, 0));
-							sync = true;
+						// nonNull -> no need to ask again
+						if (!db.isNull(kv.getValue())) {
+							continue;
 						}
-					} catch (Exception e) {
+						File f = new File(key);
+						String name = f.getName();
+						try {
+							String[] tmp = OpenSubtitle.getInfo(f, name);
+							// if we still get nothing from opensubs
+							// we don't fiddle with the db
+							if (tmp != null) {
+								kv.setValue(create(tmp, 0));
+								sync = true;
+							}
+						} catch (Exception e) {
+							LOGGER.error("Exception in redoNulls: {}", e.getMessage());
+							LOGGER.trace("", e);
+						}
 					}
-				}
-				if (sync) {
-					// we need a manual sync here
-					db.sync();
+					if (sync) {
+						// we need a manual sync here
+						db.sync();
+					}
 				}
 			}
 		};

@@ -115,7 +115,7 @@ public class TsMuxeRVideo extends Player {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		setAudioAndSubs(filename, media, params);
 
 		PipeIPCProcess ffVideoPipe;
@@ -350,7 +350,6 @@ public class TsMuxeRVideo extends Player {
 							"-ac", "" + channels,
 							"-f", "adts",
 							"-c:a", "aac",
-							"-strict", "experimental",
 							"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
 							"-y",
 							ffAudioPipe[0].getInputPipe()
@@ -805,7 +804,8 @@ public class TsMuxeRVideo extends Player {
 
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
 		) {
 			return true;
 		}

@@ -7,10 +7,6 @@ import net.pms.newgui.LooksFrame;
 
 public interface SystemUtils {
 
-	public abstract void disableGoToSleep();
-
-	public abstract void reenableGoToSleep();
-
 	public abstract File getAvsPluginsDir();
 
 	public abstract File getKLiteFiltersDir();
@@ -53,7 +49,7 @@ public interface SystemUtils {
 
 	/**
 	 * Fetch the hardware address for a network interface.
-	 * 
+	 *
 	 * @param ni Interface to fetch the mac address for
 	 * @return the mac address as bytes, or null if it couldn't be fetched.
 	 * @throws SocketException
@@ -74,4 +70,12 @@ public interface SystemUtils {
 	String[] getPingCommand(String hostAddress, int count, int packetSize);
 
 	String parsePingLine(String line);
+
+	/**
+	 * This is't an actual but an estimated value assuming default MTU size.
+	 * 
+	 * @param packetSize the size of the packet in bytes.
+	 * @return The estimated number of fragments.
+	 */
+	int getPingPacketFragments(int packetSize);
 }

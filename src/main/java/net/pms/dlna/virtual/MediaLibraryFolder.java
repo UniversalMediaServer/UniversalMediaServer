@@ -74,7 +74,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 	}
 
 	private String transformSQL(String sql) {
-
 		sql = sql.replace("${0}", transformName(getName()));
 		if (getParent() != null) {
 			sql = sql.replace("${1}", transformName(getParent().getName()));
@@ -142,7 +141,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 					if (dlna instanceof DVDISOFile) {
 						DVDISOFile dvdISOFile = (DVDISOFile) dlna;
 						// XXX DVDISOFile has inconsistent ideas of what constitutes a VIDEO_TS folder
-						videoTSHack = dvdISOFile.getFilename().equals(file.getName());
+						videoTSHack = dvdISOFile.getFileName().equals(file.getName());
 					}
 
 					if ((file.getName().equals(name) || videoTSHack) && file.lastModified() == lm) {
@@ -202,6 +201,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 
+		setUpdateId(this.getIntId());
 		//return removedFiles.size() != 0 || addedFiles.size() != 0 || removedString.size() != 0 || addedString.size() != 0;
 	}
 }

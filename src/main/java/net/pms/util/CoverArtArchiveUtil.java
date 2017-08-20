@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -65,7 +65,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverArtArchiveUtil.class);
 	private static final long WAIT_TIMEOUT_MS = 30000;
-	private static long expireTime = 24 * 60 * 60 * 1000; // 24 hours
+	private static final long expireTime = 24 * 60 * 60 * 1000; // 24 hours
 	private static final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
 	private static enum ReleaseType {
@@ -728,7 +728,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				}
 
 				if (query != null) {
-					final String url = "http://musicbrainz.org/ws/2/" + query;
+					final String url = "http://musicbrainz.org/ws/2/" + query + "&fmt=xml";
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Performing release MBID lookup at musicbrainz: \"{}\"", url);
 					}
@@ -749,6 +749,8 @@ public class CoverArtArchiveUtil extends CoverUtil {
 							LOGGER.error("Failed to parse XML for \"{}\": {}", url, e.getMessage());
 							LOGGER.trace("", e);
 							return null;
+						} finally {
+							connection.getInputStream().close();
 						}
 
 						ArrayList<ReleaseRecord> releaseList;
@@ -844,7 +846,8 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 		Pattern pattern = Pattern.compile("\\d{4}");
 		ArrayList<ReleaseRecord> releaseList = new ArrayList<>(nodeList.getLength());
-		for (int i = 0; i < nodeList.getLength(); i++) {
+		int nodeListLength = nodeList.getLength();
+		for (int i = 0; i < nodeListLength; i++) {
 			if (nodeList.item(i) instanceof Element) {
 				Element releaseElement = (Element) nodeList.item(i);
 				ReleaseRecord release = new ReleaseRecord();
@@ -957,7 +960,8 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				Element releaseListElement = getChildElement(recordingElement, "release-list");
 				if (releaseListElement != null) {
 					NodeList releaseNodeList = releaseListElement.getElementsByTagName("release");
-					for (int j = 0; j < releaseNodeList.getLength(); j++) {
+					int releaseNodeListLength = releaseNodeList.getLength();
+					for (int j = 0; j < releaseNodeListLength; j++) {
 						ReleaseRecord release = new ReleaseRecord(releaseTemplate);
 						Element releaseElement = (Element) releaseNodeList.item(j);
 						release.id = releaseElement.getAttribute("id");

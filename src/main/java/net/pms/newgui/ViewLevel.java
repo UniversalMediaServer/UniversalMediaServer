@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -23,7 +23,7 @@ package net.pms.newgui;
  * Defines a set of view levels for changing the complexity of the GUI:<br>
  * {@link #Normal}, {@link #Advanced}, {@link #Expert} and {@link #Unknown}.
  * <p/> The <code>ViewLevel</code> class is final and cannot be sub-classed.</p>
- * 
+ *
  * @author Nadahar
  */
 public class ViewLevel {

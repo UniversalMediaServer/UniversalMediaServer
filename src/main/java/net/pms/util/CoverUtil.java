@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -87,7 +87,8 @@ public abstract class CoverUtil {
 	 */
 	protected Element getChildElement(Element element, String name) {
 		NodeList list = element.getElementsByTagName(name);
-		for (int i = 0; i < list.getLength(); i++) {
+		int listLength = list.getLength();
+		for (int i = 0; i < listLength; i++) {
 			Node node = list.item(i);
 			if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals(name) && node instanceof Element) {
 				return (Element) node;

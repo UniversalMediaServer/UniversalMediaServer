@@ -18,11 +18,12 @@ import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class RemoteMediaHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteMediaHandler.class);
 	private RemoteWeb parent;
 	private String path;
-	private RendererConfiguration render;
+	private RendererConfiguration renderer;
 	private boolean flash;
 
 	public RemoteMediaHandler(RemoteWeb parent) {
@@ -34,113 +35,113 @@ public class RemoteMediaHandler implements HttpHandler {
 		this.flash = flash;
 	}
 
-	public RemoteMediaHandler(RemoteWeb parent, String path, RendererConfiguration render) {
+	public RemoteMediaHandler(RemoteWeb parent, String path, RendererConfiguration renderer) {
 		this.flash = false;
 		this.parent = parent;
 		this.path = path;
-		this.render = render;
+		this.renderer = renderer;
 	}
 
 	@Override
-	public void handle(HttpExchange t) throws IOException {
-		if (RemoteUtil.deny(t)) {
+	public void handle(HttpExchange httpExchange) throws IOException {
+		if (RemoteUtil.deny(httpExchange)) {
 			throw new IOException("Access denied");
 		}
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+		RootFolder root = parent.getRoot(RemoteUtil.userName(httpExchange), httpExchange);
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}
-		Headers h = t.getRequestHeaders();
+		Headers h = httpExchange.getRequestHeaders();
 		for (String h1 : h.keySet()) {
 			LOGGER.debug("key " + h1 + "=" + h.get(h1));
 		}
-		String id = RemoteUtil.getId(path, t);
+		String id = RemoteUtil.getId(path, httpExchange);
 		id = RemoteUtil.strip(id);
-		RendererConfiguration r = render;
-		if (render == null) {
-			r = root.getDefaultRenderer();
+		RendererConfiguration defaultRenderer = renderer;
+		if (renderer == null) {
+			defaultRenderer = root.getDefaultRenderer();
 		}
-		DLNAResource dlna = root.getDLNAResource(id, r);
-		if (dlna == null) {
+		DLNAResource resource = root.getDLNAResource(id, defaultRenderer);
+		if (resource == null) {
 			// another error
 			LOGGER.debug("media unkonwn");
 			throw new IOException("Bad id");
 		}
-		if (!dlna.isCodeValid(dlna)) {
+		if (!resource.isCodeValid(resource)) {
 			LOGGER.debug("coded object with invalid code");
 			throw new IOException("Bad code");
 		}
 		DLNAMediaSubtitle sid = null;
-		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
+		String mimeType = root.getDefaultRenderer().getMimeType(resource.mimeType(), resource.getMedia());
 		//DLNAResource dlna = res.get(0);
-		WebRender render = (WebRender) r;
-		DLNAMediaInfo m = dlna.getMedia();
-		if (m == null) {
-			m = new DLNAMediaInfo();
-			dlna.setMedia(m);
+		WebRender renderer = (WebRender) defaultRenderer;
+		DLNAMediaInfo media = resource.getMedia();
+		if (media == null) {
+			media = new DLNAMediaInfo();
+			resource.setMedia(media);
 		}
-		if (mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m.getMimeType() != null) {
-			mime = m.getMimeType();
+		if (mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) && media.getMimeType() != null) {
+			mimeType = media.getMimeType();
 		}
 		int code = 200;
-		dlna.setDefaultRenderer(r);
-		if (dlna.getFormat().isVideo()) {
+		resource.setDefaultRenderer(defaultRenderer);
+		if (resource.getFormat().isVideo()) {
 			if (flash) {
-				mime = "video/flash";
-			} else if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, m)) {
-				mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
-				if (FileUtil.isUrl(dlna.getSystemName())) {
-					dlna.setPlayer(new FFmpegWebVideo());
-				} else {
-					dlna.setPlayer(new FFMpegVideo());
+				mimeType = "video/flash";
+			} else if (!RemoteUtil.directmime(mimeType) || RemoteUtil.transMp4(mimeType, media)) {
+				mimeType = renderer != null ? renderer.getVideoMimeType() : RemoteUtil.transMime();
+				if (FileUtil.isUrl(resource.getSystemName())) {
+					resource.setPlayer(new FFmpegWebVideo());
+				} else if (!(resource instanceof DVDISOTitle)) {
+					resource.setPlayer(new FFMpegVideo());
 				}
 				//code = 206;
 			}
 			if (
 				PMS.getConfiguration().getWebSubs() &&
-				dlna.getMediaSubtitle() != null &&
-				dlna.getMediaSubtitle().isExternal()
+				resource.getMediaSubtitle() != null &&
+				resource.getMediaSubtitle().isExternal()
 			) {
 				// fetched on the side
-				sid = dlna.getMediaSubtitle();
-				dlna.setMediaSubtitle(null);
+				sid = resource.getMediaSubtitle();
+				resource.setMediaSubtitle(null);
 			}
 		}
 
-		if (!RemoteUtil.directmime(mime) && dlna.getFormat().isAudio()) {
-			dlna.setPlayer(new FFmpegAudio());
+		if (!RemoteUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
+			resource.setPlayer(new FFmpegAudio());
 			code = 206;
 		}
 
-		m.setMimeType(mime);
-		Range.Byte range = RemoteUtil.parseRange(t.getRequestHeaders(), dlna.length());
-		LOGGER.debug("dumping media " + mime + " " + dlna);
-		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
+		media.setMimeType(mimeType);
+		Range.Byte range = RemoteUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
+		LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
+		InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 		if(range.getEnd() == 0) {
 			// For web resources actual length may be unknown until we open the stream
-			range.setEnd(dlna.length());
+			range.setEnd(resource.length());
 		}
-		Headers hdr = t.getResponseHeaders();
-		hdr.add("Content-Type", mime);
-		hdr.add("Accept-Ranges", "bytes");
-		if (range != null) {
-			long end = range.getEnd();
-			long start = range.getStart();
-			String rStr = start + "-" + end + "/*" ;
-			hdr.add("Content-Range", "bytes " + rStr);
-			if (start != 0) {
-				code = 206;
-			}
+		Headers headers = httpExchange.getResponseHeaders();
+		headers.add("Content-Type", mimeType);
+		headers.add("Accept-Ranges", "bytes");
+		long end = range.getEnd();
+		long start = range.getStart();
+		String rStr = start + "-" + end + "/*" ;
+		headers.add("Content-Range", "bytes " + rStr);
+		if (start != 0) {
+			code = 206;
+		}
 
+		headers.add("Server", PMS.get().getServerName());
+		headers.add("Connection", "keep-alive");
+		httpExchange.sendResponseHeaders(code, 0);
+		OutputStream os = httpExchange.getResponseBody();
+		if (renderer != null) {
+			renderer.start(resource);
 		}
-		hdr.add("Server", PMS.get().getServerName());
-		hdr.add("Connection", "keep-alive");
-		t.sendResponseHeaders(code, 0);
-		OutputStream os = t.getResponseBody();
-		render.start(dlna);
 		if (sid != null) {
-			dlna.setMediaSubtitle(sid);
+			resource.setMediaSubtitle(sid);
 		}
-		RemoteUtil.dump(in, os, render);
+		RemoteUtil.dump(in, os, renderer);
 	}
 }

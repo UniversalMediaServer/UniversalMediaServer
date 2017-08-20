@@ -13,6 +13,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -26,16 +27,11 @@ public class MapFileConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFileConfiguration.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private String name;
-	private String thumbnailIcon;
 	private List<MapFileConfiguration> children;
 	private List<File> files;
 
 	public String getName() {
 		return name;
-	}
-
-	public String getThumbnailIcon() {
-		return thumbnailIcon;
 	}
 
 	public List<MapFileConfiguration> getChildren() {
@@ -48,10 +44,6 @@ public class MapFileConfiguration {
 
 	public void setName(String n) {
 		name = n;
-	}
-
-	public void setThumbnailIcon(String t) {
-		thumbnailIcon = t;
 	}
 
 	public void setFiles(List<File> f) {
@@ -148,10 +140,11 @@ class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 		File file = new File(json.getAsJsonPrimitive().getAsString());
 
 		try {
-			if (FileUtil.getFilePermissions(file).isBrowsable()) {
+			FilePermissions permissions = FileUtil.getFilePermissions(file);
+			if (permissions.isBrowsable()) {
 				return file;
 			} else {
-				LOGGER.warn("Can't read folder: {}", file.getAbsolutePath());
+				LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
 				return null;
 			}
 		} catch (FileNotFoundException e) {

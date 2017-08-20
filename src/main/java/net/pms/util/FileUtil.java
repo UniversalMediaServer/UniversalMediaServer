@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
@@ -205,7 +206,7 @@ public class FileUtil {
 	public static String getProtocol(String filename) {
 		// Intentionally avoids URI.getScheme(), see above
 		if (isUrl(filename)) {
-			return filename.split("://")[0].toLowerCase();
+			return filename.split("://")[0].toLowerCase(Locale.ROOT);
 		}
 		return null;
 	}
@@ -224,6 +225,13 @@ public class FileUtil {
 	public static String getUrlExtension(String u) {
 		// Omit the query string, if any
 		return getExtension(substringBefore(u, "?"));
+	}
+
+	public static String getExtension(File f) {
+		if (f == null || f.getName() == null) {
+			return null;
+		}
+		return getExtension(f.getName());
 	}
 
 	public static String getExtension(String f) {
@@ -273,7 +281,6 @@ public class FileUtil {
 
 	/**
 	 * Capitalize the first letter of each word if the string contains no capital letters
-	 *
 	 */
 	private static String convertFormattedNameToTitleCaseParts(String formattedName) {
 		if (formattedName.equals(formattedName.toLowerCase())) {
@@ -809,7 +816,7 @@ public class FileUtil {
 			}
 
 			if (subFolder.exists()) {
-				found = found || browseFolderForSubtitles(subFolder, file, media, usecache);
+				found = browseFolderForSubtitles(subFolder, file, media, usecache) || found;
 			}
 		}
 
@@ -954,16 +961,11 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static CharsetMatch getFileCharsetMatch(File file) throws IOException {
-		CharsetMatch result = null;
-		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
-			CharsetDetector detector = new CharsetDetector();
-			detector.enableInputFilter(true);
-			detector.setText(in);
-			// Results are sorted on descending confidence, so we're only after the first one.
-			result = detector.detectAll()[0];
-		}
-
-		return result;
+		InputStream in = new BufferedInputStream(new FileInputStream(file));
+		CharsetDetector detector = new CharsetDetector();
+		detector.setText(in);
+		// Results are sorted on descending confidence, so we're only after the first one.
+		return detector.detectAll()[0];
 	}
 
 	/**

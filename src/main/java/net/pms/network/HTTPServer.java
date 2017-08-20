@@ -34,6 +34,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -109,12 +111,11 @@ public class HTTPServer implements Runnable {
 			address = new InetSocketAddress(port);
 		}
 
-		LOGGER.info("Created socket: " + address);
+		LOGGER.info("Created socket: {}", address);
 
 		if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
 			bossGroup = new NioEventLoopGroup(1);
 			workerGroup = new NioEventLoopGroup();
-
 			ServerBootstrap bootstrap = new ServerBootstrap();
 			bootstrap.childOption(ChannelOption.TCP_NODELAY, true)
 					.childOption(ChannelOption.SO_KEEPALIVE, true)
@@ -164,7 +165,7 @@ public class HTTPServer implements Runnable {
 				hostname = InetAddress.getLocalHost().getHostAddress();
 			}
 
-			runnable = new Thread(this, "HTTP Server");
+			runnable = new Thread(this, "HTTPv1 Request Handler");
 			runnable.setDaemon(false);
 			runnable.start();
 		}
@@ -237,12 +238,10 @@ public class HTTPServer implements Runnable {
 				// basic IP filter: solntcev at gmail dot com
 				boolean ignore = false;
 
-				if (configuration.getIpFiltering().allowed(inetAddress)) {
-					LOGGER.trace("Receiving a request from: " + ip);
-				} else {
+				if (!configuration.getIpFiltering().allowed(inetAddress)) {
 					ignore = true;
 					socket.close();
-					LOGGER.trace("Ignoring request from: " + ip);
+					LOGGER.trace("Ignoring request from {}:{}" + ip, socket.getPort());
 				}
 
 				if (!ignore) {
@@ -253,7 +252,7 @@ public class HTTPServer implements Runnable {
 						count++;
 					}
 					RequestHandler request = new RequestHandler(socket);
-					Thread thread = new Thread(request, "Request Handler " + count);
+					Thread thread = new Thread(request, "HTTPv1 Request Worker " + count);
 					thread.start();
 				}
 			} catch (ClosedByInterruptException e) {
@@ -273,6 +272,56 @@ public class HTTPServer implements Runnable {
 					LOGGER.debug("Caught exception", e);
 				}
 			}
+		}
+	}
+
+	/**
+	 * A {@link ThreadFactory} that creates Netty worker threads.
+	 */
+	static class NettyWorkerThreadFactory implements ThreadFactory {
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		NettyWorkerThreadFactory() {
+			group = new ThreadGroup("Netty worker group");
+			group.setDaemon(false);
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(group, runnable, "HTTPv2 Request Worker " + threadNumber.getAndIncrement());
+			if (thread.isDaemon()) {
+				thread.setDaemon(false);
+			}
+			if (thread.getPriority() != Thread.NORM_PRIORITY) {
+				thread.setPriority(Thread.NORM_PRIORITY);
+			}
+			return thread;
+		}
+	}
+
+	/**
+	 * A {@link ThreadFactory} that creates Netty boss threads.
+	 */
+	static class NettyBossThreadFactory implements ThreadFactory {
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		NettyBossThreadFactory() {
+			group = new ThreadGroup("Netty boss group");
+			group.setDaemon(false);
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(group, runnable, "HTTPv2 Request Handler " + threadNumber.getAndIncrement());
+			if (thread.isDaemon()) {
+				thread.setDaemon(false);
+			}
+			if (thread.getPriority() != Thread.NORM_PRIORITY) {
+				thread.setPriority(Thread.NORM_PRIORITY);
+			}
+			return thread;
 		}
 	}
 }

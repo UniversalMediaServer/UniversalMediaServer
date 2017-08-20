@@ -24,6 +24,7 @@ import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration.SortedHeaderMap;
 import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByHeaders;
+import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByUPNPDetails;
 import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
@@ -83,6 +84,9 @@ public class RendererConfigurationTest {
 
 		// DLinkDSM510:
 		testHeaders("D-Link DSM-510", "User-Agent: DLNADOC/1.50 INTEL_NMPR/2.1");
+		
+		// Fetch TV
+		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
 		// iPad-iPhone:
 		testHeaders("Apple iPad / iPhone", "User-Agent: 8player lite 2.2.3 (iPad; iPhone OS 5.0.1; nl_NL)");
@@ -95,11 +99,14 @@ public class RendererConfigurationTest {
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: XboxOne");
 		testHeaders("Xbox One", "User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411");
 
+		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
+
 		// Philips:
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");
 
 		// PhilipsPFL:
 		testHeaders("Philips TV", "User-Agent: Windows2000/0.0 UPnP/1.0 PhilipsIntelSDK/1.4 DLNADOC/1.50");
+		testHeaders("Philips TV", "User-Agent: Streamium/1.0");
 
 		// Realtek:
 		// FIXME: Actual conflict here! Popcorn Hour is returned...
@@ -233,6 +240,31 @@ public class RendererConfigurationTest {
 		} else {
 			// Headers are supposed to match no renderer at all
 			assertEquals("Expected no matching renderer to be found for header(s) \"" + headers +
+				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
+				"\" was recognized.", null,
+				rc);
+		}
+	}
+
+	/**
+	 * Test a UPnP string to see if it returns the correct
+	 * renderer. Set the correct renderer name to <code>null</code> to require
+	 * that nothing matches at all.
+	 *
+	 * @param correctRendererName The name of the renderer
+	 * @param upnpDetails         One or more raw header lines
+	 */
+	private void testUPNPDetails(String correctRendererName, String upnpDetails) {
+		RendererConfiguration rc = getRendererConfigurationByUPNPDetails(upnpDetails);
+		if (correctRendererName != null) {
+			// Headers are supposed to match a particular renderer
+			assertNotNull("Recognized renderer for upnpDetails \"" + upnpDetails + "\"", rc);
+			assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+				"instead renderer \"" + rc.getRendererName() + "\" was returned for upnpDetails \"" +
+				upnpDetails + "\"", correctRendererName, rc.getRendererName());
+		} else {
+			// Headers are supposed to match no renderer at all
+			assertEquals("Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
 				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
 				"\" was recognized.", null,
 				rc);

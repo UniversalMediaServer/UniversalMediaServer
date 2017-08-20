@@ -6,10 +6,14 @@ import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
+import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
 import static net.pms.network.UPNPHelper.sleep;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
+import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
@@ -85,7 +89,8 @@ public class UPNPControl {
 					newitem.uuid = uuid;
 					m.put(id, newitem);
 				} catch (Exception e) {
-					LOGGER.debug("Error instantiating item " + uuid + "[" + id + "]: " + e);
+					LOGGER.error("Error instantiating item {}[{}]: {}", uuid, id, e.getMessage());
+					LOGGER.trace("", e);
 				}
 			}
 			return m.get(id);
@@ -151,6 +156,8 @@ public class UPNPControl {
 		public LinkedHashSet<ActionListener> listeners;
 		private Thread monitor;
 		public volatile boolean active, renew;
+		public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
+		public volatile PanasonicDmpProfiles panasonicDmpProfiles;
 
 		public Renderer(String uuid) {
 			this();
@@ -288,16 +295,16 @@ public class UPNPControl {
 
 			RegistryListener rl = new DefaultRegistryListener() {
 				@Override
-				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
-					super.remoteDeviceAdded(registry, d);
-					if (isBlocked(getUUID(d)) || !addRenderer(d)) {
-						LOGGER.debug("Ignoring device: {} {}", d.getType().getType(), d.toString());
+				public void remoteDeviceAdded(Registry registry, RemoteDevice device) {
+					super.remoteDeviceAdded(registry, device);
+					if (isBlocked(getUUID(device)) || !addRenderer(device)) {
+						LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
 					}
 					// This may be unnecessary, but we might as well be thorough
-					if (d.hasEmbeddedDevices()) {
-						for (Device e : d.getEmbeddedDevices()) {
-							if (isBlocked(getUUID(e)) || !addRenderer(e)) {
-								LOGGER.debug("Ignoring embedded device: {} {}", e.getType(), e.toString());
+					if (device.hasEmbeddedDevices()) {
+						for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
+							if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
+								LOGGER.debug("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
 							}
 						}
 					}
@@ -321,7 +328,9 @@ public class UPNPControl {
 			};
 
 			upnpService = new UpnpServiceImpl(sc, rl);
-			initializeSearcher();
+			for (DeviceType t : mediaRendererTypes) {
+				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
+			}
 
 			LOGGER.debug("UPNP Services are online, listening for media renderers");
 		} catch (Exception ex) {
@@ -410,8 +419,7 @@ public class UPNPControl {
 	}
 
 	public static boolean isUpnpControllable(String uuid) {
-		// Disable manually for Panasonic TVs since they lie
-		if (rendererMap.containsKey(uuid) && !getDeviceDetailsString(getDevice(uuid)).contains("VIERA")) {
+		if (rendererMap.containsKey(uuid)) {
 			return rendererMap.get(uuid, "0").controls != 0;
 		}
 		return false;
@@ -506,17 +514,18 @@ public class UPNPControl {
 	}
 
 	protected boolean addRenderer(String uuid) {
-		Device d = getDevice(uuid);
-		return d != null ? addRenderer(d) : false;
+		Device device = getDevice(uuid);
+		return device != null ? addRenderer(device) : false;
 	}
 
-	protected synchronized boolean addRenderer(Device d) {
-		if (d != null) {
-			String uuid = getUUID(d);
-			if (isMediaRenderer(d) && rendererFound(d, uuid) != null) {
-				LOGGER.debug("Adding device: {} {}", d.getType(), d.toString());
+	protected synchronized boolean addRenderer(Device<?, RemoteDevice, ?> device) {
+		if (device != null) {
+			String uuid = getUUID(device);
+			if (isMediaRenderer(device) && rendererFound(device, uuid) != null) {
+				LOGGER.debug("Adding device: {} {}", device.getType(), device.toString());
+				subscribeAll(device, uuid);
+				getProtocolInfo(device);
 				rendererMap.mark(uuid, ACTIVE, true);
-				subscribeAll(d, uuid);
 				rendererReady(uuid);
 				return true;
 			}
@@ -695,7 +704,7 @@ public class UPNPControl {
 	}
 
 	// Convenience functions for sending various upnp service requests
-	public static ActionInvocation send(final Device dev, String instanceID, String service, String action, String... args) {
+	public static ActionInvocation send(final Device dev, String instanceID, String service, final String action, String... args) {
 		Service svc = dev.findService(ServiceId.valueOf("urn:upnp-org:serviceId:" + service));
 		final String uuid = getUUID(dev);
 		if (svc != null) {
@@ -719,7 +728,10 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						LOGGER.debug("Action failed: {}", defaultMsg);
+						LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
+						if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
+							LOGGER.trace("", invocation.getFailure());
+						}
 						rendererMap.mark(uuid, ACTIVE, false);
 					}
 				}.run();
@@ -731,14 +743,66 @@ public class UPNPControl {
 				}
 				return a;
 			}
+		} else {
+			LOGGER.warn(
+				"Couldn't find UPnP service {} for device {} when trying perform action {}",
+				service,
+				dev.getDetails().getFriendlyName(),
+				action
+			);
 		}
 		return null;
 	}
 
 	// ConnectionManager
-	public static String getProtocolInfo(Device dev, String instanceID, String dir) {
-		return send(dev, instanceID, "ConnectionManager", "GetProtocolInfo")
-			.getOutput(dir).toString();
+	public static void getProtocolInfo(Device<?, RemoteDevice, ?> device) {
+		Service<RemoteDevice, RemoteService> connectionManager = device.findService(ServiceId.valueOf("ConnectionManager"));
+		if (connectionManager != null) {
+			Action<RemoteService> action = connectionManager.getAction("GetProtocolInfo");
+			final String name = getFriendlyName(device);
+			if (action != null) {
+				final String uuid = getUUID(device);
+				ActionInvocation<RemoteService> actionInvocation = new ActionInvocation<>(action);
+
+				new ActionCallback(actionInvocation, upnpService.getControlPoint()) {
+					@Override
+					public void success(ActionInvocation invocation) {
+						String sink = invocation.getOutput("Sink").toString();
+						rendererMap.get(uuid, "0").deviceProtocolInfo.add(DeviceProtocolInfo.GET_PROTOCOLINFO_SINK, sink);
+						if (LOGGER.isTraceEnabled()) {
+							StringBuilder sb = new StringBuilder();
+							for (Object element : invocation.getOutputMap().entrySet()) {
+								@SuppressWarnings("unchecked")
+								Entry<String, ActionArgumentValue<?>> entry = (Entry<String, ActionArgumentValue<?>>) element;
+								if (entry.getValue() != null) {
+									String value = entry.getValue().toString();
+									if (isNotBlank(value)) {
+										sb.append("\n").append(entry.getKey()).append(":\n  ");
+										sb.append(value.replaceAll(",", "\n  "));
+									}
+								}
+							}
+							if (sb.length() > 0) {
+								LOGGER.trace("Received GetProtocolInfo from \"{}\": {}", name, sb.toString());
+							} else {
+								LOGGER.trace("Received empty reply to GetProtocolInfo from \"{}\"", name);
+							}
+						}
+					}
+
+					@Override
+					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
+						LOGGER.debug(
+							"GetProtocolInfo from \"{}\" failed with status code {}: {} ({})",
+							name,
+							operation.getStatusCode(),
+							operation.getStatusMessage(),
+							defaultMsg
+						);
+					}
+				}.run();
+			}
+		}
 	}
 
 	// AVTransport

@@ -151,9 +151,9 @@ public class MediaMonitor extends VirtualFolder {
 		 */
 		double elapsed;
 		if (res.getLastStartPosition() == 0) {
-			elapsed = (System.currentTimeMillis() - res.getStartTime()) / 1000;
+			elapsed = (double) (System.currentTimeMillis() - res.getStartTime()) / 1000;
 		} else {
-			elapsed = (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
+			elapsed = (double) (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
 			elapsed += res.getLastStartPosition();
 		}
 
@@ -287,5 +287,10 @@ public class MediaMonitor extends VirtualFolder {
 			out.write(sb.toString());
 			out.flush();
 		}
+	}
+
+	@Override
+	public void doRefreshChildren() {
+		setUpdateId(this.getIntId());
 	}
 }

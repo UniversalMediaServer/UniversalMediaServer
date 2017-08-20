@@ -101,7 +101,7 @@ public class MEncoderWebVideo extends Player {
 
 		String cmdArray[] = new String[args().length + 4];
 		cmdArray[0] = executable();
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		cmdArray[1] = filename;
 		System.arraycopy(args(), 0, cmdArray, 2, args().length);
 		cmdArray[cmdArray.length - 2] = "-o";

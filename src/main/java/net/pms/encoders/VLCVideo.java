@@ -310,6 +310,13 @@ public class VLCVideo extends Player {
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			LOGGER.trace(
+				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
+				"it is lower than the general configuration bitrate limit ({} Mb/s)",
+				params.mediaRenderer.getRendererName(),
+				rendererMaxBitrates[0],
+				defaultMaxBitrates[0]
+			);
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
@@ -435,7 +442,7 @@ public class VLCVideo extends Player {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		boolean isWindows = Platform.isWindows();
 		setAudioAndSubs(filename, media, params);
 
@@ -661,7 +668,8 @@ public class VLCVideo extends Player {
 		// Only handle local video - not web video or audio
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
 		) {
 			return true;
 		}

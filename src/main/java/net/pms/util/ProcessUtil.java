@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -31,6 +31,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.pms.PMS;
 import net.pms.io.StreamGobbler;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +52,7 @@ public class ProcessUtil {
 	private static final int ALRM_TIMEOUT = 2000;
 
 	// work around a Java bug
-	// see: http://kylecartmell.com/?p=9
+	// see: http://www.cnblogs.com/abnercai/archive/2012/12/27/2836008.html
 	public static int waitFor(Process p) {
 		int exit = -1;
 
@@ -246,7 +249,31 @@ public class ProcessUtil {
 
 	// Shutdown UMS and either reboot or run the given command (e.g. a script to restart UMS)
 	public static void reboot(ArrayList<String> cmd, Map<String,String> env, String startdir, String... UMSOptions) {
-		final ArrayList<String> reboot = getUMSCommand();
+		final ArrayList<String> reboot;
+		String macAppPath = null;
+		if (Platform.isMac()) {
+			String libraryPath = ManagementFactory.getRuntimeMXBean().getLibraryPath();
+			if (StringUtils.isNotBlank(libraryPath)) {
+				Pattern pattern = Pattern.compile("(.+?\\.app)/Contents/MacOS");
+				Matcher matcher = pattern.matcher(libraryPath);
+				if (matcher.find()) {
+					macAppPath = matcher.group(1);
+				}
+			}
+		}
+		if (StringUtils.isNotBlank(macAppPath)) {
+			reboot = new ArrayList<>();
+			reboot.add("open");
+			reboot.add("-n");
+			reboot.add("-a");
+			reboot.add(macAppPath);
+			if (UMSOptions.length > 0) {
+				reboot.add("--args");
+			}
+		} else {
+			reboot = getUMSCommand();
+		}
+
 		if (UMSOptions.length > 0) {
 			reboot.addAll(Arrays.asList(UMSOptions));
 		}
@@ -266,14 +293,14 @@ public class ProcessUtil {
 			startdir = System.getProperty("user.dir");
 		}
 
-		System.out.println("starting: " + StringUtils.join(cmd, " "));
+		System.out.println("Starting: " + StringUtils.join(cmd, " "));
 
 		final ProcessBuilder pb = new ProcessBuilder(cmd);
 		if (env != null) {
 			pb.environment().putAll(env);
 		}
 		pb.directory(new File(startdir));
-		System.out.println("in directory: " + pb.directory());
+		System.out.println("In folder: " + pb.directory());
 		try {
 			pb.start();
 		} catch (Exception e) {
@@ -288,9 +315,23 @@ public class ProcessUtil {
 	//     http://stackoverflow.com/questions/1518213/read-java-jvm-startup-parameters-eg-xmx
 	public static ArrayList<String> getUMSCommand() {
 		ArrayList<String> reboot = new ArrayList<>();
-		reboot.add(StringUtil.quoteArg(
-			System.getProperty("java.home") + File.separator + "bin" + File.separator +
-			((Platform.isWindows() && System.console() == null) ? "javaw" : "java")));
+		File jvmPath = new File(System.getProperty("java.home"));
+		String jvmExecutableName = Platform.isWindows() && System.console() == null ? "javaw" : "java";
+		File jvmExecutable = new File(jvmPath, jvmExecutableName);
+		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
+			jvmPath = new File(jvmPath, "bin");
+			jvmExecutable = new File(jvmPath, jvmExecutableName);
+		}
+		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
+			LOGGER.error(
+				"Can´t find Java executable \"{}\", falling back to pathless execution using \"{}\"",
+				jvmExecutable.getAbsolutePath(),
+				jvmExecutableName
+			);
+			reboot.add(jvmExecutableName);
+		} else {
+			reboot.add(StringUtil.quoteArg(jvmExecutable.getAbsolutePath()));
+		}
 		for (String jvmArg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
 			reboot.add(StringUtil.quoteArg(jvmArg));
 		}
