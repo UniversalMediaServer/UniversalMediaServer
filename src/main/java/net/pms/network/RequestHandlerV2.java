@@ -62,7 +62,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		Pattern.CASE_INSENSITIVE
 	);
 
-	private volatile FullHttpRequest nettyRequest;
+	private volatile static FullHttpRequest nettyRequest;
 	private final AttributeKey<StartStopListenerDelegate> startStop = AttributeKey.valueOf("startStop");
 
 	// Used to filter out known headers when the renderer is not recognized
@@ -82,7 +82,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		"user-agent"
 	};
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings({ "deprecation", "static-access" })
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest e) throws Exception {
 		RequestV2 request;
@@ -102,7 +102,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
-			event.getChannel().close();
+			ctx.channel().close();
 			/*if (isSelf && LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Ignoring self-originating request from {}:{}", ia, remoteAddress.getPort());
 			}*/
@@ -256,30 +256,30 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			String textContent = new String(data, "UTF-8");
 			request.setTextContent(textContent);
 			if (LOGGER.isTraceEnabled()) {
-				logMessageReceived(event, textContent, renderer);
+				logMessageReceived(ctx, textContent, renderer);
 			}
 		} else if (LOGGER.isTraceEnabled() ){
-			logMessageReceived(event, null, renderer);
+			logMessageReceived(ctx, null, renderer);
 		}
 
-		writeResponse(ctx, event, request, ia);
+		writeResponse(ctx, e, request, ia);
 	}
 
-	private static void logMessageReceived(MessageEvent event, String content, RendererConfiguration renderer) {
+	private static void logMessageReceived(ChannelHandlerContext event, String content, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
-		if (event.getMessage() instanceof HttpRequest) {
-			header.append(((HttpRequest) event.getMessage()).method());
-			header.append(" ").append(((HttpRequest) event.getMessage()).uri());
+		if (nettyRequest instanceof HttpRequest) {
+			header.append(((HttpRequest) nettyRequest).method());
+			header.append(" ").append(((HttpRequest) nettyRequest).uri());
 		}
-		if (event.getMessage() instanceof HttpMessage) {
+		if (nettyRequest instanceof HttpMessage) {
 			if (header.length() > 0) {
 				header.append(" ");
 			}
-			header.append(((HttpMessage) event.getMessage()).protocolVersion().text());
+			header.append(((HttpMessage) nettyRequest).protocolVersion().text());
 			header.append("\n\n");
 			header.append("HEADER:\n");
-			for (Entry<String, String> entry : ((HttpMessage) event.getMessage()).headers().entries()) {
+			for (Entry<String, String> entry : ((HttpMessage) nettyRequest).headers().entries()) {
 				if (StringUtils.isNotBlank(entry.getKey())) {
 					header.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 					if ("SOAPACTION".equalsIgnoreCase(entry.getKey())) {
@@ -326,10 +326,10 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		} else {
 			rendererName = "Unknown";
 		}
-		if (event.getChannel().getRemoteAddress() instanceof InetSocketAddress) {
+		if (event.channel().remoteAddress() instanceof InetSocketAddress) {
 			rendererName +=
-				" (" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getAddress().getHostAddress() +
-				":" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getPort() + ")";
+				" (" + ((InetSocketAddress) event.channel().remoteAddress()).getAddress().getHostAddress() +
+				":" + ((InetSocketAddress) event.channel().remoteAddress()).getPort() + ")";
 		}
 
 		LOGGER.trace(
@@ -426,16 +426,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		ctx.close();
 	}
 
-<<<<<<< HEAD
-	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-		FullHttpResponse response = new DefaultFullHttpResponse(
-			HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(
-				"Failure: " + status.toString() + "\r\n", Charset.forName("UTF-8")));
-=======
 	private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
 		HttpResponse response = new DefaultHttpResponse(
 			HttpVersion.HTTP_1_1, status);
->>>>>>> refs/heads/master
 		response.headers().set(
 			HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
 

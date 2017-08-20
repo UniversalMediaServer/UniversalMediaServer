@@ -59,6 +59,7 @@ import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -250,11 +251,7 @@ public class RequestV2 extends HTTPResource {
 	 *
 	 * @param ctx
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
-<<<<<<< HEAD
 	 * @param e The {@link io.netty.handler.codec.http.FullHttpRequest} object used to communicate with the client that sent
-=======
-	 * @param event The {@link MessageEvent} object used to communicate with the client that sent
->>>>>>> refs/heads/master
 	 * 			the request.
 	 * @param close Set to true to close the channel after sending the response. By default the
 	 * 			channel is not closed after sending.
@@ -408,15 +405,15 @@ public class RequestV2 extends HTTPResource {
 								}
 								inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
 							}
-							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-							output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+							output.headers().set(HttpHeaderNames.ACCEPT_RANGES, HttpHeaderValues.BYTES);
+							output.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 						}
 					} catch (IOException ie) {
-						output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
+						output.headers().set(HttpHeaderNames.CONTENT_LENGTH, "0");
 						output.setStatus(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
 
 						// Send the response headers to the client.
-						future = event.getChannel().write(output);
+						future = ctx.channel().write(output);
 
 						if (close) {
 							// Close the channel after the response is sent.
@@ -1114,8 +1111,8 @@ public class RequestV2 extends HTTPResource {
 				LOGGER.trace(
 					"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
 					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
+					output.protocolVersion(),
+					output.status(),
 					header
 				);
 			} else {
@@ -1123,8 +1120,8 @@ public class RequestV2 extends HTTPResource {
 				if (isNotBlank(response)) {
 					try {
 						formattedResponse = StringUtil.prettifyXML(response.toString(), 4);
-					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e1) {
+						formattedResponse = "  Content isn't valid XML, using text formatting: " + e1.getMessage()  + "\n";
 						formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
 					}
 				}
@@ -1132,8 +1129,8 @@ public class RequestV2 extends HTTPResource {
 					LOGGER.trace(
 						"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
 						rendererName,
-						output.getProtocolVersion(),
-						output.getStatus(),
+						output.protocolVersion(),
+						output.status(),
 						header,
 						formattedResponse
 					);
@@ -1145,26 +1142,25 @@ public class RequestV2 extends HTTPResource {
 								rendererName,
 								StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
 							);
-						} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-							LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
+						} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e2) {
+							LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e2.getMessage());
 							LOGGER.trace("", e);
 						}
 					}
-				} else if (inputStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
+				} else if (inputStream != null && !"0".equals(output.headers().get(HttpHeaderNames.CONTENT_LENGTH))) {
 					LOGGER.trace(
-						"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+						"Transfer response sent to {}:\n\nHEADER:\n  {} {}\n{}",
 						rendererName,
-						output.getProtocolVersion(),
-						output.getStatus(),
-						output.isChunked() ? "chunked" : "non-chunked",
+						output.protocolVersion(),
+						output.status(),
 						header
 					);
 				} else {
 					LOGGER.trace(
 						"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
 						rendererName,
-						output.getProtocolVersion(),
-						output.getStatus(),
+						output.protocolVersion(),
+						output.status(),
 						header
 					);
 				}
