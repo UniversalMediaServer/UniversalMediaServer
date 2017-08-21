@@ -574,6 +574,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.YUV;
 		} else if (streamType == StreamType.Video && (value.equals("rgb") || value.equals("rgba"))) {
 			format = FormatConfiguration.RGB;
+		} else if (streamType == StreamType.Video && value.equals("rle")) {
+			format = FormatConfiguration.RLE;
 		} else if (value.matches("(?i)(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(sdcc)|(sl25)|(sl50)|(sldv)")) {
 			format = FormatConfiguration.DV;
 		} else if (value.contains("mpeg video")) {

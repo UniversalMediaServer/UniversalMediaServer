@@ -125,6 +125,7 @@ public class FormatConfiguration {
 	public static final String REALAUDIO_28_8 = "ra28.8";
 	/** Used as a "video codec" when sequences of raw, uncompressed RGB or RGBA is used as a video stream in AVI, MP4 or MOV files */
 	public static final String RGB = "rgb";
+	public static final String RLE = "rle";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
 	public static final String SIPRO = "sipro";
