@@ -46,6 +46,9 @@ public class FormatConfiguration {
 	public static final String THREEGPP2 = "3g2";
 	public static final String THREEGA = "3ga";
 	public static final String AAC_LC = "aac-lc";
+	public static final String AAC_LTP = "aac-ltp";
+	public static final String AAC_MAIN = "aac-main";
+	public static final String AAC_SSR = "aac-ssr";
 	public static final String AC3 = "ac3";
 	public static final String ACELP = "acelp";
 	public static final String ADPCM = "adpcm";
