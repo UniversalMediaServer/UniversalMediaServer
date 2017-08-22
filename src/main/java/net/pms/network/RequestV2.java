@@ -1037,6 +1037,8 @@ public class RequestV2 extends HTTPResource {
 					@Override
 					public void operationComplete(ChannelFuture future) {
 						try {
+							// send the 'end of content' marker for chunked transfer
+							ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 							inputStream.close();
 						} catch (IOException e) {
 							LOGGER.error("Caught exception", e);
