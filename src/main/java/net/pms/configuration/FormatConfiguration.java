@@ -59,6 +59,8 @@ public class FormatConfiguration {
 	public static final String AU = "au";
 	public static final String AVI = "avi";
 	public static final String BMP = "bmp";
+	public static final String CAF = "caf";
+	public static final String CELP = "celp";
 	public static final String CINEPAK = "cvid";
 	public static final String COOK = "cook";
 	public static final String CUR = "cur";
@@ -72,6 +74,7 @@ public class FormatConfiguration {
 	public static final String DV = "dv";
 	public static final String EAC3 = "eac3";
 	public static final String ER_BSAC = "erbsac";
+	public static final String FFV1 = "ffv1";
 	public static final String FLAC = "flac";
 	public static final String FLV = "flv";
 	public static final String G729 = "g729";
@@ -94,6 +97,8 @@ public class FormatConfiguration {
 	public static final String MI_GMC = "gmc";
 	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
+	public static final String MACE3 = "mace3";
+	public static final String MACE6 = "mace6";
 	public static final String MJPEG = "mjpeg";
 	public static final String MKA = "mka";
 	public static final String MLP = "mlp";
@@ -116,6 +121,7 @@ public class FormatConfiguration {
 	public static final String PNG = "png";
 	public static final String PNM = "pnm";
 	public static final String PSD = "psd";
+	public static final String QCELP = "qcelp";
 	public static final String QDESIGN = "qdmc";
 	/** This is the RealAudio file format, not one of the codecs */
 	public static final String RA = "ra";
@@ -131,6 +137,7 @@ public class FormatConfiguration {
 	public static final String SIPRO = "sipro";
 	public static final String SLS = "sls";
 	public static final String SORENSON = "sor";
+	public static final String TGA = "tga";
 	public static final String THEORA = "theora";
 	public static final String TIFF = "tiff";
 	public static final String TRUEHD = "truehd";
@@ -489,7 +496,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			// MediaInfo can't correctly parse ADPCM, DSD or PNM
+			// MediaInfo can't correctly parse ADPCM, DFF, DSF or PNM
 			if (
 				renderer.isUseMediaInfo() &&
 				ext.getIdentifier() != Identifier.ADPCM &&
