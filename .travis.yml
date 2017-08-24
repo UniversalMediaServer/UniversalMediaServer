@@ -22,3 +22,8 @@ matrix:
 install: mvn external:install 
 
 script: mvn install -Dmaven.javadoc.skip=true -B -V
+
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/UniversalMediaServer/bin
