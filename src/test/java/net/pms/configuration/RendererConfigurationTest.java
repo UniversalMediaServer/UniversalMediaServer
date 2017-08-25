@@ -94,6 +94,12 @@ public class RendererConfigurationTest {
 		testHeaders("Apple iPad / iPhone", "User-Agent: MPlayer 1.0rc4-4.2.1");
 		testHeaders("Apple iPad / iPhone", "User-Agent: NSPlayer/4.1.0.3856");
 
+		testHeaders    ("LG WebOS TV", "User-Agent: Linux/3.10.19-32.afro.4 UPnP/1.0 LGE WebOS TV LGE_DLNA_SDK/1.6.0/04.30.13 DLNADOC/1.50");
+		testUPNPDetails("LG WebOS TV", "modelDescription=LG WebOSTV DMRplus");
+		testUPNPDetails("LG WebOS TV", "friendlyName=LG-webOSTV-1");
+		testUPNPDetails("LG WebOS TV", "friendlyName=[LG] webOS TV");
+		testUPNPDetails("LG WebOS TV", "DLNADeviceName.lge.com=LG-webOSTV-1");
+
 		// Microsoft Xbox One:
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: Xbox-SystemOS");
 		testHeaders("Xbox One", "FriendlyName.DLNA.ORG: XboxOne");
