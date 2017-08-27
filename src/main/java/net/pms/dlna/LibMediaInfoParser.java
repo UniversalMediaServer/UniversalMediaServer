@@ -148,6 +148,8 @@ public class LibMediaInfoParser {
 							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
 						}
 
+							media.setPixelAspectRatio(MI.Get(video, i, "PixelAspectRatio"));
+							media.setInterlaced(MI.Get(video, i, "ScanOrder"));
 							media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
 							media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
 							media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
@@ -864,6 +866,19 @@ public class LibMediaInfoParser {
 		}
 		LOGGER.warn("Could not parse AvcProfile value {}." , value);
 		return null;
+	}
+
+	public static int getVideoBitrate(String value) {
+		if (isBlank(value)) {
+			return 0;
+		}
+
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			LOGGER.trace("Could not parse video bitrate \"{}\": ", value, e.getMessage());
+			return 0;
+		}
 	}
 
 	public static int getBitrate(String value) {
