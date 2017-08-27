@@ -162,6 +162,18 @@ public class DLNAMediaInfo implements Cloneable {
 	private String frameRateMode;
 
 	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String pixelAspectRatio;
+	public String interlaced;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+
+	/**
 	 * The frame rate mode as read from the parser
 	 */
 	private String frameRateModeRaw;
@@ -1825,6 +1837,13 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append(", Video Codec: ").append(getCodecV());
 			result.append(", Duration: ").append(getDurationString());
 			result.append(", Video Resolution: ").append(getWidth()).append(" x ").append(getHeight());
+			result.append(", DAR: ").append(getAspectRatioContainer());
+			if (!"1.000".equals(getPixelAspectRatio())) {
+				result.append(", PAR: ").append(getPixelAspectRatio());
+			}
+			if (isNotBlank(getInterlaced())) {
+				result.append(", Interlaced Mode: ").append(getInterlaced());
+			}
 			if (isNotBlank(getFrameRate())) {
 				result.append(", Frame Rate: ").append(getFrameRate());
 			}
@@ -1833,7 +1852,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 			if (isNotBlank(getFrameRateMode())) {
 				result.append(", Frame Rate Mode: ");
-				result.append(getFrameRateModeRaw());
+				result.append(getFrameRateMode());
 				if (isNotBlank(getFrameRateModeRaw())) {
 					result.append(" (").append(getFrameRateModeRaw()).append(")");
 				}
@@ -2375,7 +2394,35 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @deprecated use getAspectRatioDvdIso() for the original
+	 * @return The pixel aspect ratio.
+	 */
+	public String getPixelAspectRatio() {
+		return pixelAspectRatio;
+	}
+
+	/**
+	 * @param value The pixel aspect ratio to set.
+	 */
+	public void setPixelAspectRatio(String pixelAspectRatio) {
+		this.pixelAspectRatio = pixelAspectRatio;
+	}
+
+	/**
+	 * @return The interlacement mode.
+	 */
+	public String getInterlaced() {
+		return interlaced;
+	}
+
+	/**
+	 * @param value The interlacement mode to set.
+	 */
+	public void setInterlaced(String interlaced) {
+		this.interlaced = interlaced;
+	}
+
+	/**
+	 * @deprecated use getAspectRatioDvdIso() for the original.
 	 * functionality of this method, or use getAspectRatioContainer() for a
 	 * better default method to get aspect ratios.
 	 */
@@ -2462,21 +2509,35 @@ public class DLNAMediaInfo implements Cloneable {
 	public String getFormattedAspectRatio(String aspect) {
 		if (isBlank(aspect)) {
 			return null;
+		}
+		if (aspect.contains(":")) {
+			return aspect;
+		}
+		double exactAspectRatio = Double.parseDouble(aspect);
+		if (exactAspectRatio > 2.39 && exactAspectRatio <= 2.41) {
+			return "2.39:1";
+		} else if (exactAspectRatio > 2.35 && exactAspectRatio <= 2.36) {
+			return "21:9";
+		} else if (exactAspectRatio > 2.33 && exactAspectRatio <= 2.34) {
+			return "2.35:1";
+		} else if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
+			return "16:9";
+		} else if (exactAspectRatio > 1.66 && exactAspectRatio <= 1.67) {
+			return "5:3";
+		} else if (exactAspectRatio > 1.59 && exactAspectRatio <= 1.61) {
+			return "16:10";
+		} else if (exactAspectRatio > 1.55 && exactAspectRatio <= 1.56) {
+			return "14:9";
+		} else if (exactAspectRatio > 1.49 && exactAspectRatio <= 1.51) {
+			return "3:2";
+		} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
+			return "4:3";
+		} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
+			return "5:4";
+		} else if (exactAspectRatio > 0.99 && exactAspectRatio < 1.1) {
+			return "1:1";
 		} else {
-			if (aspect.contains(":")) {
-				return aspect;
-			} else {
-				double exactAspectRatio = Double.parseDouble(aspect);
-				if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
-					return "16:9";
-				} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
-					return "4:3";
-				} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
-					return "5:4";
-				} else {
-					return null;
-				}
-			}
+			return aspect;
 		}
 	}
 
