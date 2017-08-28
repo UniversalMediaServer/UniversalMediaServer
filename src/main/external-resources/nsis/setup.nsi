@@ -60,7 +60,7 @@ Section -Prerequisites
 		${If} $0 != "2.6.0 MT"
 			SetOutPath $INSTDIR\win32\avisynth
 			MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
-			File "..\..\..\..\target\bin\win32\avisynth\avisynth.exe"
+			File "${PROJECT_BINARIES}\win32\avisynth\avisynth.exe"
 			ExecWait "$INSTDIR\win32\avisynth\avisynth.exe"
 		${EndIf}
 
@@ -197,7 +197,7 @@ Section "Program Files"
 	File /r /x "*.conf" /x "*.zip" /x "*.dll" /x "third-party" "${PROJECT_BASEDIR}\src\main\external-resources\plugins"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
-	File /r "${PROJECT_BASEDIR}\target\bin\win32"
+	File /r "${PROJECT_BINARIES}\win32"
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.bat"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
