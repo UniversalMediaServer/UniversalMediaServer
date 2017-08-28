@@ -137,6 +137,12 @@ public class RendererConfigurationTest {
 		// Showtime 4:
 		testHeaders("Showtime 4", "User-Agent: Showtime PS3 4.2");
 
+		// Sony BRAVIA:
+		testHeaders("Sony Bravia W",
+			"X-AV-Physical-Unit-Info: pa=\"BRAVIA KDL-48W600B\";",
+			"X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-48W600B\"; mv=\"1.7\";"
+		);
+
 		// Sony PlayStation 3:
 		testHeaders(
 			"PlayStation 3",
