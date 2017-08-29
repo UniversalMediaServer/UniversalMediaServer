@@ -18,23 +18,27 @@
  */
 package net.pms.network;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
+import static io.netty.handler.codec.http.HttpHeaderNames.*;
+import static io.netty.handler.codec.http.HttpUtil.isContentLengthSet;
+import static io.netty.util.AsciiString.contentEqualsIgnoreCase;
 import io.netty.util.AttributeKey;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -49,7 +53,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
-import org.apache.commons.lang3.StringUtils;
+//import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -62,57 +66,62 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		Pattern.CASE_INSENSITIVE
 	);
 
-	private volatile static FullHttpRequest nettyRequest;
+	private static final CharSequence CALLBACK = "CallBack";
+	private static final CharSequence DLNA_GETCONTENTFEATURES = "GetContentFeatures.DLNA.ORG";
+	private static final CharSequence DLNA_TIMESEEKRANGE = "TimeSeekRange.DLNA.ORG";
+	private static final CharSequence DLNA_TRANSFERMODE = "TransferMode.DLNA.ORG";
+	private static final CharSequence NT = "NT";
+	private static final CharSequence SOAPACTION = "SOAPACTION";
+	private static final CharSequence SID = "SID";
+	private static final CharSequence TIMEOUT = "Timeout";
 	private final AttributeKey<StartStopListenerDelegate> startStop = AttributeKey.valueOf("startStop");
 
 	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
-		"accept",
-		"accept-language",
-		"accept-encoding",
-		"callback",
-		"connection",
-		"content-length",
-		"content-type",
-		"date",
-		"host",
-		"nt",
-		"sid",
-		"timeout",
-		"user-agent"
+	private final static CharSequence[] KNOWN_HEADERS = {
+			ACCEPT,
+			ACCEPT_LANGUAGE,
+			ACCEPT_ENCODING,
+			CALLBACK,
+			CONNECTION,
+			CONTENT_LENGTH,
+			CONTENT_TYPE,
+			DATE,
+			DLNA_GETCONTENTFEATURES,
+			DLNA_TIMESEEKRANGE,
+			DLNA_TRANSFERMODE,
+			HOST,
+			NT,
+			RANGE,
+			SID,
+			SOAPACTION,
+			TIMEOUT,
+			USER_AGENT,
 	};
 
 	@SuppressWarnings({ "deprecation", "static-access" })
 	@Override
-	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest e) throws Exception {
-		RequestV2 request;
-		RendererConfiguration renderer;
-		String userAgentString = null;
-		ArrayList<String> identifiers = new ArrayList<>();
-
-
-		this.nettyRequest = e;
+	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
-		// Is the request from our own Cling service, i.e. self-originating?
-		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
-			nettyRequest.headers().get(HttpHeaderNames.USER_AGENT) != null &&
-			nettyRequest.headers().get(HttpHeaderNames.USER_AGENT).contains("UMS/");
+		String userAgent = nettyRequest.headers().get(USER_AGENT);
+		boolean isSelf = isLocalClingRequest(ia, userAgent);
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
 			ctx.channel().close();
-			/*if (isSelf && LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Ignoring self-originating request from {}:{}", ia, remoteAddress.getPort());
-			}*/
+//			if (isSelf && LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("Ignoring self-originating request from {}:{}", ia, remoteAddress.getPort());
+//			}
 			return;
 		}
 
-		request = new RequestV2(nettyRequest.method().name(), nettyRequest.uri().substring(1));
+		LOGGER.trace("Opened request handler on socket " + remoteAddress);
+		RequestV2 requestV2 = new RequestV2(nettyRequest.method().name(), nettyRequest.uri().substring(1));
+		LOGGER.trace("Request: " + nettyRequest.protocolVersion().text() + " : " + requestV2.getMethod() + " : " + requestV2.getArgument());
 
 		if (nettyRequest.protocolVersion().minorVersion() == 0) {
-			request.setHttp10(true);
+			requestV2.setHttp10(true);
 		}
 
 		HttpHeaders headers = nettyRequest.headers();
@@ -121,19 +130,34 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
 		// default renderer.
+		RendererConfiguration renderer = getRendererConfiguration(ia, headers);
+		if (renderer != null) {
+			requestV2.setMediaRenderer(renderer);
+		} else {
+			// If RendererConfiguration.resolve() didn't return the default renderer
+			// it means we know via upnp that it's not really a renderer.
+			return;
+		}
+		 
+		requestV2.setSoapaction(getSoapActionOrCallback(headers));
 
-		// Attempt 1: try to recognize the renderer by its socket address from previous requests
-		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+		parseRangeHeader(requestV2, headers);
+		parseTransferMode(requestV2, headers);
+		parseGetContentFeatures(requestV2, headers);
+		parseTimeSeekRange(requestV2, headers);
 
-		// If the renderer exists but isn't marked as loaded it means it's unrecognized
-		// by upnp and we still need to attempt http recognition here.
-		if (renderer == null || !renderer.loaded) {
-			// Attempt 2: try to recognize the renderer by matching headers
-			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
+		if (isContentLengthSet(nettyRequest) && nettyRequest.content().isReadable()) {
+			String textContent = nettyRequest.content().toString(UTF_8);
+			requestV2.setTextContent(textContent);
+			if (LOGGER.isTraceEnabled()) {
+				logMessageReceived(ctx, nettyRequest, textContent, renderer);
+			}
+		} else if (LOGGER.isTraceEnabled() ){
+			logMessageReceived(ctx, nettyRequest, null, renderer);
 		}
 
 		if (renderer != null) {
-			request.setMediaRenderer(renderer);
+			requestV2.setMediaRenderer(renderer);
 		}
 
 		Set<String> headerNames = headers.names();
@@ -143,156 +167,46 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			String headerLine = name + ": " + headers.get(name);
 
 			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
-				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+				headerLine.substring(headerLine.indexOf(':') + 1).trim();
 			} else if (renderer != null && name.equals("X-PANASONIC-DMP-Profile")) {
 				PanasonicDmpProfiles.parsePanasonicDmpProfiles(headers.get(name), renderer);
 			}
-
-			try {
-				StringTokenizer s = new StringTokenizer(headerLine);
-				String temp = s.nextToken();
-				if (temp.toUpperCase().equals("SOAPACTION:")) {
-					request.setSoapaction(s.nextToken());
-				} else if (temp.toUpperCase().equals("CALLBACK:")) {
-					request.setSoapaction(s.nextToken());
-				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
-					String nums = headerLine.substring(
-						headerLine.toUpperCase().indexOf(
-						"RANGE: BYTES=") + 13).trim();
-					StringTokenizer st = new StringTokenizer(nums, "-");
-					if (!nums.startsWith("-")) {
-						request.setLowRange(Long.parseLong(st.nextToken()));
-					}
-					if (!nums.startsWith("-") && !nums.endsWith("-")) {
-						request.setHighRange(Long.parseLong(st.nextToken()));
-					} else {
-						request.setHighRange(-1);
-					}
-				} else if (headerLine.toLowerCase().contains("transfermode.dlna.org:")) {
-					request.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
-				} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
-					request.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
-				} else {
-					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
-					if (matcher.find()) {
-						String first = matcher.group(1);
-						if (first != null) {
-							request.setTimeRangeStartString(first);
-						}
-						String end = matcher.group(2);
-						if (end != null) {
-							request.setTimeRangeEndString(end);
-						}
-					} else {
-						/** If we made it to here, none of the previous header checks matched.
-						 * Unknown headers make interesting logging info when we cannot recognize
-						 * the media renderer, so keep track of the truly unknown ones.
-						 */
-						boolean isKnown = false;
-
-						// Try to match known headers.
-						String lowerCaseHeaderLine = headerLine.toLowerCase();
-						for (String knownHeaderString : KNOWN_HEADERS) {
-							if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
-								isKnown = true;
-								break;
-							}
-						}
-
-						// It may be unusual but already known
-						if (!isKnown && renderer != null) {
-							String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
-							if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
-								isKnown = true;
-							}
-						}
-
-						if (!isKnown) {
-							// Truly unknown header, therefore interesting. Save for later use.
-							identifiers.add(headerLine);
-						}
-					}
-				}
-			} catch (Exception ee) {
-				LOGGER.error("Error parsing HTTP headers: {}", ee.getMessage());
-				LOGGER.trace("", ee);
-			}
 		}
 
-		// Still no media renderer recognized?
-		if (renderer == null) {
-
-			// Attempt 3: Not really an attempt; all other attempts to recognize
-			// the renderer have failed. The only option left is to assume the
-			// default renderer.
-			renderer = RendererConfiguration.resolve(ia, null);
-			request.setMediaRenderer(renderer);
-			if (renderer != null) {
-				LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
-
-				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
-					// We have found an unknown renderer
-					identifiers.add(0, "User-Agent: " + userAgentString);
-					renderer.setIdentifiers(identifiers);
-					LOGGER.info(
-						"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
-						StringUtils.join(identifiers, "\n")
-					);
-					PMS.get().setRendererFound(renderer);
-				}
-			} else {
-				// If RendererConfiguration.resolve() didn't return the default renderer
-				// it means we know via upnp that it's not really a renderer.
-				return;
-			}
-		} else if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
-		}
-
-		if (nettyRequest.headers().contains(HttpHeaderNames.CONTENT_LENGTH)) {
-			byte data[] = new byte[(int) HttpUtil.getContentLength(nettyRequest)];
-			ByteBuf content = nettyRequest.content();
-			content.readBytes(data);
-			String textContent = new String(data, "UTF-8");
-			request.setTextContent(textContent);
-			if (LOGGER.isTraceEnabled()) {
-				logMessageReceived(ctx, textContent, renderer);
-			}
-		} else if (LOGGER.isTraceEnabled() ){
-			logMessageReceived(ctx, null, renderer);
-		}
-
-		writeResponse(ctx, e, request, ia);
+		writeResponse(ctx, nettyRequest, requestV2, ia);
 	}
 
-	private static void logMessageReceived(ChannelHandlerContext event, String content, RendererConfiguration renderer) {
+	private static void logMessageReceived(ChannelHandlerContext ctx, FullHttpRequest nettyRequest, String content, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
 		if (nettyRequest instanceof HttpRequest) {
 			header.append(((HttpRequest) nettyRequest).method());
 			header.append(" ").append(((HttpRequest) nettyRequest).uri());
 		}
+
 		if (nettyRequest instanceof HttpMessage) {
 			if (header.length() > 0) {
 				header.append(" ");
 			}
+
 			header.append(((HttpMessage) nettyRequest).protocolVersion().text());
 			header.append("\n\n");
 			header.append("HEADER:\n");
 			for (Entry<String, String> entry : ((HttpMessage) nettyRequest).headers().entries()) {
-				if (StringUtils.isNotBlank(entry.getKey())) {
+				if (isNotBlank(entry.getKey())) {
 					header.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
-					if ("SOAPACTION".equalsIgnoreCase(entry.getKey())) {
+					if (SOAPACTION.equals(entry.getKey())) {
 						soapAction = entry.getValue().toUpperCase(Locale.ROOT);
 					}
 				}
 			}
 		} else {
-			header.append("Unknown class: ").append(event.getClass().getSimpleName()).append("\n");
-			header.append(event).append("\n");
+			header.append("Unknown class: ").append(nettyRequest.getClass().getSimpleName()).append("\n");
+			header.append(nettyRequest).append("\n");
 		}
+
 		String formattedContent = null;
-		if (StringUtils.isNotBlank(content)) {
+		if (isNotBlank(content)) {
 			try {
 				formattedContent = StringUtil.prettifyXML(content, 4);
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
@@ -301,6 +215,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
 			}
 		}
+
 		String requestType = "";
 		// Map known requests to request type
 		if (soapAction != null) {
@@ -310,6 +225,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				requestType = "search ";
 			}
 		}
+
 		String rendererName;
 		if (renderer != null) {
 			if (isNotBlank(renderer.getRendererName())) {
@@ -318,18 +234,21 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				} else {
 					rendererName = renderer.getRendererName() + " [" + renderer.getConfName() + "]";
 				}
+
 			} else if (isNotBlank(renderer.getConfName())) {
 				rendererName = renderer.getConfName();
 			} else {
 				rendererName = "Unnamed";
 			}
+
 		} else {
 			rendererName = "Unknown";
 		}
-		if (event.channel().remoteAddress() instanceof InetSocketAddress) {
+
+		if (ctx.channel().remoteAddress() instanceof InetSocketAddress) {
 			rendererName +=
-				" (" + ((InetSocketAddress) event.channel().remoteAddress()).getAddress().getHostAddress() +
-				":" + ((InetSocketAddress) event.channel().remoteAddress()).getPort() + ")";
+				" (" + ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress() +
+				":" + ((InetSocketAddress) ctx.channel().remoteAddress()).getPort() + ")";
 		}
 
 		LOGGER.trace(
@@ -337,7 +256,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			requestType,
 			rendererName,
 			header,
-			StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+			isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
 		);
 	}
 
@@ -353,7 +272,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest e, RequestV2 request, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest nettyRequest, RequestV2 requestV2, InetAddress ia) {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(nettyRequest.headers().get(HttpHeaderNames.CONNECTION)) ||
 			nettyRequest.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
@@ -361,9 +280,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		// Build the response object.
 		HttpResponse response;
-		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
+		if (requestV2.getLowRange() != 0 || requestV2.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
-				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+				requestV2.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
 				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
@@ -372,12 +291,12 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
 				response = new DefaultHttpResponse(
-					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+					requestV2.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
 					HttpResponseStatus.INTERNAL_SERVER_ERROR
 				);
 			} else {
 				response = new DefaultHttpResponse(
-					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+					requestV2.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
 					HttpResponseStatus.OK
 				);
 			}
@@ -388,7 +307,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		ctx.channel().attr(startStop).set(startStopListenerDelegate);
 
 		try {
-			request.answer(ctx, response, e, close, startStopListenerDelegate);
+			requestV2.answer(ctx, response, nettyRequest, close, startStopListenerDelegate);
 		} catch (IOException e1) {
 			LOGGER.debug("HTTP request V2 IO error: " + e1.getMessage());
 			LOGGER.trace("", e1);
@@ -434,5 +353,134 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		// Close the connection as soon as the error message is sent.
 		ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+	}
+
+	private void parseTimeSeekRange(RequestV2 requestV2, HttpHeaders headers) {
+		if (!headers.contains(DLNA_TIMESEEKRANGE)) return;
+
+		String headerLine = DLNA_TIMESEEKRANGE + ": " + headers.get(DLNA_TIMESEEKRANGE);
+		Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
+		if (matcher.find()) {
+			String first = matcher.group(1);
+			if (first != null) {
+				requestV2.setTimeRangeStartString(first);
+			}
+
+			String end = matcher.group(2);
+			if (end != null) {
+				requestV2.setTimeRangeEndString(end);
+			}
+		}
+	}
+
+	private void parseGetContentFeatures(RequestV2 requestV2, HttpHeaders headers) {
+		if (headers.contains(DLNA_GETCONTENTFEATURES))
+			requestV2.setContentFeatures(headers.get(DLNA_GETCONTENTFEATURES).trim());
+	}
+		 
+	private void parseTransferMode(RequestV2 requestV2, HttpHeaders headers) {
+		if (headers.contains(DLNA_TRANSFERMODE))
+			requestV2.setTransferMode(headers.get(DLNA_TRANSFERMODE).trim());
+	}
+
+	private void parseRangeHeader(RequestV2 requestV2, HttpHeaders headers) {
+		if (headers.contains(RANGE) && headers.get(RANGE).toLowerCase().startsWith("bytes=")) {
+			String nums = headers.get(RANGE).substring(6).trim();
+			StringTokenizer st = new StringTokenizer(nums, "-");
+			if (!nums.startsWith("-")) {
+				requestV2.setLowRange(Long.parseLong(st.nextToken()));
+			}
+
+			if (!nums.startsWith("-") && !nums.endsWith("-")) {
+				requestV2.setHighRange(Long.parseLong(st.nextToken()));
+			} else {
+				requestV2.setHighRange(-1);
+			}
+		}
+	}
+
+	private String getSoapActionOrCallback(HttpHeaders headers) {
+		String headerValue = trimToEmpty(headers.get(SOAPACTION));
+		if (headerValue.isEmpty()) {
+			// Fall back to the callback header
+			headerValue = trimToEmpty(headers.get(CALLBACK));
+		}
+		if (headerValue.isEmpty()){
+			return "";
+		} else {
+			// I'm not entirely sure this is needed, but I'm leaving it in just in case.
+			return new StringTokenizer(headerValue).nextToken();
+		}
+	}
+
+	private boolean isKnownHeader(String headerName) {
+		for (CharSequence knownHeader : KNOWN_HEADERS) {
+			if (contentEqualsIgnoreCase(headerName, knownHeader)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isLocalClingRequest(InetAddress ia, String userAgent) {
+		// FIXME: this would also block an external cling-based client running on the same host
+		return userAgent != null && userAgent.contains("Cling/") &&
+			ia.getHostAddress().equals(PMS.get().getServer().getHost());
+	}
+
+	private List<String> getUnknownHeaders(HttpHeaders headers) {
+		List<String> unknownHeaders = new LinkedList<>();
+		Set<String> headerNames = headers.names();
+		Iterator<String> iterator = headerNames.iterator();
+		while (iterator.hasNext()) {
+			String name = iterator.next();
+			String headerLine = name + ": " + headers.get(name);
+			/** Unknown headers make interesting logging info when we cannot recognize
+			 * the media renderer, so keep track of the truly unknown ones.
+			 */
+			if (!isKnownHeader(name)) {
+				unknownHeaders.add(headerLine);
+			}
+		}
+		return unknownHeaders;
+	}
+
+	private RendererConfiguration getRendererConfiguration(InetAddress ia, HttpHeaders headers) {
+		// Attempt 1: try to recognize the renderer by its socket address from previous requests
+		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+		 
+		// If the renderer exists but isn't marked as loaded it means it's unrecognized
+		// by upnp and we still need to attempt http recognition here.
+		if (renderer == null || !renderer.loaded) {
+			// Attempt 2: try to recognize the renderer by matching headers
+			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
+		}
+ 
+		if (renderer != null) {
+			String userAgent = headers.get(USER_AGENT);
+			if (userAgent != null) {
+				LOGGER.debug("HTTP User-Agent: " + userAgent);
+			}
+			LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
+		} else {
+			// Attempt 3: Not really an attempt; all other attempts to recognize
+			// the renderer have failed. The only option left is to assume the
+			// default renderer.
+			renderer = RendererConfiguration.resolve(ia, null);
+			if (renderer != null) {
+				LOGGER.trace("Using default media renderer: " + renderer.getRendererName());
+				String userAgent = headers.get(USER_AGENT);
+				if (userAgent != null && !userAgent.equals("FDSSDP")) {
+					// We have found an unknown renderer
+					List<String> unknownHeaders = getUnknownHeaders(headers);
+					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: " +
+						"User-Agent: " + userAgent +
+						(unknownHeaders.isEmpty() ? "" : ", " + join(unknownHeaders, ", ")));
+					PMS.get().setRendererFound(renderer);
+				}
+			}
+		}
+
+		return renderer;
 	}
 }

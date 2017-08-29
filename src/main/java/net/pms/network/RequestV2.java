@@ -59,6 +59,7 @@ import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +84,7 @@ public class RequestV2 extends HTTPResource {
 	 * "get/0$0$2$13/thumbnail0000Sintel.2010.1080p.mkv"
 	 */
 	private String argument;
-	private String soapaction;
+	private String soapaction = "";
 	private String content;
 	private String objectID;
 	private int startingIndex;
@@ -210,7 +211,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	public String getSoapaction() {
-		return soapaction;
+		return trimToEmpty(soapaction);
 	}
 
 	public void setSoapaction(String soapaction) {
@@ -665,10 +666,10 @@ public class RequestV2 extends HTTPResource {
 			response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
 			response.append(CRLF);
 
-			if (soapaction != null && soapaction.contains("IsAuthorized")) {
+			if (soapaction.contains("IsAuthorized")) {
 				response.append(HTTPXMLHelper.XBOX_360_2);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.contains("IsValidated")) {
+			} else if (soapaction.contains("IsValidated")) {
 				response.append(HTTPXMLHelper.XBOX_360_1);
 				response.append(CRLF);
 			}
@@ -678,7 +679,7 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
-			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
+			if (soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -691,7 +692,7 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
 			output.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
-			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
+			if (soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -704,7 +705,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
+			} else if (soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -713,7 +714,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
+			} else if (soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -722,7 +723,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
+			} else if (soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -731,7 +732,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
+			} else if ((soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
@@ -910,7 +911,7 @@ public class RequestV2 extends HTTPResource {
  			 */
 			output.headers().set("TIMEOUT", "Second-300");
 
-			if (soapaction != null) {
+			if (!soapaction.isEmpty()) {
 				String cb = soapaction.replace("<", "").replace(">", "");
 
 				try {
