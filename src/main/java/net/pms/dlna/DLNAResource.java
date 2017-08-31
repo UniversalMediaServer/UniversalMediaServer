@@ -2686,7 +2686,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (player != null && media != null) {
 					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
 					if (media.isVideo()) {
-						if (mediaRenderer.isTranscodeToMPEGTS()) {
+						if (mediaRenderer.getCustomFFmpegOptions().contains("-f avi")) {
+							transcodedExtension = "_transcoded_to.avi";
+						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f flv")) {
+							transcodedExtension = "_transcoded_to.flv";
+						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f matroska")) {
+							transcodedExtension = "_transcoded_to.mkv";
+						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f mov")) {
+							transcodedExtension = "_transcoded_to.mov";
+						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f webm")) {
+							transcodedExtension = "_transcoded_to.webm";
+						} else if (mediaRenderer.isTranscodeToMPEGTS()) {
 							transcodedExtension = "_transcoded_to.ts";
 						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
 							transcodedExtension = "_transcoded_to.wmv";
