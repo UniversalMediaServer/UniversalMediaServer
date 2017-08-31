@@ -86,7 +86,8 @@
 
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
+		<maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
+		<maven-enforcer-plugin-version>1.4.1</maven-enforcer-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -780,7 +781,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.6.2</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -901,7 +902,7 @@
 		        </reportSets>
 			</plugin>
 
-			<!-- PMS tests report -->
+			<!-- DMS tests report -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
@@ -960,7 +961,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.4</version>
+				<version>3.0.5</version>
 			</plugin>
 
 			<!-- Checkstyle report -->
@@ -1045,7 +1046,7 @@
 										<mainClass>net.pms.PMS</mainClass>
 										<!--
 											this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
-											without it, the following exception is thrown when PMS starts:
+											without it, the following exception is thrown when DMS starts:
 
 											Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
 												Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
@@ -1069,7 +1070,7 @@
 					</plugin>
 
 					<!--
-						Plugin to move the pms-x.x.x-jar-with-dependencies.jar to pms.jar
+						Plugin to move the dms-x.x.x-jar-with-dependencies.jar to dms.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1159,7 +1160,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<!-- Copy the pms-x.x.x-jar-with-dependencies.jar to pms.jar -->
+										<!-- Copy the dms-x.x.x-jar-with-dependencies.jar to dms.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 										      tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 
@@ -1187,7 +1188,7 @@
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
-						"pms.nsi" and "setup.nsi" files.
+						"dms.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
@@ -1266,7 +1267,7 @@
 								</configuration>
 							</execution>
 
-							<!-- Assemble the PMS distribution file. -->
+							<!-- Assemble the DMS distribution file. -->
 							<execution>
 								<id>build-pms-linux</id>
 								<phase>package</phase>
@@ -1701,7 +1702,7 @@
 			</build>
 		</profile>
 		<!--
-			Hudson (windows-jar): minimal profile that builds pms.jar with the
+			Hudson (windows-jar): minimal profile that builds dms.jar with the
 			Windows JNA. The POSIX JNA causes snapshot builds to crash the JVM on
 			Windows, whereas the Windows JNA only disables MediaInfo for Ubuntu
 			users, who can still use ffmpeg.
@@ -1748,7 +1749,7 @@
 
 					<!--
 						Use the antrun plugin to: copy the
-						pms-x.x.x-jar-with-dependencies.jar to pms.jar
+						dms-x.x.x-jar-with-dependencies.jar to dms.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
