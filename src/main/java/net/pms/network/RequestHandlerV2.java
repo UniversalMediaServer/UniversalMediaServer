@@ -156,21 +156,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			logMessageReceived(ctx, nettyRequest, null, renderer);
 		}
 
-		if (renderer != null) {
-			requestV2.setMediaRenderer(renderer);
-		}
-
-		Set<String> headerNames = headers.names();
-		Iterator<String> iterator = headerNames.iterator();
-		while (iterator.hasNext()) {
-			String name = iterator.next();
-			String headerLine = name + ": " + headers.get(name);
-
-			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
-				headerLine.substring(headerLine.indexOf(':') + 1).trim();
-			} else if (renderer != null && name.equals("X-PANASONIC-DMP-Profile")) {
-				PanasonicDmpProfiles.parsePanasonicDmpProfiles(headers.get(name), renderer);
-			}
+		String headerValue = headers.get("X-PANASONIC-DMP-Profile");
+		if (headerValue != null) {
+			PanasonicDmpProfiles.parsePanasonicDmpProfiles(headerValue, renderer);
 		}
 
 		writeResponse(ctx, nettyRequest, requestV2, ia);
