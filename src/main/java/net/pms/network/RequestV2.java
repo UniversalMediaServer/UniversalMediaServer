@@ -340,10 +340,10 @@ public class RequestV2 extends HTTPResource {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
 					inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
-					if (contentFeatures != null && inputStream instanceof DLNAThumbnailInputStream) {
+					if (contentFeatures != null) {
 						output.headers().set(
 							"ContentFeatures.DLNA.ORG",
-							dlna.getDlnaContentFeatures(((DLNAThumbnailInputStream) inputStream).getDLNAImageProfile())
+							dlna.getDlnaContentFeatures(imageProfile, true)
 						);
 					}
 					if (inputStream != null && (lowRange > 0 || highRange > 0)) {
@@ -394,10 +394,10 @@ public class RequestV2 extends HTTPResource {
 							LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
 						} else {
 							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
-							if (contentFeatures != null && inputStream instanceof DLNAImageInputStream) {
+							if (contentFeatures != null) {
 								output.headers().set(
 									"ContentFeatures.DLNA.ORG",
-									dlna.getDlnaContentFeatures(((DLNAImageInputStream) inputStream).getDLNAImageProfile())
+									dlna.getDlnaContentFeatures(imageProfile, false)
 								);
 							}
 							if (inputStream != null && (lowRange > 0 || highRange > 0)) {
