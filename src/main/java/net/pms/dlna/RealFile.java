@@ -317,10 +317,32 @@ public class RealFile extends MapFile {
 				result = getMedia().getThumbnailInputStream();
 			}
 		} catch (IOException e) {
-			result = null;
-			LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
+			LOGGER.debug(
+				"An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}",
+				getName(),
+				e.getMessage()
+			);
 			LOGGER.trace("", e);
 		}
+
+		if (
+			result == null &&
+			getParent() != null &&
+			getParent() instanceof RealFile &&
+			((RealFile) getParent()).getPotentialCover() != null)
+		{
+			try {
+			result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(((RealFile) getParent()).getPotentialCover()));
+			} catch (IOException e) {
+				LOGGER.debug(
+					"An error occurred while getting parent folder thumbnail for \"{}\", using generic thumbnail instead: {}",
+					getName(),
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
+
 		return result != null ? result : super.getThumbnailInputStream();
 	}
 
