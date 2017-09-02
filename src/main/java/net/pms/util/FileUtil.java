@@ -798,7 +798,7 @@ public class FileUtil {
 
 		boolean found = false;
 		if (file.exists()) {
-			found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
+			found = browseFolderForSubtitles(file.getAbsoluteFile().getParentFile(), file, media, usecache);
 		}
 		String alternate = PMS.getConfiguration().getAlternateSubtitlesFolder();
 
