@@ -66,7 +66,7 @@ public class RealFile extends MapFile {
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
-		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
+		if (valid && getParent() != null && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
 			run();
 
