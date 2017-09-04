@@ -18,13 +18,18 @@
  */
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.Map.Entry;
 import net.pms.configuration.MapFileConfiguration;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
+import net.pms.util.StringUtil.LetterCase;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +43,15 @@ import org.slf4j.LoggerFactory;
  */
 public class MapFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
+
+	/**
+	 * An array of {@link String}s that defines the lower-case representation of
+	 * the file extensions that are eligible for evaluation as file or folder
+	 * thumbnails.
+	 */
+	public static final Set<String> THUMBNAIL_EXTENSIONS = Collections.unmodifiableSet(new HashSet<>(
+		Arrays.asList(new String[] {"jpeg", "jpg", "png"})
+	));
 	private List<File> discoverable;
 	private List<File> emptyFoldersToRescan;
 	private String forcedName;
@@ -75,6 +89,92 @@ public class MapFile extends DLNAResource {
 		forcedName = null;
 	}
 
+	/**
+	 * Returns whether or not the specified {@link File} is considered a
+	 * "folder thumbnail" by naming convention.
+	 *
+	 * @param file the {@link File} to evaluate.
+	 * @param evaluateExtension if {@code true} the file extension will also be
+	 *            evaluated in addition to the file name, if {@code false} only
+	 *            the file name will be evaluated.
+	 * @return {@code true} if {@code file} name matches the naming convention
+	 *         for folder thumbnails, {@code false} otherwise.
+	 */
+	protected static boolean isFolderThumbnail(File file, boolean evaluateExtension) {
+		if (
+			file == null || !file.isFile()
+		) {
+			return false;
+		}
+
+		String fileName = file.getName();
+		if (isBlank(fileName)) {
+			return false;
+		}
+		if (evaluateExtension && !isPotentialThumbnail(fileName)) {
+			return false;
+		}
+		fileName = fileName.toLowerCase(Locale.ROOT);
+		return fileName.startsWith("folder.") || fileName.contains("albumart");
+	}
+
+	/**
+	 * Returns the potential thumbnail resources for the specified audio or
+	 * video file as a {@link Set} of {@link File}s.
+	 *
+	 * @param audioVideoFile the {@link File} for which to enumerate potential
+	 *            thumbnail files.
+	 * @param existingOnly if {@code true}, files will only be added to the
+	 *            returned {@link Set} if they {@link File#exists()}.
+	 * @return The {@link Set} of {@link File}s.
+	 */
+	protected static HashSet<File> getPotentialFileThumbnails(
+		File audioVideoFile,
+		boolean existingOnly
+	) {
+		File file;
+		HashSet<File> potentialMatches = new HashSet<>(THUMBNAIL_EXTENSIONS.size() * 2);
+		for (String extension : THUMBNAIL_EXTENSIONS) {
+			file = FileUtil.replaceExtension(audioVideoFile, extension, false, true);
+			if (!existingOnly || file.exists()) {
+				potentialMatches.add(file);
+			}
+			file = new File(audioVideoFile.toString() + ".cover." + extension);
+			if (!existingOnly || file.exists()) {
+				potentialMatches.add(file);
+			}
+		}
+		return potentialMatches;
+	}
+
+	/**
+	 * Returns whether or not the specified {@link File} has an extension that
+	 * makes it a possible thumbnail file that should be considered a thumbnail
+	 * resource belonging to another file or folder.
+	 *
+	 * @param file the {@link File} to evaluate.
+	 * @return {@code true} if {@code file} has one of the predefined
+	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
+	 *         otherwise.
+	 */
+	protected static boolean isPotentialThumbnail(File file) {
+		return file != null && file.isFile() && isPotentialThumbnail(file.getName());
+	}
+
+	/**
+	 * Returns whether or not {@code fileName} has an extension that makes it a
+	 * possible thumbnail file that should be considered a thumbnail resource
+	 * belonging to another file or folder.
+	 *
+	 * @param fileName the file name to evaluate.
+	 * @return {@code true} if {@code fileName} has one of the predefined
+	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
+	 *         otherwise.
+	 */
+	protected static boolean isPotentialThumbnail(String fileName) {
+		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName, LetterCase.LOWER, Locale.ROOT));
+	}
+
 	private void manageFile(File f) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
@@ -84,11 +184,30 @@ public class MapFile extends DLNAResource {
 					addChild(new ZippedFile(f));
 				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
 					addChild(new RarredFile(f));
-				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".tar") || lcFilename.endsWith(".gzip") || lcFilename.endsWith(".gz") || lcFilename.endsWith(".7z"))) {
+				} else if (
+					configuration.isArchiveBrowsing() && (
+						lcFilename.endsWith(".tar") ||
+						lcFilename.endsWith(".gzip") ||
+						lcFilename.endsWith(".gz") ||
+						lcFilename.endsWith(".7z")
+					)
+				) {
 					addChild(new SevenZipFile(f));
-				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
+				} else if (
+					lcFilename.endsWith(".iso") ||
+					lcFilename.endsWith(".img") || (
+						f.isDirectory() &&
+						f.getName().toUpperCase(Locale.ROOT).equals("VIDEO_TS")
+					)
+				) {
 					addChild(new DVDISOFile(f));
-				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") || lcFilename.endsWith(".pls") || lcFilename.endsWith(".cue") || lcFilename.endsWith(".ups")) {
+				} else if (
+					lcFilename.endsWith(".m3u") ||
+					lcFilename.endsWith(".m3u8") ||
+					lcFilename.endsWith(".pls") ||
+					lcFilename.endsWith(".cue") ||
+					lcFilename.endsWith(".ups")
+				) {
 					DLNAResource d = PlaylistFolder.getPlaylist(lcFilename, f.getAbsolutePath(), 0);
 					if (d != null) {
 						addChild(d);
@@ -113,10 +232,6 @@ public class MapFile extends DLNAResource {
 						addChild(rf);
 					}
 				}
-			}
-
-			if (f.isFile() && (lcFilename.equals("folder.jpg") || lcFilename.equals("folder.png") || (lcFilename.contains("albumart") && lcFilename.endsWith(".jpg")))) {
-				potentialCover = f;
 			}
 		}
 	}
@@ -192,6 +307,45 @@ public class MapFile extends DLNAResource {
 
 		List<File> files = getFileList();
 
+		// Build a map of all files and their corresponding formats
+		HashSet<File> images = new HashSet<>();
+		HashSet<File> audioVideo = new HashSet<>();
+		Iterator<File> iterator = files.iterator();
+		while (iterator.hasNext()) {
+			File file = iterator.next();
+			if (file.isFile()) {
+				if (isPotentialThumbnail(file.getName())) {
+					if (isFolderThumbnail(file, false)) {
+						potentialCover = file;
+						iterator.remove();
+					} else {
+						images.add(file);
+					}
+				} else {
+					Format format = FormatFactory.getAssociatedFormat(file.getAbsolutePath());
+					if (format != null && (format.isAudio() || format.isVideo())) {
+						audioVideo.add(file);
+					}
+				}
+			}
+		}
+
+		// Remove cover/thumbnails from file list
+		if (images.size() > 0 && audioVideo.size() > 0) {
+			HashSet<File> potentialMatches = new HashSet<File>(THUMBNAIL_EXTENSIONS.size() * 2);
+			for (File audioVideoFile : audioVideo) {
+				potentialMatches = getPotentialFileThumbnails(audioVideoFile, false);
+				iterator = images.iterator();
+				while (iterator.hasNext()) {
+					File imageFile = iterator.next();
+					if (potentialMatches.contains(imageFile)) {
+						iterator.remove();
+						files.remove(imageFile);
+					}
+				}
+			}
+		}
+
 		// ATZ handling
 		if (files.size() > configuration.getATZLimit() && StringUtils.isEmpty(forcedName)) {
 			/*
@@ -237,13 +391,12 @@ public class MapFile extends DLNAResource {
 				map.put(String.valueOf(c), l);
 			}
 
-			for (String letter : map.keySet()) {
+			for (Entry<String, ArrayList<File>> entry : map.entrySet()) {
 				// loop over all letters, this avoids adding
 				// empty letters
-				ArrayList<File> l = map.get(letter);
-				UMSUtils.sort(l, sm);
-				MapFile mf = new MapFile(getConf(), l);
-				mf.forcedName = letter;
+				UMSUtils.sort(entry.getValue(), sm);
+				MapFile mf = new MapFile(getConf(), entry.getValue());
+				mf.forcedName = entry.getKey();
 				addChild(mf);
 			}
 			return;
@@ -289,7 +442,10 @@ public class MapFile extends DLNAResource {
 				}
 			}
 		}
-		return (getLastRefreshTime() < modified) || (configuration.getSortMethod(getPath()) == UMSUtils.SORT_RANDOM || emptyFolderNowNotEmpty);
+		return
+			getLastRefreshTime() < modified ||
+			configuration.getSortMethod(getPath()) == UMSUtils.SORT_RANDOM ||
+			emptyFolderNowNotEmpty;
 	}
 
 	@Override
@@ -339,9 +495,6 @@ public class MapFile extends DLNAResource {
 		return isFolder();
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "MapFile [name=" + getName() + ", id=" + getResourceId() + ", format=" + getFormat() + ", children=" + getChildren() + "]";
