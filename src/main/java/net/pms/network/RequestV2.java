@@ -331,9 +331,7 @@ public class RequestV2 extends HTTPResource {
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						thumbInputStream = dlna.getGenericThumbnailInputStream(null);
 					} else {
-						if (mediaRenderer.isUseMediaInfo()) {
-							dlna.checkThumbnail();
-						}
+						dlna.checkThumbnail();
 						thumbInputStream = dlna.fetchThumbnailInputStream();
 					}
 					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
