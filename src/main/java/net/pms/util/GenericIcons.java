@@ -90,7 +90,13 @@ public enum GenericIcons {
 	 *         if one couldn't be generated.
 	 */
 	public DLNAThumbnailInputStream getGenericIcon(DLNAResource resource) {
-		ImageFormat imageFormat = ImageFormat.JPEG;
+		/*
+		 * This should be the same format as the source images since OpenJDK
+		 * will fail to write JPEGs if the cached BufferedImage has 4 color
+		 * components. Alternatively the color model of the cached
+		 * BufferedImages would have to be converted to 3 components first.
+		 */
+		ImageFormat imageFormat = ImageFormat.PNG;
 
 		if (resource == null) {
 			ImageIO.setUseCache(false);
