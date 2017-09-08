@@ -344,6 +344,31 @@ public class LibMediaInfoParser {
 					media.setContainer(media.getAudioVariantFormatConfigurationString());
 				}
 
+				// Separate ASF from WMV
+				if (FormatConfiguration.WMV.equals(media.getContainer())) {
+					if (
+						media.getCodecV() != null &&
+						!media.getCodecV().equals(FormatConfiguration.WMV) &&
+						!media.getCodecV().equals(FormatConfiguration.VC1)
+					) {
+						media.setContainer(FormatConfiguration.ASF);
+					} else {
+						for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
+							if (
+								audioTrack.getCodecA() != null &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMA) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMAPRO) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMALOSSLESS) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMAVOICE) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMA10)
+							) {
+								media.setContainer(FormatConfiguration.ASF);
+								break;
+							}
+						}
+					}
+				}
+
 				/*
 				 * Recognize 3D layout from the filename.
 				 *
@@ -586,6 +611,10 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.DV;
 		} else if (value.contains("mpeg video")) {
 			format = FormatConfiguration.MPEG2;
+		} else if (value.startsWith("version 1")) {
+			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
+				format = FormatConfiguration.MPEG1;
+			}
 		} else if (
 				value.equals("vc-1") ||
 				value.equals("wvc1") ||
@@ -594,10 +623,6 @@ public class LibMediaInfoParser {
 				value.equals("wmva")
 			) {
 				format = FormatConfiguration.VC1;
-		} else if (value.startsWith("version 1")) {
-			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
-				format = FormatConfiguration.MPEG1;
-			}
 		} else if (value.equals("au") || value.equals("uLaw/AU Audio File")) {
 			format = FormatConfiguration.AU;
 		} else if (value.equals("layer 3")) {
@@ -699,16 +724,19 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.DTS;
 		} else if (value.equals("mpeg audio")) {
 			format = FormatConfiguration.MPA;
-		} else if (value.startsWith("wma")) {
+		} else if (value.equals("wma")) {
 			format = FormatConfiguration.WMA;
 			if (media.getCodecV() == null) {
 				media.setContainer(format);
 			}
 		} else if (
-			streamType == StreamType.Audio && media.getCodecV() == null && audio != null && audio.getCodecA() != null &&
-			audio.getCodecA() == FormatConfiguration.WMA &&
-			(value.equals("160") || value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A") || value.equals("wma10"))
-		) {
+			streamType == StreamType.Audio &&
+			media.getContainer() != null &&
+				(
+					media.getContainer().equals(FormatConfiguration.WMA) ||
+					media.getContainer().equals(FormatConfiguration.WMV)
+				)
+			) {
 			if (value.equals("160") || value.equals("161")) {
 				format = FormatConfiguration.WMA;
 			} else if (value.equals("162")) {

@@ -54,6 +54,7 @@ public class FormatConfiguration {
 	public static final String ALAC = "alac";
 	public static final String ALS = "als";
 	public static final String AMR = "amr";
+	public static final String ASF = "asf";
 	public static final String ATMOS = "atmos";
 	public static final String ATRAC = "atrac";
 	public static final String AU = "au";
