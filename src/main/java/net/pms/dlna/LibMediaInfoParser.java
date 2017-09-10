@@ -126,9 +126,9 @@ public class LibMediaInfoParser {
 						if (MI.Get(video, i, "Title").startsWith("Subtitle")) {
 							currentSubTrack = new DLNAMediaSubtitle();
 							// First attempt to detect subtitle track format
-							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "Format")));
+							currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(video, i, "Format")));
 							// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "CodecID")));
+							currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(video, i, "CodecID")));
 							currentSubTrack.setId(media.getSubtitleTracksList().size());
 							addSub(currentSubTrack, media);
 						} else {
@@ -298,13 +298,16 @@ public class LibMediaInfoParser {
 				if (subTracks > 0) {
 					for (int i = 0; i < subTracks; i++) {
 						currentSubTrack = new DLNAMediaSubtitle();
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "Format")));
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "CodecID")));
+						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(
+							MI.Get(text, i, "CodecID"),
+							SubtitleType.valueOfMediaInfoValue(MI.Get(text, i, "Format"))
+						));
+
 						currentSubTrack.setLang(getLang(MI.Get(text, i, "Language/String")));
 						currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
 						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 						value = MI.Get(text, i, "ID/String");
-						if (!value.isEmpty()) {
+						if (isNotBlank(value)) {
 							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 								currentSubTrack.setId(getSpecificID(value));
 							} else {
