@@ -47,6 +47,8 @@ public enum SubtitleType {
 	TX3G        (11, "Timed text (TX3G)",           list(),             list("tx3g"),                                                     type.TEXT),
 	PGS         (12, "Blu-ray subtitles",           list(),             list("S_HDMV/PGS", "PGS", "144"),                                 type.PICTURE),
 	WEBVTT      (13, "WebVTT",                      list("vtt"),        list("WebVTT"),                                                   type.TEXT);
+//	EIA_608		(14, "CEA-608",						list(),				list("EIA-608"),										  		  type.TEXT),
+//	EIA_708		(14, "CEA-708",						list(),				list("EIA-708"),										  		  type.TEXT);
 
 	public enum type {TEXT, PICTURE, UNDEF}
 	private final int index;
