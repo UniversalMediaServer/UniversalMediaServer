@@ -125,9 +125,12 @@ public class LibMediaInfoParser {
 					if (MI.Get(video, i, "Title").startsWith("Subtitle")) {
 						currentSubTrack = new DLNAMediaSubtitle();
 						// First attempt to detect subtitle track format
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "Format")));
+						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(video, i, "Format")));
 						// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "CodecID")));
+						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(
+							MI.Get(video, i, "CodecID"),
+							currentSubTrack.getType()
+						));
 						currentSubTrack.setId(media.getSubtitleTracksList().size());
 						addSub(currentSubTrack, media);
 					} else {
@@ -199,6 +202,7 @@ public class LibMediaInfoParser {
 					if (isNotBlank(value) && value.startsWith("Windows Media Audio 10")) {
 						currentAudioTrack.setCodecA(FormatConfiguration.WMA10);
 					}
+
 					currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
 					currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
 					currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
@@ -229,7 +233,7 @@ public class LibMediaInfoParser {
 						}
 					}
 
-					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
+					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder/FFmpeg does not
 					value = MI.Get(audio, i, "ID/String");
 					if (!value.isEmpty()) {
 						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
@@ -256,6 +260,12 @@ public class LibMediaInfoParser {
 							LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
 						}
 					}
+					
+//					if (parseByMediainfo) {
+//						getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format"), file);
+//						media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
+//						media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
+//					}
 
 					addAudio(currentAudioTrack, media);
 				}
@@ -297,8 +307,8 @@ public class LibMediaInfoParser {
 			if (subTracks > 0) {
 				for (int i = 0; i < subTracks; i++) {
 					currentSubTrack = new DLNAMediaSubtitle();
-					currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "Format")));
-					currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "CodecID")));
+					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(text, i, "Format")));
+					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(text, i, "CodecID")));
 					currentSubTrack.setLang(getLang(MI.Get(text, i, "Language/String")));
 					currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
 					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
