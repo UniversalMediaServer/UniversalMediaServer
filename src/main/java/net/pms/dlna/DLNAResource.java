@@ -44,6 +44,7 @@ import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.image.Image;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 import net.pms.io.OutputParams;
@@ -3697,8 +3698,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		String languageCode = null;
+		String subsLanguageCode = null;
 		if (media_audio != null && format.isVideo()) { // show audio language flags in the TRANSCODE folder only for video files
 			languageCode = media_audio.getLang();
+			if (media_subtitle != null && media_subtitle.getId() != -1) {
+				subsLanguageCode = media_subtitle.getLang();
+			}
+
 			if (StringUtils.isBlank(languageCode)) {
 				languageCode = DLNAMediaLang.UND;
 			}
@@ -3707,12 +3713,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (languageCode != null && this.getParent() instanceof FileTranscodeVirtualFolder) {
 			String code = Iso639.getISO639_2Code(languageCode.toLowerCase());
 			InputStream is = getResourceInputStream("/images/codes/" + code + ".png");
+			DLNAThumbnailInputStream thumbInputStream;
 			if (is != null) {
-				return DLNAThumbnailInputStream.toThumbnailInputStream(is);
+				thumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(is);
 			} else {
 				LOGGER.trace("Flag is missing for language '{}' so use undefined flag", code);
-				return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/codes/und.png"));
+				thumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/codes/und.png"));
 			}
+
+			if (thumbInputStream != null && subsLanguageCode != null) {
+				code = Iso639.getISO639_2Code(subsLanguageCode.toLowerCase());
+				InputStream subsInputStream = getResourceInputStream("/images/codes/" + code + ".png");
+				return Image.addSubsFlagOverlay(thumbInputStream, subsInputStream);
+			}
+
+			return thumbInputStream;
 		}
 
 		if (isAvisynth()) {

@@ -19,9 +19,11 @@
  */
 package net.pms.image;
 
+import java.awt.Graphics2D;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -34,6 +36,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.dlna.DLNAImage;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.ParseException;
 
@@ -622,5 +625,59 @@ public class Image implements Serializable {
 		buildToString(sb);
 		sb.append("]");
 		return sb.toString();
+	}
+
+
+
+	/**
+	 * Adds a subs flag overlay to the given thumbnail and returns it.
+	 * <p>
+	 * <b>This method either consumes and closes {@code thumb} or it returns it
+	 * in a reset state ({@code position = 0}).</b>
+	 *
+	 * @param thumb the source thumbnail to add the overlay to.
+	 * @param subsImage the image to overlay.
+	 * @return The processed thumbnail.
+	 */
+	public static DLNAThumbnailInputStream addSubsFlagOverlay(DLNAThumbnailInputStream thumb, InputStream subsImageStream) {
+		ImageIO.setUseCache(false);
+		BufferedImage image = null;
+		BufferedImage subsImage = null;
+		if (thumb != null) {
+			try {
+				image = ImageIO.read(thumb);
+				subsImage = ImageIO.read(subsImageStream);
+			} catch (IOException e) {
+				LOGGER.error("Could not read thumbnail input stream: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+
+		int overlayResolution = 168;
+		int overlayHorizontalPosition = (image.getWidth() - overlayResolution);
+		int overlayVerticalPosition = (image.getHeight() - overlayResolution);
+
+		Graphics2D g = image.createGraphics();
+		g.drawImage(image, 0, 0, null);
+		g.drawImage(subsImage, overlayHorizontalPosition, overlayVerticalPosition, overlayResolution, overlayResolution, null);
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try {
+			ImageIOTools.imageIOWrite(image, thumb != null ? ((DLNAThumbnailInputStream) thumb).getFormat().toString() : "jpg", out);
+			if (thumb != null) {
+				thumb.close();
+			}
+
+			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
+		} catch (IOException e) {
+			LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		if (thumb != null) {
+			((DLNAThumbnailInputStream) thumb).fullReset();
+		}
+
+		return (DLNAThumbnailInputStream) thumb;
 	}
 }
