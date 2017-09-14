@@ -3718,7 +3718,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				thumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(is);
 			} else {
 				LOGGER.trace("Flag is missing for language '{}' so use undefined flag", code);
-				thumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/codes/und.png"));
+				thumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo.png"));
 			}
 
 			if (thumbInputStream != null && subsLanguageCode != null) {
