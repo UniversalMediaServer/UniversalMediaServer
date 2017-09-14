@@ -776,6 +776,14 @@ public class FormatConfigurationRegressionTest0 {
   }
 
 	@Test
+	public void testNELLYMOSER() throws Throwable {
+		String str0 = FormatConfiguration.NELLYMOSER;
+
+		// Regression assertion (captures the current behavior of the code)
+		assertTrue("'" + str0 + "' != '" + "nellymoser"+ "'", str0.equals("nellymoser"));
+	}
+
+	@Test
 	public void testRLE() throws Throwable {
 		String str0 = FormatConfiguration.RLE;
 

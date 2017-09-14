@@ -645,7 +645,14 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.TTA;
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
-		} else if (value.equals("lc")) {
+		} else if (
+			value.equals("lc") ||
+			value.equals("00001000-0000-FF00-8000-00AA00389B71") ||
+			(
+				value.equals("aac") &&
+				FormatConfiguration.AVI.equals(media.getContainer())
+			)
+		) {
 			format = FormatConfiguration.AAC_LC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.HE_AAC;
@@ -713,7 +720,7 @@ public class LibMediaInfoParser {
 			} else if (value.equals("wma10")) {
 				format = FormatConfiguration.WMA10;
 			}
-		} else if (value.equals("flac") || "19d".equals(value)) { // https://github.com/MediaArea/MediaInfoLib/issues/594
+		} else if (value.equals("flac") || "19d".equals(value)) { // "19d" due to a flaw in MediaInfo code
 			format = FormatConfiguration.FLAC;
 		} else if (value.equals("monkey's audio")) {
 			format = FormatConfiguration.MONKEYS_AUDIO;
@@ -730,6 +737,8 @@ public class LibMediaInfoParser {
 			if (streamType == StreamType.Audio && !FormatConfiguration.ATRAC.equals(media.getContainer())) {
 				media.setContainer(FormatConfiguration.ATRAC);
 			}
+		} else if (value.equals("nellymoser")) {
+			format = FormatConfiguration.NELLYMOSER;
 		} else if (value.equals("jpeg")) {
 			format = FormatConfiguration.JPG;
 		} else if (value.equals("png")) {

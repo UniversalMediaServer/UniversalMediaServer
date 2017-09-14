@@ -113,6 +113,7 @@ public class FormatConfiguration {
 	public static final String MPEG2 = "mpeg2";
 	public static final String MPEGPS = "mpegps";
 	public static final String MPEGTS = "mpegts";
+	public static final String NELLYMOSER = "nellymoser";
 	public static final String OGG = "ogg";
 	/** OGG container with only audio track */
 	public static final String OGA = "oga";
