@@ -3697,37 +3697,43 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		String languageCode = null;
+		String audioLanguageCode = null;
 		String subsLanguageCode = null;
-		if (media_audio != null && format.isVideo()) { // show audio language flags in the TRANSCODE folder only for video files
-			languageCode = media_audio.getLang();
+		DLNAThumbnailInputStream mediaThumbInputStream = null;
+		if (media.isThumbready()) {
+			mediaThumbInputStream = media.getThumbnailInputStream();
+		}
+
+		// show audio and subs language flags in the TRANSCODE folder only for video files
+		if (media_audio != null && format.isVideo() && this.getParent() instanceof FileTranscodeVirtualFolder) {
+			audioLanguageCode = media_audio.getLang();
 			if (media_subtitle != null && media_subtitle.getId() != -1) {
 				subsLanguageCode = media_subtitle.getLang();
 			}
 
-			if (StringUtils.isBlank(languageCode)) {
-				languageCode = DLNAMediaLang.UND;
+			if (StringUtils.isBlank(audioLanguageCode)) {
+				audioLanguageCode = DLNAMediaLang.UND;
 			}
-		}
 
-		if (languageCode != null && this.getParent() instanceof FileTranscodeVirtualFolder) {
-			String code = Iso639.getISO639_2Code(languageCode.toLowerCase());
+			String code = Iso639.getISO639_2Code(audioLanguageCode.toLowerCase());
 			InputStream is = getResourceInputStream("/images/codes/" + code + ".png");
-			DLNAThumbnailInputStream thumbInputStream;
+			DLNAThumbnailInputStream audioThumbInputStream;
 			if (is != null) {
-				thumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(is);
+				audioThumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(is);
 			} else {
 				LOGGER.trace("Flag is missing for language '{}' so use undefined flag", code);
-				thumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo.png"));
+				audioThumbInputStream = DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo.png"));
 			}
 
-			if (thumbInputStream != null && subsLanguageCode != null) {
+			if (audioThumbInputStream != null && subsLanguageCode != null) {
 				code = Iso639.getISO639_2Code(subsLanguageCode.toLowerCase());
-				InputStream subsInputStream = getResourceInputStream("/images/codes/" + code + ".png");
-				return Image.addSubsFlagOverlay(thumbInputStream, subsInputStream);
+				return Image.addAudioAndSubsFlagOverlay(mediaThumbInputStream, audioThumbInputStream, getResourceInputStream("/images/codes/" + code + ".png"));
 			}
 
-			return thumbInputStream;
+//			return audioThumbInputStream;
+			if (mediaThumbInputStream != null) {
+				return mediaThumbInputStream;
+			}
 		}
 
 		if (isAvisynth()) {

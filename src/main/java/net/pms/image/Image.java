@@ -636,16 +636,35 @@ public class Image implements Serializable {
 	 * in a reset state ({@code position = 0}).</b>
 	 *
 	 * @param thumb the source thumbnail to add the overlay to.
+	 * @param inputStream 
 	 * @param subsImage the image to overlay.
 	 * @return The processed thumbnail.
 	 */
-	public static DLNAThumbnailInputStream addSubsFlagOverlay(DLNAThumbnailInputStream thumb, InputStream subsImageStream) {
+	public static DLNAThumbnailInputStream addAudioAndSubsFlagOverlay(DLNAThumbnailInputStream mediaImageStream, DLNAThumbnailInputStream audioImageStream, InputStream subsImageStream) {
 		ImageIO.setUseCache(false);
-		BufferedImage image = null;
+		BufferedImage mediaImage = null;
+		BufferedImage audioImage = null;
 		BufferedImage subsImage = null;
-		if (thumb != null) {
+		if (mediaImageStream != null) {
 			try {
-				image = ImageIO.read(thumb);
+				mediaImage = ImageIO.read(mediaImageStream);
+			} catch (IOException e) {
+				LOGGER.error("Could not read thumbnail input stream: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+
+		if (audioImageStream != null) {
+			try {
+				audioImage = ImageIO.read(audioImageStream);
+			} catch (IOException e) {
+				LOGGER.error("Could not read thumbnail input stream: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+
+		if (subsImageStream != null) {
+			try {
 				subsImage = ImageIO.read(subsImageStream);
 			} catch (IOException e) {
 				LOGGER.error("Could not read thumbnail input stream: {}", e.getMessage());
@@ -653,31 +672,43 @@ public class Image implements Serializable {
 			}
 		}
 
-		int overlayResolution = 168;
-		int overlayHorizontalPosition = (image.getWidth() - overlayResolution);
-		int overlayVerticalPosition = (image.getHeight() - overlayResolution);
+		if (mediaImage == null) { // there are not media image (thumbnail) so create new image with the flags resolution
+			mediaImage = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+		}
 
-		Graphics2D g = image.createGraphics();
-		g.drawImage(image, 0, 0, null);
-		g.drawImage(subsImage, overlayHorizontalPosition, overlayVerticalPosition, overlayResolution, overlayResolution, null);
+		int overlayResolution;
+		int overlayHorizontalPosition;
+		int overlayVerticalPosition;
+
+		Graphics2D g = mediaImage.createGraphics();
+		g.drawImage(mediaImage, 0, 0, null);
+		if (audioImage != null) {
+			overlayResolution = (int) Math.round(Math.min(mediaImage.getWidth(), mediaImage.getHeight()));
+			overlayHorizontalPosition = ((mediaImage.getWidth() - overlayResolution) / 2);
+			overlayVerticalPosition = ((mediaImage.getHeight() - overlayResolution) / 2);
+			g.drawImage(audioImage, overlayHorizontalPosition, overlayVerticalPosition, overlayResolution, overlayResolution, null);
+		}
+
+		if (subsImage != null) {
+			overlayResolution = (int) Math.round(Math.min(subsImage.getWidth(), subsImage.getHeight()) / 2);
+			overlayHorizontalPosition = (mediaImage.getWidth() - overlayResolution);
+			overlayVerticalPosition = (mediaImage.getHeight() - overlayResolution);
+			g.drawImage(subsImage, overlayHorizontalPosition, overlayVerticalPosition, overlayResolution, overlayResolution, null);
+		}
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
-			ImageIOTools.imageIOWrite(image, thumb != null ? ((DLNAThumbnailInputStream) thumb).getFormat().toString() : "jpg", out);
-			if (thumb != null) {
-				thumb.close();
-			}
-
+			ImageIOTools.imageIOWrite(mediaImage, mediaImageStream != null ? mediaImageStream.getFormat().toString() : "jpg", out);
 			return DLNAThumbnailInputStream.toThumbnailInputStream(out.toByteArray());
 		} catch (IOException e) {
 			LOGGER.error("Could not write thumbnail byte array: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
-		if (thumb != null) {
-			((DLNAThumbnailInputStream) thumb).fullReset();
+		if (mediaImageStream != null) {
+			(mediaImageStream).fullReset();
 		}
 
-		return (DLNAThumbnailInputStream) thumb;
+		return mediaImageStream;
 	}
 }
