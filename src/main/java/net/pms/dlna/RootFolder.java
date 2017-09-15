@@ -170,7 +170,7 @@ public class RootFolder extends DLNAResource {
 						LOGGER.trace("Creating FileWatcher for " + resource.getSystemName());
 						try {
 							FileWatcher.add(new FileWatcher.Watch(resource.getSystemName() + File.separator + "**", LIBRARY_RESCANNER));
-						} catch (AccessDeniedException e) {
+						} catch (Exception e) {
 							LOGGER.warn("File watcher access denied for directory {}", resource.getSystemName());
 						}
 					}
@@ -319,7 +319,7 @@ public class RootFolder extends DLNAResource {
 
 		if (files == null || files.length == 0) {
 			if (monitored) {
-				return null;
+				return res;
 			}
 
 			files = File.listRoots();
