@@ -168,7 +168,11 @@ public class RootFolder extends DLNAResource {
 						LOGGER.trace("Skip adding a FileWatcher for non-folder \"{}\"", file);
 					} else {
 						LOGGER.trace("Creating FileWatcher for " + resource.getSystemName());
-						FileWatcher.add(new FileWatcher.Watch(resource.getSystemName() + File.separator + "**", LIBRARY_RESCANNER));
+						try {
+							FileWatcher.add(new FileWatcher.Watch(resource.getSystemName() + File.separator + "**", LIBRARY_RESCANNER));
+						} catch (AccessDeniedException e) {
+							LOGGER.warn("File watcher access denied for directory {}", resource.getSystemName());
+						}
 					}
 				} else {
 					LOGGER.trace("Skip adding a FileWatcher for non-existent \"{}\"", file);
@@ -314,6 +318,10 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (files == null || files.length == 0) {
+			if (monitored) {
+				return null;
+			}
+
 			files = File.listRoots();
 		}
 
