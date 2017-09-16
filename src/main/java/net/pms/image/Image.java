@@ -683,14 +683,14 @@ public class Image implements Serializable {
 		Graphics2D g = mediaImage.createGraphics();
 		g.drawImage(mediaImage, 0, 0, null);
 		if (audioImage != null) {
-			overlayResolution = (int) Math.round(Math.min(mediaImage.getWidth(), mediaImage.getHeight()));
+			overlayResolution = (int) Math.round(Math.min(mediaImage.getWidth(), (float) mediaImage.getHeight()));
 			overlayHorizontalPosition = ((mediaImage.getWidth() - overlayResolution) / 2);
 			overlayVerticalPosition = ((mediaImage.getHeight() - overlayResolution) / 2);
 			g.drawImage(audioImage, overlayHorizontalPosition, overlayVerticalPosition, overlayResolution, overlayResolution, null);
 		}
 
 		if (subsImage != null) {
-			overlayResolution = (int) Math.round(Math.min(subsImage.getWidth(), subsImage.getHeight()) / 2);
+			overlayResolution = (int) Math.round(Math.min(subsImage.getWidth(), (float) subsImage.getHeight()) / 2);
 			overlayHorizontalPosition = (mediaImage.getWidth() - overlayResolution);
 			overlayVerticalPosition = (mediaImage.getHeight() - overlayResolution);
 			g.drawImage(subsImage, overlayHorizontalPosition, overlayVerticalPosition, overlayResolution, overlayResolution, null);
