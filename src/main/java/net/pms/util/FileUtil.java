@@ -859,6 +859,7 @@ public class FileUtil {
 			file.getParentFile(),
 			file.getName(),
 			extension,
+			file.isDirectory(),
 			nullIfNonExisting,
 			adjustExtensionCase
 		);
@@ -899,6 +900,7 @@ public class FileUtil {
 			folder,
 			file.getName(),
 			extension,
+			file.isDirectory(),
 			nullIfNonExisting,
 			adjustExtensionCase
 		);
@@ -913,6 +915,8 @@ public class FileUtil {
 	 *            for the current folder.
 	 * @param fileName the {@link String} for which to replace the extension.
 	 * @param extension the new file extension.
+	 * @param isDir whether or not the fileName is a directory or not, needed
+	 * 			  to properly handle replacement directories and file extensions
 	 * @param nullIfNonExisting whether or not to return {@code null} or a
 	 *            non-existing {@link File} instance if the constructed
 	 *            {@link File} doesn't exist.
@@ -928,6 +932,7 @@ public class FileUtil {
 		File folder,
 		String fileName,
 		String extension,
+		boolean isDir,
 		boolean nullIfNonExisting,
 		boolean adjustExtensionCase
 	) {
@@ -935,31 +940,41 @@ public class FileUtil {
 			return null;
 		}
 
-		int point = fileName.lastIndexOf('.');
-
+		// If fileName is a file, try to trim any extension
 		String baseFileName;
-		if (point == -1) {
+		if ( isDir )
 			baseFileName = fileName;
-		} else {
-			baseFileName = fileName.substring(0, point);
-		}
-
+		else if ( fileName.contains(".") )
+			baseFileName = fileName.substring(0, fileName.lastIndexOf(".") );
+		else
+			baseFileName = fileName; // Extension-less file
+		
+		// Just in case there's nothing to replace with, send back the original
 		if (isBlank(extension)) {
-			File result = new File(folder, baseFileName);
-			return !nullIfNonExisting || result.exists() ? result : null;
+			File result = new File(folder, fileName);
+			return nullIfNonExisting && ! result.exists() ? null : result;
 		}
-
-		File result = new File(folder, baseFileName + "." + extension);
+		
+		// If we've a directory, ensure extension begins with a separator
+		if ( isDir && !extension.startsWith( File.separator ) )
+			extension = File.separator + extension;
+		
+		// For files, make sure extension begins with a period
+		if ( !isDir && !extension.startsWith(".") )
+			extension = "." + extension;
+		
+		// Try to find
+		File result = new File(folder, baseFileName + extension);
 		if (result.exists() || !nullIfNonExisting && !adjustExtensionCase) {
 			return result;
 		}
 
 		if (!Platform.isWindows() && adjustExtensionCase) {
-			File adjustedResult = new File(folder, baseFileName + "." + extension.toLowerCase(Locale.ROOT));
+			File adjustedResult = new File(folder, baseFileName + extension.toLowerCase(Locale.ROOT));
 			if (adjustedResult.exists()) {
 				return adjustedResult;
 			}
-			adjustedResult = new File(folder, baseFileName + "." + extension.toUpperCase(Locale.ROOT));
+			adjustedResult = new File(folder, baseFileName + extension.toUpperCase(Locale.ROOT));
 			if (adjustedResult.exists()) {
 				return adjustedResult;
 			}
