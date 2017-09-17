@@ -282,7 +282,7 @@ public class RealFile extends MapFile {
 
 		if (file.isDirectory()) {
 			cachedThumbnail = FileUtil.replaceExtension(file, "folder.jpg", true, false);
-			
+
 			if (cachedThumbnail == null) {
 				cachedThumbnail = FileUtil.replaceExtension(file, "folder.png", true, false);
 			}
