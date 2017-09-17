@@ -390,4 +390,21 @@ public class FileUtilTest {
 		assertEquals("AppendMissingSlash", FileUtil.appendPathSeparator("foo/bar"), "foo/bar/");
 		assertEquals("DontAppendSlash", FileUtil.appendPathSeparator("foo/bar/"), "foo/bar/");
 	}
+	
+	@Test
+	public void testReplaceExtension() throws Exception {
+		File dir1 = FileUtils.getTempDirectory();
+		File file1 = File.createTempFile("ums-test", ".temp", dir1);
+		assertThat( FileUtil.replaceExtension(file1, ".foo", true, false) ).isEqualTo( null );
+		assertThat( FileUtil.replaceExtension(file1, ".foo", false, false) ).isInstanceOf( File.class ).doesNotExist();
+		assertThat( FileUtil.replaceExtension(file1, "bar", false, false) ).isInstanceOf( File.class ).doesNotExist();
+		assertThat( FileUtil.replaceExtension(file1, "", true, false).getAbsolutePath() ).isEqualTo(file1.getAbsolutePath());
+		assertThat( FileUtil.replaceExtension(file1, "", false, false).getAbsolutePath() ).isEqualTo(file1.getAbsolutePath());
+		assertThat( FileUtil.replaceExtension(dir1, "foo", true, false) ).isEqualTo(null);
+		assertThat( FileUtil.replaceExtension(dir1, "foo", false, false) ).isInstanceOf( File.class ).doesNotExist();
+		assertThat( FileUtil.replaceExtension(dir1, file1.getName(), true, false).getAbsolutePath() ).isEqualTo(file1.getAbsolutePath());
+		assertThat( FileUtil.replaceExtension(dir1, file1, "foo", true, true) ).isEqualTo( null );
+		file1.delete();
+	}
+	
 }
