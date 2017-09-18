@@ -281,11 +281,7 @@ public class RealFile extends MapFile {
 		}
 
 		if (file.isDirectory()) {
-			cachedThumbnail = FileUtil.replaceExtension(file, "/folder.jpg", true, false);
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.replaceExtension(file, "/folder.png", true, false);
-			}
+			cachedThumbnail = MapFile.getFolderThumbnail(file);
 		}
 
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;

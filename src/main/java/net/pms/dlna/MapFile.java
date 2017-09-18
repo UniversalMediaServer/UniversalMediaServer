@@ -22,6 +22,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
 import net.pms.configuration.MapFileConfiguration;
@@ -90,6 +93,46 @@ public class MapFile extends DLNAResource {
 	}
 
 	/**
+	 * Returns the first {@link File} in a specified folder that is considered a
+	 * "folder thumbnail" by naming convention.
+	 *
+	 * @param folder the folder to search for a folder thumbnail.
+	 * @return The first "folder thumbnail" file in {@code folder} or
+	 *         {@code null} if none was found.
+	 */
+	public static File getFolderThumbnail(File folder) {
+		if (folder == null || !folder.isDirectory()) {
+			return null;
+		}
+		try {
+			DirectoryStream<Path> folderThumbnails = Files.newDirectoryStream(folder.toPath(), new DirectoryStream.Filter<Path>() {
+
+				@Override
+				public boolean accept(Path entry) throws IOException {
+					Path fileNamePath = entry.getFileName();
+					if (fileNamePath == null) {
+						return false;
+					}
+					String fileName = fileNamePath.toString().toLowerCase(Locale.ROOT);
+					if (fileName.startsWith("folder.") || fileName.contains("albumart")) {
+						return isPotentialThumbnail(fileName);
+					}
+					return false;
+				}
+
+			});
+			for (Path folderThumbnail : folderThumbnails) {
+				// We don't have any rule to prioritize between them; return the first
+				return folderThumbnail.toFile();
+			}
+		} catch (IOException e) {
+			LOGGER.warn("An error occurred while trying to browse folder \"{}\": {}", folder.getAbsolutePath(), e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	/**
 	 * Returns whether or not the specified {@link File} is considered a
 	 * "folder thumbnail" by naming convention.
 	 *
@@ -100,10 +143,8 @@ public class MapFile extends DLNAResource {
 	 * @return {@code true} if {@code file} name matches the naming convention
 	 *         for folder thumbnails, {@code false} otherwise.
 	 */
-	protected static boolean isFolderThumbnail(File file, boolean evaluateExtension) {
-		if (
-			file == null || !file.isFile()
-		) {
+	public static boolean isFolderThumbnail(File file, boolean evaluateExtension) {
+		if (file == null || !file.isFile()) {
 			return false;
 		}
 
@@ -128,7 +169,7 @@ public class MapFile extends DLNAResource {
 	 *            returned {@link Set} if they {@link File#exists()}.
 	 * @return The {@link Set} of {@link File}s.
 	 */
-	protected static HashSet<File> getPotentialFileThumbnails(
+	public static HashSet<File> getPotentialFileThumbnails(
 		File audioVideoFile,
 		boolean existingOnly
 	) {
@@ -157,7 +198,7 @@ public class MapFile extends DLNAResource {
 	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
 	 *         otherwise.
 	 */
-	protected static boolean isPotentialThumbnail(File file) {
+	public static boolean isPotentialThumbnail(File file) {
 		return file != null && file.isFile() && isPotentialThumbnail(file.getName());
 	}
 
@@ -171,7 +212,7 @@ public class MapFile extends DLNAResource {
 	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
 	 *         otherwise.
 	 */
-	protected static boolean isPotentialThumbnail(String fileName) {
+	public static boolean isPotentialThumbnail(String fileName) {
 		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName, LetterCase.LOWER, Locale.ROOT));
 	}
 
