@@ -18,16 +18,17 @@
  */
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,7 @@ public class RealFile extends MapFile {
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
-		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
+		if (valid && getParent() != null && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
 			run();
 
@@ -252,59 +253,35 @@ public class RealFile extends MapFile {
 		File cachedThumbnail = null;
 		MediaType mediaType = getMedia() != null ? getMedia().getMediaType() : MediaType.UNKNOWN;
 
-		File thumbFolder = file.getParentFile();
-		boolean alternativeCheck = false;
+		if (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) {
+			String alternativeFolder = configuration.getAlternateThumbFolder();
+			ArrayList<File> folders = new ArrayList<File>(2);
+			if (file.getParentFile() != null) {
+				folders.add(null);
+			}
+			if (isNotBlank(alternativeFolder)) {
+				File thumbFolder = new File(alternativeFolder);
+				if (thumbFolder.isDirectory() && thumbFolder.exists()) {
+					folders.add(thumbFolder);
+				}
+			}
 
-		if (mediaType != MediaType.IMAGE) {
-			while (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
-
-				if (cachedThumbnail != null) {
+			for (File folder : folders) {
+				File audioVideoFile = folder == null ? file : new File(folder, file.getName());
+				HashSet<File> potentials = MapFile.getPotentialFileThumbnails(audioVideoFile, true);
+				if (!potentials.isEmpty()) {
+					// We have no rules for how to pick a particular one if there's multiple candidates
+					cachedThumbnail = potentials.iterator().next();
 					break;
 				}
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
-
-				if (cachedThumbnail != null) {
-					break;
-				}
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
-
-				if (cachedThumbnail != null) {
-					break;
-				}
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
-
-				if (cachedThumbnail != null) {
-					break;
-				}
-
-				if (mediaType == MediaType.AUDIO && getParent() != null && getParent() instanceof RealFile) {
-					cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
-				}
-
-				if (cachedThumbnail != null || alternativeCheck) {
-					break;
-				}
-
-				if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
-					thumbFolder = new File(configuration.getAlternateThumbFolder());
-
-					if (!thumbFolder.isDirectory()) {
-						thumbFolder = null;
-						break;
-					}
-				}
-
-				alternativeCheck = true;
+			}
+			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() != null && getParent() instanceof MapFile) {
+				cachedThumbnail = ((MapFile) getParent()).getPotentialCover();
 			}
 		}
 
 		if (file.isDirectory()) {
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.jpg");
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.png");
-			}
+			cachedThumbnail = MapFile.getFolderThumbnail(file);
 		}
 
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
@@ -317,7 +294,6 @@ public class RealFile extends MapFile {
 				result = getMedia().getThumbnailInputStream();
 			}
 		} catch (IOException e) {
-			result = null;
 			LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
 			LOGGER.trace("", e);
 		}

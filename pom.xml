@@ -1463,7 +1463,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="-Xdock:name=&quot;UMS&quot;"/>
+											<option value="-Xdock:name=UMS"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -1644,7 +1644,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="-Xdock:name=&quot;UMS&quot;"/>
+											<option value="-Xdock:name=UMS"/>
 										</bundleapp>
 									</target>
 								</configuration>
