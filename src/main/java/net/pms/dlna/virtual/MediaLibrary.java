@@ -139,7 +139,7 @@ public class MediaLibrary extends VirtualFolder {
 			videosUnwatchedFolder.addChild(unwatchedMlfVideo04);
 			videosUnwatchedFolder.addChild(unwatchedMlfVideo05);
 
-			VirtualFolder videosWatchedFolder = new VirtualFolder(Messages.getString("VirtualFolder.9"), null);
+			VirtualFolder videosWatchedFolder = new VirtualFolder(Messages.getString("VirtualFolder.Watched"), null);
 			videosWatchedFolder.addChild(watchedTvShowsFolder);
 			videosWatchedFolder.addChild(watchedMoviesFolder);
 			videosWatchedFolder.addChild(watchedMovies3DFolder);
@@ -151,6 +151,7 @@ public class MediaLibrary extends VirtualFolder {
 			videosWatchedFolder.addChild(watchedMlfVideo05);
 
 			vfVideo.addChild(videosUnwatchedFolder);
+			vfVideo.addChild(videosWatchedFolder);
 			vfVideo.addChild(tvShowsFolder);
 			vfVideo.addChild(moviesFolder);
 			vfVideo.addChild(movies3DFolder);
