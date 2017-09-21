@@ -1509,6 +1509,9 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.ASF:
 					mimeType = HTTPResource.ASF_TYPEMIME;
 					break;
+				case FormatConfiguration.FLV:
+					mimeType = HTTPResource.FLV_TYPEMIME;
+					break;
 				case FormatConfiguration.WMV:
 					mimeType = HTTPResource.WMV_TYPEMIME;
 					break;
@@ -1612,6 +1615,8 @@ public class DLNAMediaInfo implements Cloneable {
 					mimeType = HTTPResource.THREEGPP2_TYPEMIME;
 				} else if ("webm".equals(container)) {
 					mimeType = HTTPResource.WEBM_TYPEMIME;
+				} else if (container.startsWith("flash")) {
+					mimeType = HTTPResource.FLV_TYPEMIME;
 				} else if (codecV.equals("mjpeg") || "jpg".equals(container)) {
 					mimeType = HTTPResource.JPEG_TYPEMIME;
 				} else if ("png".equals(codecV) || "png".equals(container)) {
