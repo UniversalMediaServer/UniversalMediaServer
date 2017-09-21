@@ -1,17 +1,24 @@
 package net.pms.image;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.*;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,15 +27,18 @@ import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.filters.Canvas;
 import net.coobird.thumbnailator.geometry.Positions;
+import net.pms.PMS;
 import net.pms.dlna.DLNAImage;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAImageProfile.DLNAComplianceResult;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.image.BufferedImageFilter.BufferedImageFilterResult;
 import net.pms.image.ImageIOTools.ImageReaderResult;
 import net.pms.image.thumbnailator.ExifFilterUtils;
 import net.pms.util.BufferedImageType;
 import net.pms.util.InvalidStateException;
+import net.pms.util.Iso639;
 import net.pms.util.ParseException;
 import net.pms.util.ResettableInputStream;
 import net.pms.util.UnknownFormatException;
@@ -61,6 +71,11 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 public class ImagesUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagesUtil.class);
 
+	/** A constant for use for constructing a path to the language "flags" */
+	public static final String LANGUAGE_FLAGS_PATH = "/resources/images/codes/%s.png";
+
+	private static final HashMap<String, WeakReference<BufferedImage>> LANGUAGE_FLAGS_CACHE = new HashMap<>();
+
 	/**
 	 * Parses an image file and stores the results in the given
 	 * {@link DLNAMediaInfo}. Parsing is performed using both
@@ -80,7 +95,7 @@ public class ImagesUtil {
 	 *
 	 */
 	public static void parseImage(File file, DLNAMediaInfo media) throws IOException {
-		final int MAX_BUFFER = 1048576; // 1 MB
+		final int maxBuffer = 1048576; // 1 MB
 		if (file == null) {
 			throw new IllegalArgumentException("parseImage: file cannot be null");
 		}
@@ -93,7 +108,7 @@ public class ImagesUtil {
 			LOGGER.trace("Parsing image file \"{}\"", file.getAbsolutePath());
 		}
 		long size = file.length();
-		ResettableInputStream inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), MAX_BUFFER);
+		ResettableInputStream inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), maxBuffer);
 		try  {
 			Metadata metadata = null;
 			FileType fileType = null;
@@ -127,11 +142,11 @@ public class ImagesUtil {
 			} else {
 				// If we can't reset it, close it and create a new
 				inputStream.close();
-				inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), MAX_BUFFER);
+				inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), maxBuffer);
 			}
 			ImageInfo imageInfo = null;
 			try {
-				imageInfo = ImageIOTools.readImageInfo(inputStream, size , metadata, false);
+				imageInfo = ImageIOTools.readImageInfo(inputStream, size, metadata, false);
 			} catch (UnknownFormatException | IIOException | ParseException e) {
 				if (format == null) {
 					throw new UnknownFormatException(
@@ -231,6 +246,9 @@ public class ImagesUtil {
 	 * as ARW files. This method is here to verify if such a misidentification
 	 * has taken place or not.
 	 *
+	 * @param metadata the {@link Metadata} instance to evaluate.
+	 * @return The result of the evaluation.
+	 *
 	 * XXX This method can be removed if https://github.com/drewnoakes/metadata-extractor/issues/217 is fixed
 	 */
 	public static boolean isARW(Metadata metadata) {
@@ -251,7 +269,11 @@ public class ImagesUtil {
 	}
 
 	/**
-	 * @return The version number multiplied with 100 (last two digits are decimals).
+	 * Converts a raw Exif version byte array to an integer value.
+	 *
+	 * @param bytes the raw Exif version bytes.
+	 * @return The version number multiplied with 100 (last two digits are
+	 *         decimals).
 	 */
 	public static int parseExifVersion(byte[] bytes) {
 		if (bytes == null) {
@@ -357,8 +379,7 @@ public class ImagesUtil {
 	 * it is scaled to {@code scaleWidth} width and {@code scaleHeight} height
 	 * while preserving aspect ratio.
 	 *
-	 * @param actualWidth the width of the source image.
-	 * @param actualHeight the height of the source image.
+	 * @param imageInfo the {@link ImageInfo} instance describing the image.
 	 * @param scaleType the {@link ScaleType} to use when scaling.
 	 * @param scaleWidth the width to scale to.
 	 * @param scaleHeight the height to scale to.
@@ -452,8 +473,8 @@ public class ImagesUtil {
 	 * This method consumes and closes {@code inputStream}.
 	 * </b>
 	 * @param inputStream the <code>InputStream</code> to read.
-     * @return The resulting byte array.
-     * @throws IOException if an I/O error occurs
+	 * @return The resulting byte array.
+	 * @throws IOException if an I/O error occurs
 	 */
 	public static byte[] toByteArray(InputStream inputStream) throws IOException {
 		if (inputStream == null) {
@@ -489,15 +510,17 @@ public class ImagesUtil {
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
 	 *            can be safely cast to {@link DLNAThumbnail}.
-	 * @return The converted image or {@code null} if the source is {@code null}
-	 *         .
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
+	 * @return The converted image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image convertImage(
 		Image inputImage,
 		ImageFormat outputFormat,
 		boolean dlnaCompliant,
-		boolean dlnaThumbnail
+		boolean dlnaThumbnail,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			inputImage,
@@ -507,7 +530,8 @@ public class ImagesUtil {
 			outputFormat,
 			dlnaCompliant,
 			dlnaThumbnail,
-			false
+			false,
+			filterChain
 		);
 	}
 
@@ -527,15 +551,17 @@ public class ImagesUtil {
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
 	 *            can be safely cast to {@link DLNAThumbnail}.
-	 * @return The converted image or {@code null} if the source is {@code null}
-	 *         .
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
+	 * @return The converted image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image convertImage(
 		InputStream inputStream,
 		ImageFormat outputFormat,
 		boolean dlnaCompliant,
-		boolean dlnaThumbnail
+		boolean dlnaThumbnail,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			inputStream,
@@ -545,7 +571,8 @@ public class ImagesUtil {
 			outputFormat,
 			dlnaCompliant,
 			dlnaThumbnail,
-			false
+			false,
+			filterChain
 		);
 	}
 
@@ -563,15 +590,17 @@ public class ImagesUtil {
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
 	 *            can be safely cast to {@link DLNAThumbnail}.
-	 * @return The converted image or {@code null} if the source is {@code null}
-	 *         .
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
+	 * @return The converted image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image convertImage(
 		byte[] inputByteArray,
 		ImageFormat outputFormat,
 		boolean dlnaCompliant,
-		boolean dlnaThumbnail
+		boolean dlnaThumbnail,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			inputByteArray,
@@ -581,7 +610,8 @@ public class ImagesUtil {
 			outputFormat,
 			dlnaCompliant,
 			dlnaThumbnail,
-			false
+			false,
+			filterChain
 		);
 	}
 
@@ -602,6 +632,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
@@ -612,7 +644,8 @@ public class ImagesUtil {
 		ScaleType scaleType,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			inputImage,
@@ -622,7 +655,8 @@ public class ImagesUtil {
 			ImageFormat.SOURCE,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -645,6 +679,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
@@ -655,7 +691,8 @@ public class ImagesUtil {
 		ScaleType scaleType,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			inputStream,
@@ -665,7 +702,8 @@ public class ImagesUtil {
 			ImageFormat.SOURCE,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -686,6 +724,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
@@ -697,7 +737,8 @@ public class ImagesUtil {
 		ScaleType scaleType,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			inputByteArray,
@@ -707,7 +748,8 @@ public class ImagesUtil {
 			ImageFormat.SOURCE,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -724,17 +766,29 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The converted image or {@code null} if the source is {@code null}
-	 *         .
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
+	 * @return The converted image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image transcodeImage(
 		Image inputImage,
 		DLNAImageProfile outputProfile,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
-		return transcodeImage(inputImage, 0, 0, null, outputProfile, true, dlnaThumbnail, padToSize);
+		return transcodeImage(
+			inputImage,
+			0,
+			0,
+			null,
+			outputProfile,
+			true,
+			dlnaThumbnail,
+			padToSize,
+			filterChain
+		);
 	}
 
 	/**
@@ -752,17 +806,29 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The converted image or {@code null} if the source is {@code null}
-	 *         .
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
+	 * @return The converted image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image transcodeImage(
 		InputStream inputStream,
 		DLNAImageProfile outputProfile,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
-		return transcodeImage(inputStream, 0, 0, null, outputProfile, true, dlnaThumbnail, padToSize);
+		return transcodeImage(
+			inputStream,
+			0,
+			0,
+			null,
+			outputProfile,
+			true,
+			dlnaThumbnail,
+			padToSize,
+			filterChain
+		);
 	}
 
 	/**
@@ -778,17 +844,29 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The converted image or {@code null} if the source is {@code null}
-	 *         .
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
+	 * @return The converted image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
 	public static Image transcodeImage(
 		byte[] inputByteArray,
 		DLNAImageProfile outputProfile,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
-		return transcodeImage(inputByteArray, 0, 0, null, outputProfile, true, dlnaThumbnail, padToSize);
+		return transcodeImage(
+			inputByteArray,
+			0,
+			0,
+			null,
+			outputProfile,
+			true,
+			dlnaThumbnail,
+			padToSize,
+			filterChain
+		);
 	}
 
 	/**
@@ -813,6 +891,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -825,7 +905,8 @@ public class ImagesUtil {
 		ImageFormat outputFormat,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			null,
@@ -838,7 +919,8 @@ public class ImagesUtil {
 			null,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -866,6 +948,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -878,7 +962,8 @@ public class ImagesUtil {
 		ImageFormat outputFormat,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			null,
@@ -891,7 +976,8 @@ public class ImagesUtil {
 			null,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -917,6 +1003,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -929,7 +1017,8 @@ public class ImagesUtil {
 		ImageFormat outputFormat,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			inputByteArray,
@@ -942,7 +1031,8 @@ public class ImagesUtil {
 			null,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -967,6 +1057,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -979,7 +1071,8 @@ public class ImagesUtil {
 		DLNAImageProfile outputProfile,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			null,
@@ -992,7 +1085,8 @@ public class ImagesUtil {
 			outputProfile,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -1019,6 +1113,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -1031,7 +1127,8 @@ public class ImagesUtil {
 		DLNAImageProfile outputProfile,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			null,
@@ -1044,7 +1141,8 @@ public class ImagesUtil {
 			outputProfile,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -1069,6 +1167,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -1081,7 +1181,8 @@ public class ImagesUtil {
 		DLNAImageProfile outputProfile,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		return transcodeImage(
 			inputByteArray,
@@ -1094,7 +1195,8 @@ public class ImagesUtil {
 			outputProfile,
 			dlnaCompliant,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			filterChain
 		);
 	}
 
@@ -1127,6 +1229,8 @@ public class ImagesUtil {
 	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted image or {@code null} if the source
 	 *         is {@code null}.
 	 * @throws IOException if the operation fails.
@@ -1142,7 +1246,8 @@ public class ImagesUtil {
 		DLNAImageProfile outputProfile,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		if (inputByteArray == null && inputStream == null && inputImage == null) {
 			return null;
@@ -1171,6 +1276,18 @@ public class ImagesUtil {
 				sb.append(", ");
 			}
 			sb.append("PadToSize = ").append(padToSize ? "True" : "False");
+			if (filterChain != null && !filterChain.isEmpty()) {
+				sb.append(", Filters: ");
+				boolean first = true;
+				for (BufferedImageFilter filter : filterChain) {
+					if (first) {
+						first = false;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(filter);
+				}
+			}
 			LOGGER.trace(
 				"Converting {} image source to {} format and type {} using the following parameters: {}",
 				inputByteArray != null ? "byte array" : inputImage != null ? "Image" : "input stream",
@@ -1225,7 +1342,7 @@ public class ImagesUtil {
 		}
 
 		BufferedImage bufferedImage = inputResult.bufferedImage;
-		boolean reencode = false;
+		boolean reencode = filterChain != null && !filterChain.isEmpty();
 
 		if (outputProfile == null && dlnaCompliant) {
 			// Override output format to one valid for DLNA, defaulting to PNG
@@ -1353,7 +1470,7 @@ public class ImagesUtil {
 				default:
 					throw new IllegalStateException("Unexpected image format: " + outputFormat);
 			}
-			reencode = reencode || convertColors || !complianceResult.isFormatCorrect() || !complianceResult.isColorsCorrect();;
+			reencode = reencode || convertColors || !complianceResult.isFormatCorrect() || !complianceResult.isColorsCorrect();
 			if (!complianceResult.isResolutionCorrect()) {
 				width = width > 0 && complianceResult.getMaxWidth() > 0 ?
 					Math.min(width, complianceResult.getMaxWidth()) :
@@ -1395,7 +1512,11 @@ public class ImagesUtil {
 				outputImageType = BufferedImageType.TYPE_3BYTE_BGR;
 			}
 
-			BufferedImage convertedImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), outputImageType.getTypeId());
+			BufferedImage convertedImage = new BufferedImage(
+				bufferedImage.getWidth(),
+				bufferedImage.getHeight(),
+				outputImageType.getTypeId()
+			);
 			ColorConvertOp colorConvertOp = new ColorConvertOp(null);
 			colorConvertOp.filter(bufferedImage, convertedImage);
 			bufferedImage.flush();
@@ -1475,6 +1596,15 @@ public class ImagesUtil {
 			oldBufferedImage.flush();
 		}
 
+		// Apply filters
+		if (filterChain != null && !filterChain.isEmpty()) {
+			BufferedImageFilterResult filterResult = filterChain.filter(bufferedImage);
+			if (!filterResult.isOriginalInstance()) {
+				bufferedImage.flush();
+			}
+			bufferedImage = filterResult.getBufferedImage();
+		}
+
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		Thumbnails.of(bufferedImage)
 			.scale(1.0d)
@@ -1486,11 +1616,38 @@ public class ImagesUtil {
 
 		Image result;
 		if (dlnaThumbnail) {
-			result = new DLNAThumbnail(outputByteArray, bufferedImage.getWidth(), bufferedImage.getHeight(), outputFormat, null, null, outputProfile, false);
+			result = new DLNAThumbnail(
+				outputByteArray,
+				bufferedImage.getWidth(),
+				bufferedImage.getHeight(),
+				outputFormat,
+				null,
+				null,
+				outputProfile,
+				false
+			);
 		} else if (dlnaCompliant) {
-			result = new DLNAImage(outputByteArray, bufferedImage.getWidth(), bufferedImage.getHeight(), outputFormat, null, null, outputProfile, false);
+			result = new DLNAImage(
+				outputByteArray,
+				bufferedImage.getWidth(),
+				bufferedImage.getHeight(),
+				outputFormat,
+				null,
+				null,
+				outputProfile,
+				false
+			);
 		} else {
-			result = new Image(outputByteArray, bufferedImage.getWidth(), bufferedImage.getHeight(), outputFormat, null, null, true, false);
+			result = new Image(
+				outputByteArray,
+				bufferedImage.getWidth(),
+				bufferedImage.getHeight(),
+				outputFormat,
+				null,
+				null,
+				true,
+				false
+			);
 		}
 
 		if (trace) {
@@ -1522,6 +1679,7 @@ public class ImagesUtil {
 	 * @return A byte array containing the thumbnail or {@code null} if no
 	 *         thumbnail was found/could be extracted.
 	 */
+	@SuppressWarnings("unused")
 	public static byte[] getThumbnailFromMetadata(File file, Metadata metadata) {
 		if (metadata == null) {
 			return null;
@@ -1562,8 +1720,8 @@ public class ImagesUtil {
 	 * @param format the {@link ImageFormat} of the image.
 	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
 	 *         {@code null}.
-	 * @throws ImageProcessingException
-	 * @throws IOException
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Metadata getMetadata(byte[] bytes, ImageFormat format) throws ImageProcessingException, IOException {
 		return getMetadata(bytes, format, null);
@@ -1576,8 +1734,8 @@ public class ImagesUtil {
 	 * @param fileType the {@link FileType} of the image.
 	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
 	 *         {@code null}.
-	 * @throws ImageProcessingException
-	 * @throws IOException
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Metadata getMetadata(byte[] bytes, FileType fileType) throws ImageProcessingException, IOException {
 		return getMetadata(bytes, null, fileType);
@@ -1592,8 +1750,8 @@ public class ImagesUtil {
 	 * @param fileType the {@link FileType} of the image.
 	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
 	 *         {@code null}.
-	 * @throws ImageProcessingException
-	 * @throws IOException
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Metadata getMetadata(byte[] bytes, ImageFormat format, FileType fileType) throws ImageProcessingException, IOException {
 		if (bytes == null) {
@@ -1609,8 +1767,8 @@ public class ImagesUtil {
 	 * @param format the {@link ImageFormat} of the image.
 	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
 	 *         {@code null}.
-	 * @throws ImageProcessingException
-	 * @throws IOException
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Metadata getMetadata(InputStream inputStream, ImageFormat format) throws ImageProcessingException, IOException {
 		return getMetadata(inputStream, format, null);
@@ -1623,8 +1781,8 @@ public class ImagesUtil {
 	 * @param fileType the {@link FileType} of the image.
 	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
 	 *         {@code null}.
-	 * @throws ImageProcessingException
-	 * @throws IOException
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Metadata getMetadata(InputStream inputStream, FileType fileType) throws ImageProcessingException, IOException {
 		return getMetadata(inputStream, null, fileType);
@@ -1639,10 +1797,15 @@ public class ImagesUtil {
 	 * @param fileType the {@link FileType} of the image.
 	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
 	 *         {@code null}.
-	 * @throws ImageProcessingException
-	 * @throws IOException
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
 	 */
-	public static Metadata getMetadata(InputStream inputStream, ImageFormat format, FileType fileType) throws ImageProcessingException, IOException {
+	@SuppressWarnings("null")
+	public static Metadata getMetadata(
+		InputStream inputStream,
+		ImageFormat format,
+		FileType fileType
+	) throws ImageProcessingException, IOException {
 		if (inputStream == null) {
 			return null;
 		}
@@ -1655,31 +1818,31 @@ public class ImagesUtil {
 		if (fileType != null) {
 			switch (fileType) {
 				case Bmp:
-		            metadata = BmpMetadataReader.readMetadata(inputStream);
+					metadata = BmpMetadataReader.readMetadata(inputStream);
 					break;
 				case Gif:
-		            metadata = GifMetadataReader.readMetadata(inputStream);
+					metadata = GifMetadataReader.readMetadata(inputStream);
 					break;
 				case Ico:
-		            metadata = IcoMetadataReader.readMetadata(inputStream);
+					metadata = IcoMetadataReader.readMetadata(inputStream);
 					break;
 				case Jpeg:
-		            metadata = JpegMetadataReader.readMetadata(inputStream);
+					metadata = JpegMetadataReader.readMetadata(inputStream);
 					break;
 				case Pcx:
-		            metadata = PcxMetadataReader.readMetadata(inputStream);
+					metadata = PcxMetadataReader.readMetadata(inputStream);
 					break;
 				case Png:
-		            metadata = PngMetadataReader.readMetadata(inputStream);
+					metadata = PngMetadataReader.readMetadata(inputStream);
 					break;
 				case Psd:
-		            metadata = PsdMetadataReader.readMetadata(inputStream);
+					metadata = PsdMetadataReader.readMetadata(inputStream);
 					break;
 				case Raf:
-		            metadata = RafMetadataReader.readMetadata(inputStream);
+					metadata = RafMetadataReader.readMetadata(inputStream);
 					break;
 				case Riff:
-		            metadata = WebpMetadataReader.readMetadata(inputStream);
+					metadata = WebpMetadataReader.readMetadata(inputStream);
 					break;
 				case Tiff:
 				case Arw:
@@ -1703,7 +1866,7 @@ public class ImagesUtil {
 					metadata = BmpMetadataReader.readMetadata(inputStream);
 					break;
 				case GIF:
-		            metadata = GifMetadataReader.readMetadata(inputStream);
+					metadata = GifMetadataReader.readMetadata(inputStream);
 					break;
 				case ICO:
 					metadata = IcoMetadataReader.readMetadata(inputStream);
@@ -1713,16 +1876,16 @@ public class ImagesUtil {
 					break;
 				case DCX:
 				case PCX:
-		            metadata = PcxMetadataReader.readMetadata(inputStream);
+					metadata = PcxMetadataReader.readMetadata(inputStream);
 					break;
 				case PNG:
 					metadata = PngMetadataReader.readMetadata(inputStream);
 					break;
 				case PSD:
-		            metadata = PsdMetadataReader.readMetadata(inputStream);
+					metadata = PsdMetadataReader.readMetadata(inputStream);
 					break;
 				case RAF:
-		            metadata = RafMetadataReader.readMetadata(inputStream);
+					metadata = RafMetadataReader.readMetadata(inputStream);
 					break;
 				case TIFF:
 				case ARW:
@@ -1735,7 +1898,7 @@ public class ImagesUtil {
 					));
 					break;
 				case WEBP:
-		            metadata = WebpMetadataReader.readMetadata(inputStream);
+					metadata = WebpMetadataReader.readMetadata(inputStream);
 					break;
 				case SOURCE:
 					metadata = ImageMetadataReader.readMetadata(inputStream);
@@ -1861,6 +2024,7 @@ public class ImagesUtil {
 	 * @throws InvalidStateException if the values aren't equal or the array is
 	 *             {@code null} or empty.
 	 */
+	@SuppressWarnings("null")
 	public static int getConstantIntArrayValue(int[] intArray) throws InvalidStateException {
 		if (intArray == null || intArray.length == 0) {
 			throw new InvalidStateException("The array cannot be null or empty");
@@ -1894,6 +2058,7 @@ public class ImagesUtil {
 	 * @throws InvalidStateException if the values aren't equal or the array is
 	 *             {@code null} or empty.
 	 */
+	@SuppressWarnings("null")
 	public static byte getConstantByteArrayValue(byte[] byteArray) throws InvalidStateException {
 		if (byteArray == null || byteArray.length == 0) {
 			throw new InvalidStateException("The array cannot be null or empty");
@@ -1931,69 +2096,69 @@ public class ImagesUtil {
 			throw new UnknownFormatException("Content isn't JPEG");
 		}
 
-		byte SEGMENT_IDENTIFIER = (byte) 0xFF;
-		byte MARKER_EOI = (byte) 0xD9;
-		byte APP1 = (byte) 0xE1;
-		final String EXIF_SEGMENT_PREAMBLE = "Exif\0\0";
+		byte jpegSegmentIdentifier = (byte) 0xFF;
+		byte markerEOI = (byte) 0xD9;
+		byte app1 = (byte) 0xE1;
+		final String exifSegmentPreamble = "Exif\0\0";
 
-        byte segmentIdentifier = reader.getInt8(2);
-        byte segmentType = reader.getInt8(3);
+		byte segmentIdentifier = reader.getInt8(2);
+		byte segmentType = reader.getInt8(3);
 
 		int pos = 4;
 
-        while (
-        	segmentIdentifier != SEGMENT_IDENTIFIER ||
-        	segmentType != APP1 &&
-        	segmentType != MARKER_EOI ||
-        	segmentType == APP1 &&
-    		!EXIF_SEGMENT_PREAMBLE.equals(new String(
-        		reader.getBytes(pos + 2, EXIF_SEGMENT_PREAMBLE.length()),
-        		0,
-        		EXIF_SEGMENT_PREAMBLE.length(),
-        		StandardCharsets.US_ASCII)
-        	)
-        ) {
-        	segmentIdentifier = segmentType;
-        	segmentType = reader.getInt8(pos++);
-        }
+		while (
+			segmentIdentifier != jpegSegmentIdentifier ||
+			segmentType != app1 &&
+			segmentType != markerEOI ||
+			segmentType == app1 &&
+			!exifSegmentPreamble.equals(new String(
+				reader.getBytes(pos + 2, exifSegmentPreamble.length()),
+				0,
+				exifSegmentPreamble.length(),
+				StandardCharsets.US_ASCII)
+			)
+		) {
+			segmentIdentifier = segmentType;
+			segmentType = reader.getInt8(pos++);
+		}
 
-        if (segmentType == MARKER_EOI) {
-        	// Reached the end of the image without finding an Exif segment
-        	return -1;
-        }
+		if (segmentType == markerEOI) {
+			// Reached the end of the image without finding an Exif segment
+			return -1;
+		}
 
-        int segmentLength = reader.getUInt16(pos) - 2;
-        pos += 2 + EXIF_SEGMENT_PREAMBLE.length();
+		int segmentLength = reader.getUInt16(pos) - 2;
+		pos += 2 + exifSegmentPreamble.length();
 
-        if (segmentLength < EXIF_SEGMENT_PREAMBLE.length()) {
-        	throw new ParseException("Exif segment is too small");
-        }
+		if (segmentLength < exifSegmentPreamble.length()) {
+			throw new ParseException("Exif segment is too small");
+		}
 
-        int exifHeaderOffset = pos;
+		int exifHeaderOffset = pos;
 
-        short byteOrderIdentifier = reader.getInt16(pos);
-        pos += 4; // Skip TIFF marker
+		short byteOrderIdentifier = reader.getInt16(pos);
+		pos += 4; // Skip TIFF marker
 
-        if (byteOrderIdentifier == 0x4d4d) { // "MM"
-            reader.setMotorolaByteOrder(true);
-        } else if (byteOrderIdentifier == 0x4949) { // "II"
-            reader.setMotorolaByteOrder(false);
-        } else {
-            throw new ParseException("Can't determine Exif endianness from: 0x" + Integer.toHexString(byteOrderIdentifier));
-        }
+		if (byteOrderIdentifier == 0x4d4d) { // "MM"
+			reader.setMotorolaByteOrder(true);
+		} else if (byteOrderIdentifier == 0x4949) { // "II"
+			reader.setMotorolaByteOrder(false);
+		} else {
+			throw new ParseException("Can't determine Exif endianness from: 0x" + Integer.toHexString(byteOrderIdentifier));
+		}
 
-        pos = reader.getInt32(pos) + exifHeaderOffset;
+		pos = reader.getInt32(pos) + exifHeaderOffset;
 
-        int tagCount = reader.getUInt16(pos);
+		int tagCount = reader.getUInt16(pos);
 
-        for (int tagNumber = 0; tagNumber < tagCount; tagNumber++) {
-        	int tagOffset = pos + 2 + (12 * tagNumber);
-        	int curTagId = reader.getUInt16(tagOffset);
-        	if (curTagId == tagId) {
-        		// tag found
-        		return tagOffset + 8;
-        	}
-        }
+		for (int tagNumber = 0; tagNumber < tagCount; tagNumber++) {
+			int tagOffset = pos + 2 + (12 * tagNumber);
+			int curTagId = reader.getUInt16(tagOffset);
+			if (curTagId == tagId) {
+				// tag found
+				return tagOffset + 8;
+			}
+		}
 
 		return -1;
 	}
@@ -2013,41 +2178,123 @@ public class ImagesUtil {
 			throw new UnknownFormatException("Content isn't JPEG");
 		}
 
-		byte SEGMENT_IDENTIFIER = (byte) 0xFF;
-		byte MARKER_EOI = (byte) 0xD9;
-		Set<Byte> SOFS = new HashSet<>(Arrays.asList(
+		byte jpegSegmentIdentifier = (byte) 0xFF;
+		byte markerEOI = (byte) 0xD9;
+		Set<Byte> sofs = new HashSet<>(Arrays.asList(
 			(byte) 0xC0, (byte) 0xC1, (byte) 0xC2, (byte) 0xC3, (byte) 0xC5,
 			(byte) 0xC6, (byte) 0xC7, (byte) 0xC8, (byte) 0xC9, (byte) 0xCA,
 			(byte) 0xCB, (byte) 0xCD, (byte) 0xCE, (byte) 0xCF
 		));
 
-        byte segmentIdentifier = reader.getInt8(2);
-        byte segmentType = reader.getInt8(3);
+		byte segmentIdentifier = reader.getInt8(2);
+		byte segmentType = reader.getInt8(3);
 
 		int pos = 4;
 
-        while (
-        	segmentIdentifier != SEGMENT_IDENTIFIER ||
-        	!SOFS.contains(segmentType) &&
-        	segmentType != MARKER_EOI
-        ) {
-        	segmentIdentifier = segmentType;
-        	segmentType = reader.getInt8(pos++);
-        }
+		while (
+			segmentIdentifier != jpegSegmentIdentifier ||
+			!sofs.contains(segmentType) &&
+			segmentType != markerEOI
+		) {
+			segmentIdentifier = segmentType;
+			segmentType = reader.getInt8(pos++);
+		}
 
-        if (segmentType == MARKER_EOI) {
-        	// Reached the end of the image without finding the SOF segment
-        	return null;
-        }
+		if (segmentType == markerEOI) {
+			// Reached the end of the image without finding the SOF segment
+			return null;
+		}
 
-        int segmentLength = reader.getUInt16(pos) - 2;
-        pos += 3;
+		int segmentLength = reader.getUInt16(pos) - 2;
+		pos += 3;
 
-        if (segmentLength < 5) {
-        	throw new ParseException("SOF segment is too small");
-        }
+		if (segmentLength < 5) {
+			throw new ParseException("SOF segment is too small");
+		}
 
-        return new Dimension(reader.getUInt16(pos + 2), reader.getUInt16(pos));
+		return new Dimension(reader.getUInt16(pos + 2), reader.getUInt16(pos));
+	}
+
+	/**
+	 * Returns the "flag" {@link BufferedImage} for the specified language code
+	 * if available. Also handles caching of the "flags" in as
+	 * {@link WeakReference}s. The requested {@link BufferedImage} is retrieved
+	 * from cache if available. If not, the image is read from disk and the
+	 * result cached and returned. Invalid language codes return {@code null}.
+	 * Valid language codes where the "flag" isn't found or can't be read, is
+	 * permanently cached as not available and {@code null} is returned. This
+	 * means that images not found or with read errors won't be attempted read
+	 * more than once.
+	 *
+	 * @param languageCode the language code (2 or 3 letter) whose "flag" to
+	 *            get.
+	 * @return The {@link BufferedImage} with the "flag" representing this
+	 *         language code or {@code null}.
+	 */
+	public static BufferedImage getLanguageFlag(String languageCode) {
+		if (isBlank(languageCode)) {
+			return null;
+		}
+		languageCode = Iso639.getISO639_2Code(languageCode.toLowerCase(Locale.ROOT));
+		if (languageCode == null) {
+			return null;
+		}
+
+		synchronized (LANGUAGE_FLAGS_CACHE) {
+			// Remove stale entries from the cache, leave null entries
+			// to indicate that the underlying file doesn't exist.
+			Iterator<Entry<String, WeakReference<BufferedImage>>> cacheIterator = LANGUAGE_FLAGS_CACHE.entrySet().iterator();
+			while (cacheIterator.hasNext()) {
+				Entry<String, WeakReference<BufferedImage>> entry = cacheIterator.next();
+				if (entry.getValue() != null && entry.getValue().get() == null) {
+					cacheIterator.remove();
+				}
+			}
+
+			if (LANGUAGE_FLAGS_CACHE.containsKey(languageCode)) {
+				WeakReference<BufferedImage> reference = LANGUAGE_FLAGS_CACHE.get(languageCode);
+				if (reference == null) {
+					// The file doesn't exist.
+					return null;
+				}
+				BufferedImage result = reference.get();
+				if (result != null) {
+					// Cached instance found
+					return result;
+				}
+				// Cached instance must have been GC'ed since the cleanup above, remove the stale record.
+				LANGUAGE_FLAGS_CACHE.remove(languageCode);
+			}
+
+			InputStream inputStream = PMS.class.getResourceAsStream(String.format(LANGUAGE_FLAGS_PATH, languageCode));
+			if (inputStream != null) {
+				try {
+					BufferedImage result = ImageIO.read(inputStream);
+					LANGUAGE_FLAGS_CACHE.put(languageCode, new WeakReference<BufferedImage>(result));
+					return result;
+				} catch (Exception e) {
+					// Catch Exception (instead of IOException) because ImageIO has the
+					// nasty habit of throwing RuntimeExceptions if something goes wrong.
+					LOGGER.warn(
+						"An error occurred while trying to read the language flag for \"{}\" (\"{}\"): {}",
+						languageCode,
+						String.format(LANGUAGE_FLAGS_PATH, languageCode),
+						e.getMessage()
+					);
+					LOGGER.trace("", e);
+				}
+			} else {
+				LOGGER.debug(
+					"Warning: Failed to find the language flag for \"{}\" (\"{}\")",
+					languageCode,
+					String.format(LANGUAGE_FLAGS_PATH, languageCode)
+				);
+			}
+
+			// The language flag was not found or failed to read, cache "null"
+			LANGUAGE_FLAGS_CACHE.put(languageCode, null);
+			return null;
+		}
 	}
 
 	/**
@@ -2070,5 +2317,236 @@ public class ImagesUtil {
 		 * while keeping aspect ratio. Will never upscale.
 		 */
 		MAX
+	}
+
+	/**
+	 * A {@link BufferedImageFilter} implementation that adds an audio language
+	 * flag to a {@link BufferedImage}.
+	 *
+	 * @author Nadahar
+	 */
+	public static class AudioFlagFilter extends NonGeometricBufferedImageOp implements BufferedImageFilter {
+
+		private final String languageCode;
+
+		/**
+		 * Creates a new filter instance for the specified language.
+		 *
+		 * @param languageCode the 2 or 3 letter language code for the language.
+		 * @param hints the {@link RenderingHints} or {@code null}.
+		 */
+		public AudioFlagFilter(String languageCode, RenderingHints hints) {
+			super(hints);
+			this.languageCode = languageCode;
+		}
+
+		@Override
+		public String getDescription() {
+			return toString();
+		}
+
+		@Override
+		public String toString() {
+			return "Audio language flag for \"" + languageCode + "\"";
+		}
+
+		/**
+		 * @return The language code specified in the constructor.
+		 */
+		public String getLanguageCode() {
+			return languageCode;
+		}
+
+		@Override
+		public BufferedImage filter(BufferedImage source, BufferedImage destination) {
+			return filter(source, destination, true).getBufferedImage();
+		}
+
+		@Override
+		public BufferedImageFilterResult filter(BufferedImage source) {
+			return filter(source, null, true);
+		}
+
+		@Override
+		public BufferedImageFilterResult filter(BufferedImage source, BufferedImage destination, boolean modifySource) {
+			BufferedImage flag = getLanguageFlag(languageCode);
+			if (flag == null) {
+				return new BufferedImageFilterResult(source, false, true);
+			}
+
+			boolean sameInstance = true;
+			boolean nullSource = source == null;
+			// Use the flag image if the input is missing
+			if (source == null) {
+				source = flag;
+				sameInstance = false;
+			}
+
+			// Create new destination or reuse source according to modifySource
+			if (destination == null) {
+				if (modifySource) {
+					destination = source;
+				} else {
+					destination = createCompatibleDestImage(source, null);
+					sameInstance = false;
+				}
+			} else {
+				sameInstance = source == destination;
+			}
+
+			// Return the flag itself
+			if (nullSource && source == destination) {
+				return new BufferedImageFilterResult(flag, true, false);
+			}
+
+			int flagHorizontalResolution;
+			int flagVerticalResolution;
+			int flagHorizontalPosition;
+			int flagVerticalPosition;
+			if (nullSource) {
+				flagHorizontalResolution = source.getWidth();
+				flagVerticalResolution = source.getHeight();
+				flagHorizontalPosition = 0;
+				flagVerticalPosition = 0;
+			} else {
+				double scale = Math.min(
+					(double) source.getWidth() / flag.getWidth(),
+					(double) source.getHeight() / flag.getHeight()
+				);
+				flagHorizontalResolution = (int) Math.round(flag.getWidth() * scale);
+				flagVerticalResolution = (int) Math.round(flag.getHeight() * scale);
+				flagHorizontalPosition = (source.getWidth() - flagHorizontalResolution) / 2;
+				flagVerticalPosition = (source.getHeight() - flagVerticalResolution) / 2;
+			}
+
+			Graphics2D g2d = source.createGraphics();
+			try {
+				if (hints != null) {
+					g2d.setRenderingHints(hints);
+				}
+				if (source != destination) {
+					g2d.drawImage(source, 0, 0, null);
+				}
+				g2d.drawImage(
+					flag,
+					flagHorizontalPosition,
+					flagVerticalPosition,
+					flagHorizontalResolution,
+					flagVerticalResolution,
+					null
+				);
+			} finally {
+				g2d.dispose();
+			}
+
+			return new BufferedImageFilterResult(source, true, sameInstance);
+		}
+	}
+
+	/**
+	 * A {@link BufferedImageFilter} implementation that adds a subtitles
+	 * language flag to a {@link BufferedImage}.
+	 *
+	 * @author Nadahar
+	 */
+	public static class SubtitlesFlagFilter extends NonGeometricBufferedImageOp implements BufferedImageFilter {
+
+		private final String languageCode;
+
+		/**
+		 * Creates a new filter instance for the specified language.
+		 *
+		 * @param languageCode the 2 or 3 letter language code for the language.
+		 * @param hints the {@link RenderingHints} or {@code null}.
+		 */
+		public SubtitlesFlagFilter(String languageCode, RenderingHints hints) {
+			super(hints);
+			this.languageCode = languageCode;
+		}
+
+		@Override
+		public String getDescription() {
+			return toString();
+		}
+
+		@Override
+		public String toString() {
+			return "Subtitles language flag for \"" + languageCode + "\"";
+		}
+
+		/**
+		 * @return The language code specified in the constructor.
+		 */
+		public String getLanguageCode() {
+			return languageCode;
+		}
+
+		@Override
+		public BufferedImage filter(BufferedImage source, BufferedImage destination) {
+			return filter(source, destination, true).getBufferedImage();
+		}
+
+		@Override
+		public BufferedImageFilterResult filter(BufferedImage source) {
+			return filter(source, null, true);
+		}
+
+		@Override
+		public BufferedImageFilterResult filter(BufferedImage source, BufferedImage destination, boolean modifySource) {
+			BufferedImage flag = getLanguageFlag(languageCode);
+			if (flag == null) {
+				return new BufferedImageFilterResult(source, false, true);
+			}
+
+			boolean sameInstance = true;
+			// Create a blank image if the input is missing
+			if (source == null) {
+				source = createCompatibleDestImage(flag, null);
+				sameInstance = false;
+			}
+
+			// Create new destination or reuse source according to modifySource
+			if (destination == null) {
+				if (modifySource) {
+					destination = source;
+				} else {
+					destination = createCompatibleDestImage(source, null);
+					sameInstance = false;
+				}
+			} else {
+				sameInstance = source == destination;
+			}
+
+			double scale = Math.min(
+				(double) source.getWidth() / (flag.getWidth() * 2),
+				(double) source.getHeight() / (flag.getHeight() * 2)
+			);
+			int flagHorizontalResolution = (int) Math.round(flag.getWidth() * scale);
+			int flagVerticalResolution = (int) Math.round(flag.getHeight() * scale);
+			int flagHorizontalPosition = source.getWidth() - flagHorizontalResolution;
+			int flagVerticalPosition = source.getHeight() - flagVerticalResolution;
+
+			Graphics2D g2d = source.createGraphics();
+			try {
+				if (hints != null) {
+					g2d.setRenderingHints(hints);
+				}
+				if (source != destination) {
+					g2d.drawImage(source, 0, 0, null);
+				}
+				g2d.drawImage(
+					flag,
+					flagHorizontalPosition,
+					flagVerticalPosition,
+					flagHorizontalResolution,
+					flagVerticalResolution,
+					null
+				);
+			} finally {
+				g2d.dispose();
+			}
+
+			return new BufferedImageFilterResult(source, true, sameInstance);
+		}
 	}
 }

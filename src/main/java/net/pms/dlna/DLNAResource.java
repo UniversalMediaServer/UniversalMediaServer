@@ -18,6 +18,7 @@
  */
 package net.pms.dlna;
 
+import java.awt.RenderingHints;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URLDecoder;
@@ -44,8 +45,10 @@ import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
@@ -82,6 +85,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
+
+	public static final RenderingHints THUMBNAIL_HINTS = new RenderingHints(
+		RenderingHints.KEY_RENDERING,
+		RenderingHints.VALUE_RENDER_QUALITY
+	);
 
 	/**
 	 * The name displayed on the renderer if displayNameFinal is not specified.
@@ -1432,7 +1440,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
-	private DLNAResource search(String[] searchIds, RendererConfiguration renderer) {
+	private static DLNAResource search(String[] searchIds, RendererConfiguration renderer) {
 		DLNAResource dlna;
 		for (String searchId : searchIds) {
 			if (searchId.equals("0")) {
@@ -1903,7 +1911,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			o.resolved = false;
 
 			if (media != null) {
-				o.media = (DLNAMediaInfo) media.clone();
+				o.media = media.clone();
 			}
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(null, e);
@@ -3187,124 +3195,123 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			lastStartSystemTime = System.currentTimeMillis();
 			return fis;
-		} else {
-			// Pipe transcoding result
-			OutputParams params = new OutputParams(configurationSpecificToRenderer);
-			params.aid = getMediaAudio();
-			params.sid = media_subtitle;
-			params.header = getHeaders();
-			params.mediaRenderer = mediarenderer;
-			timeRange.limit(getSplitRange());
-			params.timeseek = timeRange.getStartOrZero();
-			params.timeend = timeRange.getEndOrZero();
-			params.shift_scr = timeseek_auto;
-			if (this instanceof IPushOutput) {
-				params.stdin = (IPushOutput) this;
+		}
+		// Pipe transcoding result
+		OutputParams params = new OutputParams(configurationSpecificToRenderer);
+		params.aid = getMediaAudio();
+		params.sid = media_subtitle;
+		params.header = getHeaders();
+		params.mediaRenderer = mediarenderer;
+		timeRange.limit(getSplitRange());
+		params.timeseek = timeRange.getStartOrZero();
+		params.timeend = timeRange.getEndOrZero();
+		params.shift_scr = timeseek_auto;
+		if (this instanceof IPushOutput) {
+			params.stdin = (IPushOutput) this;
+		}
+
+		if (resume != null) {
+			if (range.isTimeRange()) {
+				resume.update((Range.Time) range, this);
 			}
 
-			if (resume != null) {
-				if (range.isTimeRange()) {
-					resume.update((Range.Time) range, this);
+			params.timeseek = resume.getTimeOffset() / 1000d;
+			if (player == null) {
+				player = new FFMpegVideo();
+			}
+		}
+
+		if (System.currentTimeMillis() - lastStartSystemTime < 500) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				LOGGER.error(null, e);
+			}
+		}
+
+		// (Re)start transcoding process if necessary
+		if (externalProcess == null || externalProcess.isDestroyed()) {
+			// First playback attempt => start new transcoding process
+			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
+			lastStartSystemTime = System.currentTimeMillis();
+			externalProcess = player.launchTranscode(this, media, params);
+			if (params.waitbeforestart > 0) {
+				LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
+				try {
+					Thread.sleep(params.waitbeforestart);
+				} catch (InterruptedException e) {
+					LOGGER.error(null, e);
 				}
 
-				params.timeseek = resume.getTimeOffset() / 1000d;
-				if (player == null) {
-					player = new FFMpegVideo();
+				LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
+			}
+		} else if (
+			params.timeseek > 0 &&
+			media != null &&
+			media.isMediaparsed() &&
+			media.getDurationInSeconds() > 0
+		) {
+			// Time seek request => stop running transcode process and start a new one
+			LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
+			params.minBufferSize = 1;
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					externalProcess.stopProcess();
 				}
+			};
+
+			new Thread(r, "External Process Stopper").start();
+			lastStartSystemTime = System.currentTimeMillis();
+			ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				LOGGER.error(null, e);
 			}
 
-			if (System.currentTimeMillis() - lastStartSystemTime < 500) {
+			if (newExternalProcess == null) {
+				LOGGER.trace("External process instance is null... sounds not good");
+			}
+
+			externalProcess = newExternalProcess;
+		}
+
+		if (externalProcess == null) {
+			return null;
+		}
+
+		InputStream is = null;
+		int timer = 0;
+		while (is == null && timer < 10) {
+			is = externalProcess.getInputStream(low);
+			timer++;
+			if (is == null) {
+				LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
-					LOGGER.error(null, e);
 				}
 			}
-
-			// (Re)start transcoding process if necessary
-			if (externalProcess == null || externalProcess.isDestroyed()) {
-				// First playback attempt => start new transcoding process
-				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
-				lastStartSystemTime = System.currentTimeMillis();
-				externalProcess = player.launchTranscode(this, media, params);
-				if (params.waitbeforestart > 0) {
-					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
-					try {
-						Thread.sleep(params.waitbeforestart);
-					} catch (InterruptedException e) {
-						LOGGER.error(null, e);
-					}
-
-					LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
-				}
-			} else if (
-				params.timeseek > 0 &&
-				media != null &&
-				media.isMediaparsed() &&
-				media.getDurationInSeconds() > 0
-			) {
-				// Time seek request => stop running transcode process and start a new one
-				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
-				params.minBufferSize = 1;
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						externalProcess.stopProcess();
-					}
-				};
-
-				new Thread(r, "External Process Stopper").start();
-				lastStartSystemTime = System.currentTimeMillis();
-				ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					LOGGER.error(null, e);
-				}
-
-				if (newExternalProcess == null) {
-					LOGGER.trace("External process instance is null... sounds not good");
-				}
-
-				externalProcess = newExternalProcess;
-			}
-
-			if (externalProcess == null) {
-				return null;
-			}
-
-			InputStream is = null;
-			int timer = 0;
-			while (is == null && timer < 10) {
-				is = externalProcess.getInputStream(low);
-				timer++;
-				if (is == null) {
-					LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-					}
-				}
-			}
-
-			// fail fast: don't leave a process running indefinitely if it's
-			// not producing output after params.waitbeforestart milliseconds + 5 seconds
-			// this cleans up lingering MEncoder web video transcode processes that hang
-			// instead of exiting
-			if (is == null && !externalProcess.isDestroyed()) {
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						LOGGER.error("External input stream instance is null... stopping process");
-						externalProcess.stopProcess();
-					}
-				};
-
-				new Thread(r, "Hanging External Process Stopper").start();
-			}
-
-			return is;
 		}
+
+		// fail fast: don't leave a process running indefinitely if it's
+		// not producing output after params.waitbeforestart milliseconds + 5 seconds
+		// this cleans up lingering MEncoder web video transcode processes that hang
+		// instead of exiting
+		if (is == null && !externalProcess.isDestroyed()) {
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					LOGGER.error("External input stream instance is null... stopping process");
+					externalProcess.stopProcess();
+				}
+			};
+
+			new Thread(r, "Hanging External Process Stopper").start();
+		}
+
+		return is;
 	}
 
 	/**
@@ -3490,29 +3497,95 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		String languageCode = null;
-		if (media_audio != null) {
-			languageCode = media_audio.getLang();
-		}
-
-		if (media_subtitle != null && media_subtitle.getId() != -1) {
-			languageCode = media_subtitle.getLang();
-		}
-
-		if ((media_subtitle != null || media_audio != null) && StringUtils.isBlank(languageCode)) {
-			languageCode = DLNAMediaLang.UND;
-		}
-
-		if (languageCode != null) {
-			String code = Iso639.getISO639_2Code(languageCode.toLowerCase());
-			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/codes/" + code + ".png"));
-		}
-
 		if (isAvisynth()) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo-avisynth.png"));
 		}
 
 		return getGenericThumbnailInputStream(null);
+	}
+
+	/**
+	 * Adds an audio "flag" filter to the specified
+	 * {@link BufferedImageFilterChain}. If {@code filterChain} is {@code null}
+	 * and a "flag" filter is added, a new {@link BufferedImageFilterChain} is
+	 * created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
+	public BufferedImageFilterChain addAudioFlagFilter(BufferedImageFilterChain filterChain) {
+		String audioLanguageCode = media_audio != null ? media_audio.getLang() : null;
+		if (isNotBlank(audioLanguageCode)) {
+			if (filterChain == null) {
+				filterChain = new BufferedImageFilterChain();
+			}
+			filterChain.add(new ImagesUtil.AudioFlagFilter(audioLanguageCode, THUMBNAIL_HINTS));
+		}
+		return filterChain;
+	}
+
+	/**
+	 * Adds a subtitles "flag" filter to the specified
+	 * {@link BufferedImageFilterChain}. If {@code filterChain} is {@code null}
+	 * and a "flag" filter is added, a new {@link BufferedImageFilterChain} is
+	 * created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
+	public BufferedImageFilterChain addSubtitlesFlagFilter(BufferedImageFilterChain filterChain) {
+		String subsLanguageCode = media_subtitle != null && media_subtitle.getId() != -1 ? media_subtitle.getLang() : null;
+
+		if (isNotBlank(subsLanguageCode)) {
+			if (filterChain == null) {
+				filterChain = new BufferedImageFilterChain();
+			}
+			filterChain.add(new ImagesUtil.SubtitlesFlagFilter(subsLanguageCode, THUMBNAIL_HINTS));
+		}
+		return filterChain;
+	}
+
+	/**
+	 * Adds audio and subtitles "flag" filters to the specified
+	 * {@link BufferedImageFilterChain} if they should be applied. If
+	 * {@code filterChain} is {@code null} and a "flag" filter is added, a new
+	 * {@link BufferedImageFilterChain} is created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
+	public BufferedImageFilterChain addFlagFilters(BufferedImageFilterChain filterChain) {
+		// Show audio and subtitles language flags in the TRANSCODE folder only for video files
+		if (
+				(
+					parent instanceof FileTranscodeVirtualFolder ||
+					parent instanceof SubSelFile
+				) && (
+					media_audio != null ||
+					media_subtitle != null
+				)
+		) {
+			if (
+					(
+						media != null &&
+						media.isVideo()
+					) || (
+						media == null &&
+						format != null &&
+						format.isVideo()
+					)
+			) {
+				filterChain = addAudioFlagFilter(filterChain);
+				filterChain = addSubtitlesFlagFilter(filterChain);
+			}
+		} else if (
+			parent instanceof TranscodeVirtualFolder &&
+			this instanceof FileTranscodeVirtualFolder &&
+			media_subtitle != null
+		) {
+			filterChain = addSubtitlesFlagFilter(filterChain);
+		}
+		return filterChain;
 	}
 
 	public int getType() {
@@ -3549,7 +3622,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		result.append(getName());
 		result.append(", full path=");
 		result.append(getResourceId());
-		result.append(", ext=");
+		result.append(", format=");
 		result.append(format);
 		result.append(", discovered=");
 		result.append(isDiscovered());
@@ -4708,7 +4781,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			type == Format.IMAGE ? new FeedItem(name, uri, null, null, Format.IMAGE) : null
 			:
 			new RealFile(new File(uri));
-		if (format == null && !isweb) {
+		if (resource != null && format == null && !isweb) {
 			resource.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
 		}
 

@@ -41,6 +41,7 @@ import net.pms.dlna.*;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
@@ -333,10 +334,16 @@ public class RequestV2 extends HTTPResource {
 						dlna.checkThumbnail();
 						thumbInputStream = dlna.fetchThumbnailInputStream();
 					}
+					BufferedImageFilterChain filterChain = null;
 					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
-						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
+						filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 					}
-					inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+					filterChain = dlna.addFlagFilters(filterChain);
+					inputStream = thumbInputStream.transcode(
+						imageProfile,
+						mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false,
+						filterChain
+					);
 					if (contentFeatures != null) {
 						output.headers().set(
 							"ContentFeatures.DLNA.ORG",
