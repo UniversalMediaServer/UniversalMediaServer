@@ -251,7 +251,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder && (getMediaSubtitle() != null || getMediaAudio() != null)) {
+		if (useSuperThumb) {
 			return super.getThumbnailInputStream();
 		}
 
