@@ -92,16 +92,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	);
 
 	/**
-	 * The name displayed on the renderer. Cached the first time getDisplayName(RendererConfiguration) is called.
-	 */
-	private String displayName;
-
-	/**
-	 * The suffix added to the name. Contains additional info about audio and subtitles.
-	 */
-	private String nameSuffix = "";
-
-	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
 	 */
 	@Deprecated
@@ -1579,6 +1569,153 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
+	/**
+	 * Returns the "engine"/player part of the display name or {@code null} if
+	 * none should be displayed.
+	 *
+	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @return The engine display name or {@code null}.
+	 */
+	protected String getDisplayNameEngine(PmsConfiguration configuration) {
+		String engineName = null;
+		if (player != null) {
+			if (
+				isNoName() ||
+				!configuration.isHideEngineNames()
+			) {
+				engineName = "[" + player.name() + (isAvisynth() ? " + AviSynth]" : "]");
+			}
+		} else if (isNoName()) {
+			engineName = Messages.getString("DLNAResource.0");
+		}
+		return engineName;
+	}
+
+	/**
+	 * Returns the "base" part of the display name or an empty {@link String} if
+	 * none should be displayed. The "base" name is the name of this
+	 * {@link DLNAResource} without any prefix or suffix.
+	 *
+	 * @param renderer the {@link RendererConfiguration} to use.
+	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @return The base display name or {@code ""}.
+	 */
+	@SuppressWarnings("unused")
+	protected String getDisplayNameBase(RendererConfiguration renderer, PmsConfiguration configuration) {
+		// this unescape trick is to solve the problem of a name containing
+		// unicode stuff like \u005e
+		// if it's done here it will fix this for all objects
+		return isNoName() ? "" : StringEscapeUtils.unescapeJava(getName());
+	}
+
+	/**
+	 * Returns the suffix part of the display name or an empty {@link String} if
+	 * none should be displayed.
+	 *
+	 * @param renderer the {@link RendererConfiguration} to use.
+	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @return The display name suffix or {@code ""}.
+	 */
+	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
+		StringBuilder nameSuffixBuilder = new StringBuilder();
+		if (format != null) {
+			if (format.isVideo()) {
+				boolean subsAreValidForStreaming =
+					media_subtitle != null &&
+					media_subtitle.isStreamable() &&
+					renderer != null &&
+					renderer.streamSubsForTranscodedVideo();
+
+				if (getMediaAudio() != null) {
+					String audioLanguage = getMediaAudio().getLangFullName();
+					if ("Undetermined".equals(audioLanguage)) {
+						audioLanguage = "";
+					} else {
+						audioLanguage = "/" + audioLanguage;
+					}
+
+					String audioTrackTitle = "";
+					if (
+						getMediaAudio().getAudioTrackTitleFromMetadata() != null &&
+						!"".equals(getMediaAudio().getAudioTrackTitleFromMetadata()) &&
+						renderer != null &&
+						renderer.isShowAudioMetadata()
+					) {
+						audioTrackTitle = " (" + getMediaAudio().getAudioTrackTitleFromMetadata() + ")";
+					}
+
+					if (nameSuffixBuilder.length() > 0) {
+						nameSuffixBuilder.append(" ");
+					}
+					nameSuffixBuilder.append("{Audio: ").append(getMediaAudio().getAudioCodec())
+						.append(audioLanguage).append(audioTrackTitle).append("}");
+				}
+
+				if (
+					media_subtitle == null &&
+					hasExternalSubtitles() &&
+					!configuration.hideSubsInfo() &&
+					(
+						subsAreValidForStreaming ||
+						(
+							player != null ||
+							!isNoName()
+						)
+					) &&
+					(
+						player == null ||
+						player.isExternalSubtitlesSupported()
+					)
+				) {
+					if (nameSuffixBuilder.length() > 0) {
+						nameSuffixBuilder.append(" ");
+					}
+					nameSuffixBuilder.append(Messages.getString("DLNAResource.1"));
+				}
+
+				if (
+					media_subtitle != null &&
+					media_subtitle.getId() != -1 &&
+					!configuration.hideSubsInfo()
+				) {
+					if (nameSuffixBuilder.length() > 0) {
+						nameSuffixBuilder.append(" ");
+					}
+					nameSuffixBuilder.append("{");
+					if (subsAreValidForStreaming) {
+						nameSuffixBuilder.append(Messages.getString("DLNAResource.3")).append(" ");
+					}
+
+					if (media_subtitle.isExternal()) {
+						nameSuffixBuilder.append(Messages.getString("SubTitles.ExternalShort")).append(" ");
+					} else if (media_subtitle.isEmbedded()) {
+						nameSuffixBuilder.append(Messages.getString("SubTitles.InternalShort")).append(" ");
+					}
+					nameSuffixBuilder.append(Messages.getString("DLNAResource.2"));
+					nameSuffixBuilder.append(media_subtitle.getType().getShortName()).append("/");
+
+					String subtitleLanguage = media_subtitle.getLangFullName();
+					if ("Undetermined".equals(subtitleLanguage)) {
+						nameSuffixBuilder.append(Messages.getString("SubTitles.UnknownShort"));
+					} else {
+						nameSuffixBuilder.append(subtitleLanguage);
+					}
+
+					if (
+						renderer != null &&
+						media_subtitle.getSubtitlesTrackTitleFromMetadata() != null &&
+						isNotBlank(media_subtitle.getSubtitlesTrackTitleFromMetadata()) &&
+						renderer.isShowSubMetadata()
+					) {
+						nameSuffixBuilder.append(" (").append(media_subtitle.getSubtitlesTrackTitleFromMetadata()).append(")");
+					}
+					nameSuffixBuilder.append("}");
+				}
+			}
+		}
+		return nameSuffixBuilder.toString();
+	}
+
 	// Ditlew
 	/**
 	 * Returns the display name for the default renderer.
@@ -1599,6 +1736,45 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return getDisplayName(mediaRenderer, true);
 	}
 
+	public String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
+		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
+		StringBuilder sb = new StringBuilder();
+
+		// Prefix
+		String engineName = getDisplayNameEngine(configurationSpecificToRenderer);
+		if (engineName != null) {
+			sb.append(engineName).append(" ");
+		}
+
+		// Base
+		if (parent instanceof ChapterFileTranscodeVirtualFolder && getSplitRange() != null) {
+			sb.append(">> ");
+			sb.append(
+				convertTimeToString(getSplitRange().isStartOffsetAvailable() ?
+					getSplitRange().getStart() :
+					0,
+				DURATION_TIME_FORMAT)
+			);
+		} else {
+			sb.append(getDisplayNameBase(mediaRenderer, configurationSpecificToRenderer));
+		}
+
+		// Suffix
+		if (withSuffix) {
+			String nameSuffix = getDisplayNameSuffix(mediaRenderer, configurationSpecificToRenderer);
+			if (isNotBlank(nameSuffix)) {
+				sb.append(" ").append(nameSuffix);
+			}
+		}
+
+		// Truncate
+		if (nametruncate > 0) {
+			return sb.substring(0, nametruncate).trim();
+		}
+
+		return sb.toString();
+	}
+
 	/**
 	 * Returns the DisplayName that is shown to the Renderer.
 	 * Extra info might be appended depending on the settings, like item duration.
@@ -1608,18 +1784,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param withSuffix Whether to include additional media info
 	 * @return String representing the item.
 	 */
-	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
+	public String getDisplayNameOld(RendererConfiguration mediaRenderer, boolean withSuffix) {
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
-		// displayName shouldn't be cached, since device configurations may differ
-//		if (displayName != null) { // cached
-//			return withSuffix ? (displayName + nameSuffix) : displayName;
-//		}
 
 		// this unescape trick is to solve the problem of a name containing
 		// unicode stuff like \u005e
 		// if it's done here it will fix this for all objects
-		displayName = StringEscapeUtils.unescapeJava(getName());
-		nameSuffix = "";
+		String displayName = StringEscapeUtils.unescapeJava(getName());
+		String nameSuffix = "";
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
@@ -1862,9 +2034,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			o = (DLNAResource) super.clone();
 			o.setId(null);
 
-			// Clear the cached display name and suffix
-			o.displayName = null;
-			o.nameSuffix = "";
 			// Make sure clones (typically #--TRANSCODE--# folder files)
 			// have the option to respond to resolve events
 			o.resolved = false;
@@ -2238,14 +2407,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		) {
 			title = firstAudioTrack.getSongname();
 		} else { // Ditlew - org
-			title = (isFolder || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
+			title = (isFolder || subsAreValidForStreaming) ? getDisplayName(mediaRenderer, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 		}
 
 		title = resumeStr(title);
 		addXMLTagAndAttribute(
 			sb,
 			"dc:title",
-			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
+			encodeXML(mediaRenderer.getDcTitle(title, getDisplayNameSuffix(mediaRenderer, configurationSpecificToRenderer), this))
 		);
 		wireshark.append("\"").append(title).append("\"");
 		if (firstAudioTrack != null) {

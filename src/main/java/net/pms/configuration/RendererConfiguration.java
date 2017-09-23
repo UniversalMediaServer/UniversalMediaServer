@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -2380,14 +2381,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				name = name.substring(0, len).trim() + dots;
 			}
 		}
-		if (len > -1) {
-			name += suffix;
+		if (len > -1 && isNotBlank(suffix)) {
+			name += " " + suffix;
 		}
 
 		// Substitute
-		for (String s : charMap.keySet()) {
-			String repl = charMap.get(s).replaceAll("###e", "");
-			name = name.replaceAll(s, repl);
+		for (Entry<String, String> entry : charMap.entrySet()) {
+			String repl = entry.getValue().replaceAll("###e", "");
+			name = name.replaceAll(entry.getKey(), repl);
 		}
 
 		return name;
