@@ -23,8 +23,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import net.pms.Messages;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import org.slf4j.Logger;
@@ -33,14 +34,8 @@ import org.slf4j.LoggerFactory;
 /**
  * This class populates the file-specific transcode folder with content.
  */
-public class FileTranscodeVirtualFolder extends VirtualFolder {
+public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
-
-	// FIXME unused
-	@Deprecated
-	public FileTranscodeVirtualFolder(String name, String thumbnailIcon, boolean copy) {
-		super(name, thumbnailIcon);
-	}
 
 	public FileTranscodeVirtualFolder(String name, String thumbnailIcon) { // XXX thumbnailIcon is always null
 		super(name, thumbnailIcon);
@@ -56,7 +51,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	 * @param player The player to use.
 	 * @return The copy.
 	 */
-	private DLNAResource createResourceWithAudioSubtitlePlayer(
+	private static DLNAResource createResourceWithAudioSubtitlePlayer(
 		DLNAResource original,
 		DLNAMediaAudio audio,
 		DLNAMediaSubtitle subtitle,
@@ -84,15 +79,15 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			this.players = players;
 		}
 
-		private String getMediaAudioLanguage(DLNAResource dlna) {
+		private static String getMediaAudioLanguage(DLNAResource dlna) {
 			return dlna.getMediaAudio() == null ? null : dlna.getMediaAudio().getLang();
 		}
 
-		private String getMediaSubtitleLanguage(DLNAResource dlna) {
+		private static String getMediaSubtitleLanguage(DLNAResource dlna) {
 			return dlna.getMediaSubtitle() == null ? null : dlna.getMediaSubtitle().getLang();
 		}
 
-		private int compareLanguage(String lang1, String lang2) {
+		private static int compareLanguage(String lang1, String lang2) {
 			if (lang1 == null && lang2 == null) {
 				return 0;
 			} else if (lang1 != null && lang2 != null) {
@@ -100,9 +95,8 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			} else {
 				if (lang1 == null) {
 					return -1;
-				} else {
-					return 1;
 				}
+				return 1;
 			}
 		}
 
@@ -131,14 +125,13 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 		}
 	}
 
-	private boolean isSeekable(DLNAResource dlna) {
+	private static boolean isSeekable(DLNAResource dlna) {
 		Player player = dlna.getPlayer();
 
 		if ((player == null) || player.isTimeSeekable()) {
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	private void addChapterFolder(DLNAResource dlna) {
@@ -291,5 +284,10 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				addChapterFolder(dlna);
 			}
 		}
+	}
+
+	@Override
+	protected String getDisplayNameEngine(PmsConfiguration configuration) {
+		return null;
 	}
 }
