@@ -2521,8 +2521,15 @@ public class ImagesUtil {
 				(double) source.getWidth() / (flag.getWidth() * 2),
 				(double) source.getHeight() / (flag.getHeight() * 2)
 			);
-			int flagHorizontalResolution = (int) Math.round(flag.getWidth() * scale);
-			int flagVerticalResolution = (int) Math.round(flag.getHeight() * scale);
+			// Never let the subtitle flag be bigger than 75% of the audio flag on small images
+			int maxRelativeHorizontalResolution = (int) Math.round(flag.getWidth() * scale * 1.5);
+			int maxRelativeVerticalResolution = (int) Math.round(flag.getHeight() * scale * 1.5);
+
+			// Reduce the downscaling so it won't shrink below 64 x 64 pixels,
+			// unless that is bigger than 75% of the audio flag's size, in which
+			// case 75% is used.
+			int flagHorizontalResolution = (int) Math.max(Math.round(flag.getWidth() * scale), Math.min(64, maxRelativeHorizontalResolution));
+			int flagVerticalResolution = (int) Math.max(Math.round(flag.getHeight() * scale), Math.min(64, maxRelativeVerticalResolution));
 			int flagHorizontalPosition = source.getWidth() - flagHorizontalResolution;
 			int flagVerticalPosition = source.getHeight() - flagVerticalResolution;
 
