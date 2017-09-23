@@ -25,8 +25,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.util.FileUtil;
+import net.pms.util.FullyPlayed;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -333,5 +337,21 @@ public class RealFile extends MapFile {
 
 	public void ignoreThumbHandling() {
 		useSuperThumb = true;
+	}
+
+	@Override
+	protected String getDisplayNameBase(RendererConfiguration renderer, PmsConfiguration configuration) {
+		String displayName = super.getDisplayNameBase(renderer, configuration);
+		if (isFolder()) {
+			return displayName;
+		}
+		if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
+			displayName = FileUtil.getFileNamePrettified(displayName, getFile());
+		} else if (configuration.isHideExtensions()) {
+			displayName = FileUtil.getFileNameWithoutExtension(displayName);
+		}
+		displayName = FullyPlayed.prefixDisplayName(displayName, this, renderer);
+
+		return displayName;
 	}
 }
