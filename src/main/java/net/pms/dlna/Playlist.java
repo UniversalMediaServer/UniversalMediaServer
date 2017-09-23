@@ -39,7 +39,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 
 	public void add(DLNAResource res) {
 		DLNAResource res1;
-		LOGGER.debug("Adding \"{}\" to playlist \"{}\"", res.getDisplayName(), getName());
+		LOGGER.debug("Adding \"{}\" to playlist \"{}\"", res.getDisplayName(null, false), getName());
 		if (res instanceof VirtualVideoAction) {
 			// don't add these
 			return;
@@ -75,7 +75,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	}
 
 	public void remove(DLNAResource res) {
-		LOGGER.debug("Removing \"{}\" from playlist \"{}\"", res.getDisplayName(), getName());
+		LOGGER.debug("Removing \"{}\" from playlist \"{}\"", res.getDisplayName(null, false), getName());
 		list.remove(res);
 		update();
 	}
