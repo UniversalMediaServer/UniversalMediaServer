@@ -371,7 +371,16 @@ public class PmsConfiguration extends RendererConfiguration {
 	public IpFilter filter;
 
 	/**
-	 * The set of keys defining when the HTTP server has to restarted due to a configuration change
+	 * The set of keys defining when the whole program has to restart due to a configuration change
+	 */
+	public static final Set<String> NEED_RESTART_FLAGS = new HashSet<>(
+		Arrays.asList(
+			KEY_FOLDERS
+		)
+	);
+	
+	/**
+	 * The set of keys defining when the HTTP server has to restart due to a configuration change
 	 */
 	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<>(
 		Arrays.asList(
@@ -382,7 +391,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_DISABLE_TRANSCODING,
 			KEY_ENGINES,
-			KEY_FOLDERS,
 			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_HIDE_EMPTY_FOLDERS,
 			KEY_HIDE_ENGINENAMES,

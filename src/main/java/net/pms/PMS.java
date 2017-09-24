@@ -636,8 +636,12 @@ public class PMS {
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
+				if (!event.isBeforeUpdate()) {
+					if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+						frame.setReloadable(true);
+					} else if (PmsConfiguration.NEED_RESTART_FLAGS.contains(event.getPropertyName())) {
+						askToRestart();
+					}
 				}
 			}
 		});
@@ -883,8 +887,9 @@ public class PMS {
 	private MediaLibrary mediaLibrary;
 
 	/**
-	 * Returns the MediaLibrary used by PMS.
-	 * @return (MediaLibrary) Used mediaLibrary, if any. null if none is in use.
+	 * Returns the Media Library.
+	 *
+	 * @return the Media Library, if any. null if none is in use.
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
@@ -1968,5 +1973,49 @@ public class PMS {
 
 	public static void setKey(String key, String val) {
 		instance.keysDb.set(key, val);
+	}
+
+	/**
+	 * Restarts UMS completely.
+	 */
+	public void restartApplication() {
+		final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+		final File currentJar;
+
+		try {
+		currentJar = new File(PMS.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+
+		if (!currentJar.getName().endsWith(".jar")) {
+			LOGGER.info("currentJar not a jar: {}", currentJar);
+			return;
+		}
+
+		// Build command: java -jar application.jar
+		final ArrayList<String> command = new ArrayList<String>();
+		command.add(javaBin);
+		command.add("-jar");
+		command.add(currentJar.getPath());
+
+		final ProcessBuilder builder = new ProcessBuilder(command);
+		builder.start();
+		System.exit(0);
+		} catch (Exception e) {
+			LOGGER.info("exception while restarting: {}", e);
+		}
+	}
+
+	/**
+	 * Informs the user a program restart is needed to update
+	 * settings, and offers the option to do it automatically.
+	 */
+	public void askToRestart() {
+		int option = JOptionPane.showConfirmDialog(
+			null,
+			Messages.getString("FoldTab.RestartQuestion"),
+			Messages.getString("Dialog.Question"),
+			JOptionPane.YES_NO_OPTION);
+		if (option == JOptionPane.YES_OPTION) {
+			PMS.get().restartApplication();
+		}
 	}
 }
