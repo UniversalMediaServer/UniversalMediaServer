@@ -190,7 +190,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getPath()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
 				} else {
 					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}

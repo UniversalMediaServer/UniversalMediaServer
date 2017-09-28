@@ -40,6 +40,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
@@ -443,6 +444,10 @@ public class Request extends HTTPResource {
 						// XXX external file is null if the first subtitle track is embedded:
 						// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 						if (sub.isExternal()) {
+							if (sub.getExternalFile() == null && sub instanceof DLNAMediaOnDemandSubtitle) {
+								// Try to fetch subtitles
+								((DLNAMediaOnDemandSubtitle) sub).fetch();
+							}
 							if (sub.getExternalFile() == null) {
 								LOGGER.error("External subtitles file \"{}\" is unavailable", sub.getName());
 							} else {

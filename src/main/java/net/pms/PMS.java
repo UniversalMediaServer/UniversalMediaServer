@@ -397,9 +397,6 @@ public class PMS {
 			filter = null;
 		}
 
-		// This should be removed soon
-		OpenSubtitle.convert();
-
 		// Start this here to let the converison work
 		tfm.schedule();
 

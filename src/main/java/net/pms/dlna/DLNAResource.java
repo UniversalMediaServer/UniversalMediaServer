@@ -719,7 +719,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// folder if supported/enabled and if it doesn't already exist
 								VirtualFolder transcodeFolder = getTranscodeFolder(true);
 								if (transcodeFolder != null) {
-									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
+									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child);
+									if (parent instanceof SubSelect) {
+										fileTranscodeFolder.setMediaSubtitle(child.getMediaSubtitle());
+									}
 
 									DLNAResource newChild = child.clone();
 									newChild.player = playerTranscoding;
@@ -727,7 +730,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									fileTranscodeFolder.addChildInternal(newChild);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), playerTranscoding);
 
-									transcodeFolder.updateChild(fileTranscodeFolder);
+									transcodeFolder.addChildInternal(fileTranscodeFolder);
+									//transcodeFolder.updateChild(fileTranscodeFolder); //TODO: (Nad) Test
 								}
 							}
 
@@ -737,7 +741,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									DLNAResource newChild = child.clone();
 									newChild.player = playerTranscoding;
 									newChild.media = child.media;
-									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + playerTranscoding);
+									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + playerTranscoding); //TODO: (Nad) Investigate
 
 									vf.addChild(new SubSelFile(newChild));
 								}
@@ -1838,7 +1842,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append(getResourceId()); //id
 		sb.append('/');
 		sb.append("subtitle0000");
-		sb.append(encode(subs.getExternalFile().getName()));
+		sb.append(encode(subs.getName()));
 		return sb.toString();
 	}
 
@@ -3045,6 +3049,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					new Thread(r, "StopPlaying Event").start();
 				}
+				if (media_subtitle instanceof DLNAMediaOpenSubtitle) {
+					((DLNAMediaOpenSubtitle) media_subtitle).deleteLiveSubtitlesFile();
+				}
 			}
 		};
 
@@ -3492,33 +3499,84 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return getGenericThumbnailInputStream(null);
 	}
 
+	/**
+	 * Adds an audio "flag" filter to the specified
+	 * {@link BufferedImageFilterChain}. If {@code filterChain} is {@code null}
+	 * and a "flag" filter is added, a new {@link BufferedImageFilterChain} is
+	 * created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
+	public BufferedImageFilterChain addAudioFlagFilter(BufferedImageFilterChain filterChain) {
+		String audioLanguageCode = media_audio != null ? media_audio.getLang() : null;
+		if (isNotBlank(audioLanguageCode)) {
+			if (filterChain == null) {
+				filterChain = new BufferedImageFilterChain();
+			}
+			filterChain.add(new ImagesUtil.AudioFlagFilter(audioLanguageCode, THUMBNAIL_HINTS));
+		}
+		return filterChain;
+	}
+
+	/**
+	 * Adds a subtitles "flag" filter to the specified
+	 * {@link BufferedImageFilterChain}. If {@code filterChain} is {@code null}
+	 * and a "flag" filter is added, a new {@link BufferedImageFilterChain} is
+	 * created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
+	public BufferedImageFilterChain addSubtitlesFlagFilter(BufferedImageFilterChain filterChain) {
+		String subsLanguageCode = media_subtitle != null && media_subtitle.getId() != -1 ? media_subtitle.getLang() : null;
+
+		if (isNotBlank(subsLanguageCode)) {
+			if (filterChain == null) {
+				filterChain = new BufferedImageFilterChain();
+			}
+			filterChain.add(new ImagesUtil.SubtitlesFlagFilter(subsLanguageCode, THUMBNAIL_HINTS));
+		}
+		return filterChain;
+	}
+
+	/**
+	 * Adds audio and subtitles "flag" filters to the specified
+	 * {@link BufferedImageFilterChain} if they should be applied. If
+	 * {@code filterChain} is {@code null} and a "flag" filter is added, a new
+	 * {@link BufferedImageFilterChain} is created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
 	public BufferedImageFilterChain addFlagFilters(BufferedImageFilterChain filterChain) {
 		// Show audio and subtitles language flags in the TRANSCODE folder only for video files
-		if (
-			format != null &&
-			format.isVideo() &&
-			parent instanceof FileTranscodeVirtualFolder &&
-			(
+		if ((
+				parent instanceof FileTranscodeVirtualFolder ||
+				parent instanceof SubSelFile
+			) && (
 				media_audio != null ||
 				media_subtitle != null
 			)
 		) {
-			String audioLanguageCode = media_audio != null ? media_audio.getLang() : null;
-			if (isNotBlank(audioLanguageCode)) {
-				if (filterChain == null) {
-					filterChain = new BufferedImageFilterChain();
-				}
-				filterChain.add(new ImagesUtil.AudioFlagFilter(audioLanguageCode, THUMBNAIL_HINTS));
+			if ((
+					media != null &&
+					media.isVideo()
+				) || (
+					media == null &&
+					format != null &&
+					format.isVideo()
+				)
+			) {
+				filterChain = addAudioFlagFilter(filterChain);
+				filterChain = addSubtitlesFlagFilter(filterChain);
 			}
-
-			String subsLanguageCode = media_subtitle != null && media_subtitle.getId() != -1 ? media_subtitle.getLang() : null;
-
-			if (isNotBlank(subsLanguageCode)) {
-				if (filterChain == null) {
-					filterChain = new BufferedImageFilterChain();
-				}
-				filterChain.add(new ImagesUtil.SubtitlesFlagFilter(subsLanguageCode, THUMBNAIL_HINTS));
-			}
+		} else if (
+			parent instanceof TranscodeVirtualFolder &&
+			this instanceof FileTranscodeVirtualFolder &&
+			media_subtitle != null
+		) {
+			filterChain = addSubtitlesFlagFilter(filterChain);
 		}
 		return filterChain;
 	}

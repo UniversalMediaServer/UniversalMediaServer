@@ -18,6 +18,7 @@
  */
 package net.pms.dlna;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,9 +37,11 @@ import org.slf4j.LoggerFactory;
  */
 public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
+	private final DLNAResource originalResource;
 
-	public FileTranscodeVirtualFolder(String name, String thumbnailIcon) { // XXX thumbnailIcon is always null
-		super(name, thumbnailIcon);
+	public FileTranscodeVirtualFolder(DLNAResource resource) {
+		super(resource.getDisplayNameBase(resource.configuration), (String) null);
+		originalResource = resource;
 	}
 
 	/**
@@ -164,10 +167,25 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 		}
 	}
 
+	@Override
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		try {
+			return originalResource.getThumbnailInputStream();
+		} catch (Exception e) {
+			return super.getThumbnailInputStream();
+		}
+	}
+
+	@Override
+	public void checkThumbnail() {
+		originalResource.checkThumbnail();
+	}
+
 	/**
 	 * This populates the file-specific transcode folder with all combinations of players,
 	 * audio tracks and subtitles.
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void resolveOnce() {
 		if (getChildren().size() == 1) { // OK
@@ -182,7 +200,13 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			// create copies of the audio/subtitle track lists as we're making (local)
 			// modifications to them
 			List<DLNAMediaAudio> audioTracks = new ArrayList<>(child.getMedia().getAudioTracksList());
-			List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>(child.getMedia().getSubtitleTracksList());
+			List<DLNAMediaSubtitle> subtitleTracks;
+			if (media_subtitle != null) {
+				// Transcode folder of live subtitles folder
+				subtitleTracks = Collections.singletonList(media_subtitle);
+			} else {
+				subtitleTracks = new ArrayList<>(child.getMedia().getSubtitleTracksList());
+			}
 
 			// assemble copies for each combination of audio, subtitle and player
 			ArrayList<DLNAResource> entries = new ArrayList<>();
@@ -239,14 +263,16 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				audioTracks.add(null);
 			}
 
-			if (subtitleTracks.isEmpty()) {
-				subtitleTracks.add(null);
-			} else {
-				// if there are subtitles, make sure a no-subtitle option is added
-				// for each player
-				DLNAMediaSubtitle noSubtitle = new DLNAMediaSubtitle();
-				noSubtitle.setId(-1);
-				subtitleTracks.add(noSubtitle);
+			if (media_subtitle == null) {
+				if (subtitleTracks.isEmpty()) {
+					subtitleTracks.add(null);
+				} else {
+					// if there are subtitles, make sure a no-subtitle option is added
+					// for each player
+					DLNAMediaSubtitle noSubtitle = new DLNAMediaSubtitle();
+					noSubtitle.setId(-1);
+					subtitleTracks.add(noSubtitle);
+				}
 			}
 
 			for (DLNAMediaAudio audio : audioTracks) {
