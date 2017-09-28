@@ -27,6 +27,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaOpenSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
@@ -199,9 +200,9 @@ public abstract class Player {
 		if (params.sid != null && params.sid.getId() == -1) {
 			LOGGER.trace("Don't want subtitles!");
 			params.sid = null;
-//		} else if (params.sid instanceof DLNAMediaOpenSubtitle && params.sid.getExternalFile() != null) { //TODO: (Nad) Temp disable
-//			 // Check for live subtitles, the call to getExternalFile() will actually download the subtitle
-//			return;
+		} else if (params.sid instanceof DLNAMediaOpenSubtitle && params.sid.getExternalFile() != null) { //TODO: (Nad) Temp disable
+			 // Check for live subtitles, the call to getExternalFile() will actually download the subtitle
+			return;
 		} else if (params.sid == null) {
 			params.sid = resource.resolveSubtitlesStream(params.mediaRenderer, params.aid == null ? null : params.aid.getLang(), true);
 		}

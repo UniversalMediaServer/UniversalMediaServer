@@ -719,7 +719,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// folder if supported/enabled and if it doesn't already exist
 								VirtualFolder transcodeFolder = getTranscodeFolder(true);
 								if (transcodeFolder != null) {
-									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
+									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child);
+									if (parent instanceof SubSelect) {
+										fileTranscodeFolder.setMediaSubtitle(child.getMediaSubtitle());
+									}
 
 									DLNAResource newChild = child.clone();
 									newChild.player = playerTranscoding;
@@ -727,7 +730,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									fileTranscodeFolder.addChildInternal(newChild);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), playerTranscoding);
 
-									transcodeFolder.updateChild(fileTranscodeFolder);
+									transcodeFolder.addChildInternal(fileTranscodeFolder);
+									//transcodeFolder.updateChild(fileTranscodeFolder); //TODO: (Nad) Test
 								}
 							}
 
@@ -1596,12 +1600,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * none should be displayed. The "base" name is the name of this
 	 * {@link DLNAResource} without any prefix or suffix.
 	 *
-	 * @param renderer the {@link RendererConfiguration} to use.
 	 * @param configuration the {@link PmsConfiguration} to use.
 	 * @return The base display name or {@code ""}.
 	 */
 	@SuppressWarnings("unused")
-	protected String getDisplayNameBase(RendererConfiguration renderer, PmsConfiguration configuration) {
+	protected String getDisplayNameBase(PmsConfiguration configuration) {
 		// this unescape trick is to solve the problem of a name containing
 		// unicode stuff like \u005e
 		// if it's done here it will fix this for all objects
@@ -1756,7 +1759,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DURATION_TIME_FORMAT)
 			);
 		} else {
-			sb.append(getDisplayNameBase(mediaRenderer, configurationSpecificToRenderer));
+			sb.append(getDisplayNameBase(configurationSpecificToRenderer));
 		}
 
 		// Suffix
@@ -1803,7 +1806,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else if (configurationSpecificToRenderer.isHideExtensions()) {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
 			}
-			displayName = FullyPlayed.prefixDisplayName(displayName, rf, mediaRenderer);
+//			displayName = FullyPlayed.prefixDisplayName(displayName, rf, mediaRenderer);
 		}
 
 		if (player != null) {
@@ -1988,7 +1991,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append(getResourceId()); //id
 		sb.append('/');
 		sb.append("subtitle0000");
-		sb.append(encode(subs.getExternalFile().getName()));
+		sb.append(encode(subs.getName()));
 		return sb.toString();
 	}
 
@@ -2185,7 +2188,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								)
 							)
 						) {
-							/**
+							/*
 							 * Media renderer needs ORG_PN to be accurate.
 							 * If the value does not match the media, it won't play the media.
 							 * Often we can lazily predict the correct value to send, but due to
@@ -2211,9 +2214,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 
 								if (media_subtitle == null) {
-									LOGGER.trace("We do not want a subtitle for " + getName());
+									LOGGER.trace("We do not want a subtitle for {}", getName());
 								} else {
-									LOGGER.trace("We do want a subtitle for " + getName());
+									LOGGER.trace("We do want a subtitle for {}", getName());
 								}
 							}
 
@@ -2353,9 +2356,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					media_subtitle.isStreamable()
 				) {
 					subsAreValidForStreaming = true;
-					LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
+					LOGGER.trace("Setting subsAreValidForStreaming to true for \"{}\"", media_subtitle.getName());
 				} else {
-					LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
+					LOGGER.trace("Not setting subsAreValidForStreaming and it is false for \"{}\"", getName());
 				}
 			}
 
@@ -2396,7 +2399,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
 
-		/**
+		/*
 		 * Use the track title for audio files, otherwise use the filename.
 		 */
 		String title;
@@ -2406,8 +2409,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			StringUtils.isNotBlank(firstAudioTrack.getSongname())
 		) {
 			title = firstAudioTrack.getSongname();
-		} else { // Ditlew - org
-			title = (isFolder || subsAreValidForStreaming) ? getDisplayName(mediaRenderer, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
+		} else if (isFolder || subsAreValidForStreaming) {
+			title = getDisplayName(mediaRenderer, false);
+		} else {
+			title = mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
+		}
+		if (!mediaRenderer.isThumbnails() && this instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) this).getFile())) {
+			title = FullyPlayed.addFullyPlayedNamePrefix(title, this);
 		}
 
 		title = resumeStr(title);
@@ -3168,8 +3176,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									} catch (NullPointerException e) { }
 
 									if (!quietPlay()) {
-										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
-										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+										LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
+										LOGGER.debug(
+											"The full filename of which is \"{}\" and the address of the renderer is {}",
+											getSystemName(),
+											rendererId
+										);
 									}
 								} catch (UnknownHostException ex) {
 									LOGGER.debug("" + ex);
@@ -3198,6 +3210,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					};
 
 					new Thread(r, "StopPlaying Event").start();
+				}
+				if (media_subtitle instanceof DLNAMediaOpenSubtitle) {
+					((DLNAMediaOpenSubtitle) media_subtitle).deleteLiveSubtitlesFile();
 				}
 			}
 		};
@@ -3646,33 +3661,84 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return getGenericThumbnailInputStream(null);
 	}
 
+	/**
+	 * Adds an audio "flag" filter to the specified
+	 * {@link BufferedImageFilterChain}. If {@code filterChain} is {@code null}
+	 * and a "flag" filter is added, a new {@link BufferedImageFilterChain} is
+	 * created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
+	public BufferedImageFilterChain addAudioFlagFilter(BufferedImageFilterChain filterChain) {
+		String audioLanguageCode = media_audio != null ? media_audio.getLang() : null;
+		if (isNotBlank(audioLanguageCode)) {
+			if (filterChain == null) {
+				filterChain = new BufferedImageFilterChain();
+			}
+			filterChain.add(new ImagesUtil.AudioFlagFilter(audioLanguageCode, THUMBNAIL_HINTS));
+		}
+		return filterChain;
+	}
+
+	/**
+	 * Adds a subtitles "flag" filter to the specified
+	 * {@link BufferedImageFilterChain}. If {@code filterChain} is {@code null}
+	 * and a "flag" filter is added, a new {@link BufferedImageFilterChain} is
+	 * created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
+	public BufferedImageFilterChain addSubtitlesFlagFilter(BufferedImageFilterChain filterChain) {
+		String subsLanguageCode = media_subtitle != null && media_subtitle.getId() != -1 ? media_subtitle.getLang() : null;
+
+		if (isNotBlank(subsLanguageCode)) {
+			if (filterChain == null) {
+				filterChain = new BufferedImageFilterChain();
+			}
+			filterChain.add(new ImagesUtil.SubtitlesFlagFilter(subsLanguageCode, THUMBNAIL_HINTS));
+		}
+		return filterChain;
+	}
+
+	/**
+	 * Adds audio and subtitles "flag" filters to the specified
+	 * {@link BufferedImageFilterChain} if they should be applied. If
+	 * {@code filterChain} is {@code null} and a "flag" filter is added, a new
+	 * {@link BufferedImageFilterChain} is created.
+	 *
+	 * @param filterChain the {@link BufferedImageFilterChain} to modify.
+	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
+	 */
 	public BufferedImageFilterChain addFlagFilters(BufferedImageFilterChain filterChain) {
 		// Show audio and subtitles language flags in the TRANSCODE folder only for video files
-		if (
-			format != null &&
-			format.isVideo() &&
-			parent instanceof FileTranscodeVirtualFolder &&
-			(
+		if ((
+				parent instanceof FileTranscodeVirtualFolder ||
+				parent instanceof SubSelFile
+			) && (
 				media_audio != null ||
 				media_subtitle != null
 			)
 		) {
-			String audioLanguageCode = media_audio != null ? media_audio.getLang() : null;
-			if (isNotBlank(audioLanguageCode)) {
-				if (filterChain == null) {
-					filterChain = new BufferedImageFilterChain();
-				}
-				filterChain.add(new ImagesUtil.AudioFlagFilter(audioLanguageCode, THUMBNAIL_HINTS));
+			if ((
+					media != null &&
+					media.isVideo()
+				) || (
+					media == null &&
+					format != null &&
+					format.isVideo()
+				)
+			) {
+				filterChain = addAudioFlagFilter(filterChain);
+				filterChain = addSubtitlesFlagFilter(filterChain);
 			}
-
-			String subsLanguageCode = media_subtitle != null && media_subtitle.getId() != -1 ? media_subtitle.getLang() : null;
-
-			if (isNotBlank(subsLanguageCode)) {
-				if (filterChain == null) {
-					filterChain = new BufferedImageFilterChain();
-				}
-				filterChain.add(new ImagesUtil.SubtitlesFlagFilter(subsLanguageCode, THUMBNAIL_HINTS));
-			}
+		} else if (
+			parent instanceof TranscodeVirtualFolder &&
+			this instanceof FileTranscodeVirtualFolder &&
+			media_subtitle != null
+		) {
+			filterChain = addSubtitlesFlagFilter(filterChain);
 		}
 		return filterChain;
 	}

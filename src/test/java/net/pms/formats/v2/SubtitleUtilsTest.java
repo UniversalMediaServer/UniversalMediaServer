@@ -58,7 +58,7 @@ public class SubtitleUtilsTest {
 		DLNAMediaSubtitle subtitle = new DLNAMediaSubtitle();
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../../util/russian-cp1251.srt"));
 		subtitle.setType(VOBSUB);
-		subtitle.setExternalFile(file_cp1251, true);
+		subtitle.setExternalFile(file_cp1251);
 		assertThat(subtitle.getSubCharacterSet()).isNull();
 		assertThat(getSubCpOptionForMencoder(subtitle)).isNull();
 	}
@@ -67,17 +67,17 @@ public class SubtitleUtilsTest {
 	public void testGetSubCpOptionForMencoder() throws Exception {
 		File file_big5 = FileUtils.toFile(CLASS.getResource("../../util/chinese-big5.srt"));
 		DLNAMediaSubtitle sub1 = new DLNAMediaSubtitle();
-		sub1.setExternalFile(file_big5, true);
+		sub1.setExternalFile(file_big5);
 		assertThat(getSubCpOptionForMencoder(sub1)).isEqualTo("enca:zh:big5");
 
 		File file_gb18030 = FileUtils.toFile(CLASS.getResource("../../util/chinese-gb18030.srt"));
 		DLNAMediaSubtitle sub2 = new DLNAMediaSubtitle();
-		sub2.setExternalFile(file_gb18030, true);
+		sub2.setExternalFile(file_gb18030);
 		assertThat(getSubCpOptionForMencoder(sub2)).isEqualTo("enca:zh:big5");
 
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../../util/russian-cp1251.srt"));
 		DLNAMediaSubtitle sub3 = new DLNAMediaSubtitle();
-		sub3.setExternalFile(file_cp1251, true);
+		sub3.setExternalFile(file_cp1251);
 		assertThat(getSubCpOptionForMencoder(sub3)).isEqualTo("enca:ru:cp1251");
 
 //		File file_ibm866 = FileUtils.toFile(CLASS.getResource("../../util/russian-ibm866.srt"));
@@ -87,17 +87,17 @@ public class SubtitleUtilsTest {
 
 		File file_koi8_r = FileUtils.toFile(CLASS.getResource("../../util/russian-koi8-r.srt"));
 		DLNAMediaSubtitle sub5 = new DLNAMediaSubtitle();
-		sub5.setExternalFile(file_koi8_r, true);
+		sub5.setExternalFile(file_koi8_r);
 		assertThat(getSubCpOptionForMencoder(sub5)).isEqualTo("enca:ru:cp1251");
 
 		File file_cp1250 = FileUtils.toFile(CLASS.getResource("../../util/czech-cp1250.srt"));
 		DLNAMediaSubtitle sub6 = new DLNAMediaSubtitle();
-		sub6.setExternalFile(file_cp1250, true);
+		sub6.setExternalFile(file_cp1250);
 		assertThat(getSubCpOptionForMencoder(sub6)).isEqualTo("cp1250");
 
 		File file_iso_8859_2 = FileUtils.toFile(CLASS.getResource("../../util/hungarian-iso-8859-2.srt"));
 		DLNAMediaSubtitle sub7 = new DLNAMediaSubtitle();
-		sub7.setExternalFile(file_iso_8859_2, true);
+		sub7.setExternalFile(file_iso_8859_2);
 		assertThat(getSubCpOptionForMencoder(sub7)).isEqualTo("ISO-8859-2");
 	}
 
@@ -105,37 +105,37 @@ public class SubtitleUtilsTest {
 	public void testGetSubCpOptionForMencoder_UTF() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("../../util/russian-utf8-without-bom.srt"));
 		DLNAMediaSubtitle sub1 = new DLNAMediaSubtitle();
-		sub1.setExternalFile(file_utf8, true);
+		sub1.setExternalFile(file_utf8);
 		assertThat(getSubCpOptionForMencoder(sub1)).isNull();
 
 		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("../../util/russian-utf8-with-bom.srt"));
 		DLNAMediaSubtitle sub2 = new DLNAMediaSubtitle();
-		sub2.setExternalFile(file_utf8_2, true);
+		sub2.setExternalFile(file_utf8_2);
 		assertThat(getSubCpOptionForMencoder(sub2)).isNull();
 
 		File file_utf16_le = FileUtils.toFile(CLASS.getResource("../../util/russian-utf16-le.srt"));
 		DLNAMediaSubtitle sub3 = new DLNAMediaSubtitle();
-		sub3.setExternalFile(file_utf16_le, true);
+		sub3.setExternalFile(file_utf16_le);
 		assertThat(getSubCpOptionForMencoder(sub3)).isNull();
 
 		File file_utf16_be = FileUtils.toFile(CLASS.getResource("../../util/russian-utf16-be.srt"));
 		DLNAMediaSubtitle sub4 = new DLNAMediaSubtitle();
-		sub4.setExternalFile(file_utf16_be, true);
+		sub4.setExternalFile(file_utf16_be);
 		assertThat(getSubCpOptionForMencoder(sub4)).isNull();
 
 		File file_utf32_le = FileUtils.toFile(CLASS.getResource("../../util/russian-utf32-le.srt"));
 		DLNAMediaSubtitle sub5 = new DLNAMediaSubtitle();
-		sub5.setExternalFile(file_utf32_le, true);
+		sub5.setExternalFile(file_utf32_le);
 		assertThat(getSubCpOptionForMencoder(sub5)).isNull();
 
 		File file_utf32_be = FileUtils.toFile(CLASS.getResource("../../util/russian-utf32-be.srt"));
 		DLNAMediaSubtitle sub6 = new DLNAMediaSubtitle();
-		sub6.setExternalFile(file_utf32_be, true);
+		sub6.setExternalFile(file_utf32_be);
 		assertThat(getSubCpOptionForMencoder(sub6)).isNull();
 
 		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("../../util/english-utf8-with-bom.srt"));
 		DLNAMediaSubtitle sub7 = new DLNAMediaSubtitle();
-		sub7.setExternalFile(file_utf8_3, true);
+		sub7.setExternalFile(file_utf8_3);
 		assertThat(getSubCpOptionForMencoder(sub7)).isNull();
 	}
 }

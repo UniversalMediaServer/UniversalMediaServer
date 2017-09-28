@@ -42,6 +42,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaLang;
+import net.pms.dlna.DLNAMediaOpenSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.v2.SubtitleType;
@@ -245,7 +246,7 @@ public class SubtitleUtils {
 		}
 
 		String filename = isEmbeddedSource ?
-			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+			dlna.getSystemName() : params.sid.getExternalFile().getPath();
 
 		String basename;
 
@@ -264,7 +265,7 @@ public class SubtitleUtils {
 		if (applyFontConfig || isEmbeddedSource || is3D || params.sid.getType() != subtitleType) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + "." + subtitleType.getExtension());
 		} else {
-			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			String tmp = params.sid.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
 		}
 
@@ -685,6 +686,9 @@ public class SubtitleUtils {
 	 * @return InputStream with converted subtitles.
 	 */
 	public static InputStream removeSubRipTags(File file) throws IOException {
+		if (file == null) {
+			return null;
+		}
 		Pattern pattern = Pattern.compile("\\</?(?:b|i|s|u|font[^\\>]*)\\>|\\{\\\\.*?}|\\\\h|\\\\N");
 		try (
 			BufferedReaderDetectCharsetResult input = FileUtil.createBufferedReaderDetectCharset(file, null);
@@ -969,7 +973,7 @@ public class SubtitleUtils {
 		// Find already parsed subtitles
 		HashSet<File> existingSubtitles = new HashSet<>();
 		for (DLNAMediaSubtitle subtitle : media.getSubtitleTracksList()) {
-			if (subtitle.getExternalFile() != null) {
+			if (!(subtitle instanceof DLNAMediaOpenSubtitle) && subtitle.getExternalFile() != null) {
 				existingSubtitles.add(subtitle.getExternalFile());
 			}
 		}
@@ -1007,6 +1011,7 @@ public class SubtitleUtils {
 			DLNAMediaSubtitle subtitles = iterator.next();
 			if (
 				subtitles.isExternal() &&
+				!(subtitles instanceof DLNAMediaOpenSubtitle) &&
 				!folderSubtitles.contains(subtitles.getExternalFile())) {
 					iterator.remove();
 			}
@@ -1036,14 +1041,12 @@ public class SubtitleUtils {
 			}
 		}
 		try {
-			if (isBlank(language)) {
-				subtitles.setExternalFile(subtitlesFile, true);
-				if (subtitles.getLang() == null) {
-					subtitles.setLang(DLNAMediaLang.UND);
-				}
-			} else {
+			if (isNotBlank(language)) {
 				subtitles.setLang(language);
-				subtitles.setExternalFile(subtitlesFile, false);
+			}
+			subtitles.setExternalFile(subtitlesFile);
+			if (subtitles.getLang() == null) {
+				subtitles.setLang(DLNAMediaLang.UND);
 			}
 			media.getSubtitleTracksList().add(subtitles);
 		} catch (FileNotFoundException e) {

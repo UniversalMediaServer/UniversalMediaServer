@@ -20,26 +20,51 @@
 
 package net.pms.util;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
-import java.util.Map;
-import java.util.TreeMap;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathVariableResolver;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaLang;
+import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
@@ -47,6 +72,8 @@ public class OpenSubtitle {
 	private static final String UA = "Universal Media Server v1";
 	private static final long TOKEN_AGE_TIME = 10 * 60 * 1000; // 10 mins
 	//private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
+	public static final Path SUBTITLES_FOLDER = Paths.get(PMS.getConfiguration().getDataFile(SUB_DIR));
+
 
 	/**
 	 * Size of the chunks that will be hashed in bytes (64 KB)
@@ -79,7 +106,9 @@ public class OpenSubtitle {
 			long tailChunkPosition = length - chunkSizeForFile;
 
 			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks
-			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
+			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0) {
+				;
+			}
 
 			// Second chunk, or the rest of the data if length is smaller than two chunks
 			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
@@ -120,7 +149,7 @@ public class OpenSubtitle {
 		}
 
 		StringBuilder page;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 			page = new StringBuilder();
 			String str;
 			while ((str = in.readLine()) != null) {
@@ -130,6 +159,37 @@ public class OpenSubtitle {
 
 		//LOGGER.debug("opensubs result page "+page.toString());
 		return page.toString();
+	}
+
+	public static Document postPageXML(URLConnection connection, String query) throws IOException {
+		connection.setDoOutput(true);
+		connection.setDoInput(true);
+		connection.setUseCaches(false);
+		connection.setDefaultUseCaches(false);
+		connection.setRequestProperty("Content-Type", "text/xml");
+		connection.setRequestProperty("Content-Length", "" + query.length());
+		((HttpURLConnection) connection).setRequestMethod("POST");
+
+		// open up the output stream of the connection
+		if (!StringUtils.isEmpty(query)) {
+			try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
+				output.writeBytes(query);
+				output.flush();
+			}
+		}
+
+		Document xmlDocument;
+		try {
+			xmlDocument = DocumentBuilderFactory.newInstance()
+				.newDocumentBuilder()
+				.parse(connection.getInputStream());
+		} catch (SAXException | ParserConfigurationException e) {
+			xmlDocument = null;
+			LOGGER.error("An error occured while posting to OpenSubtitles: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return xmlDocument;
 	}
 
 	/*
@@ -258,10 +318,8 @@ public class OpenSubtitle {
 		if (StringUtils.isEmpty(info)) {
 			return "";
 		}
-
-		@SuppressWarnings("unused")
-		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
-		LOGGER.debug("info is " + info);
+		//Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		LOGGER.debug("info is {}", info);
 		return info;
 	}
 
@@ -275,12 +333,12 @@ public class OpenSubtitle {
 		return computeHash(f);
 	}
 
-	public static Map<String, Object> findSubs(File f) throws IOException {
+	public static ArrayList<SubtitleItem> findSubs(File f) throws IOException {
 		return findSubs(f, null);
 	}
 
-	public static Map<String, Object> findSubs(File f, RendererConfiguration r) throws IOException {
-		Map<String, Object> res = findSubs(getHash(f), f.length(), null, null, r);
+	public static ArrayList<SubtitleItem> findSubs(File f, RendererConfiguration r) throws IOException {
+		ArrayList<SubtitleItem> res = findSubs(getHash(f), f.length(), null, null, r);
 		if (res.isEmpty()) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdb(f);
 			if (StringUtils.isEmpty(imdb)) {
@@ -297,26 +355,39 @@ public class OpenSubtitle {
 		return res;
 	}
 
-	public static Map<String, Object> findSubs(String hash, long size) throws IOException {
+	public static ArrayList<SubtitleItem> findSubs(String hash, long size) throws IOException {
 		return findSubs(hash, size, null, null, null);
 	}
 
-	public static Map<String, Object> findSubs(String imdb) throws IOException {
+	public static ArrayList<SubtitleItem> findSubs(String imdb) throws IOException {
 		return findSubs(null, 0, imdb, null, null);
 	}
 
-	public static Map<String, Object> querySubs(String query) throws IOException {
+	public static ArrayList<SubtitleItem> querySubs(String query) throws IOException {
 		return querySubs(query, null);
 	}
 
-	public static Map<String, Object> querySubs(String query, RendererConfiguration r) throws IOException {
+	public static ArrayList<SubtitleItem> querySubs(String query, RendererConfiguration r) throws IOException {
 		return findSubs(null, 0, null, query, r);
 	}
 
-	public static Map<String, Object> findSubs(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
-		TreeMap<String, Object> res = new TreeMap<>();
+	private static void logReplyDocument(String logMessage, Document xmlDocument, boolean trace) {
+		try {
+			if (trace) {
+				LOGGER.trace(logMessage, StringUtil.prettifyXML(xmlDocument, 2));
+			} else {
+				LOGGER.debug(logMessage, StringUtil.prettifyXML(xmlDocument, 2));
+			}
+		} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
+			LOGGER.error("Couldn't log reply document: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	public static ArrayList<SubtitleItem> findSubs(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
+		ArrayList<SubtitleItem> result = new ArrayList<>();
 		if (!login()) {
-			return res;
+			return result;
 		}
 
 		String lang = UMSUtils.getLangList(r, true);
@@ -355,7 +426,7 @@ public class OpenSubtitle {
 					"</value>" +
 				"</member>\n";
 		} else {
-			return res;
+			return result;
 		}
 
 		String req = null;
@@ -396,20 +467,106 @@ public class OpenSubtitle {
 		} finally {
 			tokenLock.readLock().unlock();
 		}
-
-		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
-		String page = postPage(url.openConnection(), req);
-		Matcher m = re.matcher(page);
-		while (m.find()) {
-			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(3));
-			res.put(m.group(2) + ":" + m.group(1), m.group(3));
-			if (res.size() > PMS.getConfiguration().liveSubtitlesLimit()) {
-				// limit the number of hits somewhat
-				break;
+		LOGGER.trace("Sending query to OpenSubtitles: {}", req);
+		Document xmlDocument = postPageXML(url.openConnection(), req);
+		if (xmlDocument == null) {
+			return result;
+		}
+		LOGGER.debug("Parsing OpenSubtitles reply");
+		XPath xPath = XPathFactory.newInstance().newXPath();
+		try {
+			NodeList members = (NodeList) xPath.evaluate(
+				"/methodResponse/params/param/value/struct/member",
+				xmlDocument,
+				XPathConstants.NODESET
+			);
+			int membersLength = members.getLength();
+			if (membersLength > 0) {
+				XPathExpression nameExpression = xPath.compile("name");
+				XPathExpression valueExpression = xPath.compile("value");
+				XPathExpression dataValuesExpression = xPath.compile("array/data/value");
+				for (int i = 0; i < membersLength; i++) {
+					Node name = (Node) nameExpression.evaluate(members.item(i), XPathConstants.NODE);
+					if (name == null || name.getNodeType() != Node.ELEMENT_NODE) {
+						LOGGER.trace("<name> not found in member, aborting: {}", members.item(i));
+						return result;
+					}
+					Node value = (Node) valueExpression.evaluate(members.item(i), XPathConstants.NODE);
+					if (value == null || value.getNodeType() != Node.ELEMENT_NODE) {
+						LOGGER.trace("<value> not found in member, aborting: {}", members.item(i));
+						return result;
+					}
+					String nameString = name.getTextContent();
+					if (isNotBlank(nameString)) {
+						switch (nameString) {
+							case "status":
+								Node statusValue = value.getFirstChild();
+								if (statusValue == null) {
+									LOGGER.error("OpenSubtitles reply status has no value, aborting");
+									return result;
+								}
+								if (!"200 OK".equals(statusValue.getTextContent())) {
+									LOGGER.error("OpenSubtitles replied with status \"{}\", aborting", statusValue.getTextContent());
+								}
+								break;
+							case "data":
+								NodeList values = (NodeList) dataValuesExpression.evaluate(value, XPathConstants.NODESET);
+								if (values != null) {
+									int valuesLength = values.getLength();
+									for (int j = 0; j < valuesLength; j++) {
+										Node dataValueType = values.item(j).getFirstChild();
+										if (dataValueType != null) {
+											if ("struct".equals(dataValueType.getNodeName())) {
+												SubtitleItem item = SubtitleItem.createFromStructNode(dataValueType);
+												if (item != null) {
+													result.add(item);
+												}
+											} // If anything other than "struct" is ever available, it should be handled here.
+										}
+									}
+								}
+								break;
+							default:
+								break;
+						}
+					}
+				}
+			} else if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Received an unexpected reply from OpenSubtitles:");
+				logReplyDocument("\n{}", xmlDocument, false);
+			}
+		} catch (XPathExpressionException e) {
+			LOGGER.error("An error occurred while trying to parse the reply from OpenSubtitles: {}", e.getMessage());
+			if (LOGGER.isTraceEnabled()) {
+				logReplyDocument("Reply:\n{}", xmlDocument, true);
+				LOGGER.trace("", e);
 			}
 		}
 
-		return res;
+
+
+//		Element root = xmlDocument.getRootElement();
+//		if (root != null && "methodResponse".equals(root.getName())) {
+//
+//		} else {
+//			LOGGER.error(
+//				"Received an unexpected reply from OpenSubtitles:\n{}",
+//				new XMLOutputter().outputString(xmlDocument)
+//			);
+//		}
+
+
+//		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
+//		Matcher m = re.matcher(page);
+//		while (m.find()) {
+//			LOGGER.debug("Found subtitle \"{}\" with language {}: \"{}\"", m.group(2), m.group(1), m.group(3));
+//			res.put(m.group(2) + ":" + m.group(1), m.group(3));
+//			if (res.size() > PMS.getConfiguration().liveSubtitlesLimit()) {
+//				// limit the number of hits somewhat
+//				break;
+//			}
+//		}
+		return result;
 	}
 
 	/**
@@ -585,96 +742,410 @@ public class OpenSubtitle {
 		return null;
 	}
 
+	/**
+	 * @deprecated Use {@link #createSubtitlesPath(String)} instead.
+	 */
+	@Deprecated
 	public static String subFile(String name) {
-		String dir = PMS.getConfiguration().getDataFile(SUB_DIR);
-		File path = new File(dir);
-		if (!path.exists()) {
-			path.mkdirs();
+		try {
+			Path path = resolveSubtitlesPath(name);
+			return path == null ? null : path.toString();
+		} catch (IOException e) {
+			return null;
 		}
-
-		StringBuilder sb = new StringBuilder();
-		sb.append(path.getAbsolutePath()).
-			append(File.separator).
-			append(name).
-			append(".srt");
-
-		return sb.toString();
 	}
 
-	public static String fetchSubs(String url) throws FileNotFoundException, IOException {
-		return fetchSubs(url, subFile(String.valueOf(System.currentTimeMillis())));
+	/**
+	 * Resolves the location and full path of the subtitles file with the
+	 * specified name.
+	 *
+	 * @param fileName the file name of the subtitles file.
+	 * @return The resulting {@link Path}.
+	 * @throws IOException If an I/O error occurs during the operation.
+	 */
+	public static Path resolveSubtitlesPath(String fileName) throws IOException {
+		if (isBlank(fileName)) {
+			return null;
+		}
+		if (!Files.exists(SUBTITLES_FOLDER)) {
+			Files.createDirectories(SUBTITLES_FOLDER);
+		}
+		return SUBTITLES_FOLDER.resolve(fileName).toAbsolutePath();
 	}
 
-	public static String fetchSubs(String url, String outName) throws FileNotFoundException, IOException {
-		if (!login()) {
-			return "";
-		}
+	/**
+	 * @deprecated Use {@link #fetchSubs(URI, Path)} instead.
+	 */
+	@Deprecated
+	public static String fetchSubs(String url) throws IOException {
+		return fetchSubs(url, null).toString();
+	}
 
-		if (StringUtils.isEmpty(outName)) {
-			outName = subFile(String.valueOf(System.currentTimeMillis()));
+	/**
+	 * @deprecated Use {@link #fetchSubs(URI, Path)} instead.
+	 */
+	@Deprecated
+	public static Path fetchSubs(String url, Path output) throws IOException {
+		if (isBlank(url)) {
+			return null;
 		}
+		try {
+			return fetchSubs(new URI(url), output);
+		} catch (URISyntaxException e) {
+			throw new IOException("Invalid URL \"" + url + "\"", e);
+		}
+	}
 
-		File f = new File(outName);
-		URL u = new URL(url);
-		URLConnection connection = u.openConnection();
+	/**
+	 * Downloads the subtitles from the specified {@link URI} to the specified
+	 * {@link Path}. It the specifed {@link Path} is {@code null} a temporary
+	 * filename is used.
+	 *
+	 * @param url the {@link URI} from which to download.
+	 * @param output the {@link Path} for the target file.
+	 * @return {@code null} if {@code url} is {@code null} or OpenSubtitles
+	 *         login fails, otherwise the {@link Path} to the downloaded file.
+	 * @throws IOException If an error occurs during the operation.
+	 */
+	public static Path fetchSubs(URI url, Path output) throws IOException {
+		if (url == null || !login()) {
+			return null;
+		}
+		if (output == null) {
+			output = resolveSubtitlesPath("TempSub" + String.valueOf(System.currentTimeMillis()));
+		}
+		URLConnection connection = url.toURL().openConnection();
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
 		InputStream in = connection.getInputStream();
-		OutputStream out;
-		try (GZIPInputStream gzipInputStream = new GZIPInputStream(in)) {
-			out = new FileOutputStream(f);
+		try (
+			GZIPInputStream gzipInputStream = new GZIPInputStream(in);
+			OutputStream out = Files.newOutputStream(output);
+		) {
 			byte[] buf = new byte[4096];
 			int len;
 			while ((len = gzipInputStream.read(buf)) > 0) {
 				out.write(buf, 0, len);
 			}
 		}
+		return output.toAbsolutePath();
+	}
 
-		out.close();
-		if (!PMS.getConfiguration().isLiveSubtitlesKeep()) {
-			int tmo = PMS.getConfiguration().getLiveSubtitlesTimeout();
-			if (tmo <= 0) {
-				PMS.get().addTempFile(f);
-			} else {
-				PMS.get().addTempFile(f, tmo);
+	public static class SubtitleItem {
+		private final String matchedBy;
+		private final String idSubMovieFile;
+		private final String idSubtitleFile;
+		private final String subFileName;
+		private final String subHash;
+		private final String idSubtitle;
+		private final String languageCode;
+		private final SubtitleType subtitleType;
+		private final boolean subBad;
+		private final double subRating;
+		private final String userRank;
+		private final String subEncoding;
+		private final boolean subFromTrusted;
+		private final URI subDownloadLink;
+		private final double score;
+
+		public SubtitleItem(
+			String matchedBy,
+			String idSubMovieFile,
+			String idSubtitleFile,
+			String subFileName,
+			String subHash,
+			String idSubtitle,
+			String languageCode,
+			SubtitleType subtitleType,
+			boolean subBad,
+			double subRating,
+			String userRank,
+			String subEncoding,
+			boolean subFromTrusted,
+			URI subDownloadLink,
+			double score
+		) {
+			this.matchedBy = matchedBy;
+			this.idSubMovieFile = idSubMovieFile;
+			this.idSubtitleFile = idSubtitleFile;
+			this.subFileName = subFileName;
+			this.subHash = subHash;
+			this.idSubtitle = idSubtitle;
+			this.languageCode = languageCode;
+			this.subtitleType = subtitleType;
+			this.subBad = subBad;
+			this.subRating = subRating;
+			this.userRank = userRank;
+			this.subEncoding = subEncoding;
+			this.subFromTrusted = subFromTrusted;
+			this.subDownloadLink = subDownloadLink;
+			this.score = score;
+		}
+
+		protected static double getStringDouble(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
+			resolver.getMap().put("name", name);
+			try {
+				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
+				if (isBlank(result)) {
+					return Double.NaN;
+				}
+				try {
+					return Double.parseDouble(result);
+				} catch (NumberFormatException e) {
+					LOGGER.debug("OpenSubtitles: Invalid double value \"{}\" for name \"{}\": {}", result, name, e.getMessage());
+					return Double.NaN;
+				}
+			} catch (XPathExpressionException e) {
+				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
+				LOGGER.trace("", e);
+				return Double.NaN;
 			}
 		}
 
-		return f.getAbsolutePath();
+		protected static double getDouble(Node node, String name, XPath xPath, XPathMapVariableResolver resolver) {
+			resolver.getMap().put("name", name);
+			try {
+				return (double) xPath.evaluate("member[name=$name]/value/double", node, XPathConstants.NUMBER);
+			} catch (XPathExpressionException e) {
+				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
+				LOGGER.trace("", e);
+				return Double.NaN;
+			}
+		}
+
+		protected static boolean getBoolean(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
+			resolver.getMap().put("name", name);
+			try {
+				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
+				if (result == null) {
+					return false;
+				}
+				result = result.toLowerCase(Locale.ROOT);
+				return  "1".equals(result) || "true".equals(result);
+			} catch (XPathExpressionException e) {
+				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
+				LOGGER.trace("", e);
+				return false;
+			}
+		}
+
+		protected static String getString(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
+			resolver.getMap().put("name", name);
+			try {
+				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
+				return isBlank(result) ? null : result;
+			} catch (XPathExpressionException e) {
+				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
+				LOGGER.trace("", e);
+				return null;
+			}
+		}
+
+		public static SubtitleType subFormatToSubtitleType(String subFormat) {
+			if (subFormat == null) {
+				return null;
+			}
+
+			switch (subFormat.toLowerCase(Locale.ROOT)) {
+				case "sub":
+					return SubtitleType.MICRODVD;
+				case "srt":
+					return SubtitleType.SUBRIP;
+				case "txt":
+					return SubtitleType.TEXT;
+				case "ssa":
+					return SubtitleType.ASS;
+				case "smi":
+					return SubtitleType.SAMI;
+				case "mpl":
+				case "tmp":
+					return SubtitleType.UNSUPPORTED;
+				case "vtt":
+					return SubtitleType.WEBVTT;
+				default:
+					LOGGER.debug("Warning, unknown subtitles type \"{}\"", subFormat);
+					return SubtitleType.UNKNOWN;
+			}
+		}
+
+		public static SubtitleItem createFromStructNode(Node structNode) throws XPathExpressionException {
+			XPath xPath = XPathFactory.newInstance().newXPath();
+			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
+			xPath.setXPathVariableResolver(resolver);
+			XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
+
+			String urlString = getString(structNode, "SubDownloadLink", stringExpression, resolver);
+			if (isBlank(urlString)) {
+				return null;
+			}
+			URI url;
+			try {
+				url = new URI(urlString);
+			} catch (URISyntaxException e) {
+				LOGGER.debug("OpenSubtitles: Invalid URL \"{}\": {}", urlString, e.getMessage());
+				LOGGER.trace("", e);
+				return null;
+			}
+			String languageCode = getString(structNode, "SubLanguageID", stringExpression, resolver);
+			if (Iso639.codeIsValid(languageCode)) {
+				languageCode = Iso639.getISO639_2Code(languageCode);
+			} else {
+				languageCode = getString(structNode, "ISO639", stringExpression, resolver);
+				if (Iso639.codeIsValid(languageCode)) {
+					languageCode = Iso639.getISO639_2Code(languageCode);
+				} else {
+					languageCode = DLNAMediaLang.UND;
+				}
+			}
+
+			return new SubtitleItem(
+				getString(structNode, "MatchedBy", stringExpression, resolver),
+				getString(structNode, "IDSubMovieFile", stringExpression, resolver),
+				getString(structNode, "IDSubtitleFile", stringExpression, resolver),
+				getString(structNode, "SubFileName", stringExpression, resolver),
+				getString(structNode, "SubHash", stringExpression, resolver),
+				getString(structNode, "IDSubtitle", stringExpression, resolver),
+				languageCode,
+				subFormatToSubtitleType(getString(structNode, "SubFormat", stringExpression, resolver)),
+				getBoolean(structNode, "SubBad", stringExpression, resolver),
+				getStringDouble(structNode, "SubRating", stringExpression, resolver),
+				getString(structNode, "UserRank", stringExpression, resolver),
+				getString(structNode, "SubEncoding", stringExpression, resolver),
+				getBoolean(structNode, "SubFromTrusted", stringExpression, resolver),
+				url,
+				getDouble(structNode, "Score", xPath, resolver)
+			);
+		}
+
+		/**
+		 * @return {@code MatchedBy}.
+		 */
+		public String getMatchedBy() {
+			return matchedBy;
+		}
+
+		/**
+		 * @return {@code IDSubMovieFile}.
+		 */
+		public String getIDSubMovieFile() {
+			return idSubMovieFile;
+		}
+
+		/**
+		 * @return {@code IDSubtitleFile}.
+		 */
+		public String getIDSubtitleFile() {
+			return idSubtitleFile;
+		}
+
+		/**
+		 * @return {@code SubFileName}.
+		 */
+		public String getSubFileName() {
+			return subFileName;
+		}
+
+		/**
+		 * @return {@code SubHash}.
+		 */
+		public String getSubHash() {
+			return subHash;
+		}
+
+		/**
+		 * @return {@code IDSubtitle}.
+		 */
+		public String getIDSubtitle() {
+			return idSubtitle;
+		}
+
+		/**
+		 * @return The ISO 639-2 (3 letter) language code.
+		 */
+		public String getLanguageCode() {
+			return languageCode;
+		}
+
+		/**
+		 * @return The {@link SubtitleType}.
+		 */
+		public SubtitleType getSubtitleType() {
+			return subtitleType;
+		}
+
+		/**
+		 * @return {@code SubBad}.
+		 */
+		public boolean isSubBad() {
+			return subBad;
+		}
+
+		/**
+		 * @return {@code SubRating}.
+		 */
+		public double getSubRating() {
+			return subRating;
+		}
+
+		/**
+		 * @return {@code UserRank}.
+		 */
+		public String getUserRank() {
+			return userRank;
+		}
+
+		/**
+		 * @return {@code SubEncoding}.
+		 */
+		public String getSubEncoding() {
+			return subEncoding;
+		}
+
+		/**
+		 * @return {@code SubFromTrusted}.
+		 */
+		public boolean isSubFromTrusted() {
+			return subFromTrusted;
+		}
+
+		/**
+		 * @return {@code SubDownloadLink}.
+		 */
+		public URI getSubDownloadLink() {
+			return subDownloadLink;
+		}
+
+		/**
+		 * @return {@code Score}.
+		 */
+		public double getScore() {
+			return score;
+		}
+
+		@Override
+		public String toString() {
+			return
+				"SubtitleItem [MatchedBy=" + matchedBy + ", IDSubMovieFile=" + idSubMovieFile +
+				", IDSubtitleFile=" + idSubtitleFile + ", SubFileName=" + subFileName +
+				", SubHash=" + subHash + ", IDSubtitle=" + idSubtitle + ", LanguageCode=" + languageCode +
+				", SubFormat=" + subtitleType + ", SubBad=" + subBad + ", SubRating=" + subRating +
+				", UserRank=" + userRank + ", SubEncoding=" + subEncoding +
+				", SubFromTrusted=" + subFromTrusted + ", SubDownloadLink="+ subDownloadLink +
+				", Score=" + score + "]";
+		}
 	}
 
-	public static String getLang(String str) {
-		String[] tmp = str.split(":", 2);
-		if (tmp.length > 1) {
-			return tmp[0];
+	public static class XPathMapVariableResolver implements XPathVariableResolver {
+
+		protected final HashMap<String, Object> variables = new HashMap<>();
+
+		@Override
+		public Object resolveVariable(QName variableName) {
+			return variables.get(variableName.getLocalPart());
 		}
 
-		return "";
-	}
-
-	public static String getName(String str) {
-		String[] tmp = str.split(":", 2);
-		if (tmp.length > 1) {
-			return tmp[1];
-		}
-
-		return str;
-	}
-
-	public static void convert() {
-		if (PMS.getConfiguration().isLiveSubtitlesKeep()) {
-			return;
-		}
-
-		File path = new File(PMS.getConfiguration().getDataFile(SUB_DIR));
-		if (!path.exists()) {
-			// no path nothing to do
-			return;
-		}
-
-		File[] files = path.listFiles();
-		for (File file : files) {
-			PMS.get().addTempFile(file);
+		public HashMap<String, Object> getMap() {
+			return variables;
 		}
 	}
 }

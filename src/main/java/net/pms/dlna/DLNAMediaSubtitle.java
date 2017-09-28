@@ -42,11 +42,10 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 	private String subtitlesTrackTitleFromMetadata;
 
+	/** The external {@link File}, always in its "absolute" version */
 	private File externalFile;
 	private String subsCharacterSet;
 
-	private String liveSubURL;
-	private String liveSubFile;
 	private boolean isStreamable = false;
 	private File convertedFile;
 
@@ -88,7 +87,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 		if (externalFile != null) {
 			result.append(", externalFile: ");
-			result.append(externalFile.toString());
+			result.append(externalFile);
 			result.append(", external file character set: ");
 			result.append(subsCharacterSet);
 		}
@@ -163,70 +162,76 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return the externalFile
+	 * @return The absolute external {@link File} or {@code null}.
 	 */
 	public File getExternalFile() {
 		return externalFile;
 	}
 
 	/**
-	 * Sets external subtitles file and detects its character set and language.
-	 * The character set is always set, while the language is only set if
-	 * {@code setLanguage} is true.
-	 *
-	 * @param externalFile the external {@link File} to set.
-	 * @param setLanguage {@code true} to set the detected language,
-	 *            {@code false} to not set a language.
+	 * @return The file name of the subtitles file if applicable or an empty
+	 *         {@link String}.
 	 */
-	public void setExternalFile(File externalFile, boolean setLanguage) throws FileNotFoundException {
-		if (externalFile == null) {
-			throw new FileNotFoundException("Can't read file: no file supplied");
-		} else if (!FileUtil.getFilePermissions(externalFile).isReadable()) {
-			throw new FileNotFoundException("Insufficient permission to read " + externalFile.getAbsolutePath());
-		}
-
-		this.externalFile = externalFile;
-		setFileSubsCharacterSet(setLanguage);
+	public String getName() {
+		return externalFile == null ? "" : externalFile.getName();
 	}
 
 	/**
-	 * Detects and sets the character set and potentially the language of the
-	 * subtitles file. The language is only set if {@code setLanguage} is true.
+	 * Sets the external subtitles {@link File} and detect and sets its
+	 * character set. If the language isn't set/known and it is detected, the
+	 * language is also set.
 	 *
-	 * @param setLanguage {@code true} to set the detected language,
-	 *            {@code false} to not set a language.
+	 * @param externalFile the external {@link File} to set.
 	 */
-	private void setFileSubsCharacterSet(boolean setLanguage) {
-		if (type.isPicture()) {
-			subsCharacterSet = null;
-		} else {
+	public void setExternalFile(File externalFile) throws FileNotFoundException {
+		if (externalFile == null) {
+			throw new FileNotFoundException("Can't read file: no file supplied");
+		}
+		this.externalFile = externalFile.getAbsoluteFile();
+		if (!FileUtil.getFilePermissions(this.externalFile).isReadable()) {
+			throw new FileNotFoundException("Insufficient permission to read " + externalFile.getAbsolutePath());
+		}
+
+		setFileSubsCharacterSet();
+	}
+
+	/**
+	 * Detects and sets the subtitles' character set. If the language isn't
+	 * set/known and it is detected, the language is also set.
+	 */
+	@SuppressWarnings("deprecation")
+	private void setFileSubsCharacterSet() {
+		if (externalFile != null && !type.isPicture()) {
 			try {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
 					subsCharacterSet = match.getName().toUpperCase(Locale.ROOT);
-					// returned Charset can have additional info like ISO-8859-8-I but
+					// Returned Charset can have additional info like ISO-8859-8-I but
 					// FFmpeg video filter knows only ISO-8859-8 so extract the additional "-I".
 					if (subsCharacterSet.split("-").length > 3) {
 						subsCharacterSet = subsCharacterSet.substring(0, subsCharacterSet.lastIndexOf("-"));
 					}
 
-					if (setLanguage) { // set the detected language when the language is not specified in the filename
-						lang = match.getLanguage();
-						if (lang == null) {
-							lang = DLNAMediaLang.UND;
+					// Set the detected language if is isn't already set
+					if (lang == null || DLNAMediaLang.UND.equals(lang)) {
+						String tmpLanguage = match.getLanguage();
+						if (isNotBlank(tmpLanguage)) {
+							lang = tmpLanguage;
 						}
 					}
 
-					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", subsCharacterSet, lang, externalFile.getAbsolutePath());
+					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", subsCharacterSet, lang, externalFile);
 				} else {
 					subsCharacterSet = null;
-					LOGGER.debug("No charset detected for {}", externalFile.getAbsolutePath());
+					LOGGER.debug("No charset detected for {}", externalFile);
 				}
 
 			} catch (IOException ex) {
-				subsCharacterSet = null;
-				LOGGER.warn("Exception during external file charset detection: ", ex.getMessage());
+				LOGGER.warn("Exception during external file charset detection: {}", ex.getMessage());
+				LOGGER.trace("", ex);
 			}
+		} else {
+			subsCharacterSet = null;
 		}
 	}
 
@@ -287,23 +292,6 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isExternalFileUtf() {
 		return (isExternalFileUtf8() || isExternalFileUtf16() || isExternalFileUtf32());
-	}
-
-	public void setLiveSub(String url) {
-		setLiveSub(url, null);
-	}
-
-	public void setLiveSub(String url, String file) {
-		liveSubURL = url;
-		liveSubFile = file;
-	}
-
-	public String getLiveSubURL() {
-		return liveSubURL;
-	}
-
-	public String getLiveSubFile() {
-		return liveSubFile;
 	}
 
 	public boolean isStreamable() {

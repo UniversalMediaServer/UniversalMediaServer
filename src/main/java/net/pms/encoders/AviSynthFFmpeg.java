@@ -179,13 +179,13 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 			String subLine = null;
 			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
-				if (subTrack.getExternalFile() != null) {
-					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
+				if (subTrack.isExternal()) {
+					LOGGER.info("AviSynth script: Using subtitle track: {}", subTrack);
 					String function = "TextSub";
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
 				}
 			}
 
