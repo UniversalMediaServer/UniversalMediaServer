@@ -721,6 +721,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								VirtualFolder transcodeFolder = getTranscodeFolder(true);
 								if (transcodeFolder != null) {
 									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child);
+									if (parent instanceof SubSelect) {
+										fileTranscodeFolder.setMediaSubtitle(child.getMediaSubtitle());
+									}
 
 									DLNAResource newChild = child.clone();
 									newChild.player = playerTranscoding;
@@ -728,7 +731,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									fileTranscodeFolder.addChildInternal(newChild);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), playerTranscoding);
 
-									transcodeFolder.updateChild(fileTranscodeFolder);
+									transcodeFolder.addChildInternal(fileTranscodeFolder);
 								}
 							}
 
@@ -738,7 +741,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									DLNAResource newChild = child.clone();
 									newChild.player = playerTranscoding;
 									newChild.media = child.media;
-									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + playerTranscoding);
+									LOGGER.trace("Adding live subtitles folder for \"{}\" with player {}", child.getName(), playerTranscoding);
 
 									vf.addChild(new SubSelFile(newChild));
 								}
@@ -3043,6 +3046,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					};
 
 					new Thread(r, "StopPlaying Event").start();
+				}
+				if (media_subtitle instanceof DLNAMediaOpenSubtitle) {
+					((DLNAMediaOpenSubtitle) media_subtitle).deleteLiveSubtitlesFile();
 				}
 			}
 		};

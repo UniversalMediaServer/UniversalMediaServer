@@ -28,6 +28,8 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Locale;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -41,7 +43,9 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.CustomJComboBox;
+import net.pms.newgui.components.CustomJSpinner;
 import net.pms.newgui.components.CustomJTextField;
+import net.pms.newgui.components.SpinnerIntModel;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.KeyedStringComboBoxModel;
@@ -99,6 +103,8 @@ public class TranscodingTab {
 	private JTextField alternateSubFolder;
 	private JButton folderSelectButton;
 	private JCheckBox autoloadExternalSubtitles;
+	private JCheckBox deleteDownloadedSubtitles;
+	private CustomJSpinner liveSubtitlesLimit;
 	private JTextField defaultaudiosubs;
 	private JComboBox<String> subtitleCodePage;
 	private JTextField defaultfont;
@@ -1042,7 +1048,18 @@ public class TranscodingTab {
 				autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(forceExternalSubtitles), FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(forceExternalSubtitles), FormLayoutUtil.flip(cc.xyw(1, 16, 6), colSpec, orientation));
+
+		deleteDownloadedSubtitles = new JCheckBox(Messages.getString("TrTab2.DeleteLiveSubtitles"), !configuration.isLiveSubtitlesKeep());
+		deleteDownloadedSubtitles.setToolTipText(Messages.getString("TrTab2.DeleteLiveSubtitlesTooltip"));
+		deleteDownloadedSubtitles.setContentAreaFilled(false);
+		deleteDownloadedSubtitles.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setLiveSubtitlesKeep((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(deleteDownloadedSubtitles), FormLayoutUtil.flip(cc.xyw(7, 16, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("TrTab2.89"));
@@ -1053,7 +1070,22 @@ public class TranscodingTab {
 				configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle), FormLayoutUtil.flip(cc.xyw(1, 18, 11), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle), FormLayoutUtil.flip(cc.xyw(1, 18, 4), colSpec, orientation));
+
+
+		final SpinnerIntModel liveSubtitlesLimitModel = new SpinnerIntModel(configuration.getLiveSubtitlesLimit(), 1, 999, 1);
+		liveSubtitlesLimit = new CustomJSpinner(liveSubtitlesLimitModel, true);
+		liveSubtitlesLimit.setToolTipText(Messages.getString("TrTab2.LiveSubtitlesLimitTooltip"));
+		liveSubtitlesLimit.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue());
+			}
+		});
+		JLabel liveSubtitlesLimitLabel = new JLabel(Messages.getString("TrTab2.LiveSubtitlesLimit"));
+		liveSubtitlesLimitLabel.setLabelFor(liveSubtitlesLimit);
+		builder.add(liveSubtitlesLimitLabel, FormLayoutUtil.flip(cc.xyw(7, 18, 7, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(liveSubtitlesLimit, FormLayoutUtil.flip(cc.xy(15, 18), colSpec, orientation));
 
 		Integer[] depth = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
 
