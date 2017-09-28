@@ -36,19 +36,15 @@ import org.slf4j.LoggerFactory;
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
-	private boolean useSuperThumb;
-
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
 		setLastModified(file.lastModified());
-		useSuperThumb = false;
 	}
 
 	public RealFile(File file, String name) {
 		getConf().getFiles().add(file);
 		getConf().setName(name);
 		setLastModified(file.lastModified());
-		useSuperThumb = false;
 	}
 
 	@Override
@@ -253,9 +249,6 @@ public class RealFile extends MapFile {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (useSuperThumb) {
-			return super.getThumbnailInputStream();
-		}
 
 		File file = getFile();
 		File cachedThumbnail = null;
@@ -333,12 +326,12 @@ public class RealFile extends MapFile {
 		return getName() + ">" + getFile().getAbsolutePath();
 	}
 
-	public void ignoreThumbHandling() {
-		useSuperThumb = true;
-	}
-
+	@SuppressWarnings("deprecation")
 	@Override
 	protected String getDisplayNameBase(PmsConfiguration configuration) {
+		if (parent instanceof SubSelFile && media_subtitle instanceof DLNAMediaOnDemandSubtitle) {
+			return ((DLNAMediaOnDemandSubtitle) media_subtitle).getName();
+		}
 		String displayName = super.getDisplayNameBase(configuration);
 		if (isFolder()) {
 			return displayName;

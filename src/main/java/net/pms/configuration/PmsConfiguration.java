@@ -179,7 +179,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LANGUAGE = "language";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
-	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
 	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
@@ -849,9 +848,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getServerDisplayName() {
 		if (isAppendProfileName()) {
 			return String.format("%s [%s]", getString(KEY_SERVER_NAME, PMS.NAME), getProfileName());
-		} else {
-			return getString(KEY_SERVER_NAME, PMS.NAME);
 		}
+		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
 	/**
 	 * The name of the server.
@@ -2535,7 +2533,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	private int findPathSort(String[] paths, String path) throws NumberFormatException{
+	private static int findPathSort(String[] paths, String path) throws NumberFormatException{
 		for (String path1 : paths) {
 			String[] kv = path1.split(",");
 			if (kv.length < 2) {
@@ -3392,20 +3390,30 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, value);
 	}
 
+	/**
+	 * @deprecated Use {@link #getLiveSubtitlesLimit()} instead.
+	 */
+	@Deprecated
 	public int liveSubtitlesLimit() {
+		return getLiveSubtitlesLimit();
+	}
+
+	public int getLiveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
 	}
 
+	public void setLiveSubtitlesLimit(int value) {
+		if (value > 0) {
+			configuration.setProperty(KEY_LIVE_SUBTITLES_LIMIT, value);
+		}
+	}
+
 	public boolean isLiveSubtitlesKeep() {
-		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
+		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, true);
 	}
 
-	public int getLiveSubtitlesTimeout() {
-		return getInt(KEY_LIVE_SUBTITLES_TMO, 0) * 24 * 3600 * 1000;
-	}
-
-	public void setLiveSubtitlesTimeout(int t) {
-		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
+	public void setLiveSubtitlesKeep(boolean value) {
+		configuration.setProperty(KEY_LIVE_SUBTITLES_KEEP, value);
 	}
 
 	public boolean getLoggingBuffered() {
@@ -3465,9 +3473,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
 		if (i < 1 || i > 65535) {
 			return 514;
-		} else {
-			return i;
 		}
+		return i;
 	}
 
 	public void setLoggingSyslogPort(int value) {
