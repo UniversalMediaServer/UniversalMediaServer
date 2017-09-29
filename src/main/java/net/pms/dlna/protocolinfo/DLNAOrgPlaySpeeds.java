@@ -238,7 +238,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			TreeSet<Rational> valueSet = new TreeSet<>();
 			for (String value : valueArray) {
 				if (isNotBlank(value)) {
-					valueSet.add(new Rational(value));
+					valueSet.add(Rational.valueOf(value));
 				}
 			}
 			return getPlaySpeeds(valueSet);
@@ -319,7 +319,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			TreeSet<Rational> valueSet = new TreeSet<>();
 			for (String value : valueArray) {
 				if (isNotBlank(value)) {
-					valueSet.add(new Rational(value));
+					valueSet.add(Rational.valueOf(value));
 				}
 			}
 
