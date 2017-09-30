@@ -20,7 +20,7 @@ package net.pms.formats;
 
 public class MPG extends Format {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
@@ -45,6 +45,7 @@ public class MPG extends Format {
 			"avi",
 			"div",
 			"divx",
+			"ismv",
 			"m2p",
 			"m2t",
 			"m2ts",
