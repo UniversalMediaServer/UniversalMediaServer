@@ -644,7 +644,12 @@ public class PMS {
 
 		// Web stuff
 		if (configuration.useWebInterface()) {
-			web = new RemoteWeb(configuration.getWebPort());
+			try {
+				web = new RemoteWeb(configuration.getWebPort());
+			} catch (BindException b) {
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
+			}
 		}
 
 		// init Credentials
@@ -999,7 +1004,9 @@ public class PMS {
 				try {
 					LOGGER.trace("Waiting 1 second...");
 					UPNPHelper.sendByeBye();
-					server.stop();
+					if (server != null) {
+						server.stop();
+					}
 					server = null;
 					RendererConfiguration.loadRendererConfigurations(configuration);
 
