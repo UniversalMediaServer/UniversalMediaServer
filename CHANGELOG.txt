@@ -1,3 +1,14 @@
+6.7.4 - 2017-10-??
+
+	General:
+		Fixed a bug where thumbnails wouldn't always be generated when MediaInfo isn't used or available
+		Fixed regression in folder thumbnails on non-Windows platforms
+		Fixed a crash when the web interface's port is occupied, and do not fail restarting the server, if the server hasn't created yet (thanks, Zsombor Gegesy!)
+		Fixed many general bugs
+	Renderers:
+		Added support for HE-AAC audio in MKV and MP4 files on LG BP550
+		Improved detection and file support for LG WebOS TVs
+
 6.7.3 - 2017-08-13
 
 	General:
