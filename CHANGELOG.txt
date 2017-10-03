@@ -1,4 +1,4 @@
-6.7.4 - 2017-10-??
+6.7.4 - 2017-10-03
 
 	General:
 		Fixed a bug where thumbnails wouldn't always be generated when MediaInfo isn't used or available
