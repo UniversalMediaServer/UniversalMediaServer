@@ -33,6 +33,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -445,24 +446,42 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer) + ";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
-	public String getDlnaContentFeatures(DLNAImageProfile profile) {
-		if (profile == null || media == null || media.getImageInfo() == null) {
-			return null;
+	public String getDlnaContentFeatures(DLNAImageProfile profile, boolean thumbnailRequest) {
+		StringBuilder sb = new StringBuilder();
+		if (profile != null) {
+			sb.append("DLNA.ORG_PN=").append(profile);
 		}
-		DLNAImageResElement resElement = new DLNAImageResElement(profile, media.getImageInfo(), false);
-		String ciFlag;
-		/*
-		 * Some Panasonic TV's can't handle if the thumbnails have the CI
-		 * flag set to 0 while the main resource doesn't have a CI flag.
-		 * DLNA dictates that a missing CI flag should be interpreted as
-		 * if it were 0, so the result should be the same.
-		 */
-		if (resElement.getCiFlag() == null || resElement.getCiFlag() == 0) {
-			ciFlag = "";
-		} else {
-			ciFlag = ";DLNA.ORG_CI=" + resElement.getCiFlag().toString();
+		ImageInfo thumbnailImageInfo = this.thumbnailImageInfo != null ?
+			this.thumbnailImageInfo :
+			getMedia() != null && getMedia().getThumb() != null ?
+				getMedia().getThumb().getImageInfo() :
+				null;
+		ImageInfo imageInfo = thumbnailRequest ?
+			thumbnailImageInfo :
+			media != null ?
+				media.getImageInfo() :
+				null;
+
+		if (profile != null &&
+			!thumbnailRequest &&
+			thumbnailImageInfo != null &&
+			profile.useThumbnailSource(imageInfo, thumbnailImageInfo)
+		) {
+			imageInfo = thumbnailImageInfo;
 		}
-		return "DLNA.ORG_PN=" + profile + ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000";
+		if (profile != null && imageInfo != null) {
+			HypotheticalResult hypotheticalResult = profile.calculateHypotheticalProperties(imageInfo);
+			if (sb.length() > 0) {
+				sb.append(';');
+			}
+			sb.append("DLNA.ORG_CI=").append(hypotheticalResult.conversionNeeded ? "1" : "0");
+		}
+		if (sb.length() > 0) {
+			sb.append(';');
+		}
+		sb.append("DLNA.ORG_FLAGS=00900000000000000000000000000000");
+
+		return sb.toString();
 	}
 
 	public DLNAResource getPrimaryResource() {
@@ -2759,9 +2778,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 */
 
 		ImageInfo imageInfo = media.getImageInfo();
-		ImageInfo thumbnailImageInfo = this.thumbnailImageInfo != null ? this.thumbnailImageInfo :
-			getMedia() != null && getMedia().getThumb() != null && getMedia().getThumb().getImageInfo() != null ?
-				getMedia().getThumb().getImageInfo() : null;
+		ImageInfo thumbnailImageInfo = this.thumbnailImageInfo != null ?
+			this.thumbnailImageInfo :
+			getMedia() != null && getMedia().getThumb() != null ?
+				getMedia().getThumb().getImageInfo() :
+				null;
 
 		// Only include GIF elements if the source is a GIF and it's supported by the renderer.
 		boolean includeGIF =

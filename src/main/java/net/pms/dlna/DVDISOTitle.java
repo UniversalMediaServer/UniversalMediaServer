@@ -345,10 +345,10 @@ public class DVDISOTitle extends DLNAResource {
 				thumbFolder = file.getParentFile();
 			}
 
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
+			cachedThumbnail = FileUtil.replaceExtension(thumbFolder, file, "jpg", true, true);
 
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
+				cachedThumbnail = FileUtil.replaceExtension(thumbFolder, file, "png", true, true);
 			}
 
 			if (cachedThumbnail == null) {

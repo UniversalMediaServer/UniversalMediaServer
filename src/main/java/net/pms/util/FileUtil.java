@@ -28,6 +28,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.WordUtils;
@@ -193,10 +194,6 @@ public class FileUtil {
 		}
 	}
 
-	public static File isFileExists(String f, String ext) {
-		return isFileExists(new File(f), ext);
-	}
-
 	public static boolean isUrl(String filename) {
 		// We're intentionally avoiding stricter URI() methods, which can throw
 		// URISyntaxException for psuedo-urls (e.g. librtmp-style urls containing spaces)
@@ -227,21 +224,82 @@ public class FileUtil {
 		return getExtension(substringBefore(u, "?"));
 	}
 
-	public static String getExtension(File f) {
-		if (f == null || f.getName() == null) {
-			return null;
-		}
-		return getExtension(f.getName());
+	/**
+	 * Returns the file extension from the specified {@link File} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link File} from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	public static String getExtension(File file) {
+		return getExtension(file, null, null);
 	}
 
-	public static String getExtension(String f) {
-		int point = f.lastIndexOf('.');
+	/**
+	 * Returns the file extension from the specified {@link File} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link File} from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	public static String getExtension(File file, LetterCase convertTo, Locale locale) {
+		if (file == null || file.getName() == null) {
+			return null;
+		}
+		return getExtension(file.getName(), convertTo, locale);
+	}
 
+	/**
+	 * Returns the file extension from {@code fileName} or {@code null} if
+	 * {@code fileName} has no extension.
+	 *
+	 * @param fileName the file name from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	public static String getExtension(String fileName) {
+		return getExtension(fileName, null, null);
+	}
+
+	/**
+	 * Returns the file extension from {@code fileName} or {@code null} if
+	 * {@code fileName} has no extension.
+	 *
+	 * @param fileName the file name from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	public static String getExtension(String fileName, LetterCase convertTo, Locale locale) {
+		if (fileName == null) {
+			return null;
+		}
+
+		int point = fileName.lastIndexOf('.');
 		if (point == -1) {
 			return null;
 		}
+		if (convertTo != null && locale == null) {
+			locale = Locale.ROOT;
+		}
 
-		return f.substring(point + 1);
+		String extension = fileName.substring(point + 1);
+		if (convertTo == LetterCase.UPPER) {
+			return extension.toUpperCase(locale);
+		}
+		if (convertTo == LetterCase.LOWER) {
+			return extension.toLowerCase(locale);
+		}
+		return extension;
 	}
 
 	public static String getFileNameWithoutExtension(String f) {
@@ -721,16 +779,20 @@ public class FileUtil {
 		return matcher.find() ? matcher.start() : -1;
 	}
 
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
-		return isFileExists(new File(parent, file.getName()), ext);
+		return replaceExtension(parent, file, ext, true, true);
 	}
 
 	/**
-	 * @deprecated Use {@link #getFileNameWithNewExtension(File, File, String)}.
+	 * @deprecated Use {@link #replaceExtension} instead.
 	 */
 	@Deprecated
 	public static File getFileNameWitNewExtension(File parent, File f, String ext) {
-		return getFileNameWithNewExtension(parent, f, ext);
+		return replaceExtension(parent, f, ext, true, true);
 	}
 
 	public static File getFileNameWithAddedExtension(File parent, File f, String ext) {
@@ -751,24 +813,159 @@ public class FileUtil {
 		return getFileNameWithAddedExtension(parent, file, ext);
 	}
 
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
+	public static File isFileExists(String f, String ext) {
+		return replaceExtension(new File(f), ext, true, true);
+	}
+
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
 	public static File isFileExists(File f, String ext) {
-		int point = f.getName().lastIndexOf('.');
+		return replaceExtension(f, ext, true, true);
+	}
 
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param file the {@link File} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		return replaceExtension(
+			file.getParentFile(),
+			file.getName(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link File} instance representing the folder for the
+	 *            constructed {@link File}. Use {@code null} or an empty string
+	 *            for the current folder.
+	 * @param file the {@link File} for which to replace the extension. Only the
+	 *            file name will be used, its path will be discarded.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File folder,
+		File file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		return replaceExtension(
+			folder,
+			file.getName(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link File} instance representing the folder for the
+	 *            constructed {@link File}. Use {@code null} or an empty string
+	 *            for the current folder.
+	 * @param fileName the {@link String} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File folder,
+		String fileName,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (isBlank(fileName)) {
+			return null;
+		}
+
+		int point = fileName.lastIndexOf('.');
+
+		String baseFileName;
 		if (point == -1) {
-			point = f.getName().length();
+			baseFileName = fileName;
+		} else {
+			baseFileName = fileName.substring(0, point);
 		}
 
-		File lowerCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toLowerCase());
-		if (lowerCasedFile.exists()) {
-			return lowerCasedFile;
+		if (isBlank(extension)) {
+			File result = new File(folder, baseFileName);
+			return !nullIfNonExisting || result.exists() ? result : null;
 		}
 
-		File upperCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toUpperCase());
-		if (upperCasedFile.exists()) {
-			return upperCasedFile;
+		File result = new File(folder, baseFileName + "." + extension);
+		if (result.exists() || !nullIfNonExisting && !adjustExtensionCase) {
+			return result;
 		}
 
-		return null;
+		if (!Platform.isWindows() && adjustExtensionCase) {
+			File adjustedResult = new File(folder, baseFileName + "." + extension.toLowerCase(Locale.ROOT));
+			if (adjustedResult.exists()) {
+				return adjustedResult;
+			}
+			adjustedResult = new File(folder, baseFileName + "." + extension.toUpperCase(Locale.ROOT));
+			if (adjustedResult.exists()) {
+				return adjustedResult;
+			}
+		}
+
+		return nullIfNonExisting ? null : result;
 	}
 
 	/**
@@ -798,7 +995,7 @@ public class FileUtil {
 
 		boolean found = false;
 		if (file.exists()) {
-			found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
+			found = browseFolderForSubtitles(file.getAbsoluteFile().getParentFile(), file, media, usecache);
 		}
 		String alternate = PMS.getConfiguration().getAlternateSubtitlesFolder();
 
@@ -851,7 +1048,7 @@ public class FileUtil {
 							if ("sub".equals(ext)) {
 								// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
 								// they'll come in unambiguously as vobsub via the idx file anyway
-								return isFileExists(new File(dir, name), "idx") == null;
+								return replaceExtension(new File(dir, name), "idx", true, true) == null;
 							}
 							return supported.contains(ext);
 						}
@@ -983,14 +1180,13 @@ public class FileUtil {
 				if (Charset.isSupported(match.getName())) {
 					LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 					return Charset.forName(match.getName());
-				} else {
-					LOGGER.debug(
-						"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
-						match.getName(),
-						file.getAbsolutePath()
-					);
-					return null;
 				}
+				LOGGER.debug(
+					"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
+					match.getName(),
+					file.getAbsolutePath()
+				);
+				return null;
 			} catch (IllegalCharsetNameException e) {
 				LOGGER.debug("Illegal charset deteceted \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 			}
@@ -1012,10 +1208,9 @@ public class FileUtil {
 		if (match != null) {
 			LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 			return match.getName().toUpperCase(PMS.getLocale());
-		} else {
-			LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
-			return null;
 		}
+		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		return null;
 	}
 
 	/**
@@ -1207,10 +1402,9 @@ public class FileUtil {
 	public static FilePermissions getFilePermissions(String path) throws FileNotFoundException {
 		if (path != null) {
 			return new FilePermissions(new File(path));
-		} else {
-			File file = null;
-			return new FilePermissions(file);
 		}
+		File file = null;
+		return new FilePermissions(file);
 	}
 
 	/**
@@ -1225,9 +1419,8 @@ public class FileUtil {
 			} catch (FileNotFoundException | IllegalArgumentException e) {
 				return null;
 			}
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
@@ -1546,8 +1739,7 @@ public class FileUtil {
 				}
 				return unixUID;
 			}
-		} else {
-			throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
 		}
+		throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
 	}
 }

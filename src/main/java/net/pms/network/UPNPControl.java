@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
@@ -245,10 +246,11 @@ public class UPNPControl {
 
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
 		try {
-			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
+			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 //			doc.getDocumentElement().normalize();
 			NodeList ids = doc.getElementsByTagName("InstanceID");
-			for (int i = 0; i < ids.getLength(); i++) {
+			int idsLength = ids.getLength();
+			for (int i = 0; i < idsLength; i++) {
 				NodeList c = ids.item(i).getChildNodes();
 				String id = ((Element) ids.item(i)).getAttribute("val");
 //				if (DEBUG) LOGGER.debug("InstanceID: " + id);
@@ -587,11 +589,11 @@ public class UPNPControl {
 
 	public static boolean isNonRenderer(InetAddress socket) {
 		Device d = getDevice(socket);
-		boolean b = (d != null && !isMediaRenderer(d));
-		if (b) {
+		if (d != null && !isMediaRenderer(d)) {
 			LOGGER.debug("Device at {} is {}: {}", socket, d.getType(), d.toString());
+			return true;
 		}
-		return b;
+		return false;
 	}
 
 	public static void connect(String uuid, String instanceID, ActionListener listener) {
@@ -795,37 +797,62 @@ public class UPNPControl {
 	}
 
 	public static String getCurrentTransportState(Device dev, String instanceID) {
-		return send(dev, instanceID, "AVTransport", "GetTransportInfo")
-			.getOutput("CurrentTransportState").toString();
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetTransportInfo");
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("CurrentTransportState");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	public static String getCurrentTransportActions(Device dev, String instanceID) {
-		return send(dev, instanceID, "AVTransport", "GetCurrentTransportActions")
-			.getOutput("CurrentTransportActions").toString();
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetCurrentTransportActions");
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("CurrentTransportActions");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	public static String getDeviceCapabilities(Device dev, String instanceID) {
-		return send(dev, instanceID, "AVTransport", "GetDeviceCapabilities")
-			.getOutput("DeviceCapabilities").toString();
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetDeviceCapabilities");
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("DeviceCapabilities");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	public static String getMediaInfo(Device dev, String instanceID) {
-		return send(dev, instanceID, "AVTransport", "GetMediaInfo")
-			.getOutput("MediaInfo").toString();
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetMediaInfo");
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("MediaInfo");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	public static ActionArgumentValue[] getPositionInfo(Device dev, String instanceID) {
-		return send(dev, instanceID, "AVTransport", "GetPositionInfo").getOutput();
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetPositionInfo");
+		return invocation == null ? null : invocation.getOutput();
 	}
 
 	public static String getTransportInfo(Device dev, String instanceID) {
-		return send(dev, instanceID, "AVTransport", "GetTransportInfo")
-			.getOutput("TransportInfo").toString();
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetTransportInfo");
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("TransportInfo");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	public static String getTransportSettings(Device dev, String instanceID) {
-		return send(dev, instanceID, "AVTransport", "GetTransportSettings")
-			.getOutput("TransportSettings").toString();
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetTransportSettings");
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("TransportSettings");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	public static void setAVTransportURI(Device dev, String instanceID, String uri, String metaData) {
@@ -838,8 +865,12 @@ public class UPNPControl {
 	}
 
 	public static String X_DLNA_GetBytePositionInfo(Device dev, String instanceID, String trackSize) {
-		return send(dev, instanceID, "AVTransport", "X_DLNA_GetBytePositionInfo", "TrackSize", trackSize)
-			.getOutput("BytePositionInfo").toString();
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "X_DLNA_GetBytePositionInfo", "TrackSize", trackSize);
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("BytePositionInfo");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	// RenderingControl
@@ -853,8 +884,12 @@ public class UPNPControl {
 	}
 
 	public static String getMute(Device dev, String instanceID, String channel) {
-		return send(dev, instanceID, "RenderingControl", "GetMute", "Channel", channel)
-			.getOutput("Mute").toString();
+		ActionInvocation invocation = send(dev, instanceID, "RenderingControl", "GetMute", "Channel", channel);
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("Mute");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	public static String getVolume(Device dev, String instanceID) {
@@ -862,8 +897,12 @@ public class UPNPControl {
 	}
 
 	public static String getVolume(Device dev, String instanceID, String channel) {
-		return send(dev, instanceID, "RenderingControl", "GetVolume", "Channel", channel)
-			.getOutput("Volume").toString();
+		ActionInvocation invocation = send(dev, instanceID, "RenderingControl", "GetVolume", "Channel", channel);
+		if (invocation == null) {
+			return null;
+		}
+		ActionArgumentValue argumentValue = invocation.getOutput("Volume");
+		return argumentValue == null ? null : argumentValue.toString();
 	}
 
 	public static void setMute(Device dev, String instanceID, boolean on) {

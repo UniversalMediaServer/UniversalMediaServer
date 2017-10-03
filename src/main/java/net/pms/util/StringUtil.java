@@ -24,12 +24,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
@@ -676,5 +673,17 @@ public class StringUtil {
 			return String.format(locale, "%d %s", bytes / divisor, unit);
 		}
 		return String.format(locale, "%.1f %s", (double) bytes / divisor, unit);
+	}
+
+	/**
+	 * An enum representing letter cases.
+	 */
+	public static enum LetterCase {
+
+		/** Upper-case, uppercase, capital or majuscule */
+		UPPER,
+
+		/** Lower-case, lowercase or minuscule */
+		LOWER
 	}
 }
