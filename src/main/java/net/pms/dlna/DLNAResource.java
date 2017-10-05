@@ -34,6 +34,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
+import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -439,10 +440,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public abstract boolean isFolder();
 
-	public String getDlnaContentFeatures(RendererConfiguration mediaRenderer) {
-		// TODO: Determine renderer's correct localization value
+	public String getDlnaContentFeatures(RendererConfiguration mediaRenderer, String requestedURL) {
 		int localizationValue = 1;
-		String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, localizationValue);
+		String dlnaOrgPnFlags = null;
+		if (getType() == Format.VIDEO || getType() == Format.AUDIO) {
+			String orgPnValue = requestedURL.substring(requestedURL.lastIndexOf("_") + 1, requestedURL.lastIndexOf("."));
+			if (orgPnValue != null) {
+				dlnaOrgPnFlags = "DLNA_ORG_PN=" + orgPnValue;
+			}
+		} else {
+			dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, localizationValue);
+		}
+		
 		return (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer) + ";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
@@ -1928,10 +1937,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
 	@SuppressWarnings("deprecation")
-	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
+	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localization) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		String mime = getRendererMimeType(mediaRenderer);
+		int localizationValue = localization;
 
 		String dlnaOrgPnFlags = null;
 
@@ -2395,6 +2405,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean xbox360 = mediaRenderer.isXbox360();
 		// Cache this as some implementations actually call the file system
 		boolean isFolder = isFolder();
+		String dlnaOrgPnFlags;
 		if (!isFolder) {
 			if (format != null && format.isVideo()) {
 				if (
@@ -2496,10 +2507,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				indexCount = getDLNALocalesCount();
 			}
 
+			
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
-				String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, c);
+				dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, c);
 				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(mediaRenderer);
 				wireshark.append(' ').append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
@@ -2638,27 +2650,34 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				String transcodedExtension = "";
 				if (player != null && media != null) {
 					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
+					
+					
 					if (media.isVideo()) {
 						if (mediaRenderer.isTranscodeToMPEGTS()) {
-							transcodedExtension = "_transcoded_to.ts";
+							transcodedExtension = ".ts";
 						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-							transcodedExtension = "_transcoded_to.wmv";
+							transcodedExtension = ".wmv";
 						} else {
-							transcodedExtension = "_transcoded_to.mpg";
+							transcodedExtension = ".mpg";
 						}
 					} else if (media.isAudio()) {
 						if (mediaRenderer.isTranscodeToMP3()) {
-							transcodedExtension = "_transcoded_to.mp3";
+							transcodedExtension = ".mp3";
 						} else if (mediaRenderer.isTranscodeToWAV()) {
-							transcodedExtension = "_transcoded_to.wav";
+							transcodedExtension = ".wav";
 						} else {
-							transcodedExtension = "_transcoded_to.pcm";
+							transcodedExtension = ".pcm";
 						}
 					}
 				}
 
-				wireshark.append(' ').append(getFileURL()).append(transcodedExtension);
-				sb.append(getFileURL()).append(transcodedExtension);
+				String orgPnFlag = null;
+				if (dlnaOrgPnFlags != null) {
+					orgPnFlag = dlnaOrgPnFlags.substring(dlnaOrgPnFlags.indexOf("=") + 1);
+				}
+
+				wireshark.append(' ').append(getFileURL()).append("_").append(orgPnFlag).append(transcodedExtension);
+				sb.append(getFileURL()).append("_").append(orgPnFlag).append(transcodedExtension);
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);
 				closeTag(sb, "res");

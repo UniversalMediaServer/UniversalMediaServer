@@ -557,7 +557,7 @@ public class Request extends HTTPResource {
 						}
 
 						if (contentFeatures != null) {
-							appendToHeader(responseHeader, "ContentFeatures.DLNA.ORG: " + dlna.getDlnaContentFeatures(mediaRenderer));
+							appendToHeader(responseHeader, "ContentFeatures.DLNA.ORG: " + dlna.getDlnaContentFeatures(mediaRenderer, argument));
 						}
 
 						if (dlna.getPlayer() == null || xbox360) {
