@@ -1,3 +1,22 @@
+/*
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.dlna;
 
 import static net.pms.util.Constants.*;
@@ -20,10 +39,17 @@ import net.pms.util.StringUtil.LetterCase;
 public class DLNAMediaOpenSubtitle extends DLNAMediaSubtitle {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
+
+	/** The maximum number of download attempts */
 	public static final int DOWNLOAD_ATTEMPTS = 3;
 
+	/** Whether or not the downloaded subtitles file should be kept */
 	protected boolean keepLiveSubtitle;
+
+	/** The downloaded subtitles file */
 	protected Path subtitleFile;
+
+	/** The {@link SubtitleItem} describing these subtitles */
 	protected SubtitleItem subtitleItem;
 
 	/** Keeps tracks of download attempts */
@@ -32,6 +58,11 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaSubtitle {
 	/** Synchronization object preventing concurrent download attempts */
 	protected final Object downloadLock = new Object();
 
+	/**
+	 * Creates a new instance using the specified {@link SubtitleItem}.
+	 *
+	 * @param subtitleItem the {@link SubtitleItem} to use.
+	 */
 	public DLNAMediaOpenSubtitle(SubtitleItem subtitleItem) {
 		if (subtitleItem == null) {
 			throw new IllegalArgumentException("subtitleItem cannot be null");
@@ -158,42 +189,28 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaSubtitle {
 		return subtitleItem.getSubEncoding() != null ? subtitleItem.getSubEncoding() : super.getSubCharacterSet();
 	}
 
-	/**
-	 * @return {@code true} if the subtitles are UTF-8 encoded, {@code false}
-	 *         otherwise.
-	 */
 	@Override
 	public boolean isSubsUtf8() {
 		return isExternalFileUtf8();
 	}
 
-	/**
-	 * @return {@code true} if the external subtitles file is UTF-8 encoded,
-	 *         {@code false} otherwise.
-	 */
 	@Override
 	public boolean isExternalFileUtf8() {
 		return equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_8);
 	}
 
-	/**
-	 * @return {@code true} if the external subtitles file is UTF-16 encoded,
-	 *         {@code false} otherwise.
-	 */
 	@Override
 	public boolean isExternalFileUtf16() {
-		return equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_16BE)
-			|| equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_16LE);
+		return
+			equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_16BE) ||
+			equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_16LE);
 	}
 
-	/**
-	 * @return {@code true} if the external subtitles file is UTF-32 encoded,
-	 *         {@code false} otherwise.
-	 */
 	@Override
 	public boolean isExternalFileUtf32() {
-		return equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_32BE)
-			|| equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_32LE);
+		return
+			equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_32BE) ||
+			equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_32LE);
 	}
 
 	@Override
@@ -201,6 +218,10 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaSubtitle {
 		return true;
 	}
 
+	/**
+	 * @return {@code true} if these OpenSubtitles subtitles has been downloaded
+	 *         to disk, {@code false} otherwise.
+	 */
 	public boolean isDownloaded() {
 		synchronized (downloadLock) {
 			return subtitleFile != null && Files.exists(subtitleFile);

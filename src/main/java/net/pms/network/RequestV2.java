@@ -1123,7 +1123,7 @@ public class RequestV2 extends HTTPResource {
 				String formattedResponse = null;
 				if (isNotBlank(response)) {
 					try {
-						formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 4);
+						formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 2);
 					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
 						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
 						formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");

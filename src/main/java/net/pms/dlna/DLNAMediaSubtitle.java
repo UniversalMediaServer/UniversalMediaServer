@@ -52,7 +52,8 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Returns whether or not the subtitles are embedded.
 	 *
-	 * @return True if the subtitles are embedded, false otherwise.
+	 * @return {@code true} if the subtitles are embedded, {@code false}
+	 *         otherwise.
 	 * @since 1.51.0
 	 */
 	public boolean isEmbedded() {
@@ -260,40 +261,48 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return true if subtitles is UTF-8 encoded, false otherwise.
+	 * @return {@code true} if the subtitles are UTF-8 encoded, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isSubsUtf8() {
 		return equalsIgnoreCase(subsCharacterSet, CHARSET_UTF_8);
 	}
 
 	/**
-	 * @return true if external subtitles file is UTF-8 encoded, false otherwise.
+	 * @return {@code true} if the external subtitles file is UTF-8 encoded,
+	 *         {@code false} otherwise.
 	 */
 	public boolean isExternalFileUtf8() {
 		return FileUtil.isCharsetUTF8(subsCharacterSet);
 	}
 
 	/**
-	 * @return true if external subtitles file is UTF-16 encoded, false otherwise.
+	 * @return {@code true} if the external subtitles file is UTF-16 encoded,
+	 *         {@code false} otherwise.
 	 */
 	public boolean isExternalFileUtf16() {
 		return FileUtil.isCharsetUTF16(subsCharacterSet);
 	}
 
 	/**
-	 * @return true if external subtitles file is UTF-32 encoded, false otherwise.
+	 * @return {@code true} if the external subtitles file is UTF-32 encoded,
+	 *         {@code false} otherwise.
 	 */
 	public boolean isExternalFileUtf32() {
 		return FileUtil.isCharsetUTF32(subsCharacterSet);
 	}
 
 	/**
-	 * @return true if external subtitles file is UTF-8, UTF-16 or UTF-32 encoded, false otherwise.
+	 * @return {@code true} if the external subtitles file is UTF-8, UTF-16 or
+	 *         UTF-32 encoded, {@code false} otherwise.
 	 */
 	public boolean isExternalFileUtf() {
 		return (isExternalFileUtf8() || isExternalFileUtf16() || isExternalFileUtf32());
 	}
 
+	/**
+	 * @return {@code true} if this is streamable, {@code false} otherwise.
+	 */
 	public boolean isStreamable() {
 		return isExternal() && isStreamable;
 	}

@@ -74,14 +74,13 @@ public class OpenSubtitle {
 	//private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
 	public static final Path SUBTITLES_FOLDER = Paths.get(PMS.getConfiguration().getDataFile(SUB_DIR));
 
-
 	/**
 	 * Size of the chunks that will be hashed in bytes (64 KB)
 	 */
 	private static final int HASH_CHUNK_SIZE = 64 * 1024;
 
 	private static final String OPENSUBS_URL = "http://api.opensubtitles.org/xml-rpc";
-	private static final ReentrantReadWriteLock tokenLock = new ReentrantReadWriteLock();
+	private static final ReentrantReadWriteLock TOKEN_LOCK = new ReentrantReadWriteLock();
 	private static String token = null;
 	private static long tokenAge;
 
@@ -161,6 +160,15 @@ public class OpenSubtitle {
 		return page.toString();
 	}
 
+	/**
+	 * Posts a query to OpenSubtitles using the specified {@link URLConnection}
+	 * and returns the resulting {@link Document}.
+	 *
+	 * @param connection the {@link URLConnection} to use.
+	 * @param query the OpenSubtitles query to post.
+	 * @return The resulting {@link Document}.
+	 * @throws IOException If an error occurs during the operation.
+	 */
 	public static Document postPageXML(URLConnection connection, String query) throws IOException {
 		connection.setDoOutput(true);
 		connection.setDoInput(true);
@@ -201,7 +209,7 @@ public class OpenSubtitle {
 	}
 
 	private static boolean login() throws IOException {
-		tokenLock.writeLock().lock();
+		TOKEN_LOCK.writeLock().lock();
 		try {
 			if (token != null && tokenIsYoung()) {
 				return true;
@@ -211,7 +219,7 @@ public class OpenSubtitle {
 			CredMgr.Cred cred = PMS.getCred("opensubtitles");
 			String pwd = "";
 			String usr = "";
-			if(cred != null) {
+			if (cred != null) {
 				// if we got credentials use them
 				if (!StringUtils.isEmpty(cred.password)) {
 					pwd = DigestUtils.md5Hex(cred.password);
@@ -253,7 +261,7 @@ public class OpenSubtitle {
 
 			return token != null;
 		} finally {
-			tokenLock.writeLock().unlock();
+			TOKEN_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -280,7 +288,7 @@ public class OpenSubtitle {
 		}
 
 		URL url = new URL(OPENSUBS_URL);
-		tokenLock.readLock().lock();
+		TOKEN_LOCK.readLock().lock();
 		String req = null;
 		try {
 			req =
@@ -306,7 +314,7 @@ public class OpenSubtitle {
 						"</params>\n" +
 					"</methodCall>\n";
 		} finally {
-			tokenLock.readLock().unlock();
+			TOKEN_LOCK.readLock().unlock();
 		}
 
 		LOGGER.debug("req " + req);
@@ -371,26 +379,19 @@ public class OpenSubtitle {
 		return findSubs(null, 0, null, query, r);
 	}
 
-	private static void logReplyDocument(String logMessage, Document xmlDocument, boolean trace) {
-		try {
-			if (trace) {
-				LOGGER.trace(logMessage, StringUtil.prettifyXML(xmlDocument, 2));
-			} else {
-				LOGGER.debug(logMessage, StringUtil.prettifyXML(xmlDocument, 2));
-			}
-		} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
-			LOGGER.error("Couldn't log reply document: {}", e.getMessage());
-			LOGGER.trace("", e);
-		}
-	}
-
-	public static ArrayList<SubtitleItem> findSubs(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
+	public static ArrayList<SubtitleItem> findSubs(
+		String hash,
+		long size,
+		String imdb,
+		String query,
+		RendererConfiguration renderer
+	) throws IOException {
 		ArrayList<SubtitleItem> result = new ArrayList<>();
 		if (!login()) {
 			return result;
 		}
 
-		String lang = UMSUtils.getLangList(r, true);
+		String lang = UMSUtils.getLangList(renderer, true);
 		URL url = new URL(OPENSUBS_URL);
 		String hashStr = "";
 		String imdbStr = "";
@@ -430,7 +431,7 @@ public class OpenSubtitle {
 		}
 
 		String req = null;
-		tokenLock.readLock().lock();
+		TOKEN_LOCK.readLock().lock();
 		try {
 			req =
 				"<methodCall>\n" +
@@ -465,7 +466,7 @@ public class OpenSubtitle {
 					"</params>\n" +
 				"</methodCall>\n";
 		} finally {
-			tokenLock.readLock().unlock();
+			TOKEN_LOCK.readLock().unlock();
 		}
 		LOGGER.trace("Sending query to OpenSubtitles: {}", req);
 		Document xmlDocument = postPageXML(url.openConnection(), req);
@@ -542,43 +543,31 @@ public class OpenSubtitle {
 				LOGGER.trace("", e);
 			}
 		}
-
-
-
-//		Element root = xmlDocument.getRootElement();
-//		if (root != null && "methodResponse".equals(root.getName())) {
-//
-//		} else {
-//			LOGGER.error(
-//				"Received an unexpected reply from OpenSubtitles:\n{}",
-//				new XMLOutputter().outputString(xmlDocument)
-//			);
-//		}
-
-
-//		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
-//		Matcher m = re.matcher(page);
-//		while (m.find()) {
-//			LOGGER.debug("Found subtitle \"{}\" with language {}: \"{}\"", m.group(2), m.group(1), m.group(3));
-//			res.put(m.group(2) + ":" + m.group(1), m.group(3));
-//			if (res.size() > PMS.getConfiguration().liveSubtitlesLimit()) {
-//				// limit the number of hits somewhat
-//				break;
-//			}
-//		}
 		return result;
 	}
 
+	private static void logReplyDocument(String logMessage, Document xmlDocument, boolean trace) {
+		try {
+			if (trace) {
+				LOGGER.trace(logMessage, StringUtil.prettifyXML(xmlDocument, 2));
+			} else {
+				LOGGER.debug(logMessage, StringUtil.prettifyXML(xmlDocument, 2));
+			}
+		} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
+			LOGGER.error("Couldn't log reply document: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
 	/**
-	 * Feeds the correct parameters to getInfo below.
+	 * Feeds the correct parameters for getInfo below.
+	 *
+	 * @param f the {@link File} to lookup.
+	 * @param formattedName the name to use in the name search
+	 * @return The parameter {@link String}.
+	 * @throws IOException If an I/O error occurs during the operation.
 	 *
 	 * @see #getInfo(java.lang.String, long, java.lang.String, java.lang.String)
-	 *
-	 * @param f the file to lookup
-	 * @param formattedName the name to use in the name search
-	 *
-	 * @return
-	 * @throws IOException
 	 */
 	public static String[] getInfo(File f, String formattedName) throws IOException {
 		return getInfo(f, formattedName, null);
@@ -663,7 +652,7 @@ public class OpenSubtitle {
 		}
 
 		String req = null;
-		tokenLock.readLock().lock();
+		TOKEN_LOCK.readLock().lock();
 		try {
 			req =
 				"<methodCall>\n" +
@@ -698,7 +687,7 @@ public class OpenSubtitle {
 					"</params>\n" +
 				"</methodCall>\n";
 		} finally {
-			tokenLock.readLock().unlock();
+			TOKEN_LOCK.readLock().unlock();
 		}
 		Pattern re = Pattern.compile(
 			".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" +
@@ -722,13 +711,13 @@ public class OpenSubtitle {
 			}
 
 			/**
- 			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
- 			 * something like "Episode #1.4", so discard that.
- 			 */
- 			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
- 			if (episodeName.startsWith("Episode #")) {
- 				episodeName = "";
- 			}
+			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
+			 * something like "Episode #1.4", so discard that.
+			 */
+			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
+			if (episodeName.startsWith("Episode #")) {
+				episodeName = "";
+			}
 
 			return new String[]{
 				ImdbUtil.ensureTT(m.group(1).trim()),
@@ -831,6 +820,12 @@ public class OpenSubtitle {
 		return output.toAbsolutePath();
 	}
 
+	/**
+	 * A class holding the parsed information about a OpenSubtitles subtitles
+	 * item.
+	 *
+	 * @author Nadahar
+	 */
 	public static class SubtitleItem {
 		private final String matchedBy;
 		private final String idSubMovieFile;
@@ -848,6 +843,27 @@ public class OpenSubtitle {
 		private final URI subDownloadLink;
 		private final double score;
 
+		/**
+		 * Creates a new instance using the specified parameters.
+		 *
+		 * @param matchedBy the {@code MatchedBy} {@link String}.
+		 * @param idSubMovieFile the {@code IDSubMovieFile} {@link String}.
+		 * @param idSubtitleFile the {@code IDSubtitleFile} {@link String}.
+		 * @param subFileName the {@code SubFileName} {@link String}.
+		 * @param subHash the {@code SubHash} {@link String}.
+		 * @param idSubtitle the {@code IDSubtitle} {@link String}.
+		 * @param languageCode the ISO 639-2 (3 letter) language code.
+		 * @param subtitleType the {@link SubtitleType}.
+		 * @param subBad the boolean equivalent of {@code SubBad}.
+		 * @param subRating the {@code double} equivalent of {@code SubRating}.
+		 * @param userRank the {@code UserRank} {@link String}.
+		 * @param subEncoding the {@code SubEncoding} {@link String}.
+		 * @param subFromTrusted the boolean equivalent of
+		 *            {@code SubFromTrusted}.
+		 * @param subDownloadLink the {@link URI} equivalent of
+		 *            {@code SubDownloadLink}.
+		 * @param score the {@code Score} {@code double}.
+		 */
 		public SubtitleItem(
 			String matchedBy,
 			String idSubMovieFile,
@@ -882,7 +898,24 @@ public class OpenSubtitle {
 			this.score = score;
 		}
 
-		protected static double getStringDouble(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
+		/**
+		 * Parses a {@code double} value with the specified name from the
+		 * specified {@code string struct member} contained in {@link Node}.
+		 *
+		 * @param node the {@link Node} from which to parse.
+		 * @param name the {@code name} value of the {@code member} to parse.
+		 * @param stringExpression the pre-compiled {@link XPathExpression} to
+		 *            use.
+		 * @param resolver the {@link XPathMapVariableResolver} to use.
+		 * @return The parsed {@code double} value or {@link Double#NaN} of the
+		 *         parsing failed.
+		 */
+		protected static double getStringDouble(
+			Node node,
+			String name,
+			XPathExpression stringExpression,
+			XPathMapVariableResolver resolver
+		) {
 			resolver.getMap().put("name", name);
 			try {
 				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
@@ -902,6 +935,17 @@ public class OpenSubtitle {
 			}
 		}
 
+		/**
+		 * Parses a {@code double} value with the specified name from the
+		 * specified {@code double struct member} contained in {@link Node}.
+		 *
+		 * @param node the {@link Node} from which to parse.
+		 * @param name the {@code name} value of the {@code member} to parse.
+		 * @param xPath the {@link XPath} instance to use.
+		 * @param resolver the {@link XPathMapVariableResolver} to use.
+		 * @return The parsed {@code double} value or {@link Double#NaN} of the
+		 *         parsing failed.
+		 */
 		protected static double getDouble(Node node, String name, XPath xPath, XPathMapVariableResolver resolver) {
 			resolver.getMap().put("name", name);
 			try {
@@ -913,6 +957,18 @@ public class OpenSubtitle {
 			}
 		}
 
+		/**
+		 * Parses a {@code boolean} value with the specified name from the
+		 * specified {@code string struct member} contained in {@link Node}.
+		 *
+		 * @param node the {@link Node} from which to parse.
+		 * @param name the {@code name} value of the {@code member} to parse.
+		 * @param stringExpression the pre-compiled {@link XPathExpression} to
+		 *            use.
+		 * @param resolver the {@link XPathMapVariableResolver} to use.
+		 * @return The parsed {@code boolean} value or {@code false} of the
+		 *         parsing failed.
+		 */
 		protected static boolean getBoolean(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
 			resolver.getMap().put("name", name);
 			try {
@@ -929,6 +985,18 @@ public class OpenSubtitle {
 			}
 		}
 
+		/**
+		 * Parses a {@link String} value with the specified name from the
+		 * specified {@code string struct member} contained in {@link Node}.
+		 *
+		 * @param node the {@link Node} from which to parse.
+		 * @param name the {@code name} value of the {@code member} to parse.
+		 * @param stringExpression the pre-compiled {@link XPathExpression} to
+		 *            use.
+		 * @param resolver the {@link XPathMapVariableResolver} to use.
+		 * @return The parsed {@link String} value or {@code null} of the
+		 *         parsing failed.
+		 */
 		protected static String getString(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
 			resolver.getMap().put("name", name);
 			try {
@@ -941,6 +1009,13 @@ public class OpenSubtitle {
 			}
 		}
 
+		/**
+		 * Converts OpenSubtitles' {@code SubFormat} to the corresponding
+		 * {@link SubtitleType}.
+		 *
+		 * @param subFormat the {@code SubFormat} {@link String} to convert.
+		 * @return The resulting {@link SubtitleType} or {@code null}.
+		 */
 		public static SubtitleType subFormatToSubtitleType(String subFormat) {
 			if (subFormat == null) {
 				return null;
@@ -968,6 +1043,16 @@ public class OpenSubtitle {
 			}
 		}
 
+		/**
+		 * Parses a OpenSubtitles {@code struct} node describing a set of
+		 * subtitles and returns the resulting {@link SubtitleItem}.
+		 *
+		 * @param structNode the {@link Node} containing the information about
+		 *            the set of subtitles.
+		 * @return The resulting {@link SubtitleItem} or {@code null}.
+		 * @throws XPathExpressionException If a XPath error occurs during the
+		 *             operation.
+		 */
 		public static SubtitleItem createFromStructNode(Node structNode) throws XPathExpressionException {
 			XPath xPath = XPathFactory.newInstance().newXPath();
 			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
@@ -1130,13 +1215,21 @@ public class OpenSubtitle {
 				", SubHash=" + subHash + ", IDSubtitle=" + idSubtitle + ", LanguageCode=" + languageCode +
 				", SubFormat=" + subtitleType + ", SubBad=" + subBad + ", SubRating=" + subRating +
 				", UserRank=" + userRank + ", SubEncoding=" + subEncoding +
-				", SubFromTrusted=" + subFromTrusted + ", SubDownloadLink="+ subDownloadLink +
+				", SubFromTrusted=" + subFromTrusted + ", SubDownloadLink=" + subDownloadLink +
 				", Score=" + score + "]";
 		}
 	}
 
+	/**
+	 * A {@link XPathVariableResolver} implementation that gets the value to use
+	 * from a {@link HashMap} by using the value of the key with the
+	 * corresponding variable name.
+	 *
+	 * @author Nadahar
+	 */
 	public static class XPathMapVariableResolver implements XPathVariableResolver {
 
+		/** The {@link HashMap} containing the variable name and value pairs */
 		protected final HashMap<String, Object> variables = new HashMap<>();
 
 		@Override
@@ -1144,6 +1237,10 @@ public class OpenSubtitle {
 			return variables.get(variableName.getLocalPart());
 		}
 
+		/**
+		 * @return the {@link HashMap} containing the variable name and value
+		 *         pairs used when resolving variables.
+		 */
 		public HashMap<String, Object> getMap() {
 			return variables;
 		}

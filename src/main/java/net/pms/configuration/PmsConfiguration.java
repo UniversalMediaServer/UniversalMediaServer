@@ -847,9 +847,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getServerDisplayName() {
 		if (isAppendProfileName()) {
 			return String.format("%s [%s]", getString(KEY_SERVER_NAME, PMS.NAME), getProfileName());
-		} else {
-			return getString(KEY_SERVER_NAME, PMS.NAME);
 		}
+		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
 	/**
 	 * The name of the server.
@@ -2535,7 +2534,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	private int findPathSort(String[] paths, String path) throws NumberFormatException{
+	private static int findPathSort(String[] paths, String path) throws NumberFormatException{
 		for (String path1 : paths) {
 			String[] kv = path1.split(",");
 			if (kv.length < 2) {
@@ -3401,9 +3400,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
 		if (i < 1 || i > 65535) {
 			return 514;
-		} else {
-			return i;
 		}
+		return i;
 	}
 
 	public void setLoggingSyslogPort(int value) {

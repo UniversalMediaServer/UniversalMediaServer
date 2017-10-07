@@ -741,8 +741,9 @@ public class DLNAMediaInfo implements Cloneable {
 		if (value == null) {
 			LOGGER.info("No FFmpeg - unable to thumbnail");
 			throw new RuntimeException("No FFmpeg - unable to thumbnail");
+		} else {
+			return value;
 		}
-		return value;
 	}
 
 	@Deprecated
@@ -1393,8 +1394,9 @@ public class DLNAMediaInfo implements Cloneable {
 		if (container != null) {
 			if (container.equals("mp4")) {
 				return isH264();
+			} else {
+				return true;
 			}
-			return true;
 		}
 
 		return false;
@@ -2306,19 +2308,21 @@ public class DLNAMediaInfo implements Cloneable {
 	public String getFormattedAspectRatio(String aspect) {
 		if (isBlank(aspect)) {
 			return null;
-		}
-		if (aspect.contains(":")) {
-			return aspect;
-		}
-		double exactAspectRatio = Double.parseDouble(aspect);
-		if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
-			return "16:9";
-		} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
-			return "4:3";
-		} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
-			return "5:4";
 		} else {
-			return null;
+			if (aspect.contains(":")) {
+				return aspect;
+			} else {
+				double exactAspectRatio = Double.parseDouble(aspect);
+				if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
+					return "16:9";
+				} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
+					return "4:3";
+				} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
+					return "5:4";
+				} else {
+					return null;
+				}
+			}
 		}
 	}
 
@@ -2559,8 +2563,9 @@ public class DLNAMediaInfo implements Cloneable {
 	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
 		if (subtitleTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
+		} else {
+			return new ArrayList<>();
 		}
-		return new ArrayList<>();
 	}
 
 	/**
