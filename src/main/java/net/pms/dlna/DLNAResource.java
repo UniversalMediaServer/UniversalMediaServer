@@ -34,7 +34,6 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
-import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -444,7 +443,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		int localizationValue = 1;
 		String dlnaOrgPnFlags = null;
 		if (getType() == Format.VIDEO || getType() == Format.AUDIO) {
-			String orgPnValue = requestedURL.substring(requestedURL.lastIndexOf("_") + 1, requestedURL.lastIndexOf("."));
+			String orgPnValue = requestedURL.substring(requestedURL.lastIndexOf("/") + 1, requestedURL.indexOf("_"));
 			if (orgPnValue != null) {
 				dlnaOrgPnFlags = "DLNA_ORG_PN=" + orgPnValue;
 			}
@@ -2650,34 +2649,36 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				String transcodedExtension = "";
 				if (player != null && media != null) {
 					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
-					
-					
 					if (media.isVideo()) {
 						if (mediaRenderer.isTranscodeToMPEGTS()) {
-							transcodedExtension = ".ts";
+							transcodedExtension = "_transcoded_to.ts";
 						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
-							transcodedExtension = ".wmv";
+							transcodedExtension = "_transcoded_to.wmv";
 						} else {
-							transcodedExtension = ".mpg";
+							transcodedExtension = "_transcoded_to.mpg";
 						}
 					} else if (media.isAudio()) {
 						if (mediaRenderer.isTranscodeToMP3()) {
-							transcodedExtension = ".mp3";
+							transcodedExtension = "_transcoded_to.mp3";
 						} else if (mediaRenderer.isTranscodeToWAV()) {
-							transcodedExtension = ".wav";
+							transcodedExtension = "_transcoded_to.wav";
 						} else {
-							transcodedExtension = ".pcm";
+							transcodedExtension = "_transcoded_to.pcm";
 						}
 					}
 				}
 
-				String orgPnFlag = null;
+				StringBuilder updatedFileURL = new StringBuilder();
+				updatedFileURL.append(getFileURL().substring(0, getFileURL().lastIndexOf("/") + 1));
 				if (dlnaOrgPnFlags != null) {
-					orgPnFlag = dlnaOrgPnFlags.substring(dlnaOrgPnFlags.indexOf("=") + 1);
+					updatedFileURL.append(dlnaOrgPnFlags.substring(dlnaOrgPnFlags.indexOf("=") + 1))
+					.append("_");
 				}
 
-				wireshark.append(' ').append(getFileURL()).append("_").append(orgPnFlag).append(transcodedExtension);
-				sb.append(getFileURL()).append("_").append(orgPnFlag).append(transcodedExtension);
+				updatedFileURL.append(getFileURL().substring(getFileURL().lastIndexOf("/") + 1));
+
+				wireshark.append(' ').append(updatedFileURL).append(transcodedExtension);
+				sb.append(updatedFileURL).append(transcodedExtension);
 				LOGGER.trace("Network debugger: " + wireshark.toString());
 				wireshark.setLength(0);
 				closeTag(sb, "res");
