@@ -919,7 +919,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Should transcoding be forced for this format?
 			boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
 			boolean isIncompatible = false;
-			String audioTracksList = getName() + media.getAudioTracksList().toString();
 
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
@@ -932,9 +931,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace(prependTraceReason + "it is not supported by the renderer", getName());
 			} else if (
 				configurationSpecificToRenderer.isEncodedAudioPassthrough() &&
+				getMediaAudio() != null &&
 				(
-					audioTracksList.contains("audio codec: AC3") ||
-					audioTracksList.contains("audio codec: DTS")
+					"AC3".equals(getMediaAudio().getAudioCodec()) ||
+					"DTS".equals(getMediaAudio().getAudioCodec())
 				)
 			) {
 				isIncompatible = true;
