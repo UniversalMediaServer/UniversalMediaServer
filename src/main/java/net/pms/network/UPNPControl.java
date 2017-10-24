@@ -722,13 +722,14 @@ public class UPNPControl {
 				new ActionCallback(actionInvocation, upnpService.getControlPoint()) {
 					@Override
 					public void success(ActionInvocation invocation) {
-						String sink = invocation.getOutput("Sink").toString();
-						rendererMap.get(uuid, "0").deviceProtocolInfo.add(DeviceProtocolInfo.GET_PROTOCOLINFO_SINK, sink);
+						Map<String, ActionArgumentValue<RemoteService>> outputs = invocation.getOutputMap();
+						ActionArgumentValue<RemoteService> sink = outputs.get("Sink");
+						if (sink != null) {
+							rendererMap.get(uuid, "0").deviceProtocolInfo.add(DeviceProtocolInfo.GET_PROTOCOLINFO_SINK, sink.toString());
+						}
 						if (LOGGER.isTraceEnabled()) {
 							StringBuilder sb = new StringBuilder();
-							for (Object element : invocation.getOutputMap().entrySet()) {
-								@SuppressWarnings("unchecked")
-								Entry<String, ActionArgumentValue<?>> entry = (Entry<String, ActionArgumentValue<?>>) element;
+							for (Entry<String, ActionArgumentValue<RemoteService>> entry : outputs.entrySet()) {
 								if (entry.getValue() != null) {
 									String value = entry.getValue().toString();
 									if (isNotBlank(value)) {
