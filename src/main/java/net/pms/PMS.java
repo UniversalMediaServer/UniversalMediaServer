@@ -70,6 +70,7 @@ import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
+import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -640,7 +641,12 @@ public class PMS {
 					if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
 						frame.setReloadable(true);
 					} else if (PmsConfiguration.NEED_RESTART_FLAGS.contains(event.getPropertyName())) {
-						askToRestart();
+						try {
+							configuration.save(); // save configuration otherwise the change after rebooting is missed
+							askToRestart();
+						} catch (ConfigurationException e) {
+							LOGGER.debug("Error when configuration was saved: {}", e);
+						}
 					}
 				}
 			}
@@ -1976,35 +1982,6 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts UMS completely.
-	 */
-	public void restartApplication() {
-		final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-		final File currentJar;
-
-		try {
-		currentJar = new File(PMS.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-
-		if (!currentJar.getName().endsWith(".jar")) {
-			LOGGER.info("currentJar not a jar: {}", currentJar);
-			return;
-		}
-
-		// Build command: java -jar application.jar
-		final ArrayList<String> command = new ArrayList<String>();
-		command.add(javaBin);
-		command.add("-jar");
-		command.add(currentJar.getPath());
-
-		final ProcessBuilder builder = new ProcessBuilder(command);
-		builder.start();
-		System.exit(0);
-		} catch (Exception e) {
-			LOGGER.info("exception while restarting: {}", e);
-		}
-	}
-
-	/**
 	 * Informs the user a program restart is needed to update
 	 * settings, and offers the option to do it automatically.
 	 */
@@ -2015,7 +1992,7 @@ public class PMS {
 			Messages.getString("Dialog.Question"),
 			JOptionPane.YES_NO_OPTION);
 		if (option == JOptionPane.YES_OPTION) {
-			PMS.get().restartApplication();
+			ProcessUtil.reboot();
 		}
 	}
 }
