@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
@@ -785,7 +786,7 @@ public class OpenSubtitle {
 
 	public static String subFile(String name) {
 		String dir = PMS.getConfiguration().getDataFile(SUB_DIR);
-		File path = new File(dir);
+		File path = Paths.get(dir).toFile();
 		if (!path.exists()) {
 			if (!path.mkdirs()) {
 				LOGGER.error("Failed to create subtitles folder {}", path.getAbsolutePath());

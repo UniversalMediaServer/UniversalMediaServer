@@ -23,6 +23,7 @@ package net.pms.util;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.*;
 import java.text.Collator;
 import java.util.*;
 import java.util.List;
@@ -415,7 +416,7 @@ public class UMSUtils {
 			if (clazz.contains("RealFile")) {
 				if (data.contains(">")) {
 					String[] tmp = data.split(">");
-					return new RealFile(new File(tmp[1]), tmp[0]);
+					return new RealFile(Paths.get(tmp[1]).toFile(), tmp[0]);
 				}
 				error = true;
 			}
