@@ -92,6 +92,12 @@ public class RendererConfigurationTest {
 
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
+		testHeaders    ("LG WebOS TV", "User-Agent: Linux/3.10.19-32.afro.4 UPnP/1.0 LGE WebOS TV LGE_DLNA_SDK/1.6.0/04.30.13 DLNADOC/1.50");
+		testUPNPDetails("LG WebOS TV", "modelDescription=LG WebOSTV DMRplus");
+		testUPNPDetails("LG WebOS TV", "friendlyName=LG-webOSTV");
+		testUPNPDetails("LG WebOS TV", "friendlyName=[LG] webOS TV");
+		testUPNPDetails("LG WebOS TV", "DLNADeviceName.lge.com=LG-webOSTV");
+
 		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
 
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");

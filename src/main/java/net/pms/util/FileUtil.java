@@ -1593,16 +1593,44 @@ public class FileUtil {
 		return filename;
 	}
 
+	/**
+	 * @deprecated Use {@link #createBufferedReaderDetectCharset(File, Charset)} instead.
+	 */
+	@Deprecated
 	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
+		return createBufferedReaderDetectCharset(file, StandardCharsets.UTF_8).getBufferedReader();
+	}
+
+	/**
+	 * Attempts to detect the {@link Charset} used in the specified {@link File}
+	 * and creates a {@link BufferedReader} using that {@link Charset}. If the
+	 * {@link Charset} detection fails, the specified default {@link Charset}
+	 * will be used.
+	 *
+	 * @param file the {@link File} to use.
+	 * @param defaultCharset the fallback {@link Charset} it automatic detection
+	 *            fails. If {@code null}, the JVM default {@link Charset} will
+	 *            be used.
+	 * @return The resulting {@link BufferedReaderDetectCharsetResult}.
+	 * @throws IOException If an I/O error occurs during the operation.
+	 */
+	public static BufferedReaderDetectCharsetResult createBufferedReaderDetectCharset(File file, Charset defaultCharset) throws IOException {
 		BufferedReader reader;
 		Charset fileCharset = getFileCharset(file);
 		if (fileCharset != null) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), fileCharset));
-		} else {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			LOGGER.warn("Could not detect character encoding for file \"{}\". It will probably be interpreted wrong", file.getAbsolutePath());
+			return new BufferedReaderDetectCharsetResult(reader, fileCharset, true);
 		}
-		return reader;
+		if (defaultCharset == null) {
+			defaultCharset = Charset.defaultCharset();
+		}
+		reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), defaultCharset));
+		LOGGER.warn(
+			"Could not detect character encoding for file \"{}\"; using the default charset \"{}\"",
+			file.getAbsolutePath(),
+			defaultCharset
+		);
+		return new BufferedReaderDetectCharsetResult(reader, defaultCharset, false);
 	}
 
 	/**
@@ -1837,5 +1865,60 @@ public class FileUtil {
 			}
 		}
 		throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
+	}
+
+	/**
+	 * This class holds the results from
+	 * {@link FileUtil#createBufferedReaderDetectCharset}.
+	 *
+	 * @author Nadahar
+	 */
+	public static class BufferedReaderDetectCharsetResult implements Closeable {
+		private final BufferedReader reader;
+		private final Charset charset;
+		private final boolean successfulDetection;
+
+		/**
+		 * Creates a new instance with the given parameters.
+		 *
+		 * @param reader the {@link BufferedReader}.
+		 * @param charset the {@link Charset}.
+		 * @param successfulDetection {@code true} is {@link Charset} detection
+		 *            was successful, {@code false} otherwise.
+		 */
+		public BufferedReaderDetectCharsetResult(BufferedReader reader, Charset charset, boolean successfulDetection) {
+			this.reader = reader;
+			this.charset = charset;
+			this.successfulDetection = successfulDetection;
+		}
+
+		/**
+		 * @return The {@link BufferedReader}.
+		 */
+		public BufferedReader getBufferedReader() {
+			return reader;
+		}
+
+		/**
+		 * @return The {@link Charset} used for the {@link BufferedReader}.
+		 */
+		public Charset getCharset() {
+			return charset;
+		}
+
+		/**
+		 * @return {@code true} if {@link Charset} detection was successful,
+		 *         {@code false} if the default was used..
+		 */
+		public boolean isSuccessfulDetection() {
+			return successfulDetection;
+		}
+
+		@Override
+		public void close() throws IOException {
+			if (reader != null) {
+				reader.close();
+			}
+		}
 	}
 }

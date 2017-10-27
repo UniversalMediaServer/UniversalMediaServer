@@ -924,7 +924,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Should transcoding be forced for this format?
 			boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
 			boolean isIncompatible = false;
-			String audioTracksList = getName() + media.getAudioTracksList().toString();
 
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
@@ -935,16 +934,33 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else if (!format.isCompatible(media, renderer)) {
 				isIncompatible = true;
 				LOGGER.trace(prependTraceReason + "it is not supported by the renderer", getName());
-			} else if (
-				configurationSpecificToRenderer.isEncodedAudioPassthrough() &&
-				(
-					audioTracksList.contains("audio codec: AC3") ||
-					audioTracksList.contains("audio codec: DTS")
-				)
-			) {
-				isIncompatible = true;
-				LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
-			} else if (format.isVideo() && parserV2 && renderer != null) {
+			} else if (configurationSpecificToRenderer.isEncodedAudioPassthrough()) {
+				if (
+					getMediaAudio() != null &&
+					(
+						FormatConfiguration.AC3.equals(getMediaAudio().getAudioCodec()) ||
+						FormatConfiguration.DTS.equals(getMediaAudio().getAudioCodec())
+					)
+				) {
+					isIncompatible = true;
+					LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
+				} else {
+					for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
+						if (
+							audioTrack != null &&
+							(
+								FormatConfiguration.AC3.equals(audioTrack.getAudioCodec()) ||
+								FormatConfiguration.DTS.equals(audioTrack.getAudioCodec())
+							)
+						) {
+							isIncompatible = true;
+							LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
+							break;
+						}
+					}
+				}
+			}
+			if (!isIncompatible && format.isVideo() && parserV2 && renderer != null) {
 				int maxBandwidth = renderer.getMaxBandwidth();
 
 				if (
