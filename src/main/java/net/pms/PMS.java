@@ -26,7 +26,6 @@ import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
-import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessControlException;
 import java.sql.SQLException;
@@ -165,7 +164,7 @@ public class PMS {
 	}
 
 	/**
-	 * Pointer to a running UMS server.
+	 * Pointer to a running PMS server.
 	 */
 	private static PMS instance = null;
 
@@ -895,7 +894,7 @@ public class PMS {
 	private MediaLibrary mediaLibrary;
 
 	/**
-	 * Returns the MediaLibrary used by UMS.
+	 * Returns the MediaLibrary used by PMS.
 	 * @return (MediaLibrary) Used mediaLibrary, if any. null if none is in use.
 	 */
 	public MediaLibrary getLibrary() {
@@ -973,7 +972,7 @@ public class PMS {
 			// so log it so we can fix it.
 			LOGGER.info("Checking shared folder: " + folder);
 
-			File file = Paths.get(folder).toFile();
+			File file = new File(folder);
 
 			if (file.exists()) {
 				if (!file.isDirectory()) {

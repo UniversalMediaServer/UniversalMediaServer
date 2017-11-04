@@ -23,7 +23,6 @@ import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -2217,7 +2216,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									 */
 									if (!configurationSpecificToRenderer.isDisableSubtitles() && params.sid == null && media != null) {
 										// Check for subtitles again
-										File video = Paths.get(getSystemName()).toFile();
+										File video = new File(getSystemName());
 										FileUtil.isSubtitlesExists(video, media, false);
 
 										if (configurationSpecificToRenderer.isAutoloadExternalSubtitles()) {
@@ -4551,7 +4550,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			type == Format.AUDIO ? new WebAudioStream(name, uri, null) :
 			type == Format.IMAGE ? new FeedItem(name, uri, null, null, Format.IMAGE) : null
 			:
-			new RealFile(Paths.get(uri).toFile());
+			new RealFile(new File(uri));
 		if (format == null && !isweb) {
 			resource.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
 		}

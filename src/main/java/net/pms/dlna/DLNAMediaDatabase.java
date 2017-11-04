@@ -21,7 +21,6 @@ package net.pms.dlna;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
 import java.sql.*;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
@@ -1202,16 +1201,10 @@ public class DLNAMediaDatabase implements Runnable {
 				while (rs.next()) {
 					String filename = rs.getString("FILENAME");
 					long modified = rs.getTimestamp("MODIFIED").getTime();
-
-					Path path = Paths.get(filename);
-					try {
-						if (!Files.exists(path) || Files.getLastModifiedTime(path).toMillis() != modified) {
-							rs.deleteRow();
-						}
-					} catch(IOException e) {
-						LOGGER.debug("An error occurred when deleting the row for {}", filename);
+					File file = new File(filename);
+					if (!file.exists() || file.lastModified() != modified) {
+						rs.deleteRow();
 					}
-
 					i++;
 					int newpercent = i * 100 / dbCount;
 					if (newpercent > oldpercent) {
@@ -1242,14 +1235,9 @@ public class DLNAMediaDatabase implements Runnable {
 			while (rs.next()) {
 				String filename = rs.getString("FILENAME");
 				long modified = rs.getTimestamp("MODIFIED").getTime();
-
-				Path path = Paths.get(filename);
-				try {
-					if (!Files.exists(path) || Files.getLastModifiedTime(path).toMillis() != modified) {
-						list.add(path.toFile());
-					}
-				} catch(IOException e) {
-					LOGGER.debug("An error occurred when getting the row for {}", filename);
+				File file = new File(filename);
+				if (file.exists() && file.lastModified() == modified) {
+					list.add(file);
 				}
 			}
 		} catch (SQLException se) {

@@ -26,7 +26,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
@@ -1518,7 +1517,7 @@ public class RootFolder extends DLNAResource {
 							PMS.get().getDatabase().removeMediaEntry(filename);
 						} else if ("ENTRY_CREATE".equals(event)) {
 							LOGGER.trace("File {} was created on the hard drive", filename);
-							File file = Paths.get(filename).toFile();
+							File file = new File(filename);
 							parseFileForDatabase(file);
 						}
 					}
