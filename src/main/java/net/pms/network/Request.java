@@ -472,7 +472,7 @@ public class Request extends HTTPResource {
 						LOGGER.error("There is no inputstream to return for " + name);
 					} else {
 						startStopListenerDelegate.start(dlna);
-						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia())); 
+						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(mediaRenderer, dlna)); 
 
 						if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
 							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
@@ -1039,11 +1039,6 @@ public class Request extends HTTPResource {
 			}
 		}
 
-	}
-
-	private String getRendererMimeType(String mimeType, RendererConfiguration mediaRenderer2, DLNAMediaInfo media) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	private static void appendToHeader(List<String> responseHeader, String line) throws IOException {

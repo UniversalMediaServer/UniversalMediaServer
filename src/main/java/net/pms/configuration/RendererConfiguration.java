@@ -2966,4 +2966,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isRemoveTagsFromSRTsubs() {
 		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
 	}
+
+	public String getMimeType(String mimeType, DLNAMediaInfo media) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
