@@ -65,7 +65,7 @@ public class RemoteRawHandler implements HttpHandler {
 			}
 			mime = dlna.getFormat() != null ?
 				dlna.getFormat().mimeType() :
-				root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
+				root.getDefaultRenderer().getMimeType(dlna);
 
 			len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : dlna.length();
 			range = new Range.Byte(0l, len);
@@ -96,7 +96,7 @@ public class RemoteRawHandler implements HttpHandler {
 				// For web resources actual length may be unknown until we open the stream
 				len = dlna.length();
 			}
-			mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
+			mime = root.getDefaultRenderer().getMimeType(dlna);
 		}
  
 		Headers hdr = t.getResponseHeaders();
