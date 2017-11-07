@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -47,8 +48,10 @@ import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
+import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
+import net.pms.newgui.components.WindowProperties;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
@@ -61,6 +64,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private final AutoUpdater autoUpdater;
 	private final PmsConfiguration configuration;
 	public static final String START_SERVICE = "start.service";
+	private final WindowProperties windowProperties;
 	private static final long serialVersionUID = 8723727186288427690L;
 	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
 	protected static final Dimension MINIMUM_SIZE = new Dimension(640, 480);
@@ -201,7 +205,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * Constructs a <code>DemoFrame</code>, configures the UI,
 	 * and builds the content.
 	 */
-	public LooksFrame(AutoUpdater autoUpdater, PmsConfiguration configuration) {
+	public LooksFrame(AutoUpdater autoUpdater, @Nonnull PmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
+		super(windowConfiguration.getGraphicsConfiguration());
+		if (configuration == null) {
+			throw new IllegalArgumentException("configuration can't be null");
+		}
+		setResizable(true);
+		windowProperties = new WindowProperties(this, STANDARD_SIZE, MINIMUM_SIZE, windowConfiguration);
 		this.autoUpdater = autoUpdater;
 		this.configuration = configuration;
 		assert this.configuration != null;
@@ -338,7 +348,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		ToolTipManager.sharedInstance().setDismissDelay(60000);
 		ToolTipManager.sharedInstance().setReshowDelay(400);
 
-		setResizable(true);
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
@@ -519,6 +528,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
+		windowProperties.dispose();
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -526,6 +536,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 
 		System.exit(0);
+	}
+
+	@Override
+	public void dispose() {
+		windowProperties.dispose();
+		super.dispose();
 	}
 
 	@Override
