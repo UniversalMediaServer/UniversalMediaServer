@@ -62,12 +62,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private final PmsConfiguration configuration;
 	public static final String START_SERVICE = "start.service";
 	private static final long serialVersionUID = 8723727186288427690L;
-	private Dimension storedWindowSize = new Dimension();
-	private Dimension storedScreenSize = new Dimension();
 	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
-	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
-	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
-	private Dimension screenSize = getToolkit().getScreenSize();
+	protected static final Dimension MINIMUM_SIZE = new Dimension(640, 480);
 
 	/**
 	 * List of context sensitive help pages URLs. These URLs should be
@@ -209,6 +205,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		this.autoUpdater = autoUpdater;
 		this.configuration = configuration;
 		assert this.configuration != null;
+		setMinimumSize(MINIMUM_SIZE);
 		Options.setDefaultIconSize(new Dimension(18, 18));
 		Options.setUseNarrowButtons(true);
 
@@ -335,30 +332,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setTitle(title);
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		if (screenSize.width < MINIMUM_SIZE.width || screenSize.height < MINIMUM_SIZE.height) {
-			setMinimumSize(screenSize);
-		} else {
-			setMinimumSize(MINIMUM_SIZE);
-		}
-
-		String ss = configuration.getScreenSize();
-		storedScreenSize.height = Integer.parseInt(ss.substring(ss.indexOf('x') + 1));
-		storedScreenSize.width = Integer.parseInt(ss.substring(0, ss.indexOf('x')));
-		String[] windowGeometryValues = configuration.getWindowGeometry().split(",");
-		int posX = Integer.parseInt(windowGeometryValues[0].substring(windowGeometryValues[0].indexOf('=') + 1));
-		int posY = Integer.parseInt(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf('=') + 1));
-		storedWindowSize.width = Integer.parseInt(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf('=') + 1));
-		storedWindowSize.height = Integer.parseInt(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf('=') + 1));
-		setSize(storedWindowSize);
-		boolean screenChanged = false;
-		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
-			setSize(STANDARD_SIZE);
-			screenChanged = true;
-		} else if (configuration.getWindowExtendedState() != NORMAL) {
-			setExtendedState(configuration.getWindowExtendedState());
-		} else if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
-			setSize(screenSize);
-		}
 
 		// Display tooltips immediately and for a long time
 		ToolTipManager.sharedInstance().setInitialDelay(400);
@@ -366,16 +339,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		ToolTipManager.sharedInstance().setReshowDelay(400);
 
 		setResizable(true);
-		Dimension paneSize = getSize();
-		if (posX == -1 && posY == -1 || screenChanged) { // first run of UMS or screen/desktop was changed so set the position to the middle of the screen
-			setLocation(
-			((screenSize.width > paneSize.width) ? ((screenSize.width - paneSize.width) / 2) : 0),
-			((screenSize.height > paneSize.height) ? ((screenSize.height - paneSize.height) / 2) : 0)
-			);
-		} else {
-			setLocation(posX, posY);
-		}
-
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
@@ -556,19 +519,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
-		String windowGeometry = getBounds().toString();
-		try {
-			if (getExtendedState() != NORMAL) {
-				configuration.setWindowExtendedState(getExtendedState());
-			} else {
-				configuration.setWindowExtendedState(NORMAL);
-				configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf('[') + 1, windowGeometry.indexOf(']')));
-			}
-			configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
-		} catch (Exception e) {
-			LOGGER.warn("Failed to save window geometry and size: {}", e.getMessage());
-			LOGGER.debug("", e);
-		}
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
