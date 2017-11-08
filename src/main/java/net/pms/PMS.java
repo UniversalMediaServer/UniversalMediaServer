@@ -100,6 +100,9 @@ public class PMS {
 	private static final String PROFILES = "profiles";
 	private static final String PROFILE = "^(?i)profile(?::|=)([^\"*<>?]+)$";
 	private static final String TRACE = "trace";
+	private static final String DBLOG = "dblog";
+	private static final String DBTRACE = "dbtrace";
+
 	public static final String NAME = "Universal Media Server";
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
@@ -1176,6 +1179,10 @@ public class PMS {
 					case TRACE:
 						traceMode = 2;
 						break;
+					case DBLOG:
+					case DBTRACE:
+						logDB = true;
+						break;
 					default:
 						Matcher matcher = pattern.matcher(arg);
 						if (matcher.find()) {
@@ -1963,6 +1970,7 @@ public class PMS {
 	}
 
 	private static int traceMode = 0;
+	private static boolean logDB;
 
 	/**
 	 * Returns current trace mode state
@@ -1974,6 +1982,16 @@ public class PMS {
 	 */
 	public static int getTraceMode() {
 		return traceMode;
+	}
+
+	/**
+	 * Returns if the database logging is forced by command line arguments.
+	 *
+	 * @return {@code true} if database logging is forced, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean getLogDB() {
+		return logDB;
 	}
 
 	private CredMgr credMgr;

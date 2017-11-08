@@ -218,7 +218,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
 	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
 	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
-	protected static final String KEY_LOGGING_DATABASE = "logging_database";
+	protected static final String KEY_LOG_DATABASE = "log_database";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -3826,8 +3826,17 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
 	}
 
-	public boolean getLoggingDatabase() {
-		return getBoolean(KEY_LOGGING_DATABASE, false) || PMS.getTraceMode() == 2;
+	/**
+	 * Returns whether database logging is enabled. The returned value is
+	 * {@code true} if either the value is {@code true} or a command line
+	 * argument has forced it to {@code true}.
+	 *
+	 * @return {@code true} if database logging is enabled, {@code false}
+	 *         otherwise.
+	 */
+	public boolean getDatabaseLogging() {
+		boolean dbLog = getBoolean(KEY_LOG_DATABASE, false);
+		return dbLog || PMS.getLogDB();
 	}
 
 	public boolean isVlcUseHardwareAccel() {
