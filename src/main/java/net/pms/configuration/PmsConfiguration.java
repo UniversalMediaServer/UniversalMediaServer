@@ -2686,12 +2686,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		LOGGER.info("Configuration saved to: " + PROFILE_PATH);
 	}
 
-	public String getFolders(ArrayList<String> tags) {
-		return tagLoop(tags, ".folders", KEY_FOLDERS);
+	public String getFolders() {
+		return getString(KEY_FOLDERS, "");
 	}
 
-	public String getFoldersIgnored(ArrayList<String> tags) {
-		return tagLoop(tags, ".ignore", KEY_FOLDERS_IGNORED);
+	public String getFoldersIgnored() {
+		return getString(KEY_FOLDERS_IGNORED, null);
 	}
 
 	public void setFolders(String value) {
@@ -3411,12 +3411,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RENDERER_FORCE_DEFAULT, value);
 	}
 
-	public String getVirtualFolders(ArrayList<String> tags) {
-		return tagLoop(tags, ".vfolders", KEY_VIRTUAL_FOLDERS);
+	public String getVirtualFolders() {
+		return getString(KEY_VIRTUAL_FOLDERS, "");
 	}
 
-	public String getVirtualFoldersFile(ArrayList<String> tags) {
-		return tagLoop(tags, ".vfolders.file", KEY_VIRTUAL_FOLDERS_FILE);
+	public String getVirtualFoldersFile() {
+		return getString(KEY_VIRTUAL_FOLDERS_FILE, "");
 	}
 
 	public String getProfilePath() {
@@ -3945,41 +3945,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
 
-	public String getPlugins(ArrayList<String> tags) {
-		return tagLoop(tags, ".plugins", "dummy");
-	}
-
-	public boolean isHideWebFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".web", "dummy", false);
-	}
-
-	private String tagLoop(ArrayList<String> tags, String suff, String fallback) {
-		if (tags == null || tags.isEmpty()) {
-			// no tags use fallback
-			return getString(fallback, "");
-		}
-
-		for (String tag : tags) {
-			String x = (tag.toLowerCase() + suff).replaceAll(" ", "_");
-			String res = getString(x, "");
-			if (StringUtils.isNotBlank(res)) {
-				// use first tag found
-				return res;
-			}
-		}
-
-		// down here no matching tag was found
-		// return fallback
-		return getString(fallback, "");
-	}
-
-	private boolean tagLoopBool(ArrayList<String> tags, String suff, String fallback, boolean def) {
-		String b = tagLoop(tags, suff, fallback);
-		if (StringUtils.isBlank(b)) {
-			return def;
-		}
-
-		return b.trim().equalsIgnoreCase("true");
+	public String getPlugins() {
+		return getString("dummy", "");
 	}
 
 	/**

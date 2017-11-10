@@ -55,11 +55,15 @@ import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
-import net.pms.dlna.*;
+import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.GlobalIdRepo;
+import net.pms.dlna.Playlist;
+import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -138,8 +142,6 @@ public class PMS {
 	 * directory.
 	 */
 	private static String helpPage = "index.html";
-
-	private NameFilter filter;
 
 	private JmDNS jmDNS;
 
@@ -404,12 +406,6 @@ public class PMS {
 
 		dbgPack = new DbgPacker();
 		tfm = new TempFileMgr();
-
-		try {
-			filter = new NameFilter();
-		} catch (ConfigurationException e) {
-			filter = null;
-		}
 
 		// This should be removed soon
 		OpenSubtitle.convert();
@@ -845,7 +841,7 @@ public class PMS {
 	@SuppressWarnings("unused")
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
-		return getSharedFoldersArray(false, getConfiguration());
+		return getSharedFoldersArray(false);
 	}
 
 	/**
@@ -853,7 +849,7 @@ public class PMS {
 	 */
 	@Deprecated
 	public File[] getFoldersConf() {
-		return getSharedFoldersArray(false, getConfiguration());
+		return getSharedFoldersArray(false);
 	}
 
 	/**
@@ -863,11 +859,7 @@ public class PMS {
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, null, getConfiguration());
-	}
-
-	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
-		return getSharedFoldersArray(monitored, null, configuration);
+		return getSharedFoldersArray(monitored, getConfiguration());
 	}
 
 	/**
@@ -880,12 +872,12 @@ public class PMS {
 	 * @param configuration
 	 * @return 
 	 */
-	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
+	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
 		String folders;
 		if (monitored) {
 			folders = configuration.getFoldersMonitored();
 		} else {
-			folders = configuration.getFolders(tags);
+			folders = configuration.getFolders();
 
 			if (StringUtils.isEmpty(folders)) {
 				String userHomeDirectory;
@@ -1857,26 +1849,6 @@ public class PMS {
 	@Deprecated
 	public boolean isWindows() {
 		return Platform.isWindows();
-	}
-
-	public static boolean filter(RendererConfiguration render, DLNAResource res) {
-		NameFilter nf = instance.filter;
-		if (nf == null || render == null) {
-			return false;
-		}
-
-		ArrayList<String> tags = render.tags();
-		if (tags == null) {
-			return false;
-		}
-
-		for (String tag : tags) {
-			if (nf.filter(tag, res)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	public static boolean isReady() {
