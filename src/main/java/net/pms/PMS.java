@@ -568,6 +568,10 @@ public class PMS {
 			chooser.setMultiSelectionEnabled(false);
 			if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 				configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
+			} else {
+				// If user cancel this option set the default directory which depends on the operating system.
+				// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
+				configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
 			}
 
 			// The wizard finished, do not ask them again
