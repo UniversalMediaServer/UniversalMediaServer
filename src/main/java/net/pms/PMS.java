@@ -470,15 +470,6 @@ public class PMS {
 			if (splash != null) {
 				splash.setVisible(false);
 			}
-			// Inform user that the wizard will run
-			JOptionPane.showMessageDialog(
-				null,
-				Messages.getString("Wizard.1"),
-				Messages.getString("Dialog.Information"),
-				JOptionPane.INFORMATION_MESSAGE
-			);
-
-			// The user has chosen to run the wizard
 
 			// Total number of questions
 			int numberOfQuestions = 4;
@@ -578,13 +569,6 @@ public class PMS {
 			if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 				configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
 			}
-
-			JOptionPane.showMessageDialog(
-				null,
-				Messages.getString("Wizard.13"),
-				Messages.getString("Dialog.Information"),
-				JOptionPane.INFORMATION_MESSAGE
-			);
 
 			// The wizard finished, do not ask them again
 			configuration.setRunWizard(false);
