@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Wizard to ask users to make the UMS initial setting
@@ -185,11 +186,11 @@ public class Wizard {
 					chooser.setDialogTitle(Messages.getString("Wizard.12"));
 					chooser.setMultiSelectionEnabled(false);
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-						configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
+						configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());
 					} else {
 						// If user cancel this option set the default directory which depends on the operating system.
 						// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
-						configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
+						configuration.setSharedFoldersToDefault();
 					}
 				}
 			});

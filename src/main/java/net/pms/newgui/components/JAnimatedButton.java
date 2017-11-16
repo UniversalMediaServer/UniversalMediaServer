@@ -22,6 +22,7 @@ package net.pms.newgui.components;
 import java.net.URL;
 import javax.swing.UIManager;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.FileUtil;
 
 
 public class JAnimatedButton extends JImageButton {
@@ -100,17 +101,17 @@ public class JAnimatedButton extends JImageButton {
 		}
 		setIcon(icon);
 
-		icon = readAnimatedIcon(appendToFileName(defaultIconName, "_pressed"));
+		icon = readAnimatedIcon(FileUtil.appendToFileName(defaultIconName, "_pressed"));
 		if (icon != null) {
 			setPressedIcon(icon);
 		}
 
-		icon = readAnimatedIcon(appendToFileName(defaultIconName, "_disabled"));
+		icon = readAnimatedIcon(FileUtil.appendToFileName(defaultIconName, "_disabled"));
 		if (icon != null) {
 			setDisabledIcon(icon);
 		}
 
-		icon = readAnimatedIcon(appendToFileName(defaultIconName, "_mouseover"));
+		icon = readAnimatedIcon(FileUtil.appendToFileName(defaultIconName, "_mouseover"));
 		if (icon != null) {
 			setRolloverIcon(icon);
 		}

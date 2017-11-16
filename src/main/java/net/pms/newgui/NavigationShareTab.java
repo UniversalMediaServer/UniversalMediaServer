@@ -18,6 +18,7 @@
  */
 package net.pms.newgui;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -30,8 +31,11 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.event.*;
-import java.io.File;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -42,11 +46,11 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.AnimatedIcon;
-import net.pms.newgui.components.AnimatedIcon.AnimatedIconFrame;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.CoverSupplier;
+import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.KeyedComboBoxModel;
@@ -56,9 +60,12 @@ import org.slf4j.LoggerFactory;
 
 public class NavigationShareTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NavigationShareTab.class);
-	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
+	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(
+		Arrays.asList(new String[] {Messages.getString("Generic.Folder"), Messages.getString("FoldTab.65")})
+	);
 
-	private JTable FList;
+	private JPanel sharedPanel;
+	private JTable sharedFolders;
 	private SharedFoldersTableModel folderTableModel;
 	private JCheckBox hideextensions;
 	private JCheckBox hideemptyfolders;
@@ -87,6 +94,11 @@ public class NavigationShareTab {
 	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
+	private final JImageButton customizeButton = new JImageButton();
+	private final JImageButton addButton = new JImageButton("button-add-folder.png");
+	private final JImageButton removeButton = new JImageButton("button-remove-folder.png");
+	private final JImageButton arrowDownButton = new JImageButton("button-arrow-down.png");
+	private final JImageButton arrowUpButton = new JImageButton("button-arrow-up.png");
 	private static final JAnimatedButton scanButton = new JAnimatedButton("button-scan.png");
 	private final AnimatedIcon scanNormalIcon = (AnimatedIcon) scanButton.getIcon();
 	private final AnimatedIcon scanRolloverIcon = (AnimatedIcon) scanButton.getRolloverIcon();
@@ -105,51 +117,12 @@ public class NavigationShareTab {
 	private JCheckBox isShowFolderRecentlyPlayed;
 	private JCheckBox isShowFolderLiveSubtitles;
 
-	public SharedFoldersTableModel getDf() {
-		return folderTableModel;
-	}
-
 	private final PmsConfiguration configuration;
-	private LooksFrame looksFrame;
+	private final LooksFrame looksFrame;
 
 	NavigationShareTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
-	}
-
-	private void updateModel() {
-		if (folderTableModel.getRowCount() == 1 && folderTableModel.getValueAt(0, 0).equals(ALL_DRIVES)) {
-			configuration.setFolders("");
-		} else {
-			StringBuilder folders = new StringBuilder();
-			StringBuilder foldersMonitored = new StringBuilder();
-
-			int i2 = 0;
-			for (int i = 0; i < folderTableModel.getRowCount(); i++) {
-				if (i > 0) {
-					folders.append(',');
-				}
-
-				String directory = (String) folderTableModel.getValueAt(i, 0);
-				boolean monitored = (boolean) folderTableModel.getValueAt(i, 1);
-
-				// escape embedded commas. note: backslashing isn't safe as it conflicts with
-				// Windows path separators:
-				// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
-				folders.append(directory.replace(",", "&comma;"));
-				if (monitored) {
-					if (i2 > 0) {
-						foldersMonitored.append(',');
-					}
-					i2++;
-
-					foldersMonitored.append(directory.replace(",", "&comma;"));
-				}
-			}
-
-			configuration.setFolders(folders.toString());
-			configuration.setFoldersMonitored(foldersMonitored.toString());
-		}
 	}
 
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
@@ -186,8 +159,8 @@ public class NavigationShareTab {
 		+ "p,"                            //
 		+ "9dlu,"                         //
 		+ "fill:default:grow";            // Shared folders
-	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, 10dlu, 0:grow";
-	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
+	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
+	private static final String SHARED_FOLDER_ROW_SPEC = "2*(p, 3dlu), 55dlu:grow";
 
 	public JComponent build() {
 		// Apply the orientation for the locale
@@ -204,7 +177,7 @@ public class NavigationShareTab {
 
 		// Init all gui components
 		initSimpleComponents(cc);
-		PanelBuilder builderSharedFolder = initSharedFoldersGuiComponents(cc);
+		sharedPanel = initSharedFoldersGuiComponents(cc).build();
 
 		// Build gui with initialized components
 		if (!configuration.isHideAdvancedOptions()) {
@@ -270,12 +243,12 @@ public class NavigationShareTab {
 			builder.add(fullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xyw(9,  29, 2), colSpec, orientation));
 			builder.add(selectFullyPlayedOutputDirectory,                          FormLayoutUtil.flip(cc.xyw(11, 29, 2), colSpec, orientation));
 
-			builder.add(builderSharedFolder.getPanel(),                             FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
+			builder.add(sharedPanel,                                                FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
 		} else {
-			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
+			builder.add(sharedPanel, FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 		}
 
-		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
+		builder.add(sharedPanel, FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
@@ -763,10 +736,9 @@ public class NavigationShareTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
+		boolean defaultSharedFolders = configuration.isDefaultSharedFolders();
 		folderTableModel = new SharedFoldersTableModel();
-		FList = new JTable(folderTableModel);
-		TableColumn column = FList.getColumnModel().getColumn(0);
-		column.setMinWidth(650);
+		sharedFolders = new JTable(folderTableModel);
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		JMenuItem menuItemMarkPlayed = new JMenuItem(Messages.getString("FoldTab.75"));
@@ -775,7 +747,7 @@ public class NavigationShareTab {
 		menuItemMarkPlayed.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String path = (String) FList.getValueAt(FList.getSelectedRow(), 0);
+				String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
 				TableFilesStatus.setDirectoryFullyPlayed(path, true);
 			}
 		});
@@ -783,7 +755,7 @@ public class NavigationShareTab {
 		menuItemMarkUnplayed.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String path = (String) FList.getValueAt(FList.getSelectedRow(), 0);
+				String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
 				TableFilesStatus.setDirectoryFullyPlayed(path, false);
 			}
 		});
@@ -791,20 +763,31 @@ public class NavigationShareTab {
 		popupMenu.add(menuItemMarkPlayed);
 		popupMenu.add(menuItemMarkUnplayed);
 
-		FList.setComponentPopupMenu(popupMenu);
-		FList.addMouseListener(new TableMouseListener(FList));
+		sharedFolders.setComponentPopupMenu(popupMenu);
 
 		/* An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text. */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) FList.getCellRenderer(0,0);
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) sharedFolders.getCellRenderer(0,0);
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
-		FList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
-		FList.setIntercellSpacing(new Dimension(8, 2));
+		sharedFolders.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+		sharedFolders.setIntercellSpacing(new Dimension(8, 2));
+		sharedFolders.setEnabled(!defaultSharedFolders);
 
-		JImageButton but = new JImageButton("button-add-folder.png");
-		but.setToolTipText(Messages.getString("FoldTab.9"));
-		but.addActionListener(new ActionListener() {
+		updateCustomizeButton(!defaultSharedFolders);
+		final JPanel tmpsharedPanel = sharedPanel;
+		customizeButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleCustomizeFolders(tmpsharedPanel);
+			}
+		});
+		builderFolder.add(customizeButton, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+
+		addButton.setToolTipText(Messages.getString("FoldTab.9"));
+		addButton.setEnabled(!defaultSharedFolders);
+		addButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser;
@@ -816,72 +799,125 @@ public class NavigationShareTab {
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showOpenDialog((Component) e.getSource());
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					((SharedFoldersTableModel) FList.getModel()).addRow(new Object[]{chooser.getSelectedFile().getAbsolutePath(), true});
-					if (FList.getModel().getValueAt(0, 0).equals(ALL_DRIVES)) {
-						((SharedFoldersTableModel) FList.getModel()).removeRow(0);
-					}
-					updateModel();
-				}
-			}
-		});
-		builderFolder.add(but, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-
-		JImageButton but2 = new JImageButton("button-remove-folder.png");
-		but2.setToolTipText(Messages.getString("FoldTab.36"));
-		but2.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (FList.getSelectedRow() > -1) {
-					if (FList.getModel().getRowCount() == 0) {
-						folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
+					int firstSelectedRow = sharedFolders.getSelectedRow();
+					if (firstSelectedRow >= 0) {
+						((SharedFoldersTableModel) sharedFolders.getModel()).insertRow(
+							firstSelectedRow,
+							new Object[]{chooser.getSelectedFile().getAbsolutePath(), true}
+						);
 					} else {
-						PMS.get().getDatabase().removeMediaEntriesInFolder((String) FList.getValueAt(FList.getSelectedRow(), 0));
+						((SharedFoldersTableModel) sharedFolders.getModel()).addRow(
+							new Object[]{chooser.getSelectedFile().getAbsolutePath(), true}
+						);
 					}
-					((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
-					updateModel();
 				}
 			}
 		});
-		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		addButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (configuration.isDefaultSharedFolders() && e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() > 1) {
+					if (
+						JOptionPane.showConfirmDialog(
+							tmpsharedPanel,
+							Messages.getString("SharedFolders.EnableModify"),
+							null,
+							JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE
+						) == JOptionPane.YES_OPTION
+					) {
+						toggleCustomizeFolders(tmpsharedPanel);
+					}
+				}
+			}
+		});
+		builderFolder.add(addButton, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		JImageButton but3 = new JImageButton("button-arrow-down.png");
-		but3.setToolTipText(Messages.getString("FoldTab.12"));
-		but3.addActionListener(new ActionListener() {
+		removeButton.setToolTipText(Messages.getString("FoldTab.36"));
+		removeButton.setEnabled(!defaultSharedFolders);
+		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (int i = 0; i < FList.getRowCount() - 1; i++) {
-					if (FList.isRowSelected(i)) {
-						Object  value1 = FList.getValueAt(i, 0);
-						boolean value2 = (boolean) FList.getValueAt(i, 1);
+				int[] rows = sharedFolders.getSelectedRows();
+				if (rows.length > 0) {
+					if (rows.length > 1) {
+						if (
+							JOptionPane.showConfirmDialog(
+								tmpsharedPanel,
+								String.format(Messages.getString("SharedFolders.ConfirmRemove"), rows.length),
+								Messages.getString("Dialog.Confirm"),
+								JOptionPane.YES_NO_OPTION,
+								JOptionPane.WARNING_MESSAGE
+							) != JOptionPane.YES_OPTION
+						) {
+							return;
+						}
+					}
+					for (int i = rows.length - 1; i >= 0; i--) {
+						((SharedFoldersTableModel) sharedFolders.getModel()).removeRow(rows[i]);
+						PMS.get().getDatabase().removeMediaEntriesInFolder((String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
+					}
+				}
+			}
+		});
+		removeButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (configuration.isDefaultSharedFolders() && e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() > 1) {
+					if (
+						JOptionPane.showConfirmDialog(
+							tmpsharedPanel,
+							Messages.getString("SharedFolders.EnableModify"),
+							null,
+							JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE
+						) == JOptionPane.YES_OPTION
+					) {
+						toggleCustomizeFolders(tmpsharedPanel);
+					}
+				}
+			}
+		});
+		builderFolder.add(removeButton, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-						FList.setValueAt(FList.getValueAt(i + 1, 0), i    , 0);
-						FList.setValueAt(value1                    , i + 1, 0);
-						FList.setValueAt(FList.getValueAt(i + 1, 1), i    , 1);
-						FList.setValueAt(value2                    , i + 1, 1);
-						FList.changeSelection(i + 1, 1, false, false);
+		arrowDownButton.setToolTipText(Messages.getString("SharedFolders.ArrowDown"));
+		arrowDownButton.setEnabled(!defaultSharedFolders);
+		arrowDownButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for (int i = 0; i < sharedFolders.getRowCount() - 1; i++) {
+					if (sharedFolders.isRowSelected(i)) {
+						Object  value1 = sharedFolders.getValueAt(i, 0);
+						boolean value2 = (boolean) sharedFolders.getValueAt(i, 1);
+
+						sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 0), i    , 0);
+						sharedFolders.setValueAt(value1                    , i + 1, 0);
+						sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 1), i    , 1);
+						sharedFolders.setValueAt(value2                    , i + 1, 1);
+						sharedFolders.changeSelection(i + 1, 1, false, false);
 
 						break;
 					}
 				}
 			}
 		});
-		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+		builderFolder.add(arrowDownButton, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		JImageButton but4 = new JImageButton("button-arrow-up.png");
-		but4.setToolTipText(Messages.getString("FoldTab.12"));
-		but4.addActionListener(new ActionListener() {
+		arrowUpButton.setToolTipText(Messages.getString("SharedFolders.ArrowUp"));
+		arrowUpButton.setEnabled(!defaultSharedFolders);
+		arrowUpButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (int i = 1; i < FList.getRowCount(); i++) {
-					if (FList.isRowSelected(i)) {
-						Object  value1 = FList.getValueAt(i, 0);
-						boolean value2 = (boolean) FList.getValueAt(i, 1);
+				for (int i = 1; i < sharedFolders.getRowCount(); i++) {
+					if (sharedFolders.isRowSelected(i)) {
+						Object  value1 = sharedFolders.getValueAt(i, 0);
+						boolean value2 = (boolean) sharedFolders.getValueAt(i, 1);
 
-						FList.setValueAt(FList.getValueAt(i - 1, 0), i    , 0);
-						FList.setValueAt(value1                    , i - 1, 0);
-						FList.setValueAt(FList.getValueAt(i - 1, 1), i    , 1);
-						FList.setValueAt(value2                    , i - 1, 1);
-						FList.changeSelection(i - 1, 1, false, false);
+						sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 0), i    , 0);
+						sharedFolders.setValueAt(value1                    , i - 1, 0);
+						sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 1), i    , 1);
+						sharedFolders.setValueAt(value2                    , i - 1, 1);
+						sharedFolders.changeSelection(i - 1, 1, false, false);
 
 						break;
 
@@ -889,7 +925,7 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
+		builderFolder.add(arrowUpButton, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 
 		scanButton.setToolTipText(Messages.getString("FoldTab.2"));
 		scanBusyIcon.start();
@@ -931,7 +967,7 @@ public class NavigationShareTab {
 		 * realtime.
 		 */
 		if (!configuration.isHideAdvancedOptions()) {
-			builderFolder.add(scanButton, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+			builderFolder.add(scanButton, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
 		}
 
 		scanButton.setEnabled(configuration.getUseCache());
@@ -948,30 +984,85 @@ public class NavigationShareTab {
 
 		builderFolder.add(isScanSharedFoldersOnStartup, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
-		File[] folders = PMS.get().getSharedFoldersArray(false);
-		if (folders != null && folders.length > 0) {
-			File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
-			for (File folder : folders) {
-				boolean isMonitored = false;
-				if (foldersMonitored != null && foldersMonitored.length > 0) {
-					for (File folderMonitored : foldersMonitored) {
-						if (folderMonitored.getAbsolutePath().equals(folder.getAbsolutePath())) {
-							isMonitored = true;
-						}
-					}
-				}
-				folderTableModel.addRow(new Object[]{folder.getAbsolutePath(), isMonitored});
-			}
-		} else {
-			folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
-		}
+		updateSharedFolders();
 
-		JScrollPane pane = new JScrollPane(FList);
-		Dimension d = FList.getPreferredSize();
-		pane.setPreferredSize(new Dimension(d.width, FList.getRowHeight() * 2));
-		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
+		JScrollPane pane = new JScrollPane(sharedFolders);
+		Dimension d = sharedFolders.getPreferredSize();
+		pane.setPreferredSize(new Dimension(d.width, sharedFolders.getRowHeight() * 2));
+		builderFolder.add(pane, FormLayoutUtil.flip(
+			cc.xyw(1, 5, 7, CellConstraints.DEFAULT, CellConstraints.FILL),
+			colSpec,
+			orientation
+		));
 
 		return builderFolder;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void updateSharedFolders() {
+		List<Path> folders = configuration.getSharedFolders();
+		Vector<Vector<?>> newDataVector = new Vector<>();
+		if (!folders.isEmpty()) {
+			List<Path> foldersMonitored = configuration.getMonitoredFolders();
+			for (Path folder : folders) {
+				Vector rowVector = new Vector();
+				rowVector.add(folder.toString());
+				rowVector.add(Boolean.valueOf(foldersMonitored.contains(folder)));
+				newDataVector.add(rowVector);
+			}
+		}
+		folderTableModel.setDataVector(newDataVector, FOLDERS_COLUMN_NAMES);
+		TableColumn column = sharedFolders.getColumnModel().getColumn(0);
+		column.setMinWidth(600);
+	}
+
+	@Nullable
+	private static Icon getIcon(@Nullable String baseName, @Nullable String suffix) {
+		if (isBlank(baseName)) {
+			return null;
+		}
+		ImageIcon icon = isBlank(suffix) ?
+			LooksFrame.readImageIcon(baseName) :
+			LooksFrame.readImageIcon(FileUtil.appendToFileName(baseName, suffix));
+
+		return icon == null ? UIManager.getIcon("OptionPane.warningIcon") : icon;
+	}
+
+	private void toggleCustomizeFolders(Component parentComponent) {
+		boolean defaultFolders = !configuration.isDefaultSharedFolders();
+		if (!defaultFolders && configuration.isSharedFoldersEmpty()) {
+			if (
+				JOptionPane.showConfirmDialog(
+					parentComponent,
+					Messages.getString("SharedFolders.CopyDefault"),
+					null,
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE
+				) == JOptionPane.YES_OPTION
+			) {
+				configuration.setSharedFoldersToDefault();
+			}
+		}
+		configuration.setDefaultSharedFolders(defaultFolders);
+		updateCustomizeButton(!defaultFolders);
+		addButton.setEnabled(!defaultFolders);
+		removeButton.setEnabled(!defaultFolders);
+		arrowDownButton.setEnabled(!defaultFolders);
+		arrowUpButton.setEnabled(!defaultFolders);
+		sharedFolders.setEnabled(!defaultFolders);
+		updateSharedFolders();
+	}
+
+	private void updateCustomizeButton(boolean customize) {
+		String baseName = customize ? "button-default.png" : "button-modify.png";
+		customizeButton.setIcon(getIcon(baseName, null));
+		customizeButton.setPressedIcon(getIcon(baseName, "_pressed"));
+		customizeButton.setDisabledIcon(getIcon(baseName, "_disabled"));
+		customizeButton.setRolloverIcon(getIcon(baseName, "_mouseover"));
+		customizeButton.setToolTipText(customize ?
+			Messages.getString("SharedFolders.DefaultFoldersToolTip") :
+			Messages.getString("SharedFolders.ModifyFoldersToolTip")
+		);
 	}
 
 	public void setScanLibraryEnabled(boolean enabled) {
@@ -998,20 +1089,12 @@ public class NavigationShareTab {
 		private static final long serialVersionUID = -4247839506937958655L;
 
 		public SharedFoldersTableModel() {
-			super(new String[]{Messages.getString("FoldTab.56"), Messages.getString("FoldTab.65")}, 0);
+			super(FOLDERS_COLUMN_NAMES, 0);
 		}
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
-			Class clazz = String.class;
-			switch (columnIndex) {
-				case 1:
-					clazz = Boolean.class;
-					break;
-				default:
-					break;
-			}
-			return clazz;
+			return columnIndex == 1 ? Boolean.class : String.class;
 		}
 
 		@Override
@@ -1019,32 +1102,29 @@ public class NavigationShareTab {
 			return column == 1;
 		}
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
 		public void setValueAt(Object aValue, int row, int column) {
 			Vector rowVector = (Vector) dataVector.elementAt(row);
 			if (aValue instanceof Boolean && column == 1) {
-				rowVector.setElementAt((boolean) aValue, 1);
+				rowVector.setElementAt(aValue, 1);
 			} else {
 				rowVector.setElementAt(aValue, column);
 			}
 			fireTableCellUpdated(row, column);
-			updateModel();
-		}
-	}
-
-	public class TableMouseListener extends MouseAdapter {
-		private JTable table;
-
-		public TableMouseListener(JTable table) {
-			this.table = table;
+			configuration.setSharedFolders(folderTableModel.getDataVector());
 		}
 
 		@Override
-		public void mousePressed(MouseEvent event) {
-			// selects the row at which point the mouse is clicked
-			Point point = event.getPoint();
-			int currentRow = table.rowAtPoint(point);
-			table.setRowSelectionInterval(currentRow, currentRow);
+		public void insertRow(int row, Vector rowData) {
+			super.insertRow(row, rowData);
+			configuration.setSharedFolders(folderTableModel.getDataVector());
+		}
+
+		@Override
+		public void removeRow(int row) {
+			super.removeRow(row);
+			configuration.setSharedFolders(folderTableModel.getDataVector());
 		}
 	}
 }

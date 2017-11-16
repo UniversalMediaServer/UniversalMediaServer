@@ -141,8 +141,8 @@ public class PMS {
 	private SleepManager sleepManager = null;
 
 	/**
-	 * Returns a pointer to the PMS GUI's main window.
-	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
+	 * Returns a pointer to the DMS GUI's main window.
+	 * @return {@link net.pms.newgui.IFrame} Main DMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
@@ -175,17 +175,16 @@ public class PMS {
 	}
 
 	/**
-	 * Pointer to a running PMS server.
+	 * Pointer to a running DMS server.
 	 */
 	private static PMS instance = null;
 
 	/**
-	 * Array of {@link net.pms.configuration.RendererConfiguration} that have
-	 * been found by UMS.<br><br>
-	 *
+	 * An array of {@link RendererConfiguration}s that have been found by DMS.
+	 * <p>
 	 * Important! If iteration is done on this list it's not thread safe unless
-	 * the iteration loop is enclosed by a <code>synchronized</code> block on
-	 * the <code>List itself</code>.
+	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
+	 * {@link List} itself</b>.
 	 */
 	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<RendererConfiguration>());
 
@@ -259,7 +258,7 @@ public class PMS {
 	}
 
 	/**
-	 * {@link net.pms.newgui.IFrame} object that represents the PMS GUI.
+	 * {@link net.pms.newgui.IFrame} object that represents the DMS GUI.
 	 */
 	private IFrame frame;
 
@@ -410,7 +409,7 @@ public class PMS {
 	}
 
 	/**
-	 * Initialization procedure for UMS.
+	 * Initialization procedure for DMS.
 	 *
 	 * @return <code>true</code> if the server has been initialized correctly.
 	 *         <code>false</code> if initialization was aborted.
@@ -774,8 +773,10 @@ public class PMS {
 	private MediaLibrary mediaLibrary;
 
 	/**
-	 * Returns the MediaLibrary used by PMS.
-	 * @return (MediaLibrary) Used mediaLibrary, if any. null if none is in use.
+	 * Returns the MediaLibrary used by DMS.
+	 *
+	 * @return The current {@link MediaLibrary} or {@code null} if none is in
+	 *         use.
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
@@ -795,97 +796,7 @@ public class PMS {
 	}
 
 	/**
-	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	public File[] getFoldersConf(boolean log) {
-		return getSharedFoldersArray(false);
-	}
-
-	/**
-	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
-	 */
-	@Deprecated
-	public File[] getFoldersConf() {
-		return getSharedFoldersArray(false);
-	}
-
-	/**
-	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
-	 * Checks that the directory exists and is a valid directory.
-	 *
-	 * @param monitored whether to return only monitored directories
-	 * @return {@link java.io.File}[] Array of directories.
-	 */
-	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, getConfiguration());
-	}
-
-	/**
-	 * Returns the folders to be shared. Either configured by the user, or
-	 * uses the default media directories on the operating system, e.g.
-	 * Pictures, Music, Movies/Videos on macOS and Windows.
-	 *
-	 * @param monitored whether to return only directories that are monitored
-	 * @param tags
-	 * @param configuration
-	 * @return 
-	 */
-	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
-		String folders;
-		if (monitored) {
-			folders = configuration.getFoldersMonitored();
-		} else {
-			folders = configuration.getFolders();
-		}
-
-		if (folders == null || folders.length() == 0) {
-			return null;
-		}
-
-		ArrayList<File> directories = new ArrayList<>();
-		String[] foldersArray = folders.split(",");
-
-		for (String folder : foldersArray) {
-			folder = folder.trim();
-
-			// unescape embedded commas. note: backslashing isn't safe as it conflicts with
-			// Windows path separators:
-			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
-			folder = folder.replaceAll("&comma;", ",");
-
-			// this is called *way* too often
-			// so log it so we can fix it.
-			LOGGER.info("Checking shared folder: " + folder);
-
-			File file = new File(folder);
-
-			if (file.exists()) {
-				if (!file.isDirectory()) {
-					LOGGER.warn(
-						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-						folder,  Messages.getString("LooksFrame.22")
-					);
-				}
-			} else {
-				LOGGER.warn(
-					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-					folder,  Messages.getString("LooksFrame.22")
-				);
-			}
-
-			// add the file even if there are problems so that the user can update the shared folders as required.
-			directories.add(file);
-		}
-
-		File f[] = new File[directories.size()];
-		directories.toArray(f);
-		return f;
-	}
-
-	/**
-	 * Restarts the server. The trigger is either a button on the main PMS window or via
+	 * Restarts the server. The trigger is either a button on the main DMS window or via
 	 * an action item.
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
@@ -921,7 +832,7 @@ public class PMS {
 	}
 
 	// Cannot remove these methods because of backwards compatibility;
-	// none of the PMS code uses it, but some plugins still do.
+	// none of the DMS code uses it, but some plugins still do.
 
 	/**
 	 * @deprecated Use the SLF4J logging API instead.
@@ -1020,13 +931,14 @@ public class PMS {
 
 	/**
 	 * Returns the PMS instance.
+	 *
 	 * @return {@link net.pms.PMS}
 	 */
 	@Nonnull
 	public static PMS get() {
-		// XXX when PMS is run as an application, the instance is initialized via the createInstance call in main().
-		// However, plugin tests may need access to a PMS instance without going
-		// to the trouble of launching the PMS application, so we provide a fallback
+		// XXX when DMS is run as an application, the instance is initialized via the createInstance call in main().
+		// However, plugin tests may need access to a DMS instance without going
+		// to the trouble of launching the DMS application, so we provide a fallback
 		// initialization here. Either way, createInstance() should only be called once (see below)
 		if (instance == null) {
 			createInstance();
@@ -1306,8 +1218,8 @@ public class PMS {
 
 	/**
 	 * Retrieves the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for PMS. The object provides getters for all
-	 * configurable PMS settings.
+	 * that contains all configured settings for DMS. The object provides getters for all
+	 * configurable DMS settings.
 	 *
 	 * @return The configuration object
 	 */
@@ -1340,8 +1252,8 @@ public class PMS {
 
 	/**
 	 * Sets the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for PMS. The object provides getters for all
-	 * configurable PMS settings.
+	 * that contains all configured settings for DMS. The object provides getters for all
+	 * configurable DMS settings.
 	 *
 	 * @param conf The configuration object.
 	 */
@@ -1350,7 +1262,7 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the project version for PMS.
+	 * Returns the project version for DMS.
 	 *
 	 * @return The project version.
 	 */
@@ -1403,7 +1315,7 @@ public class PMS {
 		LOGGER.info("");
 
 		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
-			// The binaries shipped with the Mac OS X version of UMS are being
+			// The binaries shipped with the Mac OS X version of DMS are being
 			// compiled against specific OS versions, making them incompatible
 			// with older versions. Warn the user about this when necessary.
 			LOGGER.warn("-----------------------------------------------------------------");
@@ -1457,7 +1369,7 @@ public class PMS {
 			);
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
-		} catch (IOException e) {
+		} catch ( IOException e) {
 			LOGGER.error("Error killing old process: " + e);
 		}
 
@@ -1607,8 +1519,9 @@ public class PMS {
 	private static Boolean headless = null;
 
 	/**
-	 * Checks if UMS is running in headless (console) mode, since some Linux
-	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
+	 * Checks if DMS is running in headless (console) mode, since some Linux
+	 * distributions seem to not use java.awt.GraphicsEnvironment.isHeadless()
+	 * properly.
 	 */
 	public static boolean isHeadless() {
 		headlessLock.readLock().lock();
@@ -1635,7 +1548,7 @@ public class PMS {
 	}
 
 	/**
-	 * Forces UMS to run in headless (console) mode whether a graphics
+	 * Forces DMS to run in headless (console) mode whether a graphics
 	 * environment is available or not.
 	 */
 	public static void forceHeadless() {
@@ -1651,7 +1564,7 @@ public class PMS {
 	private static ReadWriteLock localeLock = new ReentrantReadWriteLock();
 
 	/**
-	 * Gets UMS' current {@link Locale} to be used in any {@link Locale}
+	 * Gets DMS' current {@link Locale} to be used in any {@link Locale}
 	 * sensitive operations. If <code>null</code> the default {@link Locale}
 	 * is returned.
 	 */
@@ -1669,7 +1582,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale}.
+	 * Sets DMS' {@link Locale}.
 	 * @param aLocale the {@link Locale} to set
 	 */
 
@@ -1684,7 +1597,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the
+	 * Sets DMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1714,7 +1627,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the
+	 * Sets DMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1730,7 +1643,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * Sets DMS' {@link Locale} with the same parameters as the {@link Locale}
 	 * class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
