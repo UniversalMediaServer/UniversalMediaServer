@@ -1994,13 +1994,13 @@ public class Rational extends Number implements Comparable<Rational> {
 			numberIsInfinite = Rational.isInfinite((Rational) number);
 			numberSignum = ((Rational) number).numerator.signum();
 		} else if (number instanceof Float) {
-			numberIsNaN = Float.isNaN((float) number);
-			numberIsInfinite = Float.isInfinite((float) number);
-			numberSignum = (int) Math.signum((float) number);
+			numberIsNaN = Float.isNaN(number.floatValue());
+			numberIsInfinite = Float.isInfinite(number.floatValue());
+			numberSignum = (int) Math.signum(number.floatValue());
 		} else if (number instanceof Double) {
-			numberIsNaN = Double.isNaN((double) number);
-			numberIsInfinite = Double.isInfinite((double) number);
-			numberSignum = (int) Math.signum((double) number);
+			numberIsNaN = Double.isNaN(number.doubleValue());
+			numberIsInfinite = Double.isInfinite(number.doubleValue());
+			numberSignum = (int) Math.signum(number.doubleValue());
 		} else {
 			numberIsNaN = false;
 			numberIsInfinite = false;
