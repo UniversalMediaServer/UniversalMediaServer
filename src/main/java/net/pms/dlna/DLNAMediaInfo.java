@@ -597,49 +597,49 @@ public class DLNAMediaInfo implements Cloneable {
 		 * not use MediaInfo, so do not make any changes that remove or
 		 * minimize the amount of text given by FFmpeg here
 		 */
-		String args[] = new String[15];
-		args[0] = getFfmpegPath();
+		ArrayList<String> args = new ArrayList<>();
 		File file = media.getFile();
 		boolean dvrms = file != null && file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
+		boolean generateThumbnail =
+			configuration.isThumbnailGenerationEnabled() && (
+				dvrms ||
+				!configuration.isUseMplayerForVideoThumbs()
+			);
 
 		if (dvrms && isNotBlank(configuration.getFfmpegAlternativePath())) {
-			args[0] = configuration.getFfmpegAlternativePath();
-		}
-
-		args[1] = "-ss";
-		if (resume) {
-			args[2] = Integer.toString((int) getDurationInSeconds());
+			args.add(configuration.getFfmpegAlternativePath());
 		} else {
-			args[2] = Integer.toString((int) Math.min(configuration.getThumbnailSeekPos(), getDurationInSeconds()));
+			args.add(getFfmpegPath());
 		}
 
-		args[3] = "-i";
+		if (generateThumbnail) {
+			args.add("-ss");
+			if (resume) {
+				args.add(Integer.toString((int) getDurationInSeconds()));
+			} else {
+				args.add(Integer.toString((int) Math.min(configuration.getThumbnailSeekPos(), getDurationInSeconds())));
+			}
+		}
+
+		args.add("-i");
 
 		if (file != null) {
-			args[4] = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
+			args.add(ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()));
 		} else {
-			args[4] = "-";
+			args.add("-");
 		}
 
-		args[5] = "-an";
-		args[6] = "-dn";
-		args[7] = "-sn";
-		args[8] = "-vf";
-		args[9] = "scale=320:-2";
-		args[10] = "-vframes";
-		args[11] = "1";
-		args[12] = "-f";
-		args[13] = "image2";
-		args[14] = "pipe:";
-
-		if (
-			!configuration.isThumbnailGenerationEnabled() ||
-			configuration.isUseMplayerForVideoThumbs() && !dvrms
-		) {
-			args[2] = "0";
-			for (int i = 8; i <= 14; i++) {
-				args[i] = "-an";
-			}
+		args.add("-an");
+		args.add("-dn");
+		args.add("-sn");
+		if (generateThumbnail) {
+			args.add("-vf");
+			args.add("scale=320:-2");
+			args.add("-vframes");
+			args.add("1");
+			args.add("-f");
+			args.add("image2");
+			args.add("pipe:");
 		}
 
 		OutputParams params = new OutputParams(configuration);
@@ -648,7 +648,7 @@ public class DLNAMediaInfo implements Cloneable {
 		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
 
 		// true: consume stderr on behalf of the caller i.e. parse()
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, true, params, false, true);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(new String[args.size()]), true, params, false, true);
 
 		// FAILSAFE
 		synchronized (parsingLock) {
