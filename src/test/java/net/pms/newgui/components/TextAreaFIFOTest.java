@@ -40,7 +40,7 @@ public class TextAreaFIFOTest {
 
 	@Test
 	public void testTextAreaFIFO() {
-		TextAreaFIFO textArea = new TextAreaFIFO(950);
+		TextAreaFIFO textArea = new TextAreaFIFO(950, 100);
 
 		assertEquals("InitialLines", textArea.getMaxLines(), 950);
 		textArea.setMaxLines(0);
