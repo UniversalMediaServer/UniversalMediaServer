@@ -382,7 +382,7 @@ public class TracesTab {
 		builder.add(jSearchPanel, cc.xyw(1, 1, cols));
 
 		// Create traces text box
-		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer());
+		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer(), 500);
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
 		jList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, jList.getFont().getSize()));
