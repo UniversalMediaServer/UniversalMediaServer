@@ -973,24 +973,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
 					isIncompatible = true;
 					LOGGER.trace(prependTraceReason + "the video bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
-				} else if (renderer.isH264Level41Limited() && media.isH264()) {
+				} else if (media.isH264()) {
+					double h264Level = 4.1;
 					if (media.getAvcLevel() != null) {
-						double h264Level = 4.1;
-
 						try {
 							h264Level = Double.parseDouble(media.getAvcLevel());
 						} catch (NumberFormatException e) {
-							LOGGER.trace("Could not convert {} to double: {}", media.getAvcLevel(), e.getMessage());
+							isIncompatible = true;
+//							LOGGER.trace("Could not convert {} to double: {}", media.getAvcLevel(), e.getMessage());
+							LOGGER.trace(prependTraceReason + "the H.264 level ({}) is unknown.", getName(), media.getAvcLevel());
 						}
+					}
 
-						if (h264Level > 4.1) {
+					if (h264Level > 4.1) {
+						if (renderer.isH264Level41Limited()) {
 							isIncompatible = true;
 							LOGGER.trace(prependTraceReason + "the H.264 level ({}) is not supported.", getName(), h264Level);
+						} else if (renderer.checkH264LevelLimits()){ // check if H.264 is within the level limits otherwise all videos with the level higher than 4.1 will be streamed
+							InputFile file = new InputFile();
+							file.setFilename(this.getFileName());
+							if (!media.isVideoWithinH264LevelLimits(file, renderer)) {
+								isIncompatible = true;
+								LOGGER.trace(prependTraceReason + "the video is out of the H.264 level limits.", getName());
+							}
 						}
-					} else {
-						isIncompatible = true;
-						LOGGER.trace(prependTraceReason + "the H.264 level is unknown.", getName());
 					}
+					
 				} else if (media.is3d() && StringUtils.isNotBlank(renderer.getOutput3DFormat()) && (!media.get3DLayout().toString().toLowerCase(Locale.ROOT).equals(renderer.getOutput3DFormat()))) {
 					forceTranscode = true;
 					LOGGER.trace("Video \"{}\" is 3D and is forced to transcode to the format \"{}\"", getName(), renderer.getOutput3DFormat());

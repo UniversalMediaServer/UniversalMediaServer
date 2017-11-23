@@ -131,6 +131,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
 	protected static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
 	protected static final String CHARMAP = "CharMap";
+	protected static final String CHECK_H264_LEVEL_LIMITS = "CheckH264LevelLimits";
 	protected static final String CHUNKED_TRANSFER = "ChunkedTransfer";
 	protected static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	protected static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
@@ -2963,5 +2964,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isRemoveTagsFromSRTsubs() {
 		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
+	}
+
+	/**
+	 * Whether to check the H.264 level limits. Default is true. To stream videos with not officially
+	 * supported reference frames set to false.
+	 *
+	 * @return whether H.264 level limits should be checked.
+	 */
+	public boolean checkH264LevelLimits() {
+		return getBoolean(CHECK_H264_LEVEL_LIMITS, true);
 	}
 }
