@@ -1017,11 +1017,6 @@ public class FileUtil {
 			}
 		}
 
-		if (media != null) {
-			media.setExternalSubsExist(found);
-			media.setExternalSubsParsed(true);
-		}
-
 		return found;
 	}
 
@@ -1066,10 +1061,19 @@ public class FileUtil {
 		String fileName = getFileNameWithoutExtension(file.getName()).toLowerCase();
 		if (allSubs != null) {
 			for (File f : allSubs) {
+				if (media == null  && found) { // When media is null and first occurrence of subs matched skip the rest of checking.
+					break;
+				}
+
 				if (f.isFile() && !f.isHidden()) {
 					String fName = f.getName().toLowerCase();
 					for (String ext : supported) {
 						if (fName.length() > ext.length() && fName.startsWith(fileName) && endsWithIgnoreCase(fName, "." + ext)) {
+							if (media == null) { // When media is null and first occurrence of subs matched do not continue in parsing.
+								found = true;
+								break;
+							}
+
 							int a = fileName.length();
 							int b = fName.length() - ext.length() - 1;
 							String code = "";
@@ -1083,23 +1087,24 @@ public class FileUtil {
 							}
 
 							boolean exists = false;
-							if (media != null) {
-								for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-									if (f.equals(sub.getExternalFile())) {
-										exists = true;
-									} else if (equalsIgnoreCase(ext, "idx") && sub.getType() == SubtitleType.MICRODVD) { // sub+idx => VOBSUB
-										sub.setType(SubtitleType.VOBSUB);
-										exists = true;
-									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
-										try {
-											sub.setExternalFile(f, null);
-										} catch (FileNotFoundException ex) {
-											LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
-											LOGGER.trace("", ex);
-										}
-
-										exists = true;
+							for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
+								if (f.equals(sub.getExternalFile())) {
+									exists = true;
+									break;
+								} else if (equalsIgnoreCase(ext, "idx") && sub.getType() == SubtitleType.MICRODVD) { // sub+idx => VOBSUB
+									sub.setType(SubtitleType.VOBSUB);
+									exists = true;
+									break;
+								} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
+									try {
+										sub.setExternalFile(f, null);
+									} catch (FileNotFoundException ex) {
+										LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
+										LOGGER.trace("", ex);
 									}
+
+									exists = true;
+									break;
 								}
 							}
 
@@ -1135,10 +1140,10 @@ public class FileUtil {
 									LOGGER.trace("", ex);
 								}
 
+								media.getSubtitleTracksList().add(sub);
+								media.setExternalSubsExist(true);
+								media.setExternalSubsParsed(true);
 								found = true;
-								if (media != null) {
-									media.getSubtitleTracksList().add(sub);
-								}
 							}
 						}
 					}
@@ -1161,8 +1166,8 @@ public class FileUtil {
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
 		CharsetDetector detector = new CharsetDetector();
 		detector.setText(in);
-		// Results are sorted on descending confidence, so we're only after the first one.
-		return detector.detectAll()[0];
+		detector.enableInputFilter(true);
+		return detector.detect();
 	}
 
 	/**

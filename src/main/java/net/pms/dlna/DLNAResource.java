@@ -2228,9 +2228,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 														break;
 													}
 												} else {
-													LOGGER.trace("Found subtitles track: " + sub);
+													LOGGER.trace("Matched subtitles track: " + sub);
 													if (sub.getExternalFile() != null) {
-														LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
+														LOGGER.trace("Matched external file: " + sub.getExternalFile().getAbsolutePath());
 														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
 															sub.setSubsStreamable(true);
 														}

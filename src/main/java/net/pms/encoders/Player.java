@@ -409,8 +409,8 @@ public abstract class Player {
 		 */
 		if (!configuration.isDisableSubtitles() && params.sid == null && media != null) {
 			// Check for subtitles again
-			File video = new File(fileName);
-			FileUtil.isSubtitlesExists(video, media, false);
+//			File video = new File(fileName);
+//			FileUtil.isSubtitlesExists(video, media, false);
 
 			if (configuration.isAutoloadExternalSubtitles()) {
 				boolean forcedSubsFound = false;
@@ -442,10 +442,10 @@ public abstract class Player {
 							break;
 						}
 					} else {
-						LOGGER.trace("Found subtitles track: " + sub);
+						LOGGER.trace("Matched subtitles track: " + sub);
 
 						if (sub.getExternalFile() != null) {
-							LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
+							LOGGER.trace("Matched external file: " + sub.getExternalFile().getAbsolutePath());
 							params.sid = sub;
 							break;
 						}
