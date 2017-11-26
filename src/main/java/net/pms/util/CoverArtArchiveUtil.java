@@ -81,6 +81,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		String id;
 		int score;
 		String title;
+		String album;
 		List<String> artists = new ArrayList<>();
 		ReleaseType type;
 		String year;
@@ -92,6 +93,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			id = source.id;
 			score = source.score;
 			title = source.title;
+			album = source.album;
 			type = source.type;
 			year = source.year;
 			for (String artist : source.artists) {
@@ -486,8 +488,16 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				if (image == null) {
 					image = coverArt.getImages().get(0);
 				}
-				try (InputStream is = image.getLargeThumbnail()) {
-					byte[] cover = IOUtils.toByteArray(is);
+				byte[] cover = null;
+				try {
+					try (InputStream is = image.getLargeThumbnail()) {
+						cover = IOUtils.toByteArray(is);
+					} catch (HttpResponseException e) {
+						// Use the default image if the large thumbnail is not available
+						try (InputStream is = image.getImage()) {
+							cover = IOUtils.toByteArray(is);
+						}
+					}
 					TableCoverArtArchive.writeMBID(mBID, cover);
 					return cover;
 				} catch (HttpResponseException e) {
@@ -534,24 +544,11 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			added = true;
 		}
 
-		if (StringUtil.hasValue(tagInfo.artistId)) {
-			if (added) {
-				query.append(AND);
-			}
-			query.append("arid:").append(tagInfo.artistId);
-			added = true;
-		} else if (StringUtil.hasValue(tagInfo.artist)) {
-			if (added) {
-				query.append(AND);
-			}
-			query.append("artistname:");
-			if (fuzzy) {
-				query.append(urlEncode(fuzzString(tagInfo.artist)));
-			} else {
-				query.append(urlEncode("\"" + StringUtil.luceneEscape(tagInfo.artist) + "\""));
-			}
-			added = true;
-		}
+		/*
+		 * Release (album) artist is usually the music director of the album.
+		 * Track (Recording) artist is usually the singer. Searching release
+		 * with artist here is likely to return no result.
+		 */
 
 		if (
 			StringUtil.hasValue(tagInfo.trackId) && (
@@ -586,7 +583,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			added = true;
 		}
 
-		if (StringUtil.hasValue(tagInfo.year)) {
+		if (!fuzzy && StringUtil.hasValue(tagInfo.year) && tagInfo.year.trim().length() > 3) {
 			if (added) {
 				query.append(AND);
 			}
@@ -636,7 +633,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			}
 		}
 
-		if (StringUtil.hasValue(tagInfo.year)) {
+		if (!fuzzy && StringUtil.hasValue(tagInfo.year) && tagInfo.year.trim().length() > 3) {
 			if (added) {
 				query.append(AND);
 			}
@@ -765,33 +762,42 @@ public class CoverArtArchiveUtil extends CoverUtil {
 							// matching quality turns out to be to low
 							int maxScore = 0;
 							for (ReleaseRecord release : releaseList) {
+								boolean found = false;
 								if (StringUtil.hasValue(tagInfo.artist)) {
-									boolean found = false;
-									for (String s : release.artists) {
-										if (s.equalsIgnoreCase(tagInfo.artist)) {
-											found = true;
-											break;
+									String[] tagArtists = tagInfo.artist.split("[,&]");
+									for (String artist : release.artists) {
+										for (String tagArtist : tagArtists) {
+											if (StringUtil.isEqual(tagArtist, artist, false, true, true, null)) {
+												release.score += 30;
+												found = true;
+												break;
+											}
 										}
-									}
-									if (found) {
-										release.score += 30;
 									}
 								}
 								if (StringUtil.hasValue(tagInfo.album)) {
-									if (release.type == ReleaseType.Album) {
-										release.score += 20;
-										if (release.title.equalsIgnoreCase(tagInfo.album)) {
+									if (StringUtil.isEqual(tagInfo.album, release.album, false, true, true, null)) {
 											release.score += 30;
-										}
+											found = true;
 									}
-								} else if (StringUtil.hasValue(tagInfo.title)) {
-									if ((round > 2 || release.type == ReleaseType.Single) && release.title.equalsIgnoreCase(tagInfo.title)) {
+								}
+								if (StringUtil.hasValue(tagInfo.title)) {
+									if (StringUtil.isEqual(tagInfo.title, release.title, false, true, true, null)) {
 										release.score += 40;
+										found = true;
 									}
 								}
 								if (StringUtil.hasValue(tagInfo.year) && StringUtil.hasValue(release.year)) {
-									if (tagInfo.year.equals(release.year)) {
+									if (StringUtil.isSameYear(tagInfo.year, release.year)) {
 										release.score += 20;
+									}
+								}
+								// Prefer Single > Album > Compilation
+								if (found) {
+									if (release.type == ReleaseType.Single) {
+										release.score += 20;
+									} else if (release.type == null || release.type == ReleaseType.Album) {
+										release.score += 10;
 									}
 								}
 								maxScore = Math.max(maxScore, release.score);
@@ -858,9 +864,9 @@ public class CoverArtArchiveUtil extends CoverUtil {
 					release.score = 0;
 				}
 				try {
-					release.title = getChildElement(releaseElement, "title").getTextContent();
+					release.album = getChildElement(releaseElement, "title").getTextContent();
 				} catch (NullPointerException e) {
-					release.title = null;
+					release.album = null;
 				}
 				Element releaseGroup = getChildElement(releaseElement, "release-group");
 				if (releaseGroup != null) {
@@ -931,8 +937,6 @@ public class CoverArtArchiveUtil extends CoverUtil {
 					releaseTemplate.score = 0;
 				}
 
-				// A slight misuse of release.title here, we store the track name
-				// here. It is accounted for in the matching logic.
 				try {
 					releaseTemplate.title = getChildElement(recordingElement, "title").getTextContent();
 				} catch (NullPointerException e) {
@@ -972,6 +976,11 @@ public class CoverArtArchiveUtil extends CoverUtil {
 							} catch (IllegalArgumentException | NullPointerException e) {
 								release.type = null;
 							}
+						}
+						try {
+							release.album = getChildElement(releaseElement, "title").getTextContent();
+						} catch (NullPointerException e) {
+							release.album = null;
 						}
 						Element releaseYear = getChildElement(releaseElement, "date");
 						if (releaseYear != null) {
