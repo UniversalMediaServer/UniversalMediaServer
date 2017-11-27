@@ -27,9 +27,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.security.AccessControlException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -474,10 +472,10 @@ public class PMS {
 			if (splash != null) {
 				splash.setVisible(false);
 			}
-			
+
 			// Run wizard
 			Wizard.run(configuration);
-			
+
 			// Unhide splash screen
 			if (splash != null) {
 				splash.setVisible(true);
@@ -1493,26 +1491,15 @@ public class PMS {
 		Process p = pb.start();
 		String line;
 
-		Charset charset = null;
-		int codepage = WinUtils.getOEMCP();
-		String[] aliases = {"cp" + codepage, "MS" + codepage};
-		for (String alias : aliases) {
-			try {
-				charset = Charset.forName(alias);
-				break;
-			} catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
-				charset = null;
-			}
-		}
+		Charset charset = WinUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", aliases, charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WinUtils.getOEMCP(), charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
 				p.waitFor();
 			} catch (InterruptedException e) {
-				in.close();
 				return false;
 			}
 			line = in.readLine();
