@@ -45,11 +45,14 @@ public class SubSelFile extends VirtualFolder {
 		try {
 			if (originalResource instanceof RealFile) {
 				rf = (RealFile) originalResource;
-				subtitleItems = OpenSubtitle.findSubs(rf.getFile(), getDefaultRenderer());
+				subtitleItems = OpenSubtitle.findSubtitles(rf, getDefaultRenderer()); //TODO: (Nad) Temp test
+//				subtitleItems = OpenSubtitle.findSubs(rf.getFile(), getDefaultRenderer());
 			} else {
 				subtitleItems = OpenSubtitle.querySubs(originalResource.getDisplayNameBase(configuration), getDefaultRenderer());
 			}
 		} catch (IOException e) {
+			LOGGER.error("Could not get live subtitles for \"{}\": {}", getName(), e.getMessage());
+			LOGGER.trace("", e);
 			return;
 		}
 		if (subtitleItems == null || subtitleItems.isEmpty()) {

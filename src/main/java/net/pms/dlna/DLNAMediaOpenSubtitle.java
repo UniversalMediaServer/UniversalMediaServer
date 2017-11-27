@@ -157,7 +157,7 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaSubtitle {
 						subtitleItem.getSubDownloadLink(),
 						subtitleFile
 					);
-					if (OpenSubtitle.fetchSubs(subtitleItem.getSubDownloadLink(), subtitleFile) == null) {
+					if (OpenSubtitle.fetchSubs(subtitleItem.getSubDownloadLink().toURL(), subtitleFile) == null) {
 						LOGGER.error(
 							"Failed to login to OpenSubtitles when trying to download \"{}\"",
 							subtitleItem.getSubFileName()
