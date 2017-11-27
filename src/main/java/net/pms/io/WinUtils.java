@@ -26,6 +26,9 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.prefs.Preferences;
 import net.pms.PMS;
 import org.slf4j.Logger;
@@ -209,6 +212,25 @@ public class WinUtils extends BasicSystemUtils {
 	 */
 	public static int getOEMCP() {
 		return Kernel32.INSTANCE.GetOEMCP();
+	}
+
+	/**
+	 * @return The result of {@link #getOEMCP()} converted to a {@link Charset}
+	 *         or {@code null} if it couldn't be converted.
+	 */
+	public static Charset getOEMCharset() {
+		int codepage = Kernel32.INSTANCE.GetOEMCP();
+		Charset result = null;
+		String[] aliases = {"cp" + codepage, "MS" + codepage};
+		for (String alias : aliases) {
+			try {
+				result = Charset.forName(alias);
+				break;
+			} catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
+				result = null;
+			}
+		}
+		return result;
 	}
 
 	private String charString2String(CharBuffer buf) {
