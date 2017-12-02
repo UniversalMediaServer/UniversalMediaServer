@@ -473,109 +473,113 @@ public class PMS {
 			if (splash != null) {
 				splash.setVisible(false);
 			}
-			// Ask the user if they want to run the wizard
-			int whetherToRunWizard = JOptionPane.showConfirmDialog(
+
+			// Total number of questions
+			int numberOfQuestions = 4;
+
+			// The current question number
+			int currentQuestionNumber = 1;
+
+			// Ask if they want UMS to start minimized
+			int whetherToStartMinimized = JOptionPane.showConfirmDialog(
 				null,
-				Messages.getString("Wizard.1"),
-				Messages.getString("Dialog.Question"),
+				Messages.getString("Wizard.3"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 				JOptionPane.YES_NO_OPTION
 			);
-			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
-				// The user has chosen to run the wizard
-
-				// Total number of questions
-				int numberOfQuestions = 3;
-
-				// The current question number
-				int currentQuestionNumber = 1;
-
-				// Ask if they want UMS to start minimized
-				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-					null,
-					Messages.getString("Wizard.3"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION
-				);
-				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
-					configuration.setMinimized(true);
-					save();
-				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
-					configuration.setMinimized(false);
-					save();
-				}
-
-				// Ask if their network is wired, etc.
-				Object[] options = {
-					Messages.getString("Wizard.8"),
-					Messages.getString("Wizard.9"),
-					Messages.getString("Wizard.10")
-				};
-				int networkType = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("Wizard.7"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_CANCEL_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					options,
-					options[1]
-				);
-				switch (networkType) {
-					case JOptionPane.YES_OPTION:
-						// Wired (Gigabit)
-						configuration.setMaximumBitrate("0");
-						configuration.setMPEG2MainSettings("Automatic (Wired)");
-						configuration.setx264ConstantRateFactor("Automatic (Wired)");
-						save();
-						break;
-					case JOptionPane.NO_OPTION:
-						// Wired (100 Megabit)
-						configuration.setMaximumBitrate("90");
-						configuration.setMPEG2MainSettings("Automatic (Wired)");
-						configuration.setx264ConstantRateFactor("Automatic (Wired)");
-						save();
-						break;
-					case JOptionPane.CANCEL_OPTION:
-						// Wireless
-						configuration.setMaximumBitrate("30");
-						configuration.setMPEG2MainSettings("Automatic (Wireless)");
-						configuration.setx264ConstantRateFactor("Automatic (Wireless)");
-						save();
-						break;
-					default:
-						break;
-				}
-
-				// Ask if they want to hide advanced options
-				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
-					null,
-					Messages.getString("Wizard.11"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION
-				);
-				if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
-					configuration.setHideAdvancedOptions(true);
-					save();
-				} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
-					configuration.setHideAdvancedOptions(false);
-					save();
-				}
-
-				JOptionPane.showMessageDialog(
-					null,
-					Messages.getString("Wizard.13"),
-					Messages.getString("Wizard.12"),
-					JOptionPane.INFORMATION_MESSAGE
-				);
-
-				configuration.setRunWizard(false);
+			if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
+				configuration.setMinimized(true);
 				save();
-			} else if (whetherToRunWizard == JOptionPane.NO_OPTION) {
-				// The user has chosen to not run the wizard
-				// Do not ask them again
-				configuration.setRunWizard(false);
+			} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
+				configuration.setMinimized(false);
 				save();
 			}
+
+			// Ask if their network is wired, etc.
+			Object[] options = {
+				Messages.getString("Wizard.8"),
+				Messages.getString("Wizard.9"),
+				Messages.getString("Wizard.10")
+			};
+			int networkType = JOptionPane.showOptionDialog(
+				null,
+				Messages.getString("Wizard.7"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_CANCEL_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null,
+				options,
+				options[1]
+			);
+			switch (networkType) {
+				case JOptionPane.YES_OPTION:
+					// Wired (Gigabit)
+					configuration.setMaximumBitrate("0");
+					configuration.setMPEG2MainSettings("Automatic (Wired)");
+					configuration.setx264ConstantRateFactor("Automatic (Wired)");
+					save();
+					break;
+				case JOptionPane.NO_OPTION:
+					// Wired (100 Megabit)
+					configuration.setMaximumBitrate("90");
+					configuration.setMPEG2MainSettings("Automatic (Wired)");
+					configuration.setx264ConstantRateFactor("Automatic (Wired)");
+					save();
+					break;
+				case JOptionPane.CANCEL_OPTION:
+					// Wireless
+					configuration.setMaximumBitrate("30");
+					configuration.setMPEG2MainSettings("Automatic (Wireless)");
+					configuration.setx264ConstantRateFactor("Automatic (Wireless)");
+					save();
+					break;
+				default:
+					break;
+			}
+
+			// Ask if they want to hide advanced options
+			int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
+				null,
+				Messages.getString("Wizard.11"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION
+			);
+			if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
+				configuration.setHideAdvancedOptions(true);
+				save();
+			} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
+				configuration.setHideAdvancedOptions(false);
+				save();
+			}
+
+			JOptionPane.showMessageDialog(
+				null,
+				Messages.getString("Wizard.12"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.INFORMATION_MESSAGE
+			);
+				
+			JFileChooser chooser;
+			try {
+				chooser = new JFileChooser();
+			} catch (Exception ee) {
+				chooser = new JFileChooser(new RestrictedFileSystemView());
+			}
+
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			chooser.setDialogTitle(Messages.getString("Wizard.12"));
+			chooser.setMultiSelectionEnabled(false);
+			if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
+			} else {
+				// If user cancel this option set the default directory which depends on the operating system.
+				// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
+				configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
+			}
+
+			// The wizard finished, do not ask them again
+			configuration.setRunWizard(false);
+			save();
 
 			// Unhide splash screen
 			if (splash != null) {
