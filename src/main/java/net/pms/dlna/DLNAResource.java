@@ -3615,24 +3615,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the input stream for this resource's generic thumbnail,
-	 * which is the first of:
-	 *      <li> its Format icon, if any
-	 *      <li> the fallback image, if any
-	 *      <li> the {@link GenericIcons} icon
-	 * <br><br>
-	 * This is a wrapper around {@link #getGenericThumbnailInputStream0()} that
-	 * stores the {@link ImageInfo} before returning the
+	 * Returns the input stream for this resource's generic thumbnail, which is
+	 * the first of:
+	 * <ul>
+	 * <li>its Format icon, if any</li>
+	 * <li>the fallback image, if any</li>
+	 * <li>the {@link GenericIcons} icon</li>
+	 * </ul>
+	 * <p>
+	 * This is a wrapper around {@link #getGenericThumbnailInputStreamInternal}
+	 * that stores the {@link ImageInfo} before returning the
 	 * {@link InputStream}.
 	 *
-	 * @param fallback
-	 *            the fallback image, or {@code null}.
+	 * @param fallback the fallback image, or {@code null}.
 	 * @return The {@link DLNAThumbnailInputStream}.
 	 * @throws IOException
 	 */
 	public final DLNAThumbnailInputStream getGenericThumbnailInputStream(String fallback) throws IOException {
 		DLNAThumbnailInputStream inputStream = getGenericThumbnailInputStreamInternal(fallback);
-		thumbnailImageInfo = inputStream.getImageInfo();
+		thumbnailImageInfo = inputStream != null ? inputStream.getImageInfo() : null;
 		return inputStream;
 	}
 
@@ -3682,10 +3683,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the input stream for this resource's thumbnail
-	 * (or a default image if a thumbnail can't be found).
-	 * Typically overridden by a subclass.<br>
-	 * <br>
+	 * Returns the input stream for this resource's thumbnail (or a default
+	 * image if a thumbnail can't be found). Typically overridden by a subclass.
+	 * <p>
 	 * This is a wrapper around {@link #getThumbnailInputStream()} that stores
 	 * the {@link ImageInfo} before returning the {@link InputStream}.
 	 *
@@ -3694,7 +3694,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public final DLNAThumbnailInputStream fetchThumbnailInputStream() throws IOException {
 		DLNAThumbnailInputStream inputStream = getThumbnailInputStream();
-		thumbnailImageInfo = inputStream.getImageInfo();
+		thumbnailImageInfo = inputStream != null ? inputStream.getImageInfo() : null;
 		return inputStream;
 	}
 
