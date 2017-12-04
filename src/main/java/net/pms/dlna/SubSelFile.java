@@ -153,7 +153,7 @@ public class SubSelFile extends VirtualFolder {
 		}
 
 		@Override
-		public int compare(SubtitleItem o1, SubtitleItem o2) {
+		public int compare(SubtitleItem o1, SubtitleItem o2) { //TODO: (Nad) Improve
 			if (o1 == null) {
 				return o2 == null ? 0 : 1;
 			}

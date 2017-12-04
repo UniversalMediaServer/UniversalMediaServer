@@ -418,14 +418,51 @@ public class FileUtil {
 		return extension;
 	}
 
-	public static String getFileNameWithoutExtension(String f) {
-		int point = f.lastIndexOf('.');
-
-		if (point == -1) {
-			point = f.length();
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param file the {@link File}.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(File file) {
+		if (file == null) {
+			return null;
 		}
+		return getFileNameWithoutExtension(file.getName());
+	}
 
-		return f.substring(0, point);
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param file the {@link Path}.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(Path file) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return getFileNameWithoutExtension(fileName.toString());
+	}
+
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param fileName the filename.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(String fileName) {
+		if (isBlank(fileName)) {
+			return fileName;
+		}
+		int point = fileName.lastIndexOf('.');
+		if (point == -1) {
+			return fileName;
+		}
+		return fileName.substring(0, point);
 	}
 
 	private static final class FormattedNameAndEdition {
@@ -899,10 +936,14 @@ public class FileUtil {
 	 * @return the converted string
 	 */
 	public static String convertLowerCaseStringToTitleCase(String value) {
+		if (isBlank(value)) {
+			return value;
+		}
+		value = value.trim();
 		String convertedValue = "";
 		boolean loopedOnce = false;
 
-		for (String word : value.split(" ")) {
+		for (String word : value.split("\\s+")) {
 			if (loopedOnce) {
 				switch (word) {
 					case "a":
@@ -924,8 +965,8 @@ public class FileUtil {
 			} else {
 				// Always capitalize the first letter of the string
 				convertedValue += word.substring(0, 1).toUpperCase() + word.substring(1);
+				loopedOnce = true;
 			}
-			loopedOnce = true;
 		}
 
 		return convertedValue;

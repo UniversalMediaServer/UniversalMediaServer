@@ -49,12 +49,12 @@ public class ImdbUtil {
 		return extractFromFileName(file, FILENAME_HASH);
 	}
 
-	public static String extractImdbId(Path file) {
+	public static String extractImdbId(Path file, boolean scanNfo) {
 		String imdbId = extractFromFileName(file, FILENAME_IMDB_ID);
 		if (isNotBlank(imdbId)) {
 			return removeTT(imdbId);
 		}
-		return extractImdbIdFromNfo(file);
+		return scanNfo ? extractImdbIdFromNfo(file) : null;
 	}
 
 	private static String extractFromFileName(Path file, String regex) {

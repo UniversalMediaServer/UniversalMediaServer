@@ -741,7 +741,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									DLNAResource newChild = child.clone();
 									newChild.player = playerTranscoding;
 									newChild.media = child.media;
-									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + playerTranscoding);
+									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + playerTranscoding); //TODO: (Nad) Investigate
 
 									vf.addChild(new SubSelFile(newChild));
 								}

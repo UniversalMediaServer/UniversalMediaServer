@@ -37,12 +37,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,8 +71,11 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
+import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.OpenSubtitle.MovieGuess.GuessFromString;
+import net.pms.util.OpenSubtitle.MovieGuess.GuessItem;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -590,18 +595,15 @@ public class OpenSubtitle {
 		User tokenUser = null;
 		XPath xPath = X_PATH_FACTORY.newXPath();
 		try {
-			NodeList members = (NodeList) xPath.evaluate(
+			DeadNodeList members = new DeadNodeList(xPath.evaluate(
 				"/methodResponse/params/param/value/struct/member",
 				xmlDocument,
-				XPathConstants.NODESET
-			);
-			int membersLength = members.getLength();
-			if (membersLength > 0) {
+				XPathConstants.NODE
+			));
+			if (!members.isEmpty()) {
 				XPathExpression nameExpression = xPath.compile("name");
 				XPathExpression valueExpression = xPath.compile("value");
-				for (int i = 0; i < membersLength; i++) {
-					// Clone node to avoid extreme slowness when evaluating expressions
-					Node member = members.item(i).cloneNode(true);
+				for (Node member : members) {
 					Node name = (Node) nameExpression.evaluate(member, XPathConstants.NODE);
 					if (name == null || name.getNodeType() != Node.ELEMENT_NODE) {
 						LOGGER.trace("<name> not found in member, aborting: {}", member);
@@ -636,8 +638,6 @@ public class OpenSubtitle {
 							case "data":
 								Node dataValueType = valueNode.getFirstChild();
 								if (dataValueType != null) {
-									// Clone node to avoid extreme slowness when evaluating expressions
-									dataValueType = dataValueType.cloneNode(true);
 									if ("struct".equals(dataValueType.getNodeName())) {
 										tokenUser = User.createFromStructNode(dataValueType);
 									}
@@ -676,19 +676,16 @@ public class OpenSubtitle {
 		}
 		XPath xPath = X_PATH_FACTORY.newXPath();
 		try {
-			NodeList members = (NodeList) xPath.evaluate(
+			DeadNodeList members = new DeadNodeList(xPath.evaluate(
 				"/methodResponse/params/param/value/struct/member",
 				xmlDocument,
-				XPathConstants.NODESET
-			);
-			int membersLength = members.getLength();
-			if (membersLength > 0) {
+				XPathConstants.NODE
+			));
+			if (!members.isEmpty()) {
 				XPathExpression nameExpression = xPath.compile("name");
 				XPathExpression valueExpression = xPath.compile("value");
 				XPathExpression dataValuesExpression = xPath.compile("array/data/value");
-				for (int i = 0; i < membersLength; i++) {
-					// Clone node to avoid extreme slowness when evaluating expressions
-					Node member = members.item(i).cloneNode(true);
+				for (Node member : members) {
 					Node name = (Node) nameExpression.evaluate(member, XPathConstants.NODE);
 					if (name == null || name.getNodeType() != Node.ELEMENT_NODE) {
 						LOGGER.trace("<name> not found in member, aborting: {}", member);
@@ -717,21 +714,16 @@ public class OpenSubtitle {
 								}
 								break;
 							case "data":
-								NodeList values = (NodeList) dataValuesExpression.evaluate(valueNode, XPathConstants.NODESET);
-								if (values != null) {
-									int valuesLength = values.getLength();
-									for (int j = 0; j < valuesLength; j++) {
-										Node dataValueType = values.item(j).getFirstChild();
-										if (dataValueType != null) {
-											// Clone node to avoid extreme slowness when evaluating expressions
-											dataValueType = dataValueType.cloneNode(true);
-											if ("struct".equals(dataValueType.getNodeName())) {
-												SubtitleItem item = SubtitleItem.createFromStructNode(dataValueType);
-												if (item != null) {
-													result.add(item);
-												}
-											} // If anything other than "struct" is ever available, it should be handled here.
-										}
+								DeadNodeList values = new DeadNodeList(dataValuesExpression.evaluate(valueNode, XPathConstants.NODE));
+								for (Node dataValue : values) {
+									Node dataValueType = dataValue.getFirstChild();
+									if (dataValueType != null) {
+										if ("struct".equals(dataValueType.getNodeName())) {
+											SubtitleItem item = SubtitleItem.createFromStructNode(dataValueType);
+											if (item != null) {
+												result.add(item);
+											}
+										} // If anything other than "struct" is ever available, it should be handled here.
 									}
 								}
 								break;
@@ -760,19 +752,16 @@ public class OpenSubtitle {
 		}
 		XPath xPath = X_PATH_FACTORY.newXPath();
 		try {
-			NodeList members = (NodeList) xPath.evaluate(
+			DeadNodeList members = new DeadNodeList(xPath.evaluate(
 				"/methodResponse/params/param/value/struct/member",
 				xmlDocument,
-				XPathConstants.NODESET
-			);
-			int membersLength = members.getLength();
-			if (membersLength > 0) {
+				XPathConstants.NODE
+			));
+			if (!members.isEmpty()) {
 				XPathExpression nameExpression = xPath.compile("name");
 				XPathExpression valueExpression = xPath.compile("value");
 				XPathExpression structExpression = xPath.compile("value/struct");
-				for (int i = 0; i < membersLength; i++) {
-					// Clone node to avoid extreme slowness when evaluating expressions
-					Node member = members.item(i).cloneNode(true);
+				for (Node member : members) {
 					Node name = (Node) nameExpression.evaluate(member, XPathConstants.NODE);
 					if (name == null || name.getNodeType() != Node.ELEMENT_NODE) {
 						LOGGER.trace("<name> not found in member, aborting: {}", member);
@@ -804,18 +793,12 @@ public class OpenSubtitle {
 								}
 								break;
 							case "data":
-								NodeList dataMembers = (NodeList) xPath.evaluate(
+								DeadNodeList dataMembers = new DeadNodeList(xPath.evaluate(
 									"struct/member",
 									valueNode,
-									XPathConstants.NODESET
-								);
-								if (dataMembers == null) {
-									continue;
-								}
-								int dataMembersLength = dataMembers.getLength();
-								for (int j = 0; j < dataMembersLength; j++) {
-									// Clone node to avoid extreme slowness when evaluating expressions
-									Node dataMember = dataMembers.item(j).cloneNode(true);
+									XPathConstants.NODE
+								));
+								for (Node dataMember : dataMembers) {
 									Node dataName = (Node) nameExpression.evaluate(dataMember, XPathConstants.NODE);
 									if (dataName == null) {
 										continue;
@@ -866,6 +849,8 @@ public class OpenSubtitle {
 
 		String languageCodes = getLanguageCodes(renderer);
 		String primaryLanguageCode = getPrimaryLanguageCode(languageCodes);
+		String imdbId = null;
+		FileNamePrettifier prettifier = new FileNamePrettifier(resource);
 		if (resource instanceof RealFile) {
 			Path file = ((RealFile) resource).getFile().toPath();
 			LOGGER.info("Looking for OpenSubtitles subtitles for \"{}\"", file);
@@ -892,7 +877,7 @@ public class OpenSubtitle {
 			}
 
 			if (isNotBlank(fileHash) && fileSize > 0L) {
-				result.addAll(findSubtitlesByFileHash(resource, renderer, fileHash, fileSize, languageCodes));
+				result.addAll(findSubtitlesByFileHash(resource, fileHash, fileSize, languageCodes, prettifier));
 				if (isSubtitlesSatisfactory(result, primaryLanguageCode)) {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("Found {} subtitles for \"{}\":\n{}", result.size(), file, toLogString(result));
@@ -903,15 +888,32 @@ public class OpenSubtitle {
 				}
 			}
 
+			//imdbId = ImdbUtil.extractImdbId(file, true); //TODO: (Nad) Temp disabled
+		}
+
+		if (isBlank(imdbId)) {
+			imdbId = guessImdbIdByFileName(resource, prettifier);
+		}
+		if (isNotBlank(imdbId)) {
 			// Query by IMDB id
-			String imdbId = null; //TODO: (Nad) ImdbUtil.extractImdbId(file);
-			if (isBlank(imdbId)) {
-				guessImdbIdByFileName(resource, renderer, file);
+			result.addAll(findSubtitlesByImdbId(resource, imdbId, languageCodes, prettifier));
+			if (isSubtitlesSatisfactory(result, primaryLanguageCode)) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug(
+						"Found {} subtitles for \"{}\":\n{}",
+						result.size(),
+						resource.getDisplayName(null, false),
+						toLogString(result)
+					);
+				} else {
+					LOGGER.info("Found {} subtitles for \"{}\"", result.size(), resource.getDisplayName(null, false));
+				}
+				return result;
 			}
 
 		}
 
-		return new ArrayList<>(); //TODO: (Nad) Temp
+		return result; //TODO: (Nad) Here
 	}
 
 	/**
@@ -920,27 +922,26 @@ public class OpenSubtitle {
 	 *
 	 * @param resource the {@link DLNAResource} for which subtitles are searched
 	 *            for.
-	 * @param renderer the current {@link RendererConfiguration}.
-	 * @param url the OpenSubtitles {@link URL}.
 	 * @param fileHash the file hash.
 	 * @param fileSize the file size in bytes.
 	 * @param languageCodes the comma separated list of subtitle language codes.
+	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
 	protected static ArrayList<SubtitleItem> findSubtitlesByFileHash(
 		DLNAResource resource,
-		RendererConfiguration renderer,
 		String fileHash,
 		long fileSize,
-		String languageCodes
+		String languageCodes,
+		FileNamePrettifier prettifier
 	) {
-		MethodDocument methodRequest = initializeMethod("SearchSubtitles");
-		if (methodRequest == null) {
-			return new ArrayList<>();
-		}
 		URL url = login();
 		if (url == null) {
+			return new ArrayList<>();
+		}
+		MethodDocument methodRequest = initializeMethod("SearchSubtitles");
+		if (methodRequest == null) {
 			return new ArrayList<>();
 		}
 		Document request = methodRequest.getDocument();
@@ -952,17 +953,21 @@ public class OpenSubtitle {
 		if (isNotBlank(languageCodes)) {
 			addStructString(request, struct, "sublanguageid", languageCodes);
 		}
+		if (prettifier != null && prettifier.getSeason() > 0 && prettifier.getEpisode() > 0) {
+			addStructInt(request, struct, "season", prettifier.getSeason());
+			addStructInt(request, struct, "episode", prettifier.getEpisode());
+		}
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(
 				"Querying OpenSubtitles for subtitles for \"{}\" using file hash:\n{}",
-				resource.getDisplayName(renderer, false),
+				resource.getDisplayName(null, false),
 				toLogString(request)
 			);
 		} else if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug(
 				"Querying OpenSubtitles for subtitles for \"{}\" using file hash {}",
-				resource.getDisplayName(renderer, false),
+				resource.getDisplayName(null, false),
 				fileHash
 			);
 		}
@@ -973,7 +978,7 @@ public class OpenSubtitle {
 		} catch (IOException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles file hash query results for \"{}\": {}",
-				resource.getDisplayName(renderer, false),
+				resource.getDisplayName(null, false),
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
@@ -982,31 +987,129 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Queries OpenSubtitles for IMDB IDs matching a filename.
+	 * Queries OpenSubtitles for subtitles matching a file with the specified
+	 * IMDB ID.
 	 *
 	 * @param resource the {@link DLNAResource} for which subtitles are searched
 	 *            for.
-	 * @param renderer the current {@link RendererConfiguration}.
 	 * @param url the OpenSubtitles {@link URL}.
-	 * @param fileHash the file hash.
-	 * @param fileSize the file size in bytes.
+	 * @param imdbId the IMDB ID.
 	 * @param languageCodes the comma separated list of subtitle language codes.
+	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static String guessImdbIdByFileName( //TODO: (Nad) Parameters, JavaDoc
+	protected static ArrayList<SubtitleItem> findSubtitlesByImdbId(
 		DLNAResource resource,
-		RendererConfiguration renderer,
-		Path file
+		String imdbId,
+		String languageCodes,
+		FileNamePrettifier prettifier
 	) {
-		if (file == null) {
+		if (isBlank(imdbId)) {
+			return new ArrayList<>();
+		}
+		URL url = login();
+		if (url == null) {
+			return new ArrayList<>();
+		}
+		MethodDocument methodRequest = initializeMethod("SearchSubtitles");
+		if (methodRequest == null) {
+			return new ArrayList<>();
+		}
+		Document request = methodRequest.getDocument();
+		Element params = methodRequest.getParams();
+
+		Element struct = addPath(request, params, new String[]{"param", "value", "array", "data", "value", "struct"}, 0);
+		addStructString(request, struct, "imdbid", imdbId);
+		if (isNotBlank(languageCodes)) {
+			addStructString(request, struct, "sublanguageid", languageCodes);
+		}
+		if (prettifier != null && prettifier.getSeason() > 0 && prettifier.getEpisode() > 0) {
+			addStructInt(request, struct, "season", prettifier.getSeason());
+			addStructInt(request, struct, "episode", prettifier.getEpisode());
+		}
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(
+				"Querying OpenSubtitles for subtitles for \"{}\" using IMDB ID:\n{}",
+				resource.getDisplayName(null, false),
+				toLogString(request)
+			);
+		} else if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug(
+				"Querying OpenSubtitles for subtitles for \"{}\" using IMDB ID {}",
+				resource.getDisplayName(null, false),
+				imdbId
+			);
+		}
+
+		try {
+			Document reply = postXMLDocument(url, request);
+			return parseSubtitles(reply);
+		} catch (IOException e) {
+			LOGGER.error(
+				"An error occurred while processing OpenSubtitles IMDB ID query results for \"{}\": {}",
+				resource.getDisplayName(null, false),
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+		return new ArrayList<>();
+	}
+
+	private static void addGuesses(
+		Map<Double, GuessItem> candidates,
+		Collection<? extends GuessItem> guesses,
+		FileNamePrettifier prettifier,
+		VideoClassification classification,
+		boolean bestGuess
+	) {
+		// The score calculation isn't extensively tested and might need to be tweaked
+		for (GuessItem guess : guesses) {
+			double score = 0.0;
+			if (prettifier.getYear() > 0 ) {
+				int guessYear = StringUtil.getYear(guess.getYear());
+				if (prettifier.getYear() == guessYear) {
+					score += 0.5;
+				}
+			}
+			if (classification != null && classification == guess.getVideoClassification()) {
+				score += 0.7;
+			}
+			if (isNotBlank(prettifier.getName()) && isNotBlank(guess.getTitle())) {
+				score += StringUtils.getJaroWinklerDistance(prettifier.getName(), guess.getTitle());
+			}
+			if (bestGuess) {
+				score += 0.3;
+			}
+			candidates.put(score, guess);
+		}
+	}
+
+	/**
+	 * Queries OpenSubtitles for IMDB IDs matching a filename.
+	 *
+	 * @param resource the {@link DLNAResource} for which to find the IMDB ID.
+	 * @param prettifier the {@link FileNamePrettifier} to use.
+	 * @return The IMDB ID or {@code null}.
+	 */
+	protected static String guessImdbIdByFileName(
+		DLNAResource resource,
+		FileNamePrettifier prettifier
+	) {
+		if (resource == null) {
 			return null;
 		}
-		file = file.getFileName();
-		if (file == null) {
-			return null;
+		String fileName;
+		if (resource instanceof RealFile) {
+			File file = ((RealFile) resource).getFile();
+			if (file == null) {
+				return null;
+			}
+			fileName = file.getName();
+		} else {
+			fileName = resource.getSystemName();
 		}
-		String fileName = file.toString();
 		if (isBlank(fileName)) {
 			return null;
 		}
@@ -1023,8 +1126,6 @@ public class OpenSubtitle {
 
 		Element data = addPath(request, params, new String[]{"param", "value", "array", "data"}, 0);
 		addString(request, data, null, fileName);
-		addString(request, data, null, "faen"); //TODO: (Nad) Very temp
-		addString(request, data, null, "Helvete.DVD.1080p.mkv"); //TODO: (Nad) Very temp
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(
@@ -1047,19 +1148,65 @@ public class OpenSubtitle {
 		} catch (IOException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles file hash query results for \"{}\": {}",
-				resource.getDisplayName(renderer, false),
+				resource.getDisplayName(null, false),
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
 			return null;
 		}
 
-		//TODO: (Nad) Find the IMDB ID;
-		LOGGER.error("Result: {}", movieGuesses);
-		// Try to find the best candidate from the results
-		String prettified = FileUtil.getFileNamePrettified(StringEscapeUtils.unescapeJava(resource.getName()), file.toFile());
-		LOGGER.error("Prettified: {}", prettified);
+		MovieGuess movieGuess = movieGuesses.get(fileName);
+		if (movieGuess != null) {
+			VideoClassification classification;
+			if (
+				movieGuess.getGuessIt().getType() != null &&
+				movieGuess.getGuessIt().getType() != prettifier.getClassification()
+			) {
+				classification = movieGuess.getGuessIt().getType();
+				LOGGER.debug(
+					"OpenSubtitles guessed that \"{}\" is a {} while we guessed a {}. Using {}",
+					fileName,
+					movieGuess.getGuessIt().getType(),
+					prettifier.getClassification(),
+					classification
+				);
+			} else {
+				classification = prettifier.getClassification();
+			}
 
+			TreeMap<Double, GuessItem> candidates = new TreeMap<>();
+			if (movieGuess.getGuessesFromString().size() > 0) {
+				addGuesses(candidates, movieGuess.getGuessesFromString().values(), prettifier, classification, false);
+			}
+			if (movieGuess.getImdbSuggestions().size() > 0) {
+				addGuesses(candidates, movieGuess.getImdbSuggestions().values(), prettifier, classification, false);
+			}
+			if (movieGuess.getBestGuess() != null) {
+				addGuesses(candidates, Collections.singletonList(movieGuess.getBestGuess()), prettifier, classification, true);
+			}
+			if (candidates.size() > 0) {
+				if (LOGGER.isTraceEnabled()) {
+					StringBuilder sb = new StringBuilder();
+					for (Entry<Double, GuessItem> entry : candidates.entrySet()) {
+						sb.append("  Score: ").append(entry.getKey())
+						.append(", Candidate: ").append(entry.getValue()).append("\n");
+					}
+					LOGGER.trace(
+						"guessImdbIdByFileName candidates for \"{}\":\n{}",
+						resource.getDisplayName(null, false),
+						sb.toString()
+					);
+				}
+				LOGGER.debug(
+					"guessImdbIdByFileName() picked {} as the most likely candidate for \"{}\"",
+					candidates.lastEntry().getValue(),
+					resource.getDisplayName(null, false)
+				);
+				return candidates.lastEntry().getValue().getImdbId();
+			}
+		}
+
+		LOGGER.debug("guessImdbIdByFileName() failed to find a candidate for \"{}\"", resource.getDisplayName(null, false));
 		return null;
 	}
 
@@ -1099,7 +1246,7 @@ public class OpenSubtitle {
 
 		if (result.isEmpty()) {
 		// Query by IMDB id
-			String imdbId = ImdbUtil.extractImdbId(file.toPath());
+			String imdbId = ImdbUtil.extractImdbId(file.toPath(), false);
 			if (isNotBlank(imdbId)) {
 				result = findSubs(null, 0, imdbId, null, renderer);
 			}
@@ -1406,7 +1553,7 @@ public class OpenSubtitle {
 		Path path = file.toPath();
 		String[] res = getInfo(getHash(path), file.length(), null, null, r);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
-			String imdb = ImdbUtil.extractImdbId(path);
+			String imdb = ImdbUtil.extractImdbId(path, false);
 			if (StringUtil.hasValue(imdb)) {
 				res = getInfo(null, 0, imdb, null, r);
 			}
@@ -1898,25 +2045,6 @@ public class OpenSubtitle {
 		private final Map<String, GuessItem> imdbSuggestions;
 		private final BestGuess bestGuess;
 
-		public static enum VideoKind {
-			MOVIE,
-			SERIES;
-
-			public static VideoKind typeOf(String videoKind) {
-				if (isBlank(videoKind)) {
-					return null;
-				}
-				videoKind = videoKind.toLowerCase(Locale.ROOT);
-				if (videoKind.contains("serie")) {
-					return SERIES;
-				}
-				if (videoKind.contains("movie") || videoKind.contains("film")) {
-					return MOVIE;
-				}
-				return null;
-			}
-		}
-
 		public static class GuessIt extends StructElement {
 			private final MimeType mimeType;
 			private final String videoCodec;
@@ -1925,7 +2053,7 @@ public class OpenSubtitle {
 			private final String originalFormat;
 			private final String releaseGroup;
 			private final String videoResolutionFormat;
-			private final VideoKind type;
+			private final VideoClassification type;
 			private final String audioCodec;
 
 			public GuessIt(
@@ -1956,7 +2084,7 @@ public class OpenSubtitle {
 				this.originalFormat = originalFormat;
 				this.releaseGroup = releaseGroup;
 				this.videoResolutionFormat = videoResolutionFormat;
-				this.type = VideoKind.typeOf(type);
+				this.type = VideoClassification.typeOf(type);
 				this.audioCodec = audioCodec;
 			}
 
@@ -1968,7 +2096,7 @@ public class OpenSubtitle {
 				String originalFormat,
 				String releaseGroup,
 				String videoResolutionFormat,
-				VideoKind type,
+				VideoClassification type,
 				String audioCodec
 			) {
 				this.mimeType = mimeType;
@@ -2032,9 +2160,9 @@ public class OpenSubtitle {
 			}
 
 			/**
-			 * @return The {@link VideoKind}.
+			 * @return The {@link VideoClassification}.
 			 */
-			public VideoKind getType() {
+			public VideoClassification getType() {
 				return type;
 			}
 
@@ -2070,8 +2198,14 @@ public class OpenSubtitle {
 		public static class GuessFromString extends GuessItem {
 			private final int score;
 
-			public GuessFromString(String movieName, String movieYear, String videoKind, String imdbId, String score) {
-				super(movieName, movieYear, videoKind, imdbId);
+			public GuessFromString(
+				String movieName,
+				String movieYear,
+				String videoClassification,
+				String imdbId,
+				String score
+			) {
+				super(movieName, movieYear, videoClassification, imdbId);
 				int tmpScore;
 				try {
 					tmpScore = Integer.parseInt(score);
@@ -2081,8 +2215,14 @@ public class OpenSubtitle {
 				this.score = tmpScore;
 			}
 
-			public GuessFromString(String movieName, String movieYear, VideoKind videoKind, String imdbId, int score) {
-				super(movieName, movieYear, videoKind, imdbId);
+			public GuessFromString(
+				String movieName,
+				String movieYear,
+				VideoClassification videoClassification,
+				String imdbId,
+				int score
+			) {
+				super(movieName, movieYear, videoClassification, imdbId);
 				this.score = score;
 			}
 
@@ -2102,7 +2242,7 @@ public class OpenSubtitle {
 					sb.append("[");
 				}
 				boolean first = !addFieldToStringBuilder(true, sb, "MovieName", title, true, true, true);
-				first &= !addFieldToStringBuilder(first, sb, "MovieKind", videoKind, false, false, true);
+				first &= !addFieldToStringBuilder(first, sb, "MovieKind", videoClassification, false, false, true);
 				first &= !addFieldToStringBuilder(first, sb, "MovieYear", year, false, false, true);
 				first &= !addFieldToStringBuilder(first, sb, "IDMovieIMDB", imdbId, false, false, true);
 				addFieldToStringBuilder(first, sb, "score", Integer.valueOf(score), false, false, false);
@@ -2131,13 +2271,8 @@ public class OpenSubtitle {
 				XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
 				XPathExpression nameExpression = xPath.compile("name");
 
-				NodeList members = (NodeList) xPath.evaluate("member", structNode, XPathConstants.NODESET);
-				if (members == null) {
-					return result;
-				}
-				int membersLength = members.getLength();
-				for (int i = 0; i < membersLength; i++) {
-					Node member = members.item(i).cloneNode(true);
+				DeadNodeList members = new DeadNodeList(xPath.evaluate("member", structNode, XPathConstants.NODE));
+				for (Node member : members) {
 					String name = (String) nameExpression.evaluate(member, XPathConstants.STRING);
 					Node memberStruct = (Node) structExpression.evaluate(member, XPathConstants.NODE);
 					if (memberStruct == null || isBlank(name)) {
@@ -2158,13 +2293,25 @@ public class OpenSubtitle {
 		public static class BestGuess extends GuessItem {
 			private final String reason;
 
-			public BestGuess(String movieName, String movieYear, String videoKind, String imdbId, String reason) {
-				super(movieName, movieYear, videoKind, imdbId);
+			public BestGuess(
+				String movieName,
+				String movieYear,
+				String videoClassification,
+				String imdbId,
+				String reason
+			) {
+				super(movieName, movieYear, videoClassification, imdbId);
 				this.reason = reason;
 			}
 
-			public BestGuess(String movieName, String movieYear, VideoKind videoKind, String imdbId, String reason) {
-				super(movieName, movieYear, videoKind, imdbId);
+			public BestGuess(
+				String movieName,
+				String movieYear,
+				VideoClassification videoClassification,
+				String imdbId,
+				String reason
+			) {
+				super(movieName, movieYear, videoClassification, imdbId);
 				this.reason = reason;
 			}
 
@@ -2184,7 +2331,7 @@ public class OpenSubtitle {
 					sb.append("[");
 				}
 				boolean first = !addFieldToStringBuilder(true, sb, "MovieName", title, true, true, true);
-				first &= !addFieldToStringBuilder(first, sb, "MovieKind", videoKind, false, false, true);
+				first &= !addFieldToStringBuilder(first, sb, "MovieKind", videoClassification, false, false, true);
 				first &= !addFieldToStringBuilder(first, sb, "MovieYear", year, false, false, true);
 				first &= !addFieldToStringBuilder(first, sb, "IDMovieIMDB", imdbId, false, false, true);
 				addFieldToStringBuilder(first, sb, "Reason", reason, true, false, true);
@@ -2225,20 +2372,25 @@ public class OpenSubtitle {
 		public static class GuessItem extends StructElement {
 			protected final String title;
 			protected final String year;
-			protected final VideoKind videoKind;
+			protected final VideoClassification videoClassification;
 			protected final String imdbId;
 
-			public GuessItem(String movieName, String movieYear, VideoKind videoKind, String imdbId) {
+			public GuessItem(
+				String movieName,
+				String movieYear,
+				VideoClassification videoClassification,
+				String imdbId
+			) {
 				this.title = movieName;
 				this.year = movieYear;
-				this.videoKind = videoKind;
+				this.videoClassification = videoClassification;
 				this.imdbId = imdbId;
 			}
 
-			public GuessItem(String movieName, String movieYear, String videoKind, String imdbId) {
+			public GuessItem(String movieName, String movieYear, String videoClassification, String imdbId) {
 				this.title = movieName;
 				this.year = movieYear;
-				this.videoKind = VideoKind.typeOf(videoKind);
+				this.videoClassification = VideoClassification.typeOf(videoClassification);
 				this.imdbId = imdbId;
 			}
 
@@ -2257,10 +2409,10 @@ public class OpenSubtitle {
 			}
 
 			/**
-			 * @return The {@link VideoKind}.
+			 * @return The {@link VideoClassification}.
 			 */
-			public VideoKind getVideoKind() {
-				return videoKind;
+			public VideoClassification getVideoClassification() {
+				return videoClassification;
 			}
 
 			/**
@@ -2279,7 +2431,7 @@ public class OpenSubtitle {
 					sb.append("[");
 				}
 				boolean first = !addFieldToStringBuilder(true, sb, "MovieName", title, true, true, true);
-				first &= !addFieldToStringBuilder(first, sb, "MovieKind", videoKind, false, false, true);
+				first &= !addFieldToStringBuilder(first, sb, "MovieKind", videoClassification, false, false, true);
 				first &= !addFieldToStringBuilder(first, sb, "MovieYear", year, false, false, true);
 				addFieldToStringBuilder(first, sb, "IDMovieIMDB", imdbId, false, false, true);
 				sb.append("]");
@@ -2306,13 +2458,8 @@ public class OpenSubtitle {
 				XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
 				XPathExpression nameExpression = xPath.compile("name");
 
-				NodeList members = (NodeList) xPath.evaluate("member", structNode, XPathConstants.NODESET);
-				if (members == null) {
-					return result;
-				}
-				int membersLength = members.getLength();
-				for (int i = 0; i < membersLength; i++) {
-					Node member = members.item(i).cloneNode(true);
+				DeadNodeList members = new DeadNodeList(xPath.evaluate("member", structNode, XPathConstants.NODE));
+				for (Node member : members) {
 					String name = (String) nameExpression.evaluate(member, XPathConstants.STRING);
 					Node memberStruct = (Node) structExpression.evaluate(member, XPathConstants.NODE);
 					if (memberStruct == null || isBlank(name)) {
