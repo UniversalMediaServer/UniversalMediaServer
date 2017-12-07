@@ -471,7 +471,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MOV;
 		} else if (
 				value.contains("isom") ||
-				value.startsWith("mp4") ||
+				(streamType != StreamType.Audio && value.startsWith("mp4")) ||
 				value.equals("20") ||
 				value.equals("isml") ||
 				value.startsWith("m4a") ||
