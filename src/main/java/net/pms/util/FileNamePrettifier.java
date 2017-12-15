@@ -96,6 +96,7 @@ public class FileNamePrettifier {
 	private static final Pattern ANIME_HASH = Pattern.compile("\\[[0-9a-zA-Z]{8}\\]$");
 
 	private final String fileName;
+	private final String fileNameWithoutExtension;
 	private final Locale locale = PMS.getLocale();
 	private VideoClassification classification;
 	private String name;
@@ -125,6 +126,7 @@ public class FileNamePrettifier {
 			tmpName = resource.getDisplayName(null, false);
 		}
 		fileName = tmpName;
+		fileNameWithoutExtension = FileUtil.getFileNameWithoutExtension(tmpName);
 		parse();
 	}
 
@@ -133,6 +135,13 @@ public class FileNamePrettifier {
 	 */
 	public String getFileName() {
 		return fileName;
+	}
+
+	/**
+	 * @return The filename with the extension, if any, stripped off.
+	 */
+	public String getFileNameWithoutExtension() {
+		return fileNameWithoutExtension;
 	}
 
 	/**
@@ -220,13 +229,11 @@ public class FileNamePrettifier {
 	 * Parses the media resource.
 	 */
 	protected void parse() {
-		if (isBlank(fileName)) {
+		if (isBlank(fileNameWithoutExtension)) {
 			return;
 		}
 
-		// Remove file extension
-		String tmpName = FileUtil.getFileNameWithoutExtension(fileName);
-		tmpName = removeGroupNameFromBeginning(tmpName);
+		String tmpName = removeGroupNameFromBeginning(fileNameWithoutExtension);
 		tmpName = removeFilenameEndMetadata(tmpName);
 		tmpName = tmpName.replaceAll("_", " ");
 		if (isBlank(fileName)) {

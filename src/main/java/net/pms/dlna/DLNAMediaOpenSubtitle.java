@@ -239,13 +239,15 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaSubtitle {
 
 	@Override
 	public String getName() {
-		if (subtitleItem != null) {
-			return subtitleItem.getSubFileName();
+		synchronized (downloadLock) {
+			if (subtitleItem != null) {
+				return subtitleItem.getSubFileName();
+			}
+			if (subtitleFile != null) {
+				return subtitleFile.toString();
+			}
+			return super.getName();
 		}
-		if (subtitleFile != null) {
-			return subtitleFile.toString();
-		}
-		return super.getName();
 	}
 
 	@Override
@@ -288,22 +290,24 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaSubtitle {
 	 * kept.
 	 */
 	public void deleteLiveSubtitlesFile() {
-		if (subtitleFile != null && !keepLiveSubtitle) {
-			if (Files.exists(subtitleFile)) {
-				try {
-					LOGGER.debug("Deleting temporary live subtitles file \"{}\"", subtitleFile);
-					Files.delete(subtitleFile);
-				} catch (IOException e) {
-					LOGGER.error(
-						"Could not delete temporary live subtitles file \"{}\", trying to delete it at program exit: {}",
-						subtitleFile,
-						e.getMessage()
-					);
-					LOGGER.trace("", e);
-					subtitleFile.toFile().deleteOnExit();
+		synchronized (downloadLock) {
+			if (subtitleFile != null && !keepLiveSubtitle) {
+				if (Files.exists(subtitleFile)) {
+					try {
+						LOGGER.debug("Deleting temporary live subtitles file \"{}\"", subtitleFile);
+						Files.delete(subtitleFile);
+					} catch (IOException e) {
+						LOGGER.error(
+							"Could not delete temporary live subtitles file \"{}\", trying to delete it at program exit: {}",
+							subtitleFile,
+							e.getMessage()
+						);
+						LOGGER.trace("", e);
+						subtitleFile.toFile().deleteOnExit();
+					}
 				}
+				subtitleFile = null;
 			}
-			subtitleFile = null;
 		}
 	}
 

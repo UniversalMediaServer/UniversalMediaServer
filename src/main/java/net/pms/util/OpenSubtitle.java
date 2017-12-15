@@ -20,6 +20,7 @@
 
 package net.pms.util;
 
+import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.*;
@@ -36,9 +37,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -68,13 +71,13 @@ import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathVariableResolver;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.util.OpenSubtitle.MovieGuess.GuessFromString;
 import net.pms.util.OpenSubtitle.MovieGuess.GuessItem;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -84,7 +87,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class OpenSubtitle {
@@ -305,7 +307,7 @@ public class OpenSubtitle {
 		TOKEN_LOCK.writeLock().lock();
 		try {
 			if (token != null && token.isYoung()) {
-				return token.getURL();
+				return token.isValid() ? token.getURL() : null;
 			}
 			boolean debug = LOGGER.isDebugEnabled();
 			if (debug) {
@@ -358,7 +360,7 @@ public class OpenSubtitle {
 			Document response = postXMLDocument(url, request);
 
 			token = parseLogIn(response, url);
-			if (token == null) {
+			if (token == null || !token.isValid()) {
 				LOGGER.error("Failed to log in to OpenSubtitles");
 				LOGGER.trace("The OpenSubtitles login reply was:\n{}", toLogString(response));
 				return null;
@@ -375,6 +377,7 @@ public class OpenSubtitle {
 		} catch (IOException e) {
 			LOGGER.error("An error occurred during OpenSubtitles login: {}", e.getMessage());
 			LOGGER.trace("", e);
+			token = Token.createInvalidToken();
 			return null;
 		} finally {
 			TOKEN_LOCK.writeLock().unlock();
@@ -579,7 +582,9 @@ public class OpenSubtitle {
 		Element tokenString = addPath(document, params, new String[]{"param", "value", "string"}, 0);
 		TOKEN_LOCK.readLock().lock();
 		try {
-			tokenString.appendChild(document.createTextNode(token.getValue()));
+			if (token.isValid()) {
+				tokenString.appendChild(document.createTextNode(token.getValue()));
+			}
 		} finally {
 			TOKEN_LOCK.readLock().unlock();
 		}
@@ -629,7 +634,7 @@ public class OpenSubtitle {
 								} catch (OpenSubtitlesException e) {
 									LOGGER.error("OpenSubtitles replied with an error, aborting: {}", statusValue.getTextContent());
 									LOGGER.trace("", e);
-									return null;
+									return Token.createInvalidToken();
 								}
 								break;
 							case "token":
@@ -651,7 +656,7 @@ public class OpenSubtitle {
 			} else {
 				LOGGER.warn("Received an unexpected response from OpenSubtitles:");
 				logReplyDocument("\n{}", xmlDocument);
-				return null;
+				return Token.createInvalidToken();
 			}
 		} catch (XPathExpressionException e) {
 			LOGGER.error("An error occurred while trying to parse the login response from OpenSubtitles: {}", e.getMessage());
@@ -669,7 +674,11 @@ public class OpenSubtitle {
 		return result;
 	}
 
-	public static ArrayList<SubtitleItem> parseSubtitles(Document xmlDocument) {
+	public static ArrayList<SubtitleItem> parseSubtitles(
+		Document xmlDocument,
+		FileNamePrettifier prettifier,
+		DLNAMediaInfo media
+	) {
 		ArrayList<SubtitleItem> result = new ArrayList<>();
 		if (xmlDocument == null) {
 			return result;
@@ -719,7 +728,7 @@ public class OpenSubtitle {
 									Node dataValueType = dataValue.getFirstChild();
 									if (dataValueType != null) {
 										if ("struct".equals(dataValueType.getNodeName())) {
-											SubtitleItem item = SubtitleItem.createFromStructNode(dataValueType);
+											SubtitleItem item = SubtitleItem.createFromStructNode(dataValueType, prettifier, media);
 											if (item != null) {
 												result.add(item);
 											}
@@ -851,6 +860,7 @@ public class OpenSubtitle {
 		String primaryLanguageCode = getPrimaryLanguageCode(languageCodes);
 		String imdbId = null;
 		FileNamePrettifier prettifier = new FileNamePrettifier(resource);
+		boolean satisfactory = false;
 		if (resource instanceof RealFile) {
 			Path file = ((RealFile) resource).getFile().toPath();
 			LOGGER.info("Looking for OpenSubtitles subtitles for \"{}\"", file);
@@ -878,42 +888,50 @@ public class OpenSubtitle {
 
 			if (isNotBlank(fileHash) && fileSize > 0L) {
 				result.addAll(findSubtitlesByFileHash(resource, fileHash, fileSize, languageCodes, prettifier));
-				if (isSubtitlesSatisfactory(result, primaryLanguageCode)) {
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("Found {} subtitles for \"{}\":\n{}", result.size(), file, toLogString(result));
-					} else {
-						LOGGER.info("Found {} subtitles for \"{}\"", result.size(), file);
-					}
-					return result;
-				}
+				satisfactory = isSubtitlesSatisfactory(result, primaryLanguageCode);
 			}
 
-			//imdbId = ImdbUtil.extractImdbId(file, true); //TODO: (Nad) Temp disabled
-		}
-
-		if (isBlank(imdbId)) {
-			imdbId = guessImdbIdByFileName(resource, prettifier);
-		}
-		if (isNotBlank(imdbId)) {
-			// Query by IMDB id
-			result.addAll(findSubtitlesByImdbId(resource, imdbId, languageCodes, prettifier));
-			if (isSubtitlesSatisfactory(result, primaryLanguageCode)) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug(
-						"Found {} subtitles for \"{}\":\n{}",
-						result.size(),
-						resource.getDisplayName(null, false),
-						toLogString(result)
-					);
-				} else {
-					LOGGER.info("Found {} subtitles for \"{}\"", result.size(), resource.getDisplayName(null, false));
-				}
-				return result;
+			if (!satisfactory) {
+				imdbId = ImdbUtil.extractImdbId(file, true);
 			}
-
 		}
 
-		return result; //TODO: (Nad) Here
+		if (!satisfactory) {
+			if (isBlank(imdbId)) {
+				imdbId = guessImdbIdByFileName(resource, prettifier);
+			}
+			if (isNotBlank(imdbId)) {
+				// Query by IMDB id
+				result.addAll(findSubtitlesByImdbId(resource, imdbId, languageCodes, prettifier));
+				satisfactory = isSubtitlesSatisfactory(result, primaryLanguageCode);
+			}
+		}
+
+		if (!satisfactory) {
+			// Query by name
+			result.addAll(findSubtitlesByName(resource, languageCodes, prettifier));
+		}
+
+		if (result.size() > 0) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(
+					"Found {} OpenSubtitles subtitles for \"{}\":\n{}",
+					result.size(),
+					resource.getDisplayName(null, false),
+					toLogString(result)
+				);
+			} else {
+				LOGGER.info(
+					"Found {} OpenSubtitles subtitles for \"{}\"",
+					result.size(),
+					resource.getDisplayName(null, false)
+				);
+			}
+		} else {
+			LOGGER.info("Couldn't find any OpenSubtitles subtitles for \"{}\"", resource.getDisplayName(null, false));
+		}
+
+		return result;
 	}
 
 	/**
@@ -936,6 +954,9 @@ public class OpenSubtitle {
 		String languageCodes,
 		FileNamePrettifier prettifier
 	) {
+		if (resource == null || isBlank(fileHash)) {
+			return new ArrayList<>();
+		}
 		URL url = login();
 		if (url == null) {
 			return new ArrayList<>();
@@ -974,7 +995,7 @@ public class OpenSubtitle {
 
 		try {
 			Document reply = postXMLDocument(url, request);
-			return parseSubtitles(reply);
+			return parseSubtitles(reply, prettifier, resource.getMedia());
 		} catch (IOException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles file hash query results for \"{}\": {}",
@@ -1005,7 +1026,7 @@ public class OpenSubtitle {
 		String languageCodes,
 		FileNamePrettifier prettifier
 	) {
-		if (isBlank(imdbId)) {
+		if (resource == null || isBlank(imdbId)) {
 			return new ArrayList<>();
 		}
 		URL url = login();
@@ -1045,10 +1066,108 @@ public class OpenSubtitle {
 
 		try {
 			Document reply = postXMLDocument(url, request);
-			return parseSubtitles(reply);
+			return parseSubtitles(reply, prettifier, resource.getMedia());
 		} catch (IOException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles IMDB ID query results for \"{}\": {}",
+				resource.getDisplayName(null, false),
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+		return new ArrayList<>();
+	}
+
+	/**
+	 * Queries OpenSubtitles for subtitles matching a file with the specified
+	 * name.
+	 *
+	 * @param resource the {@link DLNAResource} for which subtitles are searched
+	 *            for.
+	 * @param languageCodes the comma separated list of subtitle language codes.
+	 * @param prettifier the {@link FileNamePrettifier} to use.
+	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
+	 *         empty).
+	 */
+	protected static ArrayList<SubtitleItem> findSubtitlesByName(
+		DLNAResource resource,
+		String languageCodes,
+		FileNamePrettifier prettifier
+	) {
+		if (resource == null) {
+			return new ArrayList<>();
+		}
+		String fileName = null;
+		if (resource instanceof RealFile) {
+			File file = ((RealFile) resource).getFile();
+			if (file != null) {
+				fileName = file.getName();
+			}
+		}
+		if (fileName == null) {
+			fileName = resource.getSystemName();
+		}
+		if (isBlank(fileName) && (prettifier == null || isBlank(prettifier.getName()))) {
+			return new ArrayList<>();
+		}
+
+		URL url = login();
+		if (url == null) {
+			return new ArrayList<>();
+		}
+
+		MethodDocument methodRequest = initializeMethod("SearchSubtitles");
+		if (methodRequest == null) {
+			return new ArrayList<>();
+		}
+		Document request = methodRequest.getDocument();
+		Element params = methodRequest.getParams();
+
+		Element data = addPath(request, params, new String[]{"param", "value", "array", "data"}, 0);
+		if (isNotBlank(fileName)) {
+			Element fileNameStruct = addPath(request, data, new String[]{"value", "struct"}, 0);
+			addStructString(request, fileNameStruct, "tag", fileName);
+			if (isNotBlank(languageCodes)) {
+				addStructString(request, fileNameStruct, "sublanguageid", languageCodes);
+			}
+			if (prettifier != null && prettifier.getSeason() > 0 && prettifier.getEpisode() > 0) {
+				addStructInt(request, fileNameStruct, "season", prettifier.getSeason());
+				addStructInt(request, fileNameStruct, "episode", prettifier.getEpisode());
+			}
+		}
+		if (prettifier != null && isNotBlank(prettifier.getName())) {
+			Element nameStruct = addPath(request, data, new String[]{"value", "struct"}, 0);
+			addStructString(request, nameStruct, "query", prettifier.getName());
+			if (isNotBlank(languageCodes)) {
+				addStructString(request, nameStruct, "sublanguageid", languageCodes);
+			}
+			if (prettifier.getSeason() > 0 && prettifier.getEpisode() > 0) {
+				addStructInt(request, nameStruct, "season", prettifier.getSeason());
+				addStructInt(request, nameStruct, "episode", prettifier.getEpisode());
+			}
+		}
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(
+				"Querying OpenSubtitles for subtitles for \"{}\" using filename:\n{}",
+				resource.getDisplayName(null, false),
+				toLogString(request)
+			);
+		} else if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug(
+				"Querying OpenSubtitles for subtitles for \"{}\" using filename {}",
+				resource.getDisplayName(null, false),
+				fileName
+			);
+		}
+
+		try {
+			Document reply = postXMLDocument(url, request);
+			LOGGER.error("Reply:\n{}", toLogString(reply)); //TODO: (Nad) Temp
+			return parseSubtitles(reply, prettifier, resource.getMedia());
+		} catch (IOException e) {
+			LOGGER.error(
+				"An error occurred while processing OpenSubtitles filename query results for \"{}\": {}",
 				resource.getDisplayName(null, false),
 				e.getMessage()
 			);
@@ -1077,7 +1196,7 @@ public class OpenSubtitle {
 				score += 0.7;
 			}
 			if (isNotBlank(prettifier.getName()) && isNotBlank(guess.getTitle())) {
-				score += StringUtils.getJaroWinklerDistance(prettifier.getName(), guess.getTitle());
+				score += getJaroWinklerDistance(prettifier.getName(), guess.getTitle());
 			}
 			if (bestGuess) {
 				score += 0.3;
@@ -1290,10 +1409,11 @@ public class OpenSubtitle {
 		String languageCode = primaryLanguageCode.trim().toLowerCase(Locale.ROOT);
 		for (SubtitleItem item : subtitleItems) {
 			String itemLangaugeCode = item.getLanguageCode();
-			if (isNotBlank(itemLangaugeCode)) {
-				if (languageCode.equals(itemLangaugeCode.trim().toLowerCase(Locale.ROOT))) {
-					return true;
-				}
+			if (
+				isNotBlank(itemLangaugeCode) &&
+				languageCode.equals(itemLangaugeCode.trim().toLowerCase(Locale.ROOT))
+			) {
+				return true;
 			}
 		}
 		return false;
@@ -1522,7 +1642,7 @@ public class OpenSubtitle {
 		} else {
 			LOGGER.debug("Parsing OpenSubtitles reply for query using {}", readableQueryArgument);
 		}
-		return parseSubtitles(reply);
+		return parseSubtitles(reply, null, null);
 	}
 
 	private static void logReplyDocument(String logMessage, Document xmlDocument) { //TODO: (Nad) Fix (toLogString())
@@ -1822,6 +1942,33 @@ public class OpenSubtitle {
 		}
 
 		/**
+		 * Evaluates whether this {@link Token} is valid, that is whether it has
+		 * a token value, a default {@link URL} and the age isn't more than a
+		 * minute past the expiration time.
+		 * <p>
+		 * The reason for accepting a minute past the expiration time is: The
+		 * expiration time is checked during {@link OpenSubtitle#login()} and a
+		 * new {@link Token} is requested if it has expired. The expiration
+		 * limit isn't defined by OpenSubtitle, it is set shorter than the
+		 * actual expiration to be on the safe side. If the {@link Token}
+		 * expires after the call to {@link OpenSubtitle#login()} it won't be
+		 * renewed until the next time {@link OpenSubtitle#login()} is called.
+		 * It is thus possible that a {@link Token} can be in use for a short
+		 * while after "expiration". A minute is thus added to allow a
+		 * {@link Token} to be used for a while after "expiration" so that
+		 * ongoing operations can be completed.
+		 *
+		 * @return {@code true} if this {@link Token} is considered valid,
+		 *         {@code false} otherwise.
+		 */
+		public boolean isValid() {
+			return
+				isNotBlank(value) &&
+				defaultUrl != null &&
+				System.currentTimeMillis() - tokenBirth < TOKEN_EXPIRATION_TIME + 60000;
+		}
+
+		/**
 		 * @return The {@link User} if credentials were used to log in,
 		 *         {@code null} otherwise.
 		 */
@@ -1863,6 +2010,15 @@ public class OpenSubtitle {
 			}
 			sb.append("]");
 			return sb.toString();
+		}
+
+		/**
+		 * Creates an invalid {@link Token} indicating that login has failed.
+		 *
+		 * @return The new invalid {@link Token};
+		 */
+		public static Token createInvalidToken() {
+			return new Token(null, null, null);
 		}
 	}
 
@@ -2646,19 +2802,29 @@ public class OpenSubtitle {
 	 */
 	public static class SubtitleItem extends StructElement {
 		private final String matchedBy;
-		private final String idSubMovieFile;
 		private final String idSubtitleFile;
 		private final String subFileName;
 		private final String subHash;
+		private final long subLastTS;
 		private final String idSubtitle;
 		private final String languageCode;
 		private final SubtitleType subtitleType;
 		private final boolean subBad;
 		private final double subRating;
+		private final int subDownloadsCnt;
+		private final String movieFPS;
+		private final String idMovieImdb;
+		private final String movieName;
+		private final String movieNameEng;
+		private final int movieYear;
 		private final String userRank;
+		private final int seriesSeason;
+		private final int seriesEpisode;
+		private final VideoClassification movieKind;
 		private final String subEncoding;
 		private final boolean subFromTrusted;
 		private final URI subDownloadLink;
+		private final double openSubtitlesScore;
 		private final double score;
 
 		/**
@@ -2680,40 +2846,124 @@ public class OpenSubtitle {
 		 *            {@code SubFromTrusted}.
 		 * @param subDownloadLink the {@link URI} equivalent of
 		 *            {@code SubDownloadLink}.
-		 * @param score the {@code Score} {@code double}.
+		 * @param openSubtitlesScore the {@code Score} {@code double}.
+		 * @param prettifier the {@link FileNamePrettifier} for the video item.
 		 */
 		public SubtitleItem(
 			String matchedBy,
-			String idSubMovieFile,
 			String idSubtitleFile,
 			String subFileName,
 			String subHash,
+			long subLastTS,
 			String idSubtitle,
 			String languageCode,
 			SubtitleType subtitleType,
 			boolean subBad,
 			double subRating,
+			int subDownloadsCnt,
+			String movieFPS,
+			String idMovieImdb,
+			String movieName,
+			String movieNameEng,
+			int movieYear,
 			String userRank,
+			int seriesSeason,
+			int seriesEpisode,
+			VideoClassification movieKind,
 			String subEncoding,
 			boolean subFromTrusted,
 			URI subDownloadLink,
-			double score
+			double openSubtitlesScore,
+			FileNamePrettifier prettifier,
+			DLNAMediaInfo media
 		) {
 			this.matchedBy = matchedBy;
-			this.idSubMovieFile = idSubMovieFile;
 			this.idSubtitleFile = idSubtitleFile;
 			this.subFileName = subFileName;
 			this.subHash = subHash;
+			this.subLastTS = subLastTS;
 			this.idSubtitle = idSubtitle;
 			this.languageCode = languageCode;
 			this.subtitleType = subtitleType;
 			this.subBad = subBad;
 			this.subRating = subRating;
+			this.subDownloadsCnt = subDownloadsCnt;
+			this.movieFPS = movieFPS;
+			this.idMovieImdb = idMovieImdb;
+			this.movieName = movieName;
+			this.movieNameEng = movieNameEng;
+			this.movieYear = movieYear;
 			this.userRank = userRank;
+			this.seriesSeason = seriesSeason;
+			this.seriesEpisode = seriesEpisode;
+			this.movieKind = movieKind;
 			this.subEncoding = subEncoding;
 			this.subFromTrusted = subFromTrusted;
 			this.subDownloadLink = subDownloadLink;
-			this.score = score;
+			this.openSubtitlesScore = openSubtitlesScore;
+			double tmpScore = 0.0; //TODO: (Nad) Calculate
+			if (isNotBlank(matchedBy)) {
+				switch (matchedBy.toLowerCase(Locale.ROOT)) {
+					case "hash":
+						tmpScore += 200d;
+					case "imdbid":
+						tmpScore += 100d;
+					case "tag":
+						tmpScore += 10d;
+				}
+			}
+			if (prettifier != null) {
+				if (isNotBlank(prettifier.getFileNameWithoutExtension())) {
+					String subFileNameWithoutExtension = FileUtil.getFileNameWithoutExtension(subFileName);
+					if (isNotBlank(subFileNameWithoutExtension)) {
+						// 0.6 and below gives a score of 0, 1.0 give a score of 40.
+						tmpScore += 40d * 2.5 * Math.max(
+							getJaroWinklerDistance(prettifier.getFileNameWithoutExtension(),subFileNameWithoutExtension) - 0.6,
+							0
+						);
+					}
+				}
+				if (isNotBlank(prettifier.getName()) && (isNotBlank(movieName) || isNotBlank(movieNameEng))) {
+					double nameScore = isBlank(movieName) ?
+						0.0 :
+						getJaroWinklerDistance(prettifier.getName(), movieName);
+					nameScore = Math.max(
+						nameScore,
+						isBlank(movieNameEng) ? 0.0 : getJaroWinklerDistance(prettifier.getName(), movieNameEng)
+					);
+					// 0.5 and below gives a score of 0, 1 give a score of 30
+					tmpScore += 30d * 2 * Math.max(nameScore - 0.5, 0);
+				}
+				if (
+					seriesEpisode > 0 &&
+					seriesEpisode == prettifier.getEpisode() &&
+					(
+						(
+							seriesSeason < 1 &&
+							prettifier.getSeason() < 1
+						) ||
+						seriesSeason == prettifier.getSeason()
+					)
+				) {
+					tmpScore += 30d;
+				}
+				if (movieYear > 0 && movieYear == prettifier.getYear()) {
+					tmpScore += 20d;
+				}
+				if (movieKind != null && movieKind == prettifier.getClassification()) {
+					tmpScore += 20d;
+				}
+			}
+			if (subLastTS > 0 && media != null && media.getDurationInSeconds() > 0) {
+				long mediaDuration = (long) (media.getDurationInSeconds() * 1000);
+				// Trying to guess the most likely time for the last subtitle
+				long mediaLastTS = mediaDuration - Math.min(Math.max((long) (mediaDuration * 0.02), 2000), 120000);
+				if (mediaLastTS > 0) {
+					long diff = Math.abs(subLastTS - mediaLastTS);
+					tmpScore += 30d * Math.max(0.5 - (double) diff / mediaLastTS, 0);
+				}
+			}
+			this.score = tmpScore;
 		}
 
 		/**
@@ -2751,42 +3001,42 @@ public class OpenSubtitle {
 		}
 
 		/**
-		 * @return {@code MatchedBy}.
+		 * @return The {@code MatchedBy}.
 		 */
 		public String getMatchedBy() {
 			return matchedBy;
 		}
 
 		/**
-		 * @return {@code IDSubMovieFile}.
-		 */
-		public String getIDSubMovieFile() {
-			return idSubMovieFile;
-		}
-
-		/**
-		 * @return {@code IDSubtitleFile}.
+		 * @return The {@code IDSubtitleFile}.
 		 */
 		public String getIDSubtitleFile() {
 			return idSubtitleFile;
 		}
 
 		/**
-		 * @return {@code SubFileName}.
+		 * @return The {@code SubFileName}.
 		 */
 		public String getSubFileName() {
 			return subFileName;
 		}
 
 		/**
-		 * @return {@code SubHash}.
+		 * @return The {@code SubHash}.
 		 */
 		public String getSubHash() {
 			return subHash;
 		}
 
 		/**
-		 * @return {@code IDSubtitle}.
+		 * @return The last subtitle timestamp in milliseconds.
+		 */
+		public long getSubLastTS() {
+			return subLastTS;
+		}
+
+		/**
+		 * @return The {@code IDSubtitle}.
 		 */
 		public String getIDSubtitle() {
 			return idSubtitle;
@@ -2807,49 +3057,121 @@ public class OpenSubtitle {
 		}
 
 		/**
-		 * @return {@code SubBad}.
+		 * @return The {@code SubBad}.
 		 */
 		public boolean isSubBad() {
 			return subBad;
 		}
 
 		/**
-		 * @return {@code SubRating}.
+		 * @return The {@code SubRating}.
 		 */
 		public double getSubRating() {
 			return subRating;
 		}
 
+
 		/**
-		 * @return {@code UserRank}.
+		 * @return The subtitles download count.
+		 */
+		public int getSubDownloadsCnt() {
+			return subDownloadsCnt;
+		}
+
+		/**
+		 * @return The frames per second.
+		 */
+		public String getMovieFPS() {
+			return movieFPS;
+		}
+
+
+		/**
+		 * @return The IMDB ID.
+		 */
+		public String getIdMovieImdb() {
+			return idMovieImdb;
+		}
+
+		/**
+		 * @return The movie name.
+		 */
+		public String getMovieName() {
+			return movieName;
+		}
+
+		/**
+		 * @return The English movie name.
+		 */
+		public String getMovieNameEng() {
+			return movieNameEng;
+		}
+
+		/**
+		 * @return The movie release year.
+		 */
+		public int getMovieYear() {
+			return movieYear;
+		}
+
+		/**
+		 * @return The {@code UserRank}.
 		 */
 		public String getUserRank() {
 			return userRank;
 		}
 
 		/**
-		 * @return {@code SubEncoding}.
+		 * @return The season number.
+		 */
+		public int getSeriesSeason() {
+			return seriesSeason;
+		}
+
+		/**
+		 * @return The episode number.
+		 */
+		public int getSeriesEpisode() {
+			return seriesEpisode;
+		}
+
+		/**
+		 * @return The {@link VideoClassification}.
+		 */
+		public VideoClassification getMovieKind() {
+			return movieKind;
+		}
+
+		/**
+		 * @return The {@code SubEncoding}.
 		 */
 		public String getSubEncoding() {
 			return subEncoding;
 		}
 
 		/**
-		 * @return {@code SubFromTrusted}.
+		 * @return The {@code SubFromTrusted}.
 		 */
 		public boolean isSubFromTrusted() {
 			return subFromTrusted;
 		}
 
 		/**
-		 * @return {@code SubDownloadLink}.
+		 * @return The {@code SubDownloadLink}.
 		 */
 		public URI getSubDownloadLink() {
 			return subDownloadLink;
 		}
 
 		/**
-		 * @return {@code Score}.
+		 * @return The OpenSubtitles {@code Score}.
+		 */
+		public double getOpenSubtitlesScore() {
+			return openSubtitlesScore;
+		}
+
+		/**
+		 * @return The calculated {@code Score}.
 		 */
 		public double getScore() {
 			return score;
@@ -2865,16 +3187,42 @@ public class OpenSubtitle {
 			}
 			boolean first = !addFieldToStringBuilder(true, sb, "MatchedBy", matchedBy, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "Score", Double.valueOf(score), false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "IDSubMovieFile", idSubMovieFile, false, false, false);
+			first &= !addFieldToStringBuilder(first, sb, "OSScore", Double.valueOf(openSubtitlesScore), false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "IDSubtitleFile", idSubtitleFile, false, false, false);
 			first &= !addFieldToStringBuilder(first, sb, "SubFileName", subFileName, true, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubHash", subHash, false, false, false);
+			if (subLastTS > 0) {
+				first &= !addFieldToStringBuilder(
+					first,
+					sb,
+					"SubLastTS",
+					new SimpleDateFormat("H:mm:ss").format(new Date(subLastTS)),
+					false,
+					false,
+					false
+				);
+			}
 			first &= !addFieldToStringBuilder(first, sb, "IDSubtitle", idSubtitle, false, false, false);
 			first &= !addFieldToStringBuilder(first, sb, "LanguageCode", languageCode, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubFormat", subtitleType, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubBad", Boolean.valueOf(subBad), false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubRating", Double.valueOf(subRating), false, false, false);
+			first &= !addFieldToStringBuilder(first, sb, "SubDLCnt", Integer.valueOf(subDownloadsCnt), false, false, false);
+			first &= !addFieldToStringBuilder(first, sb, "MovieFPS", movieFPS, false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "IMDB ID", idMovieImdb, false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "MovieName", movieName, true, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "MovieNameEng", movieNameEng, true, false, true);
+			if (movieYear > 0) {
+				first &= !addFieldToStringBuilder(first, sb, "MovieYear", Integer.valueOf(movieYear), false, false, false);
+			}
 			first &= !addFieldToStringBuilder(first, sb, "UserRank", userRank, false, false, false);
+			if (seriesSeason > 0) {
+				first &= !addFieldToStringBuilder(first, sb, "SeriesSeason", Integer.valueOf(seriesSeason), false, false, false);
+			}
+			if (seriesEpisode > 0) {
+				first &= !addFieldToStringBuilder(first, sb, "SeriesEpisode", Integer.valueOf(seriesEpisode), false, false, false);
+			}
+			first &= !addFieldToStringBuilder(first, sb, "MovieKind", movieKind, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubEncoding", subEncoding, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubFromTrusted", Boolean.valueOf(subFromTrusted), false, false, true);
 			addFieldToStringBuilder(first, sb, "SubDownloadLink", subDownloadLink, true, true, true);
@@ -2888,11 +3236,17 @@ public class OpenSubtitle {
 		 *
 		 * @param structNode the {@link Node} containing the information about
 		 *            the set of subtitles.
+		 * @param prettifier the {@link FileNamePrettifier} for the video item.
+		 * @param media the {@link DLNAMediaInfo} instance for the video.
 		 * @return The resulting {@link SubtitleItem} or {@code null}.
 		 * @throws XPathExpressionException If a {@link XPath} error occurs
 		 *             during the operation.
 		 */
-		public static SubtitleItem createFromStructNode(Node structNode) throws XPathExpressionException {
+		public static SubtitleItem createFromStructNode(
+			Node structNode,
+			FileNamePrettifier prettifier,
+			DLNAMediaInfo media
+		) throws XPathExpressionException {
 			XPath xPath = X_PATH_FACTORY.newXPath();
 			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
 			xPath.setXPathVariableResolver(resolver);
@@ -2922,22 +3276,44 @@ public class OpenSubtitle {
 				}
 			}
 
+			long lastTS;
+			String lastTSString = getString(structNode, "SubLastTS", stringExpression, resolver);
+			try {
+				lastTS = new SimpleDateFormat("HH:mm:ss").parse(lastTSString).getTime();
+			} catch (java.text.ParseException e) {
+				try {
+					lastTS = Long.parseLong(lastTSString);
+				} catch (NumberFormatException nfe) {
+					lastTS = -1;
+				}
+			}
 			return new SubtitleItem(
 				getString(structNode, "MatchedBy", stringExpression, resolver),
-				getString(structNode, "IDSubMovieFile", stringExpression, resolver),
 				getString(structNode, "IDSubtitleFile", stringExpression, resolver),
 				getString(structNode, "SubFileName", stringExpression, resolver),
 				getString(structNode, "SubHash", stringExpression, resolver),
+				lastTS,
 				getString(structNode, "IDSubtitle", stringExpression, resolver),
 				languageCode,
 				subFormatToSubtitleType(getString(structNode, "SubFormat", stringExpression, resolver)),
 				getBoolean(structNode, "SubBad", stringExpression, resolver),
 				getStringDouble(structNode, "SubRating", stringExpression, resolver),
+				getStringInt(structNode, "SubDownloadsCnt", stringExpression, resolver),
+				getString(structNode, "MovieFPS", stringExpression, resolver),
+				getString(structNode, "IDMovieImdb", stringExpression, resolver),
+				getString(structNode, "MovieName", stringExpression, resolver),
+				getString(structNode, "MovieNameEng", stringExpression, resolver),
+				getStringInt(structNode, "MovieYear", stringExpression, resolver),
 				getString(structNode, "UserRank", stringExpression, resolver),
+				getStringInt(structNode, "SeriesSeason", stringExpression, resolver),
+				getStringInt(structNode, "SeriesEpisode", stringExpression, resolver),
+				VideoClassification.typeOf(getString(structNode, "MovieKind", stringExpression, resolver)),
 				getString(structNode, "SubEncoding", stringExpression, resolver),
 				getBoolean(structNode, "SubFromTrusted", stringExpression, resolver),
 				url,
-				getDouble(structNode, "Score", xPath, resolver)
+				getDouble(structNode, "Score", xPath, resolver),
+				prettifier,
+				media
 			);
 		}
 	}
@@ -2958,7 +3334,7 @@ public class OpenSubtitle {
 		 * @param stringExpression the pre-compiled {@link XPathExpression} to
 		 *            use.
 		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@code double} value or {@link Double#NaN} of the
+		 * @return The parsed {@code double} value or {@link Double#NaN} if the
 		 *         parsing failed.
 		 */
 		protected static double getStringDouble(
@@ -2987,6 +3363,43 @@ public class OpenSubtitle {
 		}
 
 		/**
+		 * Parses a {@code int} value with the specified name from the specified
+		 * {@code string struct member} contained in {@link Node}.
+		 *
+		 * @param node the {@link Node} from which to parse.
+		 * @param name the {@code name} value of the {@code member} to parse.
+		 * @param stringExpression the pre-compiled {@link XPathExpression} to
+		 *            use.
+		 * @param resolver the {@link XPathMapVariableResolver} to use.
+		 * @return The parsed {@code int} value or {@code -1} if the parsing
+		 *         failed.
+		 */
+		protected static int getStringInt(
+			Node node,
+			String name,
+			XPathExpression stringExpression,
+			XPathMapVariableResolver resolver
+		) {
+			resolver.getMap().put("name", name);
+			try {
+				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
+				if (isBlank(result)) {
+					return -1;
+				}
+				try {
+					return Integer.parseInt(result);
+				} catch (NumberFormatException e) {
+					LOGGER.debug("OpenSubtitles: Invalid int value \"{}\" for name \"{}\": {}", result, name, e.getMessage());
+					return -1;
+				}
+			} catch (XPathExpressionException e) {
+				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
+				LOGGER.trace("", e);
+				return -1;
+			}
+		}
+
+		/**
 		 * Parses a {@code double} value with the specified name from the
 		 * specified {@code double struct member} contained in {@link Node}.
 		 *
@@ -2994,7 +3407,7 @@ public class OpenSubtitle {
 		 * @param name the {@code name} value of the {@code member} to parse.
 		 * @param xPath the {@link XPath} instance to use.
 		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@code double} value or {@link Double#NaN} of the
+		 * @return The parsed {@code double} value or {@link Double#NaN} if the
 		 *         parsing failed.
 		 */
 		protected static double getDouble(Node node, String name, XPath xPath, XPathMapVariableResolver resolver) {
@@ -3017,7 +3430,7 @@ public class OpenSubtitle {
 		 * @param stringExpression the pre-compiled {@link XPathExpression} to
 		 *            use.
 		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@code boolean} value or {@code false} of the
+		 * @return The parsed {@code boolean} value or {@code false} if the
 		 *         parsing failed.
 		 */
 		protected static boolean getBoolean(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
@@ -3045,7 +3458,7 @@ public class OpenSubtitle {
 		 * @param stringExpression the pre-compiled {@link XPathExpression} to
 		 *            use.
 		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@link String} value or {@code null} of the
+		 * @return The parsed {@link String} value or {@code null} if the
 		 *         parsing failed.
 		 */
 		protected static String getString(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {

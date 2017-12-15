@@ -41,14 +41,14 @@ public class SubSelFile extends VirtualFolder {
 	@Override
 	public void discoverChildren() {
 		ArrayList<SubtitleItem> subtitleItems;
-		RealFile rf = null;
+		RealFile realFile = null;
 		try {
 			if (originalResource instanceof RealFile) {
-				rf = (RealFile) originalResource;
-				subtitleItems = OpenSubtitle.findSubtitles(rf, getDefaultRenderer()); //TODO: (Nad) Temp test
+				realFile = (RealFile) originalResource;
+				subtitleItems = OpenSubtitle.findSubtitles(realFile, getDefaultRenderer()); //TODO: (Nad) Temp test
 //				subtitleItems = OpenSubtitle.findSubs(rf.getFile(), getDefaultRenderer());
 			} else {
-				subtitleItems = OpenSubtitle.querySubs(originalResource.getDisplayNameBase(configuration), getDefaultRenderer());
+				subtitleItems = OpenSubtitle.querySubs(originalResource.getDisplayNameBase(configuration), getDefaultRenderer()); //TODO: (Nad) Use same method for all
 			}
 		} catch (IOException e) {
 			LOGGER.error("Could not get live subtitles for \"{}\": {}", getName(), e.getMessage());
@@ -58,7 +58,7 @@ public class SubSelFile extends VirtualFolder {
 		if (subtitleItems == null || subtitleItems.isEmpty()) {
 			return;
 		}
-		Collections.sort(subtitleItems, new SubSort(getDefaultRenderer()));
+		Collections.sort(subtitleItems, new SubSort(getDefaultRenderer())); //TODO: (Nad) Sort and reduce
 		reduceSubtitles(subtitleItems, configuration.getLiveSubtitlesLimit());
 		for (SubtitleItem subtitleItem : subtitleItems) {
 			LOGGER.debug("Added live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
@@ -202,14 +202,14 @@ public class SubSelFile extends VirtualFolder {
 			}
 			// Compare score if match isn't moviehash or imdbid
 			if (!o1MovieHash && !o1ImdbID) {
-				if (Double.isNaN(o1.getScore()) || Double.compare(o1.getScore(), 0.0) < 0) {
-					if (!Double.isNaN(o2.getScore()) && Double.compare(o2.getScore(), 0.0) >= 0) {
+				if (Double.isNaN(o1.getOpenSubtitlesScore()) || Double.compare(o1.getOpenSubtitlesScore(), 0.0) < 0) {
+					if (!Double.isNaN(o2.getOpenSubtitlesScore()) && Double.compare(o2.getOpenSubtitlesScore(), 0.0) >= 0) {
 						return 1;
 					}
-				} else if (Double.isNaN(o2.getScore()) || Double.compare(o2.getScore(), 0.0) < 0) {
+				} else if (Double.isNaN(o2.getOpenSubtitlesScore()) || Double.compare(o2.getOpenSubtitlesScore(), 0.0) < 0) {
 					return -1;
 				} else {
-					int scoreDiff = (int) (o2.getScore() - o1.getScore());
+					int scoreDiff = (int) (o2.getOpenSubtitlesScore() - o1.getOpenSubtitlesScore());
 					if (scoreDiff >= 5) {
 						// Only use score if the difference is 5 or more
 						return scoreDiff;
@@ -238,7 +238,7 @@ public class SubSelFile extends VirtualFolder {
 			} else if (Double.isNaN(o2.getSubRating()) || Double.compare(o2.getSubRating(), 0.0) < 0) {
 				return -1;
 			} else {
-				return (int) (o2.getScore() - o1.getScore());
+				return (int) (o2.getOpenSubtitlesScore() - o1.getOpenSubtitlesScore());
 			}
 			return 0;
 		}

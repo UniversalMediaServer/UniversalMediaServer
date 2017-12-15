@@ -76,7 +76,7 @@ public enum VideoClassification {
 			return null;
 		}
 		videoClassification = videoClassification.toLowerCase(Locale.ROOT);
-		if (videoClassification.contains("serie")) {
+		if (videoClassification.contains("serie") || videoClassification.contains("episode")) {
 			return SERIES;
 		}
 		if (videoClassification.contains("movie") || videoClassification.contains("film")) {
