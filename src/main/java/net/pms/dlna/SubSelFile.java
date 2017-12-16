@@ -40,25 +40,11 @@ public class SubSelFile extends VirtualFolder {
 
 	@Override
 	public void discoverChildren() {
-		ArrayList<SubtitleItem> subtitleItems;
-		RealFile realFile = null;
-		try {
-			if (originalResource instanceof RealFile) {
-				realFile = (RealFile) originalResource;
-				subtitleItems = OpenSubtitle.findSubtitles(realFile, getDefaultRenderer()); //TODO: (Nad) Temp test
-//				subtitleItems = OpenSubtitle.findSubs(rf.getFile(), getDefaultRenderer());
-			} else {
-				subtitleItems = OpenSubtitle.querySubs(originalResource.getDisplayNameBase(configuration), getDefaultRenderer()); //TODO: (Nad) Use same method for all
-			}
-		} catch (IOException e) {
-			LOGGER.error("Could not get live subtitles for \"{}\": {}", getName(), e.getMessage());
-			LOGGER.trace("", e);
-			return;
-		}
+		ArrayList<SubtitleItem> subtitleItems = OpenSubtitle.findSubtitles(originalResource, getDefaultRenderer());
 		if (subtitleItems == null || subtitleItems.isEmpty()) {
 			return;
 		}
-		Collections.sort(subtitleItems, new SubSort(getDefaultRenderer())); //TODO: (Nad) Sort and reduce
+		Collections.sort(subtitleItems, new SubSort(getDefaultRenderer()));
 		reduceSubtitles(subtitleItems, configuration.getLiveSubtitlesLimit());
 		for (SubtitleItem subtitleItem : subtitleItems) {
 			LOGGER.debug("Added live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
@@ -124,21 +110,34 @@ public class SubSelFile extends VirtualFolder {
 		if (languages.containsKey(null)) {
 			remove -= removeLanguage(subtitles, languages, null, remove);
 		}
-		// Remove the lowest ranked from each language proportionally, rounded down
+
 		if (remove > 0) {
-			double removeFactor = (double) remove / subtitles.size();
-			HashMap<String, Integer> languagesCopy = new HashMap<>(languages);
-			for (Entry<String, Integer> entry : languagesCopy.entrySet()) {
-				remove -= removeLanguage(subtitles, languages, entry.getKey(), (int) (entry.getValue() * removeFactor));
+			// Build a sorted map where each language gets 30 extra points per step in the priority
+			ArrayList<LanguageRankedItem> languageRankedSubtitles = new ArrayList<>();
+			int languagePreference = 0;
+			String languageCode = null;
+			for (SubtitleItem subtitle : subtitles) {
+				if (languageCode == null) {
+					languageCode = subtitle.getLanguageCode();
+					languagePreference = languages.size() * 30;
+				} else if (languageCode != subtitle.getLanguageCode()) {
+					languageCode = subtitle.getLanguageCode();
+					languagePreference -= 30;
+				}
+				languageRankedSubtitles.add(new LanguageRankedItem(
+					subtitle.getScore() + languagePreference,
+					subtitle
+				));
 			}
-			// Remove the lowest ranked from one language at the time until satisfied
-			while (remove > 0) {
-				String[] languagesList = languages.keySet().toArray(new String[languages.size()]);
-				for (int i = languagesList.length - 1; i >= 0; i--) {
-					remove -= removeLanguage(subtitles, languages, languagesList[i], 1);
-					if (remove == 0) {
-						break;
-					}
+			Collections.sort(languageRankedSubtitles);
+
+			// Remove the entries with the lowest score
+			for (LanguageRankedItem languageRankedItem : languageRankedSubtitles) {
+				if (remove <= 0) {
+					break;
+				}
+				if (subtitles.remove(languageRankedItem.subtitleItem)) {
+					remove--;
 				}
 			}
 		}
@@ -153,7 +152,7 @@ public class SubSelFile extends VirtualFolder {
 		}
 
 		@Override
-		public int compare(SubtitleItem o1, SubtitleItem o2) { //TODO: (Nad) Improve
+		public int compare(SubtitleItem o1, SubtitleItem o2) {
 			if (o1 == null) {
 				return o2 == null ? 0 : 1;
 			}
@@ -181,41 +180,21 @@ public class SubSelFile extends VirtualFolder {
 					return index1 - index2;
 				}
 			}
-			// Prefer match by moviehash, then imdbid
-			boolean o1MovieHash = "moviehash".equals(o1.getMatchedBy());
-			boolean o2MovieHash = "moviehash".equals(o2.getMatchedBy());
-			if (o1MovieHash) {
-				if (!o2MovieHash) {
-					return -1;
+			// Compare score
+			if (Double.isNaN(o1.getScore()) || Double.compare(o1.getScore(), 0.0) < 0) {
+				if (!Double.isNaN(o2.getScore()) && Double.compare(o2.getScore(), 0.0) >= 0) {
+					return 1;
 				}
-			} else if (o2MovieHash) {
-				return 1;
-			}
-			boolean o1ImdbID = "imdbid".equals(o1.getMatchedBy());
-			boolean o2ImdbID = "imdbid".equals(o2.getMatchedBy());
-			if (o1ImdbID) {
-				if (!o2ImdbID) {
-					return -1;
-				}
-			} else if (o2ImdbID) {
-				return 1;
-			}
-			// Compare score if match isn't moviehash or imdbid
-			if (!o1MovieHash && !o1ImdbID) {
-				if (Double.isNaN(o1.getOpenSubtitlesScore()) || Double.compare(o1.getOpenSubtitlesScore(), 0.0) < 0) {
-					if (!Double.isNaN(o2.getOpenSubtitlesScore()) && Double.compare(o2.getOpenSubtitlesScore(), 0.0) >= 0) {
-						return 1;
-					}
-				} else if (Double.isNaN(o2.getOpenSubtitlesScore()) || Double.compare(o2.getOpenSubtitlesScore(), 0.0) < 0) {
-					return -1;
-				} else {
-					int scoreDiff = (int) (o2.getOpenSubtitlesScore() - o1.getOpenSubtitlesScore());
-					if (scoreDiff >= 5) {
-						// Only use score if the difference is 5 or more
-						return scoreDiff;
-					}
+			} else if (Double.isNaN(o2.getScore()) || Double.compare(o2.getScore(), 0.0) < 0) {
+				return -1;
+			} else {
+				int scoreDiff = (int) (o2.getScore() - o1.getScore());
+				if (Math.abs(scoreDiff) >= 1) {
+					// Only use score if the difference is 1 or more
+					return scoreDiff;
 				}
 			}
+			// If scores are equal, use subtitle metadata
 			if (o1.isSubBad()) {
 				if (!o2.isSubBad()) {
 					return 1;
@@ -240,12 +219,33 @@ public class SubSelFile extends VirtualFolder {
 			} else {
 				return (int) (o2.getOpenSubtitlesScore() - o1.getOpenSubtitlesScore());
 			}
-			return 0;
+			// This will probably never happen, but if everything else is equal use the fractional score value
+			return (int) Math.signum(o2.getScore() - o1.getScore());
 		}
 	}
 
 	@Override
 	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
 		return "{" + Messages.getString("Subtitles.LiveSubtitles") + "}";
+	}
+
+	private static class LanguageRankedItem implements Comparable<LanguageRankedItem> {
+		private final Double score;
+		private final SubtitleItem subtitleItem;
+
+		public LanguageRankedItem(double score, SubtitleItem subtitleItem) {
+			this.score = Double.valueOf(score);
+			this.subtitleItem = subtitleItem;
+		}
+
+		@Override
+		public String toString() {
+			return "[score=" + score + ", subtitleItem=" + subtitleItem + "]";
+		}
+
+		@Override
+		public int compareTo(LanguageRankedItem o) {
+			return (int) (score - o.score);
+		}
 	}
 }
