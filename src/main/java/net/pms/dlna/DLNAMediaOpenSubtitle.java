@@ -258,8 +258,8 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle {
 
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder("OpenSubtitles: ");
-		result.append("Id: ").append(getId()).append(", Type: ").append(getType());
+		StringBuilder result = new StringBuilder(getClass().getSimpleName());
+		result.append(" [Id: ").append(getId()).append(", Type: ").append(getType());
 		if (isNotBlank(getSubtitlesTrackTitleFromMetadata())) {
 			result.append(", Subtitles Track Title From Metadata: ");
 			result.append(getSubtitlesTrackTitleFromMetadata());
@@ -287,6 +287,7 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle {
 			result.append(", Converted File: ");
 			result.append(getConvertedFile().toString());
 		}
+		result.append("]");
 
 		return result.toString();
 	}
