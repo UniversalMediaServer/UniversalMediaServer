@@ -4,7 +4,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.Map.Entry;
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -54,12 +53,13 @@ public class SubSelFile extends VirtualFolder {
 			);
 		}
 		for (SubtitleItem subtitleItem : subtitleItems) {
-			LOGGER.debug("Added live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
+			LOGGER.debug("Adding live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
 			DLNAMediaOpenSubtitle subtitle = new DLNAMediaOpenSubtitle(subtitleItem);
 			DLNAResource liveResource = originalResource.clone();
 			if (liveResource.getMedia() != null) {
 				liveResource.getMedia().getSubtitleTracksList().clear();
 				liveResource.getMedia().getSubtitleTracksList().add(subtitle);
+//				liveResource.getMedia().setAudioTracksList(originalResource.getMedia().getAudioTracksList()); //TODO: (Nad) Here
 			}
 			liveResource.setMediaSubtitle(subtitle);
 			liveResource.resetSubtitlesStatus();
