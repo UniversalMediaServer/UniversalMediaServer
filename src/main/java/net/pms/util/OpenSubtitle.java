@@ -979,12 +979,13 @@ public class OpenSubtitle {
 		}
 
 		if (result.size() > 0) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(
-					"Found {} OpenSubtitles subtitles for \"{}\":\n{}",
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(
+					"Found {} OpenSubtitles subtitles ({}) for \"{}\":\n{}",
 					result.size(),
+					satisfactory ? "satisfied" : "unsatisfied",
 					resource.getDisplayName(null, false),
-					toLogString(result)
+					toLogString(result, 2)
 				);
 			} else {
 				LOGGER.info(
@@ -1061,7 +1062,32 @@ public class OpenSubtitle {
 
 		try {
 			Document reply = postXMLDocument(url, request);
-			return parseSubtitles(reply, prettifier, resource.getMedia());
+			ArrayList<SubtitleItem> results = parseSubtitles(reply, prettifier, resource.getMedia());
+			if (LOGGER.isDebugEnabled()) {
+				if (results.isEmpty()) {
+					LOGGER.debug(
+						"OpenSubtitles search for subtitles for \"{}\" using file hash {} gave no results",
+						resource.getDisplayName(null, false),
+						fileHash
+					);
+				} else if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(
+						"Found {} OpenSubtitles subtitles for \"{}\" using file hash {}:\n{}",
+						results.size(),
+						resource.getDisplayName(null, false),
+						fileHash,
+						toLogString(results, 2)
+					);
+				} else {
+					LOGGER.debug(
+						"Found {} OpenSubtitles subtitles for \"{}\" using file hash {}",
+						results.size(),
+						resource.getDisplayName(null, false),
+						fileHash
+					);
+				}
+			}
+			return results;
 		} catch (IOException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles file hash query results for \"{}\": {}",
@@ -1131,7 +1157,32 @@ public class OpenSubtitle {
 
 		try {
 			Document reply = postXMLDocument(url, request);
-			return parseSubtitles(reply, prettifier, resource.getMedia());
+			ArrayList<SubtitleItem> results = parseSubtitles(reply, prettifier, resource.getMedia());
+			if (LOGGER.isDebugEnabled()) {
+				if (results.isEmpty()) {
+					LOGGER.debug(
+						"OpenSubtitles search for subtitles for \"{}\" using IMDB ID {} gave no results",
+						resource.getDisplayName(null, false),
+						imdbId
+					);
+				} else if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(
+						"Found {} OpenSubtitles subtitles for \"{}\" using IMDB ID {}:\n{}",
+						results.size(),
+						resource.getDisplayName(null, false),
+						imdbId,
+						toLogString(results, 2)
+					);
+				} else {
+					LOGGER.debug(
+						"Found {} OpenSubtitles subtitles for \"{}\" using IMDB ID {}",
+						results.size(),
+						resource.getDisplayName(null, false),
+						imdbId
+					);
+				}
+			}
+			return results;
 		} catch (IOException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles IMDB ID query results for \"{}\": {}",
@@ -1228,7 +1279,29 @@ public class OpenSubtitle {
 
 		try {
 			Document reply = postXMLDocument(url, request);
-			return parseSubtitles(reply, prettifier, resource.getMedia());
+			ArrayList<SubtitleItem> results = parseSubtitles(reply, prettifier, resource.getMedia());
+			if (LOGGER.isDebugEnabled()) {
+				if (results.isEmpty()) {
+					LOGGER.debug(
+						"OpenSubtitles search for subtitles for \"{}\" using filename gave no results",
+						resource.getDisplayName(null, false)
+					);
+				} else if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(
+						"Found {} OpenSubtitles subtitles for \"{}\" using filename:\n{}",
+						results.size(),
+						resource.getDisplayName(null, false),
+						toLogString(results, 2)
+					);
+				} else {
+					LOGGER.debug(
+						"Found {} OpenSubtitles subtitles for \"{}\" using filename",
+						results.size(),
+						resource.getDisplayName(null, false)
+					);
+				}
+			}
+			return results;
 		} catch (IOException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles filename query results for \"{}\": {}",
@@ -1395,16 +1468,27 @@ public class OpenSubtitle {
 		return null;
 	}
 
-	private static String toLogString(List<SubtitleItem> subtitleItems) {
+	/**
+	 * Creates a {@link String} where each {@link SubtitleItem} in
+	 * {@code subtitleItems} is on its own line and indented with the specified
+	 * number of spaces.
+	 *
+	 * @param subtitleItems the {@link List} of {@link SubtitleItem}s to format
+	 *            for logging.
+	 * @param indent the number of leading spaces on each line.
+	 * @return The log friendly {@link String}.
+	 */
+	public static String toLogString(List<SubtitleItem> subtitleItems, int indent) {
+		String indentation = indent > 0 ? StringUtil.fillString(' ', indent) : "";
 		if (subtitleItems == null) {
-			return "Null";
+			return indentation + "Null";
 		}
 		if (subtitleItems.isEmpty()) {
-			return "  No matching subtitles";
+			return indentation + "No matching subtitles";
 		}
 		StringBuilder sb = new StringBuilder();
 		for (SubtitleItem item : subtitleItems) {
-			sb.append("  ").append(item).append("\n");
+			sb.append(indentation).append(item).append("\n");
 		}
 		return sb.toString();
 	}

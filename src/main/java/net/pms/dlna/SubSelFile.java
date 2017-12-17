@@ -46,6 +46,13 @@ public class SubSelFile extends VirtualFolder {
 		}
 		Collections.sort(subtitleItems, new SubSort(getDefaultRenderer()));
 		reduceSubtitles(subtitleItems, configuration.getLiveSubtitlesLimit());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(
+				"Discovery of OpenSubtitles subtitles for \"{}\" resulted in the following after sorting and reduction:\n{}",
+				getDisplayName(null, false),
+				OpenSubtitle.toLogString(subtitleItems, 2)
+			);
+		}
 		for (SubtitleItem subtitleItem : subtitleItems) {
 			LOGGER.debug("Added live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
 			DLNAMediaOpenSubtitle subtitle = new DLNAMediaOpenSubtitle(subtitleItem);
