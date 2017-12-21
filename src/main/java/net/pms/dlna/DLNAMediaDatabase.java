@@ -251,7 +251,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", VIDEOTRACKCOUNT         INT");
 				sb.append(", IMAGECOUNT              INT");
 				sb.append(", BITDEPTH                INT");
-				sb.append(", MIMETYPE		         VARCHAR2(").append(SIZE_TITLE).append(')');
+				sb.append(", MIMETYPE		         VARCHAR2(").append(SIZE_MIMETYPE).append(')');
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
