@@ -180,7 +180,6 @@ public class RealFile extends MapFile {
 
 						if (medias.size() == 1) {
 							setMedia(medias.get(0));
-							getMedia().postParse(getType(), input);
 							found = true;
 						} else if (medias.size() > 1) {
 							LOGGER.warn(

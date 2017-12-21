@@ -74,6 +74,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_AVC_LEVEL = 3;
 	private final int SIZE_CONTAINER = 32;
 	private final int SIZE_MATRIX_COEFFICIENTS = 16;
+	private final int SIZE_MIMETYPE = 255;
 	private final int SIZE_MUXINGMODE = 32;
 	private final int SIZE_FRAMERATE_MODE = 16;
 	private final int SIZE_STEREOSCOPY = 255;
@@ -250,6 +251,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", VIDEOTRACKCOUNT         INT");
 				sb.append(", IMAGECOUNT              INT");
 				sb.append(", BITDEPTH                INT");
+				sb.append(", MIMETYPE		         VARCHAR2(").append(SIZE_TITLE).append(')');
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -386,6 +388,8 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
 					media.setImageCount(rs.getInt("IMAGECOUNT"));
 					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
+					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
+					media.setMimeType(rs.getString("MIMETYPE"));
 					media.setMediaparsed(true);
 
 					ResultSet elements;
@@ -580,7 +584,7 @@ public class DLNAMediaDatabase implements Runnable {
 					"ID, FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, " +
 					"ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, THUMB, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH " +
+					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, MIMETYPE " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ?",
@@ -638,6 +642,7 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateInt("VIDEOTRACKCOUNT", media.getVideoTrackCount());
 							rs.updateInt("IMAGECOUNT", media.getImageCount());
 							rs.updateInt("BITDEPTH", media.getVideoBitDepth());
+							rs.updateString("MIMETYPE", media.getMimeType());
 						}
 						rs.updateRow();
 					}
@@ -650,8 +655,8 @@ public class DLNAMediaDatabase implements Runnable {
 						"INSERT INTO FILES (FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
 						"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 						"THUMB, CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH) VALUES "+
-						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, MIMETYPE) VALUES "+
+						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 				) {
 					ps.setString(1, name);
 					ps.setTimestamp(2, new Timestamp(modified));
@@ -702,6 +707,7 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(25, media.getVideoTrackCount());
 						ps.setInt(26, media.getImageCount());
 						ps.setInt(27, media.getVideoBitDepth());
+						ps.setString(28, left(media.getMimeType(), SIZE_MIMETYPE));
 					} else {
 						ps.setString(4, null);
 						ps.setInt(5, 0);
@@ -727,6 +733,7 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(25, 0);
 						ps.setInt(26, 0);
 						ps.setInt(27, 0);
+						ps.setNull(28, Types.VARCHAR);
 					}
 					ps.executeUpdate();
 					try (ResultSet rs = ps.getGeneratedKeys()) {
