@@ -96,6 +96,7 @@ public final class Languages {
 	private static final String[] UMS_BCP47_CODES = {
 		"af",      // Afrikaans
 		"ar",      // Arabic
+		"bn",      // Bengali (Bangladesh)
 		"pt-BR",   // Brazilian Portuguese
 		"bg",      // Bulgarian
 		"ca",      // Catalan, Valencian
