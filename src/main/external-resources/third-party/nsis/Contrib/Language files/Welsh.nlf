@@ -1,13 +1,13 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
-1160
+1106
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
--
+# Codepage - dash (-) means ASCII code page
+1252
 # RTL - anything else than RTL means LTR
 -
 # Translation by Rhoslyn Prys, Meddal.com
@@ -38,7 +38,7 @@ Rhaglen Dadosod $(^Name)
 # ^UnCompletedSubCaption
 : Cwblhawyd
 # ^BackBtn
-< &Nôl
+< &NÃ´l
 # ^NextBtn
 &Nesaf >
 # ^AgreeBtn
@@ -126,9 +126,9 @@ Gwall agor ffeil i'w hysgrifennu: \r\n\r\n$0\r\n\r\nCliciwch Eto i geisio eto, n
 # ^CantWrite
 "Methu ysgrifennu: "
 # ^CopyFailed
-Methu Copïo
+Methu CopÃ¯o
 # ^CopyTo
-"Copïo i "
+"CopÃ¯o i "
 # ^Registering
 "Cofrestru: "
 # ^Unregistering
@@ -178,14 +178,14 @@ Gosodwr llwgr: opcode annilys
 # ^Skipped
 "Hepgor: "
 # ^CopyDetails
-Copïo Manylion i'r Clipfwrdd
+CopÃ¯o Manylion i'r Clipfwrdd
 # ^LogInstall
 Cofnodi'r brosed gosod
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

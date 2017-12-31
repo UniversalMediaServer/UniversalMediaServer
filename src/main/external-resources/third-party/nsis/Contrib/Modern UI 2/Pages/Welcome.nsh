@@ -20,10 +20,13 @@ Welcome page (implemented using nsDialogs)
     Var mui.WelcomePage.Title
     Var mui.WelcomePage.Title.Font
     
-    Var mui.WelcomePage.Text    
+    Var mui.WelcomePage.Text
   !endif
   
-  !insertmacro MUI_DEFAULT MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"  
+  !insertmacro MUI_DEFAULT MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
+  !if "${MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP}" == ""
+    !error "Invalid MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP"
+  !endif
 
 !macroend
 
@@ -126,11 +129,7 @@ Welcome page (implemented using nsDialogs)
     ;Image control
     ${NSD_CreateBitmap} 0u 0u 109u 193u ""
     Pop $mui.WelcomePage.Image
-    !ifndef MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
-      ${NSD_SetStretchedImage} $mui.WelcomePage.Image $PLUGINSDIR\modern-wizard.bmp $mui.WelcomePage.Image.Bitmap
-    !else
-      ${NSD_SetImage} $mui.WelcomePage.Image $PLUGINSDIR\modern-wizard.bmp $mui.WelcomePage.Image.Bitmap
-    !endif
+    !insertmacro MUI_INTERNAL_FULLWINDOW_LOADWIZARDIMAGE "${MUI_PAGE_UNINSTALLER_PREFIX}" $mui.WelcomePage.Image $PLUGINSDIR\modern-wizard.bmp $mui.WelcomePage.Image.Bitmap
 
     ;Positiong of controls
 
@@ -161,6 +160,7 @@ Welcome page (implemented using nsDialogs)
     Call ${MUI_PAGE_UNINSTALLER_FUNCPREFIX}muiPageLoadFullWindow
     !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
     nsDialogs::Show
+    !insertmacro MUI_PAGE_FUNCTION_CUSTOM DESTROYED
     Call ${MUI_PAGE_UNINSTALLER_FUNCPREFIX}muiPageUnloadFullWindow    
 
     ;Delete image from memory

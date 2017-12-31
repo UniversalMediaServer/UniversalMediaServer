@@ -80,8 +80,6 @@ License page
     !insertmacro MUI_UNSET MUI_LICENSEPAGE_CHECKBOX_TEXT_ACCEPT
     !insertmacro MUI_UNSET MUI_LICENSEPAGE_CHECKBOX_TEXT_DECLINE
 
-  !verbose pop
-
 !macroend
 
 !macro MUI_PAGE_LICENSE LICENSEDATA

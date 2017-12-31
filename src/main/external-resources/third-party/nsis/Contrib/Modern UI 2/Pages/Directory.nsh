@@ -16,12 +16,12 @@ Directory page
     
     Var mui.DirectoryPage.Text
     
-    Var mui.DirectoryPage.DirectoryBox        
+    Var mui.DirectoryPage.DirectoryBox
     Var mui.DirectoryPage.Directory
     Var mui.DirectoryPage.BrowseButton
     
     Var mui.DirectoryPage.SpaceRequired
-    Var mui.DirectoryPage.SpaceAvailable    
+    Var mui.DirectoryPage.SpaceAvailable
   !endif
 
 !macroend
@@ -106,9 +106,9 @@ Directory page
     FindWindow $mui.DirectoryPage "#32770" "" $HWNDPARENT
     GetDlgItem $mui.DirectoryPage.Text $mui.DirectoryPage 1006
     GetDlgItem $mui.DirectoryPage.DirectoryBox $mui.DirectoryPage 1020
-    GetDlgItem $mui.DirectoryPage.Directory $mui.DirectoryPage 1019 
+    GetDlgItem $mui.DirectoryPage.Directory $mui.DirectoryPage 1019
     GetDlgItem $mui.DirectoryPage.BrowseButton $mui.DirectoryPage 1001
-    GetDlgItem $mui.DirectoryPage.SpaceRequired $mui.DirectoryPage 1023    
+    GetDlgItem $mui.DirectoryPage.SpaceRequired $mui.DirectoryPage 1023
     GetDlgItem $mui.DirectoryPage.SpaceAvailable $mui.DirectoryPage 1024
   
     !ifdef MUI_DIRECTORYPAGE_BGCOLOR

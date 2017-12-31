@@ -1,15 +1,19 @@
-# Header, don't edit
+﻿# Header, don't edit
 NLF v6
 # Language ID
 1057
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
--
+# Codepage - dash (-) means ASCII code page
+1252
 # RTL - anything else than RTL means LTR
 -
-# Translation ariel825010106@yahoo.com modified and completed by was.uthm@gmail.com in April 2009
+# Revision date: 2009 April
+# Translators:
+## Ariel <ariel825010106@yahoo.com>, <www.ariel106.cjb.net>
+## was.uthm@gmail.com
+#
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
@@ -183,8 +187,8 @@ Catat proses instalasi
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

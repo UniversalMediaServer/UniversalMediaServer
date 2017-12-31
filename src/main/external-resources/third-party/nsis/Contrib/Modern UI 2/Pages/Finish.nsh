@@ -50,8 +50,8 @@ Finish page (implemented using nsDialogs)
   !endif
   
   !ifdef MUI_FINISHPAGE_SHOWREADME
-    !ifndef MUI_FINISHPAGE_SHOREADME_VARAIBLES
-      !define MUI_FINISHPAGE_SHOREADME_VARAIBLES
+    !ifndef MUI_FINISHPAGE_SHOWREADME_VARIABLES
+      !define MUI_FINISHPAGE_SHOWREADME_VARIABLES
       Var mui.FinishPage.ShowReadme
     !endif
   !endif
@@ -71,7 +71,10 @@ Finish page (implemented using nsDialogs)
     !endif
   !endif
 
-  !insertmacro MUI_DEFAULT MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"  
+  !insertmacro MUI_DEFAULT MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
+  !if "${MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP}" == ""
+    !error "Invalid MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP"
+  !endif
 
 !macroend
 
@@ -264,11 +267,7 @@ Finish page (implemented using nsDialogs)
     ;Image control
     ${NSD_CreateBitmap} 0u 0u 109u 193u ""
     Pop $mui.FinishPage.Image
-    !ifndef MUI_${MUI_PAGE_UNINSTALLER_PREFIX}WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
-      ${NSD_SetStretchedImage} $mui.FinishPage.Image $PLUGINSDIR\modern-wizard.bmp $mui.FinishPage.Image.Bitmap
-    !else
-      ${NSD_SetImage} $mui.FinishPage.Image $PLUGINSDIR\modern-wizard.bmp $mui.FinishPage.Image.Bitmap
-    !endif
+    !insertmacro MUI_INTERNAL_FULLWINDOW_LOADWIZARDIMAGE "${MUI_PAGE_UNINSTALLER_PREFIX}" $mui.FinishPage.Image $PLUGINSDIR\modern-wizard.bmp $mui.FinishPage.Image.Bitmap
     
     ;Positiong of controls
 
@@ -333,7 +332,7 @@ Finish page (implemented using nsDialogs)
         SendMessage $mui.FinishPage.Title ${WM_SETFONT} $mui.FinishPage.Title.Font 0
 
         ;Finish text
-        ${NSD_CreateLabel} 120u 45u 195u ${MUI_FINISHPAGE_TEXT_HEIGHT_BUTTONS}u "${MUI_FINISHPAGE_TEXT_REBOOT}"
+        ${NSD_CreateLabel} 120u ${MUI_FINISHPAGE_TEXT_TOP}u 195u ${MUI_FINISHPAGE_TEXT_HEIGHT_BUTTONS}u "${MUI_FINISHPAGE_TEXT_REBOOT}"
         Pop $mui.FinishPage.Text
         SetCtlColors $mui.FinishPage.Text "" "${MUI_BGCOLOR}"
       
@@ -413,6 +412,7 @@ Finish page (implemented using nsDialogs)
     Call ${MUI_PAGE_UNINSTALLER_FUNCPREFIX}muiPageLoadFullWindow
     !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
     nsDialogs::Show
+    !insertmacro MUI_PAGE_FUNCTION_CUSTOM DESTROYED
     Call ${MUI_PAGE_UNINSTALLER_FUNCPREFIX}muiPageUnloadFullWindow 
     
     !ifdef MUI_FINISHPAGE_CANCEL_ENABLED

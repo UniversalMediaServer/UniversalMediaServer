@@ -6,7 +6,9 @@
 </head>
 <body>
 <h1>NSIS System Plug-in</h1>
-<p><i>&copy; brainsucker (Nik Medved), 2002</i></p>
+<p>
+<i>Copyright &copy; 2002 brainsucker (Nik Medved)</i><br><i>Copyright &copy; 2002-2017 NSIS Contributors</i>
+</p>
 
 <h2>Table of Contents</h2>
 
@@ -25,13 +27,11 @@
 
 <h2><a name="intro"></a>Introduction</h2>
 
-<p>The System plug-in gives developers the ability to call any exported function from any DLL. For example, you can use it to call <a href="http://msdn.microsoft.com/library/en-us/fileio/base/getlogicaldrivestrings.asp">GetLogicalDriveStrings</a> to get a list of available drives on the user's computer.</p>
+<p>The System plug-in gives developers the ability to call any exported function from any DLL. For example, you can use it to call <a href="https://msdn.microsoft.com/en-us/library/aa364975">GetLogicalDriveStrings</a> to get a list of available drives on the user's computer.</p>
 
 <p>The System plug-in also allows the developer to allocate, free and copy memory; interact with COM objects and perform mathematical operations on 64-bit integers.</p>
 
 <p>Programming knowledge is highly recommended for good understanding of the System plug-in.</p>
-
-<p>The most useful System plug-in functions (Call, Get and Debug) are not available when compiling with GCC. To work around this, either download a MSVC-compiled version or write your own plugin that calls the functions you need.</p>
 
 <h4>Usage Examples From The Wiki</h4>
 
@@ -64,7 +64,19 @@ System::Free $0
 </pre></blockquote>
 </blockquote>
 </li>
-
+<li>
+<b>StrAlloc</b> <i>SIZE</i>
+<blockquote>
+<p>Allocates a string buffer for <i>SIZE</i> <b>TCHARs</b> and returns a memory address on the stack.  This is extremely useful if you want to write an NSI script that will work for both ANSI and Unicode NSIS.</p>
+<h4>Usage Example</h4>
+<blockquote><pre>
+System::<b>StrAlloc</b> 64 ; String buffer for 63 characters and \0 termination.
+Pop $0
+DetailPrint "A string buffer for 64 characters allocated at $0"
+System::Free $0
+</pre></blockquote>
+</blockquote>
+</li>
 <li>
 <b>Copy</b> [/<i>SIZE</i>] <i>DESTINATION</i> <i>SOURCE</i>
 <blockquote>
@@ -72,7 +84,7 @@ System::Free $0
 <h4>Usage example</h4>
 <blockquote><pre>
 # allocate a buffer and put 'test string' and an int in it
-System::Call "*(&amp;t1024 'test string', i 5) i .s"
+System::Call "*(&amp;t1024 'test string', i 5) p .s"
 Pop $0
 # copy to an automatically created buffer
 System::<b>Copy</b> 0 $0
@@ -175,7 +187,7 @@ DetailPrint $4
 
 <p><i>PARAMS</i>, <i>RETURN</i> and <i>OPTIONS</i> can be repeated many times in one Get/Call line. When repeating, a lot can be omitted, and only what you wish to change can be used. <i>Type</i>, <i>source</i> and/or <i>destination</i> can be omitted for each parameter, even the return value. Options can be added or removed. This allows you to define function prototypes and save on some typing. The <a href="#repeat">last two examples</a> show this.</p>
 
-<p><i>PROC</i> can also be repeated but must be prefixed with a hash sign (`#').</p>
+<p><i>PROC</i> can also be repeated but must be prefixed with a hash sign (`#') except if the hash sign is preceded by a double colon (<code>shell32::#18</code>).</p>
 
 <h4>Possible <i>PROC</i> Values and Meanings</h4>
 
@@ -269,6 +281,10 @@ DetailPrint $4
 <th>k</th>
 <td>callback</td>
 </tr>
+<th>@</th>
+<td>Direct register memory access (Buffer is limited to <code>(NSIS_MAX_STRLEN - 21) * NSIS_CHAR_SIZE</code> bytes)</td>
+</tr>
+<tr>
 <tr>
 <th>&amp;v<i>N</i></th>
 <td><i>N</i> bytes padding (structures only)</td>
@@ -283,18 +299,22 @@ DetailPrint $4
 </tr>
 <tr>
 <th>&amp;t<i>N</i></th>
-<td><i>N</i> bytes of text (structures only)</td>
+<td>array of <i>N</i> text characters TCHAR (structures only)</td>
+</tr>
+<tr>
+<th>&amp;m<i>N</i></th>
+<td>array of <i>N</i> ANSI characters CHAR (structures only)</td>
 </tr>
 <tr>
 <th>&amp;w<i>N</i></th>
-<td><i>N</i> bytes of Unicode text (structures only)</td>
+<td>array of <i>N</i> Unicode characters WCHAR (structures only)</td>
 </tr>
 <tr>
 <th>&amp;g<i>N</i></th>
 <td><i>N</i> bytes of GUID (structures only)</td>
 </tr>
 </table>
-<p>Additionally, each type can be prefixed with an asterisk to denote a pointer. When using an asterisk, the System plug-in still expects the value of the parameter, rather than the pointer's address. To pass a direct address, use `i' with no asterisk. A <a href="#pointer">usage example</a> is available. <a href="#memfuncs">Alloc</a> returns addresses and its return value should therefore be used with `i', without an asterisk.</p>
+<p>Additionally, each type can be prefixed with an asterisk to denote a pointer. When using an asterisk, the System plug-in still expects the value of the parameter, rather than the pointer's address. To pass a direct address, use `p' with no asterisk. A <a href="#pointer">usage example</a> is available. <a href="#memfuncs">Alloc</a> returns addresses and its return value should therefore be used with `p', without an asterisk.</p>
 </blockquote>
 
 <h4>Available Sources and Destinations</h4>
@@ -355,12 +375,13 @@ DetailPrint $4
 <td>null for source, no output required for destination</td>
 </tr>
 </table>
+<p>Source is required when using the @ type and must be a register. When the call returns the source register already contains the memory address in string form so using destination is usually <a href="#directvarmemparam">not necessary</a>.
 </blockquote>
 
 <h4>Callbacks</h4>
 
 <blockquote>
-<p>Callback functions are simply functions which are passed to a function and called back by it. They are frequently used to pass a possibly large set of data item by item. For example, <a href="http://msdn.microsoft.com/library/en-us/winui/WinUI/WindowsUserInterface/Windowing/Windows/WindowReference/WindowFunctions/EnumChildWindows.asp">EnumChildWindows</a> uses a <a href="http://msdn.microsoft.com/library/en-us/winui/WinUI/WindowsUserInterface/Windowing/Windows/WindowReference/WindowFunctions/EnumChildProc.asp">callback function</a>. As NSIS functions are not quite regular functions, the System plug-in provides its own mechanism to support callback functions. It allows you to create callback functions and notifies you each time a callback function was called.</p>
+<p>Callback functions are simply functions which are passed to a function and called back by it. They are frequently used to pass a possibly large set of data item by item. For example, <a href="https://msdn.microsoft.com/en-us/library/ms633494">EnumChildWindows</a> uses a <a href="https://msdn.microsoft.com/en-us/library/ms633493p">callback function</a>. As NSIS functions are not quite regular functions, the System plug-in provides its own mechanism to support callback functions. It allows you to create callback functions and notifies you each time a callback function was called.</p>
 
 <p>Creation of callback functions is done using <a href="#callfuncs">Get</a> and the callback creation syntax. As you will not call the callbacks yourself, the source of the parameters should be omitted using a dot. When the callback is called, the destination of the parameters will be filled with the values passed on to the callback. The value the callback will return is set by the source of the return "parameter". The destination of the return "parameter" should always be set as that's where System will notify you the callback was called.</p>
 
@@ -406,7 +427,7 @@ System::Free $0
 <blockquote>
 <ul>
 <li>To find out the index of a member in a COM interface, you need to search for the definition of this COM interface in the header files that come with Visual C/C++ or the Platform SDK. Remember the index is zero based.</li>
-<li>If a function can't be found, an `A' will be appended to its name and it will be looked up again. This is done because a lot of Windows API functions have two versions, one for ANSI strings and one for Unicode strings. The ANSI version of the function is marked with `A' and the Unicode version is marked with `W'. For example: lstrcpyA and lstrcpyW.</li>
+<li>If a function can't be found or the <code>t</code> parameter type was used, an `A' or `W' will be appended to its name and it will be looked up again. This is done because a lot of Windows API functions have two versions, one for ANSI strings and one for Unicode strings. The ANSI version of the function is marked with `A' and the Unicode version is marked with `W'. For example: lstrcpyA and lstrcpyW.</li>
 </ul>
 </blockquote>
 
@@ -420,7 +441,7 @@ System::Free $0
 </tr>
 <tr>
 <th>c</th>
-<td>cdecl calling convention (the stack restored by caller). By default stdcall calling convention is used (the stack restored by callee).</td>
+<td>cdecl calling convention (the stack restored by caller). By default stdcall calling convention is used on x86 (the stack restored by callee).</td>
 <td></td>
 </tr>
 <tr>
@@ -449,20 +470,20 @@ System::Free $0
 <h4>Usage Examples</h4>
 
 <blockquote><pre>
-<a name="func"></a>System::<b>Call</b> "user32::MessageBox(i $HWNDPARENT, t 'NSIS System Plug-in', t 'Test', i 0)"
+<a name="func"></a>System::<b>Call</b> "user32::MessageBox(p $HWNDPARENT, t 'NSIS System Plug-in', t 'Test', i 0)"
 </pre></blockquote>
 <blockquote><pre>
-<a name="funcaddr"></a>System::<b>Call</b> "kernel32::GetModuleHandle(t 'user32.dll') i .s"
-System::<b>Call</b> "kernel32::GetProcAddress(i s, t 'MessageBoxA') i .r0"
-System::<b>Call</b> "::$0(i $HWNDPARENT, t 'GetProcAddress test', t 'NSIS System Plug-in', i 0)"
+<a name="funcaddr"></a>System::<b>Call</b> "kernel32::GetModuleHandle(t 'user32.dll') p .s"
+System::<b>Call</b> "kernel32::GetProcAddress(p s, m 'MessageBoxA') p .r0"
+System::<b>Call</b> "::$0(p $HWNDPARENT, t 'GetProcAddress test', t 'NSIS System Plug-in', i 0)"
 </pre></blockquote>
 <blockquote><pre>
-<a name="get"></a>System::<b>Get</b> "user32::MessageBox(i $HWNDPARENT, t 'This is a default text', t 'Default', i 0)"
+<a name="get"></a>System::<b>Get</b> "user32::MessageBox(p $HWNDPARENT, t 'This is a default text', t 'Default', i 0)"
 Pop $0
 System::<b>Call</b> "$0"
 </pre></blockquote>
 <blockquote><pre>
-System::<b>Get</b> "user32::MessageBox(i $HWNDPARENT, t 'This is a default text', \
+System::<b>Get</b> "user32::MessageBox(p $HWNDPARENT, t 'This is a default text', \
 	t 'Default', i 0x1|0x10)"
 Pop $0
 System::<b>Call</b> "$0(, 'This is a System::Get test', 'NSIS System Plug-in',)"
@@ -476,14 +497,21 @@ DetailPrint "Return value - $2"
 <blockquote><pre>
 <a name="structaddr"></a>System::Alloc 4
 Pop $0
-System::<b>Call</b> "*$0(i 5)"
-System::<b>Call</b> "*$0(i .r1)"
+System::<b>Call</b> "*$0(i 5)" ; Write
+System::<b>Call</b> "*$0(i .r1)" ; Read
+System::Free $0
 DetailPrint $1
 </pre></blockquote>
 <blockquote><pre>
-<a name="newstruct"></a>System::<b>Call</b> "*(i 5) i .r0"
+<a name="newstruct"></a>System::<b>Call</b> "*(i 5) p .r0"
 System::<b>Call</b> "*$0(i .r1)"
+System::Free $0
 DetailPrint $1
+</pre></blockquote>
+<blockquote><pre>
+<a name="directvarmemparam"></a>System::<b>Call</b> "user32::GetClientRect(p $hwndparent, @ r0)"
+System::<b>Call</b> "*$0(i,i,i.r1,i.r2)"
+DetailPrint ClientRect=$1x$2
 </pre></blockquote>
 <blockquote><pre>
 <a name="com"></a># defines
@@ -492,9 +520,9 @@ DetailPrint $1
 !define IID_IActiveDesktop {F490EB00-1240-11D1-9888-006097DEACF9}
 # create IActiveDesktop interface
 System::<b>Call</b> "ole32::CoCreateInstance( \
-	g '${CLSID_ActiveDesktop}', i 0, \
+	g '${CLSID_ActiveDesktop}', p 0, \
 	i ${CLSCTX_INPROC_SERVER}, \
-	g '${IID_IActiveDesktop}', *i .r0) i.r1"
+	g '${IID_IActiveDesktop}', *p .r0) i.r1"
 StrCmp $1 0 0 end
 # call IActiveDesktop->GetWallpaper
 System::<b>Call</b> "$0->4(w .r2, i ${NSIS_MAX_STRLEN}, i 0)"
@@ -512,14 +540,14 @@ System::<b>Call</b> "MyDLL::MyFunc(i 5) ? u"
 Delete $PLUGINSDIR\MyDLL.dll
 </pre></blockquote>
 <blockquote><pre>
-<a name="callback"></a>System::<b>Get</b> "(i.r1, i) iss"
+<a name="callback"></a>System::<b>Get</b> "(p.r1, p) iss"
 Pop $R0
-System::<b>Call</b> "user32::EnumChildWindows(i $HWNDPARENT, k R0, i) i.s"
+System::<b>Call</b> "user32::EnumChildWindows(p $HWNDPARENT, k R0, p) i.s"
 loop:
 	Pop $0
 	StrCmp $0 "callback1" 0 done
-	System::<b>Call</b> "user32::GetWindowText(ir1,t.r2,i${NSIS_MAX_STRLEN})"
-	System::<b>Call</b> "user32::GetClassName(ir1,t.r3,i${NSIS_MAX_STRLEN})"
+	System::<b>Call</b> "user32::GetWindowText(pr1,t.r2,i${NSIS_MAX_STRLEN})"
+	System::<b>Call</b> "user32::GetClassName(pr1,t.r3,i${NSIS_MAX_STRLEN})"
 	IntFmt $1 "0x%X" $1
 	DetailPrint "$1 - [$3] $2"
 	Push 1 # callback's return value
@@ -529,13 +557,13 @@ done:
 System::Free $R0
 </pre></blockquote>
 <blockquote><pre>
-<a name="repeat"></a>!define MB "user32::MessageBox(i$HWNDPARENT,t,t'NSIS System Plug-in',i0)"
+<a name="repeat"></a>!define MB "user32::MessageBox(p$HWNDPARENT,t,t'NSIS System Plug-in',i0)"
 System::<b>Call</b> "${MB}(,'my message',,)"
 System::<b>Call</b> "${MB}(,'another message',,) i.r0"
 MessageBox MB_OK "last call returned $0"
 </pre></blockquote>
 <blockquote><pre>
-System::<b>Call</b> "user32::SendMessage(i $HWNDPARENT, t 'test', t 'test', i 0) i.s ? \
+System::<b>Call</b> "user32::SendMessage(p $HWNDPARENT, t 'test', t 'test', p 0) p.s ? \
 	e (,t'test replacement',,) i.r0 ? !e #user32::MessageBox"
 DetailPrint $0
 ClearErrors
@@ -665,7 +693,7 @@ DetailPrint "189189 = 189189 = $0" # 1
 <blockquote><pre>
 System::<b>Int64Op</b> 156545668489 ~
 Pop $0
-DetailPrint "1 ~ = $0" # -156545668490
+DetailPrint "156545668489 ~ = $0" # -156545668490
 </pre></blockquote>
 <blockquote><pre>
 System::<b>Int64Op</b> 1 !
@@ -699,7 +727,7 @@ System::Alloc 16
 </pre></blockquote>
 
 <blockquote><pre>
-System::Call "*(i, i, i, t)i.s"
+System::Call "*(i, i, i, t)p.s"
 </pre></blockquote>
 
 </blockquote>
@@ -709,7 +737,7 @@ System::Call "*(i, i, i, t)i.s"
 <blockquote><p>Setting data can be done using <a href="#callfuncs">Call</a>. It can be done in the allocation stage, or in another stage using the struct handling syntax.</p>
 
 <blockquote><pre>
-System::Call "*(i 5, i 2, i 513, t 'test')i.s"
+System::Call "*(i 5, i 2, i 513, t 'test')p.s"
 </pre></blockquote>
 
 <blockquote><pre>
@@ -725,7 +753,7 @@ System::Call "*$0(i 5, i 2, i 513, t 'test')"
 
 <blockquote><pre>
 # assuming the struct's memory address is kept in $0
-System::Call "dll::func(i r0)"
+System::Call "dll::func(p r0)"
 </pre></blockquote>
 
 </blockquote>
@@ -760,12 +788,11 @@ System::Free $0
 
 <blockquote><pre>
 # allocate
-System::Alloc 32
-Pop $1
+System::Call "*(i,i,p,p,p,p,p,p)p.r1"
 # call
-System::Call "Kernel32::GlobalMemoryStatus(i r1)"
+System::Call "Kernel32::GlobalMemoryStatus(p r1)"
 # get
-System::Call "*$1(i.r2, i.r3, i.r4, i.r5, i.r6, i.r7, i.r8, i.r9)"
+System::Call "*$1(i.r2, i.r3, p.r4, p.r5, p.r6, p.r7, p.r8, p.r9)"
 # free
 System::Free $1
 # print

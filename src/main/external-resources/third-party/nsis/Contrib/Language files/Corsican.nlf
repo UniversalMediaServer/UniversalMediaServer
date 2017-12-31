@@ -1,0 +1,192 @@
+﻿# Header, don't edit
+NLF v6
+# Language ID
+1155
+# Font and size - dash (-) means default
+-
+-
+# Codepage - dash (-) means ASCII code page
+1252
+# RTL - anything other than RTL means LTR
+-
+# Translation by Patriccollu di Santa Maria è Sichè - <Patrick.Santa-Maria(AT)laposte.net>
+# Created on April 24th, 2016 for version 3.0rc1
+# Traduzzione corsa creata da Patriccollu di Santa Maria è Sichè
+# ^Branding
+Sistema d'Installazione Nullsoft %s
+# ^SetupCaption
+Assistente d'Installazione di $(^Name)
+# ^UninstallCaption
+Disinstallazione di $(^Name)
+# ^LicenseSubCaption
+: Cuntrattu d'Utilizazione
+# ^ComponentsSubCaption
+: Ozzioni d'Installazione
+# ^DirSubCaption
+: Cartulare d'Installazione
+# ^InstallingSubCaption
+: Installazione in corsu
+# ^CompletedSubCaption
+: Compiu
+# ^UnComponentsSubCaption
+: Ozzioni di Disinstallazione
+# ^UnDirSubCaption
+: Cartulare di Disinstallazione
+# ^ConfirmSubCaption
+: Cunfirmazione
+# ^UninstallingSubCaption
+: Disinstallazione in corsu
+# ^UnCompletedSubCaption
+: Compiu
+# ^BackBtn
+< &Precedente
+# ^NextBtn
+&Seguente >
+# ^AgreeBtn
+&Accunsentu
+# ^AcceptBtn
+Sò d'&accunsentu cù i termini di u Cuntrattu di Licenza
+# ^DontAcceptBtn
+Ùn sò &micca d'accunsentu cù i termini di u Cuntrattu di Licenza
+# ^InstallBtn
+&Installà
+# ^UninstallBtn
+&Disinstallà
+# ^CancelBtn
+Abbandunà
+# ^CloseBtn
+&Chjode
+# ^BrowseBtn
+&Sfuglià...
+# ^ShowDetailsBtn
+Affissà i &ditaglii
+# ^ClickNext
+Sceglie Seguente per cuntinuà.
+# ^ClickInstall
+Sceglie Installà per principià l'installazione.
+# ^ClickUninstall
+Sceglie Disinstallà per principià a disinstallazione.
+# ^Name
+Nome
+# ^Completed
+Compiu
+# ^LicenseText
+Ci vole à leghje u cuntrattu di licenza nanzu d'installà $(^NameDA). S'è voi site d'accunsentu cù tutti i termini di u cuntrattu, sceglie Accunsentu.
+# ^LicenseTextCB
+Ci vole à leghje u cuntrattu di licenza nanzu d'installà $(^NameDA). S'è voi site d'accunsentu cù tutti i termini di u cuntrattu, sceglie a casella inghjò. $_CLICK
+# ^LicenseTextRB
+Ci vole à leghje u cuntrattu di licenza nanzu d'installà $(^NameDA). S'è voi site d'accunsentu cù tutti i termini di u cuntrattu, sceglie a prima ozzione inghjò. $_CLICK
+# ^UnLicenseText
+Ci vole à leghje u cuntrattu di licenza nanzu di disinstallà $(^NameDA). S'è voi site d'accunsentu cù tutti i termini di u cuntrattu, sceglie Accunsentu.
+# ^UnLicenseTextCB
+Ci vole à leghje u cuntrattu di licenza nanzu di disinstallà $(^NameDA). S'è voi site d'accunsentu cù tutti i termini di u cuntrattu, sceglie a casella inghjò. $_CLICK
+# ^UnLicenseTextRB
+Ci vole à leghje u cuntrattu di licenza nanzu di disinstallà $(^NameDA). S'è voi site d'accunsentu cù tutti i termini di u cuntrattu, sceglie a prima ozzione inghjò. $_CLICK
+# ^Custom
+Persunalizatu
+# ^ComponentsText
+Selezziunà i cumpunenti chì voi vulete installà è viutà a casella di quelli ch'ellu ùn ci vole à installà. $_CLICK
+# ^ComponentsSubText1
+Selezziunà u tipu d'installazione :
+# ^ComponentsSubText2_NoInstTypes
+Selezziunà i cumpunenti à installà :
+# ^ComponentsSubText2
+Osinnò, selezziunà i cumpunenti addizziunali chì voi vulete installà :
+# ^UnComponentsText
+Selezziunà i cumpunenti chì voi vulete disinstallà è viutà a casella di quelli ch'ellu ùn ci vole à disinstallà. $_CLICK
+# ^UnComponentsSubText1
+Selezziunà u tipu di disinstallazione :
+# ^UnComponentsSubText2_NoInstTypes
+Selezziunà i cumpunenti à disinstallà :
+# ^UnComponentsSubText2
+Osinnò, selezziunà i cumpunenti addizziunali chì voi vulete disinstallà :
+# ^DirText
+L'Assistente hà da installà $(^NameDA) in quessu cartulare. Per installà in un altru cartulare, sceglie Sfuglià è selezziunà un altru cartulare. $_CLICK
+# ^DirSubText
+Cartulare di Destinazione
+# ^DirBrowseText
+Selezziunà u cartulare d'installazione di $(^NameDA) :
+# ^UnDirText
+L'Assistente hà da disinstallà $(^NameDA) da quessu cartulare. Per disinstallà da un altru cartulare, sceglie Sfuglià è selezziunà un altru cartulare. $_CLICK
+# ^UnDirSubText
+Cartulare d'Installazione
+# ^UnDirBrowseText
+Selezziunà u cartulare di disinstallazione di $(^NameDA) :
+# ^SpaceAvailable
+Spaziu dispunibule : 
+# ^SpaceRequired
+Spaziu richiestu : 
+# ^UninstallingText
+$(^NameDA) serà disinstallatu da quessu cartulare. $_CLICK
+# ^UninstallingSubText
+Disinstallazione da :
+# ^FileError
+Sbagliu durante l'accessu in scrittura di u schedariu : \r\n\r\n$0\r\n\r\nSceglie Interrompe per piantà l'installazione,\r\nTorna per pruvà torna, o\r\nIgnurà per ignurà u schedariu.
+# ^FileError_NoIgnore
+Sbagliu durante l'accessu in scrittura di u schedariu : \r\n\r\n$0\r\n\r\nSceglie Torna per pruvà torna, o\r\nAbbandunà per piantà l'installazione.
+# ^CantWrite
+Ùn pò micca scrive : 
+# ^CopyFailed
+Fiascu di copia
+# ^CopyTo
+Cupià ver di 
+# ^Registering
+Arregistramentu : 
+# ^Unregistering
+Disarregistramentu : 
+# ^SymbolNotFound
+Ùn pò micca truvà di simbolu : 
+# ^CouldNotLoad
+Ùn pò micca caricà : 
+# ^CreateFolder
+Creazione di u cartulare : 
+# ^CreateShortcut
+Creazione di l'accurtatoghju : 
+# ^CreatedUninstaller
+Assistente di disinstallazione creatu : 
+# ^Delete
+Squassatura di schedariu : 
+# ^DeleteOnReboot
+Squassatura à l'avviu di l'urdinatore : 
+# ^ErrorCreatingShortcut
+Sbagliu durante a creazione di l'accurtatoghju : 
+# ^ErrorCreating
+Sbagliu durante a creazione di : 
+# ^ErrorDecompressing
+Sbagliu durante a scumprezzione di dati : Stalladore alteratu ?
+# ^ErrorRegistering
+Sbagliu durante l'arregistramentu di DLL
+# ^ExecShell
+ExecShell : 
+# ^Exec
+Eseguisce : 
+# ^Extract
+Estrae : 
+# ^ErrorWriting
+Estrae : sbagliu di scrittura ver di u schedariu 
+# ^InvalidOpcode
+Stalladore alteratu : opcode micca accettevule
+# ^NoOLE
+Alcunu OLE per : 
+# ^OutputFolder
+Cartulare di destinazione : 
+# ^RemoveFolder
+Caccià u cartulare : 
+# ^RenameOnReboot
+Rinumà à l'avviu di l'urdinatore : 
+# ^Rename
+Rinumà : 
+# ^Skipped
+Tralasciatu : 
+# ^CopyDetails
+Cupià i Ditaglii ver di u Preme'Papei
+# ^LogInstall
+Arregistrà u ghjurnale d'installazione
+# ^Byte
+o
+# ^Kilo
+ K
+# ^Mega
+ M
+# ^Giga
+ G

@@ -492,7 +492,7 @@ SectionEnd</pre></blockquote>
 
 <p><code>nsDialogs::Create <i>rect</i></code></p>
 
-<p>Creates a new dialog. <i>rect</i> specific the identifier of the control whose location will be mimiced. This should usually be 1018, which is control mimiced for creation of built-in pages. The Modern UI also has control 1040 for the welcome and the finish page.</p>
+<p>Creates a new dialog. <i>rect</i> specific the identifier of the control whose location will be mimiced. This should usually be 1018, which is control mimiced for creation of built-in pages. The Modern UI also has control 1044 for the welcome and the finish page.</p>
 
 <p>Returns the new dialog's HWND on the stack or <i>error</i>.</p>
 
@@ -502,7 +502,7 @@ SectionEnd</pre></blockquote>
 
 <p>Create a new control in the current dialog. A dialog must exist for this to work, so nsDialogs::Create must be called prior to this function.</p>
 
-<p>Returns the new dialog's HWND on the stack or <i>error</i>.</p>
+<p>Returns the new control's HWND on the stack or <i>error</i>.</p>
 
 <h3><a name="ref-show"></a>Show</h3>
 
@@ -647,11 +647,11 @@ SectionEnd</pre></blockquote>
 <li>${NSD_CreateProgressBar}</li>
 </ul>
 
-<p>Returns the new dialog's HWND on the stack or error.</p>
+<p>Returns the new control's HWND on the stack or <i>error</i></p>
 
 <h3><a name="mref-onback"></a>NSD_OnBack</h3>
 
-<p><code>${NSD_OnBack} <i>function_address</i></code></p>
+<p><code>${NSD_OnBack} <i>function_name</i></code></p>
 
 <p>See <a href="#ref-onback">OnBack</a> for more details.</p>
 
@@ -659,7 +659,7 @@ SectionEnd</pre></blockquote>
 
 <h3><a name="mref-onchange"></a>NSD_OnChange</h3>
 
-<p><code>${NSD_OnChange} <i>control_HWND</i> <i>function_address</i></code></p>
+<p><code>${NSD_OnChange} <i>control_HWND</i> <i>function_name</i></code></p>
 
 <p>See <a href="#ref-onchange">OnChange</a> for more details.</p>
 
@@ -667,25 +667,25 @@ SectionEnd</pre></blockquote>
 
 <h3><a name="mref-onclick"></a>NSD_OnClick</h3>
 
-<p><code>${NSD_OnClick} <i>control_HWND</i> <i>function_address</i></code></p>
+<p><code>${NSD_OnClick} <i>control_HWND</i> <i>function_name</i></code></p>
 
 <p>See <a href="#ref-onclick">OnClick</a> for more details.</p>
 
 <h3><a name="mref-onnotify"></a>NSD_OnNotify</h3>
 
-<p><code>${NSD_OnNotify} <i>control_HWND</i> <i>function_address</i></code></p>
+<p><code>${NSD_OnNotify} <i>control_HWND</i> <i>function_name</i></code></p>
 
 <p>See <a href="#ref-onnotify">OnNotify</a> for more details.</p>
 
 <h3><a name="mref-createtimer"></a>NSD_CreateTimer</h3>
 
-<p><code>${NSD_CreateTimer} <i>function_address</i> <i>timer_interval</i></code></p>
+<p><code>${NSD_CreateTimer} <i>function_name</i> <i>timer_interval</i></code></p>
 
 <p>See <a href="#ref-createtimer">CreateTimer</a> for more details.</p>
 
 <h3><a name="mref-killtimer"></a>NSD_KillTimer</h3>
 
-<p><code>${NSD_KillTimer} <i>function_address</i></code></p>
+<p><code>${NSD_KillTimer} <i>function_name</i></code></p>
 
 <p>See <a href="#ref-killtimer">KillTimer</a> for more details.</p>
 
@@ -876,7 +876,7 @@ SectionEnd</pre></blockquote>
 
 <p><code>${NSD_SetIconFromInstaller} <i>control_HWND</i> <i>output_variable</i></code></p>
 
-<p>Loads the icon used in the isntaller and displays it on <i>control_HWND</i> created by <a href="#mref-create">${NSD_CreateIcon}</a>. The image handle is stored in <i>output_variable</i> and should be freed using <a href="#mref-freeicon">${NSD_FreeIcon}</a> once no longer necessary.</p>
+<p>Loads the icon used in the installer and displays it on <i>control_HWND</i> created by <a href="#mref-create">${NSD_CreateIcon}</a>. The image handle is stored in <i>output_variable</i> and should be freed using <a href="#mref-freeicon">${NSD_FreeIcon}</a> once no longer necessary.</p>
 
 <h3><a name="mref-clearimage"></a>NSD_ClearImage</h3>
 

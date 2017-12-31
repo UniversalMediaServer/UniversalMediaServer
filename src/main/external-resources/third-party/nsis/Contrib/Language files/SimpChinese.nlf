@@ -1,190 +1,191 @@
-# Header, don't edit
+﻿# Header, don't edit
 NLF v6
 # Language ID
 2052
-# Font and size - dash (-) means default �����������С
-����
+# Font and size - dash (-) means default 字体名称与大小
+宋体
 9
-# Codepage - dash (-) means ANSI code page ANSI ����ҳ
+# Codepage - dash (-) means ASCII code page ASCII 字码页
 936
-# RTL - anything else than RTL means LTR ����������д
+# RTL - anything else than RTL means LTR 由右至左书写
 -
-# Translator: Kii Ali <kiiali@cpatch.org>;Revision date: 2004-12-15
+# Revision date: 2010-09-28
+# Translator: Kii Ali <kiiali@cpatch.org>, <kiiali@ms1.url.com.tw>, <kiiali@pchome.com.tw>
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
-$(^Name) ��װ
+$(^Name) 安装
 # ^UninstallCaption
-$(^Name) ж��
+$(^Name) 解除安装
 # ^LicenseSubCaption
-: ����֤Э��
+: 许可证协议
 # ^ComponentsSubCaption
-: ��װѡ��
+: 安装选项
 # ^DirSubCaption
-: ��װ�ļ���
+: 安装文件夹
 # ^InstallingSubCaption
-: ���ڰ�װ
+: 正在安装
 # ^CompletedSubCaption
-: �����
+: 已完成
 # ^UnComponentsSubCaption
-: ж��ѡ��
+: 解除安装选项
 # ^UnDirSubCaption
-: ж���ļ���
+: 解除安装文件夹
 # ^ConfirmSubCaption
-: ȷ��
+: 确认
 # ^UninstallingSubCaption
-: ����ж��
+: 正在解除安装
 # ^UnCompletedSubCaption
-: ���
+: 完成
 # ^BackBtn
-< ��һ��(&P)
+< 上一步(&P)
 # ^NextBtn
-��һ��(&N) >
+下一步(&N) >
 # ^AgreeBtn
-�ҽ���(&I)
+我接受(&I)
 # ^AcceptBtn
-�ҽ��ܡ�����֤Э�顱�е�����(&A)
+我接受“许可证协议”中的条款(&A)
 # ^DontAcceptBtn
-�Ҳ����ܡ�����֤Э�顱�е�����(&N)
+我不接受“许可证协议”中的条款(&N)
 # ^InstallBtn
-��װ(&I)
+安装(&I)
 # ^UninstallBtn
-ж��(&U)
+解除安装(&U)
 # ^CancelBtn
-ȡ��(&C)
+取消(&C)
 # ^CloseBtn
-�ر�(&L)
+关闭(&L)
 # ^BrowseBtn
-���(&B)...
+浏览(&B)...
 # ^ShowDetailsBtn
-��ʾϸ��(&D)
+显示细节(&D)
 # ^ClickNext
-���� [��һ��(N)] ������
+单击 [下一步(N)] 继续。
 # ^ClickInstall
-���� [��װ(I)] ��ʼ��װ���̡�
+单击 [安装(I)] 开始安装进程。
 # ^ClickUninstall
-���� [ж��(U)] ��ʼ�����װ���̡�
+单击 [解除安装(U)] 开始解除安装进程。
 # ^Name
-����
+名称
 # ^Completed
-�����
+已完成
 # ^LicenseText
-�ڰ�װ $(^NameDA) ֮ǰ���������֤Э�顣��������Э��������������� [�ҽ���(I)] ��
+在安装 $(^NameDA) 之前请检阅许可证协议。如果你接受协议中所有条款，单击 [我同意(I)] 。
 # ^LicenseTextCB
-�ڰ�װ $(^NameDA) ֮ǰ���������֤Э�顣��������Э����������������·��Ĺ�ѡ�� $_CLICK
+在安装 $(^NameDA) 之前请检阅许可证协议。如果你接受协议中所有条款，单击下方的勾选框。 $_CLICK
 # ^LicenseTextRB
-�ڰ�װ $(^NameDA) ֮ǰ���������֤Э�顣��������Э�����������ѡ���·��ĵ�һ��ѡ� $_CLICK
+在安装 $(^NameDA) 之前请检阅许可证协议。如果你接受协议中所有条款，选择下方的第一个选项。 $_CLICK
 # ^UnLicenseText
-��ж�� $(^NameDA) ֮ǰ���������֤Э�顣��������Э��������������� [�ҽ���(I)] ��
+在解除安装 $(^NameDA) 之前请检阅许可证协议。如果你接受协议中所有条款，单击 [我同意(I)] 。
 # ^UnLicenseTextCB
-��ж�� $(^NameDA) ֮ǰ���������֤Э�顣��������Э����������������·��Ĺ�ѡ�� $_CLICK
+在解除安装 $(^NameDA) 之前请检阅许可证协议。如果你接受协议中所有条款，单击下方的勾选框。 $_CLICK
 # ^UnLicenseTextRB
-��ж�� $(^NameDA) ֮ǰ���������֤Э�顣��������Э�����������ѡ���·��ĵ�һ��ѡ� $_CLICK
+在解除安装 $(^NameDA) 之前请检阅许可证协议。如果你接受协议中所有条款，选择下方的第一个选项。 $_CLICK
 # ^Custom
-�Զ���
+自定义
 # ^ComponentsText
-��ѡ����Ҫ��װ��������������ѡ�㲻ϣ����װ������� $_CLICK
+勾选你想要安装的组件，并解除勾选你不希望安装的组件。 $_CLICK
 # ^ComponentsSubText1
-ѡ����װ������: 
+选定安装的类型: 
 # ^ComponentsSubText2_NoInstTypes
-ѡ����װ�����: 
+选定安装的组件: 
 # ^ComponentsSubText2
-���ߣ��Զ���ѡ���밲װ�����: 
+或者，自定义选定想安装的组件: 
 # ^UnComponentsText
-��ѡ����Ҫж�ص�������������ѡ�㲻ϣ��ж�ص������ $_CLICK
+勾选你想要解除安装的组件，并解除勾选你不想要望解除安装的组件。 $_CLICK
 # ^UnComponentsSubText1
-ѡ��ж�ص�����: 
+选择解除安装的类型: 
 # ^UnComponentsSubText2_NoInstTypes
-ѡ��Ҫж�ص����: 
+选择要解除安装的组件: 
 # ^UnComponentsSubText2
-���ǣ�ѡ����Ҫж�صĿ�ѡ�����: 
+或是，选择想要解除安装的可选项组件: 
 # ^DirText
-Setup ����װ $(^NameDA) �������ļ��С�Ҫ��װ����ͬ�ļ��У����� [���(B)] ��ѡ���������ļ��С� $_CLICK
+Setup 将安装 $(^NameDA) 在下列文件夹。要安装到不同文件夹，单击 [浏览(B)...] 并选择其他的文件夹。 $_CLICK
 # ^DirSubText
-Ŀ���ļ���
+目标文件夹
 # ^DirBrowseText
-ѡ��Ҫ��װ $(^NameDA) ���ļ���λ��: 
+选择要安装 $(^NameDA) 的文件夹位置: 
 # ^UnDirText
-Setup ��ж�� $(^NameDA) �������ļ��С�Ҫж�ص���ͬ�ļ��У����� [���(B)] ��ѡ���������ļ��С� $_CLICK
+Setup 将自下列文件夹解除安装 $(^NameDA) 。要解除安装到不同文件夹，单击 [浏览(B)...] 并选择其他的文件夹。 $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-ѡ��Ҫж�� $(^NameDA) ���ļ���λ��: 
+选择要解除安装 $(^NameDA) 的文件夹: 
 # ^SpaceAvailable
-"���ÿռ�: "
+"可用空间: "
 # ^SpaceRequired
-"����ռ�: "
+"所需空间: "
 # ^UninstallingText
-����򵼽�����ļ����ж�� $(^NameDA) �� $_CLICK
+这个向导将从你的计算机解除安装 $(^NameDA) 。 $_CLICK
 # ^UninstallingSubText
-ж��Ŀ¼: 
+解除安装目录: 
 # ^FileError
-���ܴ�Ҫд����ļ�: \r\n\t"$0"\r\n���� [Abort] ������װ��\r\n [Retry] ���³���д���ļ�����\r\n [Ignore] ��������ļ���
+不能打开要写入的文件: \r\n\t"$0"\r\n单击 [Abort] 停止安装，\r\n [Retry] 重新尝试写入文件，或\r\n [Ignore] 忽略这个文件。
 # ^FileError_NoIgnore
-���ܴ�Ҫд����ļ�: \r\n\t"$0"\r\n���� [Retry] ���³���д���ļ�����\r\n [Cancel] ȡ����װ��
+不能打开要写入的文件: \r\n\t"$0"\r\n单击 [Retry] 重新尝试写入文件，或\r\n [Cancel] 停止安装。
 # ^CantWrite
-"�޷�д��: "
+"无法写入: "
 # ^CopyFailed
-"����ʧ�� "
+"复制失败 "
 # ^CopyTo
-"���Ƶ�: "
+"复制到: "
 # ^Registering
-"����ע��: "
+"正在注册: "
 # ^Unregistering
-"���ڽ��ע��: "
+"正在解除注册: "
 # ^SymbolNotFound
-"�޷��ҵ�����: "
+"无法找到符号: "
 # ^CouldNotLoad
-"�޷�����: "
+"无法加载: "
 # ^CreateFolder
-"�����ļ���: " 
+"创建文件夹: " 
 # ^CreateShortcut
-"������ݷ�ʽ: "
+"创建快捷方式: "
 # ^CreatedUninstaller
-"����ж�س���: "
+"创建解除安装程序: "
 # ^Delete
-"ɾ���ļ�: "
+"删除文件: "
 # ^DeleteOnReboot
-"����������ɾ��: "
+"重新启动后删除: "
 # ^ErrorCreatingShortcut
-"���ڴ�����ݷ�ʽʱ��������: "
+"正在创建快捷方式时发生错误: "
 # ^ErrorCreating
-"���ڴ���ʱ��������: "
+"正在创建时发生错误: "
 # ^ErrorDecompressing
-"���ڽ�ѹ�����ݷ����������𻵵İ�װ����"
+"正在解压缩数据发生错误！已损坏的安装程序？"
 # ^ErrorRegistering
-"����ע�� DLL ʱ��������"
+"正在注册 DLL 时发生错误"
 # ^ExecShell
-"�����ⲿ����: "
+"运行壳层程序: "
 # ^Exec
-"����: "
+"运行: "
 # ^Extract
-"��ȡ: "
+"抽取: "
 # ^ErrorWriting
-"��ȡ: �޷�д���ļ� "
+"抽取: 无法写入文件 "
 # ^InvalidOpcode
-"��װ���: ��Ч�Ĳ������� "
+"安装损毁: 无效的操作代码 "
 # ^NoOLE
-"û�� OLE ����: "
+"没有 OLE 用于: "
 # ^OutputFolder
-"���Ŀ¼: "
+"输出目录: "
 # ^RemoveFolder
-"�Ƴ�Ŀ¼: "
+"移除目录: "
 # ^RenameOnReboot
-"����������������: "
+"重新启动后重命名: "
 # ^Rename
-"������: "
+"重命名: "
 # ^Skipped
-"������: "
+"已跳过: "
 # ^CopyDetails
-"����ϸ�ڵ������� "
+"复制细节到剪贴板 "
 # ^LogInstall
-"��־��װ����"
+"日志安装进程"
 # byte
 B
 # kilo
-K
+ K
 # mega
-M
+ M
 # giga
-G
+ G

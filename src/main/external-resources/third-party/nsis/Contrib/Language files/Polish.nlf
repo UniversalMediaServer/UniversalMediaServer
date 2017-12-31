@@ -1,4 +1,4 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,21 +6,21 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1250
 # RTL - anything else than RTL means LTR
 -
-# Translation by Piotr Murawski & Rafa³ Lampe
+# Translation by Piotr Murawski & RafaÅ‚ Lampe
 # Updated by cube and SYSTEMsoft Group
-# Corrections by Marek Stepien <marcoos@aviary.pl> - http://www.aviary.pl/
-# Updated by Pawe³ Porwisz, http://www.pepesoft.tox.pl
-# Corrected by Mateusz Gola (aka Prozac) - http://www.videopedia.pl/avirecomp
+# Corrected by Marek StÄ™pieÅ„ <mstepien@aviary.pl> - http://www.aviary.pl
+# Corrected by Mateusz Gola (aka Prozac) - http://www.avirecomp.com
+# Updated by PaweÅ‚ Porwisz (http://www.pawelporwisz.pl)
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
-Instalator programu $(^Name)
+Instalator $(^Name)
 # ^UninstallCaption
-Deinstalator programu $(^Name)
+Deinstalator $(^Name)
 # ^LicenseSubCaption
 : Umowa licencyjna
 # ^ComponentsSubCaption
@@ -28,9 +28,9 @@ Deinstalator programu $(^Name)
 # ^DirSubCaption
 : Folder instalacyjny
 # ^InstallingSubCaption
-: Instalowanie plików
+: Instalowanie plikÃ³w
 # ^CompletedSubCaption
-: Zakoñczono
+: ZakoÅ„czono
 # ^UnComponentsSubCaption
 : Opcje deinstalacji
 # ^UnDirSubCaption
@@ -38,19 +38,19 @@ Deinstalator programu $(^Name)
 # ^ConfirmSubCaption
 : Potwierdzenie
 # ^UnDirSubCaption
-: Deinstalowanie plików
+: Deinstalowanie plikÃ³w
 # ^UnCompletedSubCaption
-: Zakoñczono
+: ZakoÅ„czono
 # ^BackBtn
 < &Wstecz
 # ^NextBtn
 &Dalej >
 # ^AgreeBtn
-&Zgadzam siê
+&Zgadzam siÄ™
 # ^AcceptBtn
-&Akceptujê warunki umowy licencyjnej
+&AkceptujÄ™ warunki umowy licencyjnej
 # ^DontAcceptBtn
-&Nie akceptujê warunków umowy licencyjnej
+&Nie akceptujÄ™ warunkÃ³w umowy licencyjnej
 # ^InstallBtn
 &Zainstaluj
 # ^UninstallBtn
@@ -60,63 +60,63 @@ Anuluj
 # ^CloseBtn
 &Zamknij
 # ^BrowseBtn
-&Przegl¹daj...
+&PrzeglÄ…daj...
 # ^ShowDetailsBtn
-Poka¿ &szczegó³y
+PokaÅ¼ &szczegÃ³Å‚y
 # ^ClickNext
-Kliknij Dalej, aby kontynuowaæ.
+Kliknij przycisk 'Dalej', aby kontynuowaÄ‡.
 # ^ClickInstall
-Kliknij Zainstaluj, aby rozpocz¹æ instalacjê.
+Kliknij przycisk 'Zainstaluj', aby rozpoczÄ…Ä‡ instalacjÄ™.
 # ^ClickUninstall
-Kliknij Odinstaluj, aby rozpocz¹æ deinstalacjê.
+Kliknij przycisk 'Odinstaluj', aby rozpoczÄ…Ä‡ deinstalacjÄ™.
 # ^Name
 Nazwa
 # ^Completed
-Zakoñczono
+ZakoÅ„czono
 # ^LicenseText
-Przed zainstalowaniem $(^NameDA) przeczytaj umowê licencyjn¹. Jeœli akceptujesz wszystkie warunki umowy, kliknij Zgadzam siê.
+Przed instalacjÄ… $(^NameDA) zapoznaj siÄ™ z warunkami licencji. JeÅ›li akceptujesz wszystkie warunki umowy, kliknij przycisk 'Zgadzam siÄ™'.
 # ^LicenseTextCB
-Przed zainstalowaniem $(^NameDA) przeczytaj umowê licencyjn¹. Jeœli akceptujesz wszystkie warunki umowy, kliknij pole wyboru poni¿ej. $_CLICK.
+Przed instalacjÄ… $(^NameDA) zapoznaj siÄ™ z warunkami licencji. JeÅ›li akceptujesz wszystkie warunki umowy, kliknij poniÅ¼sze pole wyboru. $_CLICK.
 # ^LicenseTextRB
-Przed zainstalowaniem $(^NameDA) przeczytaj umowê licencyjn¹. Jeœli akceptujesz wszystkie warunki umowy, wybierz pierwsz¹ opcjê poni¿ej. $_CLICK.
+Przed instalacjÄ… $(^NameDA) zapoznaj siÄ™ z warunkami licencji. JeÅ›li akceptujesz wszystkie warunki umowy, wybierz pierwszÄ… z poniÅ¼szych opcji. $_CLICK.
 # ^UnLicenseText
-Przed odinstalowaniem $(^NameDA) przeczytaj umowê licencyjn¹. Jeœli akceptujesz wszystkie warunki umowy, kliknij Zgadzam siê.
+Przed deinstalacjÄ… $(^NameDA) zapoznaj siÄ™ z warunkami licencji. JeÅ›li akceptujesz wszystkie warunki umowy, kliknij przycisk 'Zgadzam siÄ™'.
 # ^UnLicenseTextCB
-Przed odinstalowaniem $(^NameDA) przeczytaj umowê licencyjn¹. Jeœli akceptujesz wszystkie warunki umowy, kliknij pole wyboru poni¿ej. $_CLICK.
+Przed deinstalacjÄ… $(^NameDA) zapoznaj siÄ™ z warunkami licencji. JeÅ›li akceptujesz wszystkie warunki umowy, kliknij poniÅ¼sze pole wyboru. $_CLICK.
 # ^UnLicenseTextRB
-Przed odinstalowaniem $(^NameDA) przeczytaj licencjê. Jeœli akceptujesz wszystkie warunki umowy, wybierz pierwsz¹ opcjê poni¿ej. $_CLICK.
+Przed deinstalacjÄ… $(^NameDA) zapoznaj siÄ™ z warunkami licencji. JeÅ›li akceptujesz wszystkie warunki umowy, wybierz pierwszÄ… z poniÅ¼szych opcji. $_CLICK.
 # ^Custom
-U¿ytkownika
+UÅ¼ytkownika
 # ^ComponentsText
-Zaznacz komponenty, które chcesz zainstalowaæ i odznacz te, których nie chcesz instalowaæ. $_CLICK
+Zaznacz komponenty, ktÃ³re chcesz zainstalowaÄ‡ i odznacz te, ktÃ³rych nie chcesz instalowaÄ‡. $_CLICK
 # ^ComponentsSubText1
 Wybierz typ instalacji:
 # ^ComponentsSubText2_NoInstTypes
 Wybierz komponenty do zainstalowania:
 # ^ComponentsSubText2
-Albo wybierz opcjonalne komponenty, które chcesz zainstalowaæ:
+Albo wybierz opcjonalne komponenty, ktÃ³re chcesz zainstalowaÄ‡:
 # ^UnComponentsText
-Zaznacz komponenty, które chcesz odinstalowaæ i odznacz te, które nie zostan¹ odinstalowane. $_CLICK
+Zaznacz komponenty, ktÃ³re chcesz odinstalowaÄ‡ i odznacz te, ktÃ³re nie zostanÄ… odinstalowane. $_CLICK
 # ^UnComponentsSubText1
 Wybierz typ deinstalacji:
 # ^UnComponentsSubText2_NoInstTypes
 Wybierz komponenty do odinstalowania:
 # ^UnComponentsSubText2
-Albo wybierz opcjonalne komponenty, które chcesz odinstalowaæ:
+Albo wybierz opcjonalne komponenty, ktÃ³re chcesz odinstalowaÄ‡:
 # ^DirText
-Instalator zainstaluje program $(^NameDA) w nastêpuj¹cym folderze. Aby zainstalowaæ w innym folderze, kliknij Przegl¹daj i wybierz folder. $_CLICK
+Instalator zainstaluje $(^NameDA) w podanym poniÅ¼ej folderze docelowym (moÅ¼esz takÅ¼e kliknÄ…Ä‡ przycisk 'PrzeglÄ…daj...' i wybraÄ‡ inny folder). $_CLICK
 # ^DirSubText
 Folder docelowy
 # ^DirBrowseText
 Wybierz folder instalacyjny $(^NameDA):
 # ^UnDirText
-Deinstalator usunie $(^NameDA) z nastêpuj¹cego folderu. Aby odinstalowaæ z innego folderu, kliknij Przegl¹daj i wybierz folder. $_CLICK
+Deinstalator usunie $(^NameDA) z nastÄ™pujÄ…cego folderu. Aby odinstalowaÄ‡ z innego folderu, kliknij przycisk 'PrzeglÄ…daj...' i wybierz folder. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Wybierz folder, z którego zostanie odinstalowany program $(^NameDA):
+Wybierz folder, z ktÃ³rego zostanie odinstalowany $(^NameDA):
 # ^SpaceAvailable
-"Dostêpne miejsce: "
+"DostÄ™pne miejsce: "
 # ^SpaceRequired
 "Wymagane miejsce: "
 # ^UninstallingText
@@ -124,72 +124,72 @@ Ten kreator odinstaluje $(^NameDA) z Twojego komputera. $_CLICK
 # ^UninstallingSubText
 Deinstalacja z: 
 # ^FileError
-B³¹d otwarcia pliku do zapisu: \r\n\r\n$0\r\n\r\nWybierz Anuluj, aby przerwaæ instalacjê,\r\nPonów, aby ponowiæ zapis do pliku lub\r\nIgnoruj, aby pomin¹æ ten plik.
+BÅ‚Ä…d otwarcia pliku do zapisu: \r\n\r\n$0\r\n\r\nWybierz 'Anuluj', aby przerwaÄ‡ instalacjÄ™,\r\n'PonÃ³w', aby ponowiÄ‡ zapis do pliku lub\r\n'Ignoruj', aby pominÄ…Ä‡ ten plik.
 # ^FileError_NoIgnore
-B³¹d otwarcia pliku do zapisu: \r\n\r\n$0\r\n\r\nWybierz Ponów, aby ponowiæ zapis do pliku lub\r\nAnuluj, aby przerwaæ instalacjê.
+BÅ‚Ä…d otwarcia pliku do zapisu: \r\n\r\n$0\r\n\r\nWybierz 'PonÃ³w', aby ponowiÄ‡ zapis do pliku lub\r\n'Anuluj', aby przerwaÄ‡ instalacjÄ™.
 # ^CantWrite
-"Nie mo¿na zapisaæ: "
+"Nie moÅ¼na zapisaÄ‡: "
 # ^CopyFailed
-B³¹d kopiowania
+BÅ‚Ä…d kopiowania
 # ^CopyTo
 "Kopiuj do "
 # ^Registering 
 "Rejestrowanie: "
 # ^Unregistering
-"Odrejestrowywanie: "
+"Wyrejestrowywanie: "
 # ^SymbolNotFound
-"Nie mo¿na odnaleŸæ symbolu: "
+"Nie moÅ¼na odnaleÅºÄ‡ symbolu: "
 # ^CouldNotLoad
-"Nie mo¿na wczytaæ: "
+"Nie moÅ¼na wczytaÄ‡: "
 #^CreateFolder
-"Utwórz folder: "
+"UtwÃ³rz folder: "
 # ^CreateShortcut
-"Utwórz skrót: "
+"UtwÃ³rz skrÃ³t: "
 # ^CreatedUninstaller
 "Utworzono deinstalator: "
 # ^Delete
-"Usuñ plik: "
+"UsuÅ„ plik: "
 # ^DeleteOnReboot
-"Usuñ przy ponownym uruchomieniu: "
+"UsuÅ„ przy ponownym uruchomieniu: "
 # ^ErrorCreatingShortcut
-"B³¹d tworzenia skrótu: "
+"BÅ‚Ä…d tworzenia skrÃ³tu: "
 # ^ErrorCreating
-"B³¹d tworzenia: "
+"BÅ‚Ä…d tworzenia: "
 # ^ErrorDecompressing
-B³¹d rozpakowywania danych! Uszkodzony instalator?
+BÅ‚Ä…d wyodrÄ™bniania danych! Uszkodzony instalator?
 # ^ErrorRegistering
-B³¹d rejestracji pliku DLL
+BÅ‚Ä…d rejestracji pliku DLL
 # ^ExecShell
 "ExecShell: "
 # ^Exec
 "Uruchom: "
 # ^Extract
-"Rozpakuj: "
+"WyodrÄ™bnij: "
 # ^ErrorWriting
-"Rozpakuj: b³¹d zapisu do pliku "
+"WyodrÄ™bnij: bÅ‚Ä…d zapisu do pliku "
 # ^InvalidOpcode
-Instalator uszkodzony: nieprawid³owy kod operacji
+Instalator uszkodzony: nieprawidÅ‚owy kod operacji
 # ^NoOLE
 "Brak OLE dla: "
 # ^OutputFolder
-"Folder wyjœciowy: "
+"Folder wyjÅ›ciowy: "
 # ^RemoveFolder
-"Usuñ folder: "
+"UsuÅ„ folder: "
 # ^RenameOnReboot
-"Zmieñ nazwê przy ponownym uruchomieniu: "
+"ZmieÅ„ nazwÄ™ przy ponownym uruchomieniu: "
 # ^Rename
-"Zmieñ nazwê: "
+"ZmieÅ„ nazwÄ™: "
 # ^Skipped
-"Pominiête: "
+"PominiÄ™te: "
 # ^CopyDetails
-Kopiuj szczegó³y do schowka
+Kopiuj szczegÃ³Å‚y do schowka
 # ^LogInstall
 Rejestruj przebieg instalacji
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

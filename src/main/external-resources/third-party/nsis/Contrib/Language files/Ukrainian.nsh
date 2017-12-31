@@ -1,122 +1,130 @@
-;Language: Ukrainian (1058)
+п»ї;Language: Ukrainian (1058)
 ;By Yuri Holubow, http://www.Nash-Soft.com
 ;Correct by Osidach Vitaly (Vit_Os2)
 
-!insertmacro LANGFILE "Ukrainian" "Ukrainian"
+!insertmacro LANGFILE "Ukrainian" = "РЈРєСЂР°С—РЅСЃСЊРєР°" "Ukrayins'ka"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Ласкаво просимо до Майстра Встановлення $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Дана програма встановить $(^NameDA) на Ваш комп'ютер.$\r$\n$\r$\nРекомендовано закрити всі програми перед початком інсталяції. Це дозволить програмі встановлення оновити системні файли без перезавантаження системи.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Р›Р°СЃРєР°РІРѕ РїСЂРѕСЃРёРјРѕ РґРѕ РњР°Р№СЃС‚СЂР° Р’СЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Р”Р°РЅР° РїСЂРѕРіСЂР°РјР° РІСЃС‚Р°РЅРѕРІРёС‚СЊ $(^NameDA) РЅР° Р’Р°С€ РєРѕРјРї'СЋС‚РµСЂ.$\r$\n$\r$\nР РµРєРѕРјРµРЅРґРѕРІР°РЅРѕ Р·Р°РєСЂРёС‚Рё РІСЃС– РїСЂРѕРіСЂР°РјРё РїРµСЂРµРґ РїРѕС‡Р°С‚РєРѕРј С–РЅСЃС‚Р°Р»СЏС†С–С—. Р¦Рµ РґРѕР·РІРѕР»РёС‚СЊ РїСЂРѕРіСЂР°РјС– РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ РѕРЅРѕРІРёС‚Рё СЃРёСЃС‚РµРјРЅС– С„Р°Р№Р»Рё Р±РµР· РїРµСЂРµР·Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ СЃРёСЃС‚РµРјРё.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Ласкаво просимо до Майстра Видалення $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Даний майстер доможе видалити $(^NameDA).$\r$\n$\r$\nПеред початком видалення, перевірте, чи не запущено $(^NameDA).$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Р›Р°СЃРєР°РІРѕ РїСЂРѕСЃРёРјРѕ РґРѕ РњР°Р№СЃС‚СЂР° Р’РёРґР°Р»РµРЅРЅСЏ $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Р”Р°РЅРёР№ РјР°Р№СЃС‚РµСЂ РґРѕРїРѕРјРѕР¶Рµ РІРёРґР°Р»РёС‚Рё $(^NameDA).$\r$\n$\r$\nРџРµСЂРµРґ РїРѕС‡Р°С‚РєРѕРј РІРёРґР°Р»РµРЅРЅСЏ, РїРµСЂРµРІС–СЂС‚Рµ, С‡Рё РЅРµ Р·Р°РїСѓС‰РµРЅРѕ $(^NameDA).$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Ліцензійна Угода"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Будь-ласка перегляньте ліцензію перед встановленням $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Якщо Ви приймаєте всi умови Угоди, натиснiть на кнопку Згоден. Ви повиннi прийняти умови Угоди для встановлення $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Якщо Ви приймаєте всі умови Угоди, встановіть відмітку у квадратику нижче. Ви повинні прийняти умови Угоди для встановлення $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Якщо Ви приймаєте всі умови Угоди, виберіть перший варіант з тих що нижче. Ви повинні прийняти умови Угоди для встановлення $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Р›С–С†РµРЅР·С–Р№РЅР° РЈРіРѕРґР°"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "РџРµСЂРµРіР»СЏРЅСЊС‚Рµ Р»С–С†РµРЅР·С–СЋ РїРµСЂРµРґ РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏРј $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "РЇРєС‰Рѕ Р’Рё РїСЂРёР№РјР°С”С‚Рµ РІСЃС– СѓРјРѕРІРё РЈРіРѕРґРё, РЅР°С‚РёСЃРЅС–С‚СЊ РЅР° РєРЅРѕРїРєСѓ Р—РіРѕРґРµРЅ. Р’Рё РїРѕРІРёРЅРЅС– РїСЂРёР№РЅСЏС‚Рё СѓРјРѕРІРё РЈРіРѕРґРё РґР»СЏ РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "РЇРєС‰Рѕ Р’Рё РїСЂРёР№РјР°С”С‚Рµ РІСЃС– СѓРјРѕРІРё РЈРіРѕРґРё, РІСЃС‚Р°РЅРѕРІС–С‚СЊ РІС–РґРјС–С‚РєСѓ Сѓ РєРІР°РґСЂР°С‚РёРєСѓ РЅРёР¶С‡Рµ. Р’Рё РїРѕРІРёРЅРЅС– РїСЂРёР№РЅСЏС‚Рё СѓРјРѕРІРё РЈРіРѕРґРё РґР»СЏ РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "РЇРєС‰Рѕ Р’Рё РїСЂРёР№РјР°С”С‚Рµ РІСЃС– СѓРјРѕРІРё РЈРіРѕРґРё, РІРёР±РµСЂС–С‚СЊ РїРµСЂС€РёР№ РІР°СЂС–Р°РЅС‚ Р· С‚РёС… С‰Рѕ РЅРёР¶С‡Рµ. Р’Рё РїРѕРІРёРЅРЅС– РїСЂРёР№РЅСЏС‚Рё СѓРјРѕРІРё РЈРіРѕРґРё РґР»СЏ РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Ліцензійна угода"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Прочитайте умови ліцензійної угоди перед видаленням $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Якщо Ви приймаєте всi умови Угоди, натиснiть на кнопку Згоден. Ви повиннi прийняти умови Угоди для видалення $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Якщо Ви приймаєте всі умови Угоди, встановіть відмітку у квадратику нижче. Ви повинні прийняти умови Угоди для видалення $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Якщо Ви приймаєте всі умови Угоди, виберіть перший варіант з тих, що нижче. Ви повинні прийняти умови Угоди для видалення $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Р›С–С†РµРЅР·С–Р№РЅР° СѓРіРѕРґР°"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "РџСЂРѕС‡РёС‚Р°Р№С‚Рµ СѓРјРѕРІРё Р»С–С†РµРЅР·С–Р№РЅРѕС— СѓРіРѕРґРё РїРµСЂРµРґ РІРёРґР°Р»РµРЅРЅСЏРј $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "РЇРєС‰Рѕ Р’Рё РїСЂРёР№РјР°С”С‚Рµ РІСЃС– СѓРјРѕРІРё РЈРіРѕРґРё, РЅР°С‚РёСЃРЅС–С‚СЊ РЅР° РєРЅРѕРїРєСѓ Р—РіРѕРґРµРЅ. Р’Рё РїРѕРІРёРЅРЅС– РїСЂРёР№РЅСЏС‚Рё СѓРјРѕРІРё РЈРіРѕРґРё РґР»СЏ РІРёРґР°Р»РµРЅРЅСЏ $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "РЇРєС‰Рѕ Р’Рё РїСЂРёР№РјР°С”С‚Рµ РІСЃС– СѓРјРѕРІРё РЈРіРѕРґРё, РІСЃС‚Р°РЅРѕРІС–С‚СЊ РІС–РґРјС–С‚РєСѓ Сѓ РєРІР°РґСЂР°С‚РёРєСѓ РЅРёР¶С‡Рµ. Р’Рё РїРѕРІРёРЅРЅС– РїСЂРёР№РЅСЏС‚Рё СѓРјРѕРІРё РЈРіРѕРґРё РґР»СЏ РІРёРґР°Р»РµРЅРЅСЏ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "РЇРєС‰Рѕ Р’Рё РїСЂРёР№РјР°С”С‚Рµ РІСЃС– СѓРјРѕРІРё РЈРіРѕРґРё, РІРёР±РµСЂС–С‚СЊ РїРµСЂС€РёР№ РІР°СЂС–Р°РЅС‚ Р· С‚РёС…, С‰Рѕ РЅРёР¶С‡Рµ. Р’Рё РїРѕРІРёРЅРЅС– РїСЂРёР№РЅСЏС‚Рё СѓРјРѕРІРё РЈРіРѕРґРё РґР»СЏ РІРёРґР°Р»РµРЅРЅСЏ $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Натиснiть PageDown щоб переміститись вниз угоди."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "РќР°С‚РёСЃРЅС–С‚СЊ PageDown С‰РѕР± РїРµСЂРµРјС–СЃС‚РёС‚РёСЃСЊ РІРЅРёР· СѓРіРѕРґРё."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Оберіть компоненти"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Оберіть компоненти $(^NameDA) якi Ви бажаєте встановити."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "РћР±РµСЂС–С‚СЊ РєРѕРјРїРѕРЅРµРЅС‚Рё"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "РћР±РµСЂС–С‚СЊ РєРѕРјРїРѕРЅРµРЅС‚Рё $(^NameDA) СЏРєС– Р’Рё Р±Р°Р¶Р°С”С‚Рµ РІСЃС‚Р°РЅРѕРІРёС‚Рё."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Компоненти програми"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Оберіть які компоненти $(^NameDA) Ви бажаєте видалити."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "РљРѕРјРїРѕРЅРµРЅС‚Рё РїСЂРѕРіСЂР°РјРё"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "РћР±РµСЂС–С‚СЊ СЏРєС– РєРѕРјРїРѕРЅРµРЅС‚Рё $(^NameDA) Р’Рё Р±Р°Р¶Р°С”С‚Рµ РІРёРґР°Р»РёС‚Рё."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Опис"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "РћРїРёСЃ"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Пiдведiть вашу мишку до компонента, щоб побачити його опис."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "РџС–РґРІРµРґС–С‚СЊ РІР°С€Сѓ РјРёС€РєСѓ РґРѕ РєРѕРјРїРѕРЅРµРЅС‚Р°, С‰РѕР± РїРѕР±Р°С‡РёС‚Рё Р№РѕРіРѕ РѕРїРёСЃ."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Пiдведiть вашу мишку до компонента, щоб побачити його опис."
+    #FIXME:MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO 
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Оберiть теку встановлення"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Оберiть теку для встановлення $(^NameDA)."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "РћР±РµСЂС–С‚СЊ С‚РµРєСѓ РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "РћР±РµСЂС–С‚СЊ С‚РµРєСѓ РґР»СЏ РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ $(^NameDA)."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Вибір теки для видалення"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Оберіть теку, з якої Ви бажаєте видалити $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Р’РёР±С–СЂ С‚РµРєРё РґР»СЏ РІРёРґР°Р»РµРЅРЅСЏ"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "РћР±РµСЂС–С‚СЊ С‚РµРєСѓ, Р· СЏРєРѕС— Р’Рё Р±Р°Р¶Р°С”С‚Рµ РІРёРґР°Р»РёС‚Рё $(^NameDA)."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Копіювання файлів"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Будь-ласка зачекайте, доки програма встановлення скопіює всі необхідні файли $(^NameDA)."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Встановлення завершено"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Встановлення успiшно завершено."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Встановлення перервана"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Встановлення не було успiшно завершено."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "РљРѕРїС–СЋРІР°РЅРЅСЏ С„Р°Р№Р»С–РІ"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Р—Р°С‡РµРєР°Р№С‚Рµ, РґРѕРєРё РїСЂРѕРіСЂР°РјР° РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ СЃРєРѕРїС–СЋС” РІСЃС– РЅРµРѕР±С…С–РґРЅС– С„Р°Р№Р»Рё $(^NameDA)."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Р’СЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ Р·Р°РІРµСЂС€РµРЅРѕ"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Р’СЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ СѓСЃРїС–С€РЅРѕ Р·Р°РІРµСЂС€РµРЅРѕ."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "Р’СЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ РїРµСЂРµСЂРІР°РЅР°"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Р’СЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ РЅРµ Р±СѓР»Рѕ СѓСЃРїС–С€РЅРѕ Р·Р°РІРµСЂС€РµРЅРѕ."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Видалення"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Будь-ласка зачекайте, йде видалення файлів $(^NameDA)."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Видалення завершено"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Видалення програми було успішно завершено."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Видалення перервано"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Видалення не було виконано повністю."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Р’РёРґР°Р»РµРЅРЅСЏ"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Р—Р°С‡РµРєР°Р№С‚Рµ, Р№РґРµ РІРёРґР°Р»РµРЅРЅСЏ С„Р°Р№Р»С–РІ $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Р’РёРґР°Р»РµРЅРЅСЏ Р·Р°РІРµСЂС€РµРЅРѕ"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Р’РёРґР°Р»РµРЅРЅСЏ РїСЂРѕРіСЂР°РјРё Р±СѓР»Рѕ СѓСЃРїС–С€РЅРѕ Р·Р°РІРµСЂС€РµРЅРѕ."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Р’РёРґР°Р»РµРЅРЅСЏ РїРµСЂРµСЂРІР°РЅРѕ"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Р’РёРґР°Р»РµРЅРЅСЏ РЅРµ Р±СѓР»Рѕ РІРёРєРѕРЅР°РЅРѕ РїРѕРІРЅС–СЃС‚СЋ."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Завершення майстра встановлення $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) встановлено на ваш комп'ютер.$\r$\n$\r$\nНатисніть Кінець для виходу."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Для того, щоб завершити встановлення $(^NameDA) Ваш комп'ютер повинен перезавантажитися. Зробити це зараз?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Р—Р°РІРµСЂС€РµРЅРЅСЏ РјР°Р№СЃС‚СЂР° РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) РІСЃС‚Р°РЅРѕРІР»РµРЅРѕ РЅР° РІР°С€ РєРѕРјРї'СЋС‚РµСЂ.$\r$\n$\r$\nРќР°С‚РёСЃРЅС–С‚СЊ РљС–РЅРµС†СЊ РґР»СЏ РІРёС…РѕРґСѓ."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Р”Р»СЏ С‚РѕРіРѕ, С‰РѕР± Р·Р°РІРµСЂС€РёС‚Рё РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ $(^NameDA) Р’Р°С€ РєРѕРјРї'СЋС‚РµСЂ РїРѕРІРёРЅРµРЅ РїРµСЂРµР·Р°РІР°РЅС‚Р°Р¶РёС‚РёСЃСЏ. Р—СЂРѕР±РёС‚Рё С†Рµ Р·Р°СЂР°Р·?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Завершення Майстра Видалення $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) видалений з вашого комп'ютера.$\r$\n$\r$\nНатисніть Вихід, щоб закрити Майстра."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Для того, щоб закінчити видалення $(^NameDA) ваш комп'ютер повинен перезавантажитися. Ви бажаєте зробити це зараз?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Р—Р°РІРµСЂС€РµРЅРЅСЏ РњР°Р№СЃС‚СЂР° Р’РёРґР°Р»РµРЅРЅСЏ $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) РІРёРґР°Р»РµРЅРёР№ Р· РІР°С€РѕРіРѕ РєРѕРјРї'СЋС‚РµСЂР°.$\r$\n$\r$\nРќР°С‚РёСЃРЅС–С‚СЊ Р’РёС…С–Рґ, С‰РѕР± Р·Р°РєСЂРёС‚Рё РњР°Р№СЃС‚СЂР°."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Р”Р»СЏ С‚РѕРіРѕ, С‰РѕР± Р·Р°РєС–РЅС‡РёС‚Рё РІРёРґР°Р»РµРЅРЅСЏ $(^NameDA) РІР°С€ РєРѕРјРї'СЋС‚РµСЂ РїРѕРІРёРЅРµРЅ РїРµСЂРµР·Р°РІР°РЅС‚Р°Р¶РёС‚РёСЃСЏ. Р’Рё Р±Р°Р¶Р°С”С‚Рµ Р·СЂРѕР±РёС‚Рё С†Рµ Р·Р°СЂР°Р·?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Перезавантажитися зараз"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Я хочу перезавантажитися власноруч пізніше"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "&Запустити $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Показати інформацію про програму"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Кінець"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "РџРµСЂРµР·Р°РІР°РЅС‚Р°Р¶РёС‚РёСЃСЏ Р·Р°СЂР°Р·"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "РЇ С…РѕС‡Сѓ РїРµСЂРµР·Р°РІР°РЅС‚Р°Р¶РёС‚РёСЃСЏ РІР»Р°СЃРЅРѕСЂСѓС‡ РїС–Р·РЅС–С€Рµ"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "&Р—Р°РїСѓСЃС‚РёС‚Рё $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&РџРѕРєР°Р·Р°С‚Рё С–РЅС„РѕСЂРјР°С†С–СЋ РїСЂРѕ РїСЂРѕРіСЂР°РјСѓ"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&РљС–РЅРµС†СЊ"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Тека в меню Пуск"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Оберіть теку в меню Пуск для ярликів програми."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Оберіть теку в меню Пуск в яку будуть поміщені ярлики для встановленої програми. Ви також можете ввести інше ім'я для створення нової теки."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Не створювати ярлики"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "РўРµРєР° РІ РјРµРЅСЋ РџСѓСЃРє"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "РћР±РµСЂС–С‚СЊ С‚РµРєСѓ РІ РјРµРЅСЋ РџСѓСЃРє РґР»СЏ СЏСЂР»РёРєС–РІ РїСЂРѕРіСЂР°РјРё."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "РћР±РµСЂС–С‚СЊ С‚РµРєСѓ РІ РјРµРЅСЋ РџСѓСЃРє РІ СЏРєСѓ Р±СѓРґСѓС‚СЊ РїРѕРјС–С‰РµРЅС– СЏСЂР»РёРєРё РґР»СЏ РІСЃС‚Р°РЅРѕРІР»РµРЅРѕС— РїСЂРѕРіСЂР°РјРё. Р’Рё С‚Р°РєРѕР¶ РјРѕР¶РµС‚Рµ РІРІРµСЃС‚Рё С–РЅС€Рµ С–Рј'СЏ РґР»СЏ СЃС‚РІРѕСЂРµРЅРЅСЏ РЅРѕРІРѕС— С‚РµРєРё."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "РќРµ СЃС‚РІРѕСЂСЋРІР°С‚Рё СЏСЂР»РёРєРё"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Видалення $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Видалення $(^NameDA) з вашого комп'ютера."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Р’РёРґР°Р»РµРЅРЅСЏ $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Р’РёРґР°Р»РµРЅРЅСЏ $(^NameDA) Р· РІР°С€РѕРіРѕ РєРѕРјРї'СЋС‚РµСЂР°."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Ви впевненнi, що бажаєте покинути встановлення $(^Name)?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Р’Рё РІРїРµРІРЅРµРЅС–, С‰Рѕ Р±Р°Р¶Р°С”С‚Рµ РїРѕРєРёРЅСѓС‚Рё РІСЃС‚Р°РЅРѕРІР»РµРЅРЅСЏ $(^Name)?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ви впевненні що бажаєте покинути Майстр Видалення $(^Name)?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Р’Рё РІРїРµРІРЅРµРЅС– С‰Рѕ Р±Р°Р¶Р°С”С‚Рµ РїРѕРєРёРЅСѓС‚Рё РњР°Р№СЃС‚РµСЂ Р’РёРґР°Р»РµРЅРЅСЏ $(^Name)?"
+!endif
+
+!ifdef MULTIUSER_INSTALLMODEPAGE
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Р’РёР±РµСЂС–С‚СЊ РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Р’РёР±РµСЂС–С‚СЊ РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ, РґР»СЏ СЏРєРёС… СЃР»С–Рґ РІСЃС‚Р°РЅРѕРІРёС‚Рё $(^NameDA)."
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Р’РёР·РЅР°С‡С‚РµСЃСЏ, СЃР»С–Рґ РІСЃС‚Р°РЅРѕРІРёС‚Рё $(^NameDA) Р»РёС€Рµ РґР»СЏ РІР°С€РѕРіРѕ РєРѕСЂРёСЃС‚СѓРІР°С‡Р°, С‡Рё РґР»СЏ СѓСЃС–С… РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ С†С–С”С— РѕРїРµСЂР°С†С–Р№РЅРѕС— СЃРёСЃС‚РµРјРё. $(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Р’СЃС‚Р°РЅРѕРІРёС‚Рё РґР»СЏ СѓСЃС–С… Сѓ С†С–Р№ СЃРёСЃС‚РµРјС–"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Р’СЃС‚Р°РЅРѕРІРёС‚Рё Р»РёС€Рµ РґР»СЏ РІР°СЃ"
 !endif

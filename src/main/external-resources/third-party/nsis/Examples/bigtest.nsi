@@ -36,6 +36,7 @@ LicenseText "A test text, make sure it's all there"
 LicenseData "bigtest.nsi"
 
 RequestExecutionLevel admin
+ManifestSupportedOS all
 
 ;--------------------------------
 
@@ -138,7 +139,7 @@ SectionIn 1 4 3
   
 SectionEnd
 
-Section "Test CreateShortCut"
+Section "Test CreateShortcut"
 
   SectionIn 1 2 3
 
@@ -238,10 +239,10 @@ Function "CSCTest"
   
   CreateDirectory "$SMPROGRAMS\Big NSIS Test"
   SetOutPath $INSTDIR ; for working directory
-  CreateShortCut "$SMPROGRAMS\Big NSIS Test\Uninstall BIG NSIS Test.lnk" "$INSTDIR\bt-uninst.exe" ; use defaults for parameters, icon, etc.
+  CreateShortcut "$SMPROGRAMS\Big NSIS Test\Uninstall BIG NSIS Test.lnk" "$INSTDIR\bt-uninst.exe" ; use defaults for parameters, icon, etc.
   ; this one will use notepad's icon, start it minimized, and give it a hotkey (of Ctrl+Shift+Q)
-  CreateShortCut "$SMPROGRAMS\Big NSIS Test\silent.nsi.lnk" "$INSTDIR\silent.nsi" "" "$WINDIR\notepad.exe" 0 SW_SHOWMINIMIZED CONTROL|SHIFT|Q
-  CreateShortCut "$SMPROGRAMS\Big NSIS Test\TheDir.lnk" "$INSTDIR\" "" "" 0 SW_SHOWMAXIMIZED CONTROL|SHIFT|Z
+  CreateShortcut "$SMPROGRAMS\Big NSIS Test\silent.nsi.lnk" "$INSTDIR\silent.nsi" "" "$WINDIR\notepad.exe" 0 SW_SHOWMINIMIZED CONTROL|SHIFT|Q
+  CreateShortcut "$SMPROGRAMS\Big NSIS Test\TheDir.lnk" "$INSTDIR\" "" "" 0 SW_SHOWMAXIMIZED CONTROL|SHIFT|Z
 
 FunctionEnd
 

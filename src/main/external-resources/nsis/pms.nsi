@@ -6,6 +6,9 @@
 !include "..\..\..\..\target\project.nsh"
 !include "..\..\..\..\target\extra.nsh"
 
+!include "LogicLib.nsh"
+!include UAC.nsh
+
 Name "UMS"
 Caption "${PROJECT_NAME}"
 Icon "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
@@ -204,7 +207,7 @@ FunctionEnd
 ; Attempt to give the UAC plug-in a user process and an admin process.
 Function ElevateToAdmin
 	UAC_Elevate:
-		UAC::RunElevated
+		!insertmacro UAC_RunElevated
 		StrCmp 1223 $0 UAC_ElevationAborted ; UAC dialog aborted by user?
 		StrCmp 0 $0 0 UAC_Err ; Error?
 		StrCmp 1 $1 0 UAC_Success ;Are we the real deal or just the wrapper?

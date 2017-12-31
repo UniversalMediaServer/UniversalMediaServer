@@ -4,7 +4,8 @@
 ;
 ; A few simple macros to handle installations on x64 machines.
 ;
-; RunningX64 checks if the installer is running on x64.
+; RunningX64 checks if the installer is running on a 64-bit OS.
+; IsWow64 checks if the installer is a 32-bit application running on a 64-bit OS.
 ;
 ;   ${If} ${RunningX64}
 ;     MessageBox MB_OK "running on x64"
@@ -25,30 +26,36 @@
 
 !include LogicLib.nsh
 
-!macro _RunningX64 _a _b _t _f
+
+!define IsWow64 `"" IsWow64 ""`
+!macro _IsWow64 _a _b _t _f
   !insertmacro _LOGICLIB_TEMP
-  System::Call kernel32::GetCurrentProcess()i.s
-  System::Call kernel32::IsWow64Process(is,*i.s)
+  System::Call kernel32::GetCurrentProcess()p.s
+  System::Call kernel32::IsWow64Process(ps,*i0s)
   Pop $_LOGICLIB_TEMP
   !insertmacro _!= $_LOGICLIB_TEMP 0 `${_t}` `${_f}`
 !macroend
 
+
 !define RunningX64 `"" RunningX64 ""`
-
-!macro DisableX64FSRedirection
-
-  System::Call kernel32::Wow64EnableWow64FsRedirection(i0)
-
+!macro _RunningX64 _a _b _t _f 
+  !if ${NSIS_PTR_SIZE} > 4
+    !insertmacro LogicLib_JumpToBranch `${_t}` `${_f}`
+  !else
+    !insertmacro _IsWow64 `${_a}` `${_b}` `${_t}` `${_f}`
+  !endif
 !macroend
 
+
 !define DisableX64FSRedirection "!insertmacro DisableX64FSRedirection"
-
-!macro EnableX64FSRedirection
-
-  System::Call kernel32::Wow64EnableWow64FsRedirection(i1)
-
+!macro DisableX64FSRedirection
+  System::Call kernel32::Wow64EnableWow64FsRedirection(i0)
 !macroend
 
 !define EnableX64FSRedirection "!insertmacro EnableX64FSRedirection"
+!macro EnableX64FSRedirection
+  System::Call kernel32::Wow64EnableWow64FsRedirection(i1)
+!macroend
+
 
 !endif # !___X64__NSH___

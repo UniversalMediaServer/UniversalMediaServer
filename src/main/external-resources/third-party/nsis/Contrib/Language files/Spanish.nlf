@@ -1,52 +1,52 @@
-# Header, don't edit ;Español - España (Alfabetización Tradicional)
+ï»¿# Header, don't edit ;EspaÃ±ol - EspaÃ±a (AlfabetizaciÃ³n Tradicional)
 NLF v6
 # Language ID
 1034
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
 # Translation by MoNKi & Joel
-# Review and minor corrections Darwin Rodrigo Toledo Cáceres (niwrad777@gmail.com) www.winamp-es.com
+# Review and minor corrections Darwin Rodrigo Toledo CÃ¡ceres (niwrad777@gmail.com) www.winamp-es.com
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
-Instalación de $(^Name)
+InstalaciÃ³n de $(^Name)
 # ^UninstallCaption
-Desinstalación de $(^Name)
+DesinstalaciÃ³n de $(^Name)
 # ^LicenseSubCaption
 : Acuerdo de Licencia
 # ^ComponentsSubCaption
-: Opciones de Instalación
+: Opciones de InstalaciÃ³n
 # ^DirSubCaption
-: Directorio de Instalación
+: Directorio de InstalaciÃ³n
 # ^InstallingSubCaption
 : Instalando
 # ^CompletedSubCaption
 : Completado
 # ^UnComponentsSubCaption
-: Opciones de Desinstalación
+: Opciones de DesinstalaciÃ³n
 # ^UnDirSubCaption
-: Directorio de Desinstalación
+: Directorio de DesinstalaciÃ³n
 # ^ConfirmSubCaption
-: Confirmación
+: ConfirmaciÃ³n
 # ^UninstallingSubCaption
 : Desinstalando
 # ^UnCompletedSubCaption
 : Completado
 # ^BackBtn
-< &Atrás
+< &AtrÃ¡s
 # ^NextBtn
 &Siguiente >
 # ^AgreeBtn
 A&cepto
 # ^AcceptBtn
-A&cepto los términos de la licencia
+A&cepto los tÃ©rminos de la licencia
 # ^DontAcceptBtn
-&No acepto los términos de la licencia
+&No acepto los tÃ©rminos de la licencia
 # ^InstallBtn
 &Instalar
 # ^UninstallBtn
@@ -62,31 +62,31 @@ Ver &detalles
 # ^ClickNext
 Presione Siguiente para continuar.
 # ^ClickInstall
-Presione Instalar para comenzar la instalación.
+Presione Instalar para comenzar la instalaciÃ³n.
 # ^ClickUninstall
-Presione Desinstalar para comenzar la desinstalación.
+Presione Desinstalar para comenzar la desinstalaciÃ³n.
 # ^Name
 Nombre
 # ^Completed
 Completado
 # ^LicenseText
-Por favor, revise el acuerdo de licencia antes de instalar $(^NameDA). Si acepta todos los términos del acuerdo, presione Acepto.
+Por favor, revise el acuerdo de licencia antes de instalar $(^NameDA). Si acepta todos los tÃ©rminos del acuerdo, presione Acepto.
 # ^LicenseTextCB
-Por favor, revise el acuerdo de licencia antes de instalar $(^NameDA). Si acepta todos los términos del acuerdo, marque abajo la casilla. $_CLICK
+Por favor, revise el acuerdo de licencia antes de instalar $(^NameDA). Si acepta todos los tÃ©rminos del acuerdo, marque abajo la casilla. $_CLICK
 # ^LicenseTextRB
-Por favor, revise el acuerdo de licencia antes de instalar $(^NameDA). Si acepta todos los términos del acuerdo, seleccione abajo la primera opción. $_CLICK
+Por favor, revise el acuerdo de licencia antes de instalar $(^NameDA). Si acepta todos los tÃ©rminos del acuerdo, seleccione abajo la primera opciÃ³n. $_CLICK
 # ^UnLicenseText
-Por favor, revise el acuerdo de licencia antes de desinstalar $(^NameDA). Si acepta todos los términos del acuerdo, presione Acepto.
+Por favor, revise el acuerdo de licencia antes de desinstalar $(^NameDA). Si acepta todos los tÃ©rminos del acuerdo, presione Acepto.
 # ^UnLicenseTextCB
-Por favor, revise el acuerdo de licencia antes de desinstalar $(^NameDA). Si acepta todos los términos del acuerdo, marque abajo la casilla. $_CLICK.
+Por favor, revise el acuerdo de licencia antes de desinstalar $(^NameDA). Si acepta todos los tÃ©rminos del acuerdo, marque abajo la casilla. $_CLICK.
 # ^UnLicenseTextRB
-Por favor, revise el acuerdo de licencia antes de desinstalar $(^NameDA). Si acepta todos los términos del acuerdo, seleccione abajo la primera opción. $_CLICK
+Por favor, revise el acuerdo de licencia antes de desinstalar $(^NameDA). Si acepta todos los tÃ©rminos del acuerdo, seleccione abajo la primera opciÃ³n. $_CLICK
 # ^Custom
 Personalizada
 # ^ComponentsText
 Marque los componentes que desee instalar y desmarque los componentes que no desee instalar. $_CLICK
 # ^ComponentsSubText1
-Tipos de instalación:
+Tipos de instalaciÃ³n:
 # ^ComponentsSubText2_NoInstTypes
 Seleccione los componentes a instalar:
 # ^ComponentsSubText2
@@ -94,39 +94,39 @@ O seleccione los componentes opcionales que desee instalar:
 # ^UnComponentsText
 Marque los componentes que desee desinstalar y desmarque los componentes que no desee desinstalar. $_CLICK
 # ^UnComponentsSubText1
-Tipos de desinstalación:
+Tipos de desinstalaciÃ³n:
 # ^UnComponentsSubText2_NoInstTypes
 Seleccione los componentes a desinstalar:
 # ^UnComponentsSubText2
 O seleccione los componentes opcionales que desee desinstalar:
 # ^DirText
-El programa de instalación instalará $(^NameDA) en el siguiente directorio. Para instalar en un directorio diferente, presione Examinar y seleccione otro directorio. $_CLICK
+El programa de instalaciÃ³n instalarÃ¡ $(^NameDA) en el siguiente directorio. Para instalar en un directorio diferente, presione Examinar y seleccione otro directorio. $_CLICK
 # ^DirSubText
 Directorio de Destino
 # ^DirBrowseText
-Seleccione el directorio en el que instalará $(^NameDA):
+Seleccione el directorio en el que instalarÃ¡ $(^NameDA):
 # ^UnDirText
-El programa de instalación desinstalará $(^NameDA) del siguiente directorio. Para desinstalar de un directorio diferente, presione Examinar y seleccione otro directorio. $_CLICK
+El programa de instalaciÃ³n desinstalarÃ¡ $(^NameDA) del siguiente directorio. Para desinstalar de un directorio diferente, presione Examinar y seleccione otro directorio. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Seleccione el directorio desde el cual desinstalará $(^NameDA):
+Seleccione el directorio desde el cual desinstalarÃ¡ $(^NameDA):
 # ^SpaceAvailable
 Espacio disponible: 
 # ^SpaceRequired
 Espacio requerido: 
 # ^UninstallingText
-$(^NameDA) será desinstalado del siguiente directorio. $_CLICK
+$(^NameDA) serÃ¡ desinstalado del siguiente directorio. $_CLICK
 # ^UninstallingSubText
 Desinstalando desde:
 # ^FileError
-Error abriendo archivo para escritura: \r\n\t"$0"\r\nPresione abortar para anular la instalación,\r\nreintentar para volver a intentar escribir el archivo, u\r\nomitir para ignorar este archivo
+Error abriendo archivo para escritura: \r\n\t"$0"\r\nPresione abortar para anular la instalaciÃ³n,\r\nreintentar para volver a intentar escribir el archivo, u\r\nomitir para ignorar este archivo
 # ^FileError_NoIgnore
-Error abriendo archivo para escritura: \r\n\t"$0"\r\nPresione reintentar para volver a intentar escribir el archivo, o\r\ncancelar para anular la instalación
+Error abriendo archivo para escritura: \r\n\t"$0"\r\nPresione reintentar para volver a intentar escribir el archivo, o\r\ncancelar para anular la instalaciÃ³n
 # ^CantWrite
 "No pudo escribirse: "
 # ^CopyFailed
-Falló la copia
+FallÃ³ la copia
 # ^CopyTo
 "Copiar a "
 # ^Registering
@@ -134,15 +134,15 @@ Falló la copia
 # ^Unregistering
 "Eliminando registro: "
 # ^SymbolNotFound
-"No pudo encontrarse símbolo: "
+"No pudo encontrarse sÃ­mbolo: "
 # ^CouldNotLoad
 "No pudo cargarse: "
 # ^CreateFolder
-"Crear directorio: "
+"Creando directorio: "
 # ^CreateShortcut
-"Crear acceso directo: "
+"Creando acceso directo: "
 # ^CreatedUninstaller
-"Crear desinstalador: "
+"Creando desinstalador: "
 # ^Delete
 "Borrar archivo: "
 # ^DeleteOnReboot
@@ -152,19 +152,19 @@ Falló la copia
 # ^ErrorCreating
 "Error creando: "
 # ^ErrorDecompressing
-¡Error descomprimiendo datos! ¿Instalador corrupto?
+Â¡Error descomprimiendo datos! Â¿Instalador corrupto?
 # ^ErrorRegistering
 Error registrando DLL
 # ^ExecShell
-"Ejecutar comando: "
+"Extrayendo  comando: "
 # ^Exec
-"Ejecutar: "
+"Extrayendo : "
 # ^Extract
 "Extraer: "
 # ^ErrorWriting
 "Extraer: error escribiendo al archivo "
 # ^InvalidOpcode
-Instalador corrupto: código de operación no válido
+Instalador corrupto: cÃ³digo de operaciÃ³n no vÃ¡lido
 # ^NoOLE
 "Sin OLE para: "
 # ^OutputFolder
@@ -180,12 +180,12 @@ Instalador corrupto: código de operación no válido
 # ^CopyDetails
 Copiar Detalles al Portapapeles
 # ^LogInstall
-Registrar proceso de instalación 
+Registrar proceso de instalaciÃ³n 
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

@@ -3,7 +3,7 @@
  * 
  * This file is a part of NSIS.
  * 
- * Copyright (C) 1999-2015 Nullsoft and Contributors
+ * Copyright (C) 1999-2017 Nullsoft and Contributors
  * 
  * Licensed under the zlib/libpng license (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@
 // NSIS Plug-In Callback Messages
 enum NSPIM 
 {
-	NSPIM_UNLOAD,    // This is the last message a plugin gets, do final cleanup
-	NSPIM_GUIUNLOAD, // Called after .onGUIEnd
+  NSPIM_UNLOAD,    // This is the last message a plugin gets, do final cleanup
+  NSPIM_GUIUNLOAD, // Called after .onGUIEnd
 };
 
 // Prototype for callbacks registered with extra_parameters->RegisterPluginCallback()
@@ -36,35 +36,37 @@ enum NSPIM
 // Should always be __cdecl for future expansion possibilities
 typedef UINT_PTR (*NSISPLUGINCALLBACK)(enum NSPIM);
 
-// extra_parameters data structures containing other interesting stuff
-// but the stack, variables and HWND passed on to plug-ins.
+// extra_parameters data structure containing other interesting stuff
+// besides the stack, variables and HWND passed on to plug-ins.
 typedef struct
 {
-  int autoclose;
-  int all_user_var;
-  int exec_error;
-  int abort;
-  int exec_reboot; // NSIS_SUPPORT_REBOOT
-  int reboot_called; // NSIS_SUPPORT_REBOOT
-  int XXX_cur_insttype; // depreacted
-  int plugin_api_version; // see NSISPIAPIVER_CURR
-                          // used to be XXX_insttype_changed
-  int silent; // NSIS_CONFIG_SILENT_SUPPORT
-  int instdir_error;
-  int rtl;
-  int errlvl;
-  int alter_reg_view;
-  int status_update;
+  int autoclose;          // SetAutoClose
+  int all_user_var;       // SetShellVarContext: User context = 0, Machine context = 1
+  int exec_error;         // IfErrors
+  int abort;              // IfAbort
+  int exec_reboot;        // IfRebootFlag (NSIS_SUPPORT_REBOOT)
+  int reboot_called;      // NSIS_SUPPORT_REBOOT
+  int XXX_cur_insttype;   // Deprecated
+  int plugin_api_version; // Plug-in ABI. See NSISPIAPIVER_CURR (Note: used to be XXX_insttype_changed)
+  int silent;             // IfSilent (NSIS_CONFIG_SILENT_SUPPORT)
+  int instdir_error;      // GetInstDirError
+  int rtl;                // 1 if $LANGUAGE is a RTL language
+  int errlvl;             // SetErrorLevel
+  int alter_reg_view;     // SetRegView: Default View = 0, Alternative View = (sizeof(void*) > 4 ? KEY_WOW64_32KEY : KEY_WOW64_64KEY)
+  int status_update;      // SetDetailsPrint
 } exec_flags_t;
 
 #ifndef NSISCALL
 #  define NSISCALL __stdcall
 #endif
+#if !defined(_WIN32) && !defined(LPTSTR)
+#  define LPTSTR TCHAR*
+#endif
 
 typedef struct {
   exec_flags_t *exec_flags;
   int (NSISCALL *ExecuteCodeSegment)(int, HWND);
-  void (NSISCALL *validate_filename)(char *);
+  void (NSISCALL *validate_filename)(LPTSTR);
   int (NSISCALL *RegisterPluginCallback)(HMODULE, NSISPLUGINCALLBACK); // returns 0 on success, 1 if already registered and < 0 on errors
 } extra_parameters;
 
@@ -80,4 +82,4 @@ typedef struct {
 // sent as wParam with WM_NOTIFY_OUTER_NEXT when user cancels - heed its warning
 #define NOTIFY_BYE_BYE 'x'
 
-#endif /* _PLUGIN_H_ */
+#endif /* _NSIS_EXEHEAD_API_H_ */

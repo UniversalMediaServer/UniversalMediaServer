@@ -21,6 +21,7 @@ Page instfiles
 
 ; First is default
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
+LoadLanguageFile "${NSISDIR}\Contrib\Language files\Czech.nlf"
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\Dutch.nlf"
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\French.nlf"
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\German.nlf"
@@ -35,6 +36,7 @@ LoadLanguageFile "${NSISDIR}\Contrib\Language files\Slovak.nlf"
 ; License data
 ; Not exactly translated, but it shows what's needed
 LicenseLangString myLicenseData ${LANG_ENGLISH} "bigtest.nsi"
+LicenseLangString myLicenseData ${LANG_CZECH} "WordFuncTest.nsi"
 LicenseLangString myLicenseData ${LANG_DUTCH} "waplugin.nsi"
 LicenseLangString myLicenseData ${LANG_FRENCH} "example1.nsi"
 LicenseLangString myLicenseData ${LANG_GERMAN} "example2.nsi"
@@ -50,6 +52,7 @@ LicenseData $(myLicenseData)
 
 ; Set name using the normal interface (Name command)
 LangString Name ${LANG_ENGLISH} "English"
+LangString Name ${LANG_CZECH} "Czech"
 LangString Name ${LANG_DUTCH} "Dutch"
 LangString Name ${LANG_FRENCH} "French"
 LangString Name ${LANG_GERMAN} "German"
@@ -65,6 +68,7 @@ Name $(Name)
 
 ; Directly change the inner lang strings (Same as ComponentText)
 LangString ^ComponentsText ${LANG_ENGLISH} "English component page"
+LangString ^ComponentsText ${LANG_CZECH} "Czech component page"
 LangString ^ComponentsText ${LANG_DUTCH} "Dutch component page"
 LangString ^ComponentsText ${LANG_FRENCH} "French component page"
 LangString ^ComponentsText ${LANG_GERMAN} "German component page"
@@ -81,6 +85,7 @@ CompletedText "Languages example completed"
 
 ; A LangString for the section name
 LangString Sec1Name ${LANG_ENGLISH} "English section #1"
+LangString Sec1Name ${LANG_CZECH} "Czech section #1"
 LangString Sec1Name ${LANG_DUTCH} "Dutch section #1"
 LangString Sec1Name ${LANG_FRENCH} "French section #1"
 LangString Sec1Name ${LANG_GERMAN} "German section #1"
@@ -94,6 +99,7 @@ LangString Sec1Name ${LANG_SLOVAK} "Slovak section #1"
 
 ; A multilingual message
 LangString Message ${LANG_ENGLISH} "English message"
+LangString Message ${LANG_CZECH} "Czech message"
 LangString Message ${LANG_DUTCH} "Dutch message"
 LangString Message ${LANG_FRENCH} "French message"
 LangString Message ${LANG_GERMAN} "German message"
@@ -118,6 +124,8 @@ SectionEnd
 Section "Section number two"
 	StrCmp $LANGUAGE ${LANG_ENGLISH} 0 +2
 		MessageBox MB_OK "Installing English stuff"
+	StrCmp $LANGUAGE ${LANG_CZECH} 0 +2
+		MessageBox MB_OK "Installing Czech stuff"
 	StrCmp $LANGUAGE ${LANG_DUTCH} 0 +2
 		MessageBox MB_OK "Installing Dutch stuff"
 	StrCmp $LANGUAGE ${LANG_FRENCH} 0 +2
@@ -149,6 +157,8 @@ Function .onInit
 	Push ""
 	Push ${LANG_ENGLISH}
 	Push English
+	Push ${LANG_CZECH}
+	Push Czech
 	Push ${LANG_DUTCH}
 	Push Dutch
 	Push ${LANG_FRENCH}

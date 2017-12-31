@@ -1,121 +1,121 @@
-;Language: Greek (1032)
+ο»Ώ;Language: Greek (1032)
 ;By Makidis N. Michael - http://dias.aueb.gr/~p3010094/
 
-!insertmacro LANGFILE "Greek" "Greek"
+!insertmacro LANGFILE "Greek" = "Ξ•Ξ»Ξ»Ξ·Ξ½ΞΉΞΊΞ¬" "Ellinika"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Καλώς ήλθατε στην Εγκατάσταση του '$(^NameDA)'"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ο οδηγός αυτός θα σας καθοδηγήσει κατά τη διάρκεια της εγκατάστασης του '$(^NameDA)'.$\r$\n$\r$\nΣυνιστάται να κλείσετε όλες τις άλλες εφαρμογές πριν ξεκινήσετε την Εγκατάσταση. Αυτό θα επιτρέψει στην Εγκατάσταση να ενημερώσει τα σχετικά αρχεία συστήματος χωρίς την επανεκκίνηση του υπολογιστή σας.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "ΞΞ±Ξ»ΟΟ‚ Ξ®Ξ»ΞΈΞ±Ο„Ξµ ΟƒΟ„Ξ·Ξ½ Ξ•Ξ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ο„ΞΏΟ… '$(^NameDA)'"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ξ ΞΏΞ΄Ξ·Ξ³ΟΟ‚ Ξ±Ο…Ο„ΟΟ‚ ΞΈΞ± ΟƒΞ±Ο‚ ΞΊΞ±ΞΈΞΏΞ΄Ξ·Ξ³Ξ®ΟƒΞµΞΉ ΞΊΞ±Ο„Ξ¬ Ο„Ξ· Ξ΄ΞΉΞ¬ΟΞΊΞµΞΉΞ± Ο„Ξ·Ο‚ ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ·Ο‚ Ο„ΞΏΟ… '$(^NameDA)'.$\r$\n$\r$\nΞ£Ο…Ξ½ΞΉΟƒΟ„Ξ¬Ο„Ξ±ΞΉ Ξ½Ξ± ΞΊΞ»ΞµΞ―ΟƒΞµΟ„Ξµ ΟΞ»ΞµΟ‚ Ο„ΞΉΟ‚ Ξ¬Ξ»Ξ»ΞµΟ‚ ΞµΟ†Ξ±ΟΞΌΞΏΞ³Ξ­Ο‚ Ο€ΟΞΉΞ½ ΞΎΞµΞΊΞΉΞ½Ξ®ΟƒΞµΟ„Ξµ Ο„Ξ·Ξ½ Ξ•Ξ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ·. Ξ‘Ο…Ο„Ο ΞΈΞ± ΞµΟ€ΞΉΟ„ΟΞ­ΟΞµΞΉ ΟƒΟ„Ξ·Ξ½ Ξ•Ξ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ξ½Ξ± ΞµΞ½Ξ·ΞΌΞµΟΟΟƒΞµΞΉ Ο„Ξ± ΟƒΟ‡ΞµΟ„ΞΉΞΊΞ¬ Ξ±ΟΟ‡ΞµΞ―Ξ± ΟƒΟ…ΟƒΟ„Ξ®ΞΌΞ±Ο„ΞΏΟ‚ Ο‡Ο‰ΟΞ―Ο‚ Ο„Ξ·Ξ½ ΞµΟ€Ξ±Ξ½ΞµΞΊΞΊΞ―Ξ½Ξ·ΟƒΞ· Ο„ΞΏΟ… Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΟƒΞ±Ο‚.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Καλώς ήλθατε στον οδηγό απεγκατ. του '$(^NameDA)'"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ο οδηγός αυτός θα σας καθοδηγήσει κατά τη διάρκεια της απεγκατάστασης του '$(^NameDA)'.$\r$\n$\r$\nΠριν ξεκινήσετε την απεγκατάσταση, βεβαιωθείτε ότι το '$(^NameDA)' δεν τρέχει.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "ΞΞ±Ξ»ΟΟ‚ Ξ®Ξ»ΞΈΞ±Ο„Ξµ ΟƒΟ„ΞΏΞ½ ΞΏΞ΄Ξ·Ξ³Ο Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„. Ο„ΞΏΟ… '$(^NameDA)'"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ξ ΞΏΞ΄Ξ·Ξ³ΟΟ‚ Ξ±Ο…Ο„ΟΟ‚ ΞΈΞ± ΟƒΞ±Ο‚ ΞΊΞ±ΞΈΞΏΞ΄Ξ·Ξ³Ξ®ΟƒΞµΞΉ ΞΊΞ±Ο„Ξ¬ Ο„Ξ· Ξ΄ΞΉΞ¬ΟΞΊΞµΞΉΞ± Ο„Ξ·Ο‚ Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ·Ο‚ Ο„ΞΏΟ… '$(^NameDA)'.$\r$\n$\r$\nΞ ΟΞΉΞ½ ΞΎΞµΞΊΞΉΞ½Ξ®ΟƒΞµΟ„Ξµ Ο„Ξ·Ξ½ Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ·, Ξ²ΞµΞ²Ξ±ΞΉΟ‰ΞΈΞµΞ―Ο„Ξµ ΟΟ„ΞΉ Ο„ΞΏ '$(^NameDA)' Ξ΄ΞµΞ½ Ο„ΟΞ­Ο‡ΞµΞΉ.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Συμφωνία Άδειας Χρήσης"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Ελέγξτε την άδεια χρήσης πριν εγκαταστήσετε το '$(^NameDA)'."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Εάν αποδέχεστε τους όρους της άδειας χρήσης, κάντε κλικ στο Συμφωνώ για να συνεχίσετε. Πρέπει να αποδεχθείτε τη συμφωνία για να εγκαταστήσετε το '$(^NameDA)'."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Εάν αποδέχεστε τους όρους της άδειας χρήσης, κάντε κλικ στην επιλογή παρακάτω. Πρέπει να αποδεχθείτε τη συμφωνία για να εγκαταστήσετε το '$(^NameDA)'. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Εάν αποδέχεστε τους όρους της άδειας χρήσης, κάντε κλικ στην πρώτη επιλογή παρακάτω. Πρέπει να αποδεχθείτε τη συμφωνία για να εγκαταστήσετε το '$(^NameDA)'. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Ξ£Ο…ΞΌΟ†Ο‰Ξ½Ξ―Ξ± Ξ†Ξ΄ΞµΞΉΞ±Ο‚ Ξ§ΟΞ®ΟƒΞ·Ο‚"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Ξ•Ξ»Ξ­Ξ³ΞΎΟ„Ξµ Ο„Ξ·Ξ½ Ξ¬Ξ΄ΞµΞΉΞ± Ο‡ΟΞ®ΟƒΞ·Ο‚ Ο€ΟΞΉΞ½ ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏ '$(^NameDA)'."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ξ•Ξ¬Ξ½ Ξ±Ο€ΞΏΞ΄Ξ­Ο‡ΞµΟƒΟ„Ξµ Ο„ΞΏΟ…Ο‚ ΟΟΞΏΟ…Ο‚ Ο„Ξ·Ο‚ Ξ¬Ξ΄ΞµΞΉΞ±Ο‚ Ο‡ΟΞ®ΟƒΞ·Ο‚, ΞΊΞ¬Ξ½Ο„Ξµ ΞΊΞ»ΞΉΞΊ ΟƒΟ„ΞΏ Ξ£Ο…ΞΌΟ†Ο‰Ξ½Ο Ξ³ΞΉΞ± Ξ½Ξ± ΟƒΟ…Ξ½ΞµΟ‡Ξ―ΟƒΞµΟ„Ξµ. Ξ ΟΞ­Ο€ΞµΞΉ Ξ½Ξ± Ξ±Ο€ΞΏΞ΄ΞµΟ‡ΞΈΞµΞ―Ο„Ξµ Ο„Ξ· ΟƒΟ…ΞΌΟ†Ο‰Ξ½Ξ―Ξ± Ξ³ΞΉΞ± Ξ½Ξ± ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏ '$(^NameDA)'."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ξ•Ξ¬Ξ½ Ξ±Ο€ΞΏΞ΄Ξ­Ο‡ΞµΟƒΟ„Ξµ Ο„ΞΏΟ…Ο‚ ΟΟΞΏΟ…Ο‚ Ο„Ξ·Ο‚ Ξ¬Ξ΄ΞµΞΉΞ±Ο‚ Ο‡ΟΞ®ΟƒΞ·Ο‚, ΞΊΞ¬Ξ½Ο„Ξµ ΞΊΞ»ΞΉΞΊ ΟƒΟ„Ξ·Ξ½ ΞµΟ€ΞΉΞ»ΞΏΞ³Ξ® Ο€Ξ±ΟΞ±ΞΊΞ¬Ο„Ο‰. Ξ ΟΞ­Ο€ΞµΞΉ Ξ½Ξ± Ξ±Ο€ΞΏΞ΄ΞµΟ‡ΞΈΞµΞ―Ο„Ξµ Ο„Ξ· ΟƒΟ…ΞΌΟ†Ο‰Ξ½Ξ―Ξ± Ξ³ΞΉΞ± Ξ½Ξ± ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏ '$(^NameDA)'. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ξ•Ξ¬Ξ½ Ξ±Ο€ΞΏΞ΄Ξ­Ο‡ΞµΟƒΟ„Ξµ Ο„ΞΏΟ…Ο‚ ΟΟΞΏΟ…Ο‚ Ο„Ξ·Ο‚ Ξ¬Ξ΄ΞµΞΉΞ±Ο‚ Ο‡ΟΞ®ΟƒΞ·Ο‚, ΞΊΞ¬Ξ½Ο„Ξµ ΞΊΞ»ΞΉΞΊ ΟƒΟ„Ξ·Ξ½ Ο€ΟΟΟ„Ξ· ΞµΟ€ΞΉΞ»ΞΏΞ³Ξ® Ο€Ξ±ΟΞ±ΞΊΞ¬Ο„Ο‰. Ξ ΟΞ­Ο€ΞµΞΉ Ξ½Ξ± Ξ±Ο€ΞΏΞ΄ΞµΟ‡ΞΈΞµΞ―Ο„Ξµ Ο„Ξ· ΟƒΟ…ΞΌΟ†Ο‰Ξ½Ξ―Ξ± Ξ³ΞΉΞ± Ξ½Ξ± ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏ '$(^NameDA)'. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Συμφωνία Άδειας Χρήσης"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Ελέγξτε την άδεια χρήσης πριν απεγκαταστήσετε το '$(^NameDA)'."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Εάν αποδέχεστε τους όρους της άδειας χρήσης, κάντε κλικ στο Συμφωνώ για να συνεχίσετε. Πρέπει να αποδεχθείτε τη συμφωνία για να απεγκαταστήσετε το '$(^NameDA)'."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Εάν αποδέχεστε τους όρους της άδειας χρήσης, κάντε κλικ στην επιλογή παρακάτω. Πρέπει να αποδεχθείτε τη συμφωνία για να απεγκαταστήσετε το '$(^NameDA)'. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Εάν αποδέχεστε τους όρους της άδειας χρήσης, κάντε κλικ στην πρώτη επιλογή παρακάτω. Πρέπει να αποδεχθείτε τη συμφωνία για να απεγκαταστήσετε το '$(^NameDA)'. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Ξ£Ο…ΞΌΟ†Ο‰Ξ½Ξ―Ξ± Ξ†Ξ΄ΞµΞΉΞ±Ο‚ Ξ§ΟΞ®ΟƒΞ·Ο‚"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Ξ•Ξ»Ξ­Ξ³ΞΎΟ„Ξµ Ο„Ξ·Ξ½ Ξ¬Ξ΄ΞµΞΉΞ± Ο‡ΟΞ®ΟƒΞ·Ο‚ Ο€ΟΞΉΞ½ Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏ '$(^NameDA)'."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ξ•Ξ¬Ξ½ Ξ±Ο€ΞΏΞ΄Ξ­Ο‡ΞµΟƒΟ„Ξµ Ο„ΞΏΟ…Ο‚ ΟΟΞΏΟ…Ο‚ Ο„Ξ·Ο‚ Ξ¬Ξ΄ΞµΞΉΞ±Ο‚ Ο‡ΟΞ®ΟƒΞ·Ο‚, ΞΊΞ¬Ξ½Ο„Ξµ ΞΊΞ»ΞΉΞΊ ΟƒΟ„ΞΏ Ξ£Ο…ΞΌΟ†Ο‰Ξ½Ο Ξ³ΞΉΞ± Ξ½Ξ± ΟƒΟ…Ξ½ΞµΟ‡Ξ―ΟƒΞµΟ„Ξµ. Ξ ΟΞ­Ο€ΞµΞΉ Ξ½Ξ± Ξ±Ο€ΞΏΞ΄ΞµΟ‡ΞΈΞµΞ―Ο„Ξµ Ο„Ξ· ΟƒΟ…ΞΌΟ†Ο‰Ξ½Ξ―Ξ± Ξ³ΞΉΞ± Ξ½Ξ± Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏ '$(^NameDA)'."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ξ•Ξ¬Ξ½ Ξ±Ο€ΞΏΞ΄Ξ­Ο‡ΞµΟƒΟ„Ξµ Ο„ΞΏΟ…Ο‚ ΟΟΞΏΟ…Ο‚ Ο„Ξ·Ο‚ Ξ¬Ξ΄ΞµΞΉΞ±Ο‚ Ο‡ΟΞ®ΟƒΞ·Ο‚, ΞΊΞ¬Ξ½Ο„Ξµ ΞΊΞ»ΞΉΞΊ ΟƒΟ„Ξ·Ξ½ ΞµΟ€ΞΉΞ»ΞΏΞ³Ξ® Ο€Ξ±ΟΞ±ΞΊΞ¬Ο„Ο‰. Ξ ΟΞ­Ο€ΞµΞΉ Ξ½Ξ± Ξ±Ο€ΞΏΞ΄ΞµΟ‡ΞΈΞµΞ―Ο„Ξµ Ο„Ξ· ΟƒΟ…ΞΌΟ†Ο‰Ξ½Ξ―Ξ± Ξ³ΞΉΞ± Ξ½Ξ± Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏ '$(^NameDA)'. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ξ•Ξ¬Ξ½ Ξ±Ο€ΞΏΞ΄Ξ­Ο‡ΞµΟƒΟ„Ξµ Ο„ΞΏΟ…Ο‚ ΟΟΞΏΟ…Ο‚ Ο„Ξ·Ο‚ Ξ¬Ξ΄ΞµΞΉΞ±Ο‚ Ο‡ΟΞ®ΟƒΞ·Ο‚, ΞΊΞ¬Ξ½Ο„Ξµ ΞΊΞ»ΞΉΞΊ ΟƒΟ„Ξ·Ξ½ Ο€ΟΟΟ„Ξ· ΞµΟ€ΞΉΞ»ΞΏΞ³Ξ® Ο€Ξ±ΟΞ±ΞΊΞ¬Ο„Ο‰. Ξ ΟΞ­Ο€ΞµΞΉ Ξ½Ξ± Ξ±Ο€ΞΏΞ΄ΞµΟ‡ΞΈΞµΞ―Ο„Ξµ Ο„Ξ· ΟƒΟ…ΞΌΟ†Ο‰Ξ½Ξ―Ξ± Ξ³ΞΉΞ± Ξ½Ξ± Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏ '$(^NameDA)'. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Πατήστε το Page Down για να δείτε το υπόλοιπο της άδειας χρήσης."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Ξ Ξ±Ο„Ξ®ΟƒΟ„Ξµ Ο„ΞΏ Page Down Ξ³ΞΉΞ± Ξ½Ξ± Ξ΄ΞµΞ―Ο„Ξµ Ο„ΞΏ Ο…Ο€ΟΞ»ΞΏΞΉΟ€ΞΏ Ο„Ξ·Ο‚ Ξ¬Ξ΄ΞµΞΉΞ±Ο‚ Ο‡ΟΞ®ΟƒΞ·Ο‚."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Επιλογή Στοιχείων"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Επιλέξτε τα στοιχεία του '$(^NameDA)' που θέλετε να εγκαταστήσετε."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Ξ•Ο€ΞΉΞ»ΞΏΞ³Ξ® Ξ£Ο„ΞΏΞΉΟ‡ΞµΞ―Ο‰Ξ½"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Ξ•Ο€ΞΉΞ»Ξ­ΞΎΟ„Ξµ Ο„Ξ± ΟƒΟ„ΞΏΞΉΟ‡ΞµΞ―Ξ± Ο„ΞΏΟ… '$(^NameDA)' Ο€ΞΏΟ… ΞΈΞ­Ξ»ΞµΟ„Ξµ Ξ½Ξ± ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Επιλογή Στοιχείων"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Επιλέξτε τα στοιχεία του '$(^NameDA)' που θέλετε να απεγκαταστήσετε."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Ξ•Ο€ΞΉΞ»ΞΏΞ³Ξ® Ξ£Ο„ΞΏΞΉΟ‡ΞµΞ―Ο‰Ξ½"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Ξ•Ο€ΞΉΞ»Ξ­ΞΎΟ„Ξµ Ο„Ξ± ΟƒΟ„ΞΏΞΉΟ‡ΞµΞ―Ξ± Ο„ΞΏΟ… '$(^NameDA)' Ο€ΞΏΟ… ΞΈΞ­Ξ»ΞµΟ„Ξµ Ξ½Ξ± Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ®ΟƒΞµΟ„Ξµ."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Περιγραφή"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Ξ ΞµΟΞΉΞ³ΟΞ±Ο†Ξ®"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Περάστε το δείκτη του ποντικιού πάνω από ένα στοιχείο για να δείτε την περιγραφή του."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Ξ ΞµΟΞ¬ΟƒΟ„Ξµ Ο„ΞΏ Ξ΄ΞµΞ―ΞΊΟ„Ξ· Ο„ΞΏΟ… Ο€ΞΏΞ½Ο„ΞΉΞΊΞΉΞΏΟ Ο€Ξ¬Ξ½Ο‰ Ξ±Ο€Ο Ξ­Ξ½Ξ± ΟƒΟ„ΞΏΞΉΟ‡ΞµΞ―ΞΏ Ξ³ΞΉΞ± Ξ½Ξ± Ξ΄ΞµΞ―Ο„Ξµ Ο„Ξ·Ξ½ Ο€ΞµΟΞΉΞ³ΟΞ±Ο†Ξ® Ο„ΞΏΟ…."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Περάστε το δείκτη του ποντικιού πάνω από ένα στοιχείο για να δείτε την περιγραφή του."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Ξ•Ο€ΞΉΞ»Ξ­ΞΎΟ„Ξµ Ξ­Ξ½Ξ± ΟƒΟ„ΞΏΞΉΟ‡ΞµΞ―ΞΏ Ξ³ΞΉΞ± Ξ½Ξ± Ξ΄ΞµΞ―Ο„Ξµ Ο„Ξ·Ξ½ Ο€ΞµΟΞΉΞ³ΟΞ±Ο†Ξ® Ο„ΞΏΟ…."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Επιλογή Θέσης Εγκατάστασης"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Επιλέξτε το φάκελο μέσα στον οποίο θα εγκατασταθεί το '$(^NameDA)'."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Ξ•Ο€ΞΉΞ»ΞΏΞ³Ξ® ΞΞ­ΟƒΞ·Ο‚ Ξ•Ξ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ·Ο‚"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Ξ•Ο€ΞΉΞ»Ξ­ΞΎΟ„Ξµ Ο„ΞΏ Ο†Ξ¬ΞΊΞµΞ»ΞΏ ΞΌΞ­ΟƒΞ± ΟƒΟ„ΞΏΞ½ ΞΏΟ€ΞΏΞ―ΞΏ ΞΈΞ± ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ±ΞΈΞµΞ― Ο„ΞΏ '$(^NameDA)'."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Επιλογή Θέσης Απεγκατάστασης"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Επιλέξτε το φάκελο από τον οποίο θα απεγκατασταθεί το '$(^NameDA)'."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Ξ•Ο€ΞΉΞ»ΞΏΞ³Ξ® ΞΞ­ΟƒΞ·Ο‚ Ξ‘Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ·Ο‚"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Ξ•Ο€ΞΉΞ»Ξ­ΞΎΟ„Ξµ Ο„ΞΏ Ο†Ξ¬ΞΊΞµΞ»ΞΏ Ξ±Ο€Ο Ο„ΞΏΞ½ ΞΏΟ€ΞΏΞ―ΞΏ ΞΈΞ± Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ±ΞΈΞµΞ― Ο„ΞΏ '$(^NameDA)'."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Εγκατάσταση Σε Εξέλιξη"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Παρακαλώ περιμένετε όσο το '$(^NameDA)' εγκαθίσταται."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Η Εγκατάσταση Ολοκληρώθηκε"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Η εγκατάσταση ολοκληρώθηκε επιτυχώς."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Η Εγκατάσταση Διακόπηκε"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Η εγκατάσταση δεν ολοκληρώθηκε επιτυχώς."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Ξ•Ξ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ξ£Ξµ Ξ•ΞΎΞ­Ξ»ΞΉΞΎΞ·"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Ξ Ξ±ΟΞ±ΞΊΞ±Ξ»Ο Ο€ΞµΟΞΉΞΌΞ­Ξ½ΞµΟ„Ξµ ΟΟƒΞΏ Ο„ΞΏ '$(^NameDA)' ΞµΞ³ΞΊΞ±ΞΈΞ―ΟƒΟ„Ξ±Ο„Ξ±ΞΉ."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Ξ— Ξ•Ξ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· ΞΞ»ΞΏΞΊΞ»Ξ·ΟΟΞΈΞ·ΞΊΞµ"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Ξ— ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· ΞΏΞ»ΞΏΞΊΞ»Ξ·ΟΟΞΈΞ·ΞΊΞµ ΞµΟ€ΞΉΟ„Ο…Ο‡ΟΟ‚."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "Ξ— Ξ•Ξ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ξ”ΞΉΞ±ΞΊΟΟ€Ξ·ΞΊΞµ"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Ξ— ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ξ΄ΞµΞ½ ΞΏΞ»ΞΏΞΊΞ»Ξ·ΟΟΞΈΞ·ΞΊΞµ ΞµΟ€ΞΉΟ„Ο…Ο‡ΟΟ‚."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Απεγκατάσταση Σε Εξέλιξη"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Παρακαλώ περιμένετε όσο το '$(^NameDA)' απεγκαθίσταται."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Η Απεγκατάσταση Ολοκληρώθηκε"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Η απεγκατάσταση ολοκληρώθηκε επιτυχώς."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Η Απεγκατάσταση Διακόπηκε"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Η απεγκατάσταση δεν ολοκληρώθηκε επιτυχώς."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Ξ‘Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ξ£Ξµ Ξ•ΞΎΞ­Ξ»ΞΉΞΎΞ·"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Ξ Ξ±ΟΞ±ΞΊΞ±Ξ»Ο Ο€ΞµΟΞΉΞΌΞ­Ξ½ΞµΟ„Ξµ ΟΟƒΞΏ Ο„ΞΏ '$(^NameDA)' Ξ±Ο€ΞµΞ³ΞΊΞ±ΞΈΞ―ΟƒΟ„Ξ±Ο„Ξ±ΞΉ."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Ξ— Ξ‘Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· ΞΞ»ΞΏΞΊΞ»Ξ·ΟΟΞΈΞ·ΞΊΞµ"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Ξ— Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· ΞΏΞ»ΞΏΞΊΞ»Ξ·ΟΟΞΈΞ·ΞΊΞµ ΞµΟ€ΞΉΟ„Ο…Ο‡ΟΟ‚."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Ξ— Ξ‘Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ξ”ΞΉΞ±ΞΊΟΟ€Ξ·ΞΊΞµ"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Ξ— Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ξ΄ΞµΞ½ ΞΏΞ»ΞΏΞΊΞ»Ξ·ΟΟΞΈΞ·ΞΊΞµ ΞµΟ€ΞΉΟ„Ο…Ο‡ΟΟ‚."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Ολοκλήρωση της Εγκατάστασης του '$(^NameDA)'"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "Το '$(^NameDA)' εγκαταστάθηκε στον υπολογιστή σας.$\r$\n$\r$\nΚάντε κλικ στο Τέλος για να κλείσετε αυτόν τον οδηγό."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Πρέπει να γίνει επανεκκίνηση του υπολογιστή σας για να ολοκληρωθεί η εγκατάσταση του '$(^NameDA)'. Θέλετε να επανεκκινήσετε τον υπολογιστή σας τώρα;"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "ΞΞ»ΞΏΞΊΞ»Ξ®ΟΟ‰ΟƒΞ· Ο„Ξ·Ο‚ Ξ•Ξ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ·Ο‚ Ο„ΞΏΟ… '$(^NameDA)'"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "Ξ¤ΞΏ '$(^NameDA)' ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ¬ΞΈΞ·ΞΊΞµ ΟƒΟ„ΞΏΞ½ Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΟƒΞ±Ο‚.$\r$\n$\r$\nΞΞ¬Ξ½Ο„Ξµ ΞΊΞ»ΞΉΞΊ ΟƒΟ„ΞΏ Ξ¤Ξ­Ξ»ΞΏΟ‚ Ξ³ΞΉΞ± Ξ½Ξ± ΞΊΞ»ΞµΞ―ΟƒΞµΟ„Ξµ Ξ±Ο…Ο„ΟΞ½ Ο„ΞΏΞ½ ΞΏΞ΄Ξ·Ξ³Ο."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Ξ ΟΞ­Ο€ΞµΞΉ Ξ½Ξ± Ξ³Ξ―Ξ½ΞµΞΉ ΞµΟ€Ξ±Ξ½ΞµΞΊΞΊΞ―Ξ½Ξ·ΟƒΞ· Ο„ΞΏΟ… Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΟƒΞ±Ο‚ Ξ³ΞΉΞ± Ξ½Ξ± ΞΏΞ»ΞΏΞΊΞ»Ξ·ΟΟ‰ΞΈΞµΞ― Ξ· ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ο„ΞΏΟ… '$(^NameDA)'. ΞΞ­Ξ»ΞµΟ„Ξµ Ξ½Ξ± ΞµΟ€Ξ±Ξ½ΞµΞΊΞΊΞΉΞ½Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏΞ½ Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΟƒΞ±Ο‚ Ο„ΟΟΞ±;"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Ολοκλήρωση της Απεγκατάστασης του '$(^NameDA)'"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Το '$(^NameDA)' απεγκαταστάθηκε από τον υπολογιστή σας.$\r$\n$\r$\nΚάντε κλικ στο Τέλος για να κλείσετε αυτόν τον οδηγό."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Πρέπει να γίνει επανεκκίνηση του υπολογιστή σας για να ολοκληρωθεί η απεγκατάσταση του '$(^NameDA)'. Θέλετε να επανεκκινήσετε τον υπολογιστή σας τώρα;"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "ΞΞ»ΞΏΞΊΞ»Ξ®ΟΟ‰ΟƒΞ· Ο„Ξ·Ο‚ Ξ‘Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ·Ο‚ Ο„ΞΏΟ… '$(^NameDA)'"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Ξ¤ΞΏ '$(^NameDA)' Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ±ΟƒΟ„Ξ¬ΞΈΞ·ΞΊΞµ Ξ±Ο€Ο Ο„ΞΏΞ½ Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΟƒΞ±Ο‚.$\r$\n$\r$\nΞΞ¬Ξ½Ο„Ξµ ΞΊΞ»ΞΉΞΊ ΟƒΟ„ΞΏ Ξ¤Ξ­Ξ»ΞΏΟ‚ Ξ³ΞΉΞ± Ξ½Ξ± ΞΊΞ»ΞµΞ―ΟƒΞµΟ„Ξµ Ξ±Ο…Ο„ΟΞ½ Ο„ΞΏΞ½ ΞΏΞ΄Ξ·Ξ³Ο."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Ξ ΟΞ­Ο€ΞµΞΉ Ξ½Ξ± Ξ³Ξ―Ξ½ΞµΞΉ ΞµΟ€Ξ±Ξ½ΞµΞΊΞΊΞ―Ξ½Ξ·ΟƒΞ· Ο„ΞΏΟ… Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΟƒΞ±Ο‚ Ξ³ΞΉΞ± Ξ½Ξ± ΞΏΞ»ΞΏΞΊΞ»Ξ·ΟΟ‰ΞΈΞµΞ― Ξ· Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ο„ΞΏΟ… '$(^NameDA)'. ΞΞ­Ξ»ΞµΟ„Ξµ Ξ½Ξ± ΞµΟ€Ξ±Ξ½ΞµΞΊΞΊΞΉΞ½Ξ®ΟƒΞµΟ„Ξµ Ο„ΞΏΞ½ Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΟƒΞ±Ο‚ Ο„ΟΟΞ±;"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Να γίνει επανεκκίνηση τώρα"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Θα επανεκκινήσω τον υπολογιστή μου αργότερα"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "&Εκτέλεση του '$(^NameDA)'"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Εμφάνιση του &αρχείου Readme"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Τέλος"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "ΞΞ± Ξ³Ξ―Ξ½ΞµΞΉ ΞµΟ€Ξ±Ξ½ΞµΞΊΞΊΞ―Ξ½Ξ·ΟƒΞ· Ο„ΟΟΞ±"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "ΞΞ± ΞµΟ€Ξ±Ξ½ΞµΞΊΞΊΞΉΞ½Ξ®ΟƒΟ‰ Ο„ΞΏΞ½ Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΞΌΞΏΟ… Ξ±ΟΞ³ΟΟ„ΞµΟΞ±"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "&Ξ•ΞΊΟ„Ξ­Ξ»ΞµΟƒΞ· Ο„ΞΏΟ… '$(^NameDA)'"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Ξ•ΞΌΟ†Ξ¬Ξ½ΞΉΟƒΞ· Ο„ΞΏΟ… &Ξ±ΟΟ‡ΞµΞ―ΞΏΟ… Readme"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Ξ¤Ξ­Ξ»ΞΏΟ‚"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Επιλογή Φακέλου για το Μενού Έναρξη"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Επιλέξτε ένα φάκελο του μενού Έναρξη για τις συντομεύσεις του '$(^NameDA)'."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Επιλέξτε ένα φάκελο του μενού Έναρξη για τις συντομεύσεις του προγράμματος. Μπορείτε επίσης να εισάγετε ένα όνομα για να δημιουργήσετε ένα νέο φάκελο."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Να μη δημιουργηθούν συντομεύσεις"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Ξ•Ο€ΞΉΞ»ΞΏΞ³Ξ® Ξ¦Ξ±ΞΊΞ­Ξ»ΞΏΟ… Ξ³ΞΉΞ± Ο„ΞΏ ΞΞµΞ½ΞΏΟ ΞΞ½Ξ±ΟΞΎΞ·"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Ξ•Ο€ΞΉΞ»Ξ­ΞΎΟ„Ξµ Ξ­Ξ½Ξ± Ο†Ξ¬ΞΊΞµΞ»ΞΏ Ο„ΞΏΟ… ΞΌΞµΞ½ΞΏΟ ΞΞ½Ξ±ΟΞΎΞ· Ξ³ΞΉΞ± Ο„ΞΉΟ‚ ΟƒΟ…Ξ½Ο„ΞΏΞΌΞµΟΟƒΞµΞΉΟ‚ Ο„ΞΏΟ… '$(^NameDA)'."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Ξ•Ο€ΞΉΞ»Ξ­ΞΎΟ„Ξµ Ξ­Ξ½Ξ± Ο†Ξ¬ΞΊΞµΞ»ΞΏ Ο„ΞΏΟ… ΞΌΞµΞ½ΞΏΟ ΞΞ½Ξ±ΟΞΎΞ· Ξ³ΞΉΞ± Ο„ΞΉΟ‚ ΟƒΟ…Ξ½Ο„ΞΏΞΌΞµΟΟƒΞµΞΉΟ‚ Ο„ΞΏΟ… Ο€ΟΞΏΞ³ΟΞ¬ΞΌΞΌΞ±Ο„ΞΏΟ‚. ΞΟ€ΞΏΟΞµΞ―Ο„Ξµ ΞµΟ€Ξ―ΟƒΞ·Ο‚ Ξ½Ξ± ΞµΞΉΟƒΞ¬Ξ³ΞµΟ„Ξµ Ξ­Ξ½Ξ± ΟΞ½ΞΏΞΌΞ± Ξ³ΞΉΞ± Ξ½Ξ± Ξ΄Ξ·ΞΌΞΉΞΏΟ…ΟΞ³Ξ®ΟƒΞµΟ„Ξµ Ξ­Ξ½Ξ± Ξ½Ξ­ΞΏ Ο†Ξ¬ΞΊΞµΞ»ΞΏ."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "ΞΞ± ΞΌΞ· Ξ΄Ξ·ΞΌΞΉΞΏΟ…ΟΞ³Ξ·ΞΈΞΏΟΞ½ ΟƒΟ…Ξ½Ο„ΞΏΞΌΞµΟΟƒΞµΞΉΟ‚"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Απεγκατάσταση του '$(^NameDA)'"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Αφαίρεση του '$(^NameDA)' από τον υπολογιστή σας."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Ξ‘Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ο„ΞΏΟ… '$(^NameDA)'"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Ξ‘Ο†Ξ±Ξ―ΟΞµΟƒΞ· Ο„ΞΏΟ… '$(^NameDA)' Ξ±Ο€Ο Ο„ΞΏΞ½ Ο…Ο€ΞΏΞ»ΞΏΞ³ΞΉΟƒΟ„Ξ® ΟƒΞ±Ο‚."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Είστε σίγουροι πως θέλετε να τερματίσετε την εγκατάσταση του '$(^Name)';"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Ξ•Ξ―ΟƒΟ„Ξµ ΟƒΞ―Ξ³ΞΏΟ…ΟΞΏΞΉ Ο€Ο‰Ο‚ ΞΈΞ­Ξ»ΞµΟ„Ξµ Ξ½Ξ± Ο„ΞµΟΞΌΞ±Ο„Ξ―ΟƒΞµΟ„Ξµ Ο„Ξ·Ξ½ ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ο„ΞΏΟ… '$(^Name)';"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Είστε σίγουροι πως θέλετε να τερματίσετε την απεγκατάσταση του '$(^Name)';"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ξ•Ξ―ΟƒΟ„Ξµ ΟƒΞ―Ξ³ΞΏΟ…ΟΞΏΞΉ Ο€Ο‰Ο‚ ΞΈΞ­Ξ»ΞµΟ„Ξµ Ξ½Ξ± Ο„ΞµΟΞΌΞ±Ο„Ξ―ΟƒΞµΟ„Ξµ Ο„Ξ·Ξ½ Ξ±Ο€ΞµΞ³ΞΊΞ±Ο„Ξ¬ΟƒΟ„Ξ±ΟƒΞ· Ο„ΞΏΟ… '$(^Name)';"
 !endif

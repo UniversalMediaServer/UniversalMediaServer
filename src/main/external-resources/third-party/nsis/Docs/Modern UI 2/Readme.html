@@ -191,7 +191,7 @@
                         </div>
                     </div>
                     <h1>
-                        Modern UI 2.0</h1>
+                        Modern UI 2.1</h1>
                     <div>
                         <p>
                             This new version makes it easier to customize pages, because the same method can
@@ -282,11 +282,23 @@
                                                 <em>Default: ${NSISDIR}\Contrib\Graphics\Header\nsis.bmp</em></p>
                                             <div class="settings">
                                                 <p>
-                                                    <strong>MUI_HEADERIMAGE_BITMAP_NOSTRETCH</strong><br />
-                                                    Do not stretch the installer header bitmap to fit the size of the field. Use this
-                                                    option only if you have an image that does not use the whole space. If you have
-                                                    a full size bitmap that fits exactly, you should not use this option because the
-                                                    size of the field will be different if the user has a custom DPI setting.</p>
+                                                    <strong>MUI_HEADERIMAGE_BITMAP_STRETCH</strong> <span class="parameter">mode</span><br />
+                                                    <ul>
+                                                    <li><p><strong>FitControl</strong> (Default)<br />
+                                                    Stretch the image to fit the image control.</p>
+                                                    <li><p><strong>NoStretchNoCropNoAlign</strong><br />
+                                                    Do not stretch the image to fit the size of the image control.
+                                                    You should not use this option if you have a full size bitmap that fits exactly because
+                                                    the size of the field will be different if the user has a custom DPI setting or
+                                                    if the installer is using a CJK language.</p>
+                                                    <li><p><strong>NoStretchNoCrop</strong><br />
+                                                    This is similar to NoStretchNoCropNoAlign but will align the image to the right edge when 
+                                                    using a RTL language or if MUI_HEADERIMAGE_RIGHT is defined.</p>
+                                                    <li><p><strong>AspectFitHeight</strong><br />
+                                                    Scale the image up or down until it is the same height as the image control while 
+                                                    maintaining the image aspect ratio.</p>
+                                                    </ul>
+                                                </p>
                                                 <p>
                                                     <strong>MUI_HEADERIMAGE_BITMAP_RTL</strong> <span class="parameter">bmp_file</span><br />
                                                     Bitmap image to display on the header of installers pages when using a RTL language
@@ -294,12 +306,8 @@
                                                     <em>Default: Non-RTL bitmap</em></p>
                                                 <div class="settings">
                                                     <p>
-                                                        <strong>MUI_HEADERIMAGE_BITMAP_RTL_NOSTRETCH</strong><br />
-                                                        Do not stretch the installer header bitmap when using a RTL language to fit the
-                                                        size of the field. Use this option only if you have an image that does not use the
-                                                        whole space. If you have a full size bitmap that fits exactly, you should not use
-                                                        this option because the size of the field will be different if the user has a custom
-                                                        DPI setting.</p>
+                                                        <strong>MUI_HEADERIMAGE_BITMAP_RTL_STRETCH</strong> <span class="parameter">mode</span><br />
+                                                        See MUI_HEADERIMAGE_BITMAP_STRETCH for a list of the available stretch modes.</p>
                                                 </div>
                                             </div>
                                             <p>
@@ -309,11 +317,8 @@
                                                 <em>Default: Installer header bitmap</em></p>
                                             <div class="settings">
                                                 <p>
-                                                    <strong>MUI_HEADERIMAGE_UNBITMAP_NOSTRETCH</strong><br />
-                                                    Do not stretch the uninstaller header bitmap to fit the size of the field. Use this
-                                                    option only if you have an image that does not use the whole space. If you have
-                                                    a full size bitmap that fits exactly, you should not use this option because the
-                                                    size of the field will be different if the user has a custom DPI setting.</p>
+                                                    <strong>MUI_HEADERIMAGE_UNBITMAP_STRETCH</strong> <span class="parameter">mode</span><br />
+                                                    See MUI_HEADERIMAGE_BITMAP_STRETCH for a list of the available stretch modes.</p>
                                                 <p>
                                                     <strong>MUI_HEADERIMAGE_UNBITMAP_RTL</strong> <span class="parameter">bmp_file</span><br />
                                                     Bitmap image to display on the header of uninstallers pages when using a RTL language
@@ -321,12 +326,8 @@
                                                     <em>Default: Installer RTL header bitmap</em></p>
                                                 <div class="settings">
                                                     <p>
-                                                        <strong>MUI_HEADERIMAGE_UNBITMAP_RTL_NOSTRETCH</strong><br />
-                                                        Do not stretch the uninstaller header bitmap when using a RTL language to fit the
-                                                        size of the field. Use this option only if you have an image that does not use the
-                                                        whole space. If you have a full size bitmap that fits exactly, you should not use
-                                                        this option because the size of the field will be different if the user has a custom
-                                                        DPI setting.</p>
+                                                        <strong>MUI_HEADERIMAGE_UNBITMAP_RTL_STRETCH</strong> <span class="parameter">mode</span><br />
+                                                        See MUI_HEADERIMAGE_BITMAP_STRETCH for a list of the available stretch modes.</p>
                                                 </div>
                                             </div>
                                             <p>
@@ -385,11 +386,8 @@
                                             <em>Default: ${NSISDIR}\Contrib\Graphics\Wizard\win.bmp</em></p>
                                         <div class="settings">
                                             <p>
-                                                <strong>MUI_WELCOMEFINISHPAGE_BITMAP_NOSTRETCH</strong><br />
-                                                Do not stretch the bitmap for the Welcome and Finish page to fit the size of the
-                                                field. Use this option only if you have an image that does not use the whole space.
-                                                If you have a full size bitmap that fits exactly, you should not use this option
-                                                because the size of the field will be different if the user has a custom DPI setting.</p>
+                                                <strong>MUI_WELCOMEFINISHPAGE_BITMAP_STRETCH</strong> <span class="parameter">mode</span><br />
+                                                See MUI_HEADERIMAGE_BITMAP_STRETCH for a list of the available stretch modes.</p>
                                         </div>
                                     </div>
                                     <h3>
@@ -403,11 +401,8 @@
                                             <em>Default: ${NSISDIR}\Contrib\Graphics\Wizard\win.bmp</em></p>
                                         <div class="settings">
                                             <p>
-                                                <strong>MUI_UNWELCOMEFINISHPAGE_BITMAP_NOSTRETCH</strong><br />
-                                                Do not stretch the bitmap for the Welcome and Finish page to fit the size of the
-                                                field. Use this option only if you have an image that does not use the whole space.
-                                                If you have a full size bitmap that fits exactly, you should not use this option
-                                                because the size of the field will be different if the user has a custom DPI setting.</p>
+                                                <strong>MUI_UNWELCOMEFINISHPAGE_BITMAP_STRETCH</strong> <span class="parameter">mode</span><br />
+                                                See MUI_HEADERIMAGE_BITMAP_STRETCH for a list of the available stretch modes.</p>
                                         </div>
                                     </div>
                                     <h3>
@@ -860,6 +855,10 @@ Var PLUGINS_FOLDER
                                     <p>
                                         <strong>MUI_UNCONFIRMPAGE_TEXT_LOCATION</strong> <span class="parameter">text</span><br />
                                         Text to display next to the uninstall location text box.</p>
+                                    <p>
+                                        <strong>MUI_UNCONFIRMPAGE_VARIABLE</strong> <span class="parameter">variable</span><br />
+                                        Variable in which to store the uninstall source folder.<br />
+                                        <em>Default: $INSTDIR</em></p>
                                 </div>
                         </div>
                     </div>
@@ -884,7 +883,7 @@ Var PLUGINS_FOLDER
                             start faster. Include reserve file commands for such files before your sections
                             and functions:</p>
                         <pre>
-ReserveFile MyPlugin.dll
+ReserveFile /plugin MyPlugin.dll
 !insertmacro MUI_RESERVEFILE_LANGDLL ;Language selection dialog
 ...
 </pre>
@@ -1033,7 +1032,7 @@ LangString PAGE_TITLE ${LANG_ENGLISH} &quot;Title&quot;
 LangString PAGE_SUBTITLE ${LANG_ENGLISH} &quot;Subtitle&quot;
 
 Function CustomPageFunction
-  !insermacro MUI_HEADER_TEXT $(PAGE_TITLE) $(PAGE_SUBTITLE)
+  !insertmacro MUI_HEADER_TEXT $(PAGE_TITLE) $(PAGE_SUBTITLE)
   ...
 FuctionEnd
 </pre>
@@ -1087,17 +1086,20 @@ FunctionEnd</pre>
                                 <strong>MUI_PAGE_CUSTOMFUNCTION_PRE</strong> <span class="parameter">function</span><br />
                                 <strong>MUI_PAGE_CUSTOMFUNCTION_SHOW</strong> <span class="parameter">function</span><br />
                                 <strong>MUI_PAGE_CUSTOMFUNCTION_LEAVE</strong> <span class="parameter">function</span><br />
+                                <strong>MUI_PAGE_CUSTOMFUNCTION_DESTROYED</strong> <span class="parameter">function</span><br />
                             </p>
                             <p>
                                 The pre function is called first and allows you to initalize variables or decide
                                 whether the page should be skipped. Then, the show function is called, which can
                                 be used to customize the interface. Finally, the user input can be validated in the
-								leave function. The NSIS Users Manual provides more information about these functions.</p>
+                                leave function. The NSIS Users Manual provides more information about these functions.</p>
                             <p>
                                 In the show function, the window handles of all controls on the page can be retrieved
                                 from a Modern UI variable. A list of the variables names is not yet available. For
-                                now, refer to the source files of the Modern UI 2.0. The variable declarations can
+                                now, refer to the source files of the Modern UI 2. The variable declarations can
                                 be found in the first lines of the header file for a certain page.</p>
+                            <p>
+                                The destroyed function is called after a external/plug-in page has been destroyed.
                         </div>
                     </div>
                     <h1>
@@ -1129,7 +1131,7 @@ FunctionEnd</pre>
                             License Terms</h3>
                         <div class="toggle" id="toggle_lic">
                             <pre>
-Copyright &copy; 2002-2015 Joost Verburg
+Copyright &copy; 2002-2017 Joost Verburg
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

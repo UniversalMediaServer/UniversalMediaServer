@@ -1,4 +1,4 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,187 +6,187 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1254
 # RTL - anything else than RTL means LTR
 -
 # Translation by ?atay Dilsiz(chagy) (amigos_cagi@hotmail.com)
-# Corrections by Mozilla Türkiye Yerelleştirme Topluluğu tarafından çevrilmiştir. http://mozilla.org.tr
+# Corrections by Mozilla TÃ¼rkiye YerelleÅŸtirme TopluluÄŸu tarafÄ±ndan Ã§evrilmiÅŸtir. http://mozilla.org.tr
 # ^Branding
 Nullsoft Kurulum Sistemi %s
 # ^SetupCaption
 $(^Name) Kurulumu
 # ^UninstallCaption
-$(^Name) Kaldırma
+$(^Name) KaldÄ±rma
 # ^LicenseSubCaption
-: Lisans Sözleşmesi
+: Lisans SÃ¶zleÅŸmesi
 # ^ComponentsSubCaption
-: Kurulum Seçenekleri
+: Kurulum SeÃ§enekleri
 # ^DirSubCaption
 : Kurulum Dizini
 # ^InstallingSubCaption
 : Kuruluyor
 # ^CompletedSubCaption
-: Tamamlandı
+: TamamlandÄ±
 # ^UnComponentsSubCaption
-: Kaldırma Seçenekleri
+: KaldÄ±rma SeÃ§enekleri
 # ^UnDirSubCaption
-: Kaldırılacak Dizin
+: KaldÄ±rÄ±lacak Dizin
 # ^ConfirmSubCaption
 : Onay
 # ^UninstallingSubCaption
-: Kaldırılıyor
+: KaldÄ±rÄ±lÄ±yor
 # ^UnCompletedSubCaption
-: Tamamlandı
+: TamamlandÄ±
 # ^BackBtn
 < &Geri
 # ^NextBtn
-İ&leri >
+Ä°&leri >
 # ^AgreeBtn
 &Kabul Ediyorum
 # ^AcceptBtn
-Lisans Sözleşmesi'nin koşullarını &kabul ediyorum
+Lisans SÃ¶zleÅŸmesi'nin koÅŸullarÄ±nÄ± &kabul ediyorum
 # ^DontAcceptBtn
-Lisans Sözleşmesi'nin koşullarını kabul et&miyorum
+Lisans SÃ¶zleÅŸmesi'nin koÅŸullarÄ±nÄ± kabul et&miyorum
 # ^InstallBtn
 &Kur
 # ^UninstallBtn
-&Kaldır
+&KaldÄ±r
 # ^CancelBtn
-Vazgeç
+VazgeÃ§
 # ^CloseBtn
 &Kapat
 # ^BrowseBtn
-&Gözat...
+&GÃ¶zat...
 # ^ShowDetailsBtn
-&Ayrıntıları göster
+&AyrÄ±ntÄ±larÄ± gÃ¶ster
 # ^ClickNext
-Devam etmek için İleri düğmesine basın.
+Devam etmek iÃ§in Ä°leri dÃ¼ÄŸmesine basÄ±n.
 # ^ClickInstall
-Kurulumu başlatmak için Kur düğmesine basın.
+Kurulumu baÅŸlatmak iÃ§in Kur dÃ¼ÄŸmesine basÄ±n.
 # ^ClickUninstall
-Kaldırmayı başlatmak için Kaldır düğmesine basın.
+KaldÄ±rmayÄ± baÅŸlatmak iÃ§in KaldÄ±r dÃ¼ÄŸmesine basÄ±n.
 # ^Name
 Ad
 # ^Completed
-Tamamlandı
+TamamlandÄ±
 # ^LicenseText
-Lütfen $(^NameDA) uygulamasını kurmadan önce lisans sözleşmesini gözden geçirin. Sözleşmedeki bütün koşulları kabul ediyorsanız Kabul Ediyorum düğmesine basın.
+LÃ¼tfen $(^NameDA) uygulamasÄ±nÄ± kurmadan Ã¶nce lisans sÃ¶zleÅŸmesini gÃ¶zden geÃ§irin. SÃ¶zleÅŸmedeki bÃ¼tÃ¼n koÅŸullarÄ± kabul ediyorsanÄ±z Kabul Ediyorum dÃ¼ÄŸmesine basÄ±n.
 # ^LicenseTextCB
-Lütfen $(^NameDA) uygulamasını kurmadan önce lisans sözleşmesini gözden geçirin. Sözleşmedeki bütün koşulları kabul ediyorsanız aşağıdaki kutuya işaret koyun. $_CLICK
+LÃ¼tfen $(^NameDA) uygulamasÄ±nÄ± kurmadan Ã¶nce lisans sÃ¶zleÅŸmesini gÃ¶zden geÃ§irin. SÃ¶zleÅŸmedeki bÃ¼tÃ¼n koÅŸullarÄ± kabul ediyorsanÄ±z aÅŸaÄŸÄ±daki kutuya iÅŸaret koyun. $_CLICK
 # ^LicenseTextRB
-Lütfen $(^NameDA) uygulamasını kurmadan önce lisans sözleşmesini gözden geçirin. Sözleşmedeki bütün koşulları kabul ediyorsanız aşağıdaki ilk seçeneği seçin. $_CLICK
+LÃ¼tfen $(^NameDA) uygulamasÄ±nÄ± kurmadan Ã¶nce lisans sÃ¶zleÅŸmesini gÃ¶zden geÃ§irin. SÃ¶zleÅŸmedeki bÃ¼tÃ¼n koÅŸullarÄ± kabul ediyorsanÄ±z aÅŸaÄŸÄ±daki ilk seÃ§eneÄŸi seÃ§in. $_CLICK
 # ^UnLicenseText
-Lütfen $(^NameDA) uygulamasını kaldırmadan önce lisans sözleşmesini gözden geçirin. Sözleşmedeki bütün koşulları kabul ediyorsanız Kabul Ediyorum düğmesine basın.
+LÃ¼tfen $(^NameDA) uygulamasÄ±nÄ± kaldÄ±rmadan Ã¶nce lisans sÃ¶zleÅŸmesini gÃ¶zden geÃ§irin. SÃ¶zleÅŸmedeki bÃ¼tÃ¼n koÅŸullarÄ± kabul ediyorsanÄ±z Kabul Ediyorum dÃ¼ÄŸmesine basÄ±n.
 # ^UnLicenseTextCB
-Lütfen $(^NameDA) uygulamasını kaldırmadan önce lisans sözleşmesini gözden geçirin. Sözleşmedeki bütün koşulları kabul ediyorsanız aşağıdaki kutuya işaret koyun. $_CLICK
+LÃ¼tfen $(^NameDA) uygulamasÄ±nÄ± kaldÄ±rmadan Ã¶nce lisans sÃ¶zleÅŸmesini gÃ¶zden geÃ§irin. SÃ¶zleÅŸmedeki bÃ¼tÃ¼n koÅŸullarÄ± kabul ediyorsanÄ±z aÅŸaÄŸÄ±daki kutuya iÅŸaret koyun. $_CLICK
 # ^UnLicenseTextRB
-Lütfen $(^NameDA) uygulamasını kaldırmadan önce lisans sözleşmesini gözden geçirin. Sözleşmedeki bütün koşulları kabul ediyorsanız aşağıdaki ilk seçeneği seçin. $_CLICK
+LÃ¼tfen $(^NameDA) uygulamasÄ±nÄ± kaldÄ±rmadan Ã¶nce lisans sÃ¶zleÅŸmesini gÃ¶zden geÃ§irin. SÃ¶zleÅŸmedeki bÃ¼tÃ¼n koÅŸullarÄ± kabul ediyorsanÄ±z aÅŸaÄŸÄ±daki ilk seÃ§eneÄŸi seÃ§in. $_CLICK
 # ^Custom
-Özel
+Ã–zel
 # ^ComponentsText
-Kurmak istediğiniz bileşenleri işaretleyip kurmak istemediklerinizi işaretlemeden bırakın. $_CLICK
+Kurmak istediÄŸiniz bileÅŸenleri iÅŸaretleyip kurmak istemediklerinizi iÅŸaretlemeden bÄ±rakÄ±n. $_CLICK
 # ^ComponentsSubText1
-Kurulum türünü seçin:
+Kurulum tÃ¼rÃ¼nÃ¼ seÃ§in:
 # ^ComponentsSubText2_NoInstTypes
-Kurulacak bileşenleri seçin:
+Kurulacak bileÅŸenleri seÃ§in:
 # ^ComponentsSubText2
-ya da isteğe bağlı olarak kurmak istediğiniz bileşenleri seçin:
+ya da isteÄŸe baÄŸlÄ± olarak kurmak istediÄŸiniz bileÅŸenleri seÃ§in:
 # ^UnComponentsText
-Kaldırmak istediğiniz bileşenleri işaretleyip kaldırmak istemediklerinizi işaretlemeden bırakın. $_CLICK
+KaldÄ±rmak istediÄŸiniz bileÅŸenleri iÅŸaretleyip kaldÄ±rmak istemediklerinizi iÅŸaretlemeden bÄ±rakÄ±n. $_CLICK
 # ^UnComponentsSubText1
-Kaldırma türünü seçin:
+KaldÄ±rma tÃ¼rÃ¼nÃ¼ seÃ§in:
 # ^UnComponentsSubText2_NoInstTypes
-Kaldırılacak bileşenleri seçin:
+KaldÄ±rÄ±lacak bileÅŸenleri seÃ§in:
 # ^UnComponentsSubText2
-ya da isteğe bağlı olarak kaldırmak istediğiniz bileşenleri seçin:
+ya da isteÄŸe baÄŸlÄ± olarak kaldÄ±rmak istediÄŸiniz bileÅŸenleri seÃ§in:
 # ^DirText
-$(^NameDA) aşağıdaki dizinde kurulacak. Farklı bir dizinde kurmak için Gözat düğmesine basıp başka bir dizin seçin. $_CLICK
+$(^NameDA) aÅŸaÄŸÄ±daki dizinde kurulacak. FarklÄ± bir dizinde kurmak iÃ§in GÃ¶zat dÃ¼ÄŸmesine basÄ±p baÅŸka bir dizin seÃ§in. $_CLICK
 # ^DirSubText
 Hedef Dizin
 # ^DirBrowseText
-$(^NameDA) uygulamasının kurulacağı dizini seçin:
+$(^NameDA) uygulamasÄ±nÄ±n kurulacaÄŸÄ± dizini seÃ§in:
 # ^UnDirText
-$(^NameDA) aşağıdaki dizinden kaldırılacak. Farklı bir dizinden kaldırmak için Gözat düğmesine basıp başka bir dizin seçin. $_CLICK
+$(^NameDA) aÅŸaÄŸÄ±daki dizinden kaldÄ±rÄ±lacak. FarklÄ± bir dizinden kaldÄ±rmak iÃ§in GÃ¶zat dÃ¼ÄŸmesine basÄ±p baÅŸka bir dizin seÃ§in. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-$(^NameDA) uygulamasının kaldırılacağı dizini seçin:
+$(^NameDA) uygulamasÄ±nÄ±n kaldÄ±rÄ±lacaÄŸÄ± dizini seÃ§in:
 # ^SpaceAvailable
-"Kullanılabilir boş alan: "
+"KullanÄ±labilir boÅŸ alan: "
 # ^SpaceRequired
-"Gereken boş alan: "
+"Gereken boÅŸ alan: "
 # ^UninstallingText
-$(^NameDA) aşağıdaki dizinden kaldırılacak. $_CLICK
+$(^NameDA) aÅŸaÄŸÄ±daki dizinden kaldÄ±rÄ±lacak. $_CLICK
 # ^UninstallingSubText
-Kaldırılan yer:
+KaldÄ±rÄ±lan yer:
 # ^FileError
-Dosya yazmak için açılırken hata meydana geldi: \r\n\r\n$0\r\n\r\nKurulumu durdurmak için Dur düğmesine,\r\nyeniden denemek için Yeniden Dene düğmesine,\r\nbu dosyayı atlamak için Yoksay düğmesine basın.
+Dosya yazmak iÃ§in aÃ§Ä±lÄ±rken hata meydana geldi: \r\n\r\n$0\r\n\r\nKurulumu durdurmak iÃ§in Dur dÃ¼ÄŸmesine,\r\nyeniden denemek iÃ§in Yeniden Dene dÃ¼ÄŸmesine,\r\nbu dosyayÄ± atlamak iÃ§in Yoksay dÃ¼ÄŸmesine basÄ±n.
 # ^FileError_NoIgnore
-Dosya yazmak için açılırken hata meydana geldi: \r\n\r\n$0\r\n\r\nYeniden denemek için Yeniden Dene düğmesine,\r\nkurulumu durdurmak için Vazgeç düğmesine basın.
+Dosya yazmak iÃ§in aÃ§Ä±lÄ±rken hata meydana geldi: \r\n\r\n$0\r\n\r\nYeniden denemek iÃ§in Yeniden Dene dÃ¼ÄŸmesine,\r\nkurulumu durdurmak iÃ§in VazgeÃ§ dÃ¼ÄŸmesine basÄ±n.
 # ^CantWrite
-"Yazılamadı: "
+"YazÄ±lamadÄ±: "
 # ^CopyFailed
-Kopyalama başarısız oldu
+Kopyalama baÅŸarÄ±sÄ±z oldu
 # ^CopyTo
-"Kayıt: "
+"KayÄ±t: "
 # ^Registering
 "Kaydediliyor: "
 # ^Unregistering
-"Kayıt siliniyor: "
+"KayÄ±t siliniyor: "
 # ^SymbolNotFound
-"Simge bulunamadı: "
+"Simge bulunamadÄ±: "
 # ^CouldNotLoad
-"Yüklenemedi: "
+"YÃ¼klenemedi: "
 # ^CreateFolder
-"Dizin oluştur: "
+"Dizin oluÅŸtur: "
 # ^CreateShortcut
-"Kısayol oluştur: "
+"KÄ±sayol oluÅŸtur: "
 # ^CreatedUninstaller
-"Kaldırma uygulaması oluştur: "
+"KaldÄ±rma uygulamasÄ± oluÅŸtur: "
 # ^Delete
 "Dosya sil: "
 # ^DeleteOnReboot
-"Açılışta sil: "
+"AÃ§Ä±lÄ±ÅŸta sil: "
 # ^ErrorCreatingShortcut
-"Kısayol oluşturulurken hata meydana geldi: "
+"KÄ±sayol oluÅŸturulurken hata meydana geldi: "
 # ^ErrorCreating
-"Oluşturma hatası: "
+"OluÅŸturma hatasÄ±: "
 # ^ErrorDecompressing
-Veriyi açarken hata meydana geldi! Acaba kurulum uygulaması mı bozuk?
+Veriyi aÃ§arken hata meydana geldi! Acaba kurulum uygulamasÄ± mÄ± bozuk?
 # ^ErrorRegistering
 DLL kaydedilirken hata meydana geldi
 # ^ExecShell
 "ExecShell: "
 # ^Exec
-"Çalıştır: "
+"Ã‡alÄ±ÅŸtÄ±r: "
 # ^Extract
-"Aç: "
+"AÃ§: "
 # ^ErrorWriting
-"Açma: Dosyaya yazarken hata meydana geldi "
+"AÃ§ma: Dosyaya yazarken hata meydana geldi "
 # ^InvalidOpcode
-Kurulum bozuk: Geçersiz kod
+Kurulum bozuk: GeÃ§ersiz kod
 # ^NoOLE
 "OLE yok: "
 # ^OutputFolder
-"Çıktı dizini: "
+"Ã‡Ä±ktÄ± dizini: "
 # ^RemoveFolder
 "Dizini sil: "
 # ^RenameOnReboot
-"Açılışta adını değiştir: "
+"AÃ§Ä±lÄ±ÅŸta adÄ±nÄ± deÄŸiÅŸtir: "
 # ^Rename
-"Ad değiştir: "
+"Ad deÄŸiÅŸtir: "
 # ^Skipped
-"Atlandı: "
+"AtlandÄ±: "
 # ^CopyDetails
-Ayrıntıları panoya kopyala
+AyrÄ±ntÄ±larÄ± panoya kopyala
 # ^LogInstall
-Kurulum sürecinin kaydını tut
+Kurulum sÃ¼recinin kaydÄ±nÄ± tut
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

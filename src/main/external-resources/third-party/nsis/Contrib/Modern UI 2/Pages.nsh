@@ -10,6 +10,10 @@ Support code for all pages
 
 !macro MUI_PAGE_INIT
 
+  !ifdef MUI_INSERT
+    !warning "MUI_PAGE_* inserted after MUI_LANGUAGE"
+  !endif
+
   ;Include interface settings in neccesary
   !insertmacro MUI_INTERFACE
 
@@ -29,6 +33,10 @@ Support code for all pages
 
 !macro MUI_UNPAGE_INIT
 
+  !ifdef MUI_INSERT
+    !warning "MUI_UNPAGE_* inserted after MUI_LANGUAGE"
+  !endif
+
   ;Include interface settings
   !insertmacro MUI_INTERFACE
 
@@ -41,7 +49,7 @@ Support code for all pages
   
   ;Generate unique ID
   !insertmacro MUI_UNSET MUI_UNIQUEID
-  !define MUI_UNIQUEID ${__LINE__}  
+  !define MUI_UNIQUEID ${__LINE__}
 
 !macroend
 
@@ -158,3 +166,159 @@ Support code for all pages
   !endif
 
 !macroend
+
+!macro MUI_INTERNAL_FULLWINDOW_LOADWIZARDIMAGE _un _hwndImg _ImgPath _RetImgHandle
+
+  !ifdef MUI_${_un}WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
+    !insertmacro MUI_DEFAULT MUI_${_un}WELCOMEFINISHPAGE_BITMAP_STRETCH NoStretchNoCropNoAlign ; Legacy compatibility
+  !endif
+  !insertmacro MUI_DEFAULT MUI_${_un}WELCOMEFINISHPAGE_BITMAP_STRETCH FitControl
+
+  !if "${MUI_${_un}WELCOMEFINISHPAGE_BITMAP_STRETCH}" == "NoStretchNoCropNoAlign"
+
+    ${NSD_SetImage} ${_hwndImg} "${_ImgPath}" "${_RetImgHandle}"
+
+  !else if "${MUI_${_un}WELCOMEFINISHPAGE_BITMAP_STRETCH}" == "NoStretchNoCrop"
+
+    !insertmacro MUI_LOADANDXALIGNIMAGE ${_hwndImg} "${_ImgPath}" Auto "${_RetImgHandle}"
+
+  !else if "${MUI_${_un}WELCOMEFINISHPAGE_BITMAP_STRETCH}" == "AspectFitHeight"
+
+    !insertmacro MUI_LOADANDASPECTSTRETCHIMAGETOCONTROLHEIGHT ${_hwndImg} "${_ImgPath}" Auto "${_RetImgHandle}"
+
+  !else
+
+    !if "${MUI_${_un}WELCOMEFINISHPAGE_BITMAP_STRETCH}" != "FitControl"
+      !warning 'MUI_${_un}WELCOMEFINISHPAGE_BITMAP_STRETCH set to unknown value, defaulting to FitControl'
+    !endif
+    ${NSD_SetStretchedImage} ${_hwndImg} "${_ImgPath}" "${_RetImgHandle}"
+
+  !endif
+
+!macroend
+
+
+;--------------------------------
+;Helper macros
+
+!include Util.nsh
+
+!macro MUI_INTERNAL_LOADANDSIZEIMAGE _macro _hwndImg _ImgPath _XAlign _RetImgHandle
+  !if "${_XAlign}" == "Auto"
+    ${if} $(^RTL) == 1
+      Push "*${_ImgPath}"
+    ${Else}
+      Push "${_ImgPath}"
+    ${EndIf}
+  !else if "${_XAlign}" == "Right"
+    Push "*${_ImgPath}"
+  !else
+    Push "${_ImgPath}"
+  !endif
+  Push "${_hwndImg}"
+  ${CallArtificialFunction} ${_macro}
+  !if "${_RetImgHandle}" == "Leak"
+    !insertmacro _LOGICLIB_TEMP
+    Pop $_LOGICLIB_TEMP
+  !else if "${_RetImgHandle}" != "Stack"
+    Pop ${_RetImgHandle}
+  !endif
+!macroend
+
+!macro MUI_LOADANDXALIGNIMAGE _hwndImg _ImgPath _XAlign _RetImgHandle
+!insertmacro MUI_INTERNAL_LOADANDSIZEIMAGE \
+  MUI_INTERNAL_LOADANDXALIGNIMAGE "${_hwndImg}" "${_ImgPath}" "${_XAlign}" "${_RetImgHandle}"
+!macroend
+!macro MUI_INTERNAL_LOADANDXALIGNIMAGE
+  System::Store "S"
+  System::Call 'USER32::GetWindowRect(psr0,@r1)'
+  System::Call 'USER32::MapWindowPoints(p0,p$hwndparent,pr1,i2)' ; Note: Assuming control is not in inner dialog
+  System::Call '*$1(i.r5,i.r6,i.r7,i.r8)'
+  IntOp $7 $7 - $5
+  IntOp $8 $8 - $6
+
+  Pop $1
+  StrCpy $3 $1 1
+  ${If} $3 == "*" ; Move control to the right?
+    StrCpy $1 $1 "" 1
+  ${Endif}
+  System::Call 'USER32::LoadImage(p0,tr1,i${IMAGE_BITMAP},i0,i0,i${LR_LOADFROMFILE})p.r2'
+  SendMessage $0 ${STM_SETIMAGE} ${IMAGE_BITMAP} $2 $1
+  Push $2 ; Return value
+  System::Call 'GDI32::DeleteObject(pr1)' ; Note: Assuming the previous image (if any) was a bitmap
+  System::Call 'USER32::GetClientRect(pr0,@r1)'
+  System::Call '*$1(i,i,i.r1,i.r2)'
+
+  ${If} $3 == "*"
+  ${AndIf} $1 < $7 ; ImgW < CtlW
+    IntOp $3 $7 - $1
+    IntOp $5 $5 + $3
+    System::Call 'USER32::SetWindowPos(pr0,p0,ir5,ir6,i,i,i0x15)'
+  ${EndIf}
+
+  System::Store "L"
+!macroend
+
+!macro MUI_LOADANDASPECTSTRETCHIMAGETOCONTROLHEIGHT _hwndImg _ImgPath _XAlign _RetImgHandle
+!insertmacro MUI_INTERNAL_LOADANDSIZEIMAGE \
+  MUI_INTERNAL_LOADANDASPECTSTRETCHIMAGETOCONTROLHEIGHT "${_hwndImg}" "${_ImgPath}" "${_XAlign}" "${_RetImgHandle}"
+!macroend
+!macro MUI_INTERNAL_LOADANDASPECTSTRETCHIMAGETOCONTROLHEIGHT
+  System::Store "S"
+  System::Call 'USER32::GetWindowRect(psr0,@r1)'
+  System::Call 'USER32::MapWindowPoints(p0,p$hwndparent,pr1,i2)' ; Note: Assuming control is not in inner dialog
+  System::Call '*$1(i.r5,i.r6,i.r7,i.r8)'
+  IntOp $7 $7 - $5
+  IntOp $8 $8 - $6
+
+  Pop $1
+  StrCpy $3 $1 1
+  ${If} $3 == "*" ; Move control to the right?
+    StrCpy $1 $1 "" 1
+  ${Endif}
+  System::Call 'USER32::LoadImage(p0,tr1,i${IMAGE_BITMAP},i0,i0,i${LR_LOADFROMFILE})p.r2'
+  SendMessage $0 ${STM_SETIMAGE} ${IMAGE_BITMAP} $2 $1
+  Push $2 ; Return value
+  System::Call 'GDI32::DeleteObject(pr1)' ; Note: Assuming the previous image (if any) was a bitmap
+  System::Call 'USER32::GetClientRect(pr0,@r1)'
+  System::Call '*$1(i,i,i.r1,i.r2)'
+
+  IntOp $R7 $7 * 10000
+  IntOp $R8 $8 * 10000
+  IntOp $R1 $1 * 10000
+  IntOp $R2 $2 * 10000
+  IntOp $R3 $R1 / $2
+  StrCpy $R4 10000
+  ${If} $R1 > $R2
+    StrCpy $R3 10000
+    IntOp $R4 $R2 / $1
+  ${EndIf}
+
+  ${DoWhile} $R2 > $R8 ; ImgH > CtlH
+    IntOp $R1 $R1 - $R3
+    IntOp $R2 $R2 - $R4
+  ${Loop}
+  ${DoWhile} $R2 < $R8 ; ImgH < CtlH
+    IntOp $R1 $R1 + $R3
+    IntOp $R2 $R2 + $R4
+  ${Loop}
+  IntOp $1 $R1 / 10000
+  IntOp $2 $R2 / 10000
+
+  ${If} $1 < $7
+  ${AndIf} $3 == "*"
+    IntOp $R3 $7 - $1
+    IntOp $5 $5 + $R3
+  ${EndIf}
+
+  ${DoWhile} $2 > $8 ; Non-aspect-maintained stretch to make it a pixel perfect match
+    IntOp $2 $2 - 1
+    IntOp $1 $1 - 1
+    ${IfThen} $3 == "*" ${|} IntOp $5 $5 + 1 ${|}
+  ${Loop}
+
+  System::Call 'USER32::SetWindowPos(pr0,p0,ir5,ir6,ir1,ir2,i0x14)'
+  System::Store "L"
+!macroend
+
+

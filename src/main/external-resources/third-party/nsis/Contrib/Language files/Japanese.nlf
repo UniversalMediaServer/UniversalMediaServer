@@ -1,11 +1,11 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1041
 # Font and size - dash (-) means default
-‚l‚r ‚oƒSƒVƒbƒN
+ï¼­ï¼³ ï¼°ã‚´ã‚·ãƒƒã‚¯
 9
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 932
 # RTL - anything else than RTL means LTR
 -
@@ -13,178 +13,178 @@ NLF v6
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
-$(^Name) ƒZƒbƒgƒAƒbƒv
+$(^Name) ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—
 # ^UninstallCaption
-$(^Name) ƒAƒ“ƒCƒ“ƒXƒg[ƒ‹
+$(^Name) ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 # ^LicenseSubCaption
-Fƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘
+ï¼šãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸
 # ^ComponentsSubCaption
-FƒCƒ“ƒXƒg[ƒ‹ ƒIƒvƒVƒ‡ƒ“
+ï¼šã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ã‚ªãƒ—ã‚·ãƒ§ãƒ³
 # ^DirSubCaption
-FƒCƒ“ƒXƒg[ƒ‹ ƒtƒHƒ‹ƒ_
+ï¼šã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ãƒ•ã‚©ãƒ«ãƒ€
 # ^InstallingSubCaption
-FƒCƒ“ƒXƒg[ƒ‹
+ï¼šã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 # ^CompletedSubCaption
-FŠ®—¹
+ï¼šå®Œäº†
 # ^UnComponentsSubCaption
-: ƒAƒ“ƒCƒ“ƒXƒg[ƒ‹ ƒIƒvƒVƒ‡ƒ“
+: ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ã‚ªãƒ—ã‚·ãƒ§ãƒ³
 # ^UnDirSubCaption
-: ƒAƒ“ƒCƒ“ƒXƒg[ƒ‹ ƒtƒHƒ‹ƒ_
+: ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ãƒ•ã‚©ãƒ«ãƒ€
 # ^ComfirmSubCaption
-FŠm”F
+ï¼šç¢ºèª
 # ^UninstallingSubCaption
-FƒAƒ“ƒCƒ“ƒXƒg[ƒ‹
+ï¼šã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 # ^UnCompletedSubCaption
-FŠ®—¹
+ï¼šå®Œäº†
 # ^BackBtn
-< –ß‚é(&B)
+< æˆ»ã‚‹(&B)
 # ^NextBtn
-ŽŸ‚Ö(&N) >
+æ¬¡ã¸(&N) >
 # ^AgreeBtn
-“¯ˆÓ‚·‚é(&A)
+åŒæ„ã™ã‚‹(&A)
 # ^AcceptBtn
-‚±‚Ìƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘‚É“¯ˆÓ‚µ‚Ü‚·(&A)
+ã“ã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸ã«åŒæ„ã—ã¾ã™(&A)
 # ^DontAcceptBtn
-‚±‚Ìƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘‚É‚Í“¯ˆÓ‚Å‚«‚Ü‚¹‚ñ(&D)
+ã“ã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸ã«ã¯åŒæ„ã§ãã¾ã›ã‚“(&D)
 # ^InstallBtn
-ƒCƒ“ƒXƒg[ƒ‹
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 # ^UninstallBtn
-±Ý²Ý½Ä°Ù(&U)
+ï½±ï¾ï½²ï¾ï½½ï¾„ï½°ï¾™(&U)
 # ^CancelBtn
-ƒLƒƒƒ“ƒZƒ‹
+ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 # ^CloseBtn
-•Â‚¶‚é(&C)
+é–‰ã˜ã‚‹(&C)
 # ^BrowseBtn
-ŽQÆ(&R)...
+å‚ç…§(&R)...
 # ^ShowDetailsBtn
-Ú×‚ð•\Ž¦(&D)
+è©³ç´°ã‚’è¡¨ç¤º(&D)
 # ^ClickNext
-‘±‚¯‚é‚É‚Í [ŽŸ‚Ö] ‚ðƒNƒŠƒbƒN‚µ‚Ä‰º‚³‚¢B
+ç¶šã‘ã‚‹ã«ã¯ [æ¬¡ã¸] ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¦ä¸‹ã•ã„ã€‚
 # ^ClickInstall
-ƒCƒ“ƒXƒg[ƒ‹‚ðŽn‚ß‚é‚É‚Í [ƒCƒ“ƒXƒg[ƒ‹] ‚ðƒNƒŠƒbƒN‚µ‚Ä‰º‚³‚¢B
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã‚’å§‹ã‚ã‚‹ã«ã¯ [ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«] ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¦ä¸‹ã•ã„ã€‚
 # ^ClickUninstall
-ƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚ðŽn‚ß‚é‚É‚Í [±Ý²Ý½Ä°Ù] ‚ðƒNƒŠƒbƒN‚µ‚Ä‰º‚³‚¢B
+ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã‚’å§‹ã‚ã‚‹ã«ã¯ [ï½±ï¾ï½²ï¾ï½½ï¾„ï½°ï¾™] ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¦ä¸‹ã•ã„ã€‚
 # ^Name
-ƒAƒvƒŠƒP[ƒVƒ‡ƒ“
+ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³
 # ^Completed
-Š®—¹
+å®Œäº†
 # ^LicenseText
-$(^NameDA)‚ðƒCƒ“ƒXƒg[ƒ‹‚·‚é‘O‚ÉAƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘‚ðŠm”F‚µ‚Ä‰º‚³‚¢BŒ_–ñ‘‚Ì‘S‚Ä‚ÌðŒ‚É“¯ˆÓ‚·‚é‚È‚ç‚ÎA[“¯ˆÓ‚·‚é] ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚µ‚Ä‰º‚³‚¢B
+$(^NameDA)ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹å‰ã«ã€ãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸ã‚’ç¢ºèªã—ã¦ä¸‹ã•ã„ã€‚å¥‘ç´„æ›¸ã®å…¨ã¦ã®æ¡ä»¶ã«åŒæ„ã™ã‚‹ãªã‚‰ã°ã€[åŒæ„ã™ã‚‹] ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¦ä¸‹ã•ã„ã€‚
 # ^LicenseTextCB
-$(^NameDA)‚ðƒCƒ“ƒXƒg[ƒ‹‚·‚é‘O‚ÉAƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘‚ðŠm”F‚µ‚Ä‰º‚³‚¢BŒ_–ñ‘‚Ì‘S‚Ä‚ÌðŒ‚É“¯ˆÓ‚·‚é‚È‚ç‚ÎA‰º‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚ðƒNƒŠƒbƒN‚µ‚Ä‰º‚³‚¢B $_CLICK
+$(^NameDA)ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹å‰ã«ã€ãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸ã‚’ç¢ºèªã—ã¦ä¸‹ã•ã„ã€‚å¥‘ç´„æ›¸ã®å…¨ã¦ã®æ¡ä»¶ã«åŒæ„ã™ã‚‹ãªã‚‰ã°ã€ä¸‹ã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¦ä¸‹ã•ã„ã€‚ $_CLICK
 # ^LicenseTextRB
-$(^NameDA)‚ðƒCƒ“ƒXƒg[ƒ‹‚·‚é‘O‚ÉAƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘‚ðŠm”F‚µ‚Ä‰º‚³‚¢BŒ_–ñ‘‚Ì‘S‚Ä‚ÌðŒ‚É“¯ˆÓ‚·‚é‚È‚ç‚ÎA‰º‚É•\Ž¦‚³‚ê‚Ä‚¢‚éƒIƒvƒVƒ‡ƒ“‚Ì‚¤‚¿AÅ‰‚Ì‚à‚Ì‚ð‘I‚ñ‚Å‰º‚³‚¢B $_CLICK
+$(^NameDA)ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹å‰ã«ã€ãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸ã‚’ç¢ºèªã—ã¦ä¸‹ã•ã„ã€‚å¥‘ç´„æ›¸ã®å…¨ã¦ã®æ¡ä»¶ã«åŒæ„ã™ã‚‹ãªã‚‰ã°ã€ä¸‹ã«è¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®ã†ã¡ã€æœ€åˆã®ã‚‚ã®ã‚’é¸ã‚“ã§ä¸‹ã•ã„ã€‚ $_CLICK
 # ^UnLicenseText
-$(^NameDA)‚ðƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚·‚é‘O‚ÉAƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘‚ðŠm”F‚µ‚Ä‰º‚³‚¢BŒ_–ñ‘‚Ì‘S‚Ä‚ÌðŒ‚É“¯ˆÓ‚·‚é‚È‚ç‚ÎA[“¯ˆÓ‚·‚é] ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚µ‚Ä‰º‚³‚¢B
+$(^NameDA)ã‚’ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹å‰ã«ã€ãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸ã‚’ç¢ºèªã—ã¦ä¸‹ã•ã„ã€‚å¥‘ç´„æ›¸ã®å…¨ã¦ã®æ¡ä»¶ã«åŒæ„ã™ã‚‹ãªã‚‰ã°ã€[åŒæ„ã™ã‚‹] ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¦ä¸‹ã•ã„ã€‚
 # ^UnLicenseTextCB
-$(^NameDA)‚ðƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚·‚é‘O‚ÉAƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘‚ðŠm”F‚µ‚Ä‰º‚³‚¢BŒ_–ñ‘‚Ì‘S‚Ä‚ÌðŒ‚É“¯ˆÓ‚·‚é‚È‚ç‚ÎA‰º‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚ðƒNƒŠƒbƒN‚µ‚Ä‰º‚³‚¢B $_CLICK
+$(^NameDA)ã‚’ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹å‰ã«ã€ãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸ã‚’ç¢ºèªã—ã¦ä¸‹ã•ã„ã€‚å¥‘ç´„æ›¸ã®å…¨ã¦ã®æ¡ä»¶ã«åŒæ„ã™ã‚‹ãªã‚‰ã°ã€ä¸‹ã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¦ä¸‹ã•ã„ã€‚ $_CLICK
 # ^UnLicenseTextRB
-$(^NameDA)‚ðƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚·‚é‘O‚ÉAƒ‰ƒCƒZƒ“ƒXŒ_–ñ‘‚ðŠm”F‚µ‚Ä‰º‚³‚¢BŒ_–ñ‘‚Ì‘S‚Ä‚ÌðŒ‚É“¯ˆÓ‚·‚é‚È‚ç‚ÎA‰º‚É•\Ž¦‚³‚ê‚Ä‚¢‚éƒIƒvƒVƒ‡ƒ“‚Ì‚¤‚¿AÅ‰‚Ì‚à‚Ì‚ð‘I‚ñ‚Å‰º‚³‚¢B $_CLICK
+$(^NameDA)ã‚’ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹å‰ã«ã€ãƒ©ã‚¤ã‚»ãƒ³ã‚¹å¥‘ç´„æ›¸ã‚’ç¢ºèªã—ã¦ä¸‹ã•ã„ã€‚å¥‘ç´„æ›¸ã®å…¨ã¦ã®æ¡ä»¶ã«åŒæ„ã™ã‚‹ãªã‚‰ã°ã€ä¸‹ã«è¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®ã†ã¡ã€æœ€åˆã®ã‚‚ã®ã‚’é¸ã‚“ã§ä¸‹ã•ã„ã€‚ $_CLICK
 # ^Custom
-ƒJƒXƒ^ƒ€
+ã‚«ã‚¹ã‚¿ãƒ 
 # ^ComponentsText
-ƒCƒ“ƒXƒg[ƒ‹‚µ‚½‚¢ƒRƒ“ƒ|[ƒlƒ“ƒg‚Éƒ`ƒFƒbƒN‚ð•t‚¯‚Ä‰º‚³‚¢B•s—v‚È‚à‚Ì‚É‚Â‚¢‚Ä‚ÍAƒ`ƒFƒbƒN‚ðŠO‚µ‚Ä‰º‚³‚¢B $_CLICK
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸã„ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã«ãƒã‚§ãƒƒã‚¯ã‚’ä»˜ã‘ã¦ä¸‹ã•ã„ã€‚ä¸è¦ãªã‚‚ã®ã«ã¤ã„ã¦ã¯ã€ãƒã‚§ãƒƒã‚¯ã‚’å¤–ã—ã¦ä¸‹ã•ã„ã€‚ $_CLICK
 # ^ComponentsSubText1
-ƒCƒ“ƒXƒg[ƒ‹ ƒ^ƒCƒv‚ð‘I‘ðF
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ã‚¿ã‚¤ãƒ—ã‚’é¸æŠžï¼š
 # ^ComponentsSubText2_NoInstTypes
-ƒCƒ“ƒXƒg[ƒ‹ ƒRƒ“ƒ|[ƒlƒ“ƒg‚ð‘I‘ðF
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é¸æŠžï¼š
 # ^ComponentsSubText2
-‚Ü‚½‚ÍAƒCƒ“ƒXƒg[ƒ‹ ƒIƒvƒVƒ‡ƒ“ ƒRƒ“ƒ|[ƒlƒ“ƒg‚ð‘I‘ðF
+ã¾ãŸã¯ã€ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ã‚ªãƒ—ã‚·ãƒ§ãƒ³ ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é¸æŠžï¼š
 # ^UnComponentsText
-ƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚µ‚½‚¢ƒRƒ“ƒ|[ƒlƒ“ƒg‚Éƒ`ƒFƒbƒN‚ð•t‚¯‚Ä‰º‚³‚¢B‚»‚¤‚Å‚È‚¢‚à‚Ì‚É‚Â‚¢‚Ä‚ÍAƒ`ƒFƒbƒN‚ðŠO‚µ‚Ä‰º‚³‚¢B $_CLICK
+ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸã„ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã«ãƒã‚§ãƒƒã‚¯ã‚’ä»˜ã‘ã¦ä¸‹ã•ã„ã€‚ãã†ã§ãªã„ã‚‚ã®ã«ã¤ã„ã¦ã¯ã€ãƒã‚§ãƒƒã‚¯ã‚’å¤–ã—ã¦ä¸‹ã•ã„ã€‚ $_CLICK
 # ^UnComponentsSubText1
-ƒAƒ“ƒCƒ“ƒXƒg[ƒ‹ ƒ^ƒCƒv‚ð‘I‘ðF
+ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ã‚¿ã‚¤ãƒ—ã‚’é¸æŠžï¼š
 # ^UnComponentsSubText2_NoInstTypes
-ƒAƒ“ƒCƒ“ƒXƒg[ƒ‹ ƒRƒ“ƒ|[ƒlƒ“ƒg‚ð‘I‘ðF
+ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é¸æŠžï¼š
 # ^UnComponentsSubText2
-‚Ü‚½‚ÍAƒAƒ“ƒCƒ“ƒXƒg[ƒ‹ ƒIƒvƒVƒ‡ƒ“ ƒRƒ“ƒ|[ƒlƒ“ƒg‚ð‘I‘ðF
+ã¾ãŸã¯ã€ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ« ã‚ªãƒ—ã‚·ãƒ§ãƒ³ ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é¸æŠžï¼š
 # ^DirText
-$(^NameDA)‚ðˆÈ‰º‚ÌƒtƒHƒ‹ƒ_‚ÉƒCƒ“ƒXƒg[ƒ‹‚µ‚Ü‚·BˆÙ‚È‚Á‚½ƒtƒHƒ‹ƒ_‚ÉƒCƒ“ƒXƒg[ƒ‹‚·‚é‚É‚ÍA[ŽQÆ] ‚ð‰Ÿ‚µ‚ÄA•Ê‚ÌƒtƒHƒ‹ƒ_‚ð‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B $_CLICK
+$(^NameDA)ã‚’ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ«ãƒ€ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¾ã™ã€‚ç•°ãªã£ãŸãƒ•ã‚©ãƒ«ãƒ€ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹ã«ã¯ã€[å‚ç…§] ã‚’æŠ¼ã—ã¦ã€åˆ¥ã®ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸æŠžã—ã¦ãã ã•ã„ã€‚ $_CLICK
 # ^DirSubText
-ƒCƒ“ƒXƒg[ƒ‹æ ƒtƒHƒ‹ƒ_
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«å…ˆ ãƒ•ã‚©ãƒ«ãƒ€
 # ^DirBrowseText
-$(^NameDA)‚ðƒCƒ“ƒXƒg[ƒ‹‚·‚éƒtƒHƒ‹ƒ_‚ð‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢F
+$(^NameDA)ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸æŠžã—ã¦ãã ã•ã„ï¼š
 # ^UnDirText
-$(^NameDA)‚ðˆÈ‰º‚ÌƒtƒHƒ‹ƒ_‚©‚çƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚µ‚Ü‚·BˆÙ‚È‚Á‚½ƒtƒHƒ‹ƒ_‚©‚çƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚·‚é‚É‚ÍA[ŽQÆ] ‚ð‰Ÿ‚µ‚ÄA•Ê‚ÌƒtƒHƒ‹ƒ_‚ð‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B $_CLICK
+$(^NameDA)ã‚’ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ«ãƒ€ã‹ã‚‰ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¾ã™ã€‚ç•°ãªã£ãŸãƒ•ã‚©ãƒ«ãƒ€ã‹ã‚‰ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹ã«ã¯ã€[å‚ç…§] ã‚’æŠ¼ã—ã¦ã€åˆ¥ã®ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸æŠžã—ã¦ãã ã•ã„ã€‚ $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-$(^NameDA)‚ðƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚·‚éƒtƒHƒ‹ƒ_‚ð‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢F
+$(^NameDA)ã‚’ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸æŠžã—ã¦ãã ã•ã„ï¼š
 # ^SpaceAvailable
-—˜—p‰Â”\‚ÈƒfƒBƒXƒNƒXƒy[ƒXF 
+åˆ©ç”¨å¯èƒ½ãªãƒ‡ã‚£ã‚¹ã‚¯ã‚¹ãƒšãƒ¼ã‚¹ï¼š 
 # ^SpaceRequired
-•K—v‚ÈƒfƒBƒXƒNƒXƒy[ƒXF 
+å¿…è¦ãªãƒ‡ã‚£ã‚¹ã‚¯ã‚¹ãƒšãƒ¼ã‚¹ï¼š 
 # ^UninstallingText
-$(^NameDA)‚ÍAˆÈ‰º‚ÌƒtƒHƒ‹ƒ_‚©‚çƒAƒ“ƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚Ü‚·B $_CLICK
+$(^NameDA)ã¯ã€ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ«ãƒ€ã‹ã‚‰ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¾ã™ã€‚ $_CLICK
 # ^UninstallingSubText
-ƒAƒ“ƒCƒ“ƒXƒg[ƒ‹Œ³F
+ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«å…ƒï¼š
 # ^FileError
-‰Šúƒtƒ@ƒCƒ‹‚Ìì¬ƒGƒ‰[F\r\n\t"$0"\r\nƒCƒ“ƒXƒg[ƒ‹‚ð’†Ž~‚·‚é‚É‚Í’†Ž~‚ð,\r\nÄ‚Ñ‚±‚Ìƒtƒ@ƒCƒ‹‚Ìì¬‚ðŽŽ‚Ý‚é‚É‚ÍÄŽŽs‚ð, ‚Ü‚½\r\n‚±‚Ìƒtƒ@ƒCƒ‹‚ðƒXƒLƒbƒv‚µ‚Ä‘±‚¯‚é‚É‚Í–³Ž‹‚ð‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢
+åˆæœŸãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆã‚¨ãƒ©ãƒ¼ï¼š\r\n\t"$0"\r\nã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã‚’ä¸­æ­¢ã™ã‚‹ã«ã¯ä¸­æ­¢ã‚’,\r\nå†ã³ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆã‚’è©¦ã¿ã‚‹ã«ã¯å†è©¦è¡Œã‚’, ã¾ãŸ\r\nã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚¹ã‚­ãƒƒãƒ—ã—ã¦ç¶šã‘ã‚‹ã«ã¯ç„¡è¦–ã‚’æŠ¼ã—ã¦ãã ã•ã„
 # ^FileError_NoIgnore
-‰Šúƒtƒ@ƒCƒ‹‚Ìì¬ƒGƒ‰[: \r\n\t"$0"\r\nÄ‚Ñ‚±‚Ìƒtƒ@ƒCƒ‹‚Ìì¬‚ðŽŽ‚Ý‚é‚É‚ÍÄŽŽs‚ð, ‚Ü‚½\r\nƒCƒ“ƒXƒg[ƒ‹‚ð’†Ž~‚·‚é‚É‚ÍƒLƒƒƒ“ƒZƒ‹‚ð‰Ÿ‚µ‚Ä‰º‚³‚¢
+åˆæœŸãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆã‚¨ãƒ©ãƒ¼: \r\n\t"$0"\r\nå†ã³ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆã‚’è©¦ã¿ã‚‹ã«ã¯å†è©¦è¡Œã‚’, ã¾ãŸ\r\nã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã‚’ä¸­æ­¢ã™ã‚‹ã«ã¯ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã‚’æŠ¼ã—ã¦ä¸‹ã•ã„
 # ^CantWrite
-ì¬‚Å‚«‚Ü‚¹‚ñF
+ä½œæˆã§ãã¾ã›ã‚“ï¼š
 # ^CopyFailed
-ƒRƒs[‚ÍŽ¸”s‚µ‚Ü‚µ‚½
+ã‚³ãƒ”ãƒ¼ã¯å¤±æ•—ã—ã¾ã—ãŸ
 # ^CopyTo
-ƒRƒs[‚µ‚Ü‚·
+ã‚³ãƒ”ãƒ¼ã—ã¾ã™
 # ^Registering
-“o˜^’†:
+ç™»éŒ²ä¸­:
 # ^Unregistering
-“o˜^‰ðœ’†:
+ç™»éŒ²è§£é™¤ä¸­:
 # ^SymbolNotFound
-ƒVƒ“ƒ{ƒ‹‚ðŒ©‚Â‚¯‚é‚±‚Æ‚ª‚Å‚«‚Ü‚¹‚ñF
+ã‚·ãƒ³ãƒœãƒ«ã‚’è¦‹ã¤ã‘ã‚‹ã“ã¨ãŒã§ãã¾ã›ã‚“ï¼š
 # ^CouldNotLoad
-ƒ[ƒh‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚¹‚ñF
+ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ã“ã¨ãŒã§ãã¾ã›ã‚“ï¼š
 # ^CreateFolder
-ƒtƒHƒ‹ƒ_‚Ìì¬F
+ãƒ•ã‚©ãƒ«ãƒ€ã®ä½œæˆï¼š
 # ^CreateShortcut
-ƒVƒ‡[ƒgƒJƒbƒg‚Ìì¬F
+ã‚·ãƒ§ãƒ¼ãƒˆã‚«ãƒƒãƒˆã®ä½œæˆï¼š
 # ^CreatedUninstaller
-ƒAƒ“ƒCƒ“ƒXƒg[ƒ‰‚Ìì¬F
+ã‚¢ãƒ³ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã®ä½œæˆï¼š
 # ^Delete
-ƒtƒ@ƒCƒ‹‚ÌíœF
+ãƒ•ã‚¡ã‚¤ãƒ«ã®å‰Šé™¤ï¼š
 # ^DeleteOnReboot
-ƒŠƒu[ƒgŽž‚ÉíœF
+ãƒªãƒ–ãƒ¼ãƒˆæ™‚ã«å‰Šé™¤ï¼š
 # ^ErrorCreatingShortcut
-ƒVƒ‡[ƒgƒJƒbƒg‚Ìì¬ƒGƒ‰[F
+ã‚·ãƒ§ãƒ¼ãƒˆã‚«ãƒƒãƒˆã®ä½œæˆã‚¨ãƒ©ãƒ¼ï¼š
 # ^ErrorCreating
-ì¬ƒGƒ‰[F
+ä½œæˆã‚¨ãƒ©ãƒ¼ï¼š
 # ^ErrorDecompressing
-ƒf[ƒ^‚Ì’ŠoƒGƒ‰[\r\n\r\nƒCƒ“ƒXƒg[ƒ‰‚ª”j‘¹‚µ‚Ä‚¢‚Ü‚·B
+ãƒ‡ãƒ¼ã‚¿ã®æŠ½å‡ºã‚¨ãƒ©ãƒ¼\r\n\r\nã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ãŒç ´æã—ã¦ã„ã¾ã™ã€‚
 # ^ErrorRegistering
-DLL‚Ì“o˜^ƒGƒ‰[
+DLLã®ç™»éŒ²ã‚¨ãƒ©ãƒ¼
 # ^ExecShell
-Šg’£Žq‚ÌŠÖ˜A•t‚¯ŽÀs: 
+æ‹¡å¼µå­ã®é–¢é€£ä»˜ã‘å®Ÿè¡Œ: 
 # ^Execute
-ŽÀsF
+å®Ÿè¡Œï¼š
 # ^Extract
-’ŠoF
+æŠ½å‡ºï¼š
 # ^ErrorWriting
-’ŠoFƒtƒ@ƒCƒ‹ì¬ƒGƒ‰[
+æŠ½å‡ºï¼šãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆã‚¨ãƒ©ãƒ¼
 # ^InvalidOpcode
-ƒCƒ“ƒXƒg[ƒ‹‚Ì•s³F–³Œø‚Èopcode
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã®ä¸æ­£ï¼šç„¡åŠ¹ãªopcode
 # ^NoOLE
-OLE‚ª‚ ‚è‚Ü‚¹‚ñF
+OLEãŒã‚ã‚Šã¾ã›ã‚“ï¼š
 # ^OutputFolder
-o—ÍæƒtƒHƒ‹ƒ_F
+å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€ï¼š
 # ^RemoveFolder
-ƒtƒHƒ‹ƒ_‚ÌíœF
+ãƒ•ã‚©ãƒ«ãƒ€ã®å‰Šé™¤ï¼š
 # ^RenameOnReboot
-ƒŠƒu[ƒgŽž‚É–¼‘O‚Ì•ÏXF
+ãƒªãƒ–ãƒ¼ãƒˆæ™‚ã«åå‰ã®å¤‰æ›´ï¼š
 # ^Rename
-–¼‘O‚Ì•ÏXF
+åå‰ã®å¤‰æ›´ï¼š
 # ^Skipped
-ƒXƒLƒbƒvF
+ã‚¹ã‚­ãƒƒãƒ—ï¼š
 # ^CopyDetails
-ƒNƒŠƒbƒvƒ{[ƒh‚ÖÚ×‚ðƒRƒs[
+ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã¸è©³ç´°ã‚’ã‚³ãƒ”ãƒ¼
 # ^LogInstall
-ƒCƒ“ƒXƒg[ƒ‹ƒvƒƒZƒX‚ðƒƒOƒw‹L˜^
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ãƒ—ãƒ­ã‚»ã‚¹ã‚’ãƒ­ã‚°ãƒ˜è¨˜éŒ²
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

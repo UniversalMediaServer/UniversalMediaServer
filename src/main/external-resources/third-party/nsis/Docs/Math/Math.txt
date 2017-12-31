@@ -16,7 +16,7 @@ How to use it? Simple:
         Strcpy $0 "Brainsucker"
         Math::Script "a = 'Math'; B = 'Script'; r0 += ' wants to use ' + a + '::' + b +'!'"
         DetailPrint "$0"
-That string will fill r0 with some shit. 
+That string will fill r0 with some stuff. 
 
 Here are some other samples:
         10! (factorial, r0 will contain '10! = 362880'):
@@ -103,7 +103,7 @@ other. All sub-expressions separated by (;) are the part of one expression,
 and the result of the last one of these sub-exprs gives you the result of 
 expression.
 
-All the shit (like variables and functions) will be saved between calls.
+All the stuff (like variables and functions) will be saved between calls.
 
 Functions:
         type conversions:
