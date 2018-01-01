@@ -61,7 +61,7 @@ public class SubSelFile extends VirtualFolder {
 			sub.setLiveSub((String) data.get(key), OpenSubtitle.subFile(name + "_" + lang));
 			DLNAResource nrf = orig.clone();
 			nrf.setMediaSubtitle(sub);
-			nrf.setHasExternalSubtitles(true);
+			nrf.resetSubtitlesStatus();
 			addChild(nrf);
 			if (rf != null) {
 				((RealFile) nrf).ignoreThumbHandling();

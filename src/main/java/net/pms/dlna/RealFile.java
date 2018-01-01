@@ -27,7 +27,6 @@ import java.util.HashSet;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,9 +60,6 @@ public class RealFile extends MapFile {
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
 			return false;
-		}
-		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
-			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
@@ -207,9 +203,6 @@ public class RealFile extends MapFile {
 
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
-					if (getMedia() != null && getMedia().isSLS()) {
-						setFormat(getMedia().getAudioVariantFormat());
-					}
 				} else {
 					// Don't think that will ever happen
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
@@ -239,6 +232,9 @@ public class RealFile extends MapFile {
 						}
 					}
 				}
+			}
+			if (getMedia() != null && getMedia().isSLS()) {
+				setFormat(getMedia().getAudioVariantFormat());
 			}
 		}
 	}

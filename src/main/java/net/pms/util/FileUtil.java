@@ -15,20 +15,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
-import net.pms.formats.v2.SubtitleType;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FilenameUtils;
@@ -40,8 +34,6 @@ import org.slf4j.LoggerFactory;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
-	private static final ReentrantLock subtitleCacheLock = new ReentrantLock();
-	private static final Map<File, File[]> subtitleCache = new HashMap<>();
 	private static final int S_ISVTX = 512; // Unix sticky bit mask
 
 	/**
@@ -1135,191 +1127,6 @@ public class FileUtil {
 		}
 
 		return nullIfNonExisting ? null : result;
-	}
-
-	/**
-	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media)} instead.
-	 */
-	@Deprecated
-	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
-		return isSubtitlesExists(file, media);
-	}
-
-	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media) {
-		return isSubtitlesExists(file, media, true);
-	}
-
-	/**
-	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache)} instead.
-	 */
-	@Deprecated
-	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
-		return isSubtitlesExists(file, media, usecache);
-	}
-
-	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
-		if (media != null && media.isExternalSubsParsed()) {
-			return media.isExternalSubsExist();
-		}
-
-		boolean found = false;
-		if (file.exists()) {
-			found = browseFolderForSubtitles(file.getAbsoluteFile().getParentFile(), file, media, usecache);
-		}
-		String alternate = PMS.getConfiguration().getAlternateSubtitlesFolder();
-
-		if (isNotBlank(alternate)) { // https://code.google.com/p/ps3mediaserver/issues/detail?id=737#c5
-			File subFolder = new File(alternate);
-
-			if (!subFolder.isAbsolute()) {
-				subFolder = new File(file.getParent(), alternate);
-				try {
-					subFolder = subFolder.getCanonicalFile();
-				} catch (IOException e) {
-					LOGGER.warn("Could not resolve alternative subtitles folder: {}", e.getMessage());
-					LOGGER.trace("", e);
-				}
-			}
-
-			if (subFolder.exists()) {
-				found = browseFolderForSubtitles(subFolder, file, media, usecache) || found;
-			}
-		}
-
-		if (media != null) {
-			media.setExternalSubsExist(found);
-			media.setExternalSubsParsed(true);
-		}
-
-		return found;
-	}
-
-	private static boolean browseFolderForSubtitles(File subFolder, File file, DLNAMediaInfo media, final boolean useCache) {
-		boolean found = false;
-		final Set<String> supported = SubtitleType.getSupportedFileExtensions();
-
-		File[] allSubs = null;
-		// TODO This caching scheme is very restrictive locking the whole cache
-		// while populating a single folder. A more effective solution should
-		// be implemented.
-		subtitleCacheLock.lock();
-		try {
-			if (useCache) {
-				allSubs = subtitleCache.get(subFolder);
-			}
-
-			if (allSubs == null) {
-				allSubs = subFolder.listFiles(
-					new FilenameFilter() {
-						@Override
-						public boolean accept(File dir, String name) {
-							String ext = FilenameUtils.getExtension(name).toLowerCase();
-							if ("sub".equals(ext)) {
-								// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
-								// they'll come in unambiguously as vobsub via the idx file anyway
-								return replaceExtension(new File(dir, name), "idx", true, true) == null;
-							}
-							return supported.contains(ext);
-						}
-					}
-				);
-
-				if (allSubs != null) {
-					subtitleCache.put(subFolder, allSubs);
-				}
-			}
-		} finally {
-			subtitleCacheLock.unlock();
-		}
-
-		String fileName = getFileNameWithoutExtension(file.getName()).toLowerCase();
-		if (allSubs != null) {
-			for (File f : allSubs) {
-				if (f.isFile() && !f.isHidden()) {
-					String fName = f.getName().toLowerCase();
-					for (String ext : supported) {
-						if (fName.length() > ext.length() && fName.startsWith(fileName) && endsWithIgnoreCase(fName, "." + ext)) {
-							int a = fileName.length();
-							int b = fName.length() - ext.length() - 1;
-							String code = "";
-
-							if (a <= b) { // handling case with several dots: <video>..<extension>
-								code = fName.substring(a, b);
-							}
-
-							if (code.startsWith(".")) {
-								code = code.substring(1);
-							}
-
-							boolean exists = false;
-							if (media != null) {
-								for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-									if (f.equals(sub.getExternalFile())) {
-										exists = true;
-									} else if (equalsIgnoreCase(ext, "idx") && sub.getType() == SubtitleType.MICRODVD) {
-										// sub+idx => VOBSUB
-										sub.setType(SubtitleType.VOBSUB);
-										exists = true;
-									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) {
-										// VOBSUB
-										try {
-											sub.setExternalFile(f);
-										} catch (FileNotFoundException ex) {
-											LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
-											LOGGER.trace("", ex);
-										}
-
-										exists = true;
-									}
-								}
-							}
-
-							if (!exists) {
-								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
-								if (code.length() == 0 || !Iso639.codeIsValid(code)) {
-									sub.setLang(DLNAMediaSubtitle.UND);
-									sub.setType(SubtitleType.valueOfFileExtension(ext));
-									if (code.length() > 0) {
-										sub.setSubtitlesTrackTitleFromMetadata(code);
-										if (sub.getSubtitlesTrackTitleFromMetadata().contains("-")) {
-											String flavorLang = sub.getSubtitlesTrackTitleFromMetadata().substring(
-												0,
-												sub.getSubtitlesTrackTitleFromMetadata().indexOf('-')
-											);
-											String flavorTitle = sub.getSubtitlesTrackTitleFromMetadata().substring(
-												sub.getSubtitlesTrackTitleFromMetadata().indexOf('-') + 1
-											);
-											if (Iso639.codeIsValid(flavorLang)) {
-												sub.setLang(flavorLang);
-												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
-											}
-										}
-									}
-								} else {
-									sub.setLang(code);
-									sub.setType(SubtitleType.valueOfFileExtension(ext));
-								}
-
-								try {
-									sub.setExternalFile(f);
-								} catch (FileNotFoundException ex) {
-									LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
-									LOGGER.trace("", ex);
-								}
-
-								found = true;
-								if (media != null) {
-									media.getSubtitleTracksList().add(sub);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return found;
 	}
 
 	/**
