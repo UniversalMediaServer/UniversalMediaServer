@@ -37,6 +37,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
@@ -444,7 +445,7 @@ public class VLCVideo extends Player {
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getFileName();
 		boolean isWindows = Platform.isWindows();
-		setAudioAndSubs(filename, media, params);
+		setAudioAndSubs(dlna, params);
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.mediaRenderer);
@@ -508,12 +509,18 @@ public class VLCVideo extends Player {
 				// VLC doesn't understand "und", so try to get audio track by ID
 				cmdList.add("--audio-track=" + params.aid.getId());
 			} else {
-				cmdList.add("--audio-language=" + params.aid.getLang());
+				if (
+					isBlank(params.aid.getLang()) ||
+					DLNAMediaLang.UND.equals(params.aid.getLang()) ||
+					"loc".equals(params.aid.getLang())
+				) {
+					cmdList.add("--audio-track=-1");
+				} else {
+					cmdList.add("--audio-language=" + params.aid.getLang());
+				}
 			}
 		} else {
-			// Not specified, use language from GUI
-			// FIXME: VLC does not understand "loc" or "und".
-			cmdList.add("--audio-language=" + configuration.getAudioLanguages());
+			cmdList.add("--audio-track=-1");
 		}
 
 		// Handle subtitle language
