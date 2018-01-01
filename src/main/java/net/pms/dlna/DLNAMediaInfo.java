@@ -206,26 +206,6 @@ public class DLNAMediaInfo implements Cloneable {
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
 
-	private boolean externalSubsExist = false;
-
-	public void setExternalSubsExist(boolean exist) {
-		this.externalSubsExist = exist;
-	}
-
-	public boolean isExternalSubsExist() {
-		return externalSubsExist;
-	}
-
-	private boolean externalSubsParsed = false;
-
-	public void setExternalSubsParsed(boolean parsed) {
-		this.externalSubsParsed = parsed;
-	}
-
-	public boolean isExternalSubsParsed() {
-		return externalSubsParsed;
-	}
-
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
@@ -392,13 +372,6 @@ public class DLNAMediaInfo implements Cloneable {
 			default :
 				return isSLS() ? MediaType.AUDIO : MediaType.UNKNOWN;
 		}
-	}
-
-	/**
-	 * @return true when there are subtitle tracks embedded in the media file.
-	 */
-	public boolean hasSubtitles() {
-		return subtitleTracks.size() > 0;
 	}
 
 	public boolean isImage() {
@@ -762,15 +735,14 @@ public class DLNAMediaInfo implements Cloneable {
 		return pw;
 	}
 
-	private String getFfmpegPath() {
+	private static String getFfmpegPath() {
 		String value = configuration.getFfmpegPath();
 
 		if (value == null) {
 			LOGGER.info("No FFmpeg - unable to thumbnail");
 			throw new RuntimeException("No FFmpeg - unable to thumbnail");
-		} else {
-			return value;
 		}
+		return value;
 	}
 
 	@Deprecated
@@ -1421,9 +1393,8 @@ public class DLNAMediaInfo implements Cloneable {
 		if (container != null) {
 			if (container.equals("mp4")) {
 				return isH264();
-			} else {
-				return true;
 			}
+			return true;
 		}
 
 		return false;
@@ -1647,11 +1618,6 @@ public class DLNAMediaInfo implements Cloneable {
 		if (getFirstAudioTrack() == null || !(type == Format.AUDIO && getFirstAudioTrack().getBitsperSample() == 24 && getFirstAudioTrack().getSampleRate() > 48000)) {
 			secondaryFormatValid = false;
 		}
-
-		// Check for external subs here
-		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles()) {
-			FileUtil.isSubtitlesExists(f.getFile(), this);
-		}
 	}
 
 	/**
@@ -1830,7 +1796,7 @@ public class DLNAMediaInfo implements Cloneable {
 				appendAudioTracks(result);
 			}
 
-			if (hasSubtitles()) {
+			if (subtitleTracks != null && !subtitleTracks.isEmpty()) {
 				appendSubtitleTracks(result);
 			}
 
@@ -2340,21 +2306,19 @@ public class DLNAMediaInfo implements Cloneable {
 	public String getFormattedAspectRatio(String aspect) {
 		if (isBlank(aspect)) {
 			return null;
+		}
+		if (aspect.contains(":")) {
+			return aspect;
+		}
+		double exactAspectRatio = Double.parseDouble(aspect);
+		if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
+			return "16:9";
+		} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
+			return "4:3";
+		} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
+			return "5:4";
 		} else {
-			if (aspect.contains(":")) {
-				return aspect;
-			} else {
-				double exactAspectRatio = Double.parseDouble(aspect);
-				if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
-					return "16:9";
-				} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
-					return "4:3";
-				} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
-					return "5:4";
-				} else {
-					return null;
-				}
-			}
+			return null;
 		}
 	}
 
@@ -2555,9 +2519,8 @@ public class DLNAMediaInfo implements Cloneable {
 	public ArrayList<DLNAMediaAudio> getAudioCodes() {
 		if (audioTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaAudio>) audioTracks;
-		} else {
-			return new ArrayList<>();
 		}
+		return new ArrayList<>();
 	}
 
 	/**
@@ -2595,9 +2558,8 @@ public class DLNAMediaInfo implements Cloneable {
 	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
 		if (subtitleTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
-		} else {
-			return new ArrayList<>();
 		}
+		return new ArrayList<>();
 	}
 
 	/**
