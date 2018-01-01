@@ -65,7 +65,7 @@ public class RealFile extends MapFile {
 			return false;
 		}
 		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
-			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
+			setHasExternalSubtitles(FileUtil.isExternalSubtitlesExists(file, null));
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
@@ -209,9 +209,6 @@ public class RealFile extends MapFile {
 
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
-					if (getMedia() != null && getMedia().isSLS()) {
-						setFormat(getMedia().getAudioVariantFormat());
-					}
 
 					//TODO: (Nad) Next 4 lines added... correct?
 					OutputParams params = new OutputParams(configuration);
@@ -247,6 +244,9 @@ public class RealFile extends MapFile {
 						}
 					}
 				}
+			}
+			if (getMedia() != null && getMedia().isSLS()) {
+				setFormat(getMedia().getAudioVariantFormat());
 			}
 		}
 	}

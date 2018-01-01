@@ -22,21 +22,30 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
+import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.FileUtil.BufferedReaderDetectCharsetResult;
+import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -49,6 +58,20 @@ import org.slf4j.LoggerFactory;
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
+	private static final long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
+	private static final char[] SUBTITLES_UPPER_CASE;
+	private static final char[] SUBTITLES_LOWER_CASE;
+
+	static {
+		String subtitles = "Subtitles";
+		SUBTITLES_UPPER_CASE = new char[subtitles.length()];
+		SUBTITLES_LOWER_CASE = new char[subtitles.length()];
+		for (int i = 0; i < subtitles.length(); i++) {
+			SUBTITLES_UPPER_CASE[i] = Character.toUpperCase(subtitles.charAt(i));
+			SUBTITLES_LOWER_CASE[i] = Character.toLowerCase(subtitles.charAt(i));
+		}
+	}
+
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -639,6 +662,252 @@ public class SubtitleUtils {
 			writer.flush();
 			LOGGER.trace("Removed tags from subtitles file: \"{}\"", file.getName());
 			return new ByteArrayInputStream(os.toByteArray());
+		}
+	}
+
+	private static final HashMap<File, CacheFolder> folderCache = new HashMap<>();
+
+	private static class CacheFolder {
+		private File[] items;
+		private final long birth;
+		private boolean populated;
+
+		public CacheFolder() {
+			birth = System.currentTimeMillis();
+		}
+
+		public boolean isPopulated() {
+			return populated;
+		}
+
+		public long getBirth() {
+			return birth;
+		}
+
+		public File[] getItems() {
+			if (!populated) {
+				throw new IllegalStateException("Instance hasn't been populated yet");
+			}
+			return items;
+		}
+
+		public void setItems(List<File> items) {
+			setItems(items == null ? null : items.toArray(new File[items.size()]));
+		}
+
+		public void setItems(File[] items) {
+			populated = true;
+			if (items == null) {
+				this.items = new File[0];
+			} else {
+				this.items = items;
+			}
+		}
+	}
+
+	/**
+	 * Evaluates if the given combination of folder and name represents a
+	 * subtitles subfolder.
+	 *
+	 * @param folder the folder in which this file or folder is located.
+	 * @param name the name of the file or folder.
+	 * @return The {@link File} representing the subfolder if the name match a
+	 *         subtitles subfolder, exists and is a folder, {@code null}
+	 *         otherwise.
+	 */
+	private static File isSubtitlesFolder(File folder, CharSequence name) {
+		if (folder == null || name == null) {
+			return null;
+		}
+		if (name.length() == 4 || name.length() == SUBTITLES_LOWER_CASE.length) {
+			int lastIdx = name.length() - 1;
+			for (int i = 0; i <= lastIdx; i++) {
+				char c = name.charAt(i);
+				if (i == lastIdx && (c == SUBTITLES_LOWER_CASE[0] || c == SUBTITLES_UPPER_CASE[0])) {
+					File subsFolder = new File(folder, name.toString());
+					return subsFolder.isDirectory() ? subsFolder : null;
+				}
+				if (c != SUBTITLES_LOWER_CASE[i] && c != SUBTITLES_UPPER_CASE[i]) {
+					return null;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Evaluates if the specified {@link File} is considered a subtitles file
+	 * according to the specified {@link Set} of supported extensions.
+	 *
+	 * @param file the {@link File} to evaluate.
+	 * @param supportedExtensions the {@link Set}of supported subtitles
+	 *            extensions.
+	 * @return {@code true} if {@code file} is considered a subtitles file,
+	 *         {@code false} otherwise.
+	 */
+	private static boolean isSubtitlesFile(File file, Set<String> supportedExtensions) {
+		String extension = FileUtil.getExtension(file, LetterCase.LOWER, Locale.ROOT);
+		if ("sub".equals(extension)) {
+			// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here
+			// since
+			// they'll come in unambiguously as vobsub via the idx file anyway
+			return FileUtil.replaceExtension(file, "idx", true, true) == null;
+		}
+		return supportedExtensions.contains(extension);
+	}
+
+
+	public static void registerExternalSubtitles(File file, DLNAMediaInfo media, boolean forceRefresh) {
+		registerExternalSubtitles(null, file, media, forceRefresh);
+	}
+
+	public static void registerExternalSubtitles(File subFolder, File file, DLNAMediaInfo media, boolean forceRefresh) {
+		if (file == null || media == null) {
+			return;
+		}
+		if (subFolder == null) {
+			subFolder = file.getParentFile();
+			if (subFolder == null) {
+				return;
+			}
+		}
+		final Set<String> supported = SubtitleType.getSupportedFileExtensions();
+
+		// Clean cache for expired entries and fetch or insert the entry for the folder under examination
+		CacheFolder cacheFolder = null;
+		synchronized (folderCache) {
+			long earliestBirth = System.currentTimeMillis() - FOLDER_CACHE_EXPIRATION_TIME;
+			for (Iterator<Entry<File, CacheFolder>> iterator = folderCache.entrySet().iterator(); iterator.hasNext();) {
+				Entry<File, CacheFolder> entry = iterator.next();
+				if (entry.getValue().getBirth() < earliestBirth) {
+					iterator.remove();
+				} else if (subFolder.equals(entry.getKey())) {
+					if (forceRefresh) {
+						iterator.remove();
+					} else {
+						cacheFolder = entry.getValue();
+					}
+				}
+			}
+			if (cacheFolder == null) {
+				cacheFolder = new CacheFolder();
+				folderCache.put(subFolder, cacheFolder);
+			}
+		}
+
+		// Populate the CacheFolder if it isn't already and get the files
+		File[] folderSubtitles;
+		synchronized (cacheFolder) {
+			if (!cacheFolder.isPopulated()) {
+				List<File> folderSubtitlesList = new ArrayList<>();
+				String[] folderContent = subFolder.list();
+				if (folderContent != null && folderContent.length > 0) {
+					for (String fileNameEntry : folderContent) {
+						File fileEntry = isSubtitlesFolder(subFolder, fileNameEntry);
+						if (fileEntry != null) {
+							// Subtitles subfolder
+							String[] subsFolderContent = fileEntry.list();
+							if (subsFolderContent != null && subsFolderContent.length > 0) {
+								for (String subsFileNameEntry : subsFolderContent) {
+									File subsFileEntry = new File(fileEntry, subsFileNameEntry);
+									if (
+										isSubtitlesFile(subsFileEntry, supported) &&
+										subsFileEntry.isFile() &&
+										!subsFileEntry.isHidden()
+									) {
+										folderSubtitlesList.add(subsFileEntry);
+									}
+								}
+							}
+							continue;
+						}
+						fileEntry = new File(subFolder, fileNameEntry);
+						if (
+							isSubtitlesFile(fileEntry, supported) &&
+							fileEntry.isFile() &&
+							!fileEntry.isHidden()
+						) {
+							folderSubtitlesList.add(fileEntry);
+						}
+					}
+				}
+				cacheFolder.setItems(folderSubtitlesList);
+			}
+			folderSubtitles = cacheFolder.getItems();
+		}
+
+		// Exclude already parsed subtitles
+		HashSet<File> existingSubtitles = new HashSet<>();
+		for (DLNAMediaSubtitle subtitle : media.getSubtitleTracksList()) {
+			if (subtitle.getExternalFile() != null) {
+				existingSubtitles.add(subtitle.getExternalFile());
+			}
+		}
+
+		// Parse subtitles
+		String baseFileName = FileUtil.getFileNameWithoutExtension(file.getName()).toLowerCase(Locale.ROOT);
+		for (File subtitlesFile : folderSubtitles) {
+			if (existingSubtitles.contains(subtitlesFile)) {
+				continue;
+			}
+
+			String subtitlesName = subtitlesFile.getName().toLowerCase(Locale.ROOT);
+			if (subtitlesName.startsWith(baseFileName)) {
+				List<String> suffixParts = Arrays.asList(
+					FileUtil.getFileNameWithoutExtension(subtitlesName).replace(baseFileName, "").split("[\\s\\.-]+")
+				);
+				registerExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+			} else if (!subFolder.equals(subtitlesFile.getParentFile())) {
+				// Subtitles subfolder that doesn't start with video file name
+				List<String> suffixParts = Arrays.asList(
+					FileUtil.getFileNameWithoutExtension(subtitlesName).split("[\\s\\.-]+")
+				);
+				for (String suffixPart : suffixParts) {
+					if (Iso639.isValid(suffixPart)) {
+						registerExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	private static void registerExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
+		DLNAMediaSubtitle subtitles = new DLNAMediaSubtitle();
+		subtitles.setId(100 + media.getSubtitleTracksList().size()); // fake id, not used
+		subtitles.setType(SubtitleType.valueOfFileExtension(
+			FileUtil.getExtension(subtitlesFile, LetterCase.LOWER, Locale.ROOT)
+		));
+		String language = null;
+		if (suffixParts != null && !suffixParts.isEmpty()) {
+			ArrayList<String> modifiableSuffixParts = new ArrayList<>(suffixParts);
+			for (Iterator<String> iterator = modifiableSuffixParts.iterator(); iterator.hasNext();) {
+				String part = iterator.next();
+				if (isBlank(part)) {
+					iterator.remove();
+				} else if (Iso639.isValid(part)) {
+					language = Iso639.getISO639_2Code(part);
+					iterator.remove();
+				}
+			}
+			if (!modifiableSuffixParts.isEmpty()) {
+				subtitles.setSubtitlesTrackTitleFromMetadata(StringUtils.join(modifiableSuffixParts, '-'));
+			}
+		}
+		try {
+			if (isBlank(language)) {
+				subtitles.setExternalFile(subtitlesFile, true);
+				if (subtitles.getLang() == null) {
+					subtitles.setLang(DLNAMediaLang.UND);
+				}
+			} else {
+				subtitles.setLang(language);
+				subtitles.setExternalFile(subtitlesFile, false);
+			}
+			media.getSubtitleTracksList().add(subtitles);
+		} catch (FileNotFoundException e) {
+			LOGGER.warn("File not found during external subtitles scan: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 }

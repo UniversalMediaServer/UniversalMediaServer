@@ -157,6 +157,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @deprecated use {@link #FileUtil.convertFileFromUtf16ToUtf8()} for UTF-16 -> UTF-8 conversion.
 	 */
+	@Deprecated
 	public File getPlayableExternalFile() {
 		return getExternalFile();
 	}
@@ -169,13 +170,15 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Set external subs file, detect its Character Set and Language. When the {@code forcedLang} is not {@code null}, 
-	 * based on the language tag in the file name e.g {@code subsname.en.srt}, than it has priority over the detected language.
-	 * 
-	 * @param externalFile the externalFile to set
-	 * @param forcedLang language forced by file name language tag
+	 * Sets external subtitles file and detects its character set and language.
+	 * The character set is always set, while the language is only set if
+	 * {@code setLanguage} is true.
+	 *
+	 * @param externalFile the external {@link File} to set.
+	 * @param setLanguage {@code true} to set the detected language,
+	 *            {@code false} to not set a language.
 	 */
-	public void setExternalFile(File externalFile, String forcedLang) throws FileNotFoundException {
+	public void setExternalFile(File externalFile, boolean setLanguage) throws FileNotFoundException {
 		if (externalFile == null) {
 			throw new FileNotFoundException("Can't read file: no file supplied");
 		} else if (!FileUtil.getFilePermissions(externalFile).isReadable()) {
@@ -183,16 +186,17 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		}
 
 		this.externalFile = externalFile;
-		setFileSubsCharacterSet(forcedLang);
+		setFileSubsCharacterSet(setLanguage);
 	}
 
 	/**
-	 * Detects and set Character Set and language of the subs file. When the {@code forcedLang} is not {@code null}
-	 * than it as priority over the detected language.
-	 * 
-	 * @param forcedLang forced language
+	 * Detects and sets the character set and potentially the language of the
+	 * subtitles file. The language is only set if {@code setLanguage} is true.
+	 *
+	 * @param setLanguage {@code true} to set the detected language,
+	 *            {@code false} to not set a language.
 	 */
-	private void setFileSubsCharacterSet(String forcedLang) {
+	private void setFileSubsCharacterSet(boolean setLanguage) {
 		if (type.isPicture()) {
 			subsCharacterSet = null;
 		} else {
@@ -206,7 +210,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 						subsCharacterSet = subsCharacterSet.substring(0, subsCharacterSet.lastIndexOf("-"));
 					}
 
-					if (forcedLang == null) { // set the detected language when the language is not specified in the filename
+					if (setLanguage) { // set the detected language when the language is not specified in the filename
 						lang = match.getLanguage();
 					}
 
@@ -226,6 +230,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @deprecated use {@link #setSubCharacterSet(String)}
 	 */
+	@Deprecated
 	public void setExternalFileCharacterSet(String charSet) {
 		setSubCharacterSet(charSet);
 	}
@@ -237,6 +242,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @deprecated use {@link #getSubCharacterSet()}
 	 */
+	@Deprecated
 	public String getExternalFileCharacterSet() {
 		return getSubCharacterSet();
 	}

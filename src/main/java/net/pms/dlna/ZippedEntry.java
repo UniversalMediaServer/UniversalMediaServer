@@ -90,7 +90,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		resolveFormat();
-		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
+		setHasExternalSubtitles(FileUtil.isExternalSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 

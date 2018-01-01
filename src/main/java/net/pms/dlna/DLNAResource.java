@@ -849,39 +849,59 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		boolean hasSubsToTranscode = false;
 
-		boolean hasEmbeddedSubs = false;
-		for (DLNAMediaSubtitle s : media.getSubtitleTracksList()) {
-			hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
+		boolean hasEmbeddedSubs = false; //TODO: (Nad) Needed?
+		for (DLNAMediaSubtitle subtitlesTrack : media.getSubtitleTracksList()) {
+			hasEmbeddedSubs |= subtitlesTrack.isEmbedded(); //TODO: (Nad) Normalize logic
+			if (hasEmbeddedSubs) {
+				break;
+			}
 		}
 
-		/**
+		/*
 		 * At this stage, we know the media is compatible with the renderer based on its
 		 * "Supported" lines, and can therefore be streamed to the renderer without a
 		 * player. However, other details about the media can change this, such as
 		 * whether it has subtitles that match this user's language settings, so here we
 		 * perform those checks.
 		 */
-		if (format.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
-			if (hasEmbeddedSubs || hasExternalSubtitles()) {
-				OutputParams params = new OutputParams(configurationSpecificToRenderer);
-				Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
-				if (params.sid != null) {
-					if (params.sid.isExternal()) {
-						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
-							media_subtitle = params.sid;
-							media_subtitle.setSubsStreamable(true);
-							LOGGER.trace("This video has external subtitles that could be streamed");
-						} else {
-							hasSubsToTranscode = true;
-							LOGGER.trace("This video has external subtitles that should be transcoded");
-						}
-					} else if (params.sid.isEmbedded()) {
-						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
-							LOGGER.trace("This video has embedded subtitles that could be streamed");
-						} else {
-							hasSubsToTranscode = true;
-							LOGGER.trace("This video has embedded subtitles that should be transcoded");
-						}
+		if (format.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) { //TODO: (Nad) Here
+			if (media_subtitle != null || hasEmbeddedSubs || hasExternalSubtitles()) {
+				if (media_subtitle == null) {
+					media_subtitle = Player.resolveSubtitlesStream(this.getFileName(), media, renderer, media_audio == null ? null : media_audio.getLang(), false); //TODO: (Nad) A bit hacky
+				}
+				if (media_subtitle != null && media_subtitle.isExternal()) {
+					if (renderer != null && renderer.isExternalSubtitlesFormatSupported(media_subtitle, media)) {
+						media_subtitle.setSubsStreamable(true);
+						LOGGER.trace("This video has external subtitles that could be streamed");
+					} else {
+						hasSubsToTranscode = true;
+						LOGGER.trace("This video has external subtitles that should be transcoded");
+//				OutputParams params = new OutputParams(configurationSpecificToRenderer);
+//				Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
+//				if (params.sid != null) {
+//					if (params.sid.isExternal()) {
+//						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
+//							media_subtitle = params.sid;
+//							media_subtitle.setSubsStreamable(true);
+//							LOGGER.trace("This video has external subtitles that could be streamed");
+//						} else {
+//							hasSubsToTranscode = true;
+//							LOGGER.trace("This video has external subtitles that should be transcoded");
+//						}
+//					} else if (params.sid.isEmbedded()) {
+//						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
+//							LOGGER.trace("This video has embedded subtitles that could be streamed");
+//						} else {
+//							hasSubsToTranscode = true;
+//							LOGGER.trace("This video has embedded subtitles that should be transcoded");
+//						}
+					}
+				} else if (media_subtitle != null && media_subtitle.isEmbedded()) {
+					if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(media_subtitle)) {
+						LOGGER.trace("This video has embedded subtitles that could be streamed");
+					} else {
+						hasSubsToTranscode = true;
+						LOGGER.trace("This video has embedded subtitles that should be transcoded");
 					}
 				}
 			} else {
@@ -2067,7 +2087,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										matchedSub = params.sid;
 										String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
 										if (!StringUtils.isEmpty(file)) {
-											matchedSub.setExternalFile(new File(file), null);
+											matchedSub.setExternalFile(new File(file), true);
 											params.sid = matchedSub;
 											media_subtitle = params.sid;
 											finishedMatchingPreferences = true;
@@ -2191,7 +2211,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									if (!configurationSpecificToRenderer.isDisableSubtitles() && params.sid == null && media != null) {
 										// Check for subtitles again
 										File video = new File(getSystemName());
-										FileUtil.isSubtitlesExists(video, media, false);
+										FileUtil.isExternalSubtitlesExists(video, media, false);
 
 										if (configurationSpecificToRenderer.isAutoloadExternalSubtitles()) {
 											boolean forcedSubsFound = false;
