@@ -25,7 +25,7 @@ VIProductVersion "${PROJECT_VERSION_SHORT}.0"
 !define REG_KEY_SOFTWARE "SOFTWARE\${PROJECT_NAME}"
 
 ; Definitions for Java
-!define JRE7_VERSION "7.0"
+!define MIN_JRE_VERSION "7.0"
 !define JRE_URL "http://downloads.sourceforge.net/project/unimediaserver/Dependencies/win32/jre-x86.exe"
 !define JRE64_URL "http://downloads.sourceforge.net/project/unimediaserver/Dependencies/win32/jre-x64.exe"
 
@@ -117,8 +117,22 @@ Function GetJRE
 		Call CheckJREVersion
 		IfErrors CheckRegistry3 JreFound
 
-	; 4) Check for registry
+	; 4) Check the registry for JRE (location used by JRE 9)
 	CheckRegistry3:
+		ClearErrors
+		${If} ${RunningX64}
+			SetRegView 64
+		${EndIf}
+		ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\JRE" "CurrentVersion"
+		ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\JRE\$R1" "JavaHome"
+		StrCpy $R0 "$R0\bin\${JAVAEXE}"
+		IfErrors CheckRegistry4
+		IfFileExists $R0 0 CheckRegistry4
+		Call CheckJREVersion
+		IfErrors CheckRegistry4 JreFound
+
+	; 5) Check for registry
+	CheckRegistry4:
 		ClearErrors
 		${If} ${RunningX64}
 			SetRegView 32
@@ -128,13 +142,13 @@ Function GetJRE
 		ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
 		ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
-		IfErrors CheckRegistry4
-		IfFileExists $R0 0 CheckRegistry4
+		IfErrors CheckRegistry5
+		IfFileExists $R0 0 CheckRegistry5
 		Call CheckJREVersion
-		IfErrors CheckRegistry4 JreFound
+		IfErrors CheckRegistry5 JreFound
 
-	; 5) Check for registry
-	CheckRegistry4:
+	; 6) Check for registry
+	CheckRegistry5:
 		ClearErrors
 		ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
 		ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
@@ -146,7 +160,7 @@ Function GetJRE
 
 	DownloadJRE:
 		Call ElevateToAdmin
-		MessageBox MB_ICONINFORMATION "${PRODUCT_NAME} uses Java Runtime Environment ${JRE7_VERSION}+, it will now be downloaded and installed."
+		MessageBox MB_ICONINFORMATION "${PRODUCT_NAME} uses Java Runtime Environment ${MIN_JRE_VERSION}+. We will now download and install a newer version."
 		StrCpy $2 "$TEMP\Java Runtime Environment.exe"
 		${If} ${RunningX64}
 			nsisdl::download /TIMEOUT=30000 ${JRE64_URL} $2
@@ -190,8 +204,13 @@ Function CheckJREVersion
 
 	ClearErrors
 
-	; Check if JRE7 is installed
-	${VersionCompare} ${JRE7_VERSION} $R1 $R2
+	; Check if the detected version meets our minimum version requirement.
+	; The following line sets the value of $R2 to:
+	;  - 0 if the versions are equal
+	;  - 1 if the user's version is below our minimum
+	;  - 2 if the user's version is higher than our minimum
+	${VersionCompare} ${MIN_JRE_VERSION} $R1 $R2
+
 	StrCmp $R2 "1" 0 CheckDone
 
 	SetErrors
@@ -212,7 +231,7 @@ Function ElevateToAdmin
 
 	UAC_ElevationAborted:
 		# elevation was aborted, run as normal?
-		MessageBox MB_ICONSTOP "This installer requires admin access, aborting!"
+		MessageBox MB_ICONSTOP "This installer requires administrator rights, please run it again with them"
 		Abort
 
 	UAC_Err:
@@ -222,6 +241,6 @@ Function ElevateToAdmin
 	UAC_Success:
 		StrCmp 1 $3 +4 ;Admin?
 		StrCmp 3 $1 0 UAC_ElevationAborted ;Try again?
-		MessageBox MB_ICONSTOP "This installer requires admin access, try again"
+		MessageBox MB_ICONSTOP "This installer requires administrator rights, please run it again with them"
 		goto UAC_Elevate 
 FunctionEnd
