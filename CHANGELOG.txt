@@ -1,3 +1,22 @@
+6.8.0 - 2018-01-??
+
+	General:
+		Added shared folder selection to the wizard
+		Improved matching of results from CoverArtArchive
+		Improved text in the wizard
+		Fixed detection of Java Runtime Environment 9 on Windows
+		Fixed charset handling during subtitle conversions
+		Fixed video not always transcoding when encoded audio passthrough is used
+		Fixed an exception if the renderer replied to GetProtocolInfo but didn't include sink
+		Formatting in UMS.conf
+		Various bug fixes
+	Languages:
+		Added Bengali translation (empty for now, please contribute to it on Crowdin!)
+		Improved support for Japanese characters
+	Renderers:
+		Added 4k support to VLC for iOS
+		Added support for sending 4k MP4 videos to PS4 natively
+
 6.7.4 - 2017-10-03
 
 	General:
