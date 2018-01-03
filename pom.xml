@@ -616,9 +616,9 @@
 					it has no influence on the Maven build itself.
 				-->
 				<plugin>
-					<groupId>com.universalmediaserver</groupId>
+					<groupId>org.digitalmediaserver</groupId>
 					<artifactId>crowdin-maven-plugin</artifactId>
-					<version>0.3</version>
+					<version>0.4.1</version>
 					<configuration>
 						<project>${project}</project>
 						<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
