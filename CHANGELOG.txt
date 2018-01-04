@@ -1,4 +1,4 @@
-7.0.0-rc2 - 2018-01-?? - Changes since 7.0.0-rc1
+7.0.0-rc2 - 2018-01-04 - Changes since 7.0.0-rc1
 
 	General:
 		Added "Watched" folders to the Media Library, to mirror "Unwatched" functionality
