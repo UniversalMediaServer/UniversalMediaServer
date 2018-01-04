@@ -1,4 +1,4 @@
-6.8.0 - 2018-01-??
+6.8.0 - 2018-01-04
 
 	General:
 		Added shared folder selection to the wizard
