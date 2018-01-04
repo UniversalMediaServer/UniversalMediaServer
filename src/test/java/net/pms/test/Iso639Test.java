@@ -45,18 +45,18 @@ public class Iso639Test {
 	 */
 	@Test
 	public void testCodes() {
-		assertNull("No language found for ISO code null", Iso639.getLanguage(null));
-
-		// Reserved keyword "loc" should not match anything
-		assertNull("No language found for ISO code \"loc\"", Iso639.getLanguage("loc"));
+		assertNull("No language found for ISO code null", Iso639.getName(null));
 
 		// Reserved keyword DLNAMediaLang.UND should match "Undetermined"
 		assertEquals("ISO code \"" + DLNAMediaLang.UND + "\" returns \"Undetermined\"",
-				"Undetermined", Iso639.getLanguage(DLNAMediaLang.UND));
+				"Undetermined", Iso639.getName(DLNAMediaLang.UND));
 
-		assertEquals("ISO code \"en\" returns \"English\"", "English", Iso639.getLanguage("en"));
-		assertEquals("ISO code \"eng\" returns \"English\"", "English", Iso639.getLanguage("eng"));
-		assertEquals("ISO code \"EnG\" returns \"English\"", "English", Iso639.getLanguage("EnG"));
+		assertEquals("ISO code \"en\" returns \"English\"", "English", Iso639.getName("en"));
+		assertEquals("ISO code \"eng\" returns \"English\"", "English", Iso639.getName("eng"));
+		assertEquals("ISO code \"EnG\" returns \"English\"", "English", Iso639.getName("EnG"));
+		assertNull("Language name \"Czech language\" returns null", Iso639.getName("Czech language"));
+		assertEquals(Iso639.getName("Czech language", true), "Czech");
+		assertEquals(Iso639.getName("The French don't like other languages", true), "French");
 
 		// Test codeIsValid()
 		assertTrue("ISO code \"en\" is valid", Iso639.codeIsValid("en"));
@@ -67,18 +67,37 @@ public class Iso639Test {
 		assertFalse("ISO code \"\" is invalid", Iso639.codeIsValid(""));
 		assertFalse("ISO code null is invalid", Iso639.codeIsValid(null));
 
+		// Test isValid()
+		assertTrue("ISO code \"en\" is valid", Iso639.isValid("en"));
+		assertTrue("ISO code \"EN\" is valid", Iso639.isValid("EN"));
+		assertTrue("ISO code \"vie\" is valid", Iso639.isValid("vie"));
+		assertTrue("ISO code \"vIe\" is valid", Iso639.isValid("vIe"));
+		assertFalse("ISO code \"en-uk\" is invalid", Iso639.isValid("en-uk"));
+		assertFalse("ISO code \"\" is invalid", Iso639.isValid(""));
+		assertFalse("ISO code null is invalid", Iso639.isValid(null));
+		assertTrue(Iso639.isValid("ENGLISH"));
+		assertTrue(Iso639.isValid("Burmese"));
+		assertTrue(Iso639.isValid("telugu"));
+
 		// Test getISO639_2Code()
 		assertEquals("ISO code \"en\" returns \"eng\"", Iso639.getISO639_2Code("en"), "eng");
 		assertEquals("ISO code \"eng\" returns \"eng\"", Iso639.getISO639_2Code("eng"), "eng");
-		assertNull("ISO code \"loc\" returns null", Iso639.getISO639_2Code("loc"));
 		assertNull("ISO code \"\" returns null", Iso639.getISO639_2Code(""));
 		assertNull("ISO code null returns null", Iso639.getISO639_2Code(null));
+		assertEquals("Language name \"English\" returns ISO code \"eng\"", Iso639.getISO639_2Code("English"), "eng");
+		assertEquals("Language name \"english\" returns null", Iso639.getISO639_2Code("english"), "eng");
+		assertEquals("Language name \"Czech\" returns ISO code \"cze\"", Iso639.getISO639_2Code("Czech"), "cze");
+		assertNull("Language name \"Czech language\" returns null", Iso639.getISO639_2Code("Czech language"));
+		assertEquals(Iso639.getISO639_2Code("Czech language", true), "cze");
+		assertEquals(Iso639.getISO639_2Code("The French don't like other languages", true), "fre");
+		assertEquals(Iso639.getISO639_2Code("Does anyone speak sweedish?", true), "swe");
+		assertEquals(Iso639.getISO639_2Code("Norweigan"), "nor");
 
 		// Test isCodeMatching()
 		assertTrue("ISO code \"ful\" matches language \"Fulah\"", Iso639.isCodeMatching("Fulah", "ful"));
-		assertTrue("ISO code \"gd\" matches language \"Gaelic (Scots)\"", Iso639.isCodeMatching("Gaelic (Scots)", "gd"));
-		assertTrue("ISO code \"gla\" matches language \"Gaelic (Scots)\"", Iso639.isCodeMatching("Gaelic (Scots)", "gla"));
-		assertFalse("ISO code \"eng\" doesn't match language \"Gaelic (Scots)\"", Iso639.isCodeMatching("Gaelic (Scots)", "eng"));
+		assertTrue("ISO code \"gd\" matches language \"Gaelic (Scots)\"", Iso639.isCodeMatching("Gaelic", "gd"));
+		assertTrue("ISO code \"gla\" matches language \"Gaelic (Scots)\"", Iso639.isCodeMatching("Gaelic", "gla"));
+		assertFalse("ISO code \"eng\" doesn't match language \"Gaelic (Scots)\"", Iso639.isCodeMatching("Gaelic", "eng"));
 		assertTrue("ISO code \"gla\" matches ISO code \"gd\"", Iso639.isCodesMatching("gla", "gd"));
 		assertTrue("ISO code \"ice\" matches ISO code \"is\"", Iso639.isCodesMatching("ice", "is"));
 		assertTrue("ISO code \"isl\" matches ISO code \"ice\"", Iso639.isCodesMatching("isl", "ice"));
@@ -88,7 +107,15 @@ public class Iso639Test {
 		assertEquals("ISO code \"eng\" returns ISO code \"en\"", Iso639.getISOCode("eng"), "en");
 		assertEquals("ISO code \"ell\" returns ISO code \"el\"", Iso639.getISOCode("ell"), "el");
 		assertEquals("ISO code \"gre\" returns ISO code \"el\"", Iso639.getISOCode("gre"), "el");
-		assertEquals("ISO code \"gay\" returns ISO code \"gay\"", Iso639.getISOCode("gay"), "gay");
-		assertNull("ISO code \"loc\" returns null", Iso639.getISOCode("loc"));
+		assertEquals("ISO code \"gay\" returns ISO code \"gay\"", Iso639.getISOCode("gay"), "gay"); // No pun intended
+		assertNull("Language name \"Czech language\" returns null", Iso639.getISOCode("Czech language"));
+		assertEquals(Iso639.getISOCode("Czech language", true), "cs");
+		assertEquals(Iso639.getISOCode("The French don't like other languages", true), "fr");
+		assertEquals(Iso639.getISOCode("Where do they speak Choctaw?", true), "cho");
+		assertEquals(Iso639.getISOCode("Where do they speak madureese?", true), "mad");
+		assertEquals(Iso639.getISOCode("Where do they speak philipine?", true), "phi");
+		assertEquals(Iso639.getISOCode("Where do they speak portugese?", true), "pt");
+		assertEquals(Iso639.getISOCode("Where do they speak sinhaleese?", true), "si");
+		assertEquals(Iso639.getISOCode("Does anyone speak sweedish?", true), "sv");
 	}
 }
