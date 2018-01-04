@@ -2974,7 +2974,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return whether the folder is shown
 	 */
 	public boolean isShowNewMediaFolder() {
-		return getBoolean(KEY_SHOW_NEW_MEDIA_FOLDER, true);
+		return getBoolean(KEY_SHOW_NEW_MEDIA_FOLDER, false);
 	}
 
 	/**
