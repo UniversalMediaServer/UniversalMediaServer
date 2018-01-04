@@ -97,7 +97,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<logback-version>1.2.3</logback-version>
-		<surefire-version>2.20.1</surefire-version>
+		<surefire-version>2.20</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -616,9 +616,9 @@
 					it has no influence on the Maven build itself.
 				-->
 				<plugin>
-					<groupId>com.universalmediaserver</groupId>
+					<groupId>org.digitalmediaserver</groupId>
 					<artifactId>crowdin-maven-plugin</artifactId>
-					<version>0.3</version>
+					<version>0.4.1</version>
 					<configuration>
 						<project>${project}</project>
 						<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
