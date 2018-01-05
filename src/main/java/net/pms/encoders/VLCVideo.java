@@ -444,6 +444,7 @@ public class VLCVideo extends Player {
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getFileName();
 		boolean isWindows = Platform.isWindows();
+		setAudioAndSubs(filename, media, params);
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.mediaRenderer);

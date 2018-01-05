@@ -213,6 +213,7 @@ public class RealFile extends MapFile {
 						setFormat(getMedia().getAudioVariantFormat());
 					}
 
+					//TODO: (Nad) Next 4 lines added... correct?
 					OutputParams params = new OutputParams(configuration);
 					Player.setAudioAndSubs(input.toString(), media, params);
 					setMediaAudio(params.aid);

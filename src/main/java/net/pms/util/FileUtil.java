@@ -1083,6 +1083,25 @@ public class FileUtil {
 							}
 
 							boolean exists = false;
+							if (media != null) {
+								for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
+									if (f.equals(sub.getExternalFile())) {
+										exists = true;
+									} else if (equalsIgnoreCase(ext, "idx") && sub.getType() == SubtitleType.MICRODVD) { // sub+idx => VOBSUB
+										sub.setType(SubtitleType.VOBSUB);
+										exists = true;
+									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
+										try {
+											sub.setExternalFile(f, null);
+										} catch (FileNotFoundException ex) {
+											LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
+											LOGGER.trace("", ex);
+										}
+
+										exists = true;
+									}
+								}
+							}
 
 							if (!exists) {
 								String forcedLang = null;
@@ -1101,8 +1120,6 @@ public class FileUtil {
 												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
 												forcedLang = flavorLang;
 											}
-										} else {
-											sub = null;
 										}
 									}
 								} else {
@@ -1111,15 +1128,16 @@ public class FileUtil {
 									forcedLang = code;
 								}
 
+								try {
+									sub.setExternalFile(f, forcedLang);
+								} catch (FileNotFoundException ex) {
+									LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
+									LOGGER.trace("", ex);
+								}
+
 								found = true;
-								if (media != null && sub != null) {
-									try {
-										sub.setExternalFile(f, forcedLang);
-										media.getSubtitleTracksList().add(sub);
-									} catch (FileNotFoundException ex) {
-										LOGGER.warn("File not found during external subtitles scan: {}", ex.getMessage());
-										LOGGER.trace("", ex);
-									}
+								if (media != null) {
+									media.getSubtitleTracksList().add(sub);
 								}
 							}
 						}
