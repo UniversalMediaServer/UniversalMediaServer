@@ -777,6 +777,7 @@ public class NavigationShareTab {
 					if (FList.getModel().getValueAt(0, 0).equals(ALL_DRIVES)) {
 						((SharedFoldersTableModel) FList.getModel()).removeRow(0);
 					}
+
 					updateModel();
 				}
 			}
@@ -793,6 +794,7 @@ public class NavigationShareTab {
 					if (FList.getModel().getRowCount() == 0) {
 						folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
 					}
+
 					updateModel();
 				}
 			}
@@ -818,6 +820,8 @@ public class NavigationShareTab {
 						break;
 					}
 				}
+
+				updateModel();
 			}
 		});
 		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
@@ -842,6 +846,8 @@ public class NavigationShareTab {
 
 					}
 				}
+
+				updateModel();
 			}
 		});
 		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
@@ -962,7 +968,6 @@ public class NavigationShareTab {
 				rowVector.setElementAt(aValue, column);
 			}
 			fireTableCellUpdated(row, column);
-			updateModel();
 		}
 	}
 }

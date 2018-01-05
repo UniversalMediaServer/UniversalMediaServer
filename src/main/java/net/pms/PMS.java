@@ -539,8 +539,17 @@ public class PMS {
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
+				if (!event.isBeforeUpdate()) {
+					if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+						frame.setReloadable(true);
+					} else if (PmsConfiguration.NEED_RESTART_FLAGS.contains(event.getPropertyName())) {
+						try {
+							configuration.save(); // save configuration otherwise the change after rebooting is missed
+							askToRestart();
+						} catch (ConfigurationException e) {
+							LOGGER.debug("Error when configuration was saved: {}", e);
+						}
+					}
 				}
 			}
 		});
@@ -791,8 +800,9 @@ public class PMS {
 	private MediaLibrary mediaLibrary;
 
 	/**
-	 * Returns the MediaLibrary used by PMS.
-	 * @return (MediaLibrary) Used mediaLibrary, if any. null if none is in use.
+	 * Returns the Media Library.
+	 *
+	 * @return the Media Library, if any. null if none is in use.
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
@@ -1893,5 +1903,20 @@ public class PMS {
 
 	public static void setKey(String key, String val) {
 		instance.keysDb.set(key, val);
+	}
+
+	/**
+	 * Informs the user a program restart is needed to update
+	 * settings, and offers the option to do it automatically.
+	 */
+	public void askToRestart() {
+		int option = JOptionPane.showConfirmDialog(
+			null,
+			Messages.getString("FoldTab.RestartQuestion"),
+			Messages.getString("Dialog.Question"),
+			JOptionPane.YES_NO_OPTION);
+		if (option == JOptionPane.YES_OPTION) {
+			ProcessUtil.reboot();
+		}
 	}
 }
