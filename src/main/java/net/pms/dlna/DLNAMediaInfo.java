@@ -1117,7 +1117,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			postParse(type, inputFile);
+			postParse(type, inputFile, thumbOnly);
 			mediaparsed = true;
 		}
 	}
@@ -1470,7 +1470,28 @@ public class DLNAMediaInfo implements Cloneable {
 		return duration != null ? convertStringToTime(duration) : null;
 	}
 
-	public void postParse(int type, InputFile f) {
+	/**
+	 * Set the media mime type based on container, video, audio formats and detects external
+	 * subtitles for the given media file.
+	 * 
+	 * @param type the media type of the media file
+	 * @param file the media file
+	 */
+	public void postParse(int type, InputFile file) {
+		postParse(type, file, false);
+	}
+	
+	
+	/**
+	 * Set the media mime type based on container, video, audio formats and detects external
+	 * subtitles for the given media file. Do not check external subtitles when this method
+	 * is called during thumbnails generation.
+	 * 
+	 * @param type the media type of the media file
+	 * @param file the media file
+	 * @param thumbOnly if true thumbnail is generated so do not check for external subtitles
+	 */
+	public void postParse(int type, InputFile file, boolean thumbOnly) {
 		String codecA = null;
 		if (getFirstAudioTrack() != null) {
 			codecA = getFirstAudioTrack().getCodecA();
@@ -1649,8 +1670,8 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Check for external subs here
-		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles()) {
-			FileUtil.isSubtitlesExists(f.getFile(), this);
+		if (file.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles()  && !thumbOnly) {
+			FileUtil.isSubtitlesExists(file.getFile(), this);
 		}
 	}
 
