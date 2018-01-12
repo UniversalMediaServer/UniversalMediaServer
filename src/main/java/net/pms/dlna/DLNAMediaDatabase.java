@@ -66,7 +66,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final String latestVersion = "11";
+	private final int latestVersion = 12;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -152,7 +152,7 @@ public class DLNAMediaDatabase implements Runnable {
 	@SuppressFBWarnings("SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE")
 	public synchronized void init(boolean force) {
 		dbCount = -1;
-		String version = null;
+		int currentVersion = -1;
 		Connection conn = null;
 		ResultSet rs = null;
 		Statement stmt = null;
@@ -208,7 +208,7 @@ public class DLNAMediaDatabase implements Runnable {
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'");
 			if (rs.next()) {
-				version = rs.getString(1);
+				currentVersion = Integer.parseInt(rs.getString(1));
 			}
 		} catch (SQLException se) {
 			if (se.getErrorCode() != 42102) { // Don't log exception "Table "FILES" not found" which will be corrected in following step
@@ -221,7 +221,47 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		// Recreate database if it is not the latest version.
-		boolean forceReInit = !latestVersion.equals(version);
+		boolean forceReInit = false;
+
+		/**
+		 * If the database is not the latest version, see if we can upgrade
+		 * it efficiently instead of recreating it.
+		 */
+		if (latestVersion != currentVersion) {
+			try {
+				conn = getConnection();
+
+				for (int version = currentVersion;version < latestVersion; version++) {
+					LOGGER.trace("Upgrading table {} from version {} to {}", "FILES", version, version + 1);
+					switch (version) {
+						case 11:
+							// From version 11 to 12, we added an index
+							try (Statement statement = conn.createStatement()) {
+								statement.execute("CREATE INDEX TYPE_ISTV_SIMPLENAME on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAMESIMPLE)");
+							}
+							version = 12;
+							break;
+						default:
+							// Do the dumb way
+							forceReInit = true;
+					}
+				}
+
+				if (!forceReInit) {
+					try (Statement statement = conn.createStatement()) {
+						statement.execute("DROP TABLE METADATA");
+						statement.execute("CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
+						statement.execute("INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
+					}
+				}
+			} catch (SQLException se) {
+				LOGGER.error("Error updating tables: " + se.getMessage());
+				LOGGER.trace("", se);
+			} finally {
+				close(conn);
+			}
+		}
+
 		if (force || dbCount == -1 || forceReInit) {
 			LOGGER.debug("Database will be (re)initialized");
 			try {
@@ -242,6 +282,7 @@ public class DLNAMediaDatabase implements Runnable {
 					LOGGER.trace("", se);
 				}
 			}
+
 			try {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
@@ -327,6 +368,8 @@ public class DLNAMediaDatabase implements Runnable {
 				LOGGER.trace("Creating table METADATA");
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
 				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
+				LOGGER.trace("Creating index TYPE_ISTV_SIMPLENAME");
+				executeUpdate(conn, "CREATE INDEX TYPE_ISTV_SIMPLENAME on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAMESIMPLE)");
 				LOGGER.trace("Creating index IDXARTIST");
 				executeUpdate(conn, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
 				LOGGER.trace("Creating index IDXALBUM");

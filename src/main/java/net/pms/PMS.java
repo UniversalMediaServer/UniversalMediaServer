@@ -1287,7 +1287,7 @@ public class PMS {
 		title = StringEscapeUtils.escapeSql(title);
 
 		if (getConfiguration().getUseCache()) {
-			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAMESIMPLE='" + title + "'");
+			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAMESIMPLE='" + title + "' LIMIT 1");
 			if (titleList.size() > 0) {
 				return titleList.get(0);
 			}
