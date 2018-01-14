@@ -787,7 +787,7 @@ public class PMS {
 		UPNPHelper.listen();
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
-		if (getConfiguration().getUseCache()) {
+		if (getConfiguration().getUseCache() && getConfiguration().isScanSharedFoldersOnStartup()) {
 			getDatabase().scanLibrary();
 		}
 

@@ -258,6 +258,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_RESUME_REWIND = "resume_rewind";
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
+	protected static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
 	protected static final String KEY_SCREEN_SIZE = "screen_size";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
@@ -2966,6 +2967,24 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setRunWizard(boolean value) {
 		configuration.setProperty(KEY_RUN_WIZARD, value);
+	}
+
+	/**
+	 * Whether to scan shared folders on startup.
+	 *
+	 * @return whether to scan shared folders on startup
+	 */
+	public boolean isScanSharedFoldersOnStartup() {
+		return getBoolean(KEY_SCAN_SHARED_FOLDERS_ON_STARTUP, true);
+	}
+
+	/**
+	 * Whether to scan shared folders on startup.
+	 *
+	 * @param value whether to scan shared folders on startup
+	 */
+	public void setScanSharedFoldersOnStartup(final boolean value) {
+		this.configuration.setProperty(KEY_SCAN_SHARED_FOLDERS_ON_STARTUP, value);
 	}
 
 	/**
