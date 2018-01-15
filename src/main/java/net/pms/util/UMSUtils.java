@@ -309,7 +309,7 @@ public class UMSUtils {
 							sb.append(r.getResume().getResumeFile().getAbsolutePath());
 							sb.append(';');
 						}
-						if (r.getMediaSubtitle() != null) {
+						if (r.getMediaSubtitle() != null) { //TODO: (Nad) Figure out OpenSubtites bug
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
 							if (sub.getLang() != null && sub.getId() != -1) {
 								sb.append("sub");

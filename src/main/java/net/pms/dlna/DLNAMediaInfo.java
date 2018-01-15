@@ -206,26 +206,6 @@ public class DLNAMediaInfo implements Cloneable {
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
 
-	private boolean externalSubsExist = false;
-
-	public void setExternalSubsExist(boolean exist) {
-		this.externalSubsExist = exist;
-	}
-
-	public boolean isExternalSubsExist() {
-		return externalSubsExist;
-	}
-
-	private boolean externalSubsParsed = false;
-
-	public void setExternalSubsParsed(boolean parsed) {
-		this.externalSubsParsed = parsed;
-	}
-
-	public boolean isExternalSubsParsed() {
-		return externalSubsParsed;
-	}
-
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
@@ -392,13 +372,6 @@ public class DLNAMediaInfo implements Cloneable {
 			default :
 				return isSLS() ? MediaType.AUDIO : MediaType.UNKNOWN;
 		}
-	}
-
-	/**
-	 * @return true when there are subtitle tracks embedded in the media file.
-	 */
-	public boolean hasSubtitles() {
-		return subtitleTracks.size() > 0;
 	}
 
 	public boolean isImage() {
@@ -1647,11 +1620,6 @@ public class DLNAMediaInfo implements Cloneable {
 		if (getFirstAudioTrack() == null || !(type == Format.AUDIO && getFirstAudioTrack().getBitsperSample() == 24 && getFirstAudioTrack().getSampleRate() > 48000)) {
 			secondaryFormatValid = false;
 		}
-
-		// Check for external subs here
-		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles()) {
-			FileUtil.isExternalSubtitlesExists(f.getFile(), this);
-		}
 	}
 
 	/**
@@ -1830,7 +1798,7 @@ public class DLNAMediaInfo implements Cloneable {
 				appendAudioTracks(result);
 			}
 
-			if (hasSubtitles()) {
+			if (subtitleTracks != null && !subtitleTracks.isEmpty()) {
 				appendSubtitleTracks(result);
 			}
 

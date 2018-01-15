@@ -15,15 +15,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
@@ -1067,73 +1064,6 @@ public class FileUtil {
 		}
 
 		return nullIfNonExisting ? null : result;
-	}
-
-	/**
-	 * @deprecated Use {@link #isExternalSubtitlesExists} instead.
-	 */
-	@Deprecated
-	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
-		return isExternalSubtitlesExists(file, media);
-	}
-
-	/**
-	 * @deprecated Use {@link #isExternalSubtitlesExists} instead.
-	 */
-	@Deprecated
-	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
-		return isExternalSubtitlesExists(file, media, usecache);
-	}
-
-	public static boolean isExternalSubtitlesExists(File file, DLNAMediaInfo media) {
-		return isExternalSubtitlesExists(file, media, true);
-	}
-
-	public static boolean isExternalSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) { //TODO: (Nad) Clean up usecache
-		if (media == null) {
-			return false;
-		}
-		if (media.isExternalSubsParsed()) {
-			return media.isExternalSubsExist();
-		}
-
-		if (file.exists()) {
-			SubtitleUtils.registerExternalSubtitles(file.getAbsoluteFile().getParentFile(), file, media, false);
-		}
-		String alternate = PMS.getConfiguration().getAlternateSubtitlesFolder();
-
-		if (isNotBlank(alternate)) { // https://code.google.com/p/ps3mediaserver/issues/detail?id=737#c5
-			File subFolder = new File(alternate);
-
-			if (!subFolder.isAbsolute()) {
-				subFolder = new File(file.getParent(), alternate);
-				try {
-					subFolder = subFolder.getCanonicalFile();
-				} catch (IOException e) {
-					LOGGER.warn("Could not resolve alternative subtitles folder: {}", e.getMessage());
-					LOGGER.trace("", e);
-				}
-			}
-
-			if (subFolder.exists()) {
-				SubtitleUtils.registerExternalSubtitles(subFolder, file, media, false);
-			}
-		}
-
-		boolean found = false;
-		List<DLNAMediaSubtitle> subtitlesList = media.getSubtitleTracksList();
-		if (subtitlesList != null) {
-			for (DLNAMediaSubtitle subtitles : subtitlesList) {
-				if (subtitles.isExternal()) {
-					found = true;
-					break;
-				}
-			}
-		}
-		media.setExternalSubsExist(found);
-		media.setExternalSubsParsed(true);
-
-		return found;
 	}
 
 	/**
