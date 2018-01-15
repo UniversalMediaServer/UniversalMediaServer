@@ -174,7 +174,7 @@ public class NavigationShareTab {
 		+ "p,"                            //
 		+ "9dlu,"                         //
 		+ "fill:default:grow";            // Shared folders
-	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
+	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, 10dlu, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
 
 	public JComponent build() {
@@ -251,7 +251,6 @@ public class NavigationShareTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderNewMedia),         FormLayoutUtil.flip(cc.xyw(9, 25, 4), colSpec, orientation));
 
 			builder.add(GuiUtil.getPreferredSizeComponent(resume),                       FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isScanSharedFoldersOnStartup), FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xyw(9, 27, 4), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1,  29   ), colSpec, orientation));
@@ -663,16 +662,6 @@ public class NavigationShareTab {
 			}
 		});
 
-		isScanSharedFoldersOnStartup = new JCheckBox(Messages.getString("NetworkTab.StartupScan"), configuration.isScanSharedFoldersOnStartup());
-		isScanSharedFoldersOnStartup.setToolTipText(Messages.getString("NetworkTab.StartupScanTooltip"));
-		isScanSharedFoldersOnStartup.setContentAreaFilled(false);
-		isScanSharedFoldersOnStartup.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-
 		isShowFolderRecentlyPlayed = new JCheckBox(Messages.getString("FoldTab.55"), configuration.isShowRecentlyPlayedFolder());
 		isShowFolderRecentlyPlayed.setContentAreaFilled(false);
 		isShowFolderRecentlyPlayed.addItemListener(new ItemListener() {
@@ -930,6 +919,18 @@ public class NavigationShareTab {
 		}
 
 		but5.setEnabled(configuration.getUseCache());
+
+		isScanSharedFoldersOnStartup = new JCheckBox(Messages.getString("NetworkTab.StartupScan"), configuration.isScanSharedFoldersOnStartup());
+		isScanSharedFoldersOnStartup.setToolTipText(Messages.getString("NetworkTab.StartupScanTooltip"));
+		isScanSharedFoldersOnStartup.setContentAreaFilled(false);
+		isScanSharedFoldersOnStartup.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		builderFolder.add(isScanSharedFoldersOnStartup, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
 		File[] folders = PMS.get().getSharedFoldersArray(false);
 		if (folders != null && folders.length > 0) {
