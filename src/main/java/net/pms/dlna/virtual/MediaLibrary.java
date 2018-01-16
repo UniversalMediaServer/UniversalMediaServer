@@ -67,16 +67,16 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder watchedTvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
 			new String[]{
-				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + watchedCondition + "                                                              ORDER BY FILES.MOVIEORSHOWNAME ASC",
+				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + watchedCondition + "                                                                ORDER BY FILES.MOVIEORSHOWNAME ASC",
 				"SELECT DISTINCT FILES.TVSEASON        FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + watchedCondition + " AND FILES.MOVIEORSHOWNAME = '${0}'                             ORDER BY FILES.TVSEASON ASC",
 				sqlJoinStart +                                                                                                                                                        "FILES.TYPE = 4 AND FILES.ISTVEPISODE" + watchedCondition + " AND FILES.MOVIEORSHOWNAME = '${1}' AND FILES.TVSEASON = '${0}' ORDER BY FILES.TVEPISODENUMBER"
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES_NOSORT}
 		);
-		MediaLibraryFolder watchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = ''" + watchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder watchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY != ''" + watchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder watchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND (YEAR IS NULL OR YEAR = '')" + watchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder watchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"), sqlJoinStart + "FILES.TYPE = 4" + watchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder watchedMoviesFolder    = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = ''" + watchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder watchedMovies3DFolder  = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY != ''" + watchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder watchedUnsortedFolder  = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND (YEAR IS NULL OR YEAR = '')" + watchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder watchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"),          sqlJoinStart + "FILES.TYPE = 4" + watchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder watchedMlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{
@@ -93,16 +93,16 @@ public class MediaLibrary extends VirtualFolder {
 		tvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
 			new String[]{
-				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE ORDER BY MOVIEORSHOWNAME ASC",
-				"SELECT DISTINCT TVSEASON        FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON ASC",
+				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE                                                    ORDER BY MOVIEORSHOWNAME ASC",
+				"SELECT DISTINCT TVSEASON        FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}'                       ORDER BY TVSEASON ASC",
 				"SELECT          *               FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER"
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.FILES_NOSORT}
 		);
-		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), "TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = '' ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), "TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY != '' ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), "TYPE = 4 AND NOT ISTVEPISODE AND (YEAR IS NULL OR YEAR = '') ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder allVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"), "TYPE = 4 ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder moviesFolder    = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), "TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = '' ORDER BY FILENAME ASC",  MediaLibraryFolder.FILES);
+		MediaLibraryFolder movies3DFolder  = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), "TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY != '' ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unsortedFolder  = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), "TYPE = 4 AND NOT ISTVEPISODE AND (YEAR IS NULL OR YEAR = '') ORDER BY FILENAME ASC",      MediaLibraryFolder.FILES);
+		MediaLibraryFolder allVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"),          "TYPE = 4 ORDER BY FILENAME ASC",                                                          MediaLibraryFolder.FILES);
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{
@@ -111,9 +111,9 @@ public class MediaLibrary extends VirtualFolder {
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
 		);
-		MediaLibraryFolder mlfVideo03 = new MediaLibraryFolder(Messages.getString("PMS.36"), "TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576) ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder mlfVideo03 = new MediaLibraryFolder(Messages.getString("PMS.36"), "TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576)    ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder mlfVideo04 = new MediaLibraryFolder(Messages.getString("PMS.39"), "TYPE = 4 AND (WIDTH <= 864 AND HEIGHT <= 576) ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder mlfVideo05 = new MediaLibraryFolder(Messages.getString("PMS.40"), "TYPE = 32 ORDER BY FILENAME ASC", MediaLibraryFolder.ISOS);
+		MediaLibraryFolder mlfVideo05 = new MediaLibraryFolder(Messages.getString("PMS.40"), "TYPE = 32                                     ORDER BY FILENAME ASC", MediaLibraryFolder.ISOS);
 
 		// If fully played videos are to be hidden
 		if (configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_VIDEO) {

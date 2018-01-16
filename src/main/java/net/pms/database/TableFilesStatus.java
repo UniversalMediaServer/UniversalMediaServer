@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -325,6 +325,13 @@ public final class TableFilesStatus extends Tables{
 						}
 						version = 2;
 						break;
+					case 2:
+						// From version 2 to 3, we added an index for the ISFULLYPLAYED column
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
+						}
+						version = 3;
+						break;
 					default:
 						throw new IllegalStateException(
 							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
@@ -354,6 +361,7 @@ public final class TableFilesStatus extends Tables{
 			);
 
 			statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
+			statement.execute("CREATE UNIQUE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
 		}
 	}
 }

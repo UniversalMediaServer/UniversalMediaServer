@@ -66,7 +66,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final int latestVersion = 12;
+	private final int latestVersion = 13;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -241,6 +241,19 @@ public class DLNAMediaDatabase implements Runnable {
 							}
 							version = 12;
 							break;
+						case 12:
+							// From version 12 to 13, we added 7 indexes
+							try (Statement statement = conn.createStatement()) {
+								statement.execute("CREATE INDEX TYPE on FILES (TYPE)");
+								statement.execute("CREATE INDEX TYPE_ISTV on FILES (TYPE, ISTVEPISODE)");
+								statement.execute("CREATE INDEX TYPE_ISTV_NAME on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAME)");
+								statement.execute("CREATE INDEX TYPE_ISTV_NAME_SEASON on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAME, TVSEASON)");
+								statement.execute("CREATE INDEX TYPE_ISTV_YEAR_STEREOSCOPY on FILES (TYPE, ISTVEPISODE, YEAR, STEREOSCOPY)");
+								statement.execute("CREATE INDEX TYPE_WIDTH_HEIGHT on FILES (TYPE, WIDTH, HEIGHT)");
+								statement.execute("CREATE INDEX TYPE_MODIFIED on FILES (TYPE, MODIFIED)");
+							}
+							version = 13;
+							break;
 						default:
 							// Do the dumb way
 							forceReInit = true;
@@ -368,16 +381,43 @@ public class DLNAMediaDatabase implements Runnable {
 				LOGGER.trace("Creating table METADATA");
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
 				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
+
+				LOGGER.trace("Creating index TYPE");
+				executeUpdate(conn, "CREATE INDEX TYPE on FILES (TYPE)");
+
+				LOGGER.trace("Creating index TYPE_ISTV");
+				executeUpdate(conn, "CREATE INDEX TYPE_ISTV on FILES (TYPE, ISTVEPISODE)");
+
 				LOGGER.trace("Creating index TYPE_ISTV_SIMPLENAME");
 				executeUpdate(conn, "CREATE INDEX TYPE_ISTV_SIMPLENAME on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAMESIMPLE)");
+
+				LOGGER.trace("Creating index TYPE_ISTV_NAME");
+				executeUpdate(conn, "CREATE INDEX TYPE_ISTV_NAME on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAME)");
+
+				LOGGER.trace("Creating index TYPE_ISTV_NAME_SEASON");
+				executeUpdate(conn, "CREATE INDEX TYPE_ISTV_NAME_SEASON on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAME, TVSEASON)");
+
+				LOGGER.trace("Creating index TYPE_ISTV_YEAR_STEREOSCOPY");
+				executeUpdate(conn, "CREATE INDEX TYPE_ISTV_YEAR_STEREOSCOPY on FILES (TYPE, ISTVEPISODE, YEAR, STEREOSCOPY)");
+
+				LOGGER.trace("Creating index TYPE_WIDTH_HEIGHT");
+				executeUpdate(conn, "CREATE INDEX TYPE_WIDTH_HEIGHT on FILES (TYPE, WIDTH, HEIGHT)");
+
+				LOGGER.trace("Creating index TYPE_MODIFIED");
+				executeUpdate(conn, "CREATE INDEX TYPE_MODIFIED on FILES (TYPE, MODIFIED)");
+
 				LOGGER.trace("Creating index IDXARTIST");
 				executeUpdate(conn, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
+
 				LOGGER.trace("Creating index IDXALBUM");
 				executeUpdate(conn, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
+
 				LOGGER.trace("Creating index IDXGENRE");
 				executeUpdate(conn, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
+
 				LOGGER.trace("Creating index IDXYEAR");
 				executeUpdate(conn, "CREATE INDEX IDXYEAR on AUDIOTRACKS (YEAR asc);");
+
 				LOGGER.trace("Creating table REGEXP_RULES");
 				executeUpdate(conn, "CREATE TABLE REGEXP_RULES ( ID VARCHAR2(255) PRIMARY KEY, RULE VARCHAR2(255), ORDR NUMERIC);");
 				executeUpdate(conn, "INSERT INTO REGEXP_RULES VALUES ( '###', '(?i)^\\W.+', 0 );");
