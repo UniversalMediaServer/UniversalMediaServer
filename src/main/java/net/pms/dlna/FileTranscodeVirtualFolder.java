@@ -207,25 +207,6 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			addChildInternal(noTranscode);
 			addChapterFolder(noTranscode);
 
-			// add options for renderer capable to handle streamed subtitles
-			if (!configuration.isDisableSubtitles() && renderer != null && renderer.isSubtitlesStreamingSupported()) {
-				for (DLNAMediaSubtitle subtitle : subtitleTracks) {
-					// only add the option if the renderer supports the given format
-					if (subtitle.isExternal()) { // do not check for embedded subs
-						if (renderer.isExternalSubtitlesFormatSupported(subtitle, child.getMedia())) {
-							DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
-							copy.getMediaSubtitle().setSubsStreamable(true);
-							entries.add(copy);
-							LOGGER.trace(
-								"Duplicating {} for direct streaming subtitles {}",
-								child.getName(),
-								subtitle.toString()
-							);
-						}
-					}
-				}
-			}
-
 			/*
 			 we add (or may add) a null entry to the audio list and/or subtitle list
 			 to ensure the inner loop is always entered:
