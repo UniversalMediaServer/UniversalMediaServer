@@ -1668,7 +1668,11 @@ public class MEncoderVideo extends Player {
 					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
 					cmdList.add("-slang");
 					cmdList.add("" + params.sid.getLang());
-				} else if (!params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
+				} else if (
+					!params.mediaRenderer.streamSubsForTranscodedVideo() ||
+					!params.mediaRenderer.isExternalSubtitlesFormatSupported(params.sid, media)
+				) {
+					// Only transcode subtitles if they aren't streamable
 					cmdList.add("-sub");
 					DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 					if (media.is3d()) {

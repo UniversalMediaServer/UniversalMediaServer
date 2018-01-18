@@ -193,9 +193,11 @@ public class FFMpegVideo extends Player {
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
 				} else if (params.sid.isExternal()) {
-					if (params.sid.isStreamable() && renderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
-						originalSubsFilename = null;
-					} else {
+					if (
+						!renderer.streamSubsForTranscodedVideo() ||
+						!renderer.isExternalSubtitlesFormatSupported(params.sid, media)
+					) {
+						// Only transcode subtitles if they aren't streamable
 						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 					}
 				} else if (params.sid.isEmbedded()) {
