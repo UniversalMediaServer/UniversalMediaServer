@@ -347,7 +347,11 @@ public class Request extends HTTPResource {
 						thumbInputStream = dlna.fetchThumbnailInputStream();
 					}
 					BufferedImageFilterChain filterChain = null;
-					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
+					if (
+						dlna instanceof RealFile &&
+						mediaRenderer.isThumbnails() &&
+						FullyPlayed.isFullyPlayedMark(((RealFile) dlna).getFile())
+					) {
 						filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 					}
 					filterChain = dlna.addFlagFilters(filterChain);

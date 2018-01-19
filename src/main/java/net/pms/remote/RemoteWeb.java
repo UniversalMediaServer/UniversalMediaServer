@@ -301,7 +301,7 @@ public class RemoteWeb {
 				in = r.fetchThumbnailInputStream();
 			}
 			BufferedImageFilterChain filterChain = null;
-			if (r instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) r).getFile())) {
+			if (r instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) r).getFile())) {
 				filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 			}
 			filterChain = r.addFlagFilters(filterChain);

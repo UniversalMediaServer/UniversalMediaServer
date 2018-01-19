@@ -29,11 +29,10 @@ import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.MediaMonitor;
-import net.pms.dlna.RealFile;
+import net.pms.dlna.MediaType;
+import net.pms.formats.Format;
 import net.pms.image.BufferedImageFilter;
 import net.pms.image.NonGeometricBufferedImageOp;
 import org.slf4j.Logger;
@@ -72,12 +71,13 @@ public class FullyPlayed {
 	}
 
 	/**
-	 * Determines if the media thumbnail should have a "fully played" overlay.
+	 * Determines if the media should be marked as "fully played" either with
+	 * text or a "fully played" overlay.
 	 *
 	 * @param file the file representing this media
 	 * @return The result
 	 */
-	public static boolean isFullyPlayedThumbnail(File file) {
+	public static boolean isFullyPlayedMark(File file) {
 		return
 			file != null &&
 			configuration.getFullyPlayedAction() == FullyPlayedAction.MARK &&
@@ -108,33 +108,46 @@ public class FullyPlayed {
 	}
 
 	/**
-	 * Prefixes displayName with a "Fully played" prefix if conditions are met.
+	 * Prefixes the specified string with a "fully played" text.
 	 *
-	 * @param displayName the {@link String} to prefix
-	 * @param resource the {@link RealFile} representing the media
-	 * @param renderer the current {@link RendererConfiguration}
-	 * @return The prefixed {@link String} if conditions are met, or the
-	 *         unmodified {@link String}.
+	 * @param displayName the {@link String} to prefix.
+	 * @param resource the {@link DLNAResource} representing the media.
+	 * @return The prefixed {@link String}.
 	 */
-	public static String prefixDisplayName(String displayName, RealFile resource, RendererConfiguration renderer) {
-		if (
-			renderer != null &&
-			!renderer.isThumbnails() &&
-			configuration.getFullyPlayedAction() == FullyPlayedAction.MARK &&
-			MediaMonitor.isFullyPlayed(resource.getFile().getAbsolutePath())
-		) {
-			DLNAMediaInfo media = resource.getMedia();
-			if (media != null) {
-				if (media.isVideo()) {
-					displayName = String.format("[%s]%s", Messages.getString("DLNAResource.4"), displayName);
-				} else if (media.isAudio()) {
-					displayName = String.format("[%s]%s", Messages.getString("DLNAResource.5"), displayName);
-				} else if (media.isImage()) {
-					displayName = String.format("[%s]%s", Messages.getString("DLNAResource.6"), displayName);
-				}
+	public static String addFullyPlayedNamePrefix(String displayName, DLNAResource resource) {
+		MediaType mediaType;
+		if (resource.getMedia() != null) {
+			mediaType = resource.getMedia().getMediaType();
+		} else if (resource.getFormat() != null) {
+			switch (resource.getFormat().getType()) {
+				case Format.AUDIO:
+					mediaType = MediaType.AUDIO;
+					break;
+				case Format.IMAGE:
+					mediaType = MediaType.IMAGE;
+					break;
+				case Format.VIDEO:
+					mediaType = MediaType.VIDEO;
+					break;
+				case Format.UNKNOWN:
+				default:
+					mediaType = MediaType.UNKNOWN;
+					break;
 			}
+		} else {
+			mediaType = MediaType.UNKNOWN;
 		}
-		return displayName;
+		switch (mediaType) {
+			case IMAGE:
+				return String.format("[%s] %s", Messages.getString("DLNAResource.6"), displayName);
+			case VIDEO:
+				return String.format("[%s] %s", Messages.getString("DLNAResource.4"), displayName);
+			case AUDIO:
+			case UNKNOWN:
+			default:
+				return String.format("[%s] %s", Messages.getString("DLNAResource.5"), displayName);
+
+		}
 	}
 
 	/**
