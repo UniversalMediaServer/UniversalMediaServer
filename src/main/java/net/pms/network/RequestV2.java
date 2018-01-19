@@ -1132,7 +1132,7 @@ public class RequestV2 extends HTTPResource {
 				String formattedResponse = null;
 				if (isNotBlank(response)) {
 					try {
-						formattedResponse = StringUtil.prettifyXML(response.toString(), 4);
+						formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 2);
 					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
 						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
 						formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
@@ -1153,7 +1153,7 @@ public class RequestV2 extends HTTPResource {
 							LOGGER.trace(
 								"The unescaped <Result> sent to {} is:\n{}",
 								rendererName,
-								StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
+								StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), StandardCharsets.UTF_8, 2)
 							);
 						} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
 							LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
