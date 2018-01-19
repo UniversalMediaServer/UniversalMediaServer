@@ -544,10 +544,10 @@ public class VLCVideo extends Player {
 							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
 						} catch (IOException e) {
 							LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
-							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getPath());
+							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile());
 						}
 					} else {
-						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getPath());
+						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile());
 					}
 
 					if (externalSubtitlesFileName != null) {
