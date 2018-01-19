@@ -108,6 +108,9 @@ public class WinUtils extends BasicSystemUtils {
 	 */
 	@Override
 	public String getShortPathNameW(String longPathName) {
+		if (longPathName == null) {
+			return null;
+		}
 		boolean unicodeChars;
 		try {
 			byte b1[] = longPathName.getBytes("UTF-8");
@@ -124,8 +127,9 @@ public class WinUtils extends BasicSystemUtils {
 				char test[] = new char[2 + pathname.length() * 2];
 				int r = Kernel32.INSTANCE.GetShortPathNameW(pathname, test, test.length);
 				if (r > 0) {
-					LOGGER.trace("Forcing short path name on " + pathname);
-					return Native.toString(test);
+					String result = Native.toString(test);
+					LOGGER.trace("Using short path name of \"{}\": \"{}\"", pathname, result);
+					return result;
 				}
 				LOGGER.debug("Can't find \"{}\"", pathname);
 				return null;

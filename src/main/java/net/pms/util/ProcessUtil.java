@@ -20,6 +20,7 @@
 
 package net.pms.util;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,7 +34,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import net.pms.PMS;
 import net.pms.io.StreamGobbler;
 import org.apache.commons.lang3.StringUtils;
@@ -174,7 +174,33 @@ public class ProcessUtil {
 		}
 	}
 
+	/**
+	 * Converts the path of the specified {@link File} to the equivalent MS-DOS
+	 * style 8.3 path using the Windows API function {@code GetShortPathNameW()}
+	 * if the path contains Unicode characters.
+	 *
+	 * @param file the {@link File} whose path to convert.
+	 * @return The resulting non-Unicode file path.
+	 */
+	public static String getShortFileNameIfWideChars(File file) {
+		if (file == null) {
+			return null;
+		}
+		return getShortFileNameIfWideChars(file.getPath());
+	}
+
+	/**
+	 * Converts the specified file path to the equivalent MS-DOS style 8.3 path
+	 * using the Windows API function {@code GetShortPathNameW()} if the path
+	 * contains Unicode characters.
+	 *
+	 * @param name the file path to convert.
+	 * @return The resulting non-Unicode file path.
+	 */
 	public static String getShortFileNameIfWideChars(String name) {
+		if (name == null) {
+			return null;
+		}
 		return PMS.get().getRegistry().getShortPathNameW(name);
 	}
 
@@ -220,19 +246,35 @@ public class ProcessUtil {
 	// Whitewash any arguments not suitable to display in dbg messages
 	// and make one single printable string
 	public static String dbgWashCmds(String[] cmd) {
-		for (int i=0; i < cmd.length; i++) {
-			// Wrap arguments with spaces in double quotes to make them runnable if copy-pasted
-			if (cmd[i].contains(" ")) {
-				cmd[i] = "\"" + cmd[i] + "\"";
-			}
-			// Hide sensitive information from the log
-			if (cmd[i].contains("headers")) {
-				cmd[i+1]= cmd[i+1].replaceAll("Authorization: [^\n]+\n", "Authorization: ****\n");
-				i++;
-				continue;
+		StringBuilder sb = new StringBuilder();
+		boolean prevHeader = false;
+		for (String argument : cmd) {
+			if (isNotBlank(argument)) {
+				if (sb.length() > 0) {
+					sb.append(" ");
+				}
+
+				// Hide sensitive information from the log
+				String modifiedArgument;
+				if (prevHeader) {
+					modifiedArgument = argument.replaceAll("Authorization: [^\n]+\n", "Authorization: ****\n");
+					prevHeader = false;
+				} else {
+					if (argument.contains("headers")) {
+						prevHeader = true;
+					}
+					modifiedArgument = argument;
+				}
+
+				// Wrap arguments with spaces in double quotes to make them runnable if copy-pasted
+				if (modifiedArgument.contains(" ")) {
+					sb.append("\"").append(modifiedArgument).append("\"");
+				} else {
+					sb.append(modifiedArgument);
+				}
 			}
 		}
-		return StringUtils.join(cmd, " ");
+		return sb.toString();
 	}
 
 	// Rebooting
