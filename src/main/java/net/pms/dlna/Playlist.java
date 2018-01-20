@@ -7,6 +7,7 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.external.ExternalListener;
 import net.pms.util.UMSUtils;
+import net.pms.util.UMSUtils.IOList;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 
 	public void add(DLNAResource res) {
 		DLNAResource res1;
-		LOGGER.debug("adding \"" + res.getDisplayName() + "\" to playlist \"" + getName() + "\"");
+		LOGGER.debug("Adding \"{}\" to playlist \"{}\"", res.getName(), getName());
 		if (res instanceof VirtualVideoAction) {
 			// don't add these
 			return;
@@ -56,13 +57,13 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 		} else {
 			String data = res.write();
 			if (!StringUtils.isEmpty(data) && res.getMasterParent() != null) {
-				res1 = list.resolveCreateMethod(res.getMasterParent(), data);
+				res1 = IOList.resolveCreateMethod(res.getMasterParent(), data);
 				res1.setMasterParent(res.getMasterParent());
+				res1.setMediaAudio(res.getMediaAudio());
 				res1.setMediaSubtitle(res.getMediaSubtitle());
 				res1.setResume(res.getResume());
 			} else {
 				res1 = res.clone();
-				res1.setMediaSubtitle(res.getMediaSubtitle());
 				res1.setResume(res.getResume());
 			}
 		}
@@ -75,13 +76,13 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	}
 
 	public void remove(DLNAResource res) {
-		LOGGER.debug("removing \"" + res.getDisplayName() + "\" to playlist \"" + getName() + "\"");
+		LOGGER.debug("Removing \"{}\" from playlist \"{}\"", res.getName(), getName());
 		list.remove(res);
 		update();
 	}
 
 	public void clear() {
-		LOGGER.debug("clearing playlist \"" + this.getName() + "\": " + list.size() + " items");
+		LOGGER.debug("Clearing playlist \"{}\": {} items", getName(), list.size());
 		list.clear();
 		update();
 	}

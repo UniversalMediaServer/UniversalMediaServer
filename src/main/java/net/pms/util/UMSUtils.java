@@ -369,7 +369,18 @@ public class UMSUtils {
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null && sub.getId() != -1) {
+							if (
+								sub.getLang() != null &&
+								(
+									(
+										sub.isExternal() &&
+										sub.getExternalFile() != null
+									) || (
+										sub.isEmbedded() &&
+										sub.getId() != -1
+									)
+								)
+							) {
 								sb.append("sub");
 								sb.append(sub.getLang());
 								sb.append(',');

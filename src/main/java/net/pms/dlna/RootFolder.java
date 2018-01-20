@@ -61,7 +61,7 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private Playlist last;
+	private Playlist recentlyPlayed;
 	private ArrayList<String> tags;
 	private ArrayList<DLNAResource> webFolders;
 
@@ -107,10 +107,6 @@ public class RootFolder extends DLNAResource {
 
 	@Override
 	public void discoverChildren() {
-		discoverChildren(true);
-	}
-
-	public void discoverChildren(boolean isAddGlobally) {
 		if (isDiscovered()) {
 			return;
 		}
@@ -118,16 +114,16 @@ public class RootFolder extends DLNAResource {
 		if (configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
-				addChild(libraryRes, true, isAddGlobally);
+				addChild(libraryRes);
 			}
 		}
 
 		if (configuration.isShowRecentlyPlayedFolder()) {
-			last = new Playlist(Messages.getString("VirtualFolder.1"),
+			recentlyPlayed = new Playlist(Messages.getString("VirtualFolder.1"),
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
 				Playlist.PERMANENT|Playlist.AUTOSAVE);
-			addChild(last, true, isAddGlobally);
+			addChild(recentlyPlayed);
 		}
 
 		String m = configuration.getFoldersMonitored();
@@ -140,25 +136,25 @@ public class RootFolder extends DLNAResource {
 			mon = new MediaMonitor(dirs);
 
 			if (configuration.isShowNewMediaFolder()) {
-				addChild(mon, true, isAddGlobally);
+				addChild(mon);
 			}
 		}
 
 		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
 			lim = new FolderLimit();
-			addChild(lim, true, isAddGlobally);
+			addChild(lim);
 		}
 
 		if (configuration.isDynamicPls()) {
-			addChild(PMS.get().getDynamicPls(), true, isAddGlobally);
+			addChild(PMS.get().getDynamicPls());
 			if (!configuration.isHideSavedPlaylistFolder()) {
 				File plsdir = new File(configuration.getDynamicPlsSavePath());
-				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true, isAddGlobally);
+				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")));
 			}
 		}
 
 		for (DLNAResource r : getConfiguredFolders(tags)) {
-			addChild(r, true, isAddGlobally);
+			addChild(r);
 		}
 
 		/**
@@ -185,7 +181,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (DLNAResource r : getVirtualFolders(tags)) {
-			addChild(r, true, isAddGlobally);
+			addChild(r);
 		}
 
 		loadWebConf();
@@ -215,7 +211,7 @@ public class RootFolder extends DLNAResource {
 
 
 		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
-			addChild(r, true, isAddGlobally);
+			addChild(r);
 		}
 
 		if (configuration.isShowServerSettingsFolder()) {
@@ -240,7 +236,7 @@ public class RootFolder extends DLNAResource {
 		running = true;
 
 		if (!isDiscovered()) {
-			discoverChildren(false);
+			discoverChildren();
 		}
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -286,7 +282,7 @@ public class RootFolder extends DLNAResource {
 							child.syncResolve();
 						}
 						child.discoverChildren();
-						child.analyzeChildren(-1, false);
+						child.analyzeChildren(-1);
 						child.setDiscovered(true);
 					}
 
@@ -1438,8 +1434,8 @@ public class RootFolder extends DLNAResource {
 		if (mon != null) {
 			mon.stopped(res);
 		}
-		if (last != null) {
-			last.add(res);
+		if (recentlyPlayed != null) {
+			recentlyPlayed.add(res);
 		}
 	}
 
