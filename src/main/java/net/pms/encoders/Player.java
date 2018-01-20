@@ -294,7 +294,7 @@ public abstract class Player {
 				matchedSub = params.sid;
 				String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
 				if (!StringUtils.isEmpty(file)) {
-					matchedSub.setExternalFile(new File(file), null);
+					matchedSub.setExternalFile(new File(file));
 					params.sid = matchedSub;
 					return;
 				}
@@ -431,7 +431,7 @@ public abstract class Player {
 								LOGGER.trace("Forced subtitles track: " + sub);
 
 								if (sub.getExternalFile() != null) {
-									LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
+									LOGGER.trace("Found external forced file: " + sub.getExternalFile());
 								}
 								params.sid = sub;
 								forcedSubsFound = true;
@@ -445,7 +445,7 @@ public abstract class Player {
 						LOGGER.trace("Found subtitles track: " + sub);
 
 						if (sub.getExternalFile() != null) {
-							LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
+							LOGGER.trace("Found external file: " + sub.getExternalFile());
 							params.sid = sub;
 							break;
 						}
