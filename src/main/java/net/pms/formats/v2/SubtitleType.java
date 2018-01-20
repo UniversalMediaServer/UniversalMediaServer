@@ -58,6 +58,12 @@ public enum SubtitleType {
 	private final static Map<Integer, SubtitleType> stableIndexToSubtitleTypeMap;
 	private final static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
 	private final static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
+
+	/**
+	 * A constant {@link Set} of lower-case file extensions for supported
+	 * subtitles types
+	 */
+	public final static Set<String> SUPPORTED_FILE_EXTENSIONS;
 	private static List<String> list(String... args) {
 		return new ArrayList<>(Arrays.asList(args));
 	}
@@ -69,12 +75,15 @@ public enum SubtitleType {
 		for (SubtitleType subtitleType : values()) {
 			stableIndexToSubtitleTypeMap.put(subtitleType.getStableIndex(), subtitleType);
 			for (String fileExtension : subtitleType.fileExtensions) {
-				fileExtensionToSubtitleTypeMap.put(fileExtension.toLowerCase(), subtitleType);
+				fileExtensionToSubtitleTypeMap.put(fileExtension.toLowerCase(Locale.ROOT), subtitleType);
 			}
 			for (String codec : subtitleType.libMediaInfoCodecs) {
-				libmediainfoCodecToSubtitleTypeMap.put(codec.toLowerCase(), subtitleType);
+				libmediainfoCodecToSubtitleTypeMap.put(codec.toLowerCase(Locale.ROOT), subtitleType);
 			}
 		}
+		SUPPORTED_FILE_EXTENSIONS = Collections.unmodifiableSet(
+			new LinkedHashSet<>(fileExtensionToSubtitleTypeMap.keySet())
+		);
 	}
 
 	public static SubtitleType valueOfStableIndex(int stableIndex) {
@@ -124,7 +133,7 @@ public enum SubtitleType {
 	}
 
 	public static Set<String> getSupportedFileExtensions() {
-		return fileExtensionToSubtitleTypeMap.keySet();
+		return SUPPORTED_FILE_EXTENSIONS;
 	}
 
 	private SubtitleType(int index, String description, List<String> fileExtensions, List<String> libMediaInfoCodecs, type category) {

@@ -61,7 +61,7 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private Playlist last;
+	private Playlist recentlyPlayed;
 	private ArrayList<String> tags;
 	private ArrayList<DLNAResource> webFolders;
 
@@ -112,11 +112,11 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (!configuration.isHideRecentlyPlayedFolder()) {
-			last = new Playlist(Messages.getString("VirtualFolder.1"),
+			recentlyPlayed = new Playlist(Messages.getString("VirtualFolder.1"),
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
 				Playlist.PERMANENT|Playlist.AUTOSAVE);
-			addChild(last);
+			addChild(recentlyPlayed);
 		}
 
 		String m = configuration.getFoldersMonitored();
@@ -1401,8 +1401,8 @@ public class RootFolder extends DLNAResource {
 		if (mon != null) {
 			mon.stopped(res);
 		}
-		if (last != null) {
-			last.add(res);
+		if (recentlyPlayed != null) {
+			recentlyPlayed.add(res);
 		}
 	}
 
