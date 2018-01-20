@@ -157,8 +157,19 @@ public class SubtitleUtils {
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
-	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration, SubtitleType subtitleType) throws IOException {
-		if (media == null || params.sid.getId() == -1 || !params.sid.getType().isText()) {
+	public static File getSubtitles(
+		DLNAResource dlna,
+		DLNAMediaInfo media,
+		OutputParams params,
+		PmsConfiguration configuration,
+		SubtitleType subtitleType
+	) throws IOException {
+		if (
+			media == null ||
+			params.sid == null ||
+			params.sid.getId() == -1 ||
+			!params.sid.getType().isText()
+		) {
 			return null;
 		}
 
@@ -181,7 +192,7 @@ public class SubtitleUtils {
 		}
 
 		String filename = isEmbeddedSource ?
-			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+			dlna.getSystemName() : params.sid.getName();
 
 		String basename;
 
@@ -200,7 +211,7 @@ public class SubtitleUtils {
 		if (applyFontConfig || isEmbeddedSource || is3D || params.sid.getType() != subtitleType) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + "." + subtitleType.getExtension());
 		} else {
-			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			String tmp = params.sid.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
 		}
 
