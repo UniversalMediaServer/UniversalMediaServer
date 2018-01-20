@@ -181,7 +181,7 @@ public class SubtitleUtils {
 		}
 
 		String filename = isEmbeddedSource ?
-			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+			dlna.getSystemName() : params.sid.getExternalFile().getPath();
 
 		String basename;
 
@@ -200,7 +200,7 @@ public class SubtitleUtils {
 		if (applyFontConfig || isEmbeddedSource || is3D || params.sid.getType() != subtitleType) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + "." + subtitleType.getExtension());
 		} else {
-			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			String tmp = params.sid.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
 		}
 
