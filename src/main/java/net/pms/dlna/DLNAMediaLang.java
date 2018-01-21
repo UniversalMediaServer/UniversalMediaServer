@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class keeps track of the language information for subtitles or audio.
- * 
+ *
  * TODO: Change all instance variables to private. For backwards compatibility
  * with external plugin code the variables have all been marked as deprecated
  * instead of changed to private, but this will surely change in the future.
@@ -49,15 +49,15 @@ public class DLNAMediaLang {
 	 * Returns the full language name for an audio or subtitle track based on a
 	 * translation from the ISO 639 language code. If no code has been set,
 	 * "Undetermined" is returned.
-	 * 
+	 *
 	 * @return The language name
 	 * @since 1.50
 	 */
 	public String getLangFullName() {
 		if (StringUtils.isNotBlank(lang)) {
-			return Iso639.getLanguage(lang);
+			return Iso639.getName(lang);
 		}
-		return Iso639.getLanguage(DLNAMediaLang.UND);
+		return Iso639.getName(DLNAMediaLang.UND);
 	}
 
 	public boolean matchCode(String code) {
@@ -66,7 +66,7 @@ public class DLNAMediaLang {
 
 	/**
 	 * Returns the unique id for this language object
-	 * 
+	 *
 	 * @return The id.
 	 * @since 1.50
 	 */
@@ -76,7 +76,7 @@ public class DLNAMediaLang {
 
 	/**
 	 * Sets a unique id for this language object.
-	 * 
+	 *
 	 * @param id The id to set.
 	 * @since 1.50
 	 */
@@ -87,9 +87,9 @@ public class DLNAMediaLang {
 	/**
 	 * Returns the IS0 639 language code for this language object. If you
 	 * require the full language name, use {@link #getLangFullName()} instead.
-	 * Special return values are "und" (for "undetermined") and "off" 
+	 * Special return values are "und" (for "undetermined") and "off"
 	 * (indicates an audio track or subtitle should be disabled).
-	 * 
+	 *
 	 * @return The language code.
 	 * @since 1.50
 	 */
@@ -100,7 +100,7 @@ public class DLNAMediaLang {
 	 * Sets the ISO 639 language code for this language object. Special values
 	 * are "und" (for "undetermined") and "off" (indicates an audio track or
 	 * subtitle should be disabled).
-	 * 
+	 *
 	 * @param lang The language code to set.
 	 * @since 1.50
 	 */

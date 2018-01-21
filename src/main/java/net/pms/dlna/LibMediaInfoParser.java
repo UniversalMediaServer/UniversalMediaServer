@@ -17,6 +17,7 @@ import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.FileUtil;
+import net.pms.util.Iso639;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.codec.binary.Base64;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -126,9 +127,9 @@ public class LibMediaInfoParser {
 						if (MI.Get(video, i, "Title").startsWith("Subtitle")) {
 							currentSubTrack = new DLNAMediaSubtitle();
 							// First attempt to detect subtitle track format
-							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "Format")));
+							currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(video, i, "Format")));
 							// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-							currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(video, i, "CodecID")));
+							currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(video, i, "CodecID")));
 							currentSubTrack.setId(media.getSubtitleTracksList().size());
 							addSub(currentSubTrack, media);
 						} else {
@@ -200,8 +201,28 @@ public class LibMediaInfoParser {
 						if (isNotBlank(value) && value.startsWith("Windows Media Audio 10")) {
 							currentAudioTrack.setCodecA(FormatConfiguration.WMA10);
 						}
-						currentAudioTrack.setLang(getLang(MI.Get(audio, i, "Language/String")));
-						currentAudioTrack.setAudioTrackTitleFromMetadata((MI.Get(audio, i, "Title")).trim());
+
+						value = MI.Get(audio, i, "Language/String");
+						String languageCode = null;
+						if (isNotBlank(value)) {
+							languageCode = Iso639.getISO639_2Code(value);
+							if (languageCode != null) {
+								currentAudioTrack.setLang(languageCode);
+							}
+						}
+
+						value = MI.Get(audio, i, "Title").trim();
+						currentAudioTrack.setAudioTrackTitleFromMetadata(value);
+						// if language code is null try to recognize the language from Title
+						if (languageCode == null && isNotBlank(value)) {
+							languageCode = Iso639.getISO639_2Code(value, true);
+							if (languageCode == null) {
+								languageCode = DLNAMediaLang.UND;
+							}
+
+							currentAudioTrack.setLang(languageCode);
+						}
+
 						currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
 						currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
 						currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
@@ -298,13 +319,35 @@ public class LibMediaInfoParser {
 				if (subTracks > 0) {
 					for (int i = 0; i < subTracks; i++) {
 						currentSubTrack = new DLNAMediaSubtitle();
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "Format")));
-						currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(MI.Get(text, i, "CodecID")));
-						currentSubTrack.setLang(getLang(MI.Get(text, i, "Language/String")));
-						currentSubTrack.setSubtitlesTrackTitleFromMetadata((MI.Get(text, i, "Title")).trim());
+						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(
+							MI.Get(text, i, "CodecID"),
+							SubtitleType.valueOfMediaInfoValue(MI.Get(text, i, "Format"))
+						));
+
+						value = MI.Get(text, i, "Language/String");
+						String languageCode = null;
+						if (isNotBlank(value)) {
+							languageCode = Iso639.getISO639_2Code(value.toLowerCase(Locale.ROOT));
+							if (languageCode != null) {
+								currentSubTrack.setLang(languageCode);
+							}
+						}
+
+						value = MI.Get(text, i, "Title").trim();
+						currentSubTrack.setSubtitlesTrackTitleFromMetadata(value);
+						// if language code is null try to recognize the language from Title
+						if (languageCode == null && isNotBlank(value)) {
+							languageCode = Iso639.getISO639_2Code(value, true);
+							if (languageCode == null) {
+								languageCode = DLNAMediaLang.UND;
+							}
+
+							currentSubTrack.setLang(languageCode);
+						}
+
 						// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 						value = MI.Get(text, i, "ID/String");
-						if (!value.isEmpty()) {
+						if (isNotBlank(value)) {
 							if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 								currentSubTrack.setId(getSpecificID(value));
 							} else {

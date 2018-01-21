@@ -397,9 +397,6 @@ public class PMS {
 			filter = null;
 		}
 
-		// This should be removed soon
-		OpenSubtitle.convert();
-
 		// Start this here to let the converison work
 		tfm.schedule();
 
@@ -1441,26 +1438,15 @@ public class PMS {
 		Process p = pb.start();
 		String line;
 
-		Charset charset = null;
-		int codepage = WinUtils.getOEMCP();
-		String[] aliases = {"cp" + codepage, "MS" + codepage};
-		for (String alias : aliases) {
-			try {
-				charset = Charset.forName(alias);
-				break;
-			} catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
-				charset = null;
-			}
-		}
+		Charset charset = WinUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", aliases, charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WinUtils.getOEMCP(), charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
 				p.waitFor();
 			} catch (InterruptedException e) {
-				in.close();
 				return false;
 			}
 			line = in.readLine();
