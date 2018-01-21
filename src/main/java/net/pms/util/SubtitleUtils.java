@@ -176,7 +176,15 @@ public class SubtitleUtils {
 		String dir = configuration.getDataFile(SUB_DIR);
 		File subsPath = new File(dir);
 		if (!subsPath.exists()) {
-			subsPath.mkdirs();
+			if (!subsPath.mkdirs()) {
+				LOGGER.error("Could not create subtitles conversion folder \"{}\" - subtitles operation aborted!", dir);
+				return null;
+			}
+		}
+
+		if (params.sid.isExternal() && params.sid.getExternalFile() == null) {
+			// This happens when for example OpenSubtitles fail to download
+			return null;
 		}
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();

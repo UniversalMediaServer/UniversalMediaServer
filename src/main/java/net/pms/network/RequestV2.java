@@ -40,7 +40,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
-import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
@@ -432,22 +431,27 @@ public class RequestV2 extends HTTPResource {
 						// XXX external file is null if the first subtitle track is embedded:
 						// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 						if (sub.isExternal()) {
-							try {
-								if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
-									inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
-								} else {
-									inputStream = new FileInputStream(sub.getExternalFile());
+							if (sub.getExternalFile() == null) {
+								LOGGER.error("External subtitles file \"{}\" is unavailable", sub.getName());
+							} else {
+								try {
+									if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) {
+										// Remove tags from .srt subtitles if the renderer doesn't support them
+										inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
+									} else {
+										inputStream = new FileInputStream(sub.getExternalFile());
+									}
+									LOGGER.trace("Loading external subtitles file: {}", sub.getName());
+								} catch (IOException ioe) {
+									LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub.getName(), ioe.getMessage());
+									LOGGER.trace("", ioe);
 								}
-								LOGGER.trace("Loading external subtitles file: {}", sub);
-							} catch (IOException ioe) {
-								LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub, ioe.getMessage());
-								LOGGER.trace("", ioe);
 							}
 						} else {
-							LOGGER.trace("Not loading external subtitles file because it is embedded: {}", sub);
+							LOGGER.trace("Not sending subtitles because they are embedded: {}", sub);
 						}
 					} else {
-						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle() returned null");
+						LOGGER.trace("Not sending external subtitles because dlna.getMediaSubtitle() returned null");
 					}
 				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
@@ -489,11 +493,12 @@ public class RequestV2 extends HTTPResource {
 						}
 					}
 
-					Format format = dlna.getFormat();
-					if (format != null && format.isVideo()) {
+					MediaType mediaType = dlna.getMedia() == null ? null : dlna.getMedia().getMediaType();
+					if (mediaType == MediaType.VIDEO) {
 						if (
 							dlna.getMedia() != null &&
 							dlna.getMediaSubtitle() != null &&
+							dlna.getMediaSubtitle().isExternal() &&
 							!configuration.isDisableSubtitles() &&
 							mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())
 						) {
@@ -528,6 +533,8 @@ public class RequestV2 extends HTTPResource {
 							}
 							if (dlna.getMediaSubtitle() == null) {
 								reasons.add("dlna.getMediaSubtitle() is null");
+							} else if (!dlna.getMediaSubtitle().isExternal()) {
+								reasons.add("the subtitles are internal/embedded");
 							} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())) {
 								reasons.add("the external subtitles format isn't supported by the renderer");
 							}
