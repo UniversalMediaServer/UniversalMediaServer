@@ -432,22 +432,27 @@ public class Request extends HTTPResource {
 						// XXX external file is null if the first subtitle track is embedded:
 						// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 						if (sub.isExternal()) {
-							try {
-								if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
-									inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
-								} else {
-									inputStream = new FileInputStream(sub.getExternalFile());
+							if (sub.getExternalFile() == null) {
+								LOGGER.error("External subtitles file \"{}\" is unavailable", sub.getName());
+							} else {
+								try {
+									if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) {
+										// Remove tags from .srt subtitles if the renderer doesn't support them
+										inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
+									} else {
+										inputStream = new FileInputStream(sub.getExternalFile());
+									}
+									LOGGER.trace("Sending external subtitles file: {}", sub.getName());
+								} catch (IOException ioe) {
+									LOGGER.debug("Couldn't send external subtitles file: {}\nCause: {}", sub.getName(), ioe.getMessage());
+									LOGGER.trace("", ioe);
 								}
-								LOGGER.trace("Loading external subtitles file: {}", sub);
-							} catch (IOException ioe) {
-								LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub, ioe.getMessage());
-								LOGGER.trace("", ioe);
 							}
 						} else {
-							LOGGER.trace("Not loading external subtitles file because it is embedded: {}", sub);
+							LOGGER.trace("Not sending subtitles because they are embedded: {}", sub);
 						}
 					} else {
-						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle() returned null");
+						LOGGER.trace("Not sending external subtitles because dlna.getMediaSubtitle() returned null");
 					}
 				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
@@ -474,47 +479,53 @@ public class Request extends HTTPResource {
 						startStopListenerDelegate.start(dlna);
 						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia()));
 
-						if (
-							dlna.getMedia() != null &&
-							dlna.getMediaSubtitle() != null &&
-							!configuration.isDisableSubtitles() &&
-							mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())
-						) {
-							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
-							String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-							if (isNotBlank(subtitleHttpHeader)) {
-								// Device allows a custom subtitle HTTP header; construct it
-								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
-								String subtitleUrl;
-								String subExtension = sub.getType().getExtension();
-								if (isNotBlank(subExtension)) {
-									subExtension = "." + subExtension;
-								}
-								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-									':' + PMS.get().getServer().getPort() + "/get/" +
-									id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
+						MediaType mediaType = dlna.getMedia() == null ? null : dlna.getMedia().getMediaType();
+						if (mediaType == MediaType.VIDEO) {
+							if (
+								dlna.getMedia() != null &&
+								dlna.getMediaSubtitle() != null &&
+								dlna.getMediaSubtitle().isExternal() &&
+								!configuration.isDisableSubtitles() &&
+								mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())
+							) {
+								// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
+								String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
+								if (isNotBlank(subtitleHttpHeader)) {
+									// Device allows a custom subtitle HTTP header; construct it
+									DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+									String subtitleUrl;
+									String subExtension = sub.getType().getExtension();
+									if (isNotBlank(subExtension)) {
+										subExtension = "." + subExtension;
+									}
+									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+										':' + PMS.get().getServer().getPort() + "/get/" +
+										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
-								appendToHeader(responseHeader, subtitleHttpHeader + ": " + subtitleUrl);
-							} else {
-								LOGGER.trace(
-									"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
-									subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
-								);
+									appendToHeader(responseHeader, subtitleHttpHeader + ": " + subtitleUrl);
+								} else {
+									LOGGER.trace(
+										"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
+										subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
+									);
+								}
+							} else if (LOGGER.isTraceEnabled()) {
+								ArrayList<String> reasons = new ArrayList<>();
+								if (dlna.getMedia() == null) {
+									reasons.add("dlna.getMedia() is null");
+								}
+								if (configuration.isDisableSubtitles()) {
+									reasons.add("configuration.isDisabledSubtitles() is true");
+								}
+								if (dlna.getMediaSubtitle() == null) {
+									reasons.add("dlna.getMediaSubtitle() is null");
+								} else if (!dlna.getMediaSubtitle().isExternal()) {
+									reasons.add("the subtitles are internal/embedded");
+								} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())) {
+									reasons.add("the external subtitles format isn't supported by the renderer");
+								}
+								LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
 							}
-						} else if (LOGGER.isTraceEnabled()) {
-							ArrayList<String> reasons = new ArrayList<>();
-							if (dlna.getMedia() == null) {
-								reasons.add("dlna.getMedia() is null");
-							}
-							if (configuration.isDisableSubtitles()) {
-								reasons.add("configuration.isDisabledSubtitles() is true");
-							}
-							if (dlna.getMediaSubtitle() == null) {
-								reasons.add("dlna.getMediaSubtitle() is null");
-							} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())) {
-								reasons.add("the external subtitles format isn't supported by the renderer");
-							}
-							LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
 						}
 
 						// Response generation:
