@@ -518,33 +518,35 @@ public class VLCVideo extends Player {
 
 		// Handle subtitle language
 		if (params.sid != null) { // User specified language at the client, acknowledge it
-			if (
-				params.sid.isExternal() &&
-				(
+			if (params.sid.isExternal()) {
+				if (params.sid.getExternalFile() == null) {
+					cmdList.add("--sub-" + disableSuffix);
+					LOGGER.error("External subtitles file \"{}\" is unavailable", params.sid.getName());
+				} else if (
 					!params.mediaRenderer.streamSubsForTranscodedVideo() ||
 					!params.mediaRenderer.isExternalSubtitlesFormatSupported(params.sid, media)
-				)
-			) {
-				String externalSubtitlesFileName;
+				) {
+					String externalSubtitlesFileName;
 
-				// External subtitle file
-				if (params.sid.isExternalFileUtf16()) {
-					try {
-						// Convert UTF-16 -> UTF-8
-						File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
-						FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
-						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
-					} catch (IOException e) {
-						LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
+					// External subtitle file
+					if (params.sid.isExternalFileUtf16()) {
+						try {
+							// Convert UTF-16 -> UTF-8
+							File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getName());
+							FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
+							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+						} catch (IOException e) {
+							LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
+							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getPath());
+						}
+					} else {
 						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getPath());
 					}
-				} else {
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getPath());
-				}
 
-				if (externalSubtitlesFileName != null) {
-					cmdList.add("--sub-file");
-					cmdList.add(externalSubtitlesFileName);
+					if (externalSubtitlesFileName != null) {
+						cmdList.add("--sub-file");
+						cmdList.add(externalSubtitlesFileName);
+					}
 				}
 			} else if (params.sid.getLang() != null && !params.sid.getLang().equals("und")) { // Load by ID (better)
 				cmdList.add("--sub-track=" + params.sid.getId());

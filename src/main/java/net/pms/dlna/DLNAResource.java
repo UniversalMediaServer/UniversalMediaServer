@@ -1856,7 +1856,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append(getResourceId()); //id
 		sb.append('/');
 		sb.append("subtitle0000");
-		sb.append(encode(subs.getExternalFile().getName()));
+		sb.append(encode(subs.getName()));
 		return sb.toString();
 	}
 
@@ -2163,7 +2163,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 													 */
 													if (configurationSpecificToRenderer.isForceExternalSubtitles()) {
 														for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
-															if (present_sub.getExternalFile() != null) {
+															if (present_sub.isExternal()) {
 																matchedSub = present_sub;
 																matchedExternalSubtitles = true;
 																LOGGER.trace("Ignoring the \"off\" language because there are external subtitles");
@@ -2179,7 +2179,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												} else if (getMedia() != null) {
 													for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 														if (present_sub.matchCode(sub) || sub.equals("*")) {
-															if (present_sub.getExternalFile() != null) {
+															if (present_sub.isExternal()) {
 																if (configurationSpecificToRenderer.isAutoloadExternalSubtitles()) {
 																	// Subtitle is external and we want external subtitles, look no further
 																	matchedSub = present_sub;
@@ -2217,7 +2217,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									 */
 									if (matchedSub == null && configurationSpecificToRenderer.isForceExternalSubtitles()) {
 										for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
-											if (present_sub.getExternalFile() != null) {
+											if (present_sub.isExternal()) {
 												matchedSub = present_sub;
 												LOGGER.trace("Matched external subtitles track that did not match language preferences: " + matchedSub);
 												break;
@@ -2266,7 +2266,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getSubtitlesTrackTitleFromMetadata());
 															LOGGER.trace("Forced subtitles track: " + sub);
 
-															if (sub.getExternalFile() != null) {
+															if (sub.isExternal()) {
 																LOGGER.trace("Found external forced file: " + sub.getExternalFile().getPath());
 															}
 
@@ -2282,7 +2282,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 													}
 												} else {
 													LOGGER.trace("Found subtitles track: " + sub);
-													if (sub.getExternalFile() != null) {
+													if (sub.isExternal()) {
 														LOGGER.trace("Found external file: " + sub.getExternalFile().getPath());
 														params.sid = sub;
 														media_subtitle = params.sid;
@@ -2311,7 +2311,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 														sub.matchCode(lang) &&
 														!(
 															!configurationSpecificToRenderer.isAutoloadExternalSubtitles() &&
-															sub.getExternalFile() != null
+															sub.isExternal()
 														)
 													) {
 														params.sid = sub;

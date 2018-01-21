@@ -812,13 +812,17 @@ public class MEncoderVideo extends Player {
 		String externalSubtitlesFileName = null;
 
 		if (params.sid != null && params.sid.isExternal()) {
-			if (params.sid.isExternalFileUtf16()) {
-				// convert UTF-16 -> UTF-8
-				File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
-				FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
-				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+			if (params.sid.getExternalFile() != null) {
+				if (params.sid.isExternalFileUtf16()) {
+					// convert UTF-16 -> UTF-8
+					File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
+					FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
+					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+				} else {
+					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getPath());
+				}
 			} else {
-				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getPath());
+				LOGGER.error("External subtitles file \"{}\" is unavailable", params.sid.getName());
 			}
 		}
 
