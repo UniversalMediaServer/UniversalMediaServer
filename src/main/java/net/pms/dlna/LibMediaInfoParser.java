@@ -177,11 +177,11 @@ public class LibMediaInfoParser {
 								LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
 							}
 						}
-					}
 
-					value = MI.Get(video, i, "Format_Profile");
-					if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
-						media.setAvcLevel(getAvcLevel(value));
+						value = MI.Get(video, i, "Format_Profile");
+						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
+							media.setAvcLevel(getAvcLevel(value));
+						}
 					}
 				}
 			}
@@ -316,36 +316,36 @@ public class LibMediaInfoParser {
 			}
 
 			/*
-				* Some container formats (like MP4/M4A) can represent both audio
-				* and video media. UMS initially recognized this as video, but this
-				* is corrected here it the content is only audio.
-				*/
+			 * Some container formats (like MP4/M4A) can represent both audio
+			 * and video media. UMS initially recognized this as video, but this
+			 * is corrected here it the content is only audio.
+			 */
 			if (media.isAudioOrVideoContainer() && media.isAudio()) {
 				media.setContainer(media.getAudioVariantFormatConfigurationString());
 			}
 
 			/*
-				* Recognize 3D layout from the filename.
-				*
-				* First we check for our custom naming convention, for which the filename
-				* either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
-				* or "3DOULF" or "3DOURF" for over-under layout.
-				* For anaglyph 3D video can be used following combination:
-				* 		3DARCG 	anaglyph_red_cyan_gray
-				*		3DARCH 	anaglyph_red_cyan_half_color
-				*		3DARCC 	anaglyph_red_cyan_color
-				*		3DARCD 	anaglyph_red_cyan_dubois
-				*		3DAGMG 	anaglyph_green_magenta_gray
-				*		3DAGMH 	anaglyph_green_magenta_half_color
-				*		3DAGMC 	anaglyph_green_magenta_color
-				*		3DAGMD 	anaglyph_green_magenta_dubois
-				*		3DAYBG 	anaglyph_yellow_blue_gray
-				*		3DAYBH 	anaglyph_yellow_blue_half_color
-				*		3DAYBC 	anaglyph_yellow_blue_color
-				*		3DAYBD 	anaglyph_yellow_blue_dubois
-				*
-				* Next we check for common naming conventions.
-				*/
+			 * Recognize 3D layout from the filename.
+			 *
+			 * First we check for our custom naming convention, for which the filename
+			 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
+			 * or "3DOULF" or "3DOURF" for over-under layout.
+			 * For anaglyph 3D video can be used following combination:
+			 * 		3DARCG 	anaglyph_red_cyan_gray
+			 *		3DARCH 	anaglyph_red_cyan_half_color
+			 *		3DARCC 	anaglyph_red_cyan_color
+			 *		3DARCD 	anaglyph_red_cyan_dubois
+			 *		3DAGMG 	anaglyph_green_magenta_gray
+			 *		3DAGMH 	anaglyph_green_magenta_half_color
+			 *		3DAGMC 	anaglyph_green_magenta_color
+			 *		3DAGMD 	anaglyph_green_magenta_dubois
+			 *		3DAYBG 	anaglyph_yellow_blue_gray
+			 *		3DAYBH 	anaglyph_yellow_blue_half_color
+			 *		3DAYBC 	anaglyph_yellow_blue_color
+			 *		3DAYBD 	anaglyph_yellow_blue_dubois
+			 *
+			 * Next we check for common naming conventions.
+			 */
 			if (!media.is3d()) {
 				String upperCaseFileName = file.getName().toUpperCase();
 				if (upperCaseFileName.startsWith("3DSBS")) {
@@ -383,9 +383,7 @@ public class LibMediaInfoParser {
 			}
 
 			media.postParse(type, inputFile);
-//			} catch (Exception e) {
-//				LOGGER.error("Error in MediaInfo parsing:", e);
-//			} finally {
+
 			MI.Close();
 			if (media.getContainer() == null) {
 				media.setContainer(DLNAMediaLang.UND);

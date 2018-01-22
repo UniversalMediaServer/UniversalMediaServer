@@ -1960,7 +1960,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the {@link FullyPlayedAction}.
 	 *
-	 * @param value what to do with a file after it has been fully played
+	 * @param action what to do with a file after it has been fully played
 	 */
 	public void setFullyPlayedAction(FullyPlayedAction action) {
 		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.toInt());

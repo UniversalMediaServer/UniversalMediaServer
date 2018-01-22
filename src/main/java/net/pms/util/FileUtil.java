@@ -1570,10 +1570,12 @@ public class FileUtil {
 	}
 
 	/**
-	 * Appends a path separator of the same type last in the string if
-	 * it's not already there.
-	 * @param path the path to be modified
-	 * @return the corrected path
+	 * Appends a path separator of the same type last in the string if it's not
+	 * already there.
+	 *
+	 * @param path the path to be modified.
+	 * @return The corrected path or {@code null} of {@code path} is
+	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {
 		if (!path.endsWith("\\") && !path.endsWith("/")) {

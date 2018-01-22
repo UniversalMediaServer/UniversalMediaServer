@@ -2,6 +2,10 @@ package net.pms.dlna.virtual;
 
 import net.pms.Messages;
 
+/**
+ * This is the Media Library folder which contains dynamic folders populated
+ * by the SQL (h2) database.
+ */
 public class MediaLibrary extends VirtualFolder {
 	private MediaLibraryFolder allFolder;
 

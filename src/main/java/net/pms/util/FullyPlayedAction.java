@@ -92,7 +92,7 @@ public class FullyPlayedAction {
 	}
 
 	/**
-	 * Returns the integer representation of this {@link FullyPlayedAction}.
+	 * @return The integer representation of this {@link FullyPlayedAction}.
 	 */
 	public int toInt() {
 		return FullyPlayedActionInt;

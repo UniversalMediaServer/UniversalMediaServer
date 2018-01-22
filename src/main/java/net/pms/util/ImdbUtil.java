@@ -26,15 +26,15 @@ public class ImdbUtil {
 		return ret;
 	}
 
-	private static String extract(File f, String reg) {
-		String fName = f.getAbsolutePath();
-		Pattern re = Pattern.compile(reg);
-		Matcher m = re.matcher(fName);
-		String ret = "";
-		while (m.find()) {
-			ret = m.group(1);
+	private static String extract(File file, String regex) {
+		String fileName = file.getAbsolutePath();
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(fileName);
+		String result = "";
+		while (matcher.find()) {
+			result = matcher.group(1);
 		}
-		return ret;
+		return result;
 	}
 
 	public static String ensureTT(String s) {
