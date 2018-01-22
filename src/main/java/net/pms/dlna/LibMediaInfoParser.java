@@ -285,13 +285,12 @@ public class LibMediaInfoParser {
 					}
 				}
 
-			if (parseByMediainfo) {
-				getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format"), file);
-				media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
-				media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
+				if (parseByMediainfo) {
+					getFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format"), file);
+					media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
+					media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
+				}
 			}
-//				media.setImageCount(media.getImageCount() + 1);
-		}
 
 			// set Subs in text format
 			int subTracks = MI.Count_Get(text);
