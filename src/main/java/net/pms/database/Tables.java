@@ -271,9 +271,9 @@ public class Tables {
 	 * @param s the {@link String} to escape.
 	 * @return The escaped {@code s}.
 	 */
-    public static String sqlEscape(final String s) {
-        return s == null ? null : s.replace("'", "''");
-    }
+	public static String sqlEscape(final String s) {
+		return s == null ? null : s.replace("'", "''");
+	}
 
 	/**
 	 * Escapes the argument with the default H2 escape character for the

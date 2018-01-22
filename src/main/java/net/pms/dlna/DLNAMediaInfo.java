@@ -179,6 +179,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private int videoBitDepth = 8;
 
 	private volatile DLNAThumbnail thumb = null;
+
 	/**
 	 * Metadata gathered from either the filename or OpenSubtitles.
 	 */
