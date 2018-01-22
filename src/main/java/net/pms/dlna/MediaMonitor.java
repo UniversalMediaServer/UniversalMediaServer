@@ -163,7 +163,7 @@ public class MediaMonitor extends VirtualFolder {
 			fileDuration = realFile.getMedia().getDurationInSeconds();
 		}
 
-		/*
+		/**
 		 * Time since the file started playing. This is not a great way to get
 		 * this value because if the video is paused, it will no longer be
 		 * accurate.
