@@ -1,3 +1,14 @@
+7.0.0-rc2 - 2018-01-04 - Changes since 7.0.0-rc1
+
+	General:
+		Added "Watched" folders to the Media Library, to mirror "Unwatched" functionality
+		Fixed crashing when shared folders don't exist, aren't folders, or access is denied
+		Fixed broken Media Library entries
+		New Media folder is hidden by default (the same functionality exists in Media Library)
+		All changes in 6.7.3, 6.7.4 and 6.8.0
+	Dependencies:
+		Updated h2database to 1.4.196
+
 6.8.0 - 2018-01-04
 
 	General:
@@ -51,6 +62,42 @@
 	Dependencies:
 		Updated MediaInfo to 0.7.97, which:
 			Improves support for HEVC (H.265), FLV, MKV, TIFF and more
+
+7.0.0-rc1 - 2017-08-04 - Changes since 7.0.0-b2
+
+	General:
+		Increased speed of Media Library features
+		Fixed sorting of TV seasons
+		Fixed false lookup matches of titles
+		Fixed realtime file adding in new folders
+		Fixed forgetting about a file after moving it
+		Fixed many other bugs
+		Reduced lookups and bandwidth to OpenSubtitles
+		Fixed MusicBrainz bugs
+		All changes in 6.7.0, 6.7.1 and 6.7.2
+		Unreleased changes from v6:
+			Improved support for AVI and MJPEG
+			Improved general DLNA implementation
+			Fixed duplicate entries in transcode folders
+			Fixed logging in macOS
+			Fixed menu name in macOS
+	Renderers:
+		Unreleased changes from v6:
+			Added renderer configuration for conversion of 3D video to 2D
+			Added support for Onkyo TXNR8xx
+			Improved support for Cambridge Audio Azur BD
+			Improved support for OPPO BDP
+			Improved support for Panasonic VIERA TXL32V10E
+			Improved support for Sony BRAVIA 5500 and EX TVs
+			Improved support for Sony SMP-N100
+			Improved support for Sony STR-DA5800ES
+			Fixed album art for Onkyo receivers (and probably others)
+			Fixed support for Xbox 360
+	Dependencies:
+		Updated h2database to 1.4.195
+		Unreleased changes from v6:
+			Updated MediaInfo to 0.7.97, which:
+				Improves support for HEVC (H.265), FLV, MKV, TIFF and more
 
 6.7.2 - 2017-07-09
 
