@@ -103,6 +103,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 		return true;
 	}
 
+	/**
+	 * Removes all children and re-adds them
+	 */
 	@Override
 	public void doRefreshChildren() {
 		ArrayList<File> list = null;

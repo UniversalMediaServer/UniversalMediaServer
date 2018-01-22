@@ -145,9 +145,9 @@ public class MediaMonitor extends VirtualFolder {
 		}
 
 		/**
-		 * Time since the file started playing.
-		 * This is not a great way to get this value because if the
-		 * video is paused, it will no longer be accurate.
+		 * Time since the file started playing. This is not a great way to get
+		 * this value because if the video is paused, it will no longer be
+		 * accurate.
 		 */
 		double elapsed;
 		if (res.getLastStartPosition() == 0) {
