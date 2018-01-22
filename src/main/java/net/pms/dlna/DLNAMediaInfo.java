@@ -1098,7 +1098,6 @@ public class DLNAMediaInfo implements Cloneable {
 										false
 									);
 									thumbready = true;
-									thumbready = true;
 								}
 							}
 

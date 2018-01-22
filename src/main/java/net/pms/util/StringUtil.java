@@ -44,7 +44,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
