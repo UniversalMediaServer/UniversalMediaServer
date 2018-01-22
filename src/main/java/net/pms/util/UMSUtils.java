@@ -93,6 +93,13 @@ public class UMSUtils {
 	public static final int SORT_RANDOM =    5;
 	public static final int SORT_NO_SORT =   6;
 
+	/**
+	 * Sorts a list of files using a custom method.
+	 *
+	 * @param files
+	 * @param method
+	 * @see #sort(java.util.ArrayList, int)
+	 */
 	public static void sort(List<File> files, int method) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting

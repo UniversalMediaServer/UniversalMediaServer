@@ -1246,6 +1246,12 @@ public class PMS {
 		}
 	}
 
+	/**
+	 * Stores the file in the cache if it doesn't already exist.
+	 *
+	 * @param file the full path to the file.
+	 * @param formatType the type constant defined in {@link Format}.
+	 */
 	public void storeFileInCache(File file, int formatType) {
 		if (
 			getConfiguration().getUseCache() &&
