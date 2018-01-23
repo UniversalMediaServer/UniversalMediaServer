@@ -169,6 +169,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	protected static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
+	protected static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
+	protected static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
+	protected static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
+	/**
+	 * @deprecated, replaced by {@link #KEY_SHOW_SUBS_INFO}
+	 */
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
@@ -270,6 +277,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SERVER_PORT = "port";
 	protected static final String KEY_SHARES = "shares";
 	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
+	protected static final String KEY_SHOW_SUBS_INFO = "show_subs_info";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	protected static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
@@ -388,6 +396,8 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_HIDE_ENGINENAMES,
 			KEY_HIDE_EXTENSIONS,
 			KEY_HIDE_SUBS_INFO,
+			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
+			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
 			KEY_IGNORE_THE_WORD_A_AND_THE,
 			KEY_IP_FILTER,
 			KEY_NETWORK_INTERFACE,
@@ -403,6 +413,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 			KEY_SHOW_SERVER_SETTINGS_FOLDER,
 			KEY_SHOW_TRANSCODE_FOLDER,
+			KEY_SHOW_SUBS_INFO,
 			KEY_SORT_METHOD,
 			KEY_USE_CACHE
 		)
@@ -2394,6 +2405,31 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_HIDE_ENGINENAMES, value);
 	}
 
+	/**
+	 * @return {@code true} if subtitles information should be added to video
+	 *         names, {@code false} otherwise.
+	 */
+	public boolean isShowSubsInfo() {
+		Boolean value = configuration.getBoolean(KEY_SHOW_SUBS_INFO, null);
+		if (value == null) {
+			// Check old parameter for backwards compatibility
+			value = configuration.getBoolean(KEY_HIDE_SUBS_INFO, null);
+			if (value != null) {
+				return !value.booleanValue();
+			}
+		}
+		return value == null ? true : value.booleanValue();
+	}
+
+	/**
+	 * Sets if subtitles information should be added to video names.
+	 *
+	 * @param value whether or not subtitles information should be added.
+	 */
+	public void setShowSubsInfo(boolean value) {
+		configuration.setProperty(KEY_SHOW_SUBS_INFO, value);
+	}
+
 	public boolean isHideExtensions() {
 		return getBoolean(KEY_HIDE_EXTENSIONS, true);
 	}
@@ -3599,10 +3635,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getResumeKeepTime() {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
-	}
-
-	public boolean hideSubsInfo() {
-		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
 
 	public String getPlugins(ArrayList<String> tags) {

@@ -1713,7 +1713,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (
 					media_subtitle != null &&
 					media_subtitle.getId() != -1 &&
-					!configuration.hideSubsInfo()
+					configuration.isShowSubsInfo()
 				) {
 					if (nameSuffixBuilder.length() > 0) {
 						nameSuffixBuilder.append(" ");

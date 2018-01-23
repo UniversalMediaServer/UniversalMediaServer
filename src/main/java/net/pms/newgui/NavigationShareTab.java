@@ -84,6 +84,7 @@ public class NavigationShareTab {
 	private JComboBox fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
+	private JCheckBox addVideoSuffix;
 
 	// Settings for the visibility of virtual folders
 	private JCheckBox isShowFolderServerSettings;
@@ -156,10 +157,10 @@ public class NavigationShareTab {
 		+ "p,"                            //
 		+ "3dlu,"                         //
 		+ "p,"                            //
-		+ "9dlu,"                         //
-		+ "p,"                            // Virtual folders
 		+ "3dlu,"                         //
 		+ "p,"                            //
+		+ "9dlu,"                         //
+		+ "p,"                            // Virtual folders
 		+ "3dlu,"                         //
 		+ "p,"                            //
 		+ "3dlu,"                         //
@@ -225,17 +226,17 @@ public class NavigationShareTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),            FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),                FormLayoutUtil.flip(cc.xyw(9, 13, 4), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),              FormLayoutUtil.flip(cc.xyw(1, 15, 12), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),          FormLayoutUtil.flip(cc.xyw(1, 15, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),             FormLayoutUtil.flip(cc.xyw(4, 15, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(addVideoSuffix),			FormLayoutUtil.flip(cc.xyw(9, 15, 4), colSpec, orientation));
+
+			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),         FormLayoutUtil.flip(cc.xyw(1, 17, 12), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),               FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),                  FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),             FormLayoutUtil.flip(cc.xyw(9, 17, 4), colSpec, orientation));
-
-			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                       FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                       FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                     FormLayoutUtil.flip(cc.xyw(9, 19, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                  FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                  FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                FormLayoutUtil.flip(cc.xyw(9, 19, 4), colSpec, orientation));
 
 			builder.add(GuiUtil.getPreferredSizeComponent(cacheenable),                  FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 			builder.add(cachereset,                                                      FormLayoutUtil.flip(cc.xyw(4, 21, 3), colSpec, orientation));
@@ -250,8 +251,9 @@ public class NavigationShareTab {
 			builder.add(atzLimit,                                                        FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderNewMedia),         FormLayoutUtil.flip(cc.xyw(9, 25, 4), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(resume),                       FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xyw(9, 27, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(resume),                  FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+//			builder.add(GuiUtil.getPreferredSizeComponent(recentlyplayedfolder),    FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),        FormLayoutUtil.flip(cc.xyw(9, 27, 4), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1,  29   ), colSpec, orientation));
 			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(4,  29, 3), colSpec, orientation));
@@ -486,13 +488,24 @@ public class NavigationShareTab {
 		});
 
 		// Hide transcoding engine names
-		hideengines = new JCheckBox(Messages.getString("FoldTab.8"), configuration.isHideEngineNames());
-		hideengines.setToolTipText(Messages.getString("FoldTab.46"));
+		hideengines = new JCheckBox(Messages.getString("FoldTab.showEngineNames"), !configuration.isHideEngineNames());
+		hideengines.setToolTipText(Messages.getString("FoldTab.showEngineNamesToolTip"));
 		hideengines.setContentAreaFilled(false);
 		hideengines.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setHideEngineNames((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setHideEngineNames((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+
+		// Add subtitles information to video names
+		addVideoSuffix = new JCheckBox(Messages.getString("FoldTab.addSubtitlesInfo"), configuration.isShowSubsInfo());
+		addVideoSuffix.setToolTipText(Messages.getString("FoldTab.addSubtitlesInfoToolTip"));
+		addVideoSuffix.setContentAreaFilled(false);
+		addVideoSuffix.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setShowSubsInfo(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 
