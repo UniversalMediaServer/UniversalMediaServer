@@ -76,6 +76,7 @@ import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
@@ -785,6 +786,11 @@ public class PMS {
 		Thread.sleep(250);
 		UPNPHelper.listen();
 
+		// Initiate a library scan in case files were added to folders while UMS was closed.
+		if (getConfiguration().getUseCache() && getConfiguration().isScanSharedFoldersOnStartup()) {
+			getDatabase().scanLibrary();
+		}
+
 		return true;
 	}
 
@@ -1264,6 +1270,46 @@ public class PMS {
 				LOGGER.trace("", e);
 			}
 		}
+	}
+
+	/**
+	 * Returns a similar TV series name from the database.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public String getSimilarTVSeriesName(String title) {
+		if (title == null) {
+			return title;
+		}
+
+		title = getSimplifiedShowName(title);
+		title = StringEscapeUtils.escapeSql(title);
+
+		if (getConfiguration().getUseCache()) {
+			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAMESIMPLE='" + title + "' LIMIT 1");
+			if (titleList.size() > 0) {
+				return titleList.get(0);
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * This reduces the incoming title to a lowercase, alphanumeric string
+	 * for searching in order to prevent titles like "Word of the Word" and
+	 * "Word Of The Word!" from being seen as different shows.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public String getSimplifiedShowName(String title) {
+		if (title == null) {
+			return null;
+		}
+
+		return title.toLowerCase().replaceAll("[^a-z0-9]", "");
 	}
 
 	/**
@@ -1775,6 +1821,7 @@ public class PMS {
 	private CodeDb codes;
 	private CodeEnter masterCode;
 
+	@Deprecated
 	public void infoDbAdd(File f, String formattedName) {
 		infoDb.backgroundAdd(f, formattedName);
 	}
@@ -1875,11 +1922,11 @@ public class PMS {
 
 	private CredMgr credMgr;
 
-	public static CredMgr.Cred getCred(String owner) {
+	public static CredMgr.Credential getCred(String owner) {
 		return instance.credMgr.getCred(owner);
 	}
 
-	public static CredMgr.Cred getCred(String owner, String tag) {
+	public static CredMgr.Credential getCred(String owner, String tag) {
 		return instance.credMgr.getCred(owner, tag);
 	}
 

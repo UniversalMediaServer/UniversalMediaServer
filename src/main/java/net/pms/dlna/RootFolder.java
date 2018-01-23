@@ -111,7 +111,14 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (!configuration.isHideRecentlyPlayedFolder()) {
+		if (configuration.isShowMediaLibraryFolder()) {
+			DLNAResource libraryRes = PMS.get().getLibrary();
+			if (libraryRes != null) {
+				addChild(libraryRes);
+			}
+		}
+
+		if (configuration.isShowRecentlyPlayedFolder()) {
 			last = new Playlist(Messages.getString("VirtualFolder.1"),
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
@@ -128,7 +135,7 @@ public class RootFolder extends DLNAResource {
 			}
 			mon = new MediaMonitor(dirs);
 
-			if (!configuration.isHideNewMediaFolder()) {
+			if (configuration.isShowNewMediaFolder()) {
 				addChild(mon);
 			}
 		}
@@ -150,45 +157,64 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
+		/**
+		 * Changes to monitored folders trigger a rescan
+		 */
+		if (PMS.getConfiguration().getUseCache()) {
+			for (DLNAResource resource : getConfiguredFolders(tags, true)) {
+				File file = new File(resource.getSystemName());
+				if (file.exists()) {
+					if (!file.isDirectory()) {
+						LOGGER.trace("Skip adding a FileWatcher for non-folder \"{}\"", file);
+					} else {
+						LOGGER.trace("Creating FileWatcher for " + resource.getSystemName());
+						try {
+							FileWatcher.add(new FileWatcher.Watch(resource.getSystemName() + File.separator + "**", LIBRARY_RESCANNER));
+						} catch (Exception e) {
+							LOGGER.warn("File watcher access denied for directory {}", resource.getSystemName());
+						}
+					}
+				} else {
+					LOGGER.trace("Skip adding a FileWatcher for non-existent \"{}\"", file);
+				}
+			}
+		}
+
 		for (DLNAResource r : getVirtualFolders(tags)) {
 			addChild(r);
 		}
 
 		loadWebConf();
 
-		if (Platform.isMac() && configuration.isShowIphotoLibrary()) {
-			DLNAResource iPhotoRes = getiPhotoFolder();
-			if (iPhotoRes != null) {
-				addChild(iPhotoRes);
-			}
+		switch(Platform.getOSType()) {
+			case Platform.MAC:
+				if (configuration.isShowIphotoLibrary()) {
+					DLNAResource iPhotoRes = getiPhotoFolder();
+					if (iPhotoRes != null) {
+						addChild(iPhotoRes);
+					}
+				}
+				if (configuration.isShowApertureLibrary()) {
+					DLNAResource apertureRes = getApertureFolder();
+					if (apertureRes != null) {
+						addChild(apertureRes);
+					}
+				}
+			case Platform.WINDOWS:
+				if (configuration.isShowItunesLibrary()) {
+					DLNAResource iTunesRes = getiTunesFolder();
+					if (iTunesRes != null) {
+						addChild(iTunesRes);
+					}
+				}
 		}
 
-		if (Platform.isMac() && configuration.isShowApertureLibrary()) {
-			DLNAResource apertureRes = getApertureFolder();
-			if (apertureRes != null) {
-				addChild(apertureRes);
-			}
-		}
-
-		if ((Platform.isMac() || Platform.isWindows()) && configuration.isShowItunesLibrary()) {
-			DLNAResource iTunesRes = getiTunesFolder();
-			if (iTunesRes != null) {
-				addChild(iTunesRes);
-			}
-		}
-
-		if (!configuration.isHideMediaLibraryFolder()) {
-			DLNAResource libraryRes = PMS.get().getLibrary();
-			if (libraryRes != null) {
-				addChild(libraryRes);
-			}
-		}
 
 		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
 			addChild(r);
 		}
 
-		if (!configuration.getHideVideoSettings()) {
+		if (configuration.isShowServerSettingsFolder()) {
 			addAdminFolder();
 		}
 
@@ -222,7 +248,6 @@ public class RootFolder extends DLNAResource {
 			frame.setScanLibraryEnabled(true);
 			PMS.get().getDatabase().cleanup();
 		}
-		frame.setStatusLine(null);
 	}
 
 	/*
@@ -279,8 +304,12 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
+		return getConfiguredFolders(tags, false);
+	}
+
+	private List<RealFile> getConfiguredFolders(ArrayList<String> tags, boolean monitored) {
 		List<RealFile> res = new ArrayList<>();
-		File[] files = PMS.get().getSharedFoldersArray(false, tags, configuration);
+		File[] files = PMS.get().getSharedFoldersArray(monitored, tags, configuration);
 		String s = configuration.getFoldersIgnored(tags);
 		String[] skips = null;
 
@@ -289,6 +318,10 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (files == null || files.length == 0) {
+			if (monitored) {
+				return res;
+			}
+
 			files = File.listRoots();
 		}
 
@@ -1196,7 +1229,7 @@ public class RootFolder extends DLNAResource {
 	private DLNAResource getVideoSettingsFolder() {
 		DLNAResource res = null;
 
-		if (!configuration.getHideVideoSettings()) {
+		if (configuration.isShowServerSettingsFolder()) {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
 			res.addChild(vfSub);
@@ -1321,11 +1354,11 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isHideLiveSubtitlesFolder()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isShowLiveSubtitlesFolder()) {
 				@Override
 				public boolean enable() {
-					configuration.setHideLiveSubtitlesFolder(!configuration.isHideLiveSubtitlesFolder());
-					return configuration.isHideLiveSubtitlesFolder();
+					configuration.setShowLiveSubtitlesFolder(configuration.isShowLiveSubtitlesFolder());
+					return configuration.isShowLiveSubtitlesFolder();
 				}
 			});
 		}
@@ -1442,6 +1475,73 @@ public class RootFolder extends DLNAResource {
 					r.loadWebConf();
 				}
 			}
+		}
+	};
+
+	/**
+	 * Adds and removes files from the database when they are created or
+	 * deleted on the hard drive.
+	 */
+	public static final FileWatcher.Listener LIBRARY_RESCANNER = new FileWatcher.Listener() {
+		@Override
+		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
+				DLNAMediaDatabase database = PMS.get().getDatabase();
+
+				if (database != null) {
+					/**
+					 * If a new directory is created with files, the listener may not
+					 * give us information about those new files, as it wasn't listening
+					 * when they were created, so make sure we parse them.
+					 */
+					if (isDir) {
+						if ("ENTRY_CREATE".equals(event)) {
+							LOGGER.trace("Folder {} was created on the hard drive", filename);
+
+							File[] files = new File(filename).listFiles();
+							if (files != null) {
+								LOGGER.trace("Crawling {}", filename);
+								for (File file : files) {
+									if (file.isFile()) {
+										LOGGER.trace("File {} found in {}", file.getName(), filename);
+										parseFileForDatabase(file);
+									}
+								}
+							} else {
+								LOGGER.trace("Folder {} is empty", filename);
+							}
+						}
+					} else {
+						if ("ENTRY_DELETE".equals(event)) {
+							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
+							PMS.get().getDatabase().removeMediaEntry(filename);
+						} else if ("ENTRY_CREATE".equals(event)) {
+							LOGGER.trace("File {} was created on the hard drive", filename);
+							File file = new File(filename);
+							parseFileForDatabase(file);
+						}
+					}
+				}
+			}
+		}
+	};
+
+	/**
+	 * Parses a file so it gets added to the Media Library along the way.
+	 *
+	 * @param file the file to parse
+	 */
+	public static final void parseFileForDatabase(File file) {
+		RealFile rf = new RealFile(file);
+		rf.setParent(rf);
+		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		rf.resolveFormat();
+		rf.syncResolve();
+
+		if (rf.isValid()) {
+			LOGGER.trace("File {} should now be in the database", file.getName());
+		} else {
+			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
 	};
 }

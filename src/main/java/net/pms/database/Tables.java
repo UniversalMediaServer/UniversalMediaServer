@@ -69,6 +69,7 @@ public class Tables {
 
 					TableMusicBrainzReleases.checkTable(connection);
 					TableCoverArtArchive.checkTable(connection);
+					TableFilesStatus.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -260,6 +261,18 @@ public class Tables {
 	 */
 	public final static String sqlQuote(final String s) {
 		return s == null ? null : "'" + s.replace("'", "''") + "'";
+	}
+
+	/**
+	 * Escapes any existing single quotes in the argument but doesn't quote it.
+	 *
+	 * @see #sqlQuote(String)
+	 *
+	 * @param s the {@link String} to escape.
+	 * @return The escaped {@code s}.
+	 */
+	public static String sqlEscape(final String s) {
+		return s == null ? null : s.replace("'", "''");
 	}
 
 	/**

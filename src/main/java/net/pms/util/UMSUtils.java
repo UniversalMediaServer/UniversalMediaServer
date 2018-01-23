@@ -160,6 +160,57 @@ public class UMSUtils {
 		}
 	}
 
+	/**
+	 * Sorts a list of strings using a custom method.
+	 *
+	 * @param inputStrings
+	 * @param method 
+	 * @see #sort(java.util.List, int)
+	 */
+	public static void sort(ArrayList<String> inputStrings, int method) {
+		switch (method) {
+			case SORT_NO_SORT: // no sorting
+				break;
+			case SORT_LOC_NAT: // Locale-sensitive natural sort
+				Collections.sort(inputStrings, new Comparator<String>() {
+					@Override
+					public int compare(String s1, String s2){
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
+
+						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
+					}
+				});
+				break;
+			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
+				Collections.sort(inputStrings, new Comparator<String>() {
+					@Override
+					public int compare(String s1, String s2) {
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
+
+						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
+					}
+				});
+				break;
+			case SORT_RANDOM: // Random
+				Collections.shuffle(inputStrings, new Random(System.currentTimeMillis()));
+				break;
+			case SORT_LOC_SENS: // Same as default
+			default: // Locale-sensitive A-Z
+				Collections.sort(inputStrings, new Comparator<String>() {
+					@Override
+					public int compare(String s1, String s2) {
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
+
+						return collator.compare(filename1ToSort, filename2ToSort);
+					}
+				});
+				break;
+		}
+	}
+
 	public static String playedDurationStr(String current, String duration) {
 		String pos = StringUtil.shortTime(current, 4);
 		String dur = StringUtil.shortTime(duration, 4);

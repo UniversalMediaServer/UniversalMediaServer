@@ -13,11 +13,11 @@ public class ImdbUtil {
 		return str.replaceAll(IMDB_REG, "").replaceAll(HASH_REG, "");
 	}
 
-	public static String extractOSHash(File file) {
+	public static String extractOSHashFromFileName(File file) {
 		return extract(file, HASH_REG);
 	}
 
-	public static String extractImdb(File file) {
+	public static String extractImdbIdFromFileName(File file) {
 		String ret = extract(file, IMDB_REG);
 		// Opensubtitles requires IMDb ID to be a number only
 		if (!StringUtils.isEmpty(ret) && ret.startsWith("tt") && ret.length() > 2) {
