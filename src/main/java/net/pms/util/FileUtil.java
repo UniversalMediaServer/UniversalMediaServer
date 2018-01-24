@@ -1343,8 +1343,8 @@ public class FileUtil {
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
 		CharsetDetector detector = new CharsetDetector();
 		detector.setText(in);
-		// Results are sorted on descending confidence, so we're only after the first one.
-		return detector.detectAll()[0];
+		// Get best match only.
+		return detector.detect();
 	}
 
 	/**
@@ -1374,6 +1374,73 @@ public class FileUtil {
 			}
 		}
 		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		return null;
+	}
+
+	/**
+	 * Tries to detect the {@link Charset}/encoding for the specified file. If
+	 * no valid {@link Charset} is detected or the confidence of the best match
+	 * is below the threshold, {@code null} will be returned.
+	 *
+	 * @param file the text file whose {@link Charset} to detect.
+	 * @return The most confidently detected {@link Charset} or {@code null}.
+	 * @throws IOException If an I/O error occurs during the operation.
+	 */
+	public static Charset detectCharset(Path file, int confidenceThreshold) throws IOException {
+		if (file == null || !Files.exists(file)) {
+			return null;
+		}
+		CharsetDetector detector = new CharsetDetector();
+		CharsetMatch[] matches;
+		try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(file))) {
+			detector.setText(bis);
+			detector.enableInputFilter(true);
+			matches = detector.detectAll();
+		}
+		for (CharsetMatch match : matches) {
+			if (match.getConfidence() < confidenceThreshold) {
+				LOGGER.debug(
+					"Detected charset \"{}\" in \"{}\" but not with enough confidence ({} < {})",
+					match.getName(),
+					file,
+					match.getConfidence(),
+					confidenceThreshold
+				);
+				break;
+			}
+			try {
+				if (Charset.isSupported(match.getName())) {
+					return Charset.forName(match.getName());
+				}
+				LOGGER.debug(
+					"The detected charset \"{}\" in \"{}\" isn't supported by the JVM - skipping",
+					match.getName(),
+					file
+				);
+			} catch (IllegalCharsetNameException e) {
+				LOGGER.debug(
+					"Detected an illegal charset \"{}\" in \"{}\" - skipping: {}",
+					match.getName(),
+					file,
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
+
+		if (matches.length == 0) {
+			LOGGER.debug("Found no matching charset for \"{}\"", file);
+		} else {
+			LOGGER.debug(
+				"Found {} matching charset{} for \"{}\", but {} both supported by the JVM and {} a high enough confidence ({})",
+				matches.length,
+				matches.length > 1 ? "s" : "",
+				file,
+				matches.length > 1 ? "none are" : "it isn't",
+				matches.length > 1 ? "have" : "has",
+				confidenceThreshold
+			);
+		}
 		return null;
 	}
 
