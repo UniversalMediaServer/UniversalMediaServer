@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.FormatFactory;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
