@@ -12,7 +12,9 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.Collections;
 import java.util.Locale;
@@ -331,6 +333,41 @@ public class FileUtil {
 	}
 
 	/**
+	 * Returns the file extension from the specified {@link Path} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link Path} from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	public static String getExtension(Path file) {
+		return getExtension(file, null, null);
+	}
+
+	/**
+	 * Returns the file extension from the specified {@link Path} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link Path} from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	public static String getExtension(Path file, LetterCase convertTo, Locale locale) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return getExtension(fileName.toString(), convertTo, locale);
+	}
+
+	/**
 	 * Returns the file extension from {@code fileName} or {@code null} if
 	 * {@code fileName} has no extension.
 	 *
@@ -378,14 +415,51 @@ public class FileUtil {
 		return extension;
 	}
 
-	public static String getFileNameWithoutExtension(String f) {
-		int point = f.lastIndexOf('.');
-
-		if (point == -1) {
-			point = f.length();
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param file the {@link File}.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(File file) {
+		if (file == null) {
+			return null;
 		}
+		return getFileNameWithoutExtension(file.getName());
+	}
 
-		return f.substring(0, point);
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param file the {@link Path}.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(Path file) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return getFileNameWithoutExtension(fileName.toString());
+	}
+
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param fileName the filename.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(String fileName) {
+		if (isBlank(fileName)) {
+			return fileName;
+		}
+		int point = fileName.lastIndexOf('.');
+		if (point == -1) {
+			return fileName;
+		}
+		return fileName.substring(0, point);
 	}
 
 	private static final class FormattedNameAndEdition {
@@ -865,10 +939,14 @@ public class FileUtil {
 	 * @return the converted string
 	 */
 	public static String convertLowerCaseStringToTitleCase(String value) {
+		if (isBlank(value)) {
+			return value;
+		}
+		value = value.trim();
 		String convertedValue = "";
 		boolean loopedOnce = false;
 
-		for (String word : value.split(" ")) {
+		for (String word : value.split("\\s+")) {
 			if (loopedOnce) {
 				switch (word) {
 					case "a":
@@ -890,8 +968,8 @@ public class FileUtil {
 			} else {
 				// Always capitalize the first letter of the string
 				convertedValue += word.substring(0, 1).toUpperCase() + word.substring(1);
+				loopedOnce = true;
 			}
-			loopedOnce = true;
 		}
 
 		return convertedValue;
@@ -992,8 +1070,8 @@ public class FileUtil {
 	 * replaced.
 	 *
 	 * @param folder the {@link File} instance representing the folder for the
-	 *            constructed {@link File}. Use {@code null} or an empty string
-	 *            for the current folder.
+	 *            constructed {@link File}. Use {@code null} for the current
+	 *            folder.
 	 * @param file the {@link File} for which to replace the extension. Only the
 	 *            file name will be used, its path will be discarded.
 	 * @param extension the new file extension.
@@ -1032,8 +1110,8 @@ public class FileUtil {
 	 * replaced.
 	 *
 	 * @param folder the {@link File} instance representing the folder for the
-	 *            constructed {@link File}. Use {@code null} or an empty string
-	 *            for the current folder.
+	 *            constructed {@link File}. Use {@code null} for the current
+	 *            folder.
 	 * @param fileName the {@link String} for which to replace the extension.
 	 * @param extension the new file extension.
 	 * @param nullIfNonExisting whether or not to return {@code null} or a
@@ -1089,6 +1167,167 @@ public class FileUtil {
 		}
 
 		return nullIfNonExisting ? null : result;
+	}
+
+	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param file the {@link Path} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return replaceExtension(
+			file.getParent(),
+			fileName.toString(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link Path} instance representing the folder for the
+	 *            constructed {@link Path}. Use {@code null} for the current
+	 *            folder.
+	 * @param file the {@link Path} for which to replace the extension. Only the
+	 *            file name will be used, its path will be discarded.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path folder,
+		Path file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return replaceExtension(
+			folder,
+			fileName.toString(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link Path} instance representing the folder for the
+	 *            constructed {@link Path}. Use {@code null} for the current
+	 *            folder.
+	 * @param fileName the {@link String} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path folder,
+		String fileName,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (isBlank(fileName)) {
+			return null;
+		}
+
+		int point = fileName.lastIndexOf('.');
+
+		String baseFileName;
+		if (point == -1) {
+			baseFileName = fileName;
+		} else {
+			baseFileName = fileName.substring(0, point);
+		}
+
+		try {
+			if (folder == null) {
+				folder = Paths.get("");
+			}
+			if (isBlank(extension)) {
+				Path result = folder.resolve(baseFileName);
+				return !nullIfNonExisting || Files.exists(result) ? result : null;
+			}
+
+			Path result = folder.resolve(baseFileName + "." + extension);
+			if (Files.exists(result) || !nullIfNonExisting && !adjustExtensionCase) {
+				return result;
+			}
+
+			if (!Platform.isWindows() && adjustExtensionCase) {
+				Path adjustedResult = folder.resolve(baseFileName + "." + extension.toLowerCase(Locale.ROOT));
+				if (Files.exists(adjustedResult)) {
+					return adjustedResult;
+				}
+				adjustedResult = folder.resolve(baseFileName + "." + extension.toUpperCase(Locale.ROOT));
+				if (Files.exists(adjustedResult)) {
+					return adjustedResult;
+				}
+			}
+			return nullIfNonExisting ? null : result;
+		} catch (InvalidPathException e) {
+			LOGGER.error(
+				"Unexpected error during replaceExtension for folder \"{}\", file \"{}\" and extension \"{}\": {}",
+				folder,
+				fileName,
+				extension,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+			return null;
+		}
 	}
 
 	/**
