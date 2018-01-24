@@ -12,7 +12,9 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.Collections;
 import java.util.Locale;
@@ -330,6 +332,41 @@ public class FileUtil {
 			return null;
 		}
 		return getExtension(file.getName(), convertTo, locale);
+	}
+
+	/**
+	 * Returns the file extension from the specified {@link Path} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link Path} from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	public static String getExtension(Path file) {
+		return getExtension(file, null, null);
+	}
+
+	/**
+	 * Returns the file extension from the specified {@link Path} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link Path} from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	public static String getExtension(Path file, LetterCase convertTo, Locale locale) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return getExtension(fileName.toString(), convertTo, locale);
 	}
 
 	/**
@@ -1131,6 +1168,167 @@ public class FileUtil {
 	}
 
 	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param file the {@link Path} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return replaceExtension(
+			file.getParent(),
+			fileName.toString(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link Path} instance representing the folder for the
+	 *            constructed {@link Path}. Use {@code null} for the current
+	 *            folder.
+	 * @param file the {@link Path} for which to replace the extension. Only the
+	 *            file name will be used, its path will be discarded.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path folder,
+		Path file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return replaceExtension(
+			folder,
+			fileName.toString(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link Path} instance representing the folder for the
+	 *            constructed {@link Path}. Use {@code null} for the current
+	 *            folder.
+	 * @param fileName the {@link String} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path folder,
+		String fileName,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (isBlank(fileName)) {
+			return null;
+		}
+
+		int point = fileName.lastIndexOf('.');
+
+		String baseFileName;
+		if (point == -1) {
+			baseFileName = fileName;
+		} else {
+			baseFileName = fileName.substring(0, point);
+		}
+
+		try {
+			if (folder == null) {
+				folder = Paths.get("");
+			}
+			if (isBlank(extension)) {
+				Path result = folder.resolve(baseFileName);
+				return !nullIfNonExisting || Files.exists(result) ? result : null;
+			}
+
+			Path result = folder.resolve(baseFileName + "." + extension);
+			if (Files.exists(result) || !nullIfNonExisting && !adjustExtensionCase) {
+				return result;
+			}
+
+			if (!Platform.isWindows() && adjustExtensionCase) {
+				Path adjustedResult = folder.resolve(baseFileName + "." + extension.toLowerCase(Locale.ROOT));
+				if (Files.exists(adjustedResult)) {
+					return adjustedResult;
+				}
+				adjustedResult = folder.resolve(baseFileName + "." + extension.toUpperCase(Locale.ROOT));
+				if (Files.exists(adjustedResult)) {
+					return adjustedResult;
+				}
+			}
+			return nullIfNonExisting ? null : result;
+		} catch (InvalidPathException e) {
+			LOGGER.error(
+				"Unexpected error during replaceExtension for folder \"{}\", file \"{}\" and extension \"{}\": {}",
+				folder,
+				fileName,
+				extension,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+			return null;
+		}
+	}
+
+	/**
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
@@ -1143,8 +1341,8 @@ public class FileUtil {
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
 		CharsetDetector detector = new CharsetDetector();
 		detector.setText(in);
-		// Results are sorted on descending confidence, so we're only after the first one.
-		return detector.detectAll()[0];
+		// Get best match only.
+		return detector.detect();
 	}
 
 	/**
@@ -1174,6 +1372,73 @@ public class FileUtil {
 			}
 		}
 		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		return null;
+	}
+
+	/**
+	 * Tries to detect the {@link Charset}/encoding for the specified file. If
+	 * no valid {@link Charset} is detected or the confidence of the best match
+	 * is below the threshold, {@code null} will be returned.
+	 *
+	 * @param file the text file whose {@link Charset} to detect.
+	 * @return The most confidently detected {@link Charset} or {@code null}.
+	 * @throws IOException If an I/O error occurs during the operation.
+	 */
+	public static Charset detectCharset(Path file, int confidenceThreshold) throws IOException {
+		if (file == null || !Files.exists(file)) {
+			return null;
+		}
+		CharsetDetector detector = new CharsetDetector();
+		CharsetMatch[] matches;
+		try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(file))) {
+			detector.setText(bis);
+			detector.enableInputFilter(true);
+			matches = detector.detectAll();
+		}
+		for (CharsetMatch match : matches) {
+			if (match.getConfidence() < confidenceThreshold) {
+				LOGGER.debug(
+					"Detected charset \"{}\" in \"{}\" but not with enough confidence ({} < {})",
+					match.getName(),
+					file,
+					match.getConfidence(),
+					confidenceThreshold
+				);
+				break;
+			}
+			try {
+				if (Charset.isSupported(match.getName())) {
+					return Charset.forName(match.getName());
+				}
+				LOGGER.debug(
+					"The detected charset \"{}\" in \"{}\" isn't supported by the JVM - skipping",
+					match.getName(),
+					file
+				);
+			} catch (IllegalCharsetNameException e) {
+				LOGGER.debug(
+					"Detected an illegal charset \"{}\" in \"{}\" - skipping: {}",
+					match.getName(),
+					file,
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
+
+		if (matches.length == 0) {
+			LOGGER.debug("Found no matching charset for \"{}\"", file);
+		} else {
+			LOGGER.debug(
+				"Found {} matching charset{} for \"{}\", but {} both supported by the JVM and {} a high enough confidence ({})",
+				matches.length,
+				matches.length > 1 ? "s" : "",
+				file,
+				matches.length > 1 ? "none are" : "it isn't",
+				matches.length > 1 ? "have" : "has",
+				confidenceThreshold
+			);
+		}
 		return null;
 	}
 

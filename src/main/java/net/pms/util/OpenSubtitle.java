@@ -263,37 +263,43 @@ public class OpenSubtitle {
 		return postPage(url.openConnection(), request);
 	}
 
-	public static String getHash(File file) throws IOException {
-		LOGGER.trace("Getting OpenSubtitles hash for \"{}\"", file);
-		String hash = ImdbUtil.extractOSHashFromFileName(file);
-		if (!StringUtils.isBlank(hash)) {
+	public static String getMovieInfo(File f) throws IOException {
+		String info = checkMovieHash(getHash(f));
+		if (StringUtils.isEmpty(info)) {
+			return "";
+		}
+		@SuppressWarnings("unused")
+		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		LOGGER.debug("info is " + info);
+		return info;
+	}
+
+	public static String getHash(File f) throws IOException {
+		LOGGER.debug("get hash of " + f);
+		String hash = ImdbUtil.extractOSHash(f.toPath());
+		if (!StringUtils.isEmpty(hash)) {
 			return hash;
 		}
-		return computeHash(file);
+		return computeHash(f);
 	}
 
 	public static Map<String, Object> findSubs(File file) throws IOException {
 		return findSubs(file, null);
 	}
 
-	public static Map<String, Object> findSubs(File file, RendererConfiguration renderer) throws IOException {
-		if (file == null) {
-			return null;
-		}
-
-		String fileHash = getHash(file);
-		Map<String, Object> result = findSubs(fileHash, file.length(), null, null, renderer);
-		if (result.isEmpty()) { // No match on file hash, try IMDB ID
-			String imdb = ImdbUtil.extractImdbIdFromFileName(file);
-			if (StringUtils.isBlank(imdb)) {
-				imdb = fetchImdbId(fileHash);
+	public static Map<String, Object> findSubs(File f, RendererConfiguration r) throws IOException {
+		Map<String, Object> res = findSubs(getHash(f), f.length(), null, null, r);
+		if (res.isEmpty()) { // no good on hash! try imdb
+			String imdb = ImdbUtil.extractImdbId(f.toPath(), false);
+			if (StringUtils.isEmpty(imdb)) {
+				imdb = fetchImdbId(f);
 			}
-			result = findSubs(null, 0, imdb, null, renderer);
+			res = findSubs(null, 0, imdb, null, r);
 		}
-		if (result.isEmpty()) { // final try, use the name
-			result = querySubs(file.getName(), renderer);
+		if (res.isEmpty()) { // final try, use the name
+			res = querySubs(f.getName(), r);
 		}
-		return result;
+		return res;
 	}
 
 	public static Map<String, Object> findSubs(String fileHash, long size) throws IOException {
@@ -417,7 +423,7 @@ public class OpenSubtitle {
 	public static String[] getInfo(File file, String formattedName, RendererConfiguration renderer) throws IOException {
 		String[] res = getInfo(getHash(file), file.length(), null, null, renderer);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
-			String imdb = ImdbUtil.extractImdbIdFromFileName(file);
+			String imdb = ImdbUtil.extractImdbId(file.toPath(), false);
 			if (StringUtil.hasValue(imdb)) {
 				res = getInfo(null, 0, imdb, null, renderer);
 			}
