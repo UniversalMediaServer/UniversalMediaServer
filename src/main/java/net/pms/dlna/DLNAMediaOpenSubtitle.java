@@ -77,7 +77,6 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle {
 		if (subtitleItem.getSubtitleType() != null) {
 			setType(subtitleItem.getSubtitleType());
 		}
-		setId(101);
 		setLang(subtitleItem.getLanguageCode());
 	}
 

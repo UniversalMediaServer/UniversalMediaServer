@@ -34,10 +34,12 @@ public class DLNAMediaLang {
 	public static final String UND = "und";
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * A special ID value that indicates that the instance is just a placeholder
+	 * that shouldn't be used.
 	 */
-	@Deprecated
-	public int id;
+	public static final int DUMMY_ID = Integer.MIN_VALUE;
+
+	private int id;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -77,7 +79,7 @@ public class DLNAMediaLang {
 	/**
 	 * Sets a unique id for this language object.
 	 *
-	 * @param id The id to set.
+	 * @param id the id to set.
 	 * @since 1.50
 	 */
 	public void setId(int id) {
@@ -96,6 +98,7 @@ public class DLNAMediaLang {
 	public String getLang() {
 		return lang;
 	}
+
 	/**
 	 * Sets the ISO 639 language code for this language object. Special values
 	 * are "und" (for "undetermined") and "off" (indicates an audio track or
