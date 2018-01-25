@@ -179,6 +179,17 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Sets the external subtitles {@link File} without any checks or automatic
+	 * detection. Primarily to be used when retrieving an instance from the
+	 * database.
+	 *
+	 * @param externalFile the external {@link File} to set.
+	 */
+	public void setExternalFileOnly(File externalFile) {
+		this.externalFile = externalFile;
+	}
+
+	/**
 	 * Detects and sets the subtitles' character set. If the language isn't
 	 * set/known and it is detected, the language is also set.
 	 */
