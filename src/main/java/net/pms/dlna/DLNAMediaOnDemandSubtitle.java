@@ -40,6 +40,11 @@ public abstract class DLNAMediaOnDemandSubtitle extends DLNAMediaSubtitle {
 	public abstract boolean fetch();
 
 	@Override
+	public void setId(int id) {
+		// On-demand subtitles are always external and shouldn't have IDs assigned
+	}
+
+	@Override
 	public void setExternalFile(File externalFile) throws FileNotFoundException {
 		// Invalid operation for on-demand subtitles
 	}

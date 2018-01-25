@@ -550,7 +550,6 @@ public class UMSUtils {
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
 								s.setExternalFile(new File(sFile));
-								s.setId(100);
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);
 							} else if (subData.startsWith("id:")) {

@@ -229,7 +229,7 @@ public class SubtitleUtils {
 		if (
 			media == null ||
 			params.sid == null ||
-			params.sid.getId() == -1 ||
+			params.sid.getId() == DLNAMediaLang.DUMMY_ID ||
 			!params.sid.getType().isText()
 		) {
 			return null;
@@ -250,7 +250,7 @@ public class SubtitleUtils {
 		}
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
-		boolean isEmbeddedSource = params.sid.getId() < 100;
+		boolean isEmbeddedSource = params.sid.isEmbedded();
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 		File convertedFile = params.sid.getConvertedFile();
 
@@ -269,7 +269,7 @@ public class SubtitleUtils {
 		long modId = new File(filename).lastModified();
 		if (modId != 0) {
 			// We have a real file
-			basename = FilenameUtils.getBaseName(filename);
+			basename = FilenameUtils.getBaseName(filename).replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 		} else {
 			// It's something else, e.g. a url or psuedo-url without meaningful
 			// lastmodified and (maybe) basename characteristics.
@@ -278,12 +278,28 @@ public class SubtitleUtils {
 		}
 
 		File convertedSubs;
-		if (applyFontConfig || isEmbeddedSource || is3D || params.sid.getType() != subtitleType) {
-			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + "." + subtitleType.getExtension());
-		} else {
-			String tmp = params.sid.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
-			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
+		StringBuilder nameBuilder = new StringBuilder(subsPath.getAbsolutePath());
+		nameBuilder.append(File.separator).append(basename);
+		if (isEmbeddedSource) {
+			nameBuilder.append("_ID").append(params.sid.getId());
 		}
+		if (applyFontConfig) {
+			nameBuilder.append("_FB");
+		}
+		if (is3D) {
+			nameBuilder.append("_3D");
+		}
+		nameBuilder.append("_").append(modId);
+		String extension;
+		if (subtitleType != null && isNotBlank(subtitleType.getExtension())) {
+			extension = subtitleType.getExtension();
+		} else {
+			extension = FileUtil.getExtension(basename);
+		}
+		if (isNotBlank(extension)) {
+			nameBuilder.append(".").append(extension);
+		}
+		convertedSubs = new File(nameBuilder.toString());
 
 		File converted3DSubs = new File(FileUtil.getFileNameWithoutExtension(convertedSubs.getAbsolutePath()) + "_3D.ass");
 		if (convertedSubs.canRead() || converted3DSubs.canRead()) {
@@ -404,7 +420,7 @@ public class SubtitleUtils {
 		}
 
 		// Try to specify input encoding if we have a non utf-8 external sub
-		if (params.sid.getId() >= 100 && !params.sid.isExternalFileUtf8()) {
+		if (params.sid.isExternal() && !params.sid.isExternalFileUtf8()) {
 			String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 					// Prefer the global user-specified encoding if we have one.
 					// Note: likely wrong if the file isn't supplied by the user.
@@ -1036,7 +1052,6 @@ public class SubtitleUtils {
 
 	private static void registerExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
 		DLNAMediaSubtitle subtitles = new DLNAMediaSubtitle();
-		subtitles.setId(100 + media.getSubtitleTracksList().size()); // fake id, not used
 		subtitles.setType(SubtitleType.valueOfFileExtension(
 			FileUtil.getExtension(subtitlesFile, LetterCase.LOWER, Locale.ROOT)
 		));
