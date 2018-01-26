@@ -3744,7 +3744,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Web stuff
 	 */
 	protected static final String KEY_NO_FOLDERS = "no_shared";
-	protected static final String KEY_WEB_HTTPS = "use_https";
+	protected static final String KEY_WEB_HTTPS = "use_https_web";
 	protected static final String KEY_WEB_PORT = "web_port";
 	protected static final int WEB_MAX_THREADS = 100;
 
