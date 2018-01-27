@@ -224,10 +224,10 @@ public class DLNAMediaDatabase implements Runnable {
 		boolean forceReInit = false;
 
 		/**
-		 * If the database is not the latest version, see if we can upgrade
-		 * it efficiently instead of recreating it.
+		 * If the database is created and is not the latest version, 
+		 * see if we can upgrade it efficiently instead of recreating it.
 		 */
-		if (latestVersion != currentVersion) {
+		if (currentVersion != -1 && latestVersion != currentVersion) {
 			try {
 				conn = getConnection();
 
