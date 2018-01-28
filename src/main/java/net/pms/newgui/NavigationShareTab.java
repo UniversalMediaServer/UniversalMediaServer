@@ -111,20 +111,24 @@ public class NavigationShareTab {
 		} else {
 			StringBuilder folders = new StringBuilder();
 			StringBuilder foldersMonitored = new StringBuilder();
+			StringBuilder foldersVisible = new StringBuilder();
 
 			int i2 = 0;
+			int i3 = 0;
 			for (int i = 0; i < folderTableModel.getRowCount(); i++) {
 				if (i > 0) {
 					folders.append(',');
 				}
 
-				String directory = (String) folderTableModel.getValueAt(i, 0);
+				String directory  = (String)  folderTableModel.getValueAt(i, 0);
 				boolean monitored = (boolean) folderTableModel.getValueAt(i, 1);
+				boolean visible   = (boolean) folderTableModel.getValueAt(i, 2);
 
 				// escape embedded commas. note: backslashing isn't safe as it conflicts with
 				// Windows path separators:
 				// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
 				folders.append(directory.replace(",", "&comma;"));
+
 				if (monitored) {
 					if (i2 > 0) {
 						foldersMonitored.append(',');
@@ -133,10 +137,20 @@ public class NavigationShareTab {
 
 					foldersMonitored.append(directory.replace(",", "&comma;"));
 				}
+
+				if (visible) {
+					if (i3 > 0) {
+						foldersVisible.append(',');
+					}
+					i3++;
+
+					foldersVisible.append(directory.replace(",", "&comma;"));
+				}
 			}
 
 			configuration.setFolders(folders.toString());
 			configuration.setFoldersMonitored(foldersMonitored.toString());
+			configuration.setFoldersVisible(foldersVisible.toString());
 		}
 	}
 
@@ -932,6 +946,10 @@ public class NavigationShareTab {
 
 		builderFolder.add(isScanSharedFoldersOnStartup, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
+		LOGGER.info("Folders: "+PMS.get().getSharedFoldersArray(false));
+		LOGGER.info("Monitored folders: "+PMS.get().getSharedFoldersArray(true));
+		LOGGER.info("Visible folders: "+PMS.get().getSharedFoldersArrayVisible());
+		LOGGER.info("");
 		File[] folders = PMS.get().getSharedFoldersArray(false);
 		if (folders != null && folders.length > 0) {
 			File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
@@ -1006,7 +1024,7 @@ public class NavigationShareTab {
 		public void setValueAt(Object aValue, int row, int column) {
 			Vector rowVector = (Vector) dataVector.elementAt(row);
 			if (aValue instanceof Boolean && (column == 1 || column == 2)) {
-				rowVector.setElementAt((boolean) aValue, 1);
+				rowVector.setElementAt((boolean) aValue, column);
 			} else {
 				rowVector.setElementAt(aValue, column);
 			}
