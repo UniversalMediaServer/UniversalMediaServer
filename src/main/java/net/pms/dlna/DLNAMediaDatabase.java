@@ -964,7 +964,7 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(27, 0);
 						ps.setNull(28, Types.VARCHAR);
 						ps.setNull(29, Types.VARCHAR);
-						ps.setNull(20, Types.VARCHAR);
+						ps.setNull(30, Types.VARCHAR);
 						ps.setNull(31, Types.VARCHAR);
 						ps.setNull(32, Types.VARCHAR);
 						ps.setNull(33, Types.VARCHAR);
