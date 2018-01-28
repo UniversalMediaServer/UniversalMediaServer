@@ -935,6 +935,7 @@ public class NavigationShareTab {
 		File[] folders = PMS.get().getSharedFoldersArray(false);
 		if (folders != null && folders.length > 0) {
 			File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
+			File[] foldersVisible   = PMS.get().getSharedFoldersArrayVisible();
 			for (File folder : folders) {
 				boolean isMonitored = false;
 				if (foldersMonitored != null && foldersMonitored.length > 0) {
@@ -944,10 +945,20 @@ public class NavigationShareTab {
 						}
 					}
 				}
-				folderTableModel.addRow(new Object[]{folder.getAbsolutePath(), isMonitored});
+
+				boolean isVisible = false;
+				if (foldersVisible != null && foldersVisible.length > 0) {
+					for (File folderVisible : foldersVisible) {
+						if (folderVisible.getAbsolutePath().equals(folder.getAbsolutePath())) {
+							isVisible = true;
+						}
+					}
+				}
+
+				folderTableModel.addRow(new Object[]{folder.getAbsolutePath(), isMonitored, isVisible});
 			}
 		} else {
-			folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
+			folderTableModel.addRow(new Object[]{ALL_DRIVES, false, true});
 		}
 
 		JScrollPane pane = new JScrollPane(FList);
@@ -969,7 +980,7 @@ public class NavigationShareTab {
 		private static final long serialVersionUID = -4247839506937958655L;
 
 		public SharedFoldersTableModel() {
-			super(new String[]{Messages.getString("FoldTab.56"), Messages.getString("FoldTab.65")}, 0);
+			super(new String[]{Messages.getString("FoldTab.56"), Messages.getString("FoldTab.65"), Messages.getString("FoldTab.ShowFolder")}, 0);
 		}
 
 		@Override
@@ -977,6 +988,7 @@ public class NavigationShareTab {
 			Class clazz = String.class;
 			switch (columnIndex) {
 				case 1:
+				case 2:
 					clazz = Boolean.class;
 					break;
 				default:
@@ -987,13 +999,13 @@ public class NavigationShareTab {
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
-			return column == 1;
+			return column == 1 || column == 2;
 		}
 
 		@Override
 		public void setValueAt(Object aValue, int row, int column) {
 			Vector rowVector = (Vector) dataVector.elementAt(row);
-			if (aValue instanceof Boolean && column == 1) {
+			if (aValue instanceof Boolean && (column == 1 || column == 2)) {
 				rowVector.setElementAt((boolean) aValue, 1);
 			} else {
 				rowVector.setElementAt(aValue, column);

@@ -838,10 +838,20 @@ public class PMS {
 	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.
 	 *
+	 * @param monitored whether to only return monitored directories, or all
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
 		return getSharedFoldersArray(monitored, null, getConfiguration());
+	}
+
+	/**
+	 * Returns all shared folders that are marked as visible.
+	 *
+	 * @return {@link java.io.File}[] Array of directories.
+	 */
+	public File[] getSharedFoldersArrayVisible() {
+		return getSharedFoldersArray(false, null, getConfiguration(), true);
 	}
 
 	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
@@ -849,21 +859,40 @@ public class PMS {
 	}
 
 	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
+		return getSharedFoldersArray(monitored, null, configuration, false);
+	}
+
+	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration, boolean limitToVisible) {
 		String folders;
+		String visibleFolders = configuration.getFoldersVisible();
+		String[] visibleFoldersArray = visibleFolders.split(",");
+
 		if (monitored) {
 			folders = configuration.getFoldersMonitored();
 		} else {
 			folders = configuration.getFolders(tags);
 		}
 
-		if (folders == null || folders.length() == 0) {
+		if (
+			folders == null ||
+			folders.length() == 0 ||
+			(
+				limitToVisible &&
+				(
+					visibleFolders == null ||
+					visibleFolders.length() == 0
+				)
+			)
+		) {
 			return null;
 		}
 
 		ArrayList<File> directories = new ArrayList<>();
 		String[] foldersArray = folders.split(",");
+		boolean shouldAddFolder;
 
 		for (String folder : foldersArray) {
+			shouldAddFolder = false;
 			folder = folder.trim();
 
 			// unescape embedded commas. note: backslashing isn't safe as it conflicts with
@@ -871,28 +900,45 @@ public class PMS {
 			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
 			folder = folder.replaceAll("&comma;", ",");
 
-			// this is called *way* too often
-			// so log it so we can fix it.
-			LOGGER.info("Checking shared folder: " + folder);
+			if (limitToVisible) {
+				if (visibleFoldersArray.length > 0) {
+					for (String visibleFolder : visibleFoldersArray) {
+						visibleFolder = visibleFolder.trim();
+						visibleFolder = visibleFolder.replaceAll("&comma;", ",");
+						if (folder == visibleFolder) {
+							shouldAddFolder = true;
+							break;
+						}
+					}
+				}
+			} else {
+				shouldAddFolder = true;
+			}
 
-			File file = new File(folder);
+			if (shouldAddFolder) {
+				// this is called *way* too often
+				// so log it so we can fix it.
+				LOGGER.info("Checking shared folder: " + folder);
 
-			if (file.exists()) {
-				if (!file.isDirectory()) {
+				File file = new File(folder);
+
+				if (file.exists()) {
+					if (!file.isDirectory()) {
+						LOGGER.warn(
+							"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+							folder,  Messages.getString("LooksFrame.22")
+						);
+					}
+				} else {
 					LOGGER.warn(
-						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+						"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
 						folder,  Messages.getString("LooksFrame.22")
 					);
 				}
-			} else {
-				LOGGER.warn(
-					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-					folder,  Messages.getString("LooksFrame.22")
-				);
-			}
 
-			// add the file even if there are problems so that the user can update the shared folders as required.
-			directories.add(file);
+				// add the file even if there are problems so that the user can update the shared folders as required.
+				directories.add(file);
+			}
 		}
 
 		File f[] = new File[directories.size()];

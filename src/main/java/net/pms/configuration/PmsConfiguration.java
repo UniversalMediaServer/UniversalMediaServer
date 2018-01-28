@@ -156,6 +156,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FOLDERS = "folders";
 	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
 	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
+	protected static final String KEY_FOLDERS_VISIBLE = "folders_visible";
 	protected static final String KEY_FONT = "subtitles_font";
 	protected static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	protected static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
@@ -2378,6 +2379,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setFoldersMonitored(String value) {
 		configuration.setProperty(KEY_FOLDERS_MONITORED, value);
+	}
+
+	public String getFoldersVisible() {
+		return getString(KEY_FOLDERS_VISIBLE, "");
+	}
+
+	public void setFoldersVisible(String value) {
+		configuration.setProperty(KEY_FOLDERS_VISIBLE, value);
 	}
 
 	public String getNetworkInterface() {
