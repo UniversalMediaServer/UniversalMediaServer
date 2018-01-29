@@ -53,8 +53,8 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{
-				"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4" + unwatchedCondition + " ORDER BY MODIFIED DESC",
-				sqlJoinStart + "FILES.TYPE = 4 AND FORMATDATETIME(MODIFIED, 'd MMM yyyy') = '${0}'" + unwatchedCondition + " ORDER BY FILENAME ASC"
+				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MMM d') FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC",
+				sqlJoinStart + "FILES.TYPE = 4 AND FORMATDATETIME(FILES.MODIFIED, 'yyyy MMM d') = '${0}'" + unwatchedCondition + " ORDER BY FILENAME ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
 		);
@@ -80,8 +80,8 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder watchedMlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{
-				"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4" + watchedCondition + " ORDER BY MODIFIED DESC",
-				sqlJoinStart + "FILES.TYPE = 4 AND FORMATDATETIME(MODIFIED, 'd MMM yyyy') = '${0}'" + watchedCondition + " ORDER BY FILENAME ASC"
+				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MMM d') FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4" + watchedCondition + " ORDER BY FILES.MODIFIED DESC",
+				sqlJoinStart + "FILES.TYPE = 4 AND FORMATDATETIME(FILES.MODIFIED, 'yyyy MMM d') = '${0}'" + watchedCondition + " ORDER BY FILENAME ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
 		);
@@ -106,8 +106,8 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{
-				"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES WHERE TYPE = 4 ORDER BY MODIFIED DESC",
-				"TYPE = 4 AND FORMATDATETIME(MODIFIED, 'd MMM yyyy') = '${0}' ORDER BY FILENAME ASC"
+				"SELECT FORMATDATETIME(MODIFIED, 'yyyy MMM d') FROM FILES WHERE TYPE = 4 ORDER BY MODIFIED DESC",
+				"TYPE = 4 AND FORMATDATETIME(MODIFIED, 'yyyy MMM d') = '${0}' ORDER BY FILENAME ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
 		);
@@ -186,7 +186,7 @@ public class MediaLibrary extends VirtualFolder {
 				"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 AND A.GENRE = '${1}' AND A.ARTIST = '${0}' ORDER BY A.ALBUM ASC",
 				"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND A.GENRE = '${2}' AND A.ARTIST = '${1}' AND A.ALBUM = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(mlf7);
-		MediaLibraryFolder mlfAudioDate = new MediaLibraryFolder(Messages.getString("PMS.12"), new String[]{"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 ORDER BY F.MODIFIED DESC", "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND FORMATDATETIME(MODIFIED, 'd MMM yyyy') = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		MediaLibraryFolder mlfAudioDate = new MediaLibraryFolder(Messages.getString("PMS.12"), new String[]{"SELECT FORMATDATETIME(MODIFIED, 'yyyy MMM d') FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 ORDER BY F.MODIFIED DESC", "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND FORMATDATETIME(MODIFIED, 'yyyy MMM d') = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(mlfAudioDate);
 
 		MediaLibraryFolder mlf8 = new MediaLibraryFolder(Messages.getString("PMS.28"), new String[]{
@@ -200,7 +200,7 @@ public class MediaLibrary extends VirtualFolder {
 		VirtualFolder vfImage = new VirtualFolder(Messages.getString("PMS.31"), null);
 		MediaLibraryFolder mlfPhoto01 = new MediaLibraryFolder(Messages.getString("PMS.32"), "TYPE = 2 ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		vfImage.addChild(mlfPhoto01);
-		MediaLibraryFolder mlfPhoto02 = new MediaLibraryFolder(Messages.getString("PMS.12"), new String[]{"SELECT FORMATDATETIME(MODIFIED, 'd MMM yyyy') FROM FILES WHERE TYPE = 2 ORDER BY MODIFIED DESC", "TYPE = 2 AND FORMATDATETIME(MODIFIED, 'd MMM yyyy') = '${0}' ORDER BY FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		MediaLibraryFolder mlfPhoto02 = new MediaLibraryFolder(Messages.getString("PMS.12"), new String[]{"SELECT FORMATDATETIME(MODIFIED, 'yyyy MMM d') FROM FILES WHERE TYPE = 2 ORDER BY MODIFIED DESC", "TYPE = 2 AND FORMATDATETIME(MODIFIED, 'yyyy MMM d') = '${0}' ORDER BY FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfImage.addChild(mlfPhoto02);
 		addChild(vfImage);
 	}
