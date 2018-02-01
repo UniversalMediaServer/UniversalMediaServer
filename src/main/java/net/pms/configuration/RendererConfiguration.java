@@ -2357,6 +2357,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + truncate
 		int len = 0;
+		if (suffix == null) {
+			suffix = "";
+		}
+
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
 			if (lineHeight == 1) {
