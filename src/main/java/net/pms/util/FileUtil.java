@@ -943,7 +943,7 @@ public class FileUtil {
 			return value;
 		}
 		value = value.trim();
-		String convertedValue = "";
+		StringBuilder convertedValue = new StringBuilder();
 		boolean loopedOnce = false;
 
 		for (String word : value.split("\\s+")) {
@@ -960,19 +960,19 @@ public class FileUtil {
 					case "the":
 					case "to":
 					case "vs":
-						convertedValue += ' ' + word;
+						convertedValue.append(' ').append(word);
 						break;
 					default:
-						convertedValue += ' ' + word.substring(0, 1).toUpperCase() + word.substring(1);
+						convertedValue.append(' ').append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
 				}
 			} else {
 				// Always capitalize the first letter of the string
-				convertedValue += word.substring(0, 1).toUpperCase() + word.substring(1);
+				convertedValue.append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
 				loopedOnce = true;
 			}
 		}
 
-		return convertedValue;
+		return convertedValue.toString();
 	}
 
 	public static int indexOf(Pattern pattern, String s) {
