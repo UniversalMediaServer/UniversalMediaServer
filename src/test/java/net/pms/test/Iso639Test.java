@@ -22,6 +22,7 @@ package net.pms.test;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.util.Iso639;
+import net.pms.util.Iso639.Iso639Entry;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,18 +46,18 @@ public class Iso639Test {
 	 */
 	@Test
 	public void testCodes() {
-		assertNull("No language found for ISO code null", Iso639.getName(null));
+		assertNull("No language found for ISO code null", Iso639.getFirstName(null));
 
 		// Reserved keyword DLNAMediaLang.UND should match "Undetermined"
 		assertEquals("ISO code \"" + DLNAMediaLang.UND + "\" returns \"Undetermined\"",
-				"Undetermined", Iso639.getName(DLNAMediaLang.UND));
+				"Undetermined", Iso639.getFirstName(DLNAMediaLang.UND));
 
-		assertEquals("ISO code \"en\" returns \"English\"", "English", Iso639.getName("en"));
-		assertEquals("ISO code \"eng\" returns \"English\"", "English", Iso639.getName("eng"));
-		assertEquals("ISO code \"EnG\" returns \"English\"", "English", Iso639.getName("EnG"));
-		assertNull("Language name \"Czech language\" returns null", Iso639.getName("Czech language"));
-		assertEquals(Iso639.getName("Czech language", true), "Czech");
-		assertEquals(Iso639.getName("The French don't like other languages", true), "French");
+		assertEquals("ISO code \"en\" returns \"English\"", "English", Iso639.getFirstName("en"));
+		assertEquals("ISO code \"eng\" returns \"English\"", "English", Iso639.getFirstName("eng"));
+		assertEquals("ISO code \"EnG\" returns \"English\"", "English", Iso639.getFirstName("EnG"));
+		assertNull("Language name \"Czech language\" returns null", Iso639.getFirstName("Czech language"));
+		assertEquals(Iso639.getFirstName("Czech language", true), "Czech");
+		assertEquals(Iso639.getFirstName("The French don't like other languages", true), "French");
 
 		// Test codeIsValid()
 		assertTrue("ISO code \"en\" is valid", Iso639.codeIsValid("en"));
@@ -117,5 +118,16 @@ public class Iso639Test {
 		assertEquals(Iso639.getISOCode("Where do they speak portugese?", true), "pt");
 		assertEquals(Iso639.getISOCode("Where do they speak sinhaleese?", true), "si");
 		assertEquals(Iso639.getISOCode("Does anyone speak sweedish?", true), "sv");
+
+		// Test multiple language names
+		Iso639Entry entry1 = Iso639.get("Imperial Aramaic");
+		Iso639Entry entry2 = Iso639.get("Official Aramaic");
+		Iso639Entry entry3 = Iso639.get("arc");
+		assertEquals("Imperial Aramaic (700-300 BCE)", entry1.getFirstName());
+		assertEquals(entry1, entry2);
+		assertEquals(entry1, entry3);
+		assertEquals("Official Aramaic (700-300 BCE)", entry3.getNames()[1]);
+		assertEquals("Official Aramaic (700-300 BCE)", entry3.getNames()[1]);
+		assertEquals(3, Iso639.get("SEPEDI").getNames().length);
 	}
 }

@@ -55,9 +55,9 @@ public class DLNAMediaLang {
 	 */
 	public String getLangFullName() {
 		if (StringUtils.isNotBlank(lang)) {
-			return Iso639.getName(lang);
+			return Iso639.getFirstName(lang);
 		}
-		return Iso639.getName(DLNAMediaLang.UND);
+		return Iso639.getFirstName(DLNAMediaLang.UND);
 	}
 
 	public boolean matchCode(String code) {
