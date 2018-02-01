@@ -110,10 +110,10 @@ public class TranscodingTab {
 	private JTextField defaultfont;
 	private JButton fontselect;
 	private JCheckBox fribidi;
-	private JTextField ass_scale;
-	private JTextField ass_outline;
-	private JTextField ass_shadow;
-	private JTextField ass_margin;
+	private JTextField assScale;
+	private CustomJSpinner assOutline;
+	private CustomJSpinner assShadow;
+	private CustomJSpinner assMargin;
 	private JButton subColor;
 	private JCheckBox forceExternalSubtitles;
 	private JCheckBox useEmbeddedSubtitlesStyle;
@@ -951,48 +951,70 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 12, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		ass_scale = new JTextField(configuration.getAssScale());
-		ass_scale.addKeyListener(new KeyAdapter() {
+		assScale = new JTextField(configuration.getAssScale());
+		assScale.setHorizontalAlignment(SwingConstants.RIGHT);
+		assScale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setAssScale(ass_scale.getText());
+				configuration.setAssScale(assScale.getText());
 			}
 		});
 
 		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 12), colSpec, orientation));
 
-		ass_outline = new JTextField(configuration.getAssOutline());
-		ass_outline.addKeyListener(new KeyAdapter() {
+		int assOutlineValue;
+		try {
+			assOutlineValue = Integer.parseInt(configuration.getAssOutline());
+		} catch (NumberFormatException e) {
+			assOutlineValue = 1;
+		}
+		final SpinnerIntModel assOutlineModel = new SpinnerIntModel(assOutlineValue, 0, 99, 1);
+		assOutline = new CustomJSpinner(assOutlineModel, true);
+		assOutline.addChangeListener(new ChangeListener() {
 			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setAssOutline(ass_outline.getText());
+			public void stateChanged(ChangeEvent e) {
+				configuration.setAssOutline(assOutlineModel.getValue().toString());
 			}
 		});
 
 		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 12), colSpec, orientation));
 
-		ass_shadow = new JTextField(configuration.getAssShadow());
-		ass_shadow.addKeyListener(new KeyAdapter() {
+		int assShadowValue;
+		try {
+			assShadowValue = Integer.parseInt(configuration.getAssShadow());
+		} catch (NumberFormatException e) {
+			assShadowValue = 1;
+		}
+		final SpinnerIntModel assShadowModel = new SpinnerIntModel(assShadowValue, 0, 99, 1);
+		assShadow = new CustomJSpinner(assShadowModel, true);
+		assShadow.addChangeListener(new ChangeListener() {
 			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setAssShadow(ass_shadow.getText());
+			public void stateChanged(ChangeEvent e) {
+				configuration.setAssShadow(assShadowModel.getValue().toString());
 			}
 		});
 
 		builder.addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 12), colSpec, orientation));
 
-		ass_margin = new JTextField(configuration.getAssMargin());
-		ass_margin.addKeyListener(new KeyAdapter() {
+		int assMarginValue;
+		try {
+			assMarginValue = Integer.parseInt(configuration.getAssMargin());
+		} catch (NumberFormatException e) {
+			assMarginValue = 10;
+		}
+		final SpinnerIntModel assMarginModel = new SpinnerIntModel(assMarginValue, 0, 999, 5);
+		assMargin = new CustomJSpinner(assMarginModel, true);
+		assMargin.addChangeListener(new ChangeListener() {
 			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setAssMargin(ass_margin.getText());
+			public void stateChanged(ChangeEvent e) {
+				configuration.setAssMargin(assMarginModel.getValue().toString());
 			}
 		});
 
-		builder.add(ass_scale, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
-		builder.add(ass_outline, FormLayoutUtil.flip(cc.xy(7, 12), colSpec, orientation));
-		builder.add(ass_shadow, FormLayoutUtil.flip(cc.xy(11, 12), colSpec, orientation));
-		builder.add(ass_margin, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
+		builder.add(assScale, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
+		builder.add(assOutline, FormLayoutUtil.flip(cc.xy(7, 12), colSpec, orientation));
+		builder.add(assShadow, FormLayoutUtil.flip(cc.xy(11, 12), colSpec, orientation));
+		builder.add(assMargin, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
 
 		autoloadExternalSubtitles = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
