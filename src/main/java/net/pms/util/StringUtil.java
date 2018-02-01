@@ -943,14 +943,29 @@ public class StringUtil {
 	 * @return The combined "readable" {@link String}.
 	 */
 	public static String createReadableCombinedString(Collection<String> strings) {
-		return createReadableCombinedString(strings, null, null);
+		return createReadableCombinedString(strings, false, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form
+	 * "{@code element 1, element2 and element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @param quote if {@code true}, all elements will be quoted in
+	 *            double-quotes.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(Collection<String> strings, boolean quote) {
+		return createReadableCombinedString(strings, quote, null, null);
 	}
 
 	/**
 	 * Creates a "readable" string by combining the strings in {@code strings}
 	 * while inserting {@code separator} and {@code lastSeparator} as
-	 * appropriate. The resulting {@link String} is in the form
-	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 * appropriate. The resulting {@link String} is in the form "
+	 * {@code element 1<separator> element2 <lastSeparator> element3}".
 	 *
 	 * @param strings the {@link Collection} of {@link String} to combine.
 	 * @param separator the "normal" separator used everywhere except between
@@ -962,7 +977,33 @@ public class StringUtil {
 		if (strings == null || strings.isEmpty()) {
 			return "";
 		}
-		return createReadableCombinedString(strings.toArray(new String[strings.size()]), separator, lastSeparator);
+		return createReadableCombinedString(strings.toArray(new String[strings.size()]), false, separator, lastSeparator);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form "
+	 * {@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @param quote if {@code true}, all elements will be quoted in
+	 *            double-quotes.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(
+		Collection<String> strings,
+		boolean quote,
+		String separator,
+		String lastSeparator
+	) {
+		if (strings == null || strings.isEmpty()) {
+			return "";
+		}
+		return createReadableCombinedString(strings.toArray(new String[strings.size()]), quote, separator, lastSeparator);
 	}
 
 	/**
@@ -975,7 +1016,22 @@ public class StringUtil {
 	 * @return The combined "readable" {@link String}.
 	 */
 	public static String createReadableCombinedString(String[] strings) {
-		return createReadableCombinedString(strings, null, null);
+		return createReadableCombinedString(strings, false, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form "
+	 * {@code element 1, element2 and element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @param quote if {@code true}, all elements will be quoted in
+	 *            double-quotes.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(String[] strings, boolean quote) {
+		return createReadableCombinedString(strings, quote, null, null);
 	}
 
 	/**
@@ -991,6 +1047,29 @@ public class StringUtil {
 	 * @return The combined "readable" {@link String}.
 	 */
 	public static String createReadableCombinedString(String[] strings, String separator, String lastSeparator) {
+		return createReadableCombinedString(strings, false, separator, lastSeparator);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form
+	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @param quote if {@code true}, all elements will be quoted in
+	 *            double-quotes.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(
+		String[] strings,
+		boolean quote,
+		String separator,
+		String lastSeparator
+	) {
 		if (strings == null || strings.length == 0) {
 			return "";
 		}
@@ -999,9 +1078,9 @@ public class StringUtil {
 		} else {
 			separator += " ";
 		}
-		if (lastSeparator == null) {
+		if (isBlank(lastSeparator)) {
 			lastSeparator = " and ";
-		} else if (!isBlank(lastSeparator)) {
+		} else {
 			if (!lastSeparator.substring(0, 1).equals(" ")) {
 				lastSeparator = " " + lastSeparator;
 			}
@@ -1012,13 +1091,17 @@ public class StringUtil {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < strings.length; i++) {
 			if (i > 0) {
-				if (i == strings.length) {
+				if (i == strings.length - 1) {
 					sb.append(lastSeparator);
 				} else {
 					sb.append(separator);
 				}
 			}
-			sb.append(strings[i]);
+			if (quote) {
+				sb.append("\"").append(strings[i]).append("\"");
+			} else {
+				sb.append(strings[i]);
+			}
 		}
 		return sb.toString();
 	}
