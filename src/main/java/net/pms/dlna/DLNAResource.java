@@ -2354,10 +2354,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						}
 					}
-				} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
+				} else if (media != null && mime.equals("video/vnd.dlna.mpeg-tts")) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
-				} else if (mime.equals(JPEG_TYPEMIME)) {
+				} else if (media != null && mime.equals(JPEG_TYPEMIME)) {
 					int width = media.getWidth();
 					int height = media.getHeight();
 					if (width > 1024 || height > 768) { // 1024 * 768
