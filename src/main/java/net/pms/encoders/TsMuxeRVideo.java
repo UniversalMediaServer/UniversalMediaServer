@@ -29,6 +29,7 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -39,11 +40,14 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.newgui.GuiUtil;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.PlayerUtil;
+import net.pms.util.SubtitleUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,19 +70,19 @@ public class TsMuxeRVideo extends Player {
 	public boolean excludeFormat(Format format) {
 		String extension = format.getMatchedExtension();
 		return extension != null
-			&& !extension.equals("mp4")
-			&& !extension.equals("mkv")
-			&& !extension.equals("ts")
+//			&& !extension.equals("mp4")
+//			&& !extension.equals("mkv")
+//			&& !extension.equals("ts")
 			&& !extension.equals("tp")
-			&& !extension.equals("m2ts")
+//			&& !extension.equals("m2ts")
 			&& !extension.equals("m2t")
 			&& !extension.equals("mpg")
 			&& !extension.equals("evo")
 			&& !extension.equals("mpeg")
 			&& !extension.equals("vob")
-			&& !extension.equals("m2v")
-			&& !extension.equals("mts")
-			&& !extension.equals("mov");
+			&& !extension.equals("m2v");
+//			&& !extension.equals("mts")
+//			&& !extension.equals("mov");
 	}
 
 	@Override
@@ -106,6 +110,7 @@ public class TsMuxeRVideo extends Player {
 		return configuration.getTsmuxerPath();
 	}
 
+	@SuppressWarnings("unlikely-arg-type")
 	@Override
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
@@ -614,6 +619,52 @@ public class TsMuxeRVideo extends Player {
 					pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
 				}
 			}
+			
+			if (!configuration.isDisableSubtitles()) {
+				DLNAMediaSubtitle subs = dlna.getMediaSubtitle();
+				if (subs != null &&
+					subs.isExternal() &&
+					subs.getType().equals(SubtitleType.SUBRIP)
+				)
+				{
+					File subsFile = subs.getExternalFile();
+					File tempFile = null;
+					if (!subs.getSubCharacterSet().equals(StandardCharsets.UTF_8)) {
+						StringBuilder tempSubsFile = new StringBuilder(configuration.getTempFolder().getAbsolutePath())
+							.append(File.separator).append("tempSubs.srt");
+						tempFile = new File(tempSubsFile.toString());
+						SubtitleUtils.applyCodepageConversion(subsFile, tempFile);
+					}
+
+					StringBuilder argument = new StringBuilder("S_TEXT/UTF8, \"");
+					if (tempFile != null) {
+						argument.append(tempFile.getAbsolutePath());
+					} else {
+						argument.append(subsFile.getAbsolutePath());
+					}
+
+					argument.append("\",font-name=");
+					if (isNotBlank(configuration.getFont())) {
+						argument.append("\"").append(configuration.getFont()).append("\"");
+					} else {
+						argument.append("\"Arial\"");
+					}
+					
+					int fontSize = (int) (15 * Double.parseDouble(configuration.getAssScale())); // We don't know how TSmuxeR calculate the font size so thich should be udjusted
+					argument.append(",font-size=").append(fontSize)
+						.append(",font-color=").append(configuration.getSubsColor().getASSv4StylesHexValue())
+						.append(",bottom-offset=").append(configuration.getAssMargin())
+						.append(",font-border=").append(configuration.getAssOutline())
+						.append(",text-align=center,video-width=").append(media.getWidth())
+						.append(",video-height=").append(media.getHeight())
+						.append(",fps=").append(media.getBitrate());
+					if (params.sid.getLang() != DLNAMediaLang.UND) {
+						argument.append(",lang=").append(params.sid.getLang());
+					}
+				
+					pw.println(argument);
+				}
+			}
 		}
 
 		PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
@@ -780,11 +831,8 @@ public class TsMuxeRVideo extends Player {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-
-		// Check whether the subtitle actually has a language defined,
-		// uninitialized DLNAMediaSubtitle objects have a null language.
-		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but PMS does not support subtitles for tsMuxeR.
+		if (subtitle != null && subtitle.isExternal() && !subtitle.getType().equals(SubtitleType.SUBRIP) && !subtitle.getType().equals(SubtitleType.PGS)) {
+			// Only external SUBRIP and PGS subtitles are supported.
 			return false;
 		}
 
