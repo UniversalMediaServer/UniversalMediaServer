@@ -658,7 +658,7 @@ public class TsMuxeRVideo extends Player {
 						.append(",text-align=center")
 						.append(",video-width=").append(media.getWidth())
 						.append(",video-height=").append(media.getHeight())
-						.append(",fps=").append(media.getBitrate());
+						.append(",fps=").append(media.getFrameRate());
 					if (subs.getLang() != DLNAMediaLang.UND) {
 						argument.append(",lang=").append(subs.getLang());
 					}
