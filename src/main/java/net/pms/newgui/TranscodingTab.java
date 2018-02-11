@@ -851,7 +851,7 @@ public class TranscodingTab {
 			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
 		};
 		String[] values = new String[]{
-			Messages.getString("General.2"),
+			Messages.getString("Generic.AutoDetect"),
 			Messages.getString("CharacterSet.874"),
 			Messages.getString("CharacterSet.932"),
 			Messages.getString("CharacterSet.936"),

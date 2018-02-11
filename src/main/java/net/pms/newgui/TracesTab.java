@@ -390,7 +390,7 @@ public class TracesTab {
 		final JPopupMenu popup = new JPopupMenu();
 		Action copy = jList.getActionMap().get("copy-to-clipboard");
 		JMenuItem copyItem = new JMenuItem(copy);
-		copyItem.setText(Messages.getString("General.1"));
+		copyItem.setText(Messages.getString("Generic.Copy"));
 		popup.add(copyItem);
 		popup.addSeparator();
 		JMenuItem clearItem = new JMenuItem(Messages.getString("TracesTab.3"));
