@@ -40,6 +40,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.CoverSupplier;
@@ -81,10 +82,10 @@ public class NavigationShareTab {
 	private JCheckBox episodeTitles;
 	private JCheckBox resume;
 	private JCheckBox isScanSharedFoldersOnStartup;
-	private JComboBox fullyPlayedAction;
+	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
-	private JCheckBox addVideoSuffix;
+	private JComboBox<String> addVideoSuffix;
 
 	// Settings for the visibility of virtual folders
 	private JCheckBox isShowFolderServerSettings;
@@ -223,12 +224,13 @@ public class NavigationShareTab {
 			builder.add(sortmethod,                                                      FormLayoutUtil.flip(cc.xyw(4, 11, 3), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(ignorethewordthe),             FormLayoutUtil.flip(cc.xyw(9, 11, 4), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),            FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),                FormLayoutUtil.flip(cc.xyw(9, 13, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),       FormLayoutUtil.flip(cc.xyw(1, 13, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),          FormLayoutUtil.flip(cc.xyw(4, 13, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),           FormLayoutUtil.flip(cc.xyw(9, 13, 4), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),          FormLayoutUtil.flip(cc.xyw(1, 15, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),             FormLayoutUtil.flip(cc.xyw(4, 15, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(addVideoSuffix),			FormLayoutUtil.flip(cc.xyw(9, 15, 4), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.addSubtitlesInfo"),        FormLayoutUtil.flip(cc.xyw(1, 15, 3), colSpec, orientation));
+			builder.add(addVideoSuffix,			                                    FormLayoutUtil.flip(cc.xyw(4, 15, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),             FormLayoutUtil.flip(cc.xyw(9, 15, 4), colSpec, orientation));
 
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),         FormLayoutUtil.flip(cc.xyw(1, 17, 12), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
@@ -499,13 +501,36 @@ public class NavigationShareTab {
 		});
 
 		// Add subtitles information to video names
-		addVideoSuffix = new JCheckBox(Messages.getString("FoldTab.addSubtitlesInfo"), configuration.isShowSubsInfo());
+		final KeyedComboBoxModel<SubtitlesInfoLevel, String> videoSuffixKCBM = new KeyedComboBoxModel<>(
+			new SubtitlesInfoLevel[] {
+				SubtitlesInfoLevel.NONE,
+				SubtitlesInfoLevel.BASIC,
+				SubtitlesInfoLevel.FULL
+			},
+			new String[] {
+				Messages.getString("Generic.None"),
+				Messages.getString("Generic.Basic"),
+				Messages.getString("Generic.Full")
+			}
+		);
+
+		addVideoSuffix = new JComboBox<String>(videoSuffixKCBM);
+		addVideoSuffix.setEditable(false);
 		addVideoSuffix.setToolTipText(Messages.getString("FoldTab.addSubtitlesInfoToolTip"));
-		addVideoSuffix.setContentAreaFilled(false);
+
+		videoSuffixKCBM.setSelectedKey(configuration.getSubtitlesInfoLevel());
+
 		addVideoSuffix.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setShowSubsInfo(e.getStateChange() == ItemEvent.SELECTED);
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					LOGGER.debug(
+						"Setting \"{}\" to \"{}\"",
+						Messages.getRootString("FoldTab.addSubtitlesInfo"),
+						videoSuffixKCBM.getSelectedValue()
+					);
+					configuration.setSubtitlesInfoLevel(videoSuffixKCBM.getSelectedKey());
+				}
 			}
 		});
 

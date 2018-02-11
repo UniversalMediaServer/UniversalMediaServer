@@ -33,6 +33,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -1710,41 +1711,59 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						.append(audioLanguage).append(audioTrackTitle).append("}");
 				}
 
+				SubtitlesInfoLevel subsInfoLevel;
+				if (parent instanceof ChapterFileTranscodeVirtualFolder) {
+					subsInfoLevel = SubtitlesInfoLevel.NONE;
+				} else if (parent instanceof FileTranscodeVirtualFolder) {
+					subsInfoLevel = SubtitlesInfoLevel.FULL;
+				} else {
+					subsInfoLevel = configuration.getSubtitlesInfoLevel();
+				}
 				if (
 					media_subtitle != null &&
 					media_subtitle.getId() != DLNAMediaLang.DUMMY_ID &&
-					configuration.isShowSubsInfo()
+					subsInfoLevel != SubtitlesInfoLevel.NONE
 				) {
 					if (nameSuffixBuilder.length() > 0) {
 						nameSuffixBuilder.append(" ");
 					}
 					nameSuffixBuilder.append("{");
-					if (subsAreValidForStreaming) {
-						nameSuffixBuilder.append(Messages.getString("DLNAResource.3")).append(" ");
-					}
-
-					if (media_subtitle.isExternal()) {
-						nameSuffixBuilder.append(Messages.getString("SubTitles.ExternalShort")).append(" ");
-					} else if (media_subtitle.isEmbedded()) {
-						nameSuffixBuilder.append(Messages.getString("SubTitles.InternalShort")).append(" ");
-					}
-					nameSuffixBuilder.append(Messages.getString("DLNAResource.2"));
-					nameSuffixBuilder.append(media_subtitle.getType().getShortName()).append("/");
-
 					String subtitleLanguage = media_subtitle.getLangFullName();
-					if ("Undetermined".equals(subtitleLanguage)) {
-						nameSuffixBuilder.append(Messages.getString("SubTitles.UnknownShort"));
-					} else {
-						nameSuffixBuilder.append(subtitleLanguage);
-					}
+					if (subsInfoLevel == SubtitlesInfoLevel.BASIC) {
+						if ("Undetermined".equals(subtitleLanguage)) {
+							nameSuffixBuilder.append(Messages.getString("Generic.Unknown"));
+						} else {
+							nameSuffixBuilder.append(subtitleLanguage);
+						}
+						nameSuffixBuilder.append(" ").append(Messages.getString("Subtitles.LowerCase"));
+					} else if (subsInfoLevel == SubtitlesInfoLevel.FULL) {
+						if (subsAreValidForStreaming) {
+							nameSuffixBuilder.append(Messages.getString("DLNAResource.3")).append(" ");
+						}
 
-					if (
-						renderer != null &&
-						media_subtitle.getSubtitlesTrackTitleFromMetadata() != null &&
-						isNotBlank(media_subtitle.getSubtitlesTrackTitleFromMetadata()) &&
-						renderer.isShowSubMetadata()
-					) {
-						nameSuffixBuilder.append(" (").append(media_subtitle.getSubtitlesTrackTitleFromMetadata()).append(")");
+						if (media_subtitle.isExternal()) {
+							nameSuffixBuilder.append(Messages.getString("Subtitles.ExternalShort")).append(" ");
+						} else if (media_subtitle.isEmbedded()) {
+							nameSuffixBuilder.append(Messages.getString("Subtitles.InternalShort")).append(" ");
+						}
+						nameSuffixBuilder.append(Messages.getString("DLNAResource.2"));
+						nameSuffixBuilder.append(media_subtitle.getType().getShortName()).append("/");
+
+						if ("Undetermined".equals(subtitleLanguage)) {
+							nameSuffixBuilder.append(Messages.getString("Subtitles.UnknownShort"));
+						} else {
+							nameSuffixBuilder.append(subtitleLanguage);
+						}
+
+						if (
+							renderer != null &&
+							media_subtitle.getSubtitlesTrackTitleFromMetadata() != null &&
+							isNotBlank(media_subtitle.getSubtitlesTrackTitleFromMetadata()) &&
+							renderer.isShowSubMetadata()
+						) {
+							nameSuffixBuilder
+								.append(" (").append(media_subtitle.getSubtitlesTrackTitleFromMetadata()).append(")");
+						}
 					}
 					nameSuffixBuilder.append("}");
 				}

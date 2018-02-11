@@ -18,6 +18,7 @@
  */
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
@@ -174,7 +175,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
 	protected static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
 	/**
-	 * @deprecated, replaced by {@link #KEY_SHOW_SUBS_INFO}
+	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
 	 */
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
@@ -277,7 +278,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SERVER_PORT = "port";
 	protected static final String KEY_SHARES = "shares";
 	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
-	protected static final String KEY_SHOW_SUBS_INFO = "show_subs_info";
+	protected static final String KEY_SUBS_INFO_LEVEL = "subs_info_level";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	protected static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
@@ -413,7 +414,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 			KEY_SHOW_SERVER_SETTINGS_FOLDER,
 			KEY_SHOW_TRANSCODE_FOLDER,
-			KEY_SHOW_SUBS_INFO,
+			KEY_SUBS_INFO_LEVEL,
 			KEY_SORT_METHOD,
 			KEY_USE_CACHE
 		)
@@ -2409,16 +2410,17 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return {@code true} if subtitles information should be added to video
 	 *         names, {@code false} otherwise.
 	 */
-	public boolean isShowSubsInfo() {
-		Boolean value = configuration.getBoolean(KEY_SHOW_SUBS_INFO, null);
-		if (value == null) {
-			// Check old parameter for backwards compatibility
-			value = configuration.getBoolean(KEY_HIDE_SUBS_INFO, null);
-			if (value != null) {
-				return !value.booleanValue();
-			}
+	public SubtitlesInfoLevel getSubtitlesInfoLevel() {
+		SubtitlesInfoLevel subtitlesInfoLevel = SubtitlesInfoLevel.typeOf(getString(KEY_SUBS_INFO_LEVEL, null));
+		if (subtitlesInfoLevel != null) {
+			return subtitlesInfoLevel;
 		}
-		return value == null ? true : value.booleanValue();
+		// Check the old parameter for backwards compatibility
+		Boolean value = configuration.getBoolean(KEY_HIDE_SUBS_INFO, null);
+		if (value != null) {
+			return value.booleanValue() ? SubtitlesInfoLevel.NONE : SubtitlesInfoLevel.FULL;
+		}
+		return SubtitlesInfoLevel.BASIC; // Default
 	}
 
 	/**
@@ -2426,8 +2428,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *
 	 * @param value whether or not subtitles information should be added.
 	 */
-	public void setShowSubsInfo(boolean value) {
-		configuration.setProperty(KEY_SHOW_SUBS_INFO, value);
+	public void setSubtitlesInfoLevel(SubtitlesInfoLevel value) {
+		configuration.setProperty(KEY_SUBS_INFO_LEVEL, value == null ? "" : value.toString());
 	}
 
 	public boolean isHideExtensions() {
@@ -4050,5 +4052,66 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getAliveDelay() {
 		return getInt(KEY_ALIVE_DELAY, 0);
+	}
+
+	/**
+	 * This {@code enum} represents the available "levels" for subtitles
+	 * information display that is to be appended to the video name.
+	 */
+	public static enum SubtitlesInfoLevel {
+
+		/** Don't show subtitles information */
+		NONE,
+
+		/** Show only basic subtitles information */
+		BASIC,
+
+		/** Show full subtitles information */
+		FULL;
+
+		@Override
+		public String toString() {
+			switch (this) {
+				case BASIC:
+					return "basic";
+				case FULL:
+					return "full";
+				case NONE:
+					return "none";
+				default:
+					throw new AssertionError("Missing implementation of SubtitlesInfoLevel \"" + name() + "\"");
+			}
+		}
+
+		/**
+		 * Tries to parse the specified {@link String} and return the
+		 * corresponding {@link SubtitlesInfoLevel}.
+		 *
+		 * @param infoLevelString the {@link String} to parse.
+		 * @return The corresponding {@link SubtitlesInfoLevel} or {@code null}
+		 *         if the parsing failed.
+		 */
+		public static SubtitlesInfoLevel typeOf(String infoLevelString) {
+			if (isBlank(infoLevelString)) {
+				return null;
+			}
+			infoLevelString = infoLevelString.trim().toLowerCase(Locale.ROOT);
+			switch (infoLevelString) {
+				case "off":
+				case "none":
+				case "0":
+					return NONE;
+				case "basic":
+				case "simple":
+				case "1":
+					return BASIC;
+				case "full":
+				case "advanced":
+				case "2":
+					return FULL;
+				default:
+					return null;
+			}
+		}
 	}
 }
