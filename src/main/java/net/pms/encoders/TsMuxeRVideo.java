@@ -652,14 +652,15 @@ public class TsMuxeRVideo extends Player {
 					
 					int fontSize = (int) (15 * Double.parseDouble(configuration.getAssScale())); // We don't know how TSmuxeR calculate the font size so thich should be udjusted
 					argument.append(",font-size=").append(fontSize)
-						.append(",font-color=").append(configuration.getSubsColor().getASSv4StylesHexValue())
+						.append(",font-color=").append(configuration.getSubsColor().getFFmpegHexValue())
 						.append(",bottom-offset=").append(configuration.getAssMargin())
 						.append(",font-border=").append(configuration.getAssOutline())
-						.append(",text-align=center,video-width=").append(media.getWidth())
+						.append(",text-align=center")
+						.append(",video-width=").append(media.getWidth())
 						.append(",video-height=").append(media.getHeight())
 						.append(",fps=").append(media.getBitrate());
-					if (params.sid.getLang() != DLNAMediaLang.UND) {
-						argument.append(",lang=").append(params.sid.getLang());
+					if (subs.getLang() != DLNAMediaLang.UND) {
+						argument.append(",lang=").append(subs.getLang());
 					}
 				
 					pw.println(argument);
