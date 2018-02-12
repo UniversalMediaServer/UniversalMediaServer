@@ -897,7 +897,7 @@ public class FFMpegVideo extends Player {
 					!params.sid.getType().equals(SubtitleType.PGS)
 			) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "we need to burn subtitles because only SUBRIP and PGS are supported.");
+				LOGGER.trace(prependTraceReason + "there are external subtitles but only SUBRIP and PGS types are supported.");
 			}
 			if (deferToTsmuxer == true && avisynth()) {
 				deferToTsmuxer = false;
