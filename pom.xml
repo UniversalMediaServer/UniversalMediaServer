@@ -84,9 +84,9 @@
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
 		<binary-revision>67</binary-revision>
 
-		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
+		<maven-javadoc-plugin-version>3.0.0</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
+		<maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -97,7 +97,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<logback-version>1.2.3</logback-version>
-		<surefire-version>2.20</surefire-version>
+		<surefire-version>2.20.1</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -734,7 +734,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>1.4.1</version>
+				<version>3.0.0-M1</version>
 				<executions>
 					<execution>
 						<id>enforce</id>
@@ -780,7 +780,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.7.0</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -869,12 +869,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.6</version>
+				<version>3.7</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
 						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.7</version>
+						<version>1.8</version>
 					</dependency>
 				</dependencies>
 			</plugin>
