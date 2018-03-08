@@ -468,10 +468,16 @@ public class FFMpegVideo extends Player {
 				defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 			}
 
+			// limit the max bitrate to the total peak 10.08 Mbit/s to be in accordance with the MPEG-2 specifications
+			// when video is converted to MPEG-2 to avoid the FFMpeg to warn the "packet too large, ignoring buffer limits to mux it"
+			if (dlna.getDefaultRenderer().isTranscodeToMPEG2() && defaultMaxBitrates[0] > 10080) {
+				defaultMaxBitrates[0] = 10080;
+			}			
+
 			if (params.mediaRenderer.isHalveBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
-			}
+			}			
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
