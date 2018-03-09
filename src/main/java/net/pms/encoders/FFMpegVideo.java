@@ -472,7 +472,11 @@ public class FFMpegVideo extends Player {
 			// when video is converted to MPEG-2 to avoid the FFMpeg to warn the "packet too large, ignoring buffer limits to mux it"
 			if (dlna.getDefaultRenderer().isTranscodeToMPEG2() && defaultMaxBitrates[0] > 10080) {
 				defaultMaxBitrates[0] = 10080;
-			}			
+				LOGGER.trace(
+						"Set the video bitrate limit to {} kb/s to not exceed the MPEG-2 specification",
+						defaultMaxBitrates[0]
+					);
+			}
 
 			if (params.mediaRenderer.isHalveBitrate()) {
 				defaultMaxBitrates[0] /= 2;
