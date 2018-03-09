@@ -550,11 +550,6 @@ public class FFMpegVideo extends Player {
 			if (!dlna.getDefaultRenderer().isTranscodeToMPEG2()) {
 				videoBitrateOptions.add("-bufsize");
 				videoBitrateOptions.add(String.valueOf(bufSize) + "k");
-
-				if (defaultMaxBitrates[0] > 0) {
-					videoBitrateOptions.add("-maxrate");
-					videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]) + "k");
-				}
 			}
 			
 		}
