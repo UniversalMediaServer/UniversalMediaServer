@@ -446,7 +446,7 @@ public class FFMpegVideo extends Player {
 				rendererMaxBitrates[0],
 				defaultMaxBitrates[0]
 			);
-			defaultMaxBitrates = rendererMaxBitrates;
+			defaultMaxBitrates = rendererMaxBitrates.clone();
 		} else {
 			LOGGER.trace(
 				"Using video bitrate limit from the general configuration ({} Mb/s)",
@@ -542,13 +542,21 @@ public class FFMpegVideo extends Player {
 				);
 			}
 
-			videoBitrateOptions.add("-bufsize");
-			videoBitrateOptions.add(String.valueOf(bufSize) + "k");
-
 			if (defaultMaxBitrates[0] > 0) {
 				videoBitrateOptions.add("-maxrate");
 				videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]) + "k");
 			}
+
+			if (!dlna.getDefaultRenderer().isTranscodeToMPEG2()) {
+				videoBitrateOptions.add("-bufsize");
+				videoBitrateOptions.add(String.valueOf(bufSize) + "k");
+
+				if (defaultMaxBitrates[0] > 0) {
+					videoBitrateOptions.add("-maxrate");
+					videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]) + "k");
+				}
+			}
+			
 		}
 
 		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
@@ -559,7 +567,7 @@ public class FFMpegVideo extends Player {
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
-			} else if (mpeg2Options.contains("Automatic")) {
+			} else if (mpeg2Options.contains("Automatic") && !dlna.getDefaultRenderer().isTranscodeToMPEG2()) {
 				boolean isWireless = mpeg2Options.contains("Wireless");
 				mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
@@ -577,8 +585,11 @@ public class FFMpegVideo extends Player {
 					}
 				}
 			}
-			String[] customOptions = StringUtils.split(mpeg2Options);
-			videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+			if (!dlna.getDefaultRenderer().isTranscodeToMPEG2()) {
+				String[] customOptions = StringUtils.split(mpeg2Options);
+				videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+			}
+			
 		} else {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
