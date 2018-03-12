@@ -300,7 +300,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				// Add a no-transcode entry for each streamable external subtitles
 				for (DLNAMediaSubtitle subtitlesTrack : subtitlesTracks) {
 					if (
-						subtitlesTrack.isExternal() &&
+						subtitlesTrack != null && subtitlesTrack.isExternal() &&
 						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, child.getMedia())
 					) {
 						DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, singleAudioTrack, subtitlesTrack, null);
