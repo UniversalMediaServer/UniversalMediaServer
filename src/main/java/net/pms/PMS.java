@@ -1907,6 +1907,9 @@ public class PMS {
 	private CredMgr credMgr;
 
 	public static CredMgr.Credential getCred(String owner) {
+		if (instance == null || instance.credMgr == null) {
+			return null;
+		}
 		return instance.credMgr.getCred(owner);
 	}
 
