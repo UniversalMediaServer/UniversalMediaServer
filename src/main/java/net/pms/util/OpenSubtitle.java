@@ -1087,7 +1087,7 @@ public class OpenSubtitle {
 				}
 			}
 			return results;
-		} catch (IOException e) {
+		} catch (IOException | RuntimeException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles file hash query results for \"{}\": {}",
 				resource.getName(),
@@ -1182,7 +1182,7 @@ public class OpenSubtitle {
 				}
 			}
 			return results;
-		} catch (IOException e) {
+		} catch (IOException | RuntimeException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles IMDB ID query results for \"{}\": {}",
 				resource.getName(),
@@ -1301,7 +1301,7 @@ public class OpenSubtitle {
 				}
 			}
 			return results;
-		} catch (IOException e) {
+		} catch (IOException | RuntimeException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles filename query results for \"{}\": {}",
 				resource.getName(),
@@ -3308,13 +3308,17 @@ public class OpenSubtitle {
 
 			long lastTS;
 			String lastTSString = getString(structNode, "SubLastTS", stringExpression, resolver);
-			try {
-				lastTS = new SimpleDateFormat("HH:mm:ss").parse(lastTSString).getTime();
-			} catch (java.text.ParseException e) {
+			if (isBlank(lastTSString)) {
+				lastTS = -1;
+			} else {
 				try {
-					lastTS = Long.parseLong(lastTSString);
-				} catch (NumberFormatException nfe) {
-					lastTS = -1;
+					lastTS = new SimpleDateFormat("HH:mm:ss").parse(lastTSString).getTime();
+				} catch (java.text.ParseException e) {
+					try {
+						lastTS = Long.parseLong(lastTSString);
+					} catch (NumberFormatException nfe) {
+						lastTS = -1;
+					}
 				}
 			}
 			return new SubtitleItem(
