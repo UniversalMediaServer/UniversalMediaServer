@@ -1423,6 +1423,7 @@ public class OpenSubtitle {
 		if (movieGuess != null) {
 			VideoClassification classification;
 			if (
+				movieGuess.getGuessIt() != null &&
 				movieGuess.getGuessIt().getType() != null &&
 				movieGuess.getGuessIt().getType() != prettifier.getClassification()
 			) {
@@ -2675,7 +2676,7 @@ public class OpenSubtitle {
 		}
 
 		/**
-		 * @return The {@link GuessIt}.
+		 * @return The {@link GuessIt} or {@code null}.
 		 */
 		public GuessIt getGuessIt() {
 			return guessIt;
@@ -2698,7 +2699,7 @@ public class OpenSubtitle {
 
 
 		/**
-		 * @return The {@link BestGuess}.
+		 * @return The {@link BestGuess} or {@code null}.
 		 */
 		public BestGuess getBestGuess() {
 			return bestGuess;
@@ -3265,6 +3266,184 @@ public class OpenSubtitle {
 			addFieldToStringBuilder(first, sb, "SubDownloadLink", subDownloadLink, true, true, true);
 			sb.append("]");
 			return sb.toString();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((idMovieImdb == null) ? 0 : idMovieImdb.hashCode());
+			result = prime * result + ((idSubtitle == null) ? 0 : idSubtitle.hashCode());
+			result = prime * result + ((idSubtitleFile == null) ? 0 : idSubtitleFile.hashCode());
+			result = prime * result + ((languageCode == null) ? 0 : languageCode.hashCode());
+			result = prime * result + ((matchedBy == null) ? 0 : matchedBy.hashCode());
+			result = prime * result + ((movieFPS == null) ? 0 : movieFPS.hashCode());
+			result = prime * result + ((movieKind == null) ? 0 : movieKind.hashCode());
+			result = prime * result + ((movieName == null) ? 0 : movieName.hashCode());
+			result = prime * result + ((movieNameEng == null) ? 0 : movieNameEng.hashCode());
+			result = prime * result + movieYear;
+			long temp;
+			temp = Double.doubleToLongBits(openSubtitlesScore);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(score);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			result = prime * result + seriesEpisode;
+			result = prime * result + seriesSeason;
+			result = prime * result + (subBad ? 1231 : 1237);
+			result = prime * result + ((subDownloadLink == null) ? 0 : subDownloadLink.hashCode());
+			result = prime * result + subDownloadsCnt;
+			result = prime * result + ((subEncoding == null) ? 0 : subEncoding.hashCode());
+			result = prime * result + ((subFileName == null) ? 0 : subFileName.hashCode());
+			result = prime * result + (subFromTrusted ? 1231 : 1237);
+			result = prime * result + ((subHash == null) ? 0 : subHash.hashCode());
+			result = prime * result + (int) (subLastTS ^ (subLastTS >>> 32));
+			temp = Double.doubleToLongBits(subRating);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			result = prime * result + ((subtitleType == null) ? 0 : subtitleType.hashCode());
+			result = prime * result + ((userRank == null) ? 0 : userRank.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof SubtitleItem)) {
+				return false;
+			}
+			SubtitleItem other = (SubtitleItem) obj;
+			if (idMovieImdb == null) {
+				if (other.idMovieImdb != null) {
+					return false;
+				}
+			} else if (!idMovieImdb.equals(other.idMovieImdb)) {
+				return false;
+			}
+			if (idSubtitle == null) {
+				if (other.idSubtitle != null) {
+					return false;
+				}
+			} else if (!idSubtitle.equals(other.idSubtitle)) {
+				return false;
+			}
+			if (idSubtitleFile == null) {
+				if (other.idSubtitleFile != null) {
+					return false;
+				}
+			} else if (!idSubtitleFile.equals(other.idSubtitleFile)) {
+				return false;
+			}
+			if (languageCode == null) {
+				if (other.languageCode != null) {
+					return false;
+				}
+			} else if (!languageCode.equals(other.languageCode)) {
+				return false;
+			}
+			if (matchedBy == null) {
+				if (other.matchedBy != null) {
+					return false;
+				}
+			} else if (!matchedBy.equals(other.matchedBy)) {
+				return false;
+			}
+			if (movieFPS == null) {
+				if (other.movieFPS != null) {
+					return false;
+				}
+			} else if (!movieFPS.equals(other.movieFPS)) {
+				return false;
+			}
+			if (movieKind != other.movieKind) {
+				return false;
+			}
+			if (movieName == null) {
+				if (other.movieName != null) {
+					return false;
+				}
+			} else if (!movieName.equals(other.movieName)) {
+				return false;
+			}
+			if (movieNameEng == null) {
+				if (other.movieNameEng != null) {
+					return false;
+				}
+			} else if (!movieNameEng.equals(other.movieNameEng)) {
+				return false;
+			}
+			if (movieYear != other.movieYear) {
+				return false;
+			}
+			if (Double.doubleToLongBits(openSubtitlesScore) != Double.doubleToLongBits(other.openSubtitlesScore)) {
+				return false;
+			}
+			if (Double.doubleToLongBits(score) != Double.doubleToLongBits(other.score)) {
+				return false;
+			}
+			if (seriesEpisode != other.seriesEpisode) {
+				return false;
+			}
+			if (seriesSeason != other.seriesSeason) {
+				return false;
+			}
+			if (subBad != other.subBad) {
+				return false;
+			}
+			if (subDownloadLink == null) {
+				if (other.subDownloadLink != null) {
+					return false;
+				}
+			} else if (!subDownloadLink.equals(other.subDownloadLink)) {
+				return false;
+			}
+			if (subDownloadsCnt != other.subDownloadsCnt) {
+				return false;
+			}
+			if (subEncoding == null) {
+				if (other.subEncoding != null) {
+					return false;
+				}
+			} else if (!subEncoding.equals(other.subEncoding)) {
+				return false;
+			}
+			if (subFileName == null) {
+				if (other.subFileName != null) {
+					return false;
+				}
+			} else if (!subFileName.equals(other.subFileName)) {
+				return false;
+			}
+			if (subFromTrusted != other.subFromTrusted) {
+				return false;
+			}
+			if (subHash == null) {
+				if (other.subHash != null) {
+					return false;
+				}
+			} else if (!subHash.equals(other.subHash)) {
+				return false;
+			}
+			if (subLastTS != other.subLastTS) {
+				return false;
+			}
+			if (Double.doubleToLongBits(subRating) != Double.doubleToLongBits(other.subRating)) {
+				return false;
+			}
+			if (subtitleType != other.subtitleType) {
+				return false;
+			}
+			if (userRank == null) {
+				if (other.userRank != null) {
+					return false;
+				}
+			} else if (!userRank.equals(other.userRank)) {
+				return false;
+			}
+			return true;
 		}
 
 		/**

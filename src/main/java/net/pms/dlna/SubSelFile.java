@@ -126,7 +126,7 @@ public class SubSelFile extends VirtualFolder {
 				if (languageCode == null) {
 					languageCode = subtitle.getLanguageCode();
 					languagePreference = languages.size() * 30;
-				} else if (languageCode != subtitle.getLanguageCode()) {
+				} else if (!languageCode.equals(subtitle.getLanguageCode())) {
 					languageCode = subtitle.getLanguageCode();
 					languagePreference -= 30;
 				}
@@ -216,14 +216,18 @@ public class SubSelFile extends VirtualFolder {
 				return 1;
 			}
 			// Compare subtitle rating
-			if (Double.isNaN(o1.getSubRating()) || Double.compare(o1.getSubRating(), 0.0) < 0) {
-				if (!Double.isNaN(o2.getSubRating()) && Double.compare(o2.getSubRating(), 0.0) >= 0) {
-					return 1;
-				}
-			} else if (Double.isNaN(o2.getSubRating()) || Double.compare(o2.getSubRating(), 0.0) < 0) {
-				return -1;
-			} else {
-				return (int) (o2.getOpenSubtitlesScore() - o1.getOpenSubtitlesScore());
+			double o1Value = Double.isNaN(o1.getSubRating()) ? 0.0 : o1.getSubRating();
+			double o2Value = Double.isNaN(o2.getSubRating()) ? 0.0 : o2.getSubRating();
+			int result = Double.compare(o1Value, o2Value);
+			if (result != 0) {
+				return result;
+			}
+			// Compare OpenSubtitles rating
+			o1Value = Double.isNaN(o1.getOpenSubtitlesScore()) ? 0.0 : o1.getOpenSubtitlesScore();
+			o2Value = Double.isNaN(o2.getOpenSubtitlesScore()) ? 0.0 : o2.getOpenSubtitlesScore();
+			result = Double.compare(o1Value, o2Value);
+			if (result != 0) {
+				return result;
 			}
 			// This will probably never happen, but if everything else is equal use the fractional score value
 			return (int) Math.signum(o2.getScore() - o1.getScore());
@@ -251,7 +255,64 @@ public class SubSelFile extends VirtualFolder {
 
 		@Override
 		public int compareTo(LanguageRankedItem o) {
-			return (int) (score - o.score);
+			if (score == null || score.isNaN()) {
+				if (o.score != null && !o.score.isNaN()) {
+					return 1;
+				}
+			} else if (o.score == null || o.score.isNaN()) {
+				return -1;
+			} else {
+				int result = score.compareTo(o.score);
+				if (result != 0) {
+					return result;
+				}
+			}
+			if (subtitleItem == null) {
+				if (o.subtitleItem != null) {
+					return 1;
+				}
+			} else if (o.subtitleItem == null) {
+				return -1;
+			}
+			return o.hashCode() - hashCode();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((score == null) ? 0 : score.hashCode());
+			result = prime * result + ((subtitleItem == null) ? 0 : subtitleItem.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof LanguageRankedItem)) {
+				return false;
+			}
+			LanguageRankedItem other = (LanguageRankedItem) obj;
+			if (score == null) {
+				if (other.score != null) {
+					return false;
+				}
+			} else if (!score.equals(other.score)) {
+				return false;
+			}
+			if (subtitleItem == null) {
+				if (other.subtitleItem != null) {
+					return false;
+				}
+			} else if (!subtitleItem.equals(other.subtitleItem)) {
+				return false;
+			}
+			return true;
 		}
 	}
 }
