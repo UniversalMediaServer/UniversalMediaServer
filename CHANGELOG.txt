@@ -1,12 +1,46 @@
-7.0.0 - 2018-03-?? - Changes since 7.0.0-rc1
+7.0.0 - 2018-03-?? - Changes since 6.8.0
 
 	General:
+		Added "TV Shows", "Movies", "3D Movies", and "Unsorted" folders to the "Media Library" folder
+		Added right-click menu to navigation pane
+		Renamed "Cache" folder to "Media Library" folder and enabled it by default
+		Changed "Hide" options to "Show", e.g. "Hide Media Library folder" becomes "Show Media Library folder"
+		When a file is added/changed/removed in a shared folder, UMS detects it
+		Fully played tracking is stored in the SQL database
+		Shared folders are scanned for changes on startup (configurable)
+		Made folder scanning up to 10x faster
+		Made Media Library browsing faster
+		Gave folder scanning a lower priority than other UMS functions to make them work more smoothly
+		Fixed some bugs related to sending media metadata (org_pn) to renderers
+		Fixed bug where removing a directory in UMS does not remove its contents from the Media Library.
+		Fixed sorting in dynamic folders
+		Reduced lookups and bandwidth to OpenSubtitles
+		Fixed MusicBrainz bugs
+		Fixed many other bugs
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added Samsung 8 Series config
+		Updated FetchTV config
+		Improved support for Samsung Galaxy S7
+
+7.0.0 - 2018-03-?? - Changes since 7.0.0-rc2
+
+	General:
+		Made folder scanning up to 10x faster
+		Made Media Library browsing faster
+		Gave folder scanning a lower priority than other UMS functions to make it work more smoothly
+		Added configuration option to toggle shared folder scanning on startup
 		Fixed "By Date" virtual folders on joined folders
 		Fixed a database initialization bug
 		Fixed order of "By date" folders, now they go from newest to oldest
 		Fixed some bugs related to sending media metadata (org_pn) to renderers
 	Languages:
 		Synchronized translations with Crowdin
+	Renderers:
+		Added Samsung 8 Series config
+		Updated FetchTV config
+		Improved support for Samsung Galaxy S7
 
 7.0.0-rc2 - 2018-01-04 - Changes since 7.0.0-rc1
 
