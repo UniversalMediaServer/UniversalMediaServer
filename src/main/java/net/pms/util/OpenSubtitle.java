@@ -1309,7 +1309,8 @@ public class OpenSubtitle {
 		Collection<? extends GuessItem> guesses,
 		FileNamePrettifier prettifier,
 		VideoClassification classification,
-		boolean bestGuess
+		boolean bestGuess,
+		Locale locale
 	) {
 		// The score calculation isn't extensively tested and might need to be tweaked
 		for (GuessItem guess : guesses) {
@@ -1317,8 +1318,17 @@ public class OpenSubtitle {
 			if (isBlank(prettifier.getName()) || isBlank(guess.getTitle())) {
 				continue;
 			}
-			score += getJaroWinklerDistance(prettifier.getName(), guess.getTitle());
+			score += getJaroWinklerDistance(
+				prettifier.getName().toLowerCase(locale),
+				guess.getTitle().toLowerCase(Locale.ENGLISH)
+			);
 			if (score < MIN_IMDB_GUESS_JW_DISTANCE) {
+				LOGGER.trace(
+					"Excluding IMDB guess because the similarity ({}) is under the threshold ({}): {}",
+					score,
+					MIN_IMDB_GUESS_JW_DISTANCE,
+					guess
+				);
 				continue;
 			}
 			if (prettifier.getYear() > 0) {
@@ -1344,32 +1354,73 @@ public class OpenSubtitle {
 	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return The IMDB ID or {@code null}.
 	 */
-	protected static String guessImdbIdByFileName(
+	public static String guessImdbIdByFileName(
 		DLNAResource resource,
 		FileNamePrettifier prettifier
 	) {
-		if (resource == null) {
+		return guessImdbIdByFileName(resource, null, prettifier);
+	}
+
+	/**
+	 * Queries OpenSubtitles for IMDB IDs matching a filename.
+	 *
+	 * @param fileName the file name for which to find the IMDB ID.
+	 * @param prettifier the {@link FileNamePrettifier} to use.
+	 * @return The IMDB ID or {@code null}.
+	 */
+	public static String guessImdbIdByFileName(
+		String fileName,
+		FileNamePrettifier prettifier
+	) {
+		return guessImdbIdByFileName(null, fileName, prettifier);
+	}
+
+	/**
+	 * Queries OpenSubtitles for IMDB IDs matching a filename. Specify
+	 * <i>either</i> {@code resource} <i>or</i> {@code fileName}. If both are
+	 * specified, only {@code resource} is used.
+	 *
+	 * @param resource the {@link DLNAResource} for which to find the IMDB ID or
+	 *            {@code null}.
+	 * @param fileName the file name for which to find the IMDB ID or
+	 *            {@code null}.
+	 * @param prettifier the {@link FileNamePrettifier} to use.
+	 * @return The IMDB ID or {@code null}.
+	 */
+	protected static String guessImdbIdByFileName(
+		DLNAResource resource,
+		String fileName,
+		FileNamePrettifier prettifier
+	) {
+		if (resource == null && isBlank(fileName)) {
 			return null;
 		}
-		String fileName;
-		if (resource instanceof RealFile) {
-			File file = ((RealFile) resource).getFile();
-			if (file == null) {
+		if (resource != null) {
+			if (resource instanceof RealFile) {
+				File file = ((RealFile) resource).getFile();
+				if (file == null) {
+					return null;
+				}
+				fileName = file.getName();
+			} else {
+				fileName = resource.getSystemName();
+			}
+			if (isBlank(fileName)) {
 				return null;
 			}
-			fileName = file.getName();
-		} else {
-			fileName = resource.getSystemName();
 		}
-		if (isBlank(fileName)) {
-			return null;
-		}
-		MethodDocument methodRequest = initializeMethod("GuessMovieFromString");
-		if (methodRequest == null) {
-			return null;
-		}
+
 		URL url = login();
 		if (url == null) {
+			LOGGER.error(
+				"Couldn't guess IMDB ID for {} since OpenSubtitles login failed",
+				resource == null ? fileName : resource.getName()
+			);
+			return null;
+		}
+
+		MethodDocument methodRequest = initializeMethod("GuessMovieFromString");
+		if (methodRequest == null) {
 			return null;
 		}
 		Document request = methodRequest.getDocument();
@@ -1401,7 +1452,7 @@ public class OpenSubtitle {
 		} catch (IOException e) {
 			LOGGER.error(
 				"An error occurred while processing OpenSubtitles GuessMovieFromString query results for \"{}\": {}",
-				resource.getName(),
+				resource == null ? fileName : resource.getName(),
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
@@ -1428,15 +1479,16 @@ public class OpenSubtitle {
 				classification = prettifier.getClassification();
 			}
 
+			Locale locale = PMS.getLocale();
 			TreeMap<Double, GuessItem> candidates = new TreeMap<>();
 			if (movieGuess.getGuessesFromString().size() > 0) {
-				addGuesses(candidates, movieGuess.getGuessesFromString().values(), prettifier, classification, false);
+				addGuesses(candidates, movieGuess.getGuessesFromString().values(), prettifier, classification, false, locale);
 			}
 			if (movieGuess.getImdbSuggestions().size() > 0) {
-				addGuesses(candidates, movieGuess.getImdbSuggestions().values(), prettifier, classification, false);
+				addGuesses(candidates, movieGuess.getImdbSuggestions().values(), prettifier, classification, false, locale);
 			}
 			if (movieGuess.getBestGuess() != null) {
-				addGuesses(candidates, Collections.singletonList(movieGuess.getBestGuess()), prettifier, classification, true);
+				addGuesses(candidates, Collections.singletonList(movieGuess.getBestGuess()), prettifier, classification, true, locale);
 			}
 			if (candidates.size() > 0) {
 				if (LOGGER.isTraceEnabled()) {
@@ -1447,20 +1499,23 @@ public class OpenSubtitle {
 					}
 					LOGGER.trace(
 						"guessImdbIdByFileName candidates for \"{}\":\n{}",
-						resource.getName(),
+						resource == null ? fileName : resource.getName(),
 						sb.toString()
 					);
 				}
 				LOGGER.debug(
 					"guessImdbIdByFileName() picked {} as the most likely candidate for \"{}\"",
 					candidates.lastEntry().getValue(),
-					resource.getName()
+					resource == null ? fileName : resource.getName()
 				);
 				return candidates.lastEntry().getValue().getImdbId();
 			}
 		}
 
-		LOGGER.debug("guessImdbIdByFileName() failed to find a candidate for \"{}\"", resource.getName());
+		LOGGER.debug(
+			"guessImdbIdByFileName() failed to find a candidate for \"{}\"",
+			resource == null ? fileName : resource.getName()
+		);
 		return null;
 	}
 
@@ -2947,23 +3002,27 @@ public class OpenSubtitle {
 				}
 			}
 			if (prettifier != null) {
+				Locale locale = PMS.getLocale();
 				if (isNotBlank(prettifier.getFileNameWithoutExtension())) {
 					String subFileNameWithoutExtension = FileUtil.getFileNameWithoutExtension(subFileName);
 					if (isNotBlank(subFileNameWithoutExtension)) {
 						// 0.6 and below gives a score of 0, 1.0 give a score of 40.
-						tmpScore += 40d * 2.5 * Math.max(
-							getJaroWinklerDistance(prettifier.getFileNameWithoutExtension(), subFileNameWithoutExtension) - 0.6,
-							0
-						);
+						tmpScore += 40d * 2.5 * Math.max(getJaroWinklerDistance(
+							prettifier.getFileNameWithoutExtension().toLowerCase(locale),
+							subFileNameWithoutExtension.toLowerCase(Locale.ENGLISH)
+						) - 0.6, 0);
 					}
 				}
 				if (isNotBlank(prettifier.getName()) && (isNotBlank(movieName) || isNotBlank(movieNameEng))) {
 					double nameScore = isBlank(movieName) ?
 						0.0 :
-						getJaroWinklerDistance(prettifier.getName(), movieName);
+						getJaroWinklerDistance(prettifier.getName().toLowerCase(locale), movieName.toLowerCase(locale));
 					nameScore = Math.max(
 						nameScore,
-						isBlank(movieNameEng) ? 0.0 : getJaroWinklerDistance(prettifier.getName(), movieNameEng)
+						isBlank(movieNameEng) ? 0.0 : getJaroWinklerDistance(
+							prettifier.getName().toLowerCase(Locale.ENGLISH),
+							movieNameEng.toLowerCase(Locale.ENGLISH)
+						)
 					);
 					// 0.5 and below gives a score of 0, 1 give a score of 30
 					tmpScore += 30d * 2 * Math.max(nameScore - 0.5, 0);
