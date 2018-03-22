@@ -22,6 +22,7 @@ package net.pms.util;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import java.io.File;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,7 +98,7 @@ public class FileNamePrettifier {
 
 	private final String fileName;
 	private final String fileNameWithoutExtension;
-	private final Locale locale = PMS.getLocale();
+	private final Locale locale;
 	private VideoClassification classification;
 	private String name;
 	private int year = -1;
@@ -107,9 +108,9 @@ public class FileNamePrettifier {
 	private String episodeName;
 
 	/**
-	 * Create a new instance for the specified {@link DLNAResource}.
+	 * Creates a new instance for the specified {@link DLNAResource}.
 	 *
-	 * @param resource The {@link DLNAResource} whose name to prettify.
+	 * @param resource the {@link DLNAResource} whose name to prettify.
 	 */
 	public FileNamePrettifier(DLNAResource resource) {
 		if (resource == null) {
@@ -127,6 +128,58 @@ public class FileNamePrettifier {
 		}
 		fileName = tmpName;
 		fileNameWithoutExtension = FileUtil.getFileNameWithoutExtension(tmpName);
+		locale = PMS.getLocale();
+		parse();
+	}
+
+	/**
+	 * Creates a new instance for the specified {@link File}.
+	 * {@link Locale#ROOT} is used for case conversion.
+	 *
+	 * @param file the {@link File} whose name to prettify.
+	 */
+	public FileNamePrettifier(File file) {
+		this(file.getName(), null);
+	}
+
+	/**
+	 * Creates a new instance for the specified {@link File}.
+	 *
+	 * @param file the {@link File} whose name to prettify.
+	 * @param locale the {@link Locale} to use for case conversion or
+	 *            {@code null} for {@link Locale#ROOT}.
+	 */
+	public FileNamePrettifier(File file, Locale locale) {
+		this(file.getName(), locale);
+	}
+
+	/**
+	 * Creates a new instance with the specified {@link String}.
+	 * {@link Locale#ROOT} is used for case conversion.
+	 *
+	 * @param fileName the {@link String} to prettify.
+	 */
+	public FileNamePrettifier(String fileName) {
+		this(fileName, null);
+	}
+
+	/**
+	 * Creates a new instance with the specified {@link String}.
+	 *
+	 * @param fileName the {@link String} to prettify.
+	 * @param locale the {@link Locale} to use for case conversion or
+	 *            {@code null} for {@link Locale#ROOT}.
+	 */
+	public FileNamePrettifier(String fileName, Locale locale) {
+		if (fileName == null) {
+			throw new IllegalArgumentException("fileName cannot be null");
+		}
+		if (locale == null) {
+			locale = Locale.ROOT;
+		}
+		this.fileName = fileName;
+		this.fileNameWithoutExtension = FileUtil.getFileNameWithoutExtension(fileName);
+		this.locale = locale;
 		parse();
 	}
 
