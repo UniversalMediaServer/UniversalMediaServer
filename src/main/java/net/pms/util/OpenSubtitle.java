@@ -81,7 +81,6 @@ public class OpenSubtitle {
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread("OpenSubtitles Executor Shutdown Hook") {
-
 			@Override
 			public void run() {
 				backgroundExecutor.shutdownNow();
@@ -97,15 +96,11 @@ public class OpenSubtitle {
 		long size = file.length();
 		long chunkSizeForFile = Math.min(HASH_CHUNK_SIZE, size);
 
-		FileChannel fileChannel = new FileInputStream(file).getChannel();
-
-		try {
+		try (FileChannel fileChannel = new FileInputStream(file).getChannel()) {
 			long head = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, 0, chunkSizeForFile));
 			long tail = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, Math.max(size - HASH_CHUNK_SIZE, 0), chunkSizeForFile));
 
 			return String.format("%016x", size + head + tail);
-		} finally {
-			fileChannel.close();
 		}
 	}
 
