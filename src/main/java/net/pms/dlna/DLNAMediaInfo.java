@@ -1242,7 +1242,15 @@ public class DLNAMediaInfo implements Cloneable {
 						while (st.hasMoreTokens()) {
 							String token = st.nextToken().trim();
 							if (token.startsWith("Stream")) {
-								audio.setCodecA(token.substring(token.indexOf("Audio: ") + 7));
+								int offset = token.indexOf("Audio: ") + 7;
+								String codec;
+								if (token.indexOf(" ", offset) != -1) {
+									codec = token.substring(offset, token.indexOf(" ", offset)).trim();
+								} else {
+									codec = token.substring(offset).trim();
+								}
+								
+								audio.setCodecA(codec);
 							} else if (token.endsWith("Hz")) {
 								audio.setSampleFrequency(token.substring(0, token.indexOf("Hz")).trim());
 							} else if (token.equals("mono")) {
