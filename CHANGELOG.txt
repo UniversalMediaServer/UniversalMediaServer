@@ -1,4 +1,4 @@
-7.0.0 - 2018-03-?? - Changes since 6.8.0
+7.0.0 - 2018-03-27 - Changes since 6.8.0
 
 	General:
 		Added "TV Shows", "Movies", "3D Movies", and "Unsorted" folders to the "Media Library" folder
@@ -24,7 +24,7 @@
 		Updated FetchTV config
 		Improved support for Samsung Galaxy S7
 
-7.0.0 - 2018-03-?? - Changes since 7.0.0-rc2
+7.0.0 - 2018-03-27 - Changes since 7.0.0-rc2
 
 	General:
 		Made folder scanning up to 10x faster
