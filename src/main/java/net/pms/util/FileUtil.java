@@ -456,7 +456,7 @@ public class FileUtil {
 			return fileName;
 		}
 		int point = fileName.lastIndexOf('.');
-		if (point == -1) {
+		if (point == -1 || getIndexOfLastSeparator(fileName) > point) {
 			return fileName;
 		}
 		return fileName.substring(0, point);
