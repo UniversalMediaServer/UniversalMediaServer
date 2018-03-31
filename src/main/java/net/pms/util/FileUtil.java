@@ -417,14 +417,52 @@ public class FileUtil {
 		return extension;
 	}
 
-	public static String getFileNameWithoutExtension(String f) {
-		int point = f.lastIndexOf('.');
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param file the {@link File}.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(File file) {
+		if (file == null) {
+			return null;
+		}
+		return getFileNameWithoutExtension(file.getName());
+	}
 
-		if (point == -1) {
-			point = f.length();
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param file the {@link Path}.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(Path file) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return getFileNameWithoutExtension(fileName.toString());
+	}
+
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param fileName the filename.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(String fileName) {
+		if (isBlank(fileName)) {
+			return fileName;
+		}
+		int point = fileName.lastIndexOf('.');
+		if (point == -1 || getIndexOfLastSeparator(fileName) > point) {
+			return fileName;
 		}
 
-		return f.substring(0, point);
+		return fileName.substring(0, point);
 	}
 
 	private static final class FormattedNameAndEdition {

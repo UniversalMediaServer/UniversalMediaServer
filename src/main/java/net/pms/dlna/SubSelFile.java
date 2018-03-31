@@ -39,30 +39,39 @@ public class SubSelFile extends VirtualFolder {
 
 	@Override
 	public void discoverChildren() {
-		ArrayList<SubtitleItem> subtitleItems = OpenSubtitle.findSubtitles(originalResource, getDefaultRenderer());
-		if (subtitleItems == null || subtitleItems.isEmpty()) {
-			return;
-		}
-		Collections.sort(subtitleItems, new SubSort(getDefaultRenderer()));
-		reduceSubtitles(subtitleItems, configuration.getLiveSubtitlesLimit());
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(
-				"Discovery of OpenSubtitles subtitles for \"{}\" resulted in the following after sorting and reduction:\n{}",
-				getName(),
-				OpenSubtitle.toLogString(subtitleItems, 2)
-			);
-		}
-		for (SubtitleItem subtitleItem : subtitleItems) {
-			LOGGER.debug("Adding live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
-			DLNAMediaOpenSubtitle subtitle = new DLNAMediaOpenSubtitle(subtitleItem);
-			DLNAResource liveResource = originalResource.clone();
-			if (liveResource.getMedia() != null) {
-				liveResource.getMedia().getSubtitleTracksList().clear();
-				liveResource.getMedia().getSubtitleTracksList().add(subtitle);
+		try {
+			ArrayList<SubtitleItem> subtitleItems = OpenSubtitle.findSubtitles(originalResource, getDefaultRenderer());
+			if (subtitleItems == null || subtitleItems.isEmpty()) {
+				return;
 			}
-			liveResource.setMediaSubtitle(subtitle);
-			liveResource.resetSubtitlesStatus();
-			addChild(liveResource);
+			Collections.sort(subtitleItems, new SubSort(getDefaultRenderer()));
+			reduceSubtitles(subtitleItems, configuration.getLiveSubtitlesLimit());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(
+					"Discovery of OpenSubtitles subtitles for \"{}\" resulted in the following after sorting and reduction:\n{}",
+					getName(),
+					OpenSubtitle.toLogString(subtitleItems, 2)
+				);
+			}
+			for (SubtitleItem subtitleItem : subtitleItems) {
+				LOGGER.debug("Adding live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
+				DLNAMediaOpenSubtitle subtitle = new DLNAMediaOpenSubtitle(subtitleItem);
+				DLNAResource liveResource = originalResource.clone();
+				if (liveResource.getMedia() != null) {
+					liveResource.getMedia().getSubtitleTracksList().clear();
+					liveResource.getMedia().getSubtitleTracksList().add(subtitle);
+				}
+				liveResource.setMediaSubtitle(subtitle);
+				liveResource.resetSubtitlesStatus();
+				addChild(liveResource);
+			}
+		} catch (Exception e) {
+			LOGGER.error(
+				"An unhandled error occurred during OpenSubtitles subtitles lookup for \"{}\": {}",
+				getName(),
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
 		}
 	}
 
@@ -96,7 +105,7 @@ public class SubSelFile extends VirtualFolder {
 		return removed;
 	}
 
-	private static void reduceSubtitles(ArrayList<SubtitleItem> subtitles, int limit) {
+	private static void reduceSubtitles(ArrayList<SubtitleItem> subtitles, int limit) { //TODO: (Nad) Keep hash results
 		int remove = subtitles.size() - limit;
 		if (remove <= 0) {
 			return;
