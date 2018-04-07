@@ -355,7 +355,7 @@ public class OpenSubtitle {
 				LOGGER.trace("Parsing OpenSubtitles login response");
 				XMLStreamReader reader = null;
 				try {
-					reader = XMLRPCUtil.createReader(reply);
+					reader = createReader(reply);
 					params = readMethodResponse(reader);
 				} finally {
 					if (reader != null) {
@@ -831,7 +831,7 @@ public class OpenSubtitle {
 				LOGGER.trace("Parsing OpenSubtitles search by {} response", logDescription);
 				XMLStreamReader reader = null;
 				try {
-					reader = XMLRPCUtil.createReader(reply);
+					reader = createReader(reply);
 					params = readMethodResponse(reader);
 				} finally {
 					if (reader != null) {
@@ -1103,7 +1103,7 @@ public class OpenSubtitle {
 				LOGGER.trace("Parsing OpenSubtitles CheckMovieHash2 response");
 				XMLStreamReader reader = null;
 				try {
-					reader = XMLRPCUtil.createReader(reply);
+					reader = createReader(reply);
 					params = readMethodResponse(reader);
 				} finally {
 					if (reader != null) {
@@ -1423,7 +1423,7 @@ public class OpenSubtitle {
 				LOGGER.trace("Parsing OpenSubtitles GuessMovieFromString response");
 				XMLStreamReader reader = null;
 				try {
-					reader = XMLRPCUtil.createReader(reply);
+					reader = createReader(reply);
 					params = readMethodResponse(reader);
 				} finally {
 					if (reader != null) {
