@@ -326,22 +326,41 @@ public class RealFile extends MapFile {
 		return getName() + ">" + getFile().getAbsolutePath();
 	}
 
+	private volatile String baseNamePrettified;
+	private volatile String baseNameWithoutExtension;
+	private final Object displayNameBaseLock = new Object();
+
 	@SuppressWarnings("deprecation")
 	@Override
 	protected String getDisplayNameBase(PmsConfiguration configuration) {
 		if (parent instanceof SubSelFile && media_subtitle instanceof DLNAMediaOnDemandSubtitle) {
 			return ((DLNAMediaOnDemandSubtitle) media_subtitle).getName();
 		}
-		String displayName = super.getDisplayNameBase(configuration);
 		if (isFolder()) {
-			return displayName;
+			return super.getDisplayNameBase(configuration);
 		}
 		if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
-			displayName = FileUtil.getFileNamePrettified(displayName, getFile());
+			// Double-checked locking
+			if (baseNamePrettified == null) {
+				synchronized (displayNameBaseLock) {
+					if (baseNamePrettified == null) {
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(configuration), getFile());
+					}
+				}
+			}
+			return baseNamePrettified;
 		} else if (configuration.isHideExtensions()) {
-			displayName = FileUtil.getFileNameWithoutExtension(displayName);
+			// Double-checked locking
+			if (baseNameWithoutExtension == null) {
+				synchronized (displayNameBaseLock) {
+					if (baseNameWithoutExtension == null) {
+						baseNameWithoutExtension = FileUtil.getFileNameWithoutExtension(super.getDisplayNameBase(configuration));
+					}
+				}
+			}
+			return baseNameWithoutExtension;
 		}
 
-		return displayName;
+		return super.getDisplayNameBase(configuration);
 	}
 }
