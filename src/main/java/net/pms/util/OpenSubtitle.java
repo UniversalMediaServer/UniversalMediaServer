@@ -57,40 +57,22 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import javax.xml.xpath.XPathVariableResolver;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
@@ -104,8 +86,6 @@ import net.pms.formats.v2.SubtitleType;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
-	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance(); //TODO: (Nad) Remove
-	private static final XPathFactory X_PATH_FACTORY = XPathFactory.newInstance(); //TODO: (Nad) Remove
 	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
 	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
@@ -296,74 +276,6 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Posts the specified {@link Document} using the specified
-	 * {@link HttpURLConnection}, and returns the reply as another
-	 * {@link Document}.
-	 *
-	 * @param url the HTTP {@link URL} to use.
-	 * @param document the {@link Document} to {@code POST}.
-	 * @return The reply {@link Document} or {@code null}.
-	 * @throws IOException If an I/O error occurs during the operation.
-	 */
-	private static Document postXMLDocument(URL url, Document document) throws IOException {
-		HTTPResponseCode responseCode = null;
-		HttpURLConnection connection = null;
-		int retries = 5;
-		do {
-			URLConnection urlConnection = url.openConnection();
-			if (!(urlConnection instanceof HttpURLConnection)) {
-				throw new OpenSubtitlesException("Invalid URL: " + url);
-			}
-			connection = (HttpURLConnection) urlConnection;
-			connection.setDoInput(true);
-			connection.setDoOutput(true);
-			connection.setUseCaches(false);
-			connection.setRequestProperty("Content-Type", "text/xml;charset=UTF-8");
-			connection.setRequestMethod("POST");
-			connection.setConnectTimeout(5000);
-
-			DOMSource source = new DOMSource(document);
-			try (OutputStream out = connection.getOutputStream()) {
-				StreamResult streamResult = new StreamResult(out);
-				Transformer transformer = TransformerFactory.newInstance().newTransformer();
-				transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-				transformer.transform(source, streamResult);
-				out.flush();
-			} catch (TransformerFactoryConfigurationError | TransformerException e) {
-				LOGGER.error("An error occurred while generating OpenSubtitles XML request: {}", e.getMessage());
-				LOGGER.trace("", e);
-			}
-
-			responseCode = HTTPResponseCode.typeOf(connection.getResponseCode());
-			if (responseCode == null) {
-				throw new OpenSubtitlesException(
-					"OpenSubtitles replied with an unknown response code: " +
-					connection.getResponseCode() + " " +
-					connection.getResponseMessage()
-				);
-			}
-			if (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE) {
-				retries--;
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					return null;
-				}
-			} else {
-				HTTPResponseCode.handleResponseCode(responseCode);
-			}
-		} while (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE && retries > -1);
-
-		try {
-			return DOCUMENT_BUILDER_FACTORY.newDocumentBuilder().parse(connection.getInputStream());
-		} catch (SAXException | ParserConfigurationException e) {
-			LOGGER.error("An error occurred while posting to OpenSubtitles: {}", e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return null;
-	}
-
-	/**
 	 * Logs in to OpenSubtitles and stores the result in {@link #token}. Some
 	 * users might get a different API address in response, which will be
 	 * reflected in the {@link URL} returned by this method.
@@ -379,10 +291,7 @@ public class OpenSubtitle {
 			if (token != null && token.isYoung()) {
 				return token.isValid() ? token.getURL() : null;
 			}
-			boolean debug = LOGGER.isDebugEnabled(); //TODO: (Nad) Use..?
-			if (debug) {
-				LOGGER.debug("Trying to log in to OpenSubtitles");
-			}
+			LOGGER.debug("Trying to log in to OpenSubtitles");
 
 			CredMgr.Cred credentials = PMS.getCred("opensubtitles");
 			String pword = "";
@@ -504,7 +413,7 @@ public class OpenSubtitle {
 				LOGGER.error("Failed to log in to OpenSubtitles");
 				return null;
 			}
-			if (debug) {
+			if (LOGGER.isDebugEnabled()) {
 				if (token.getUser() != null) {
 					//XXX If log anonymization is ever implemented, hide the nickname.
 					LOGGER.debug("Successfully logged in to OpenSubtitles as {}", token.getUser().getUserNickName());
@@ -521,425 +430,6 @@ public class OpenSubtitle {
 		} finally {
 			TOKEN_LOCK.writeLock().unlock();
 		}
-	}
-
-	/**
-	 * Logs in to OpenSubtitles and stores the result in {@link #token}. Some
-	 * users might get a different API address in response, which will be
-	 * reflected in the {@link URL} returned by this method.
-	 * <p>
-	 * <b>All access to {@link #token} must be protected by {@link #TOKEN_LOCK}</b>.
-	 *
-	 * @param url The API {@link URL} to use for login.
-	 * @return The URL to use if the login was a success, {@code null} otherwise.
-	 */
-	private static URL oldLogin() { //TODO: (Nad) Remove
-		TOKEN_LOCK.writeLock().lock();
-		try {
-			if (token != null && token.isYoung()) {
-				return token.isValid() ? token.getURL() : null;
-			}
-			boolean debug = LOGGER.isDebugEnabled();
-			if (debug) {
-				LOGGER.debug("Trying to log in to OpenSubtitles");
-			}
-
-			CredMgr.Cred credentials = PMS.getCred("opensubtitles");
-			String pword = "";
-			String username = "";
-			if (credentials != null) {
-				// if we got credentials use them
-				if (isNotBlank(credentials.password)) {
-					pword = DigestUtils.md5Hex(credentials.password);
-				}
-				username = credentials.username;
-			}
-
-			DocumentBuilder documentBuilder;
-			try {
-				documentBuilder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-			} catch (ParserConfigurationException e) {
-				LOGGER.error(
-					"Couldn't aquire a document builder instance for OpenSubtitles login: {}",
-					e.getMessage()
-				);
-				LOGGER.trace("", e);
-				return null;
-			}
-
-			Document request = documentBuilder.newDocument();
-			Element methodCall = addPath(request, request, "methodCall");
-			Element methodNameNode = addPath(request, methodCall, "methodName");
-			methodNameNode.appendChild(request.createTextNode("LogIn"));
-			Element params = addPath(request, methodCall, "params");
-			Element usernameElement = addPath(request, params, new String[]{"param", "value", "string"}, 0);
-			usernameElement.appendChild(request.createTextNode(username));
-			Element passwordElement = addPath(request, params, new String[]{"param", "value", "string"}, 0);
-			passwordElement.appendChild(request.createTextNode(pword));
-			addPath(request, params, new String[]{"param", "value", "string"}, 0);
-			Element userAgent = addPath(request, params, new String[]{"param", "value", "string"}, 0);
-			userAgent.appendChild(request.createTextNode(UA));
-
-			URL url;
-			try {
-				url = new URL(OPENSUBS_URL);
-			} catch (MalformedURLException e) {
-				throw new AssertionError("OpenSubtitles URL \"" + OPENSUBS_URL + "\" is invalid");
-			}
-
-			Document response = postXMLDocument(url, request);
-
-			token = parseLogIn(response, url);
-			if (token == null || !token.isValid()) {
-				LOGGER.error("Failed to log in to OpenSubtitles");
-				LOGGER.trace("The OpenSubtitles login reply was:\n{}", toLogString(response));
-				return null;
-			}
-			if (debug) {
-				if (token.getUser() != null) {
-					//XXX If log anonymization is ever implemented, hide the nickname.
-					LOGGER.debug("Successfully logged in to OpenSubtitles as {}", token.getUser().getUserNickName());
-				} else {
-					LOGGER.debug("Successfully logged in to OpenSubtitles anonymously");
-				}
-			}
-			return token.getURL();
-		} catch (IOException e) {
-			LOGGER.error("An error occurred during OpenSubtitles login: {}", e.getMessage());
-			LOGGER.trace("", e);
-			token = Token.createInvalidToken();
-			return null;
-		} finally {
-			TOKEN_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Adds the specified {@link String} to the specified {@code XML-RPC Struct}
-	 * {@link Element} in the specified {@link Document} as a
-	 * {@code XML-RPC member}.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@code XML-RPC Struct} {@link Element} to add the
-	 *            {@code string} to.
-	 * @param name the name of the {@code string}.
-	 * @param value the {@code string} value.
-	 */
-	private static void addStructString(Document document, Element parent, String name, String value) {
-		addStructMember(document, parent, name, "string", value);
-	}
-
-	/**
-	 * Adds the specified {@code double} to the specified {@code XML-RPC Struct}
-	 * {@link Element} in the specified {@link Document} as a
-	 * {@code XML-RPC member}.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@code XML-RPC Struct} {@link Element} to add the
-	 *            {@code double} to.
-	 * @param name the name of the {@code double}.
-	 * @param value the {@code double} value.
-	 */
-	@SuppressWarnings("unused")
-	private static void addStructDouble(Document document, Element parent, String name, double value) {
-		addStructMember(document, parent, name, "double", Double.toString(value));
-	}
-
-	/**
-	 * Adds the specified {@code int} to the specified {@code XML-RPC Struct}
-	 * {@link Element} in the specified {@link Document} as a
-	 * {@code XML-RPC member}.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@code XML-RPC Struct} {@link Element} to add the
-	 *            {@code int} to.
-	 * @param name the name of the {@code int}.
-	 * @param value the {@code int} value.
-	 */
-	private static void addStructInt(Document document, Element parent, String name, int value) {
-		addStructMember(document, parent, name, "int", Integer.toString(value));
-	}
-
-	/**
-	 * Adds the specified {@code member} of the specified data type to the
-	 * specified {@code XML-RPC Struct} {@link Element} in the specified
-	 * {@link Document}.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@code XML-RPC Struct} {@link Element} to add the
-	 *            {@code member} to.
-	 * @param name the name of the {@code member}.
-	 * @param dataType the {@code XML-RPC data type} of the {@code member}.
-	 * @param value the {@code member} value as a {@link String}.
-	 */
-	private static void addStructMember(Document document, Element parent, String name, String dataType, String value) {
-		Element member = document.createElement("member");
-		parent.appendChild(member);
-		addType(document, member, name, dataType, value);
-	}
-
-	/**
-	 * Adds the specified {@link String} to the specified {@link Element} in the
-	 * specified {@link Document} as a {@code XML-RPC string}.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@link Element} to add the {@code string} to.
-	 * @param name the name of the {@code string}.
-	 * @param value the {@code string} value.
-	 */
-	private static void addString(Document document, Element parent, String name, String value) {
-		addType(document, parent, name, "string", value);
-	}
-
-	/**
-	 * Adds the specified {@code double} to the specified {@link Element} in the
-	 * specified {@link Document} as a {@code XML-RPC double}.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@link Element} to add the {@code double} to.
-	 * @param name the name of the {@code double}.
-	 * @param value the {@code double} value.
-	 */
-	@SuppressWarnings("unused")
-	private static void addDouble(Document document, Element parent, String name, double value) {
-		addType(document, parent, name, "double", Double.toString(value));
-	}
-
-	/**
-	 * Adds the specified {@code int} to the specified {@link Element} in the
-	 * specified {@link Document} as a {@code XML-RPC int}.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@link Element} to add the {@code int} to.
-	 * @param name the name of the {@code int}.
-	 * @param value the {@code int} value.
-	 */
-	@SuppressWarnings("unused")
-	private static void addInt(Document document, Element parent, String name, int value) {
-		addType(document, parent, name, "int", Integer.toString(value));
-	}
-
-	/**
-	 * Adds the specified {@code XML-RPC data type} to the specified
-	 * {@link Element} in the specified {@link Document}.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@link Element} to add the {@code XML-RPC value} to.
-	 * @param name the name of the {@code XML-RPC value}.
-	 * @param dataType the {@code XML-RPC data type} of the
-	 *            {@code XML-RPC value}.
-	 * @param value the {@code XML-RPC value} as a {@link String}.
-	 */
-	private static void addType(Document document, Element parent, String name, String dataType, String value) {
-		if (isNotBlank(name)) {
-			Element nameElement = document.createElement("name");
-			nameElement.appendChild(document.createTextNode(name));
-			parent.appendChild(nameElement);
-		}
-		Element valueElement = document.createElement("value");
-		parent.appendChild(valueElement);
-		Element string = document.createElement(dataType);
-		string.appendChild(document.createTextNode(value));
-		valueElement.appendChild(string);
-	}
-
-	/**
-	 * Adds a new {@link Node} to the specified {@link Node} with the specified
-	 * tag.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@link Node} to add to.
-	 * @param tag the name of the new {@link Node}.
-	 * @return the new {@link Node}.
-	 */
-	private static Element addPath(Document document, Node parent, String tag) {
-		Element child = document.createElement(tag);
-		parent.appendChild(child);
-		return child;
-	}
-
-	/**
-	 * Adds a path of new {@link Node}s to the specified {@link Node} with the
-	 * specified tags recursively.
-	 *
-	 * @param document the {@link Document}.
-	 * @param parent the {@link Node} to add to.
-	 * @param tags the array of {@link Node} names with the top of the hierarchy
-	 *            first.
-	 * @param tagIdx the index of the first tag to add. This is used by the
-	 *            recursive calls and should normally be 0 when called
-	 *            non-recursively.
-	 * @return The last {@link Node} added.
-	 */
-	private static Element addPath(Document document, Node parent, String[] tags, int tagIdx) { //TODO: (Nad) Remove
-		if (tags.length - tagIdx < 1 || tagIdx < 0 || tagIdx > tags.length - 1) {
-			throw new IllegalArgumentException("tagIdx " + tagIdx + " is invalid for an tag array of length " + tags.length);
-		}
-
-		Element child = document.createElement(tags[tagIdx]);
-		parent.appendChild(child);
-		if (tags.length - tagIdx == 1) {
-			return child;
-		}
-
-		return addPath(document, child, tags, ++tagIdx);
-	}
-
-	/**
-	 * Initializes a new {@link Document} for an OpenSubtitles method. It
-	 * handles {@link Document} creation, login and builds the basic XML
-	 * document structure including the token.
-	 * <p>
-	 * The returned {@link Document} will look like this:
-	 *
-	 * <pre>
-	 * {@code
-	 * <methodCall>
-	 *   <methodName>"methodName"</methodName>
-	 *   <params>
-	 *     <param>
-	 *       <value>
-	 *         <string>"token"</string>
-	 *       </value>
-	 *     </param>
-	 *   </params>
-	 * </methodCall>
-	 * }
-	 * </pre>
-	 *
-	 * @param url the {@link URL} to use for login.
-	 * @param methodName the name of the OpenSubtitles method.
-	 * @return The new {@link MethodDocument} containing both the new
-	 *         {@link Document} and the {@code params} {@link Element}.
-	 */
-	private static MethodDocument initializeMethod(String methodName) { //TODO: (Nad) Remove
-		DocumentBuilder documentBuilder;
-		try {
-			documentBuilder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			LOGGER.error(
-				"Couldn't acquire a document builder instance, aborting OpenSubtitles \"{}\" method initialization: {}",
-				methodName,
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-			return null;
-		}
-
-		Document document = documentBuilder.newDocument();
-		Element methodCall = addPath(document, document, "methodCall");
-		Element methodNameNode = addPath(document, methodCall, "methodName");
-		methodNameNode.appendChild(document.createTextNode(methodName));
-		Element params = addPath(document, methodCall, "params");
-		Element tokenString = addPath(document, params, new String[]{"param", "value", "string"}, 0);
-		TOKEN_LOCK.readLock().lock();
-		try {
-			if (token.isValid()) {
-				tokenString.appendChild(document.createTextNode(token.getValue()));
-			}
-		} finally {
-			TOKEN_LOCK.readLock().unlock();
-		}
-		return new MethodDocument(document, params);
-	}
-
-	private static Token parseLogIn(Document xmlDocument, URL url) { //TODO: (Nad) Remove
-		if (xmlDocument == null || url == null) {
-			return null;
-		}
-		LOGGER.trace("Parsing OpenSubtitles login response");
-		String tokenString = null;
-		User tokenUser = null;
-		XPath xPath = X_PATH_FACTORY.newXPath();
-		try {
-			DeadNodeList members = new DeadNodeList(xPath.evaluate(
-				"/methodResponse/params/param/value/struct/member",
-				xmlDocument,
-				XPathConstants.NODE
-			));
-			if (!members.isEmpty()) {
-				XPathExpression nameExpression = xPath.compile("name");
-				XPathExpression valueExpression = xPath.compile("value");
-				for (Node member : members) {
-					Node name = (Node) nameExpression.evaluate(member, XPathConstants.NODE);
-					if (name == null || name.getNodeType() != Node.ELEMENT_NODE) {
-						LOGGER.trace("<name> not found in member, aborting: {}", member);
-						return null;
-					}
-					Node valueNode = ((Node) valueExpression.evaluate(member, XPathConstants.NODE));
-					if (valueNode == null || valueNode.getNodeType() != Node.ELEMENT_NODE) {
-						LOGGER.trace("<value> not found in member, aborting: {}", member);
-						return null;
-					}
-					String nameString = name.getTextContent();
-					if (nameString != null) {
-						switch (nameString) {
-							case "status":
-								Node statusValue = valueNode.getFirstChild();
-								if (statusValue == null) {
-									LOGGER.error("OpenSubtitles response status has no value, aborting");
-									return null;
-								}
-								StatusCode statusCode = StatusCode.typeOf(statusValue.getTextContent());
-								try {
-									StatusCode.handleStatusCode(statusCode);
-								} catch (OpenSubtitlesException e) {
-									LOGGER.error("OpenSubtitles replied with an error, aborting: {}", statusValue.getTextContent());
-									LOGGER.trace("", e);
-									return Token.createInvalidToken();
-								}
-								break;
-							case "token":
-								tokenString = valueNode.getFirstChild().getTextContent();
-								break;
-							case "data":
-								Node dataValueType = valueNode.getFirstChild();
-								if (dataValueType != null) {
-									if ("struct".equals(dataValueType.getNodeName())) {
-										tokenUser = User.createFromStructNode(dataValueType);
-									}
-								}
-								break;
-							default:
-								break;
-						}
-					}
-				}
-			} else {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.warn("Received an unexpected response from OpenSubtitles:\n{}", toLogString(xmlDocument));
-				} else {
-					LOGGER.warn("Received an unexpected response from OpenSubtitles");
-				}
-				return Token.createInvalidToken();
-			}
-		} catch (XPathExpressionException e) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.error(
-					"An error occurred while trying to parse the login response from OpenSubtitles: {}\nReply:\n{}",
-					e.getMessage(),
-					toLogString(xmlDocument)
-				);
-				LOGGER.trace("", e);
-			} else {
-				LOGGER.error(
-					"An error occurred while trying to parse the login response from OpenSubtitles: {}",
-					e.getMessage()
-				);
-			}
-			return null;
-		}
-		if (tokenString == null) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.error("Failed to parse OpenSubtitles login response:\n{}", toLogString(xmlDocument));
-			} else {
-				LOGGER.error("Failed to parse OpenSubtitles login response");
-			}
-			return null;
-		}
-		Token result = new Token(tokenString, tokenUser, url);
-		LOGGER.trace("Successfully parsed OpenSubtitles login response. Resulting token: {}", result);
-		return result;
 	}
 
 	private static boolean checkStatus(Params params) {
@@ -994,98 +484,6 @@ public class OpenSubtitle {
 		return result;
 	}
 
-	private static ArrayList<SubtitleItem> parseSubtitles( //TODO: (Nad) Remove
-		Document xmlDocument,
-		FileNamePrettifier prettifier,
-		DLNAMediaInfo media
-	) {
-		ArrayList<SubtitleItem> result = new ArrayList<>();
-		if (xmlDocument == null) {
-			return result;
-		}
-		XPath xPath = X_PATH_FACTORY.newXPath();
-		try {
-			DeadNodeList members = new DeadNodeList(xPath.evaluate(
-				"/methodResponse/params/param/value/struct/member",
-				xmlDocument,
-				XPathConstants.NODE
-			));
-			if (!members.isEmpty()) {
-				XPathExpression nameExpression = xPath.compile("name");
-				XPathExpression valueExpression = xPath.compile("value");
-				XPathExpression dataValuesExpression = xPath.compile("array/data/value");
-				for (Node member : members) {
-					Node name = (Node) nameExpression.evaluate(member, XPathConstants.NODE);
-					if (name == null || name.getNodeType() != Node.ELEMENT_NODE) {
-						LOGGER.trace("<name> not found in member, aborting: {}", member);
-						return result;
-					}
-					Node valueNode = ((Node) valueExpression.evaluate(member, XPathConstants.NODE));
-					if (valueNode == null || valueNode.getNodeType() != Node.ELEMENT_NODE) {
-						LOGGER.trace("<value> not found in member, aborting: {}", member);
-						return result;
-					}
-					String nameString = name.getTextContent();
-					if (isNotBlank(nameString)) {
-						switch (nameString) {
-							case "status":
-								Node statusValue = valueNode.getFirstChild();
-								if (statusValue == null) {
-									LOGGER.error("OpenSubtitles response status has no value, aborting");
-									return result;
-								}
-								StatusCode statusCode = StatusCode.typeOf(statusValue.getTextContent());
-								try {
-									StatusCode.handleStatusCode(statusCode);
-								} catch (OpenSubtitlesException e) {
-									LOGGER.error("OpenSubtitles replied with an error, aborting: {}", statusValue.getTextContent());
-									LOGGER.trace("", e);
-								}
-								break;
-							case "data":
-								DeadNodeList values = new DeadNodeList(dataValuesExpression.evaluate(valueNode, XPathConstants.NODE));
-								for (Node dataValue : values) {
-									Node dataValueType = dataValue.getFirstChild();
-									if (dataValueType != null) {
-										if ("struct".equals(dataValueType.getNodeName())) {
-											SubtitleItem item = SubtitleItem.createFromStructNode(dataValueType, prettifier, media);
-											if (item != null) {
-												result.add(item);
-											}
-										} // If anything other than "struct" is ever available, it should be handled here.
-									}
-								}
-								break;
-							default:
-								break;
-						}
-					}
-				}
-			} else {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.warn("Received an unexpected response from OpenSubtitles:\n{}", toLogString(xmlDocument));
-				} else {
-					LOGGER.warn("Received an unexpected response from OpenSubtitles");
-				}
-			}
-		} catch (XPathExpressionException e) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.error(
-					"An error occurred while trying to parse the response from OpenSubtitles: {}\nReply:\n{}",
-					e.getMessage(),
-					toLogString(xmlDocument)
-				);
-				LOGGER.trace("", e);
-			} else {
-				LOGGER.error(
-					"An error occurred while trying to parse the response from OpenSubtitles: {}",
-					e.getMessage()
-				);
-			}
-		}
-		return result;
-	}
-
 	private static Map<String, MovieGuess> parseMovieGuesses(Struct dataStruct) throws OpenSubtitlesException {
 		if (dataStruct == null || dataStruct.isEmpty()) {
 			return null;
@@ -1096,107 +494,6 @@ public class OpenSubtitle {
 				throw new OpenSubtitlesException("Received an unexpected MovieGuess entry from OpenSubtitles: " + member);
 			}
 			result.put(member.getName(), MovieGuess.createFromStruct(((Struct) member.getValue())));
-		}
-		return result;
-	}
-
-	private static Map<String, MovieGuess> parseMovieGuessesOld(Document xmlDocument) { //TODO: (Nad) Remove
-		Map<String, MovieGuess> result = new HashMap<>();
-		if (xmlDocument == null) {
-			return result;
-		}
-		XPath xPath = X_PATH_FACTORY.newXPath();
-		try {
-			DeadNodeList members = new DeadNodeList(xPath.evaluate(
-				"/methodResponse/params/param/value/struct/member",
-				xmlDocument,
-				XPathConstants.NODE
-			));
-			if (!members.isEmpty()) {
-				XPathExpression nameExpression = xPath.compile("name");
-				XPathExpression valueExpression = xPath.compile("value");
-				XPathExpression structExpression = xPath.compile("value/struct");
-				for (Node member : members) {
-					Node name = (Node) nameExpression.evaluate(member, XPathConstants.NODE);
-					if (name == null || name.getNodeType() != Node.ELEMENT_NODE) {
-						LOGGER.trace("<name> not found in member, aborting: {}", member);
-						return result;
-					}
-					Node valueNode = ((Node) valueExpression.evaluate(member, XPathConstants.NODE));
-					if (valueNode == null || valueNode.getNodeType() != Node.ELEMENT_NODE) {
-						LOGGER.trace("<value> not found in member, aborting: {}", member);
-						return result;
-					}
-					String nameString = name.getTextContent();
-					if (isNotBlank(nameString)) {
-						switch (nameString) {
-							case "status":
-								Node statusValue = valueNode.getFirstChild();
-								if (statusValue == null) {
-									LOGGER.error("OpenSubtitles response status has no value, aborting");
-									return result;
-								}
-								StatusCode statusCode = StatusCode.typeOf(statusValue.getTextContent());
-								try {
-									StatusCode.handleStatusCode(statusCode);
-								} catch (OpenSubtitlesException e) {
-									LOGGER.error(
-										"OpenSubtitles replied with an error, aborting: {}",
-										statusValue.getTextContent()
-									);
-									LOGGER.trace("", e);
-								}
-								break;
-							case "data":
-								DeadNodeList dataMembers = new DeadNodeList(xPath.evaluate(
-									"struct/member",
-									valueNode,
-									XPathConstants.NODE
-								));
-								for (Node dataMember : dataMembers) {
-									Node dataName = (Node) nameExpression.evaluate(dataMember, XPathConstants.NODE);
-									if (dataName == null) {
-										continue;
-									}
-									String dataNameString = dataName.getTextContent();
-									if (isBlank(dataNameString)) {
-										continue;
-									}
-
-									Node dataStruct = (Node) structExpression.evaluate(dataMember, XPathConstants.NODE);
-									if (dataStruct == null) {
-										continue;
-									}
-
-									result.put(dataNameString, MovieGuess.createFromStructNode(dataStruct));
-								}
-								break;
-							default:
-								break;
-						}
-					}
-				}
-			} else {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.error("Received an unexpected response from OpenSubtitles:\n{}", toLogString(xmlDocument));
-				} else {
-					LOGGER.error("Received an unexpected response from OpenSubtitles");
-				}
-			}
-		} catch (XPathExpressionException e) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.error(
-					"An error occurred while trying to parse the response from OpenSubtitles: {}\nReply:\n{}",
-					e.getMessage(),
-					toLogString(xmlDocument)
-				);
-				LOGGER.trace("", e);
-			} else {
-				LOGGER.error(
-					"An error occurred while trying to parse the response from OpenSubtitles: {}",
-					e.getMessage()
-				);
-			}
 		}
 		return result;
 	}
@@ -1262,25 +559,6 @@ public class OpenSubtitle {
 		if (resource == null) {
 			return new ArrayList<>();
 		}
-		// TODO: (Nad) Teeemp
-//		long start = System.currentTimeMillis();
-//		URL test2 = oldLogin();
-//		long stop = System.currentTimeMillis();
-//		LOGGER.error("Old login time: {}", stop - start);
-//
-//		TOKEN_LOCK.writeLock().lock();
-//		try {
-//			token = null;
-//		} finally {
-//			TOKEN_LOCK.writeLock().unlock();
-//		}
-//
-//		start = System.currentTimeMillis();
-//		URL test = login();
-//		stop = System.currentTimeMillis();
-//		LOGGER.error("New login time: {}", stop - start);
-
-		// ******************
 		URL url = login();
 		if (url == null) {
 			LOGGER.error(
@@ -1321,15 +599,6 @@ public class OpenSubtitle {
 			}
 
 			if (isNotBlank(fileHash) && fileSize > 0L) {
-				// TODO: (Nad) Teeemp
-				long start = System.currentTimeMillis();
-				List<SubtitleItem> newList = findSubtitlesByFileHash(resource, fileHash, fileSize, languageCodes, prettifier);
-				long newMethod = System.currentTimeMillis() - start;
-				start = System.currentTimeMillis();
-				List<SubtitleItem> oldList = findSubtitlesByFileHashOld(resource, fileHash, fileSize, languageCodes, prettifier);
-				long oldMethod = System.currentTimeMillis() - start;
-				LOGGER.error("findSubtitlesByFileHash New: {}, old: {}, equals: {}", newMethod, oldMethod, newList.equals(oldList));
-				// *****************
 				result.addAll(findSubtitlesByFileHash(resource, fileHash, fileSize, languageCodes, prettifier));
 				satisfactory = isSubtitlesSatisfactory(result, primaryLanguageCode);
 			}
@@ -1344,50 +613,18 @@ public class OpenSubtitle {
 
 		if (!satisfactory) {
 			if (isBlank(imdbId)) {
-				// TODO: (Nad) Teeemp
-				long start = System.currentTimeMillis();
-				imdbId = guessImdbIdByFileName(resource, prettifier);
-				long newMethod = System.currentTimeMillis() - start;
-				start = System.currentTimeMillis();
-				String imdbIdOld = guessImdbIdByFileNameOld(resource, null, prettifier);
-				long oldMethod = System.currentTimeMillis() - start;
-				LOGGER.error("guessImdbIdByFileName New: {}, old: {}, equals: {}", newMethod, oldMethod, Objects.equals(imdbId, imdbIdOld));
-				// *****************
 				imdbId = guessImdbIdByFileName(resource, prettifier);
 			}
 			if (isNotBlank(imdbId)) {
 				// Query by IMDB id
-
-				// TODO: (Nad) Teeemp
-				long start = System.currentTimeMillis();
-				List<SubtitleItem> newList = findSubtitlesByImdbId(resource, imdbId, languageCodes, prettifier);
-				long newMethod = System.currentTimeMillis() - start;
-				start = System.currentTimeMillis();
-				List<SubtitleItem> oldList = findSubtitlesByImdbIdOld(resource, imdbId, languageCodes, prettifier);
-				long oldMethod = System.currentTimeMillis() - start;
-				LOGGER.error("findSubtitlesByImdbId New: {}, old: {}, equals: {}", newMethod, oldMethod, newList.equals(oldList));
-				// *****************
-
 				result.addAll(findSubtitlesByImdbId(resource, imdbId, languageCodes, prettifier));
-				satisfactory = false; //TODO (Nad) Veeery TEMP
-				//satisfactory = isSubtitlesSatisfactory(result, primaryLanguageCode);
+				satisfactory = isSubtitlesSatisfactory(result, primaryLanguageCode);
 			}
 		}
 
 		if (!satisfactory) {
 			// Query by name
-
-			// TODO: (Nad) Teeemp
-			long start = System.currentTimeMillis();
-			List<SubtitleItem> newList = findSubtitlesByName(resource, languageCodes, prettifier);
-			long newMethod = System.currentTimeMillis() - start;
-			start = System.currentTimeMillis();
-			List<SubtitleItem> oldList = findSubtitlesByNameOld(resource, languageCodes, prettifier);
-			long oldMethod = System.currentTimeMillis() - start;
-			LOGGER.error("findSubtitlesByName New: {}, old: {}, equals: {}", newMethod, oldMethod, newList.equals(oldList));
-			// *****************
-
-			result.addAll(findSubtitlesByName(resource, languageCodes, prettifier)); //TODO: (Nad) Here...
+			result.addAll(findSubtitlesByName(resource, languageCodes, prettifier));
 		}
 
 		if (result.size() > 0) {
@@ -1455,104 +692,6 @@ public class OpenSubtitle {
 
 	/**
 	 * Queries OpenSubtitles for subtitles matching a file with the specified
-	 * hash and size.
-	 *
-	 * @param resource the {@link DLNAResource} for which subtitles are searched
-	 *            for.
-	 * @param fileHash the file hash.
-	 * @param fileSize the file size in bytes.
-	 * @param languageCodes the comma separated list of subtitle language codes.
-	 * @param prettifier the {@link FileNamePrettifier} to use.
-	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
-	 *         empty).
-	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByFileHashOld(
-		DLNAResource resource,
-		String fileHash,
-		long fileSize,
-		String languageCodes,
-		FileNamePrettifier prettifier
-	) {
-		if (resource == null || isBlank(fileHash)) {
-			return new ArrayList<>();
-		}
-		URL url = login();
-		if (url == null) {
-			return new ArrayList<>();
-		}
-		MethodDocument methodRequest = initializeMethod("SearchSubtitles");
-		if (methodRequest == null) {
-			return new ArrayList<>();
-		}
-		Document request = methodRequest.getDocument();
-		Element params = methodRequest.getParams();
-
-		Element struct = addPath(request, params, new String[]{"param", "value", "array", "data", "value", "struct"}, 0);
-		addStructString(request, struct, "moviehash", fileHash);
-		addStructString(request, struct, "moviebytesize", Long.toString(fileSize));
-		if (isNotBlank(languageCodes)) {
-			addStructString(request, struct, "sublanguageid", languageCodes);
-		}
-		if (prettifier != null && prettifier.getSeason() > 0 && prettifier.getEpisode() > 0) {
-			addStructInt(request, struct, "season", prettifier.getSeason());
-			addStructInt(request, struct, "episode", prettifier.getEpisode());
-		}
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(
-				"Querying OpenSubtitles for subtitles for \"{}\" using file hash:\n{}",
-				resource.getName(),
-				toLogString(request)
-			);
-		} else if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(
-				"Querying OpenSubtitles for subtitles for \"{}\" using file hash {}",
-				resource.getName(),
-				fileHash
-			);
-		}
-
-		try {
-			Document reply = postXMLDocument(url, request);
-			ArrayList<SubtitleItem> results = parseSubtitles(reply, prettifier, resource.getMedia());
-			if (LOGGER.isDebugEnabled()) {
-				if (results.isEmpty()) {
-					LOGGER.debug(
-						"OpenSubtitles search for subtitles for \"{}\" using file hash {} gave no results",
-						resource.getName(),
-						fileHash
-					);
-				} else if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(
-						"Found {} OpenSubtitles subtitles for \"{}\" using file hash {}:\n{}",
-						results.size(),
-						resource.getName(),
-						fileHash,
-						toLogString(results, 2)
-					);
-				} else {
-					LOGGER.debug(
-						"Found {} OpenSubtitles subtitles for \"{}\" using file hash {}",
-						results.size(),
-						resource.getName(),
-						fileHash
-					);
-				}
-			}
-			return results;
-		} catch (IOException | RuntimeException e) {
-			LOGGER.error(
-				"An error occurred while processing OpenSubtitles file hash query results for \"{}\": {}",
-				resource.getName(),
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-		}
-		return new ArrayList<>();
-	}
-
-	/**
-	 * Queries OpenSubtitles for subtitles matching a file with the specified
 	 * IMDB ID.
 	 *
 	 * @param resource the {@link DLNAResource} for which subtitles are to be
@@ -1600,6 +739,8 @@ public class OpenSubtitle {
 	 *            i.e. {@code "file hash"} or {@code "IMDB ID"}.
 	 * @param logSearchTerm a {@link String} with the "main" search term, for
 	 *            example the file hash, the IMDB ID or the filename.
+	 * @param limit the maximum number of returned {@link SubtitleItem}s or
+	 *            {@code -1} for no limit.
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
@@ -1762,6 +903,17 @@ public class OpenSubtitle {
 		}
 	}
 
+	/**
+	 * Attempts to find an {@code IMDB ID} corresponding to a video file using
+	 * {@code SearchSubtitles} and {@code CheckMovieHash2} queries.
+	 *
+	 * @param resource the {@link DLNAResource} whose IMDB ID to find.
+	 * @param fileHash the file hash for the video file.
+	 * @param fileSize the file size for the video file.
+	 * @param prettifier the {@link FileNamePrettifier} to use.
+	 * @return The {@code IMDB ID} if one can be determined, {@code null}
+	 *         otherwise.
+	 */
 	protected static String findImdbIdByFileHash(
 		DLNAResource resource,
 		String fileHash,
@@ -1866,19 +1018,12 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Queries OpenSubtitles for subtitles using the specified query //TODO: (Nad) Update
-	 * {@link Array}.
+	 * Queries OpenSubtitles for titles matching the specified file hashes.
 	 *
-	 * @param queryArray the {@link Array} containing the query to send.
-	 * @param resource the {@link DLNAResource} for which subtitles are searched
-	 *            for.
-	 * @param prettifier the {@link FileNamePrettifier} to use.
-	 * @param logDescription a {@link String} describing the type of search,
-	 *            i.e. {@code "file hash"} or {@code "IMDB ID"}.
-	 * @param logSearchTerm a {@link String} with the "main" search term, for
-	 *            example the file hash, the IMDB ID or the filename.
-	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
-	 *         empty).
+	 * @param fileHashes the file hashes to look up.
+	 * @return A {@link Map} of the matching [file hash, {@link List} of
+	 *         {@link CheckMovieHashItem}s] pairs. If nothing is found, an empty
+	 *         {@link Map} is returned.
 	 */
 	protected static Map<String, List<CheckMovieHashItem>> checkMovieHash2(String... fileHashes) {
 		if (fileHashes == null || fileHashes.length == 0) {
@@ -2033,101 +1178,6 @@ public class OpenSubtitle {
 
 	/**
 	 * Queries OpenSubtitles for subtitles matching a file with the specified
-	 * IMDB ID.
-	 *
-	 * @param resource the {@link DLNAResource} for which subtitles are searched
-	 *            for.
-	 * @param imdbId the IMDB ID.
-	 * @param languageCodes the comma separated list of subtitle language codes.
-	 * @param prettifier the {@link FileNamePrettifier} to use.
-	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
-	 *         empty).
-	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByImdbIdOld(
-		DLNAResource resource,
-		String imdbId,
-		String languageCodes,
-		FileNamePrettifier prettifier
-	) {
-		if (resource == null || isBlank(imdbId)) {
-			return new ArrayList<>();
-		}
-		URL url = login();
-		if (url == null) {
-			return new ArrayList<>();
-		}
-		MethodDocument methodRequest = initializeMethod("SearchSubtitles");
-		if (methodRequest == null) {
-			return new ArrayList<>();
-		}
-		Document request = methodRequest.getDocument();
-		Element params = methodRequest.getParams();
-
-		Element struct = addPath(request, params, new String[]{"param", "value", "array", "data", "value", "struct"}, 0);
-		addStructString(request, struct, "imdbid", imdbId);
-		if (isNotBlank(languageCodes)) {
-			addStructString(request, struct, "sublanguageid", languageCodes);
-		}
-		if (prettifier != null && prettifier.getSeason() > 0 && prettifier.getEpisode() > 0) {
-			addStructInt(request, struct, "season", prettifier.getSeason());
-			addStructInt(request, struct, "episode", prettifier.getEpisode());
-		}
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(
-				"Querying OpenSubtitles for subtitles for \"{}\" using IMDB ID:\n{}",
-				resource.getName(),
-				toLogString(request)
-			);
-		} else if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(
-				"Querying OpenSubtitles for subtitles for \"{}\" using IMDB ID {}",
-				resource.getName(),
-				imdbId
-			);
-		}
-
-		try {
-			Document reply = postXMLDocument(url, request);
-			ArrayList<SubtitleItem> results = parseSubtitles(reply, prettifier, resource.getMedia());
-			if (LOGGER.isDebugEnabled()) {
-				if (results.isEmpty()) {
-					LOGGER.debug(
-						"OpenSubtitles search for subtitles for \"{}\" using IMDB ID {} gave no results",
-						resource.getName(),
-						imdbId
-					);
-				} else if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(
-						"Found {} OpenSubtitles subtitles for \"{}\" using IMDB ID {}:\n{}",
-						results.size(),
-						resource.getName(),
-						imdbId,
-						toLogString(results, 2)
-					);
-				} else {
-					LOGGER.debug(
-						"Found {} OpenSubtitles subtitles for \"{}\" using IMDB ID {}",
-						results.size(),
-						resource.getName(),
-						imdbId
-					);
-				}
-			}
-			return results;
-		} catch (IOException | RuntimeException e) {
-			LOGGER.error(
-				"An error occurred while processing OpenSubtitles IMDB ID query results for \"{}\": {}",
-				resource.getName(),
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-		}
-		return new ArrayList<>();
-	}
-
-	/**
-	 * Queries OpenSubtitles for subtitles matching a file with the specified
 	 * name.
 	 *
 	 * @param resource the {@link DLNAResource} for which subtitles are to be
@@ -2183,125 +1233,6 @@ public class OpenSubtitle {
 		}
 
 		return searchSubtitles(queryArray, resource, prettifier, "filename", fileName, -1);
-	}
-
-	/**
-	 * Queries OpenSubtitles for subtitles matching a file with the specified
-	 * name.
-	 *
-	 * @param resource the {@link DLNAResource} for which subtitles are to be
-	 *            searched.
-	 * @param languageCodes the comma separated list of subtitle language codes.
-	 * @param prettifier the {@link FileNamePrettifier} to use.
-	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
-	 *         empty).
-	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByNameOld(
-		DLNAResource resource,
-		String languageCodes,
-		FileNamePrettifier prettifier
-	) {
-		if (resource == null) {
-			return new ArrayList<>();
-		}
-		String fileName = null;
-		if (resource instanceof RealFile) {
-			File file = ((RealFile) resource).getFile();
-			if (file != null) {
-				fileName = file.getName();
-			}
-		}
-		if (fileName == null) {
-			fileName = resource.getSystemName();
-		}
-		if (isBlank(fileName) && (prettifier == null || isBlank(prettifier.getName()))) {
-			return new ArrayList<>();
-		}
-
-		URL url = login();
-		if (url == null) {
-			return new ArrayList<>();
-		}
-
-		MethodDocument methodRequest = initializeMethod("SearchSubtitles");
-		if (methodRequest == null) {
-			return new ArrayList<>();
-		}
-		Document request = methodRequest.getDocument();
-		Element params = methodRequest.getParams();
-
-		Element data = addPath(request, params, new String[]{"param", "value", "array", "data"}, 0);
-		if (isNotBlank(fileName)) {
-			Element fileNameStruct = addPath(request, data, new String[]{"value", "struct"}, 0);
-			addStructString(request, fileNameStruct, "tag", fileName);
-			if (isNotBlank(languageCodes)) {
-				addStructString(request, fileNameStruct, "sublanguageid", languageCodes);
-			}
-			if (prettifier != null && prettifier.getSeason() > 0 && prettifier.getEpisode() > 0) {
-				addStructInt(request, fileNameStruct, "season", prettifier.getSeason());
-				addStructInt(request, fileNameStruct, "episode", prettifier.getEpisode());
-			}
-		}
-		if (prettifier != null && isNotBlank(prettifier.getName())) {
-			Element nameStruct = addPath(request, data, new String[]{"value", "struct"}, 0);
-			addStructString(request, nameStruct, "query", prettifier.getName());
-			if (isNotBlank(languageCodes)) {
-				addStructString(request, nameStruct, "sublanguageid", languageCodes);
-			}
-			if (prettifier.getSeason() > 0 && prettifier.getEpisode() > 0) {
-				addStructInt(request, nameStruct, "season", prettifier.getSeason());
-				addStructInt(request, nameStruct, "episode", prettifier.getEpisode());
-			}
-		}
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(
-				"Querying OpenSubtitles for subtitles for \"{}\" using filename:\n{}",
-				resource.getName(),
-				toLogString(request)
-			);
-		} else if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(
-				"Querying OpenSubtitles for subtitles for \"{}\" using filename {}",
-				resource.getName(),
-				fileName
-			);
-		}
-
-		try {
-			Document reply = postXMLDocument(url, request);
-			ArrayList<SubtitleItem> results = parseSubtitles(reply, prettifier, resource.getMedia());
-			if (LOGGER.isDebugEnabled()) {
-				if (results.isEmpty()) {
-					LOGGER.debug(
-						"OpenSubtitles search for subtitles for \"{}\" using filename gave no results",
-						resource.getName()
-					);
-				} else if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(
-						"Found {} OpenSubtitles subtitles for \"{}\" using filename:\n{}",
-						results.size(),
-						resource.getName(),
-						toLogString(results, 2)
-					);
-				} else {
-					LOGGER.debug(
-						"Found {} OpenSubtitles subtitles for \"{}\" using filename",
-						results.size(),
-						resource.getName()
-					);
-				}
-			}
-			return results;
-		} catch (IOException | RuntimeException e) {
-			LOGGER.error(
-				"An error occurred while processing OpenSubtitles filename query results for \"{}\": {}",
-				resource.getName(),
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-		}
-		return new ArrayList<>();
 	}
 
 	private static void addGuesses(
@@ -2597,149 +1528,13 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Queries OpenSubtitles for IMDB IDs matching a filename. Specify
-	 * <i>either</i> {@code resource} <i>or</i> {@code fileName}. If both are
-	 * specified, only {@code resource} is used.
+	 * Creates a {@link String} from the content of the specified
+	 * {@link LoggableInputStream}. If the content isn't to long, the content is
+	 * formatted as "prettified" XML.
 	 *
-	 * @param resource the {@link DLNAResource} for which to find the IMDB ID or
-	 *            {@code null}.
-	 * @param fileName the file name for which to find the IMDB ID or
-	 *            {@code null}.
-	 * @param prettifier the {@link FileNamePrettifier} to use.
-	 * @return The IMDB ID or {@code null}.
+	 * @param loggable the {@link LoggableInputStream} to use.
+	 * @return The log friendly {@link String}.
 	 */
-	protected static String guessImdbIdByFileNameOld(
-		DLNAResource resource,
-		String fileName,
-		FileNamePrettifier prettifier
-	) {
-		if (resource == null && isBlank(fileName)) {
-			return null;
-		}
-		if (resource != null) {
-			if (resource instanceof RealFile) {
-				File file = ((RealFile) resource).getFile();
-				if (file == null) {
-					return null;
-				}
-				fileName = file.getName();
-			} else {
-				fileName = resource.getSystemName();
-			}
-			if (isBlank(fileName)) {
-				return null;
-			}
-		}
-
-		URL url = login();
-		if (url == null) {
-			LOGGER.error(
-				"Couldn't guess IMDB ID for {} since OpenSubtitles login failed",
-				resource == null ? fileName : resource.getName()
-			);
-			return null;
-		}
-
-		MethodDocument methodRequest = initializeMethod("GuessMovieFromString");
-		if (methodRequest == null) {
-			return null;
-		}
-		Document request = methodRequest.getDocument();
-		Element params = methodRequest.getParams();
-
-		Element data = addPath(request, params, new String[]{"param", "value", "array", "data"}, 0);
-		addString(request, data, null, fileName);
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(
-				"Querying OpenSubtitles for IMDB ID for \"{}\":\n{}",
-				fileName,
-				toLogString(request)
-			);
-		} else if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug(
-				"Querying OpenSubtitles for IMDB ID for \"{}\"",
-				fileName
-			);
-		}
-
-		Map<String, MovieGuess> movieGuesses;
-		try {
-			Document reply = postXMLDocument(url, request);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("OpenSubtitles Reply:\n{}", toLogString(reply));
-			}
-			movieGuesses = parseMovieGuessesOld(reply);
-		} catch (IOException e) {
-			LOGGER.error(
-				"An error occurred while processing OpenSubtitles GuessMovieFromString query results for \"{}\": {}",
-				resource == null ? fileName : resource.getName(),
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-			return null;
-		}
-
-		MovieGuess movieGuess = movieGuesses.get(fileName);
-		if (movieGuess != null) {
-			VideoClassification classification;
-			if (
-				movieGuess.getGuessIt() != null &&
-				movieGuess.getGuessIt().getType() != null &&
-				movieGuess.getGuessIt().getType() != prettifier.getClassification()
-			) {
-				classification = movieGuess.getGuessIt().getType();
-				LOGGER.debug(
-					"OpenSubtitles guessed that \"{}\" is a {} while we guessed a {}. Using {}",
-					fileName,
-					movieGuess.getGuessIt().getType(),
-					prettifier.getClassification(),
-					classification
-				);
-			} else {
-				classification = prettifier.getClassification();
-			}
-
-			Locale locale = PMS.getLocale();
-			ArrayList<GuessCandidate> candidates = new ArrayList<>();
-			if (movieGuess.getGuessesFromString().size() > 0) {
-				addGuesses(candidates, movieGuess.getGuessesFromString().values(), prettifier, classification, locale);
-			}
-			if (movieGuess.getImdbSuggestions().size() > 0) {
-				addGuesses(candidates, movieGuess.getImdbSuggestions().values(), prettifier, classification, locale);
-			}
-			if (movieGuess.getBestGuess() != null) {
-				addGuesses(candidates, Collections.singletonList(movieGuess.getBestGuess()), prettifier, classification, locale);
-			}
-			if (candidates.size() > 0) {
-				Collections.sort(candidates);
-				if (LOGGER.isTraceEnabled()) {
-					StringBuilder sb = new StringBuilder();
-					for (GuessCandidate candidate : candidates) {
-						sb.append("  ").append(candidate).append("\n");
-					}
-					LOGGER.trace(
-						"OpenSubtitles: guessImdbIdByFileName() candidates for \"{}\":\n{}",
-						resource == null ? fileName : resource.getName(),
-						sb.toString()
-					);
-				}
-				LOGGER.debug(
-					"OpenSubtitles: guessImdbIdByFileName() picked {} as the most likely candidate for \"{}\"",
-					candidates.get(0).getGuessItem(),
-					resource == null ? fileName : resource.getName()
-				);
-				return candidates.get(0).getGuessItem().getImdbId();
-			}
-		}
-
-		LOGGER.debug(
-			"OpenSubtitles: guessImdbIdByFileName() failed to find a candidate for \"{}\"",
-			resource == null ? fileName : resource.getName()
-		);
-		return null;
-	}
-
 	public static String toLogString(LoggableInputStream loggable) {
 		if (loggable == null) {
 			return "null";
@@ -2764,13 +1559,21 @@ public class OpenSubtitle {
 		}
 	}
 
+	/**
+	 * Creates a {@link String} from the content of the specified
+	 * {@link LoggableOutputStream}. If the content isn't to long, the content
+	 * is formatted as "prettified" XML.
+	 *
+	 * @param loggable the {@link LoggableOutputStream} to use.
+	 * @return The log friendly {@link String}.
+	 */
 	public static String toLogString(LoggableOutputStream loggable) {
 		if (loggable == null) {
 			return "null";
 		}
 		String loggableString = loggable.toString();
 		if (loggableString.length() > 100000) {
-			return "Not logging huge XML document with a length of " + loggableString.length() +" characters";
+			return "Not logging huge XML document with a length of " + loggableString.length() + " characters";
 		}
 		if (loggableString.length() > 10000) {
 			return "Unprettified XML document: " + loggableString;
@@ -2789,8 +1592,8 @@ public class OpenSubtitle {
 	 * {@code subtitleItems} is on its own line and indented with the specified
 	 * number of spaces.
 	 *
-	 * @param subtitleItems the {@link List} of {@link SubtitleItem}s to format
-	 *            for logging.
+	 * @param subtitleItems the {@link Collection} of {@link SubtitleItem}s to
+	 *            format for logging.
 	 * @param indent the number of leading spaces on each line.
 	 * @return The log friendly {@link String}.
 	 */
@@ -2809,6 +1612,17 @@ public class OpenSubtitle {
 		return sb.toString();
 	}
 
+	/**
+	 * Creates a {@link String} where each file hash in {@code titles} is on its
+	 * own line and indented with the specified number of spaces. The
+	 * {@link CheckMovieHashItem}s for each file hash is listed as sub-items
+	 * with double indentation.
+	 *
+	 * @param titles the {@link Map} of [file hash, {@link CheckMovieHashItem}]
+	 *            pairs to format for logging.
+	 * @param indent the number of leading spaces for "one indentation".
+	 * @return The log friendly {@link String}.
+	 */
 	public static String toLogString(Map<String, List<CheckMovieHashItem>> titles, int indent) {
 		String indentation = indent > 0 ? StringUtil.fillString(' ', indent) : "";
 		if (titles == null) {
@@ -2825,6 +1639,16 @@ public class OpenSubtitle {
 		return sb.toString();
 	}
 
+	/**
+	 * Creates a {@link String} where each {@link CheckMovieHashItem} in
+	 * {@code titles} is on its own line and indented with the specified number
+	 * of spaces.
+	 *
+	 * @param titles the {@link Collection} of {@link CheckMovieHashItem}s to
+	 *            format for logging.
+	 * @param indent the number of leading spaces on each line.
+	 * @return The log friendly {@link String}.
+	 */
 	public static String toLogStringTitles(Collection<CheckMovieHashItem> titles, int indent) {
 		String indentation = indent > 0 ? StringUtil.fillString(' ', indent) : "";
 		if (titles == null) {
@@ -2838,16 +1662,6 @@ public class OpenSubtitle {
 			sb.append(indentation).append(item).append("\n");
 		}
 		return sb.toString();
-	}
-
-	private static String toLogString(Document xmlDocument) { //TODO: (Nad) Remove
-		try {
-			return StringUtil.prettifyXML(xmlDocument, 2);
-		} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
-			LOGGER.error("Failed to prettify XML reply {}", e.getMessage());
-			LOGGER.trace("", e);
-			return "Unable to pretty print XML document: " + e.getMessage();
-		}
 	}
 
 	/**
@@ -3154,6 +1968,63 @@ public class OpenSubtitle {
 	}
 
 	/**
+	 * Adds a field to the specified {@link StringBuilder} using the
+	 * specified parameters. This is a convenience method for building
+	 * {@link #toString()} values.
+	 *
+	 * @param first {@code true} if this is the first field and shouldn't be
+	 *            prefixed with "{@code , }", {@code false} otherwise.
+	 * @param sb the {@link StringBuilder} to add to.
+	 * @param fieldName the name of the field.
+	 * @param value the value of the field.
+	 * @param quote {@code true} if the field's value should be quoted in
+	 *            double quotes, {@code false} otherwise.
+	 * @param addBlank {@code true} it the field should be added even if
+	 *            {@code value} is {@code null} or if
+	 *            {@code value.toString()} is blank, {@code false}
+	 *            otherwise.
+	 * @param addZero {@code true} if the field should be added if
+	 *            {@code value.toString()} is "{@code 0}" or if
+	 *            {@code value} implements {@link Number} and its numerical
+	 *            value is zero, {@code false} otherwise.
+	 * @return {@code true} if the field was added to the
+	 *         {@link StringBuilder}, {@code false} otherwise.
+	 */
+	protected static boolean addFieldToStringBuilder(
+		boolean first,
+		StringBuilder sb,
+		String fieldName,
+		Object value,
+		boolean quote,
+		boolean addBlank,
+		boolean addZero
+	) {
+		if (!addBlank && (value == null || isBlank(value.toString()))) {
+			return false;
+		}
+		if (!addZero && ("0".equals(value.toString()) || value instanceof Number && ((Number) value).intValue() == 0)) {
+			return false;
+		}
+
+		if (!first) {
+			sb.append(", ");
+		}
+		if (isNotBlank(fieldName)) {
+			sb.append(fieldName).append("=");
+		}
+		if (value == null) {
+			sb.append("Null");
+			return true;
+		}
+		if (quote) {
+			sb.append("\"").append(value).append("\"");
+			return true;
+		}
+		sb.append(value);
+		return true;
+	}
+
+	/**
 	 * A class representing an OpenSubtitles token.
 	 *
 	 * @author Nadahar
@@ -3291,7 +2162,7 @@ public class OpenSubtitle {
 	 *
 	 * @author Nadahar
 	 */
-	public static class User extends StructElement {
+	public static class User {
 		private final String idUser;
 		private final String userNickName;
 		private final String userRank;
@@ -3388,7 +2259,6 @@ public class OpenSubtitle {
 		 *            should be included, {@code false} otherwise.
 		 * @return The {@link String} representation.
 		 */
-		@Override
 		public String toString(boolean includeName) {
 			StringBuilder sb = new StringBuilder();
 			if (includeName) {
@@ -3478,22 +2348,30 @@ public class OpenSubtitle {
 			return true;
 		}
 
-		public static User createFromStruct(Struct struct) {
-			if (struct == null) {
+		/**
+		 * Creates a new {@link User} from the specified {@code LogIn} data
+		 * structure.
+		 *
+		 * @param dataStruct the {@link Struct} containing the {@code LogIn}
+		 *            user data structure.
+		 * @return The resulting {@link User}.
+		 */
+		public static User createFromStruct(Struct dataStruct) {
+			if (dataStruct == null) {
 				throw new IllegalArgumentException("struct cannot be null");
 			}
 
-			Member<? extends Value<?>, ?> userId = struct.get("IDUser");
-			Member<? extends Value<?>, ?> nick = struct.get("UserNickName");
-			Member<? extends Value<?>, ?> rank = struct.get("UserRank");
-			Member<? extends Value<?>, ?> preferences = struct.get("UserPreferedLanguages");
-			Member<? extends Value<?>, ?> vip = struct.get("isVIP");
+			Member<? extends Value<?>, ?> userId = dataStruct.get("IDUser");
+			Member<? extends Value<?>, ?> nick = dataStruct.get("UserNickName");
+			Member<? extends Value<?>, ?> rank = dataStruct.get("UserRank");
+			Member<? extends Value<?>, ?> preferences = dataStruct.get("UserPreferedLanguages");
+			Member<? extends Value<?>, ?> vip = dataStruct.get("isVIP");
 			boolean isVIP =
 				vip != null &&
 				vip.getValue() != null &&
 				!"0".equals(vip.getValue().toString()) &&
 				!"false".equals(vip.getValue().toString().toLowerCase(Locale.ROOT));
-			Member<? extends Value<?>, ?> contentLocation = struct.get("Content-Location");
+			Member<? extends Value<?>, ?> contentLocation = dataStruct.get("Content-Location");
 
 			String urlString = contentLocation == null || contentLocation.getValue() == null ?
 				null :
@@ -3518,49 +2396,12 @@ public class OpenSubtitle {
 				url
 			);
 		}
-
-		/**
-		 * Parses an OpenSubtitles {@code struct} node describing a user and
-		 * returns the resulting {@link User}.
-		 *
-		 * @param structNode the {@link Node} containing the information about
-		 *            the user.
-		 * @return The resulting {@link User} or {@code null}.
-		 * @throws XPathExpressionException If a {@link XPath} error occurs
-		 *             during the operation.
-		 */
-		public static User createFromStructNode(Node structNode) throws XPathExpressionException { //TODO: (Nad) Remove
-			XPath xPath = X_PATH_FACTORY.newXPath();
-			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
-			xPath.setXPathVariableResolver(resolver);
-			XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
-
-			String urlString = getString(structNode, "Content-Location", stringExpression, resolver);
-			URI url = null;
-			if (isNotBlank(urlString)) {
-				try {
-					urlString = urlString.replaceFirst("https://", "http://");
-					url = new URI(urlString);
-				} catch (URISyntaxException e) {
-					LOGGER.debug("OpenSubtitles: Ignoring invalid URL \"{}\": {}", urlString, e.getMessage());
-					LOGGER.trace("", e);
-				}
-			}
-			return new User(
-				getString(structNode, "IDUser", stringExpression, resolver),
-				getString(structNode, "UserNickName", stringExpression, resolver),
-				getString(structNode, "UserRank", stringExpression, resolver),
-				getString(structNode, "UserPreferedLanguages", stringExpression, resolver),
-				getBoolean(structNode, "IsVIP", stringExpression, resolver),
-				url
-			);
-		}
 	}
 
 	/**
 	 * A class representing an OpenSubtitles guess item.
 	 */
-	public static class GuessItem extends StructElement {
+	public static class GuessItem {
 
 		/** The movie name/title */
 		protected final String title;
@@ -3637,7 +2478,13 @@ public class OpenSubtitle {
 			return imdbId;
 		}
 
-		@Override
+		/**
+		 * Returns a {@link String} representation of this instance.
+		 *
+		 * @param includeName {@code true} if the name of this {@link Class}
+		 *            should be included, {@code false} otherwise.
+		 * @return The {@link String} representation.
+		 */
 		public String toString(boolean includeName) {
 			StringBuilder sb = new StringBuilder();
 			if (includeName) {
@@ -3652,8 +2499,6 @@ public class OpenSubtitle {
 			sb.append("]");
 			return sb.toString();
 		}
-
-
 
 		@Override
 		public int hashCode() {
@@ -3706,11 +2551,11 @@ public class OpenSubtitle {
 		}
 
 		/**
-		 * Parses an OpenSubtitles {@code struct} node describing a //TODO: (Nad) Update
-		 * {@code GetIMDBSuggest} data structure and returns the resulting
-		 * {@link List} of {@link GuessItem}s.
+		 * Creates a new {@link Map} of [IMDB ID, {@link GuessItem}] pairs from
+		 * the {@code GetIMDBSuggest} part of an OpenSubtitles
+		 * {@code GuessMovieFromString} result.
 		 *
-		 * @param structNode the {@link Node} containing the
+		 * @param member the {@link Member} containing the
 		 *            {@code GetIMDBSuggest} data structure.
 		 * @return The resulting {@link GuessItem}s or an empty {@link Map}.
 		 */
@@ -3754,43 +2599,6 @@ public class OpenSubtitle {
 						imdbId
 					));
 				}
-			}
-			return result;
-		}
-
-		/**
-		 * Parses an OpenSubtitles {@code struct} node describing a
-		 * {@code GetIMDBSuggest} data structure and returns the resulting
-		 * {@link List} of {@link GuessItem}s.
-		 *
-		 * @param structNode the {@link Node} containing the
-		 *            {@code GetIMDBSuggest} data structure.
-		 * @return The resulting {@link GuessItem}s or an empty {@link Map}.
-		 * @throws XPathExpressionException If a {@link XPath} error occurs
-		 *             during the operation.
-		 */
-		public static Map<String, GuessItem> createFromStructNode(Node structNode) throws XPathExpressionException { //TODO: (Nad) Remove
-			Map<String, GuessItem> result = new HashMap<>();
-			XPath xPath = X_PATH_FACTORY.newXPath();
-			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
-			xPath.setXPathVariableResolver(resolver);
-			XPathExpression structExpression = xPath.compile("value/struct");
-			XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
-			XPathExpression nameExpression = xPath.compile("name");
-
-			DeadNodeList members = new DeadNodeList(xPath.evaluate("member", structNode, XPathConstants.NODE));
-			for (Node member : members) {
-				String name = (String) nameExpression.evaluate(member, XPathConstants.STRING);
-				Node memberStruct = (Node) structExpression.evaluate(member, XPathConstants.NODE);
-				if (memberStruct == null || isBlank(name)) {
-					continue;
-				}
-				result.put(name, new GuessItem(
-					getString(memberStruct, "MovieName", stringExpression, resolver),
-					getString(memberStruct, "MovieYear", stringExpression, resolver),
-					getString(memberStruct, "MovieKind", stringExpression, resolver),
-					getString(memberStruct, "IDMovieIMDB", stringExpression, resolver)
-				));
 			}
 			return result;
 		}
@@ -3900,11 +2708,11 @@ public class OpenSubtitle {
 		}
 
 		/**
-		 * Parses an OpenSubtitles {@code struct} node describing a //TODO: (Nad) Update
-		 * {@code GuessMovieFromString} data structure and returns the
-		 * resulting {@link List} of {@link GuessFromString}s.
+		 * Creates a new {@link Map} of [IMDB ID, {@link GuessFromString}] pairs
+		 * from {@code GuessMovieFromString} part of an OpenSubtitles
+		 * {@code GuessMovieFromString} result.
 		 *
-		 * @param structNode the {@link Node} containing the
+		 * @param member the {@link Member} containing the
 		 *            {@code GuessMovieFromString} data structure.
 		 * @return The resulting {@link GuessFromString}s or an empty
 		 *         {@link Map}.
@@ -3954,53 +2762,12 @@ public class OpenSubtitle {
 			}
 			return result;
 		}
-
-		/**
-		 * Parses an OpenSubtitles {@code struct} node describing a
-		 * {@code GuessMovieFromString} data structure and returns the
-		 * resulting {@link List} of {@link GuessFromString}s.
-		 *
-		 * @param structNode the {@link Node} containing the
-		 *            {@code GuessMovieFromString} data structure.
-		 * @return The resulting {@link GuessFromString}s or an empty
-		 *         {@link Map}.
-		 * @throws XPathExpressionException If a {@link XPath} error occurs
-		 *             during the operation.
-		 */
-		public static Map<String, GuessFromString> createGuessesFromStringFromStructNode( //TODO: (Nad) Remove
-			Node structNode
-		) throws XPathExpressionException {
-			Map<String, GuessFromString> result = new HashMap<>();
-			XPath xPath = X_PATH_FACTORY.newXPath();
-			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
-			xPath.setXPathVariableResolver(resolver);
-			XPathExpression structExpression = xPath.compile("value/struct");
-			XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
-			XPathExpression nameExpression = xPath.compile("name");
-
-			DeadNodeList members = new DeadNodeList(xPath.evaluate("member", structNode, XPathConstants.NODE));
-			for (Node member : members) {
-				String name = (String) nameExpression.evaluate(member, XPathConstants.STRING);
-				Node memberStruct = (Node) structExpression.evaluate(member, XPathConstants.NODE);
-				if (memberStruct == null || isBlank(name)) {
-					continue;
-				}
-				result.put(name, new GuessFromString(
-					getString(memberStruct, "MovieName", stringExpression, resolver),
-					getString(memberStruct, "MovieYear", stringExpression, resolver),
-					getString(memberStruct, "MovieKind", stringExpression, resolver),
-					getString(memberStruct, "IDMovieIMDB", stringExpression, resolver),
-					getString(memberStruct, "score", stringExpression, resolver)
-				));
-			}
-			return result;
-		}
 	}
 
 	/**
 	 * A class representing an OpenSubtitles {@code GuessIt} structure.
 	 */
-	public static class GuessIt extends StructElement {
+	public static class GuessIt {
 		private final MimeType mimeType;
 		private final String videoCodec;
 		private final String container;
@@ -4154,7 +2921,13 @@ public class OpenSubtitle {
 			return audioCodec;
 		}
 
-		@Override
+		/**
+		 * Returns a {@link String} representation of this instance.
+		 *
+		 * @param includeName {@code true} if the name of this {@link Class}
+		 *            should be included, {@code false} otherwise.
+		 * @return The {@link String} representation.
+		 */
 		public String toString(boolean includeName) {
 			StringBuilder sb = new StringBuilder();
 			if (includeName) {
@@ -4366,35 +3139,6 @@ public class OpenSubtitle {
 			}
 			return true;
 		}
-
-		/**
-		 * Parses an OpenSubtitles {@code struct} node describing a
-		 * {@code BestGuess} data structure and returns the resulting
-		 * {@link BestGuess}.
-		 *
-		 * @param structNode the {@link Node} containing the
-		 *            {@code BestGuess} data structure.
-		 * @return The resulting {@link BestGuess} or {@code null}.
-		 * @throws XPathExpressionException If a {@link XPath} error occurs
-		 *             during the operation.
-		 */
-		public static BestGuess createBestGuessFromStructNode(Node structNode) throws XPathExpressionException { //TODO: (Nad) Remove
-			XPath xPath = X_PATH_FACTORY.newXPath();
-			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
-			xPath.setXPathVariableResolver(resolver);
-			XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
-
-			if (structNode != null) {
-				return new BestGuess(
-					getString(structNode, "MovieName", stringExpression, resolver),
-					getString(structNode, "MovieYear", stringExpression, resolver),
-					getString(structNode, "MovieKind", stringExpression, resolver),
-					getString(structNode, "IDMovieIMDB", stringExpression, resolver),
-					getString(structNode, "Reason", stringExpression, resolver)
-				);
-			}
-			return null;
-		}
 	}
 
 	/**
@@ -4403,7 +3147,7 @@ public class OpenSubtitle {
 	 *
 	 * @author Nadahar
 	 */
-	public static class MovieGuess extends StructElement {
+	public static class MovieGuess {
 		private final GuessIt guessIt;
 		private final Map<String, GuessFromString> guessesFromString;
 		private final Map<String, GuessItem> imdbSuggestions;
@@ -4461,7 +3205,13 @@ public class OpenSubtitle {
 			return bestGuess;
 		}
 
-		@Override
+		/**
+		 * Returns a {@link String} representation of this instance.
+		 *
+		 * @param includeName {@code true} if the name of this {@link Class}
+		 *            should be included, {@code false} otherwise.
+		 * @return The {@link String} representation.
+		 */
 		public String toString(boolean includeName) {
 			StringBuilder sb = new StringBuilder();
 			if (includeName) {
@@ -4524,11 +3274,10 @@ public class OpenSubtitle {
 		}
 
 		/**
-		 * Parses an OpenSubtitles {@code struct} node describing a //TODO: (Nad) Update
-		 * {@code GuessMovieFromString} result and returns the resulting
-		 * {@link MovieGuess}.
+		 * Creates a new {@link MovieGuess} from a {@link Struct} from an
+		 * OpenSubtitles {@code GuessMovieFromString} result.
 		 *
-		 * @param structNode the {@link Node} containing the
+		 * @param guessStruct the {@link Struct} containing the
 		 *            {@code GuessMovieFromString} data.
 		 * @return The resulting {@link MovieGuess} or {@code null}.
 		 */
@@ -4589,72 +3338,6 @@ public class OpenSubtitle {
 
 			return new MovieGuess(guessIt, guessesFromString, imdbSuggestions, bestGuess);
 		}
-
-		/**
-		 * Parses an OpenSubtitles {@code struct} node describing a
-		 * {@code GuessMovieFromString} result and returns the resulting
-		 * {@link MovieGuess}.
-		 *
-		 * @param structNode the {@link Node} containing the
-		 *            {@code GuessMovieFromString} data.
-		 * @return The resulting {@link MovieGuess} or {@code null}.
-		 * @throws XPathExpressionException If a {@link XPath} error occurs
-		 *             during the operation.
-		 */
-		public static MovieGuess createFromStructNode(Node structNode) throws XPathExpressionException { //TODO: (Nad) Remove
-			XPath xPath = X_PATH_FACTORY.newXPath();
-			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
-			xPath.setXPathVariableResolver(resolver);
-			XPathExpression structExpression = xPath.compile("member[name=$name]/value/struct");
-			XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
-
-			GuessIt guessIt = null;
-			resolver.getMap().put("name", "GuessIt");
-			Node guessItStruct = (Node) structExpression.evaluate(structNode, XPathConstants.NODE);
-			if (guessItStruct != null) {
-				guessItStruct = guessItStruct.cloneNode(true);
-				guessIt = new GuessIt(
-					getString(guessItStruct, "mimetype", stringExpression, resolver),
-					getString(guessItStruct, "videoCodec", stringExpression, resolver),
-					getString(guessItStruct, "container", stringExpression, resolver),
-					getString(guessItStruct, "title", stringExpression, resolver),
-					getString(guessItStruct, "format", stringExpression, resolver),
-					getString(guessItStruct, "releaseGroup", stringExpression, resolver),
-					getString(guessItStruct, "screenSize", stringExpression, resolver),
-					getString(guessItStruct, "type", stringExpression, resolver),
-					getString(guessItStruct, "audioCodec", stringExpression, resolver)
-				);
-			}
-
-			Map<String, GuessFromString> guessesFromString;
-			resolver.getMap().put("name", "GuessMovieFromString");
-			Node guessesFromStringStruct = (Node) structExpression.evaluate(structNode, XPathConstants.NODE);
-			if (guessesFromStringStruct != null) {
-				guessesFromStringStruct = guessesFromStringStruct.cloneNode(true);
-				guessesFromString = GuessFromString.createGuessesFromStringFromStructNode(guessesFromStringStruct);
-			} else {
-				guessesFromString = new HashMap<>();
-			}
-
-			Map<String, GuessItem> imdbSuggestions;
-			resolver.getMap().put("name", "GetIMDBSuggest");
-			Node imdbSuggestionsStruct = (Node) structExpression.evaluate(structNode, XPathConstants.NODE);
-			if (imdbSuggestionsStruct != null) {
-				imdbSuggestionsStruct = imdbSuggestionsStruct.cloneNode(true);
-				imdbSuggestions = GuessFromString.createFromStructNode(imdbSuggestionsStruct);
-			} else {
-				imdbSuggestions = new HashMap<>();
-			}
-
-			BestGuess bestGuess = null;
-			resolver.getMap().put("name", "BestGuess");
-			Node bestGuessStruct = (Node) structExpression.evaluate(structNode, XPathConstants.NODE);
-			if (bestGuessStruct != null) {
-				bestGuess = BestGuess.createBestGuessFromStructNode(bestGuessStruct.cloneNode(true));
-			}
-
-			return new MovieGuess(guessIt, guessesFromString, imdbSuggestions, bestGuess);
-		}
 	}
 
 	/**
@@ -4681,11 +3364,17 @@ public class OpenSubtitle {
 		/**
 		 * Creates a new instance using the specified values.
 		 *
-		 * @param movieName the movie name/title.
-		 * @param movieYear the release year.
 		 * @param videoClassification the video classification.
-		 * @param imdbId the IMDB ID.
-		 * @param reason the reason for being considered the best guess.
+		 * @param subCount the {@code SubCount}.
+		 * @param seenCount the {@code SeenCount}.
+		 * @param imdbId the {@code IMDB ID}.
+		 * @param movieYear the release year.
+		 * @param movieHash the video file hash.
+		 * @param seriesEpisode the episode number or {@code -1} if it doesn't
+		 *            apply.
+		 * @param movieName the movie name/title.
+		 * @param seriesSeason the season number or {@code -1} if it doesn't
+		 *            apply.
 		 */
 		public CheckMovieHashItem(
 			String videoClassification,
@@ -4709,11 +3398,17 @@ public class OpenSubtitle {
 		/**
 		 * Creates a new instance using the specified values.
 		 *
-		 * @param movieName the movie name/title.
-		 * @param movieYear the release year.
 		 * @param videoClassification the {@link VideoClassification}.
-		 * @param imdbId the IMDB ID.
-		 * @param reason the reason for being considered the best guess.
+		 * @param subCount the {@code SubCount}.
+		 * @param seenCount the {@code SeenCount}.
+		 * @param imdbId the {@code IMDB ID}.
+		 * @param movieYear the release year.
+		 * @param movieHash the video file hash.
+		 * @param seriesEpisode the episode number or {@code -1} if it doesn't
+		 *            apply.
+		 * @param movieName the movie name/title.
+		 * @param seriesSeason the season number or {@code -1} if it doesn't
+		 *            apply.
 		 */
 		public CheckMovieHashItem(
 			VideoClassification videoClassification,
@@ -4850,7 +3545,7 @@ public class OpenSubtitle {
 	 *
 	 * @author Nadahar
 	 */
-	public static class SubtitleItem extends StructElement {
+	public static class SubtitleItem {
 		private final String matchedBy;
 		private final String idSubtitleFile;
 		private final String subFileName;
@@ -5241,7 +3936,13 @@ public class OpenSubtitle {
 			return score;
 		}
 
-		@Override
+		/**
+		 * Returns a {@link String} representation of this instance.
+		 *
+		 * @param includeName {@code true} if the name of this {@link Class}
+		 *            should be included, {@code false} otherwise.
+		 * @return The {@link String} representation.
+		 */
 		public String toString(boolean includeName) {
 			StringBuilder sb = new StringBuilder();
 			if (includeName) {
@@ -5473,11 +4174,11 @@ public class OpenSubtitle {
 		}
 
 		/**
-		 * Parses a OpenSubtitles {@code struct} node describing a set of //TODO: (Nad) Update
-		 * subtitles and returns the resulting {@link SubtitleItem}.
+		 * Creates a new {@link SubtitleItem} from a {@link Struct} from an
+		 * OpenSubtitles {@code SearchSubtitles} result.
 		 *
-		 * @param structNode the {@link Node} containing the information about
-		 *            the set of subtitles.
+		 * @param subtitlesStruct the {@link Struct} containing the information
+		 *            about the set of subtitles.
 		 * @param prettifier the {@link FileNamePrettifier} for the video item.
 		 * @param media the {@link DLNAMediaInfo} instance for the video.
 		 * @return The resulting {@link SubtitleItem} or {@code null}.
@@ -5565,386 +4266,22 @@ public class OpenSubtitle {
 				media
 			);
 		}
-
-		/**
-		 * Parses a OpenSubtitles {@code struct} node describing a set of
-		 * subtitles and returns the resulting {@link SubtitleItem}.
-		 *
-		 * @param structNode the {@link Node} containing the information about
-		 *            the set of subtitles.
-		 * @param prettifier the {@link FileNamePrettifier} for the video item.
-		 * @param media the {@link DLNAMediaInfo} instance for the video.
-		 * @return The resulting {@link SubtitleItem} or {@code null}.
-		 * @throws XPathExpressionException If a {@link XPath} error occurs
-		 *             during the operation.
-		 */
-		public static SubtitleItem createFromStructNode( //TODO: (Nad) Remove
-			Node structNode,
-			FileNamePrettifier prettifier,
-			DLNAMediaInfo media
-		) throws XPathExpressionException {
-			XPath xPath = X_PATH_FACTORY.newXPath();
-			XPathMapVariableResolver resolver = new XPathMapVariableResolver();
-			xPath.setXPathVariableResolver(resolver);
-			XPathExpression stringExpression = xPath.compile("member[name=$name]/value/string");
-
-			String urlString = getString(structNode, "SubDownloadLink", stringExpression, resolver);
-			if (isBlank(urlString)) {
-				return null;
-			}
-			URI url;
-			try {
-				url = new URI(urlString);
-			} catch (URISyntaxException e) {
-				LOGGER.debug("OpenSubtitles: Invalid URL \"{}\": {}", urlString, e.getMessage());
-				LOGGER.trace("", e);
-				return null;
-			}
-			String languageCode = getString(structNode, "SubLanguageID", stringExpression, resolver);
-			if (Iso639.codeIsValid(languageCode)) {
-				languageCode = Iso639.getISO639_2Code(languageCode);
-			} else {
-				languageCode = getString(structNode, "ISO639", stringExpression, resolver);
-				if (Iso639.codeIsValid(languageCode)) {
-					languageCode = Iso639.getISO639_2Code(languageCode);
-				} else {
-					languageCode = DLNAMediaLang.UND;
-				}
-			}
-
-			long lastTS;
-			String lastTSString = getString(structNode, "SubLastTS", stringExpression, resolver);
-			if (isBlank(lastTSString)) {
-				lastTS = -1;
-			} else {
-				try {
-					lastTS = new SimpleDateFormat("HH:mm:ss").parse(lastTSString).getTime();
-				} catch (java.text.ParseException e) {
-					try {
-						lastTS = Long.parseLong(lastTSString);
-					} catch (NumberFormatException nfe) {
-						lastTS = -1;
-					}
-				}
-			}
-			return new SubtitleItem(
-				getString(structNode, "MatchedBy", stringExpression, resolver),
-				getString(structNode, "IDSubtitleFile", stringExpression, resolver),
-				getString(structNode, "SubFileName", stringExpression, resolver),
-				getString(structNode, "SubHash", stringExpression, resolver),
-				lastTS,
-				getString(structNode, "IDSubtitle", stringExpression, resolver),
-				languageCode,
-				subFormatToSubtitleType(getString(structNode, "SubFormat", stringExpression, resolver)),
-				getBoolean(structNode, "SubBad", stringExpression, resolver),
-				getStringDouble(structNode, "SubRating", stringExpression, resolver),
-				getStringInt(structNode, "SubDownloadsCnt", stringExpression, resolver),
-				getString(structNode, "MovieFPS", stringExpression, resolver),
-				getString(structNode, "IDMovieImdb", stringExpression, resolver),
-				getString(structNode, "MovieName", stringExpression, resolver),
-				getString(structNode, "MovieNameEng", stringExpression, resolver),
-				getStringInt(structNode, "MovieYear", stringExpression, resolver),
-				getString(structNode, "UserRank", stringExpression, resolver),
-				getStringInt(structNode, "SeriesSeason", stringExpression, resolver),
-				getStringInt(structNode, "SeriesEpisode", stringExpression, resolver),
-				VideoClassification.typeOf(getString(structNode, "MovieKind", stringExpression, resolver)),
-				getString(structNode, "SubEncoding", stringExpression, resolver),
-				getBoolean(structNode, "SubFromTrusted", stringExpression, resolver),
-				url,
-				getDouble(structNode, "Score", xPath, resolver),
-				prettifier,
-				media
-			);
-		}
 	}
 
 	/**
-	 * An abstract class for parsing OpenSubtitles "{@code struct}" elements.
-	 *
-	 * @author Nadahar
+	 * A class representing a {@link GuessItem} and a score pair. Its natural
+	 * sorting sorts the "best" guesses first.
 	 */
-	public abstract static class StructElement { //TODO: (Nad) Remove
-
-		/**
-		 * Parses a {@code double} value with the specified name from the
-		 * specified {@code string struct member} contained in {@link Node}.
-		 *
-		 * @param node the {@link Node} from which to parse.
-		 * @param name the {@code name} value of the {@code member} to parse.
-		 * @param stringExpression the pre-compiled {@link XPathExpression} to
-		 *            use.
-		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@code double} value or {@link Double#NaN} if the
-		 *         parsing failed.
-		 */
-		protected static double getStringDouble(
-			Node node,
-			String name,
-			XPathExpression stringExpression,
-			XPathMapVariableResolver resolver
-		) {
-			resolver.getMap().put("name", name);
-			try {
-				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
-				if (isBlank(result)) {
-					return Double.NaN;
-				}
-				try {
-					return Double.parseDouble(result);
-				} catch (NumberFormatException e) {
-					LOGGER.debug("OpenSubtitles: Invalid double value \"{}\" for name \"{}\": {}", result, name, e.getMessage());
-					return Double.NaN;
-				}
-			} catch (XPathExpressionException e) {
-				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
-				LOGGER.trace("", e);
-				return Double.NaN;
-			}
-		}
-
-		/**
-		 * Parses a {@code int} value with the specified name from the specified
-		 * {@code string struct member} contained in {@link Node}.
-		 *
-		 * @param node the {@link Node} from which to parse.
-		 * @param name the {@code name} value of the {@code member} to parse.
-		 * @param stringExpression the pre-compiled {@link XPathExpression} to
-		 *            use.
-		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@code int} value or {@code -1} if the parsing
-		 *         failed.
-		 */
-		protected static int getStringInt(
-			Node node,
-			String name,
-			XPathExpression stringExpression,
-			XPathMapVariableResolver resolver
-		) {
-			resolver.getMap().put("name", name);
-			try {
-				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
-				if (isBlank(result)) {
-					return -1;
-				}
-				try {
-					return Integer.parseInt(result);
-				} catch (NumberFormatException e) {
-					LOGGER.debug("OpenSubtitles: Invalid int value \"{}\" for name \"{}\": {}", result, name, e.getMessage());
-					return -1;
-				}
-			} catch (XPathExpressionException e) {
-				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
-				LOGGER.trace("", e);
-				return -1;
-			}
-		}
-
-		/**
-		 * Parses a {@code double} value with the specified name from the
-		 * specified {@code double struct member} contained in {@link Node}.
-		 *
-		 * @param node the {@link Node} from which to parse.
-		 * @param name the {@code name} value of the {@code member} to parse.
-		 * @param xPath the {@link XPath} instance to use.
-		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@code double} value or {@link Double#NaN} if the
-		 *         parsing failed.
-		 */
-		protected static double getDouble(Node node, String name, XPath xPath, XPathMapVariableResolver resolver) {
-			resolver.getMap().put("name", name);
-			try {
-				return (double) xPath.evaluate("member[name=$name]/value/double", node, XPathConstants.NUMBER);
-			} catch (XPathExpressionException e) {
-				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
-				LOGGER.trace("", e);
-				return Double.NaN;
-			}
-		}
-
-		/**
-		 * Parses a {@code boolean} value with the specified name from the
-		 * specified {@code string struct member} contained in {@link Node}.
-		 *
-		 * @param node the {@link Node} from which to parse.
-		 * @param name the {@code name} value of the {@code member} to parse.
-		 * @param stringExpression the pre-compiled {@link XPathExpression} to
-		 *            use.
-		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@code boolean} value or {@code false} if the
-		 *         parsing failed.
-		 */
-		protected static boolean getBoolean(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
-			resolver.getMap().put("name", name);
-			try {
-				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
-				if (result == null) {
-					return false;
-				}
-				result = result.toLowerCase(Locale.ROOT);
-				return  "1".equals(result) || "true".equals(result);
-			} catch (XPathExpressionException e) {
-				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
-				LOGGER.trace("", e);
-				return false;
-			}
-		}
-
-		/**
-		 * Parses a {@link String} value with the specified name from the
-		 * specified {@code string struct member} contained in {@link Node}.
-		 *
-		 * @param node the {@link Node} from which to parse.
-		 * @param name the {@code name} value of the {@code member} to parse.
-		 * @param stringExpression the pre-compiled {@link XPathExpression} to
-		 *            use.
-		 * @param resolver the {@link XPathMapVariableResolver} to use.
-		 * @return The parsed {@link String} value or {@code null} if the
-		 *         parsing failed.
-		 */
-		protected static String getString(Node node, String name, XPathExpression stringExpression, XPathMapVariableResolver resolver) {
-			resolver.getMap().put("name", name);
-			try {
-				String result = (String) stringExpression.evaluate(node, XPathConstants.STRING);
-				return isBlank(result) ? null : result;
-			} catch (XPathExpressionException e) {
-				LOGGER.debug("OpenSubtitles: XPath expression error for name \"{}\": {}", name, e.getMessage());
-				LOGGER.trace("", e);
-				return null;
-			}
-		}
-
-		/**
-		 * Adds a field to the specified {@link StringBuilder} using the
-		 * specified parameters. This is a convenience method for building
-		 * {@link #toString()} values.
-		 *
-		 * @param first {@code true} if this is the first field and shouldn't be
-		 *            prefixed with "{@code , }", {@code false} otherwise.
-		 * @param sb the {@link StringBuilder} to add to.
-		 * @param fieldName the name of the field.
-		 * @param value the value of the field.
-		 * @param quote {@code true} if the field's value should be quoted in
-		 *            double quotes, {@code false} otherwise.
-		 * @param addBlank {@code true} it the field should be added even if
-		 *            {@code value} is {@code null} or if
-		 *            {@code value.toString()} is blank, {@code false}
-		 *            otherwise.
-		 * @param addZero {@code true} if the field should be added if
-		 *            {@code value.toString()} is "{@code 0}" or if
-		 *            {@code value} implements {@link Number} and its numerical
-		 *            value is zero, {@code false} otherwise.
-		 * @return {@code true} if the field was added to the
-		 *         {@link StringBuilder}, {@code false} otherwise.
-		 */
-		protected boolean addFieldToStringBuilder(
-			boolean first,
-			StringBuilder sb,
-			String fieldName,
-			Object value,
-			boolean quote,
-			boolean addBlank,
-			boolean addZero
-		) {
-			if (!addBlank && (value == null || isBlank(value.toString()))) {
-				return false;
-			}
-			if (!addZero && ("0".equals(value.toString()) || value instanceof Number && ((Number) value).intValue() == 0)) {
-				return false;
-			}
-
-			if (!first) {
-				sb.append(", ");
-			}
-			if (isNotBlank(fieldName)) {
-				sb.append(fieldName).append("=");
-			}
-			if (value == null) {
-				sb.append("Null");
-				return true;
-			}
-			if (quote) {
-				sb.append("\"").append(value).append("\"");
-				return true;
-			}
-			sb.append(value);
-			return true;
-		}
-
-		@Override
-		public String toString() {
-			return toString(true);
-		}
-
-		/**
-		 * Returns a {@link String} representation of this instance.
-		 *
-		 * @param includeName {@code true} if the name of this {@link Class}
-		 *            should be included, {@code false} otherwise.
-		 * @return The {@link String} representation.
-		 */
-		public abstract String toString(boolean includeName);
-	}
-
-	/**
-	 * A {@link XPathVariableResolver} implementation that gets the value to use
-	 * from a {@link HashMap} by using the value of the key with the
-	 * corresponding variable name.
-	 *
-	 * @author Nadahar
-	 */
-	public static class XPathMapVariableResolver implements XPathVariableResolver {
-
-		/** The {@link HashMap} containing the variable name and value pairs */
-		protected final HashMap<String, Object> variables = new HashMap<>();
-
-		@Override
-		public Object resolveVariable(QName variableName) {
-			return variables.get(variableName.getLocalPart());
-		}
-
-		/**
-		 * @return the {@link HashMap} containing the variable name and value
-		 *         pairs used when resolving variables.
-		 */
-		public HashMap<String, Object> getMap() {
-			return variables;
-		}
-	}
-
-	private static class MethodDocument {
-		private final Document document;
-		private final Element params;
-
-		/**
-		 * Creates a new instance with the specified parameters.
-		 *
-		 * @param document the {@link Document}.
-		 * @param params the {@code params} {@link Element}.
-		 */
-		public MethodDocument(Document document, Element params) {
-			this.document = document;
-			this.params = params;
-		}
-
-		/**
-		 * @return The {@link Document}.
-		 */
-		public Document getDocument() {
-			return document;
-		}
-
-		/**
-		 * @return The {@code params} {@link Element}.
-		 */
-		public Element getParams() {
-			return params;
-		}
-	}
-
 	public static class GuessCandidate implements Comparable<GuessCandidate> {
 		private final double score;
 		private final GuessItem guessItem;
 
+		/**
+		 * Creates a new instance with the specified parameters.
+		 *
+		 * @param score the score for this candidate.
+		 * @param guessItem the {@link GuessItem} for this candidate.
+		 */
 		public GuessCandidate(double score, GuessItem guessItem) {
 			this.score = score;
 			this.guessItem = guessItem;
