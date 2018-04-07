@@ -905,7 +905,7 @@ public class FileUtil {
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName + "' is " + similarity);
 				} else {
 					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d{4}\\)"), formattedName);
-					String titleFromFilename = formattedName.substring(0, yearIndex);
+					String titleFromFilename = yearIndex >= 0 ? formattedName.substring(0, yearIndex) : formattedName;
 					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
 					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
 				}
