@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 3;
+	private static final int TABLE_VERSION = 4;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -95,7 +95,7 @@ public final class TableFilesStatus extends Tables{
 						} else {
 							if (trace) {
 								LOGGER.trace(
-									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to \"{}\"",
+									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to {}",
 									fullPathToFile,
 									isFullyPlayed
 								);
@@ -107,7 +107,7 @@ public final class TableFilesStatus extends Tables{
 					} else {
 						if (trace) {
 							LOGGER.trace(
-								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to \"{}\"",
+								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to {}",
 								fullPathToFile,
 								isFullyPlayed
 							);
@@ -326,11 +326,14 @@ public final class TableFilesStatus extends Tables{
 						version = 2;
 						break;
 					case 2:
+					case 3:
 						// From version 2 to 3, we added an index for the ISFULLYPLAYED column
+						// From version 3 to 4, we make sure the previous index was created correctly
 						try (Statement statement = connection.createStatement()) {
+							statement.execute("DROP INDEX IF EXISTS ISFULLYPLAYED_IDX");
 							statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
 						}
-						version = 3;
+						version = 4;
 						break;
 					default:
 						throw new IllegalStateException(
@@ -361,7 +364,7 @@ public final class TableFilesStatus extends Tables{
 			);
 
 			statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
-			statement.execute("CREATE UNIQUE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
+			statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
 		}
 	}
 }
