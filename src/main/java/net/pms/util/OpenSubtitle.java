@@ -23,7 +23,13 @@ package net.pms.util;
 import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -33,6 +39,8 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -145,37 +153,16 @@ public class OpenSubtitle {
 		if (!Files.isRegularFile(file)) {
 			return null;
 		}
+
 		long size = Files.size(file);
-		return computeHash(Files.newInputStream(file), size);
-	}
+		long chunkSizeForFile = Math.min(HASH_CHUNK_SIZE, size);
 
-	private static String computeHash(InputStream stream, long length) throws IOException {
-		int chunkSizeForFile = (int) Math.min(HASH_CHUNK_SIZE, length);
+		try (FileChannel fileChannel = FileChannel.open(file)) {
+			long head = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, 0, chunkSizeForFile));
+			long tail = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, Math.max(size - HASH_CHUNK_SIZE, 0), chunkSizeForFile));
 
-		// Buffer that will contain the head and the tail chunk, chunks will overlap if length is smaller than two chunks
-		byte[] chunkBytes = new byte[(int) Math.min(2 * HASH_CHUNK_SIZE, length)];
-		long head;
-		long tail;
-		try (DataInputStream in = new DataInputStream(stream)) {
-			// First chunk
-			in.readFully(chunkBytes, 0, chunkSizeForFile);
-
-			long position = chunkSizeForFile;
-			long tailChunkPosition = length - chunkSizeForFile;
-
-			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks
-			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0) {
-				;
-			}
-
-			// Second chunk, or the rest of the data if length is smaller than two chunks
-			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
-
-			head = computeHashForChunk(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile));
-			tail = computeHashForChunk(ByteBuffer.wrap(chunkBytes, chunkBytes.length - chunkSizeForFile, chunkSizeForFile));
+			return String.format("%016x", size + head + tail);
 		}
-
-		return String.format("%016x", length + head + tail);
 	}
 
 	private static long computeHashForChunk(ByteBuffer buffer) {
