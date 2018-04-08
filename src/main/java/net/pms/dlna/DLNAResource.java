@@ -726,12 +726,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										fileTranscodeFolder.setMediaSubtitle(child.getMediaSubtitle());
 									}
 
-									DLNAResource newChild = child.clone();
-									newChild.player = playerTranscoding;
-									newChild.media = child.media;
-									fileTranscodeFolder.addChildInternal(newChild);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), playerTranscoding);
-
 									transcodeFolder.addChildInternal(fileTranscodeFolder);
 								}
 							}

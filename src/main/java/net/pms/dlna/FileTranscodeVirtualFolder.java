@@ -188,11 +188,10 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void resolveOnce() {
-		if (getChildren().size() == 1) { // OK
-			DLNAResource child = getChildren().get(0);
-			child.syncResolve();
-			if (child.getMedia() != null && child.getMedia().isVideo()) {
-				child.registerExternalSubtitles(true);
+		if (getChildren().isEmpty()) { // OK
+			originalResource.syncResolve();
+			if (originalResource.getMedia() != null && originalResource.getMedia().isVideo()) {
+				originalResource.registerExternalSubtitles(true);
 			}
 
 			RendererConfiguration renderer = null;
@@ -202,13 +201,13 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 
 			// create copies of the audio/subtitle track lists as we're making (local)
 			// modifications to them
-			List<DLNAMediaAudio> audioTracks = new ArrayList<>(child.getMedia().getAudioTracksList());
+			List<DLNAMediaAudio> audioTracks = new ArrayList<>(originalResource.getMedia().getAudioTracksList());
 			List<DLNAMediaSubtitle> subtitlesTracks;
 			if (media_subtitle != null) {
 				// Transcode folder of live subtitles folder
 				subtitlesTracks = Collections.singletonList(media_subtitle);
 			} else {
-				subtitlesTracks = new ArrayList<>(child.getMedia().getSubtitleTracksList());
+				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitleTracksList());
 			}
 
 			// If there is a single audio track, set that as audio track
@@ -222,12 +221,12 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			if (renderer != null) {
 				LOGGER.trace(
 					"Duplicating {} for direct streaming to renderer: {}",
-					child.getName(),
+					originalResource.getName(),
 					renderer.getRendererName()
 				);
 			}
 
-			DLNAResource noTranscode = createResourceWithAudioSubtitlePlayer(child, singleAudioTrack, null, null);
+			DLNAResource noTranscode = createResourceWithAudioSubtitlePlayer(originalResource, singleAudioTrack, null, null);
 			addChildInternal(noTranscode);
 			addChapterFolder(noTranscode);
 
@@ -283,14 +282,14 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				for (DLNAMediaSubtitle subtitle : subtitlesTracks) {
 					// Create a temporary copy of the child with the audio and
 					// subtitle modified in order to be able to match players to it.
-					DLNAResource temp = createResourceWithAudioSubtitlePlayer(child, audio, subtitle, null);
+					DLNAResource temp = createResourceWithAudioSubtitlePlayer(originalResource, audio, subtitle, null);
 
 					// Determine which players match this audio track and subtitle
 					ArrayList<Player> players = PlayerFactory.getPlayers(temp);
 
 					// create a copy for each compatible player
 					for (Player player : players) {
-						DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, audio, subtitle, player);
+						DLNAResource copy = createResourceWithAudioSubtitlePlayer(originalResource, audio, subtitle, player);
 						entries.add(copy);
 					}
 				}
@@ -301,9 +300,9 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				for (DLNAMediaSubtitle subtitlesTrack : subtitlesTracks) {
 					if (
 						subtitlesTrack != null && subtitlesTrack.isExternal() &&
-						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, child.getMedia())
+						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource.getMedia())
 					) {
-						DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, singleAudioTrack, subtitlesTrack, null);
+						DLNAResource copy = createResourceWithAudioSubtitlePlayer(originalResource, singleAudioTrack, subtitlesTrack, null);
 						entries.add(copy);
 					}
 				}
