@@ -170,10 +170,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
-	protected static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
-	protected static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
-	protected static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
-	protected static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
+	
 	/**
 	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
 	 */
@@ -278,7 +275,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SERVER_PORT = "port";
 	protected static final String KEY_SHARES = "shares";
 	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
-	protected static final String KEY_SUBS_INFO_LEVEL = "subs_info_level";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	protected static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
@@ -295,6 +291,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SORT_PATHS = "sort_paths";
 	protected static final String KEY_SPEED_DBG = "speed_debug";
 	protected static final String KEY_SUBS_COLOR = "subtitles_color";
+	protected static final String KEY_SUBS_INFO_LEVEL = "subs_info_level";
 	protected static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	protected static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
 	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
@@ -397,8 +394,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_HIDE_ENGINENAMES,
 			KEY_HIDE_EXTENSIONS,
 			KEY_HIDE_SUBS_INFO,
-			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
-			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
 			KEY_IGNORE_THE_WORD_A_AND_THE,
 			KEY_IP_FILTER,
 			KEY_NETWORK_INTERFACE,
@@ -414,8 +409,8 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 			KEY_SHOW_SERVER_SETTINGS_FOLDER,
 			KEY_SHOW_TRANSCODE_FOLDER,
-			KEY_SUBS_INFO_LEVEL,
 			KEY_SORT_METHOD,
+			KEY_SUBS_INFO_LEVEL,
 			KEY_USE_CACHE
 		)
 	);

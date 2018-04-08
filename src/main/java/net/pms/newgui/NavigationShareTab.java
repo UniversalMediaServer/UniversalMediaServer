@@ -224,21 +224,21 @@ public class NavigationShareTab {
 			builder.add(sortmethod,                                                      FormLayoutUtil.flip(cc.xyw(4, 11, 3), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(ignorethewordthe),             FormLayoutUtil.flip(cc.xyw(9, 11, 4), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),       FormLayoutUtil.flip(cc.xyw(1, 13, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),          FormLayoutUtil.flip(cc.xyw(4, 13, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),           FormLayoutUtil.flip(cc.xyw(9, 13, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),       	 FormLayoutUtil.flip(cc.xyw(1, 13, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),          	 FormLayoutUtil.flip(cc.xyw(4, 13, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),           	 FormLayoutUtil.flip(cc.xyw(9, 13, 4), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.addSubtitlesInfo"),        FormLayoutUtil.flip(cc.xyw(1, 15, 3), colSpec, orientation));
-			builder.add(addVideoSuffix,			                                    FormLayoutUtil.flip(cc.xyw(4, 15, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),             FormLayoutUtil.flip(cc.xyw(9, 15, 4), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.addSubtitlesInfo"),        	 FormLayoutUtil.flip(cc.xyw(1, 15, 3), colSpec, orientation));
+			builder.add(addVideoSuffix,			                                    	 FormLayoutUtil.flip(cc.xyw(4, 15, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),             	 FormLayoutUtil.flip(cc.xyw(9, 15, 4), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),         FormLayoutUtil.flip(cc.xyw(1, 17, 12), colSpec, orientation));
+			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),         	 FormLayoutUtil.flip(cc.xyw(1, 17, 12), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                  FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                  FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                FormLayoutUtil.flip(cc.xyw(9, 19, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                  	 FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                  	 FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                	 FormLayoutUtil.flip(cc.xyw(9, 19, 4), colSpec, orientation));
 
 			builder.add(GuiUtil.getPreferredSizeComponent(cacheenable),                  FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 			builder.add(cachereset,                                                      FormLayoutUtil.flip(cc.xyw(4, 21, 3), colSpec, orientation));
@@ -253,16 +253,16 @@ public class NavigationShareTab {
 			builder.add(atzLimit,                                                        FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderNewMedia),         FormLayoutUtil.flip(cc.xyw(9, 25, 4), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(resume),                  FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-//			builder.add(GuiUtil.getPreferredSizeComponent(recentlyplayedfolder),    FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),        FormLayoutUtil.flip(cc.xyw(9, 27, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(resume),                  	 FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),        	 FormLayoutUtil.flip(cc.xyw(9, 27, 4), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1,  29   ), colSpec, orientation));
 			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(4,  29, 3), colSpec, orientation));
 			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xyw(9,  29, 2), colSpec, orientation));
 			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xyw(11, 29, 2), colSpec, orientation));
 
-			builder.add(builderSharedFolder.getPanel(),                                FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
+			builder.add(builderSharedFolder.getPanel(),                                	 FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
 		} else {
 			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 		}
