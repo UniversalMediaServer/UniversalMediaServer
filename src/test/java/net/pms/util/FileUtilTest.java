@@ -122,6 +122,7 @@ public class FileUtilTest {
 
 		// Video of a movie
 		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.720p.mkv", null)).isEqualTo("Universal Media Server (2015)");
+		assertThat(FileUtil.getFileNamePrettified("Universal_Media_Server_(2015)_[720p,BluRay,flac,x264]_-_FANSUBBERS.mkv", null)).isEqualTo("Universal Media Server (2015)");
 
 		// Video of a special edition of a movie
 		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.Special.Edition.2015.720p.mkv", null)).isEqualTo("Universal Media Server (2015) (Special Edition)");
