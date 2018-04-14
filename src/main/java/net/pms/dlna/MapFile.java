@@ -216,15 +216,15 @@ public class MapFile extends DLNAResource {
 		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName, LetterCase.LOWER, Locale.ROOT));
 	}
 
-	private void manageFile(File f) {
+	private void manageFile(File f, boolean isAddGlobally) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
 
 			if (!f.isHidden()) {
 				if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
-					addChild(new ZippedFile(f));
+					addChild(new ZippedFile(f), true, isAddGlobally);
 				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
-					addChild(new RarredFile(f));
+					addChild(new RarredFile(f), true, isAddGlobally);
 				} else if (
 					configuration.isArchiveBrowsing() && (
 						lcFilename.endsWith(".tar") ||
@@ -233,7 +233,7 @@ public class MapFile extends DLNAResource {
 						lcFilename.endsWith(".7z")
 					)
 				) {
-					addChild(new SevenZipFile(f));
+					addChild(new SevenZipFile(f), true, isAddGlobally);
 				} else if (
 					lcFilename.endsWith(".iso") ||
 					lcFilename.endsWith(".img") || (
@@ -241,7 +241,7 @@ public class MapFile extends DLNAResource {
 						f.getName().toUpperCase(Locale.ROOT).equals("VIDEO_TS")
 					)
 				) {
-					addChild(new DVDISOFile(f));
+					addChild(new DVDISOFile(f), true, isAddGlobally);
 				} else if (
 					lcFilename.endsWith(".m3u") ||
 					lcFilename.endsWith(".m3u8") ||
@@ -251,7 +251,7 @@ public class MapFile extends DLNAResource {
 				) {
 					DLNAResource d = PlaylistFolder.getPlaylist(lcFilename, f.getAbsolutePath(), 0);
 					if (d != null) {
-						addChild(d);
+						addChild(d, true, isAddGlobally);
 					}
 				} else {
 					/* Optionally ignore empty directories */
@@ -270,7 +270,7 @@ public class MapFile extends DLNAResource {
 						if (searchList != null) {
 							searchList.add(rf);
 						}
-						addChild(rf);
+						addChild(rf, true, isAddGlobally);
 					}
 				}
 			}
@@ -306,6 +306,10 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public boolean analyzeChildren(int count) {
+		return analyzeChildren(count, true);
+	}
+
+	public boolean analyzeChildren(int count, boolean isAddGlobally) {
 		int currentChildrenCount = getChildren().size();
 		int vfolder = 0;
 		FileSearch fs = null;
@@ -316,13 +320,13 @@ public class MapFile extends DLNAResource {
 		}
 		while (((getChildren().size() - currentChildrenCount) < count) || (count == -1)) {
 			if (vfolder < getConf().getChildren().size()) {
-				addChild(new MapFile(getConf().getChildren().get(vfolder)));
+				addChild(new MapFile(getConf().getChildren().get(vfolder)), true, isAddGlobally);
 				++vfolder;
 			} else {
 				if (discoverable.isEmpty()) {
 					break;
 				}
-				manageFile(discoverable.remove(0));
+				manageFile(discoverable.remove(0), isAddGlobally);
 			}
 		}
 		if (fs != null) {
@@ -333,11 +337,15 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void discoverChildren() {
-		discoverChildren(null);
+		discoverChildren(null, true);
 	}
 
 	@Override
 	public void discoverChildren(String str) {
+		discoverChildren(str, true);
+	}
+
+	public void discoverChildren(String str, boolean isAddGlobally) {
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
 		} else {
@@ -438,7 +446,7 @@ public class MapFile extends DLNAResource {
 				UMSUtils.sort(entry.getValue(), sm);
 				MapFile mf = new MapFile(getConf(), entry.getValue());
 				mf.forcedName = entry.getKey();
-				addChild(mf);
+				addChild(mf, true, isAddGlobally);
 			}
 			return;
 		}
@@ -491,15 +499,19 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void doRefreshChildren() {
-		doRefreshChildren(null);
+		doRefreshChildren(null, true);
 	}
 
 	@Override
 	public void doRefreshChildren(String str) {
+		doRefreshChildren(str, true);
+	}
+
+	public void doRefreshChildren(String str, boolean isAddGlobally) {
 		getChildren().clear();
 		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
 		discoverable = null;
-		discoverChildren(str);
+		discoverChildren(str, isAddGlobally);
 		analyzeChildren(-1);
 	}
 

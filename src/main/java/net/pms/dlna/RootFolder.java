@@ -107,6 +107,10 @@ public class RootFolder extends DLNAResource {
 
 	@Override
 	public void discoverChildren() {
+		discoverChildren(true);
+	}
+
+	public void discoverChildren(boolean isAddGlobally) {
 		if (isDiscovered()) {
 			return;
 		}
@@ -114,7 +118,7 @@ public class RootFolder extends DLNAResource {
 		if (configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
-				addChild(libraryRes);
+				addChild(libraryRes, true, isAddGlobally);
 			}
 		}
 
@@ -123,7 +127,7 @@ public class RootFolder extends DLNAResource {
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
 				Playlist.PERMANENT|Playlist.AUTOSAVE);
-			addChild(last);
+			addChild(last, true, isAddGlobally);
 		}
 
 		String m = configuration.getFoldersMonitored();
@@ -136,25 +140,25 @@ public class RootFolder extends DLNAResource {
 			mon = new MediaMonitor(dirs);
 
 			if (configuration.isShowNewMediaFolder()) {
-				addChild(mon);
+				addChild(mon, true, isAddGlobally);
 			}
 		}
 
 		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
 			lim = new FolderLimit();
-			addChild(lim);
+			addChild(lim, true, isAddGlobally);
 		}
 
 		if (configuration.isDynamicPls()) {
-			addChild(PMS.get().getDynamicPls());
+			addChild(PMS.get().getDynamicPls(), true, isAddGlobally);
 			if (!configuration.isHideSavedPlaylistFolder()) {
 				File plsdir = new File(configuration.getDynamicPlsSavePath());
-				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")));
+				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true, isAddGlobally);
 			}
 		}
 
 		for (DLNAResource r : getConfiguredFolders(tags)) {
-			addChild(r);
+			addChild(r, true, isAddGlobally);
 		}
 
 		/**
@@ -181,7 +185,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (DLNAResource r : getVirtualFolders(tags)) {
-			addChild(r);
+			addChild(r, true, isAddGlobally);
 		}
 
 		loadWebConf();
@@ -211,7 +215,7 @@ public class RootFolder extends DLNAResource {
 
 
 		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
-			addChild(r);
+			addChild(r, true, isAddGlobally);
 		}
 
 		if (configuration.isShowServerSettingsFolder()) {
@@ -236,7 +240,7 @@ public class RootFolder extends DLNAResource {
 		running = true;
 
 		if (!isDiscovered()) {
-			discoverChildren();
+			discoverChildren(false);
 		}
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -282,7 +286,7 @@ public class RootFolder extends DLNAResource {
 							child.syncResolve();
 						}
 						child.discoverChildren();
-						child.analyzeChildren(-1);
+						child.analyzeChildren(-1, false);
 						child.setDiscovered(true);
 					}
 

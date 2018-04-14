@@ -587,10 +587,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * DLNAResource to add to a container type.
 	 */
 	public void addChild(DLNAResource child) {
-		addChild(child, true);
+		addChild(child, true, true);
 	}
 
 	public void addChild(DLNAResource child, boolean isNew) {
+		addChild(child, true, true);
+	}
+
+	public void addChild(DLNAResource child, boolean isNew, boolean isAddGlobally) {
 		// child may be null (spotted - via rootFolder.addChild() - in a misbehaving plugin
 		if (child == null) {
 			LOGGER.error("A plugin has attempted to add a null child to \"{}\"", getName());
@@ -620,7 +624,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					ce.parent = this;
 					ce.defaultRenderer = this.getDefaultRenderer();
 					ce.setCode(code);
-					addChildInternal(ce);
+					addChildInternal(ce, isAddGlobally);
 					return;
 				}
 			}
@@ -718,14 +722,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if ((child.format.isVideo() || child.format.isAudio()) && child.isTranscodeFolderAvailable()) {
 								// true: create (and append) the #--TRANSCODE--# folder to this
 								// folder if supported/enabled and if it doesn't already exist
-								VirtualFolder transcodeFolder = getTranscodeFolder(true);
+								VirtualFolder transcodeFolder = getTranscodeFolder(true, isAddGlobally);
 								if (transcodeFolder != null) {
 									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
 
 									DLNAResource newChild = child.clone();
 									newChild.player = playerTranscoding;
 									newChild.media = child.media;
-									fileTranscodeFolder.addChildInternal(newChild);
+									fileTranscodeFolder.addChildInternal(newChild, isAddGlobally);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), playerTranscoding);
 
 									transcodeFolder.updateChild(fileTranscodeFolder);
@@ -740,7 +744,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									newChild.media = child.media;
 									LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + playerTranscoding);
 
-									vf.addChild(new SubSelFile(newChild));
+									vf.addChild(new SubSelFile(newChild), true, isAddGlobally);
 								}
 							}
 
@@ -796,7 +800,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (child.media != null && child.media.isSecondaryFormatValid()) {
-							addChild(newChild);
+							addChild(newChild, true, isAddGlobally);
 							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.format.toString(), newChild.getName());
 						} else {
 							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.format.toString(), newChild.getName());
@@ -806,11 +810,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				if (addResumeFile && resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
-					addChildInternal(resumeRes);
+					addChildInternal(resumeRes, isAddGlobally);
 				}
 
 				if (isNew) {
-					addChildInternal(child);
+					addChildInternal(child, isAddGlobally);
 				}
 			}
 		} catch (Throwable t) {
@@ -1066,6 +1070,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	// XXX package-private: used by MapFile; should be protected?
 	TranscodeVirtualFolder getTranscodeFolder(boolean create) {
+		return getTranscodeFolder(create, true);
+	}
+
+	TranscodeVirtualFolder getTranscodeFolder(boolean create, boolean isAddGlobally) {
 		if (!isTranscodeFolderAvailable()) {
 			return null;
 		}
@@ -1083,7 +1091,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (create) {
 			TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null, configuration);
-			addChildInternal(transcodeFolder);
+			addChildInternal(transcodeFolder, isAddGlobally);
 			return transcodeFolder;
 		}
 
@@ -1124,6 +1132,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param child the DLNA resource to add to this node's list of children
 	 */
 	protected synchronized void addChildInternal(DLNAResource child) {
+		addChildInternal(child, true);
+	}
+
+	/**
+	 * Adds the supplied DLNA resource in the internal list of child nodes,
+	 * and sets the parent to the current node. Avoids the side-effects
+	 * associated with the {@link #addChild(DLNAResource)} method.
+	 *
+	 * @param child the DLNA resource to add to this node's list of children
+	 * @param isAddGlobally when a global ID is added for a DLNAResource it
+	 *                      means the garbage collector can't clean up the
+	 *                      memory, and sometimes we don't need the resource
+	 *                      to hang around forever.
+	 */
+	protected synchronized void addChildInternal(DLNAResource child, boolean isAddGlobally) {
 		if (child.getInternalId() != null) {
 			LOGGER.debug(
 				"Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
@@ -1138,7 +1161,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		children.add(child);
 		child.parent = this;
 
-		PMS.getGlobalRepo().add(child);
+		if (isAddGlobally) {
+			LOGGER.info("add global: " + child.getDisplayName());
+			PMS.getGlobalRepo().add(child);
+		}
 	}
 
 	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) {
@@ -1457,6 +1483,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return Returns true
 	 */
 	public boolean analyzeChildren(int count) {
+		return true;
+	}
+
+	public boolean analyzeChildren(int count, boolean isAddGlobally) {
 		return true;
 	}
 
