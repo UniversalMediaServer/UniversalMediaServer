@@ -21,7 +21,6 @@
 package net.pms.util;
 
 import static net.pms.util.XMLRPCUtil.*;
-import static org.apache.commons.lang3.StringUtils.getJaroWinklerDistance;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.BufferedReader;
@@ -61,22 +60,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
+import javax.annotation.Nullable;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import javax.xml.xpath.XPathVariableResolver;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,10 +82,8 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.util.CredMgr.Credential;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.text.similarity.JaroWinklerDistance;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
@@ -304,7 +294,7 @@ public class OpenSubtitle {
 			}
 			LOGGER.debug("Trying to log in to OpenSubtitles");
 
-			Credential credentials = PMS.getCred("opensubtitles");
+			CredMgr.Credential credentials = PMS.getCred("opensubtitles");
 			String pword = "";
 			String username = "";
 			if (credentials != null) {
@@ -520,7 +510,7 @@ public class OpenSubtitle {
 				continue;
 			}
 			if (!(entry.getValue().getValue() instanceof Array)) {
-				throw new OpenSubtitlesException("Unexpected data in CheckMovieHash(2) response: " + entry);
+				throw new OpenSubtitlesException("Unexpected data in CheckMovieHash/CheckMovieHash2 response: " + entry);
 			}
 			Array array = (Array) entry.getValue().getValue();
 			if (array.isEmpty()) {
@@ -1259,7 +1249,7 @@ public class OpenSubtitle {
 			if (isBlank(prettifier.getName()) || isBlank(guess.getTitle())) {
 				continue;
 			}
-			score += getJaroWinklerDistance(
+			score += new JaroWinklerDistance().apply(
 				prettifier.getName().toLowerCase(locale),
 				guess.getTitle().toLowerCase(locale)
 			);
@@ -1765,21 +1755,21 @@ public class OpenSubtitle {
 		return getInfo(file, formattedName, null);
 	}
 
-	public static String[] getInfo(File file, String formattedName, RendererConfiguration r) throws IOException {
+	public static String[] getInfo(File file, String formattedName, RendererConfiguration renderer) throws IOException {
 		Path path = file.toPath();
-		String[] res = getInfo(getHash(path), file.length(), null, null, r);
+		String[] res = getInfo(getHash(path), file.length(), null, null, renderer);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdbId(path, false);
-			if (StringUtil.hasValue(imdb)) {
-				res = getInfo(null, 0, imdb, null, r);
+			if (isNotBlank(imdb)) {
+				res = getInfo(null, 0, imdb, null, renderer);
 			}
 		}
 
 		if (res == null || res.length == 0) { // final try, use the name
 			if (StringUtils.isNotEmpty(formattedName)) {
-				res = getInfo(null, 0, null, formattedName, r);
+				res = getInfo(null, 0, null, formattedName, renderer);
 			} else {
-				res = getInfo(null, 0, null, file.getName(), r);
+				res = getInfo(null, 0, null, file.getName(), renderer);
 			}
 		}
 
@@ -1787,19 +1777,17 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Attempt to return information from OpenSubtitles about the file based
-	 * on information from the filename; either the hash, the IMDb ID or the
-	 * filename itself.
+	 * Attempt to return information from IMDb about the file based on information
+	 * from the filename; either the hash, the IMDb ID or the filename itself.
 	 *
 	 * @param hash  the video hash
 	 * @param size  the byte-size to be used with the hash
 	 * @param imdb  the IMDb ID
-	 * @param query the string to search OpenSubtitles for
-	 * @param renderer the renderer to get subtitle languages from
+	 * @param query the string to search IMDb for
 	 *
-	 * @return a string array including the IMDb ID, episode title, season
-	 *         number, episode number relative to the season, and the show
-	 *         name, or {@code null} if we couldn't find it on OpenSubtitles.
+	 * @return a string array including the IMDb ID, episode title, season number,
+	 *         episode number relative to the season, and the show name, or null
+	 *         if we couldn't find it on IMDb.
 	 *
 	 * @throws IOException
 	 */
@@ -1894,9 +1882,6 @@ public class OpenSubtitle {
 			Pattern.DOTALL
 		);
 		String page = postPage(url.openConnection(), req);
-
-		// LOGGER.trace("opensubs page: " + page);
-
 		Matcher m = re.matcher(page);
 		if (m.find()) {
 			LOGGER.debug("match {},{},{},{},{}", m.group(1), m.group(2), m.group(3), m.group(4), m.group(5));
@@ -1909,8 +1894,6 @@ public class OpenSubtitle {
 				name = m1.group(1).trim();
 			}
 
-			String imdbId = ImdbUtil.ensureTT(m.group(1).trim());
-
 			/**
 			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
 			 * something like "Episode #1.4", so discard that.
@@ -1921,12 +1904,12 @@ public class OpenSubtitle {
 			}
 
 			return new String[]{
-				imdbId,
+				ImdbUtil.ensureTT(m.group(1).trim()),
 				episodeName,
 				StringEscapeUtils.unescapeHtml4(name),
-				m.group(4).trim(), // Season number
-				m.group(5).trim(), // Episode number
-				m.group(3).trim()  // Year
+				m.group(3).trim(), // Season number
+				m.group(4).trim(), // Episode number
+				m.group(5).trim()  // Year
 			};
 		}
 		return null;
@@ -3196,6 +3179,7 @@ public class OpenSubtitle {
 		/**
 		 * @return The {@link GuessIt} or {@code null}.
 		 */
+		@Nullable
 		public GuessIt getGuessIt() {
 			return guessIt;
 		}
@@ -3219,6 +3203,7 @@ public class OpenSubtitle {
 		/**
 		 * @return The {@link BestGuess} or {@code null}.
 		 */
+		@Nullable
 		public BestGuess getBestGuess() {
 			return bestGuess;
 		}
@@ -3691,19 +3676,25 @@ public class OpenSubtitle {
 					String subFileNameWithoutExtension = FileUtil.getFileNameWithoutExtension(subFileName);
 					if (isNotBlank(subFileNameWithoutExtension)) {
 						// 0.6 and below gives a score of 0, 1.0 give a score of 40.
-						tmpScore += 40d * 2.5 * Math.max(getJaroWinklerDistance(
-							prettifier.getFileNameWithoutExtension().toLowerCase(locale),
-							subFileNameWithoutExtension.toLowerCase(Locale.ENGLISH)
-						) - 0.6, 0);
+						tmpScore += 40d * 2.5 * Math.max(
+							new JaroWinklerDistance().apply(
+								prettifier.getFileNameWithoutExtension().toLowerCase(locale),
+								subFileNameWithoutExtension.toLowerCase(Locale.ENGLISH)
+							) - 0.6,
+							0
+						);
 					}
 				}
 				if (isNotBlank(prettifier.getName()) && (isNotBlank(movieName) || isNotBlank(movieNameEng))) {
 					double nameScore = isBlank(movieName) ?
 						0.0 :
-						getJaroWinklerDistance(prettifier.getName().toLowerCase(locale), movieName.toLowerCase(locale));
-					nameScore = Math.max(
-						nameScore,
-						isBlank(movieNameEng) ? 0.0 : getJaroWinklerDistance(
+						new JaroWinklerDistance().apply(
+							prettifier.getName().toLowerCase(locale),
+							movieName.toLowerCase(locale)
+						);
+					nameScore = Math.max(nameScore, isBlank(movieNameEng) ?
+						0.0 :
+						new JaroWinklerDistance().apply(
 							prettifier.getName().toLowerCase(Locale.ENGLISH),
 							movieNameEng.toLowerCase(Locale.ENGLISH)
 						)
