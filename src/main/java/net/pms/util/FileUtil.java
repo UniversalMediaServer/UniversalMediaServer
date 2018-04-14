@@ -1895,14 +1895,9 @@ public class FileUtil {
 	 * Appends a path separator of the same type last in the string if it's not
 	 * already there.
 	 *
-<<<<<<< Upstream, based on origin/master
 	 * @param path the path to be modified.
 	 * @return The corrected path or {@code null} of {@code path} is
 	 *         {@code null}.
-=======
-	 * @param path the path to be modified
-	 * @return the corrected path
->>>>>>> 540fb03 Minor refactoring of FileUtil: - Formatting - Some JavaDocs fixes - Added isSeparator() and getIndexOfLastSeparator() that is OS aware but also accepts forward slash on Windows - Fixed a bug in getExtension() and replaceExtension() if a folder has a dot in its name - Added a try-with-resource
 	 */
 	public static String appendPathSeparator(String path) {
 		if (path == null) {
