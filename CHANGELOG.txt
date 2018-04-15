@@ -1,3 +1,18 @@
+7.0.1 - 2018-04-15
+
+	General:
+		Improved thumbnail support
+		Improved folder scanning speed
+		Reduced memory use during folder scanning
+		Fixed fully played feature on clean installs
+		Fixed tsMuxeR FFmpeg support
+		Updated UMS.conf with changes from 7.0.0
+	Languages:
+		Updated German, Italian, Norwegian, Russian and Swedish translations via Crowdin
+	Renderers:
+		Added support for Roku TV (NSP 8)
+		Improved support for Roku 3
+
 7.0.0 - 2018-03-27 - Changes since 6.8.0
 
 	General:
