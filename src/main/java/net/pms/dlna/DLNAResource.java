@@ -732,7 +732,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									fileTranscodeFolder.addChildInternal(newChild, isAddGlobally);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), playerTranscoding);
 
-									transcodeFolder.updateChild(fileTranscodeFolder);
+									transcodeFolder.updateChild(fileTranscodeFolder, isAddGlobally);
 								}
 							}
 
@@ -1098,6 +1098,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
+	public void updateChild(DLNAResource child) {
+		updateChild(child, true);
+	}
+
 	/**
 	 * (Re)sets the given DLNA resource as follows:
 	 *    - if it's already one of our children, renew it
@@ -1105,8 +1109,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *    - otherwise add it as a new child.
 	 *
 	 * @param child the DLNA resource to update
+	 * @param isAddGlobally whether to add to the global ID repository
 	 */
-	public void updateChild(DLNAResource child) {
+	public void updateChild(DLNAResource child, boolean isAddGlobally) {
 		DLNAResource found = children.contains(child) ?
 			child : searchByName(child.getName());
 		if (found != null) {
@@ -1117,10 +1122,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
-			addChild(child, false);
+			addChild(child, false, isAddGlobally);
 		} else {
 			// Not found, it's new
-			addChild(child, true);
+			addChild(child, true, isAddGlobally);
 		}
 	}
 

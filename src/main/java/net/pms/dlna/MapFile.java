@@ -512,7 +512,7 @@ public class MapFile extends DLNAResource {
 		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
 		discoverable = null;
 		discoverChildren(str, isAddGlobally);
-		analyzeChildren(-1);
+		analyzeChildren(-1, isAddGlobally);
 	}
 
 	@Override
