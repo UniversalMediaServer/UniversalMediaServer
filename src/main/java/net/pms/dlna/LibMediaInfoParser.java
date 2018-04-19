@@ -318,7 +318,7 @@ public class LibMediaInfoParser {
 			/*
 			 * Some container formats (like MP4/M4A) can represent both audio
 			 * and video media. UMS initially recognized this as video, but this
-			 * is corrected here it the content is only audio.
+			 * is corrected here if the content is only audio.
 			 */
 			if (media.isAudioOrVideoContainer() && media.isAudio()) {
 				media.setContainer(media.getAudioVariantFormatConfigurationString());
@@ -466,16 +466,16 @@ public class LibMediaInfoParser {
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
 		} else if (
-				value.contains("isom") ||
-				(streamType != StreamType.Audio && value.startsWith("mp4")) ||
-				value.equals("20") ||
-				value.equals("isml") ||
-				value.startsWith("m4a") ||
-				value.startsWith("m4v") ||
-				value.equals("mpeg-4 visual") ||
-				value.equals("xvid")
-			) {
-				format = FormatConfiguration.MP4;
+			value.contains("isom") ||
+			(streamType != StreamType.Audio && value.startsWith("mp4")) ||
+			value.equals("20") ||
+			value.equals("isml") ||
+			value.startsWith("m4a") ||
+			value.startsWith("m4v") ||
+			value.equals("mpeg-4 visual") ||
+			value.equals("xvid")
+		) {
+			format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
 			format = FormatConfiguration.MPEGPS;
 		} else if (value.contains("mpeg-ts") || value.equals("bdav")) {
@@ -493,30 +493,31 @@ public class LibMediaInfoParser {
 		} else if (value.startsWith("theora")) {
 			format = FormatConfiguration.THEORA;
 		} else if (
-				value.startsWith("windows media") ||
-				value.equals("wmv1") ||
-				value.equals("wmv2")
-			) {
-				format = FormatConfiguration.WMV;
-		} else if (streamType == StreamType.Video &&
-				(
-					value.contains("mjpg") ||
-					value.contains("mjpeg") ||
-					value.equals("mjpa") ||
-					value.equals("mjpb") ||
-					value.equals("jpeg") ||
-					value.equals("jpeg2000")
-				)
-			) {
-				format = FormatConfiguration.MJPEG;
+			value.startsWith("windows media") ||
+			value.equals("wmv1") ||
+			value.equals("wmv2")
+		) {
+			format = FormatConfiguration.WMV;
+		} else if (
+			streamType == StreamType.Video &&
+			(
+				value.contains("mjpg") ||
+				value.contains("mjpeg") ||
+				value.equals("mjpa") ||
+				value.equals("mjpb") ||
+				value.equals("jpeg") ||
+				value.equals("jpeg2000")
+			)
+		) {
+			format = FormatConfiguration.MJPEG;
 		} else if (value.equals("h261")) {
 			format = FormatConfiguration.H261;
 		} else if (
-				value.equals("h263") ||
-				value.equals("s263") ||
-				value.equals("u263")
-			) {
-				format = FormatConfiguration.H263;
+			value.equals("h263") ||
+			value.equals("s263") ||
+			value.equals("u263")
+		) {
+			format = FormatConfiguration.H263;
 		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
@@ -532,11 +533,11 @@ public class LibMediaInfoParser {
 		} else if (value.startsWith("vp9")) {
 			format = FormatConfiguration.VP9;
 		} else if (
-				value.startsWith("div") ||
-				value.equals("dx50") ||
-				value.equals("dvx1")
-			) {
-				format = FormatConfiguration.DIVX;
+			value.startsWith("div") ||
+			value.equals("dx50") ||
+			value.equals("dvx1")
+		) {
+			format = FormatConfiguration.DIVX;
 		} else if (value.startsWith("indeo")) { // Intel Indeo Video: IV31, IV32, IV41 and IV50
 			format = FormatConfiguration.INDEO;
 		} else if (streamType == StreamType.Video && value.equals("yuv")) {
@@ -548,13 +549,13 @@ public class LibMediaInfoParser {
 		} else if (value.contains("mpeg video")) {
 			format = FormatConfiguration.MPEG2;
 		} else if (
-				value.equals("vc-1") ||
-				value.equals("wvc1") ||
-				value.equals("wmv3") ||
-				value.equals("wmvp") ||
-				value.equals("wmva")
-			) {
-				format = FormatConfiguration.VC1;
+			value.equals("vc-1") ||
+			value.equals("wvc1") ||
+			value.equals("wmv3") ||
+			value.equals("wmvp") ||
+			value.equals("wmva")
+		) {
+			format = FormatConfiguration.VC1;
 		} else if (value.startsWith("version 1")) {
 			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
 				format = FormatConfiguration.MPEG1;
@@ -585,11 +586,11 @@ public class LibMediaInfoParser {
 		} else if (value.startsWith("amr")) {
 			format = FormatConfiguration.AMR;
 		} else if (
-				value.equals("ac-3") ||
-				value.equals("a_ac3") ||
-				value.equals("2000")
-			) {
-				format = FormatConfiguration.AC3;
+			value.equals("ac-3") ||
+			value.equals("a_ac3") ||
+			value.equals("2000")
+		) {
+			format = FormatConfiguration.AC3;
 		} else if (value.startsWith("cook")) {
 			format = FormatConfiguration.COOK;
 		} else if (value.startsWith("qdesign")) {
