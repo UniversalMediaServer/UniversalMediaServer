@@ -375,20 +375,26 @@ public class DLNAMediaInfo implements Cloneable {
 	 * core layer. Valid cores include AAC-LC, AAC Scalable (without LTP), ER
 	 * AAC LC, ER AAC Scalable, and ER BSAC.
 	 * <p>
-	 * Since UMS currently only implements AAC-LC among the valid core layer
-	 * codecs, AAC-LC is the only core layer format "approved" by this test. If
+	 * UMS currently only implements AAC-LC and ER BSAC among the valid core layer
+	 * codecs, so only those are "approved" by this test. If
 	 * further codecs are added in the future, this test should be modified
 	 * accordingly.
 	 *
-	 * @return {@code true} is this {@link DLNAMediaInfo} instance has two audio
-	 *         tracks where the first has codec AAC-LC and the second has codec
-	 *         SLS, {@code false} otherwise.
+	 * @return {@code true} if this {@link DLNAMediaInfo} instance has two audio
+	 *         tracks where the first has an approved AAC codec and the second has
+	 *         codec SLS, {@code false} otherwise.
 	 */
 	public boolean isSLS() {
 		if (audioTracks.size() != 2) {
 			return false;
 		}
-		return audioTracks.get(0).isAACLC() && audioTracks.get(1).isSLS();
+
+		return 
+			(
+				audioTracks.get(0).isAACLC() ||
+				audioTracks.get(0).isERBSAC()
+			) &&
+			audioTracks.get(1).isSLS();
 	}
 
 	public MediaType getMediaType() {

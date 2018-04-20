@@ -431,13 +431,20 @@ public class LibMediaInfoParser {
 	 * Sends the correct information to media.setContainer(),
 	 * media.setCodecV() or media.setCodecA, depending on streamType.
 	 *
-	 * TODO: Rename to something like setFormat - this is not a getter.
+	 * Note: A lot of these are types of MPEG-4 Audio and this can be a
+	 * good resource to make sense of that:
+	 * https://en.wikipedia.org/wiki/MPEG-4_Part_3#MPEG-4_Audio_Object_Types
+	 * There are also free samples of most of them at:
+	 * ftp://ftp.iis.fhg.de/mpeg4audio-conformance/compressedMp4/
 	 *
 	 * @param streamType
 	 * @param media
 	 * @param audio
 	 * @param value
 	 * @param file
+	 * @todo Rename to something like setFormat - this is not a getter.
+	 * @todo Split the values by streamType to make the logic more clear
+	 *       with less negative statements.
 	 */
 	private static void getFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		if (isBlank(value)) {
@@ -470,7 +477,7 @@ public class LibMediaInfoParser {
 			(streamType != StreamType.Audio && value.startsWith("mp4")) ||
 			value.equals("20") ||
 			value.equals("isml") ||
-			value.startsWith("m4a") ||
+			(value.startsWith("m4a") && !value.startsWith("m4ae")) ||
 			value.startsWith("m4v") ||
 			value.equals("mpeg-4 visual") ||
 			value.equals("xvid")
@@ -606,9 +613,13 @@ public class LibMediaInfoParser {
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
 		} else if (value.equals("lc")) {
+			// mp4a-40-2
 			format = FormatConfiguration.AAC_LC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.HE_AAC;
+		} else if (value.contains("er bsac")) {
+			// mp4a-40-22
+			format = FormatConfiguration.ER_BSAC;
 		} else if (value.startsWith("adpcm")) {
 			format = FormatConfiguration.ADPCM;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
@@ -622,6 +633,7 @@ public class LibMediaInfoParser {
 		} else if (value.equals("shorten")) {
 			format = FormatConfiguration.SHORTEN;
 		} else if (value.equals("sls")) {
+			// m4ae-40-37
 			format = FormatConfiguration.SLS;
 		} else if (value.equals("acelp")) {
 			format = FormatConfiguration.ACELP;
