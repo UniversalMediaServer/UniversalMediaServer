@@ -435,7 +435,7 @@ public class LibMediaInfoParser {
 	 * good resource to make sense of that:
 	 * https://en.wikipedia.org/wiki/MPEG-4_Part_3#MPEG-4_Audio_Object_Types
 	 * There are also free samples of most of them at:
-	 * ftp://ftp.iis.fhg.de/mpeg4audio-conformance/compressedMp4/
+	 * http://fileformats.archiveteam.org/wiki/MPEG-4_SLS
 	 *
 	 * @param streamType
 	 * @param media

@@ -1543,7 +1543,7 @@ public class RootFolder extends DLNAResource {
 		rf.syncResolve();
 
 		if (rf.isValid()) {
-			LOGGER.info("File {} was added to the media library", file.getName());
+			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
