@@ -577,8 +577,13 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.MP3);
 				}
 			}
-		} else if (value.equals("layer 2") && audio.getCodecA() != null && media.getContainer() != null &&
-				   audio.getCodecA().equals(FormatConfiguration.MPA) && media.getContainer().equals(FormatConfiguration.MPA)) {
+		} else if (
+			value.equals("layer 2") &&
+			audio.getCodecA() != null &&
+			media.getContainer() != null &&
+			audio.getCodecA().equals(FormatConfiguration.MPA) &&
+			media.getContainer().equals(FormatConfiguration.MPA)
+		) {
 			// only for audio files:
 			format = FormatConfiguration.MP2;
 			media.setContainer(FormatConfiguration.MP2);
@@ -613,12 +618,13 @@ public class LibMediaInfoParser {
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
 		} else if (value.equals("lc")) {
-			// mp4a-40-2
 			format = FormatConfiguration.AAC_LC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.HE_AAC;
-		} else if (value.contains("er bsac")) {
-			// mp4a-40-22
+		} else if (
+			value.equals("er bsac") ||
+			value.equals("mp4a-40-22")
+		) {
 			format = FormatConfiguration.ER_BSAC;
 		} else if (value.startsWith("adpcm")) {
 			format = FormatConfiguration.ADPCM;
@@ -633,7 +639,6 @@ public class LibMediaInfoParser {
 		} else if (value.equals("shorten")) {
 			format = FormatConfiguration.SHORTEN;
 		} else if (value.equals("sls")) {
-			// m4ae-40-37
 			format = FormatConfiguration.SLS;
 		} else if (value.equals("acelp")) {
 			format = FormatConfiguration.ACELP;
