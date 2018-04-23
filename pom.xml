@@ -82,7 +82,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>67</binary-revision>
+		<binary-revision>71</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
