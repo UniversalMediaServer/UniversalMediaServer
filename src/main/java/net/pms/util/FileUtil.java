@@ -32,9 +32,9 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.WordUtils;
-import static org.apache.commons.lang3.StringUtils.*;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
+import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -440,7 +440,6 @@ public class FileUtil {
 	 *
 	 * @param f The filename
 	 * @param file The file to possibly be used by the InfoDb
-	 * @param media The DLNAMediaInfo for database access
 	 *
 	 * @return The prettified filename
 	 */
@@ -620,7 +619,7 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Rename the season/episode numbers. For example, "1x01" changes to " - 101"
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
@@ -1262,9 +1261,9 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The detected <code>Charset</code> or <code>null</code> if not detected
-	 * @throws IOException
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The detected {@link Charset} or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static Charset getFileCharset(File file) throws IOException {
 		CharsetMatch match = getFileCharsetMatch(file);
@@ -1292,9 +1291,9 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The name of the detected charset or <code>null</code> if not detected
-	 * @throws IOException
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The name of the detected charset or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static String getFileCharsetName(File file) throws IOException {
 		CharsetMatch match = getFileCharsetMatch(file);
@@ -1349,41 +1348,45 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset <code>Charset</code> to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charset the {@link Charset} to test.
+	 * @return {@code true} if {@code charset} is {@code UTF-16}, {@code false}
+	 *         otherwise.
 	 */
 	public static boolean isCharsetUTF16(Charset charset) {
 		return charset != null && (charset.equals(StandardCharsets.UTF_16) || charset.equals(StandardCharsets.UTF_16BE) || charset.equals(StandardCharsets.UTF_16LE));
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset charset name to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charsetName the charset name to test
+	 * @return {@code true} if {@code charsetName} is {@code UTF-16},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF16(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
 	}
 
 	/**
-	 * Tests if charset is UTF-32.
+	 * Tests if {@code charsetName} is {@code UTF-32}.
 	 *
-	 * @param charsetName charset name to test
-	 * @return True if charset is UTF-32, false otherwise.
+	 * @param charsetName the charset name to test.
+	 * @return {@code true} if {@code charsetName} is {@code UTF-32},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF32(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
-	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
+	 * Converts an {@code UTF-16} input file to an {@code UTF-8} output file.
+	 * Does not overwrite an existing output file.
 	 *
-	 * @param inputFile UTF-16 file
-	 * @param outputFile UTF-8 file after conversion
-	 * @throws IOException
+	 * @param inputFile an {@code UTF-16} {@link File}.
+	 * @param outputFile the {@code UTF-8} {@link File} after conversion.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
 		Charset charset;
@@ -1410,6 +1413,7 @@ public class FileUtil {
 				 * For some reason creating a FileInputStream with UTF_16 produces
 				 * an UTF-8 outputfile without BOM, while using UTF_16LE or
 				 * UTF_16BE produces an UTF-8 outputfile with BOM.
+				 *
 				 * @author Nadahar
 				 */
 				if (charset.equals(StandardCharsets.UTF_16LE)) {
@@ -1681,7 +1685,7 @@ public class FileUtil {
 	 * already there.
 	 *
 	 * @param path the path to be modified.
-	 * @return The corrected path or {@code null} of {@code path} is
+	 * @return The corrected path or {@code null} if {@code path} is
 	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {

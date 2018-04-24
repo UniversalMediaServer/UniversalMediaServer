@@ -30,8 +30,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.apache.commons.lang3.StringUtils;
 import net.pms.PMS;
-import org.codehaus.plexus.util.StringUtils;
 
 public class TempFileMgr {
 	private static final int DEFAULT_CLEAN_TIME = 14 * 24 * 3600 * 1000;
