@@ -881,7 +881,10 @@ public class FFMpegVideo extends Player {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			boolean deferToTsmuxer = true;
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (deferToTsmuxer == true && configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			if (deferToTsmuxer == true && configuration.isShowTranscodeFolder() &&
+					dlna.isNoName() &&
+					(dlna.getParent() instanceof FileTranscodeVirtualFolder)
+			) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
 			}
@@ -889,9 +892,12 @@ public class FFMpegVideo extends Player {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
 			}
-			if (deferToTsmuxer == true && params.sid != null) {
+			if (deferToTsmuxer == true && params.sid != null && params.sid.isExternal() && 
+					!params.sid.getType().equals(SubtitleType.SUBRIP) && 
+					!params.sid.getType().equals(SubtitleType.PGS)
+			) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
+				LOGGER.trace(prependTraceReason + "there are external subtitles but only SUBRIP and PGS types are supported.");
 			}
 			if (deferToTsmuxer == true && avisynth()) {
 				deferToTsmuxer = false;
