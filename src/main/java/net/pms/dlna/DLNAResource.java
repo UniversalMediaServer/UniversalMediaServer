@@ -60,8 +60,8 @@ import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -94,19 +94,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	);
 
 	/**
-	 * The name displayed on the renderer if displayNameFinal is not specified.
-	 */
-	private String displayName;
-
-	/**
 	 * The name displayed on the renderer. If this is null, displayName is used.
 	 */
 	public String displayNameOverride;
-
-	/**
-	 * The suffix added to the name. Contains additional info about audio and subtitles.
-	 */
-	private String nameSuffix = "";
 
 	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
@@ -280,9 +270,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	@Deprecated
 	protected long lastRefreshTime;
-
-	@SuppressWarnings("unused")
-	private String lastSearch;
 
 	private VirtualFolder dynamicPls;
 
@@ -539,7 +526,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		//this.children = new ArrayList<DLNAResource>();
 		this.children = new DLNAList();
 		this.updateId = 1;
-		lastSearch = null;
 		resHash = 0;
 		masterParent = null;
 	}
@@ -1319,7 +1305,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		lastSearch = searchStr;
 		return resources;
 	}
 
@@ -1617,17 +1602,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					OpenSubtitle.backgroundLookupAndAdd(((RealFile) this).getFile(), media);
 				}
 			}
-		}
-
-		if (
-			this instanceof RealFile &&
-			media != null &&
-			media.isVideo() &&
-			((RealFile) this).getFile() != null &&
-			configuration.getUseCache() &&
-			configuration.isUseInfoFromIMDb()
-		) {
-			OpenSubtitle.backgroundLookupAndAdd(((RealFile) this).getFile(), media);
 		}
 	}
 
