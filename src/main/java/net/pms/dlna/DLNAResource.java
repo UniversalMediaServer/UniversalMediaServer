@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -93,7 +94,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	);
 
 	/**
-<<<<<<< Upstream, based on origin/master
 	 * The name displayed on the renderer if displayNameFinal is not specified.
 	 */
 	private String displayName;
@@ -109,8 +109,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String nameSuffix = "";
 
 	/**
-=======
->>>>>>> 67bbf43 Refactored DLNAResource.getDisplayName() to try to make it sane
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
 	 */
 	@Deprecated
@@ -1607,6 +1605,29 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		resolve();
 		if (media != null && media.isVideo()) {
 			registerExternalSubtitles(false);
+			if (
+				this instanceof RealFile &&
+				((RealFile) this).getFile() != null
+			) {
+				setMetadataFromFileName(((RealFile) this).getFile());
+				if (
+					configuration.getUseCache() &&
+					configuration.isUseInfoFromIMDb()
+				) {
+					OpenSubtitle.backgroundLookupAndAdd(((RealFile) this).getFile(), media);
+				}
+			}
+		}
+
+		if (
+			this instanceof RealFile &&
+			media != null &&
+			media.isVideo() &&
+			((RealFile) this).getFile() != null &&
+			configuration.getUseCache() &&
+			configuration.isUseInfoFromIMDb()
+		) {
+			OpenSubtitle.backgroundLookupAndAdd(((RealFile) this).getFile(), media);
 		}
 	}
 
@@ -5092,5 +5113,68 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		scaleWidth  = Player.convertToModX(scaleWidth, 4);
 		scaleHeight = Player.convertToModX(scaleHeight, 4);
 		return scaleWidth + "x" + scaleHeight;
+	}
+
+	/**
+	 * Populates the media Title, Year, Edition, TVSeason, TVEpisodeNumber and TVEpisodeName
+	 * parsed from the media file name and if enabled insert them to the database.
+	 * @param file 
+	 */
+	private void setMetadataFromFileName(File file) {
+		String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
+		String titleFromFilename           = metadataFromFilename[0];
+		String yearFromFilename            = metadataFromFilename[1];
+		String editionFromFilename         = metadataFromFilename[2];
+		String tvSeasonFromFilename        = metadataFromFilename[3];
+		String tvEpisodeNumberFromFilename = metadataFromFilename[4];
+		String tvEpisodeNameFromFilename   = metadataFromFilename[5];
+		String titleFromFilenameSimplified = PMS.get().getSimplifiedShowName(titleFromFilename);
+		media.setMovieOrShowName(titleFromFilename);
+		media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
+		String titleFromDatabase;
+		String titleFromDatabaseSimplified;
+
+		/**
+		 * Apply the metadata from the filename.
+		 */
+		if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
+			/**
+			 * Overwrite the title from the filename if it's very similar to one we
+			 * already have in our database. This is to avoid minor grammatical differences
+			 * like "Word and Word" vs. "Word & Word" from creating two virtual folders.
+			 */
+			titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+			titleFromDatabaseSimplified = PMS.get().getSimplifiedShowName(titleFromDatabase);
+			if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
+				media.setMovieOrShowName(titleFromDatabase);
+			}
+
+			media.setTVSeason(tvSeasonFromFilename);
+			media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+			if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
+				media.setTVEpisodeName(tvEpisodeNameFromFilename);
+			}
+
+			media.setIsTVEpisode(true);
+		}
+			if (yearFromFilename != null) {
+			media.setYear(yearFromFilename);
+		}
+		if (editionFromFilename != null) {
+			media.setEdition(editionFromFilename);
+		}
+
+		if (configuration.getUseCache()) {
+			try {
+				PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+			} catch (SQLException e) {
+				LOGGER.error(
+					"Could not update the database with information from the media file name for \"{}\": {}",
+					file.getAbsolutePath(),
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
 	}
 }
