@@ -37,6 +37,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
+import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -1649,12 +1650,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param configuration the {@link PmsConfiguration} to use.
 	 * @return The base display name or {@code ""}.
 	 */
-	@SuppressWarnings("unused")
 	protected String getDisplayNameBase(PmsConfiguration configuration) {
+		String nameToShow;
+		if (isNotBlank(displayNameOverride)) {
+			nameToShow = displayNameOverride;
+		} else {
+			nameToShow = getName();
+		}
+
 		// this unescape trick is to solve the problem of a name containing
 		// unicode stuff like \u005e
 		// if it's done here it will fix this for all objects
-		return isNoName() ? "" : StringEscapeUtils.unescapeJava(getName());
+		return isNoName() ? "" : StringEscapeUtils.unescapeJava(nameToShow);
 	}
 
 	/**
