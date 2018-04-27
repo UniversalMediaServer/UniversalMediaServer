@@ -94,11 +94,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	);
 
 	/**
-	 * The name displayed on the renderer. If this is null, displayName is used.
-	 */
-	public String displayNameOverride;
-
-	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
 	 */
 	@Deprecated
@@ -1646,21 +1641,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * none should be displayed. The "base" name is the name of this
 	 * {@link DLNAResource} without any prefix or suffix.
 	 *
-	 * @param configuration the {@link PmsConfiguration} to use.
 	 * @return The base display name or {@code ""}.
 	 */
-	protected String getDisplayNameBase(PmsConfiguration configuration) {
-		String nameToShow;
-		if (isNotBlank(displayNameOverride)) {
-			nameToShow = displayNameOverride;
-		} else {
-			nameToShow = getName();
-		}
-
+	protected String getDisplayNameBase() {
 		// this unescape trick is to solve the problem of a name containing
 		// unicode stuff like \u005e
 		// if it's done here it will fix this for all objects
-		return isNoName() ? "" : StringEscapeUtils.unescapeJava(nameToShow);
+		return isNoName() ? "" : StringEscapeUtils.unescapeJava(getName());
 	}
 
 	/**
@@ -1828,7 +1815,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DURATION_TIME_FORMAT)
 			);
 		} else {
-			sb.append(getDisplayNameBase(configurationSpecificToRenderer));
+			sb.append(getDisplayNameBase());
 		}
 
 		// Suffix

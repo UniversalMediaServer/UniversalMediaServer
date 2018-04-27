@@ -19,7 +19,7 @@ public class SubSelFile extends VirtualFolder {
 	private final DLNAResource originalResource;
 
 	public SubSelFile(DLNAResource resource) {
-		super(resource.getDisplayNameBase(resource.configuration), null);
+		super(resource.getDisplayNameBase(), null);
 		originalResource = resource;
 	}
 

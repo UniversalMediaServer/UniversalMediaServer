@@ -25,7 +25,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
@@ -332,19 +331,19 @@ public class RealFile extends MapFile {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	protected String getDisplayNameBase(PmsConfiguration configuration) {
+	protected String getDisplayNameBase() {
 		if (parent instanceof SubSelFile && media_subtitle instanceof DLNAMediaOnDemandSubtitle) {
 			return ((DLNAMediaOnDemandSubtitle) media_subtitle).getName();
 		}
 		if (isFolder()) {
-			return super.getDisplayNameBase(configuration);
+			return super.getDisplayNameBase();
 		}
 		if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
 			// Double-checked locking
 			if (baseNamePrettified == null) {
 				synchronized (displayNameBaseLock) {
 					if (baseNamePrettified == null) {
-						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(configuration), getFile());
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile());
 					}
 				}
 			}
@@ -354,13 +353,13 @@ public class RealFile extends MapFile {
 			if (baseNameWithoutExtension == null) {
 				synchronized (displayNameBaseLock) {
 					if (baseNameWithoutExtension == null) {
-						baseNameWithoutExtension = FileUtil.getFileNameWithoutExtension(super.getDisplayNameBase(configuration));
+						baseNameWithoutExtension = FileUtil.getFileNameWithoutExtension(super.getDisplayNameBase());
 					}
 				}
 			}
 			return baseNameWithoutExtension;
 		}
 
-		return super.getDisplayNameBase(configuration);
+		return super.getDisplayNameBase();
 	}
 }

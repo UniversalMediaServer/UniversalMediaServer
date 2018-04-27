@@ -40,7 +40,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	private final DLNAResource originalResource;
 
 	public FileTranscodeVirtualFolder(DLNAResource resource) {
-		super(resource.getDisplayNameBase(resource.configuration), (String) null);
+		super(resource.getDisplayNameBase(), (String) null);
 		originalResource = resource;
 	}
 

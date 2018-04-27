@@ -1,13 +1,12 @@
 package net.pms.dlna.virtual;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.ArrayList;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES = 0;
@@ -20,7 +19,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private String sqls[];
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
+	private String displayNameOverride;
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
@@ -235,5 +234,14 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 		setUpdateId(this.getIntId());
 		//return removedFiles.size() != 0 || addedFiles.size() != 0 || removedString.size() != 0 || addedString.size() != 0;
+	}
+
+	@Override
+	protected String getDisplayNameBase() {
+		if (isNotBlank(displayNameOverride)) {
+			return displayNameOverride;
+		}
+
+		return super.getDisplayNameBase();
 	}
 }
