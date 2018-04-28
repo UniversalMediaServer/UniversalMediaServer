@@ -396,8 +396,10 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-level");
 					transcodeOptions.add("31");
 				}
-				transcodeOptions.add("-pix_fmt");
-				transcodeOptions.add("yuv420p");
+				if (!customFFmpegOptions.contains("-pix_fmt")) {
+    				transcodeOptions.add("-pix_fmt");
+    				transcodeOptions.add("yuv420p");
+				}
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
