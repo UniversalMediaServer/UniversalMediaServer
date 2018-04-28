@@ -433,6 +433,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
+		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -577,32 +578,34 @@ public class FFMpegVideo extends Player {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
 
-			// Remove comment from the value
-			if (x264CRF.contains("/*")) {
-				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
-			}
-
-			if (x264CRF.contains("Automatic")) {
-				if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
-					x264CRF = "19";
-					// Lower quality for 720p+ content
-					if (media.getWidth() > 1280) {
-						x264CRF = "23";
-					} else if (media.getWidth() > 720) {
-						x264CRF = "22";
-					}
-				} else {
-					x264CRF = "16";
-
-					// Lower quality for 720p+ content
-					if (media.getWidth() > 720) {
+			if (!(customFFmpegOptions.contains("-crf") || customFFmpegOptions.contains("-b:v") || customFFmpegOptions.contains("-b ") || ((customFFmpegOptions.contains("-x264opts") || customFFmpegOptions.contains("-x264-params")) && (customFFmpegOptions.contains("crf=") || customFFmpegOptions.contains("bitrate=") || customFFmpegOptions.contains("B="))))) {
+				// Remove comment from the value
+				if (x264CRF.contains("/*")) {
+					x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+				}
+	
+				if (x264CRF.contains("Automatic")) {
+					if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
 						x264CRF = "19";
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 1280) {
+							x264CRF = "23";
+						} else if (media.getWidth() > 720) {
+							x264CRF = "22";
+						}
+					} else {
+						x264CRF = "16";
+	
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 720) {
+							x264CRF = "19";
+						}
 					}
 				}
-			}
-			if (isNotBlank(x264CRF) && !params.mediaRenderer.nox264()) {
-				videoBitrateOptions.add("-crf");
-				videoBitrateOptions.add(x264CRF);
+				if (isNotBlank(x264CRF) && !params.mediaRenderer.nox264()) {
+					videoBitrateOptions.add("-crf");
+					videoBitrateOptions.add(x264CRF);
+				}
 			}
 		}
 
