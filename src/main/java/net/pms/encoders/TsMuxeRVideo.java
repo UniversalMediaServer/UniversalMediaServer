@@ -505,78 +505,24 @@ public class TsMuxeRVideo extends Player {
 			}
 			pw.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + (fps != null ? ("fps=" + fps + ", ") : "") + (width != -1 ? ("video-width=" + width + ", ") : "") + (height != -1 ? ("video-height=" + height + ", ") : "") + videoparams);
 
-			if (ffAudioPipe != null && ffAudioPipe.length == 1) {
-				String timeshift = "";
-				boolean ac3Remux;
-				boolean dtsRemux;
-				boolean encodedAudioPassthrough;
-				boolean pcm;
-
-				encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
-				ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !params.mediaRenderer.isTranscodeToAAC();
-				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
-
-				pcm = configuration.isAudioUsePCM() &&
-					media.isValidForLPCMTranscoding() &&
-					(
-						params.aid.isLossless() ||
-						(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) ||
-						params.aid.isTrueHD() ||
-						(
-							!configuration.isMencoderUsePcmForHQAudioOnly() &&
-							(
-								params.aid.isAC3() ||
-								params.aid.isMP3() ||
-								params.aid.isAAC() ||
-								params.aid.isVorbis() ||
-								// params.aid.isWMA() ||
-								params.aid.isMpegAudio()
-							)
-						)
-					) && params.mediaRenderer.isLPCMPlayable();
-				String type = "A_AC3";
-				if (ac3Remux) {
-					// AC-3 remux takes priority
-					type = "A_AC3";
-				} else if (aacTranscode) {
-					type = "A_AAC";
-				} else {
-					if (pcm || this instanceof TsMuxeRAudio) {
-						type = "A_LPCM";
-					}
-					if (encodedAudioPassthrough || this instanceof TsMuxeRAudio) {
-						type = "A_LPCM";
-					}
-					if (dtsRemux || this instanceof TsMuxeRAudio) {
-						type = "A_LPCM";
-						if (params.mediaRenderer.isMuxDTSToMpeg()) {
-							type = "A_DTS";
-						}
-					}
-				}
-				if (params.aid != null && params.aid.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
-					timeshift = "timeshift=" + params.aid.getAudioProperties().getAudioDelay() + "ms, ";
-				}
-				pw.println(type + ", \"" + ffAudioPipe[0].getOutputPipe() + "\", " + timeshift + "track=2");
-			} else if (ffAudioPipe != null) {
-				for (int i = 0; i < media.getAudioTracksList().size(); i++) {
-					DLNAMediaAudio lang = media.getAudioTracksList().get(i);
+			if (ffAudioPipe != null) {
+				if (ffAudioPipe.length == 1) {
 					String timeshift = "";
 					boolean ac3Remux;
 					boolean dtsRemux;
 					boolean encodedAudioPassthrough;
 					boolean pcm;
-
+	
 					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
-					ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
-					dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
-
+					ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !params.mediaRenderer.isTranscodeToAAC();
+					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
+	
 					pcm = configuration.isAudioUsePCM() &&
 						media.isValidForLPCMTranscoding() &&
 						(
-							lang.isLossless() ||
-							(lang.isDTS() && lang.getAudioProperties().getNumberOfChannels() <= 6) ||
-							lang.isTrueHD() ||
+							params.aid.isLossless() ||
+							(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) ||
+							params.aid.isTrueHD() ||
 							(
 								!configuration.isMencoderUsePcmForHQAudioOnly() &&
 								(
@@ -593,24 +539,80 @@ public class TsMuxeRVideo extends Player {
 					if (ac3Remux) {
 						// AC-3 remux takes priority
 						type = "A_AC3";
+					} else if (aacTranscode) {
+						type = "A_AAC";
 					} else {
-						if (pcm) {
+						if (pcm || this instanceof TsMuxeRAudio) {
 							type = "A_LPCM";
 						}
-						if (encodedAudioPassthrough) {
+						if (encodedAudioPassthrough || this instanceof TsMuxeRAudio) {
 							type = "A_LPCM";
 						}
-						if (dtsRemux) {
+						if (dtsRemux || this instanceof TsMuxeRAudio) {
 							type = "A_LPCM";
 							if (params.mediaRenderer.isMuxDTSToMpeg()) {
 								type = "A_DTS";
 							}
 						}
 					}
-					if (lang.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
-						timeshift = "timeshift=" + lang.getAudioProperties().getAudioDelay() + "ms, ";
+					if (params.aid != null && params.aid.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
+						timeshift = "timeshift=" + params.aid.getAudioProperties().getAudioDelay() + "ms, ";
 					}
-					pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
+					pw.println(type + ", \"" + ffAudioPipe[0].getOutputPipe() + "\", " + timeshift + "track=2");
+				} else {
+					for (int i = 0; i < media.getAudioTracksList().size(); i++) {
+						DLNAMediaAudio lang = media.getAudioTracksList().get(i);
+						String timeshift = "";
+						boolean ac3Remux;
+						boolean dtsRemux;
+						boolean encodedAudioPassthrough;
+						boolean pcm;
+	
+						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
+						ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+						dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
+	
+						pcm = configuration.isAudioUsePCM() &&
+							media.isValidForLPCMTranscoding() &&
+							(
+								lang.isLossless() ||
+								(lang.isDTS() && lang.getAudioProperties().getNumberOfChannels() <= 6) ||
+								lang.isTrueHD() ||
+								(
+									!configuration.isMencoderUsePcmForHQAudioOnly() &&
+									(
+										params.aid.isAC3() ||
+										params.aid.isMP3() ||
+										params.aid.isAAC() ||
+										params.aid.isVorbis() ||
+										// params.aid.isWMA() ||
+										params.aid.isMpegAudio()
+									)
+								)
+							) && params.mediaRenderer.isLPCMPlayable();
+						String type = "A_AC3";
+						if (ac3Remux) {
+							// AC-3 remux takes priority
+							type = "A_AC3";
+						} else {
+							if (pcm) {
+								type = "A_LPCM";
+							}
+							if (encodedAudioPassthrough) {
+								type = "A_LPCM";
+							}
+							if (dtsRemux) {
+								type = "A_LPCM";
+								if (params.mediaRenderer.isMuxDTSToMpeg()) {
+									type = "A_DTS";
+								}
+							}
+						}
+						if (lang.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
+							timeshift = "timeshift=" + lang.getAudioProperties().getAudioDelay() + "ms, ";
+						}
+						pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
+					}
 				}
 			}
 		}
