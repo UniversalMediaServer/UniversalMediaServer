@@ -233,7 +233,7 @@ public class TsMuxeRVideo extends Player {
 				"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 				"-i", filename,
 				"-c", "copy",
-				"-f", "rawvideo",
+				"-f", media.getCodecV().startsWith("h264") ? "h264" : "mpeg2video",
 				"-y",
 				ffVideoPipe.getInputPipe()
 			};
@@ -250,13 +250,6 @@ public class TsMuxeRVideo extends Player {
 			 */
 			if (!media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) && params.mediaRenderer.isH264Level41Limited()) {
 				LOGGER.info("The video will not play or will show a black screen");
-			}
-
-			if (media.getH264AnnexB() != null && media.getH264AnnexB().length > 0) {
-				StreamModifier sm = new StreamModifier();
-				sm.setHeader(media.getH264AnnexB());
-				sm.setH264AnnexB(true);
-				ffVideoPipe.setModifier(sm);
 			}
 
 			OutputParams ffparams = new OutputParams(configuration);
