@@ -324,8 +324,8 @@ public class TsMuxeRVideo extends Player {
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							"-i", filename,
 							"-ac", "" + sm.getNbChannels(),
-							"-f", "ac3",
-							"-c:a", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
+							"-f", "s16le",
+							"-c:a", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm_s16le",
 							"-y",
 							ffAudioPipe[0].getInputPipe()
 						};
@@ -427,9 +427,9 @@ public class TsMuxeRVideo extends Player {
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								"-i", filename,
 								"-ac", "" + sm.getNbChannels(),
-								"-f", "ac3",
+								"-f", "s16le",
 								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
-								"-c:a", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
+								"-c:a", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm_s16le",
 								"-y",
 								ffAudioPipe[i].getInputPipe()
 							};
