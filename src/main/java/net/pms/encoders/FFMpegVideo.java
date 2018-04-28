@@ -383,8 +383,10 @@ public class FFMpegVideo extends Player {
 					} else {
 						transcodeOptions.add("libx265");
 					}
-					transcodeOptions.add("-tune");
-					transcodeOptions.add("zerolatency");
+					if (!customFFmpegOptions.contains("-tune")) {
+    					transcodeOptions.add("-tune");
+    					transcodeOptions.add("zerolatency");
+					}
     				if (!customFFmpegOptions.contains("-preset")) {
     					transcodeOptions.add("-preset");
     					transcodeOptions.add("ultrafast");
