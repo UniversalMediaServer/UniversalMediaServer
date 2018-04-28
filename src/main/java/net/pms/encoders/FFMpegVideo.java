@@ -356,13 +356,17 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
-				} else if (renderer.isTranscodeToAAC()) {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("aac");
 				} else {
-					if (!customFFmpegOptions.contains("-c:a ")) {
-						transcodeOptions.add("-c:a");
-						transcodeOptions.add("ac3");
+					if (!customFFmpegOptions.contains("-(c:a|codc:a|acodec)")) {
+						if (renderer.isTranscodeToAAC()) {
+							transcodeOptions.add("-c:a");
+							transcodeOptions.add("aac");
+						} else {
+							if (!customFFmpegOptions.contains("-c:a ")) {
+								transcodeOptions.add("-c:a");
+								transcodeOptions.add("ac3");
+							}
+						}
 					}
 				}
 			}
