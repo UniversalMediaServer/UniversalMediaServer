@@ -385,10 +385,10 @@ public class FFMpegVideo extends Player {
 					}
 					transcodeOptions.add("-tune");
 					transcodeOptions.add("zerolatency");
-				}
-				if (!customFFmpegOptions.contains("-preset")) {
-					transcodeOptions.add("-preset");
-					transcodeOptions.add("ultrafast");
+    				if (!customFFmpegOptions.contains("-preset")) {
+    					transcodeOptions.add("-preset");
+    					transcodeOptions.add("ultrafast");
+    				}
 				}
 				if (!customFFmpegOptions.contains("-level")) {
 					transcodeOptions.add("-level");
