@@ -1278,7 +1278,7 @@ public class PMS {
 			return title;
 		}
 
-		title = getSimplifiedShowName(title);
+		title = FileUtil.getSimplifiedShowName(title);
 		title = StringEscapeUtils.escapeSql(title);
 
 		if (getConfiguration().getUseCache()) {
@@ -1289,22 +1289,6 @@ public class PMS {
 		}
 
 		return "";
-	}
-
-	/**
-	 * This reduces the incoming title to a lowercase, alphanumeric string
-	 * for searching in order to prevent titles like "Word of the Word" and
-	 * "Word Of The Word!" from being seen as different shows.
-	 *
-	 * @param title
-	 * @return
-	 */
-	public String getSimplifiedShowName(String title) {
-		if (title == null) {
-			return null;
-		}
-
-		return title.toLowerCase().replaceAll("[^a-z0-9]", "");
 	}
 
 	/**

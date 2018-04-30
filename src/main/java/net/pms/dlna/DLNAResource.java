@@ -1585,17 +1585,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		resolve();
 		if (media != null && media.isVideo()) {
 			registerExternalSubtitles(false);
-			if (
-				this instanceof RealFile &&
-				((RealFile) this).getFile() != null
-			) {
+			if (this instanceof RealFile && ((RealFile) this).getFile() != null) {
 				setMetadataFromFileName(((RealFile) this).getFile());
-				if (
-					configuration.getUseCache() &&
-					configuration.isUseInfoFromIMDb()
-				) {
-					OpenSubtitle.backgroundLookupAndAdd(((RealFile) this).getFile(), media);
-				}
 			}
 		}
 	}
@@ -5085,6 +5076,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Populates the media Title, Year, Edition, TVSeason, TVEpisodeNumber and TVEpisodeName
 	 * parsed from the media file name and if enabled insert them to the database.
+	 *
 	 * @param file 
 	 */
 	private void setMetadataFromFileName(File file) {
@@ -5095,15 +5087,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String tvSeasonFromFilename        = metadataFromFilename[3];
 		String tvEpisodeNumberFromFilename = metadataFromFilename[4];
 		String tvEpisodeNameFromFilename   = metadataFromFilename[5];
-		String titleFromFilenameSimplified = PMS.get().getSimplifiedShowName(titleFromFilename);
+		String titleFromFilenameSimplified = FileUtil.getSimplifiedShowName(titleFromFilename);
 		media.setMovieOrShowName(titleFromFilename);
 		media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
 		String titleFromDatabase;
 		String titleFromDatabaseSimplified;
 
-		/**
-		 * Apply the metadata from the filename.
-		 */
+		// Apply the metadata from the filename.
 		if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
 			/**
 			 * Overwrite the title from the filename if it's very similar to one we
@@ -5111,7 +5101,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 * like "Word and Word" vs. "Word & Word" from creating two virtual folders.
 			 */
 			titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
-			titleFromDatabaseSimplified = PMS.get().getSimplifiedShowName(titleFromDatabase);
+			titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
 			if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
 				media.setMovieOrShowName(titleFromDatabase);
 			}
@@ -5124,23 +5114,33 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			media.setIsTVEpisode(true);
 		}
-			if (yearFromFilename != null) {
+
+		if (yearFromFilename != null) {
 			media.setYear(yearFromFilename);
 		}
+
 		if (editionFromFilename != null) {
 			media.setEdition(editionFromFilename);
 		}
 
-		if (configuration.getUseCache()) {
-			try {
+		try {
+			if (configuration.getUseCache()) {
 				PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
-			} catch (SQLException e) {
-				LOGGER.error(
-					"Could not update the database with information from the media file name for \"{}\": {}",
-					file.getAbsolutePath(),
-					e.getMessage()
-				);
-				LOGGER.trace("", e);
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Could not update the database with information from the filename for \"{}\": {}",
+				file.getAbsolutePath(),
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		} finally {
+			/**
+			 * Attempt to enhance the metadata by using OpenSubtitles if the
+			 * setting is enabled.
+			 */
+			if (configuration.isUseInfoFromIMDb()) {
+				OpenSubtitle.backgroundLookupAndAdd(file, media);
 			}
 		}
 	}
