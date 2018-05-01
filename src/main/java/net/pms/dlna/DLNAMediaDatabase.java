@@ -224,10 +224,10 @@ public class DLNAMediaDatabase implements Runnable {
 		boolean forceReInit = false;
 
 		/**
-		 * If the database is not the latest version, see if we can upgrade
-		 * it efficiently instead of recreating it.
+		 * If the database is created and is not the latest version, 
+		 * see if we can upgrade it efficiently instead of recreating it.
 		 */
-		if (latestVersion != currentVersion) {
+		if (currentVersion != -1 && latestVersion != currentVersion) {
 			try {
 				conn = getConnection();
 
@@ -964,7 +964,7 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(27, 0);
 						ps.setNull(28, Types.VARCHAR);
 						ps.setNull(29, Types.VARCHAR);
-						ps.setNull(20, Types.VARCHAR);
+						ps.setNull(30, Types.VARCHAR);
 						ps.setNull(31, Types.VARCHAR);
 						ps.setNull(32, Types.VARCHAR);
 						ps.setNull(33, Types.VARCHAR);

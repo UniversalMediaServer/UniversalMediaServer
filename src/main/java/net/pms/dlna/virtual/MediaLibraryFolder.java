@@ -16,6 +16,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int ISOS = 3;
 	public static final int SEASONS = 4;
 	public static final int FILES_NOSORT = 5;
+	public static final int TEXTS_NOSORT = 6;
 	private String sqls[];
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
@@ -96,6 +97,17 @@ public class MediaLibraryFolder extends VirtualFolder {
 							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
 						}
 					}
+				} else if (expectedOutput == TEXTS_NOSORT) {
+					ArrayList<String> list = database.getStrings(sql);
+					if (list != null) {
+						for (String s : list) {
+							String sqls2[] = new String[sqls.length - 1];
+							int expectedOutputs2[] = new int[expectedOutputs.length - 1];
+							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
+							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
+							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
+						}
+					}
 				} else if (expectedOutput == SEASONS) {
 					String nameToDisplay;
 					ArrayList<String> list = database.getStrings(sql);
@@ -164,7 +176,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				sql = transformSQL(sql);
 				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					list = database.getFiles(sql);
-				} else if (expectedOutput == TEXTS) {
+				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
 					strings = database.getStrings(sql);
 				}
 			}
@@ -212,7 +224,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 		for (String f : addedString) {
-			if (expectedOutput == TEXTS) {
+			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
 				String sqls2[] = new String[sqls.length - 1];
 				int expectedOutputs2[] = new int[expectedOutputs.length - 1];
 				System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);

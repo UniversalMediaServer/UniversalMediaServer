@@ -423,6 +423,14 @@ public class FileUtil {
 	private static final String COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d-\\d\\d)(?:[\\s']|v\\d)";
 	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS);
 
+	public static String getFileNamePrettified(String f) {
+		return getFileNamePrettified(f, null, null);
+	}
+
+	public static String getFileNamePrettified(String f, File file) {
+		return getFileNamePrettified(f, file, null);
+	}
+
 	/**
 	 * Returns the filename after being "prettified", which involves
 	 * attempting to strip away certain things like information about the
