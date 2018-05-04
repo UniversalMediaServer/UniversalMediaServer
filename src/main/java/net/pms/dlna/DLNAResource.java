@@ -283,6 +283,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected HashMap<String, Object> attachments = null;
 
 	/**
+	 * @deprecated Use standard getter and setter to access this field.
+	 */
+	@Deprecated
+	protected boolean isVisible = true;
+
+	/**
 	 * Returns parent object, usually a folder type of resource. In the DLDI
 	 * queries, the UPNP server needs to give out the parent container where
 	 * the item is. The <i>parent</i> represents such a container.
@@ -516,6 +522,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return parent.getResourceId();
 		}
 		return "-1";
+	}
+
+	/**
+	 * Whether this resource should be passed to renderers for browsing.
+	 */
+	public void setVisible(boolean isVisible) {
+		this.isVisible = isVisible;
+	}
+
+	/**
+	 * Whether this resource should be passed to renderers for browsing.
+	 */
+	public boolean isVisible() {
+		return this.isVisible;
 	}
 
 	public DLNAResource() {
@@ -1246,7 +1266,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (dlna == null) {
 			// nothing in the cache do a traditional search
 			dlna = search(ids, renderer);
-			//dlna = search(objectId, count, renderer, searchStr);
 		}
 
 		if (dlna != null) {

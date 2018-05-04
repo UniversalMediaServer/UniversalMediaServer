@@ -165,7 +165,7 @@ public class RootFolder extends DLNAResource {
 		 * Changes to monitored folders trigger a rescan
 		 */
 		if (PMS.getConfiguration().getUseCache()) {
-			for (DLNAResource resource : getConfiguredFolders(tags, true)) {
+			for (DLNAResource resource : getMonitoredFolders()) {
 				File file = new File(resource.getSystemName());
 				if (file.exists()) {
 					if (!file.isDirectory()) {
@@ -307,13 +307,30 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
+	/**
+	 * Returns all shared folders, regardless of whether they
+	 * are monitored or visible.
+	 *
+	 * @param tags
+	 * @return 
+	 */
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
-		return getConfiguredFolders(tags, false);
+		return getConfiguredFolders(tags, false, false);
 	}
 
-	private List<RealFile> getConfiguredFolders(ArrayList<String> tags, boolean monitored) {
+	/**
+	 * Returns monitored folders, even if they are invisible.
+	 *
+	 * @param tags
+	 * @return 
+	 */
+	private List<RealFile> getMonitoredFolders() {
+		return getConfiguredFolders(null, true, false);
+	}
+
+	private List<RealFile> getConfiguredFolders(ArrayList<String> tags, boolean monitored, boolean limitToVisible) {
 		List<RealFile> res = new ArrayList<>();
-		File[] files = PMS.get().getSharedFoldersArray(monitored, tags, configuration);
+		File[] files = PMS.get().getSharedFoldersArray(monitored, tags, configuration, limitToVisible);
 		String s = configuration.getFoldersIgnored(tags);
 		String[] skips = null;
 
@@ -333,7 +350,23 @@ public class RootFolder extends DLNAResource {
 			if (skipPath(skips, f.getAbsolutePath().toLowerCase())) {
 				continue;
 			}
-			res.add(new RealFile(f));
+
+			RealFile newFile = new RealFile(f);
+
+			// Set folder visibility on the resource to be used later
+			File[] foldersVisible = PMS.get().getVisibleFoldersArray();
+			boolean isThisFolderVisible = false;
+			if (foldersVisible != null && foldersVisible.length > 0) {
+				for (File folderVisible : foldersVisible) {
+					if (folderVisible.getAbsolutePath().equals(f.getAbsolutePath())) {
+						isThisFolderVisible = true;
+						break;
+					}
+				}
+			}
+			newFile.setVisible(isThisFolderVisible);
+
+			res.add(newFile);
 		}
 
 		if (configuration.getSearchFolder()) {

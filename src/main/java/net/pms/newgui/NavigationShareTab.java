@@ -946,14 +946,14 @@ public class NavigationShareTab {
 
 		builderFolder.add(isScanSharedFoldersOnStartup, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
-		LOGGER.info("Folders: "+PMS.get().getSharedFoldersArray(false));
-		LOGGER.info("Monitored folders: "+PMS.get().getSharedFoldersArray(true));
-		LOGGER.info("Visible folders: "+PMS.get().getSharedFoldersArrayVisible());
+		LOGGER.info("Folders: "+PMS.get().getSharedFoldersArray());
+		LOGGER.info("Monitored folders: "+PMS.get().getMonitoredFoldersArray());
+		LOGGER.info("Visible folders: "+PMS.get().getVisibleFoldersArray());
 		LOGGER.info("");
-		File[] folders = PMS.get().getSharedFoldersArray(false);
+		File[] folders = PMS.get().getSharedFoldersArray();
 		if (folders != null && folders.length > 0) {
-			File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
-			File[] foldersVisible   = PMS.get().getSharedFoldersArrayVisible();
+			File[] foldersMonitored = PMS.get().getMonitoredFoldersArray();
+			File[] foldersVisible   = PMS.get().getVisibleFoldersArray();
 			for (File folder : folders) {
 				boolean isMonitored = false;
 				if (foldersMonitored != null && foldersMonitored.length > 0) {

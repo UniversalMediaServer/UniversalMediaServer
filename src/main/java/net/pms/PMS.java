@@ -835,27 +835,42 @@ public class PMS {
 	}
 
 	/**
-	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
-	 * Checks that the directory exists and is a valid directory.
+	 * Returns all folders, including invisible and unmonitored ones.
 	 *
-	 * @param monitored whether to only return monitored directories, or all
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
-	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, null, getConfiguration());
+	public File[] getSharedFoldersArray() {
+		return getSharedFoldersArray(false, null, getConfiguration(), false);
 	}
 
 	/**
-	 * Returns all shared folders that are marked as visible.
+	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
+	 * Checks that the directory exists and is a valid directory.
+	 *
+	 * Note: This will return even invisible folders.
 	 *
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
-	public File[] getSharedFoldersArrayVisible() {
+	public File[] getMonitoredFoldersArray() {
+		return getSharedFoldersArray(true, null, getConfiguration(), false);
+	}
+
+	/**
+	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
+	 * Checks that the directory exists and is a valid directory.
+	 *
+	 * @return {@link java.io.File}[] Array of directories.
+	 */
+	public File[] getVisibleFoldersArray() {
 		return getSharedFoldersArray(false, null, getConfiguration(), true);
 	}
 
+	public File[] getSharedFoldersArray(boolean monitored) {
+		return getSharedFoldersArray(monitored, null, getConfiguration(), false);
+	}
+
 	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
-		return getSharedFoldersArray(monitored, null, configuration);
+		return getSharedFoldersArray(monitored, null, configuration, false);
 	}
 
 	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
@@ -905,7 +920,7 @@ public class PMS {
 					for (String visibleFolder : visibleFoldersArray) {
 						visibleFolder = visibleFolder.trim();
 						visibleFolder = visibleFolder.replaceAll("&comma;", ",");
-						if (folder == visibleFolder) {
+						if (folder.equals(visibleFolder)) {
 							shouldAddFolder = true;
 							break;
 						}

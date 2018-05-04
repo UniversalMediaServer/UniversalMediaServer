@@ -113,28 +113,31 @@ public class RemoteBrowseHandler implements HttpHandler {
 			}
 
 			if (resource.isFolder()) {
-				sb.setLength(0);
-				// The resource is a folder
-				String p = "/browse/" + idForWeb;
-				boolean code = (resource instanceof CodeEnter);
-				String txt = RemoteUtil.getMsgString("Web.8", t);
-				if (code) {
-					txt = RemoteUtil.getMsgString("Web.9", t);
+				// Only care about the visibility of folders
+				if (resource.isVisible()) {
+					sb.setLength(0);
+					// The resource is a folder
+					String p = "/browse/" + idForWeb;
+					boolean code = (resource instanceof CodeEnter);
+					String txt = RemoteUtil.getMsgString("Web.8", t);
+					if (code) {
+						txt = RemoteUtil.getMsgString("Web.9", t);
+					}
+					if (resource.getClass().getName().contains("SearchFolder") || code) {
+						// search folder add a prompt
+						// NOTE!!!
+						// Yes doing getClass.getname is REALLY BAD, but this
+						// is to make legacy plugins utilize this function as well
+						sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
+						   .append(txt).append("');\" title=\"").append(name).append("\">");
+					} else {
+						sb.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
+						  .append("','").append(txt).append("');\" title=\"").append(name).append("\">");
+					}
+					sb.append("<span>").append(name).append("</span>");
+					sb.append("</a>");
+					folders.add(sb.toString());
 				}
-				if (resource.getClass().getName().contains("SearchFolder") || code) {
-					// search folder add a prompt
-					// NOTE!!!
-					// Yes doing getClass.getname is REALLY BAD, but this
-					// is to make legacy plugins utilize this function as well
-					sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
-					   .append(txt).append("');\" title=\"").append(name).append("\">");
-				} else {
-					sb.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
-					  .append("','").append(txt).append("');\" title=\"").append(name).append("\">");
-				}
-				sb.append("<span>").append(name).append("</span>");
-				sb.append("</a>");
-				folders.add(sb.toString());
 			} else {
 				// The resource is a media file
 				sb.setLength(0);

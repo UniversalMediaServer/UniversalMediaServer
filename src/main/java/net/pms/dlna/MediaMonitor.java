@@ -200,7 +200,7 @@ public class MediaMonitor extends VirtualFolder {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null) {
 				boolean isMonitored = false;
-				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
+				File[] foldersMonitored = PMS.get().getMonitoredFoldersArray();
 				if (foldersMonitored != null && foldersMonitored.length > 0) {
 					for (File folderMonitored : foldersMonitored) {
 						if (realFile.getFile().getAbsolutePath().contains(folderMonitored.getAbsolutePath())) {
