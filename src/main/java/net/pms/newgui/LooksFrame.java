@@ -20,7 +20,6 @@ package net.pms.newgui;
 
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
-import com.jgoodies.looks.windows.WindowsLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -97,6 +96,21 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
 
+	/**
+	 * Class name of Windows L&F provided in Sun JDK.
+	 */
+	public static final String WINDOWS_LNF = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+
+	/**
+	 * Class name of PlasticXP L&F.
+	 */
+	public static final String PLASTICXP_LNF = "com.jgoodies.looks.plastic.PlasticXPLookAndFeel";
+
+	/**
+	 * Class name of Metal L&F.
+	 */
+	public static final String METAL_LNF = "javax.swing.plaf.metal.MetalLookAndFeel";
+
 	public ViewLevel getViewLevel() {
 		return viewLevel;
 	}
@@ -133,17 +147,23 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public static void initializeLookAndFeel() {
-
 		synchronized (lookAndFeelInitializedLock) {
 			if (lookAndFeelInitialized) {
 				return;
 			}
 
-			LookAndFeel selectedLaf = null;
 			if (Platform.isWindows()) {
-				selectedLaf = new WindowsLookAndFeel();
+				try {
+					UIManager.setLookAndFeel(WINDOWS_LNF);
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+					LOGGER.error("Error while setting Windows look and feel: ", e);
+				}
 			} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
-				selectedLaf = new PlasticLookAndFeel();
+				try {
+					UIManager.setLookAndFeel(PLASTICXP_LNF);
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+					LOGGER.error("Error while setting Plastic XP look and feel: ", e);
+				}
 			} else {
 				try {
 					String systemClassName = UIManager.getSystemLookAndFeelClassName();
@@ -162,16 +182,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 					LOGGER.trace("Choosing Java look and feel: " + systemClassName);
 					UIManager.setLookAndFeel(systemClassName);
 				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e1) {
-					selectedLaf = new PlasticLookAndFeel();
+					try {
+						UIManager.setLookAndFeel(PLASTICXP_LNF);
+					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+						LOGGER.error("Error while setting Plastic XP look and feel: ", e);
+					}
 					LOGGER.error("Error while setting native look and feel: ", e1);
 				}
 			}
 
-			if (selectedLaf instanceof PlasticLookAndFeel) {
+			if (isParticularLaFSet(UIManager.getLookAndFeel(), PLASTICXP_LNF)) {
 				PlasticLookAndFeel.setPlasticTheme(PlasticLookAndFeel.createMyDefaultTheme());
 				PlasticLookAndFeel.setTabStyle(PlasticLookAndFeel.TAB_STYLE_DEFAULT_VALUE);
 				PlasticLookAndFeel.setHighContrastFocusColorsEnabled(false);
-			} else if (selectedLaf != null && selectedLaf.getClass() == MetalLookAndFeel.class) {
+			} else if (isParticularLaFSet(UIManager.getLookAndFeel(), METAL_LNF)) {
 				MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
 			}
 
@@ -181,20 +205,40 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			JCheckBox checkBox = new JCheckBox();
 			checkBox.getUI().uninstallUI(checkBox);
 
-			if (selectedLaf != null) {
-				try {
-					UIManager.setLookAndFeel(selectedLaf);
-					// Workaround for JDK-8179014: JFileChooser with Windows look and feel crashes on win 10
-					// https://bugs.openjdk.java.net/browse/JDK-8179014
-					if (selectedLaf instanceof WindowsLookAndFeel) {
-						UIManager.put("FileChooser.useSystemExtensionHiding", false);
-					}
-				} catch (UnsupportedLookAndFeelException e) {
-					LOGGER.warn("Can't change look and feel", e);
-				}
+			// Workaround for JDK-8179014: JFileChooser with Windows look and feel crashes on win 10
+			// https://bugs.openjdk.java.net/browse/JDK-8179014
+			if (isParticularLaFSet(UIManager.getLookAndFeel(), WINDOWS_LNF)) {
+				UIManager.put("FileChooser.useSystemExtensionHiding", false);
 			}
 
 			lookAndFeelInitialized = true;
+		}
+	}
+
+	/**
+	 * Safely checks whether a particular look and feel class is set.
+	 *
+	 * @param lnf
+	 * @param lookAndFeelClassPath
+	 * @return whether the incoming look and feel class is set
+	 */
+	private static boolean isParticularLaFSet(LookAndFeel lnf, String lookAndFeelClassPath) {
+		// as of Java 10, com.sun.java.swing.plaf.windows.WindowsLookAndFeel
+		// is no longer available on macOS
+		// thus "instanceof WindowsLookAndFeel" directives will result
+		// in a NoClassDefFoundError during runtime
+		if (lnf == null) {
+			return false;
+		} else {
+			try {
+				Class c = Class.forName(lookAndFeelClassPath);
+				return c.isInstance(lnf);
+			} catch (ClassNotFoundException cnfe) {
+				// if it is not possible to load the Windows LnF class, the
+				// given lnf instance cannot be an instance of the Windows
+				// LnF class
+				return false;
+			}
 		}
 	}
 
