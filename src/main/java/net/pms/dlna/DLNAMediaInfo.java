@@ -1242,25 +1242,34 @@ public class DLNAMediaInfo implements Cloneable {
 						while (st.hasMoreTokens()) {
 							String token = st.nextToken().trim();
 							if (token.startsWith("Stream")) {
-								int offset = token.indexOf("Audio: ") + 7;
+								String audioString = "Audio: ";
+								int positionAfterAudioString = token.indexOf(audioString) + audioString.length();
 								String codec;
-								if (token.indexOf(" ", offset) != -1) {
-									codec = token.substring(offset, token.indexOf(" ", offset)).trim();
-									// workaround for AAC audio formats
-									if (codec.equals("aac") && token.indexOf("(LC)") != -1) { 
-										codec = FormatConfiguration.AAC_LC;
-									} else if (codec.equals("aac") && token.indexOf("(HE-AAC)") != -1) {
-										codec = FormatConfiguration.HE_AAC;
-									}
 
+								/**
+								 * Check whether there are more details after the audio string.
+								 * e.g. "Audio: aac (LC)"
+								 */
+								if (token.indexOf(" ", positionAfterAudioString) != -1) {
+									codec = token.substring(positionAfterAudioString, token.indexOf(" ", positionAfterAudioString)).trim();
+
+									// workaround for AAC audio formats
+									if (codec.equals("aac")) {
+										if (token.contains("(LC)")) { 
+											codec = FormatConfiguration.AAC_LC;
+										} else if (token.contains("(HE-AAC)")) {
+											codec = FormatConfiguration.HE_AAC;
+										}
+									}
 								} else {
-									codec = token.substring(offset);
+									codec = token.substring(positionAfterAudioString);
+
 									// workaround for AAC audio formats
 									if (codec.equals("aac")) { 
 										codec = FormatConfiguration.AAC_LC;
 									}
 								}
-								
+
 								audio.setCodecA(codec);
 							} else if (token.endsWith("Hz")) {
 								audio.setSampleFrequency(token.substring(0, token.indexOf("Hz")).trim());
@@ -1314,12 +1323,15 @@ public class DLNAMediaInfo implements Cloneable {
 						while (st.hasMoreTokens()) {
 							String token = st.nextToken().trim();
 							if (token.startsWith("Stream")) {
-								int offset = token.indexOf("Video: ") + 7;
+								String videoString = "Video: ";
+								int positionAfterVideoString = token.indexOf(videoString) + videoString.length();
 								String codec;
-								if (token.indexOf(" ", offset) != -1) {
-									codec = token.substring(offset, token.indexOf(" ", offset)).trim();
+	
+								// Check whether there are more details after the video string
+								if (token.indexOf(" ", positionAfterVideoString) != -1) {
+									codec = token.substring(positionAfterVideoString, token.indexOf(" ", positionAfterVideoString)).trim();
 								} else {
-									codec = token.substring(offset);
+									codec = token.substring(positionAfterVideoString);
 								}
 
 								codecV = codec;
