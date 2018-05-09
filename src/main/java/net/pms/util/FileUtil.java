@@ -1581,8 +1581,8 @@ public class FileUtil {
 		// Remove possible fansub group name
 		filename = removeGroupNameFromBeginning(filename);
 
-		// Replace periods and underscores with spaces
-		return  filename.replaceAll("\\.|_", " ");
+		// Replace periods, underscores and dashes with spaces
+		return  filename.replaceAll("\\.|_|-", " ");
 	}
 
 	public static String renameForSorting(String filename) {
