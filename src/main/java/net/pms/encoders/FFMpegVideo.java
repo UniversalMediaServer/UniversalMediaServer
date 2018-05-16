@@ -376,7 +376,7 @@ public class FFMpegVideo extends Player {
 
 			// Output video codec
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
-				if (!customFFmpegOptions.contains("-(c:v|codec:v|vcodec)")) {
+				if (!customFFmpegOptions.matches(".* -(c:v|codec:v|vcodec) .*")) {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {
 						transcodeOptions.add("libx264");
