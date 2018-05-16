@@ -433,7 +433,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
-		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
+		String customFFmpegOptions = params.mediaRenderer.getCustomFFmpegOptions();
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
