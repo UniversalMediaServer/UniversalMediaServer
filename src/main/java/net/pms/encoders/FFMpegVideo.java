@@ -357,7 +357,7 @@ public class FFMpegVideo extends Player {
 				} else if (type() == Format.AUDIO) {
 					// Skip
 				} else {
-					if (!customFFmpegOptions.contains("-(c:a|codc:a|acodec)")) {
+					if (!customFFmpegOptions.matches(".* -(c:a|codec:a|acodec) .*")) {
 						if (renderer.isTranscodeToAAC()) {
 							transcodeOptions.add("-c:a");
 							transcodeOptions.add("aac");
@@ -1016,7 +1016,7 @@ public class FFMpegVideo extends Player {
 					cmdList.add(String.valueOf(channels));
 				}
 
-				if (!customFFmpegOptions.contains("-(-ab |b:a)")) {
+				if (!customFFmpegOptions.matches(".* -(-ab|b:a) .*")) {
 					cmdList.add("-ab");
 					if (renderer.isTranscodeToAAC()) {
 						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
