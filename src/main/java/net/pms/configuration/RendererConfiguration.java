@@ -1857,7 +1857,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * This was originally added for the PS3 after it was observed to need
 	 * a video whose maximum bitrate was under half of the network maximum.
-	 *
+	 * This should not be used when the video is transcoded to the MPEG-PS
+	 * and MPEG-TS with the MPEG-2 video codec.
+	 * 
 	 * @return whether to set the maximum bitrate to half of the network max
 	 */
 	public boolean isHalveBitrate() {
