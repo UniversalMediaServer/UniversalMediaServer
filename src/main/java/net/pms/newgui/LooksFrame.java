@@ -18,6 +18,7 @@
  */
 package net.pms.newgui;
 
+//import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
@@ -50,6 +51,7 @@ import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.swing.SwingLazyValue;
 
 public class LooksFrame extends JFrame implements IFrame, Observer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LooksFrame.class);
@@ -320,6 +322,76 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			UIManager.put("Tree.font", sf);
 			UIManager.put("Spinner.font", sf);
 		}
+					// *** Shared Fonts
+					Integer twelve = new Integer(12);
+					Integer fontPlain = new Integer(Font.PLAIN);
+					Integer fontBold = new Integer(Font.BOLD);
+
+					Object dialogPlain12 = new SwingLazyValue(
+						"javax.swing.plaf.FontUIResource",
+						null,
+						new Object[]{Font.DIALOG, fontPlain, twelve});
+
+					Object sansSerifPlain12 = new SwingLazyValue(
+						"javax.swing.plaf.FontUIResource",
+						null,
+						new Object[]{Font.SANS_SERIF, fontPlain, twelve});
+					Object monospacedPlain12 = new SwingLazyValue(
+						"javax.swing.plaf.FontUIResource",
+						null,
+						new Object[]{Font.MONOSPACED, fontPlain, twelve});
+					Object dialogBold12 = new SwingLazyValue(
+						"javax.swing.plaf.FontUIResource",
+						null,
+						new Object[]{Font.DIALOG, fontBold, twelve});
+
+
+					Object MenuFont = dialogPlain12;
+					Object FixedControlFont = monospacedPlain12;
+					Object ControlFont = dialogPlain12;
+					Object MessageFont = dialogPlain12;
+					Object WindowFont = dialogBold12;
+					Object ToolTipFont = sansSerifPlain12;
+					Object IconFont = ControlFont;
+
+					UIManager.put("Button.font", ControlFont);
+					UIManager.put("CheckBox.font", ControlFont);
+					UIManager.put("CheckBoxMenuItem.font", MenuFont);
+					UIManager.put("ComboBox.font", ControlFont);
+					UIManager.put("EditorPane.font", ControlFont);
+					UIManager.put("FileChooser.listFont", IconFont);
+					UIManager.put("FormattedTextField.font", ControlFont);
+					UIManager.put("InternalFrame.titleFont", WindowFont);
+					UIManager.put("Label.font", ControlFont);
+					UIManager.put("List.font", ControlFont);
+					UIManager.put("PopupMenu.font", MenuFont);
+					UIManager.put("Menu.font", MenuFont);
+					UIManager.put("MenuBar.font", MenuFont);
+					UIManager.put("MenuItem.font", MenuFont);
+					UIManager.put("MenuItem.acceleratorFont", MenuFont);
+					UIManager.put("RadioButton.font", ControlFont);
+					UIManager.put("RadioButtonMenuItem.font", MenuFont);
+					UIManager.put("OptionPane.font", MessageFont);
+					UIManager.put("OptionPane.messageFont", MessageFont);
+					UIManager.put("OptionPane.buttonFont", MessageFont);
+					UIManager.put("Panel.font", ControlFont);
+					UIManager.put("PasswordField.font", ControlFont);
+					UIManager.put("ProgressBar.font", ControlFont);
+					UIManager.put("ScrollPane.font", ControlFont);
+					UIManager.put("Slider.font", ControlFont);
+					UIManager.put("Spinner.font", ControlFont);
+					UIManager.put("TabbedPane.font", ControlFont);
+					UIManager.put("Table.font", ControlFont);
+					UIManager.put("TableHeader.font", ControlFont);
+					UIManager.put("TextArea.font", FixedControlFont);
+					UIManager.put("TextField.font", ControlFont);
+					UIManager.put("TextPane.font", ControlFont);
+					UIManager.put("TitledBorder.font", ControlFont);
+					UIManager.put("ToggleButton.font", ControlFont);
+					UIManager.put("ToolBar.font", MenuFont);
+					UIManager.put("ToolTip.font", ToolTipFont);
+					UIManager.put("Tree.font", ControlFont);
+					UIManager.put("Viewport.font", ControlFont);
 
 		setTitle("Test");
 		setIconImage(readImageIcon("icon-32.png").getImage());
