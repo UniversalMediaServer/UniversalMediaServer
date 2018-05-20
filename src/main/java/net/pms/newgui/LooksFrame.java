@@ -325,14 +325,41 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 		
 		// *** Shared Fonts
-		Integer twelve = Integer.valueOf(12);
-		Integer fontPlain = Integer.valueOf(Font.PLAIN);
-		Integer fontBold = Integer.valueOf(Font.BOLD);
+		final Integer twelve = Integer.valueOf(12);
+		final Integer fontPlain = Integer.valueOf(Font.PLAIN);
+		final Integer fontBold = Integer.valueOf(Font.BOLD);
 
-		LazyValue dialogPlain12 = t -> new FontUIResource(Font.DIALOG, fontPlain, twelve);
-		LazyValue sansSerifPlain12 =  t -> new FontUIResource(Font.SANS_SERIF, fontPlain, twelve);
-		LazyValue monospacedPlain12 = t -> new FontUIResource(Font.MONOSPACED, fontPlain, twelve);
-		LazyValue dialogBold12 = t -> new FontUIResource(Font.DIALOG, fontBold, twelve);
+		LazyValue dialogPlain12 = new LazyValue() {
+
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.DIALOG, fontPlain, twelve);
+			}
+		};
+
+		LazyValue sansSerifPlain12 =  new LazyValue() {
+
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.SANS_SERIF, fontPlain, twelve);
+			}
+		};
+
+		LazyValue monospacedPlain12 = new LazyValue() {
+
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.MONOSPACED, fontPlain, twelve);
+			}
+		};
+
+		LazyValue dialogBold12 = new LazyValue() {
+
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.DIALOG, fontBold, twelve);
+			}
+		};
 
 		Object MenuFont = dialogPlain12;
 		Object FixedControlFont = monospacedPlain12;
