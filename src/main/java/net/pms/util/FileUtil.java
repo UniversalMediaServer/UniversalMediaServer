@@ -533,6 +533,7 @@ public class FileUtil {
 
 		// These are false unless we recognize that we could use some info on the video from IMDb
 		boolean isMovieWithoutYear = false;
+		boolean isSample = false;
 
 		String movieOrShowName = null;
 		String year            = null;
@@ -545,6 +546,10 @@ public class FileUtil {
 		Matcher matcher;
 
 		formattedName = basicPrettify(filename);
+
+		if (formattedName.toLowerCase().endsWith("sample")) {
+			isSample = true;
+		}
 
 		if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
@@ -808,6 +813,16 @@ public class FileUtil {
 				formattedName = formattedName.substring(0, formattedName.length() - 2);
 			}
 			formattedName += " " + edition;
+		}
+
+		// Retain the fact it is a sample clip
+		if (isSample) {
+			if (edition == null) {
+				edition = "";
+			} else {
+				edition += " ";
+			}
+			edition += "(Sample)";
 		}
 
 		return new String[] { movieOrShowName, year, edition, tvSeason, tvEpisodeNumber, tvEpisodeName };
