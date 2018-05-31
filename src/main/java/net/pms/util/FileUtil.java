@@ -547,7 +547,7 @@ public class FileUtil {
 
 		formattedName = basicPrettify(filename);
 
-		if (formattedName.toLowerCase().endsWith("sample")) {
+		if (formattedName.toLowerCase(Locale.ENGLISH).endsWith("sample")) {
 			isSample = true;
 		}
 
