@@ -449,7 +449,7 @@ public class FileUtil {
 
 		String title;
 		String year;
-		String edition;
+		String extraInformation;
 		String tvSeason;
 		String tvEpisodeNumber;
 		String tvEpisodeName;
@@ -459,21 +459,21 @@ public class FileUtil {
 		if (media != null && getConfiguration().getUseCache() && StringUtils.isNotBlank(media.getMovieOrShowName())) {
 			title = media.getMovieOrShowName();
 
-			year            = StringUtils.isNotBlank(media.getYear())            ? media.getYear()            : "";
-			edition         = StringUtils.isNotBlank(media.getEdition())         ? media.getEdition()         : "";
-			tvSeason        = StringUtils.isNotBlank(media.getTVSeason())        ? media.getTVSeason()        : "";
-			tvEpisodeNumber = StringUtils.isNotBlank(media.getTVEpisodeNumber()) ? media.getTVEpisodeNumber() : "";
-			tvEpisodeName   = StringUtils.isNotBlank(media.getTVEpisodeName())   ? media.getTVEpisodeName()   : "";
-			isTVEpisode     = StringUtils.isNotBlank(media.getTVSeason());
+			year             = StringUtils.isNotBlank(media.getYear())             ? media.getYear()             : "";
+			extraInformation = StringUtils.isNotBlank(media.getExtraInformation()) ? media.getExtraInformation() : "";
+			tvSeason         = StringUtils.isNotBlank(media.getTVSeason())         ? media.getTVSeason()         : "";
+			tvEpisodeNumber  = StringUtils.isNotBlank(media.getTVEpisodeNumber())  ? media.getTVEpisodeNumber()  : "";
+			tvEpisodeName    = StringUtils.isNotBlank(media.getTVEpisodeName())    ? media.getTVEpisodeName()    : "";
+			isTVEpisode      = StringUtils.isNotBlank(media.getTVSeason());
 		} else {
 			String[] metadataFromFilename = getFileNameMetadata(f);
 
-			title           = StringUtils.isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
-			year            = StringUtils.isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
-			edition         = StringUtils.isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
-			tvSeason        = StringUtils.isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
-			tvEpisodeNumber = StringUtils.isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
-			tvEpisodeName   = StringUtils.isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
+			title            = StringUtils.isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
+			year             = StringUtils.isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
+			extraInformation = StringUtils.isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
+			tvSeason         = StringUtils.isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
+			tvEpisodeNumber  = StringUtils.isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
+			tvEpisodeName    = StringUtils.isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
 
 			if (StringUtils.isNotBlank(tvSeason)) {
 				isTVEpisode = true;
@@ -509,8 +509,8 @@ public class FileUtil {
 			}
 		}
 
-		if (StringUtils.isNotBlank(edition)) {
-			formattedName += " " + edition;
+		if (StringUtils.isNotBlank(extraInformation)) {
+			formattedName += " " + extraInformation;
 		}
 
 		return formattedName;
@@ -541,6 +541,9 @@ public class FileUtil {
 		String tvEpisodeName   = null;
 		String tvEpisodeNumber = null;
 		String edition         = null;
+		
+		// This can contain editions and "Sample" for now
+		String extraInformation = null;
 
 		Pattern pattern;
 		Matcher matcher;
@@ -806,26 +809,19 @@ public class FileUtil {
 			}
 		}
 
-		// Add the edition information if it exists
-		if (edition != null) {
-			String substr = formattedName.substring(Math.max(0, formattedName.length() - 2));
-			if (" -".equals(substr)) {
-				formattedName = formattedName.substring(0, formattedName.length() - 2);
-			}
-			formattedName += " " + edition;
-		}
-
 		// Retain the fact it is a sample clip
 		if (isSample) {
 			if (edition == null) {
-				edition = "";
+				extraInformation = "";
 			} else {
-				edition += " ";
+				extraInformation = edition + " ";
 			}
-			edition += "(Sample)";
+			extraInformation += "(Sample)";
+		} else {
+			extraInformation = edition;
 		}
 
-		return new String[] { movieOrShowName, year, edition, tvSeason, tvEpisodeNumber, tvEpisodeName };
+		return new String[] { movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName };
 	}
 
 	/**
