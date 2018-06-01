@@ -251,9 +251,10 @@ public class DLNAMediaDatabase implements Runnable {
 							version = 13;
 							break;
 						case 13:
-							// From version 12 to 13, we added 7 indexes
 							try (Statement statement = conn.createStatement()) {
-								statement.execute("ALTER TABLE FILES ADD EXTRAINFORMATION");
+								StringBuilder sb = new StringBuilder();
+								sb.append("ALTER TABLE FILES ADD EXTRAINFORMATION VARCHAR2(").append(SIZE_MAX).append(')');
+								statement.execute(sb.toString());
 							}
 							version = 14;
 							break;
