@@ -628,7 +628,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.ER_BSAC;
 		} else if (value.startsWith("adpcm")) {
 			format = FormatConfiguration.ADPCM;
-		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
+		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null))) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {
 			format = FormatConfiguration.ALAC;
