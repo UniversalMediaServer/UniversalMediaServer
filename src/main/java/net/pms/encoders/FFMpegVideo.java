@@ -137,20 +137,20 @@ public class FFMpegVideo extends Player {
 		// Scale and pad the video if necessary
 		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
 			if (media.is3dFullSbsOrOu()) {
-				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				scalePadFilterChain.add(String.format("scale=%1$d:%2$d[v]", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 			} else {
-				scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)[v]", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 
 				if (keepAR) {
-					scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+					scalePadFilterChain.add(String.format("[v]pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2[v]", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				}
 			}
 		} else if (keepAR && isMediaValid) {
 			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
-				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2[v]");
 				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
 			} else {
-				scalePadFilterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+				scalePadFilterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0[v]");
 				scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
 			}
 
@@ -166,7 +166,7 @@ public class FFMpegVideo extends Player {
 				scaleWidth  = renderer.getMaxVideoWidth();
 			}
 
-			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
+			scalePadFilterChain.add("[v]scale=" + scaleWidth + ":" + scaleHeight + "[v]");
 		}
 
 		filterChain.addAll(scalePadFilterChain);
@@ -178,6 +178,11 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (!isDisableSubtitles(params) && override) {
+			String filterStream = "[0:v]";
+			if (scalePadFilterChain.size() > 0) {
+				filterStream = "[v]";
+			}
+
 			boolean isSubsManualTiming = true;
 			DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 			StringBuilder subsFilter = new StringBuilder();
@@ -203,7 +208,7 @@ public class FFMpegVideo extends Player {
 				}
 
 				if (originalSubsFilename != null) {
-					subsFilter.append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
+					subsFilter.append(filterStream).append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
 					if (params.sid.isEmbedded()) {
 						subsFilter.append(":si=").append(params.sid.getId());
 					}
@@ -237,17 +242,18 @@ public class FFMpegVideo extends Player {
 						subsFilter.append(",MarginV=").append(configuration.getAssMargin());
 						subsFilter.append("'");
 					}
+					subsFilter.append("[v]");
 				}
 			} else if (params.sid.getType().isPicture()) {
 				if (params.sid.getId() < 100) {
 					// Embedded
-					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
+					subsFilter.append(filterStream).append("[0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay[v]");
 					isSubsManualTiming = false;
 				} else {
 					// External
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
-					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
+					subsFilter.append(filterStream).append("[1:s]overlay[v]"); // this assumes the sub file is single-language
 				}
 			}
 			if (isNotBlank(subsFilter)) {
