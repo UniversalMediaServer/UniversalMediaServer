@@ -36,6 +36,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.FileUtil.BufferedReaderDetectCharsetResult;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -89,6 +90,10 @@ public class SubtitleUtils {
 			put(CHARSET_ISO_2022_JP, "ISO-2022-JP");
 			put(CHARSET_EUC_JP, "euc-jp");
 			put(CHARSET_SHIFT_JIS, "shift-jis");
+			// Thai
+			put(CHARSET_WINDOWS_874, "MS874");
+			put(CHARSET_ISO_8859_11, "ISO-8859-11");
+			put(CHARSET_TIS_620, "TIS-620");
 		}
 	};
 
@@ -121,16 +126,15 @@ public class SubtitleUtils {
 	 */
 	public static File applyCodepageConversion(File fileToConvert, File outputSubs) throws IOException {
 		String line;
-		BufferedReader reader;
 		String cp = configuration.getSubtitlesCodepage();
 		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp);
-		if (isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert), Charset.forName(cp)));
-		} else {
-			reader = FileUtil.bufferedReaderWithCorrectCharset(fileToConvert);
-		}
 
-		try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
+		try (
+			BufferedReader reader = isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM ?
+				new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert), Charset.forName(cp))) :
+				FileUtil.createBufferedReaderDetectCharset(fileToConvert, null).getBufferedReader();
+			BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), StandardCharsets.UTF_8))
+		) {
 			while ((line = reader.readLine()) != null) {
 				output.write(line + "\n");
 			}
@@ -138,8 +142,6 @@ public class SubtitleUtils {
 			output.flush();
 			output.close();
 		}
-
-		reader.close();
 		return outputSubs;
 	}
 
@@ -379,19 +381,21 @@ public class SubtitleUtils {
 		StringBuilder outputString = new StringBuilder();
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
 		FileUtils.copyFile(tempSubs, temp);
-		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(temp);
-		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), CHARSET_UTF_8));
-		try {
+		try (
+			BufferedReaderDetectCharsetResult input = FileUtil.createBufferedReaderDetectCharset(temp, StandardCharsets.UTF_8);
+			BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), input.getCharset()));
+		) {
 			String line;
 			String[] format = null;
 			int i;
 			boolean playResIsSet = false; // do not apply font size change when video resolution is set
-			while ((line = input.readLine()) != null) {
+			BufferedReader reader = input.getBufferedReader();
+			while ((line = reader.readLine()) != null) {
 				outputString.setLength(0);
 				if (line.contains("[Script Info]")) {
 					outputString.append(line).append("\n");
 					output.write(outputString.toString());
-					while ((line = input.readLine()) != null) {
+					while ((line = reader.readLine()) != null) {
 						outputString.setLength(0);
 						if (isNotBlank(line)) {
 							if (line.contains("PlayResY:") || line.contains("PlayResX:")) {
@@ -436,7 +440,7 @@ public class SubtitleUtils {
 
 								break;
 							case "PrimaryColour":
-								params[i] = convertColourToASSColourString(configuration.getSubsColor());
+								params[i] = configuration.getSubsColor().getASSv4StylesHexValue();
 								break;
 							case "Outline":
 								params[i] = configuration.getAssOutline();
@@ -459,11 +463,9 @@ public class SubtitleUtils {
 
 				outputString.append(line).append("\n");
 				output.write(outputString.toString());
+				output.flush();
 			}
 		} finally {
-			input.close();
-			output.flush();
-			output.close();
 			temp.deleteOnExit();
 		}
 
@@ -486,10 +488,9 @@ public class SubtitleUtils {
 		if (subsFileCharset == null) {
 			subsFileCharset = StandardCharsets.UTF_8;
 		}
-		BufferedWriter output;
 		Mode3D mode3D = media.get3DLayout();
-		boolean isOU = mode3D == Mode3D.OUL || mode3D == Mode3D.OUR || mode3D == Mode3D.HOUL;
-		boolean isSBS = mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR || mode3D == Mode3D.HSBSL;
+		boolean isOU = mode3D == Mode3D.ABL || mode3D == Mode3D.ABR || mode3D == Mode3D.AB2L;
+		boolean isSBS = mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR || mode3D == Mode3D.SBS2L;
 		if (mode3D == null) {
 			LOGGER.debug("The 3D layout not recognized for the 3D video");
 			throw new NullPointerException("The 3D layout not recognized for the 3D video");
@@ -497,8 +498,10 @@ public class SubtitleUtils {
 
 		int depth3D = configuration.getDepth3D();
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
-		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), subsFileCharset))) {
-			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
+		try (
+			BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), subsFileCharset));
+			BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), StandardCharsets.UTF_8));
+		) {
 			String line;
 			outputString.append("[Script Info]\n");
 			outputString.append("ScriptType: v4.00+\n");
@@ -521,7 +524,7 @@ public class SubtitleUtils {
 				fontScaleY = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
 			}
 
-			String primaryColour = convertColourToASSColourString(configuration.getSubsColor());
+			String primaryColour = configuration.getSubsColor().getASSv4StylesHexValue();
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
 			outputString.append("Style: Default,Arial,").append("15").append(',').append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(',').append(fontScaleY).append(",0,0,1,").append(outline).append(',').append(shadow);
@@ -596,11 +599,9 @@ public class SubtitleUtils {
 					output.write(outputString.toString());
 				}
 			}
+			output.flush();
 		}
-
-		LOGGER.debug("Subtitles converted to 3DASS format and stored in the file: " + outputSubs.getName());
-		output.flush();
-		output.close();
+		LOGGER.debug("Subtitles converted to 3DASS format and stored in the file: \"{}\"", outputSubs.getName());
 		tempSubs.deleteOnExit();
 		return outputSubs;
 	}
@@ -610,16 +611,34 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts the standard Colour RGB integer presentation to the SSA/ASS string format which
-	 * is formatted as BGR (really stupid SSA/ASS implementation)
+	 * Remove the (HTML) tags: {@code
+	 * <b> </b> <i> </i> <u> </u> <s> </s> <font *> </font>
+	 * } and any ASS tags <code>
+	 * {\*}
+	 * </code>
+	 * from subtitles file for renderers not capable of showing SubRip tags
+	 * correctly. * is used as a wildcard in the definition above.
 	 *
-	 * @param colour the RGB color in the integer format
-	 * @return Converted color string in the ASS format
+	 * @param file the source subtitles
+	 * @return InputStream with converted subtitles.
 	 */
-	public static String convertColourToASSColourString(int colour) {
-		String colourString = Integer.toHexString(colour);
-		StringBuilder outputString = new StringBuilder();
-		outputString.append("&H").append(colourString.substring(6, 8)).append(colourString.substring(4, 6)).append(colourString.substring(2, 4));
-		return outputString.toString();
+	public static InputStream removeSubRipTags(File file) throws IOException {
+		Pattern pattern = Pattern.compile("\\</?(?:b|i|s|u|font[^\\>]*)\\>|\\{\\\\.*?}|\\\\h|\\\\N");
+		try (
+			BufferedReaderDetectCharsetResult input = FileUtil.createBufferedReaderDetectCharset(file, null);
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			Writer writer = new OutputStreamWriter(os, input.getCharset())
+		) {
+			String line;
+			BufferedReader reader = input.getBufferedReader();
+			while ((line = reader.readLine()) != null) {
+				line = pattern.matcher(line).replaceAll("") + "\n";
+				writer.write(line);
+			}
+
+			writer.flush();
+			LOGGER.trace("Removed tags from subtitles file: \"{}\"", file.getName());
+			return new ByteArrayInputStream(os.toByteArray());
+		}
 	}
 }

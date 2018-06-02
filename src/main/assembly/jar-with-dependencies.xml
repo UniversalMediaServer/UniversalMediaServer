@@ -19,8 +19,23 @@
 			<outputDirectory>/</outputDirectory>
 			<useProjectArtifact>true</useProjectArtifact>
 			<unpack>true</unpack>
+            <unpackOptions>
+				<excludes>
+					<exclude>META-INF/services/javax.imageio.spi.ImageReaderSpi</exclude>
+					<exclude>META-INF/services/javax.imageio.spi.ImageWriterSpi</exclude>
+				</excludes>
+			</unpackOptions>
 			<scope>runtime</scope>
 		</dependencySet>
 	</dependencySets>
-
+	<files>
+		<file>
+			<source>${project.basedir}/src/main/external-resources/META-INF/services/javax.imageio.spi.ImageReaderSpi</source>
+			<outputDirectory>META-INF/services</outputDirectory>
+		</file>
+		<file>
+			<source>${project.basedir}/src/main/external-resources/META-INF/services/javax.imageio.spi.ImageWriterSpi</source>
+			<outputDirectory>META-INF/services</outputDirectory>
+		</file>
+	</files>
 </assembly>

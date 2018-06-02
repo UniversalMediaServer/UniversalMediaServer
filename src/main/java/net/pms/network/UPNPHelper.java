@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import net.pms.PMS;
@@ -78,6 +79,11 @@ public class UPNPHelper extends UPNPControl {
 		"urn:schemas-upnp-org:service:ConnectionManager:1",
 		PMS.get().usn(),
 		"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1"
+	};
+
+	private static final String[] ST_LIST = {
+		"urn:schemas-upnp-org:device:MediaRenderer:1",
+		"urn:schemas-upnp-org:device:Basic:1"
 	};
 
 	// The listener.
@@ -167,13 +173,27 @@ public class UPNPHelper extends UPNPControl {
 
 		String msg = discovery.toString();
 
-		if (st.equals(lastSearch)) {
-			LOGGER.trace("Resending last discovery [" + host + ":" + port + "]");
-		} else {
-			LOGGER.trace("Sending discovery [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+		if (LOGGER.isTraceEnabled()) {
+			if (st.equals(lastSearch)) {
+				LOGGER.trace("Resending last discovery [" + host + ":" + port + "]");
+			} else {
+				LOGGER.trace("Sending discovery [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+			}
 		}
 
 		sendReply(host, port, msg);
+
+		for (String ST: ST_LIST) {
+			discovery = new StringBuilder();
+			discovery.append("M-SEARCH * HTTP/1.1").append(CRLF);
+			discovery.append("ST: ").append(ST).append(CRLF);
+			discovery.append("HOST: ").append(IPV4_UPNP_HOST).append(':').append(UPNP_PORT).append(CRLF);
+			discovery.append("MX: 3").append(CRLF);
+			discovery.append("MAN: \"ssdp:discover\"").append(CRLF).append(CRLF);
+			msg = discovery.toString();
+			sendReply(host, port, msg);
+		}
+
 		lastSearch = st;
 	}
 
@@ -293,7 +313,7 @@ public class UPNPHelper extends UPNPControl {
 	 * Send the UPnP BYEBYE message.
 	 */
 	public static void sendByeBye() {
-		LOGGER.info("Sending BYEBYE...");
+		LOGGER.debug("Sending BYEBYE...");
 
 		MulticastSocket multicastSocket = null;
 
@@ -303,7 +323,7 @@ public class UPNPHelper extends UPNPControl {
 			multicastSocket.joinGroup(upnpAddress);
 
 			for (String NT: NT_LIST) {
-				sendMessage(multicastSocket, NT, BYEBYE);
+				sendMessage(multicastSocket, NT, BYEBYE, true);
 			}
 		} catch (IOException e) {
 			LOGGER.debug("Error sending BYEBYE message", e);
@@ -335,14 +355,28 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
+	 * Send the provided message to the socket three times.
+	 *
+	 * @see #sendMessage(java.net.DatagramSocket, java.lang.String, java.lang.String, boolean)
+	 * @param socket the socket
+	 * @param nt the nt
+	 * @param message the message
+	 * @throws IOException
+	 */
+	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
+		sendMessage(socket, nt, message, false);
+	}
+
+	/**
 	 * Send the provided message to the socket.
 	 *
 	 * @param socket the socket
 	 * @param nt the nt
 	 * @param message the message
+	 * @param sendOnce send the message only once
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
+	private static void sendMessage(DatagramSocket socket, String nt, String message, boolean sendOnce) throws IOException {
 		String msg = buildMsg(nt, message);
 		Random rand = new Random();
 
@@ -361,10 +395,12 @@ public class UPNPHelper extends UPNPControl {
 		socket.send(ssdpPacket);
 
 		// Send the message three times as recommended by the standard
-		sleep(100);
-		socket.send(ssdpPacket);
-		sleep(100);
-		socket.send(ssdpPacket);
+		if (!sendOnce) {
+			sleep(100);
+			socket.send(ssdpPacket);
+			sleep(100);
+			socket.send(ssdpPacket);
+		}
 	}
 
 	private static int ALIVE_delay = 10000;
@@ -383,33 +419,15 @@ public class UPNPHelper extends UPNPControl {
 					sleep(ALIVE_delay);
 					sendAlive();
 
-					/**
-					 * The first delay for sending an ALIVE message is 10 seconds,
-					 * the second delay is for 20 seconds. From then on, all other
-					 * delays are for 30/180 seconds depending on whether there
-					 * are renderers connected. It can be customized with the 
-					 * ALIVE_delay user configuration setting.
-					 */
-					switch (ALIVE_delay) {
-						case 10000:
-							ALIVE_delay = 20000;
-							break;
-						case 20000:
-						case 30000:
-						case 180000:
-							// If getAliveDelay is 0, there is no custom alive delay
-							if (configuration.getAliveDelay() == 0) {
-								if (PMS.get().getFoundRenderers().size() > 0) {
-									ALIVE_delay = 180000;
-								} else {
-									ALIVE_delay = 30000;
-								}
-							} else {
-								ALIVE_delay = configuration.getAliveDelay();
-							}
-							break;
-						default:
-							break;
+					// If getAliveDelay is 0, there is no custom alive delay
+					if (configuration.getAliveDelay() == 0) {
+						if (PMS.get().getFoundRenderers().size() > 0) {
+							ALIVE_delay = 30000;
+						} else {
+							ALIVE_delay = 10000;
+						}
+					} else {
+						ALIVE_delay = configuration.getAliveDelay();
 					}
 				}
 			}
@@ -458,7 +476,8 @@ public class UPNPHelper extends UPNPControl {
 						InetAddress upnpAddress = getUPNPAddress();
 						multicastSocket.joinGroup(upnpAddress);
 
-						int M_SEARCH = 1, NOTIFY = 2;
+						final int M_SEARCH = 1;
+						final int NOTIFY = 2;
 						InetAddress lastAddress = null;
 						int lastPacketType = 0;
 
@@ -467,7 +486,7 @@ public class UPNPHelper extends UPNPControl {
 							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 							multicastSocket.receive(receivePacket);
 
-							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
+							String s = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
 
 							InetAddress address = receivePacket.getAddress();
 							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
@@ -478,8 +497,8 @@ public class UPNPHelper extends UPNPControl {
 								if (configuration.getIpFiltering().allowed(address)) {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
-									if (!redundant) {
-										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+									if (!redundant && LOGGER.isTraceEnabled()) {
+										LOGGER.trace("Received a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
 									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -490,11 +509,10 @@ public class UPNPHelper extends UPNPControl {
 										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
 									}
 
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
-
-									if (StringUtils.indexOf(s, "ssdp:all") > 0) {
+									if (
+										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
+										StringUtils.indexOf(s, "ssdp:all") > 0
+									) {
 										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
 									}
 
@@ -504,7 +522,7 @@ public class UPNPHelper extends UPNPControl {
 								}
 							// Don't log redundant notify messages
 							} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Receiving a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
+								LOGGER.trace("Received a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
 							}
 							lastAddress = address;
 							lastPacketType = packetType;
@@ -512,7 +530,7 @@ public class UPNPHelper extends UPNPControl {
 					} catch (BindException e) {
 						if (!bindErrorReported) {
 							LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
-							+ ", which means that PMS will not automatically appear on your renderer! "
+							+ ", which means that UMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
 							+ "UMS will keep trying to bind to it...[" + e.getMessage() + "]");
@@ -521,7 +539,7 @@ public class UPNPHelper extends UPNPControl {
 						bindErrorReported = true;
 						sleep(5000);
 					} catch (IOException e) {
-						LOGGER.error("UPNP network exception: ", e.getMessage());
+						LOGGER.error("UPnP network exception: ", e.getMessage());
 						LOGGER.trace("", e);
 						sleep(1000);
 					} finally {
@@ -531,6 +549,8 @@ public class UPNPHelper extends UPNPControl {
 								InetAddress upnpAddress = getUPNPAddress();
 								multicastSocket.leaveGroup(upnpAddress);
 							} catch (IOException e) {
+								LOGGER.trace("Final UPnP network exception: ", e.getMessage());
+								LOGGER.trace("", e);
 							}
 
 							multicastSocket.disconnect();

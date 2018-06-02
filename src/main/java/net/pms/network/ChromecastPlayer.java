@@ -35,7 +35,7 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 			}
 			try {
 				api.launchApp(MediaPlayer);
-				api.load("", null, uri, r.mimeType());
+				api.load("", null, item.uri, r.mimeType());
 			} catch (IOException e) {
 				LOGGER.debug("Bad chromecast load: " + e);
 			}
@@ -118,7 +118,7 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 					try {
 						Thread.sleep(1000);
 						Status s1 = api.getStatus();
-						if (!s1.isAppRunning(MediaPlayer)) {
+						if (s1 == null || !s1.isAppRunning(MediaPlayer)) {
 							continue;
 						}
 						MediaStatus status = api.getMediaStatus();

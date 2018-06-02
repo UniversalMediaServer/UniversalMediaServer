@@ -2,7 +2,7 @@
     Original Code from
     (C) 2001 - Peter Windridge
 
-    Code in seperate unit and some changes
+    Code in separate unit and some changes
     2003 by Bernhard Mayer
 
     Fixed and formatted by Brett Dever

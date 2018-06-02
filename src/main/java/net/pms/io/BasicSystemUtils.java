@@ -41,21 +41,11 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class BasicSystemUtils implements SystemUtils {
-	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class); 
+	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
 
 	protected String vlcp;
 	protected String vlcv;
 	protected boolean avis;
-
-	@Override
-	public void disableGoToSleep() {
-
-	}
-
-	@Override
-	public void reenableGoToSleep() {
-
-	}
 
 	@Override
 	public File getAvsPluginsDir() {
@@ -111,7 +101,7 @@ public class BasicSystemUtils implements SystemUtils {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see net.pms.io.SystemUtils#isAvis()
 	 */
 	@Override
@@ -218,6 +208,7 @@ public class BasicSystemUtils implements SystemUtils {
 				"-s", Integer.toString(packetSize), hostAddress };
 	}
 
+	@Override
 	public String parsePingLine(String line) {
 		int msPos = line.indexOf("ms");
 		String timeString = null;
@@ -230,6 +221,11 @@ public class BasicSystemUtils implements SystemUtils {
 			}
 		}
 		return timeString;
+	}
+
+	@Override
+	public int getPingPacketFragments(int packetSize) {
+		return ((packetSize + 8) / 1500) + 1;
 	}
 
 	/**

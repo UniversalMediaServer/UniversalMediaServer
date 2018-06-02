@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -35,9 +35,9 @@ import org.slf4j.LoggerFactory;
  */
 public class CacheLogger {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(CacheLogger.class); 
+	private static Logger LOGGER = LoggerFactory.getLogger(CacheLogger.class);
 	private static LinkedList<Appender<ILoggingEvent>> appenderList = new LinkedList<>();
-	private static volatile CacheAppender<ILoggingEvent> cacheAppender = null;	
+	private static volatile CacheAppender<ILoggingEvent> cacheAppender = null;
 	private static LoggerContext loggerContext = null;
 	private static ch.qos.logback.classic.Logger rootLogger;
 
@@ -71,7 +71,7 @@ public class CacheLogger {
 	}
 
 	/**
-	 * Sets references to the LoggerContext. Must be called whenever logging 
+	 * Sets references to the LoggerContext. Must be called whenever logging
 	 * configuration changes between {@link #startCaching()} and {@link #stopAndFlush()}
 	 */
 	public static synchronized void initContext() {
@@ -91,7 +91,7 @@ public class CacheLogger {
 		disposeOfAppenders();
 		detachRootAppenders();
 		if (!rootLogger.isAttached(cacheAppender)) {
-			rootLogger.addAppender(cacheAppender);			
+			rootLogger.addAppender(cacheAppender);
 		}
 		cacheAppender.setContext(loggerContext);
 		cacheAppender.setName("CacheAppender");
@@ -100,11 +100,11 @@ public class CacheLogger {
 
 	public static synchronized void startCaching() {
 		if (isActive()) {
-			LOGGER.debug("StartCaching() failed: Caching already started"); 			
+			LOGGER.debug("StartCaching() failed: Caching already started");
 		} else {
 			cacheAppender = new CacheAppender<>();
 			initContext();
-		}		
+		}
 	}
 
 	public static synchronized void stopAndFlush() {
@@ -116,10 +116,10 @@ public class CacheLogger {
 			return;
 		}
 
-		cacheAppender.stop();		
+		cacheAppender.stop();
 		rootLogger.detachAppender(cacheAppender);
 		attachRootAppenders();
-		cacheAppender.flush(rootLogger);	
+		cacheAppender.flush(rootLogger);
 		cacheAppender = null;
 	}
 
@@ -130,7 +130,7 @@ public class CacheLogger {
 	public static synchronized void addAppender(Appender<ILoggingEvent> newAppender) {
 		appenderList.add(newAppender);
 	}
-	
+
 	public static synchronized boolean removeAppender(Appender<ILoggingEvent> appender) {
 		return appenderList.remove(appender);
 	}

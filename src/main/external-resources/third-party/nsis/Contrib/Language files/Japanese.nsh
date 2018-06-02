@@ -120,3 +120,11 @@
 !ifdef MUI_UNABORTWARNING
   ${LangFileString} MUI_UNTEXT_ABORTWARNING "$(^Name) アンインストールを中止しますか？"
 !endif
+
+!ifdef MULTIUSER_INSTALLMODEPAGE
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "ユーザーを選択"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "どのユーザーのために$(^NameDA)をインストールするか選択してください。"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "$(^NameDA)を自分自身のためだけにインストールしたいのか、このコンピューターの全ユーザーのためにインストールしたいのかを選択してください。$(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "このコンピューターを使用している全ての人用にインストールする"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "自分専用にインストールする"
+!endif

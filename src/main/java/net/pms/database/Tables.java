@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -41,9 +41,10 @@ import org.slf4j.LoggerFactory;
  */
 public class Tables {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Tables.class);
-	private final static Object checkTablesLock = new Object();
-	protected final static DLNAMediaDatabase database = PMS.get().getDatabase();
+	private static final Object checkTablesLock = new Object();
+	protected static final DLNAMediaDatabase database = PMS.get().getDatabase();
 	private static boolean tablesChecked = false;
+	private static final String EscapeCharacter = "\\";
 
 	// No instantiation
 	protected Tables() {
@@ -68,6 +69,7 @@ public class Tables {
 
 					TableMusicBrainzReleases.checkTable(connection);
 					TableCoverArtArchive.checkTable(connection);
+					TableFilesStatus.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -226,15 +228,70 @@ public class Tables {
 	 * thus <code>=</code> is illegal for <code>null</code>.
 	 * Instead, <code>IS NULL</code> must be used.
 	 *
-	 * @param s the {@link String} to compare to
-	 * @return The SQL formatted string including the <code>=</code> or
-	 * <code>IS</code> operator.
+	 * Please note that the like-escaping is not applied, as that must be done
+	 * before any wildcards are added.
+	 *
+	 * @param s the {@link String} to compare to.
+	 * @param quote whether the result should be single quoted for use as a SQL
+	 *        string or not.
+	 * @param like whether <code>LIKE</code> should be used instead of <code>=</code>. This implies quote.
+	 * @return The SQL formatted string including the <code>=</code>,
+	 * <code>LIKE</code> or <code>IS</code> operator.
 	 */
-	protected final static String nullIfBlank(String s) {
+	public final static String sqlNullIfBlank(final String s, boolean quote, boolean like) {
 		if (s == null || s.trim().isEmpty()) {
 			return " IS NULL ";
+		} else if (like) {
+			return " LIKE " + sqlQuote(s);
+		} else if (quote) {
+			return " = " + sqlQuote(s);
 		} else {
-			return " = '" + s.replaceAll("'", "''") + "' ";
+			return " = " + s;
 		}
+	}
+
+	/**
+	 * Surrounds the argument with single quotes and escapes any existing single
+	 * quotes.
+	 *
+	 * @see #sqlEscape(String)
+	 *
+	 * @param s the {@link String} to escape and quote.
+	 * @return The escaped and quoted {@code s}.
+	 */
+	public final static String sqlQuote(final String s) {
+		return s == null ? null : "'" + s.replace("'", "''") + "'";
+	}
+
+	/**
+	 * Escapes any existing single quotes in the argument but doesn't quote it.
+	 *
+	 * @see #sqlQuote(String)
+	 *
+	 * @param s the {@link String} to escape.
+	 * @return The escaped {@code s}.
+	 */
+	public static String sqlEscape(final String s) {
+		return s == null ? null : s.replace("'", "''");
+	}
+
+	/**
+	 * Escapes the argument with the default H2 escape character for the
+	 * escape character itself and the two wildcard characters <code>%</code>
+	 * and <code>_</code>. This escaping is only valid when using,
+	 * <code>LIKE</code>, not when using <code>=</code>.
+	 *
+	 * TODO: Escaping should be generalized so that any escape character could
+	 *       be used and that the class would set the correct escape character
+	 *       when opening the database.
+	 *
+	 * @param s the {@link String} to be SQL escaped.
+	 * @return The escaped {@link String}.
+	 */
+	public final static String sqlLikeEscape(final String s) {
+		return s == null ? null : s.
+			replace(EscapeCharacter, EscapeCharacter + EscapeCharacter).
+			replace("%", EscapeCharacter + "%").
+			replace("_", EscapeCharacter + "_");
 	}
 }

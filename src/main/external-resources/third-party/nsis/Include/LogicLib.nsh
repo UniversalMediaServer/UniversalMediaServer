@@ -52,6 +52,10 @@
 ;         a U< b; a U>= b; a U> b; a U<= b
 ;       64-bit integer tests (using System.dll):
 ;         a L= b; a L<> b; a L< b; a L>= b; a L> b; a L<= b
+;       ptrdiff_t integer tests
+;         a P= b; a P<> b; a P< b; a P>= b; a P> b; a P<= b
+;       size_t integer tests
+;         a Z= b; a Z<> b; a Z< b; a Z>= b; a Z> b; a Z<= b
 ;       Built-in NSIS flag tests:
 ;         ${Abort}; ${Errors}; ${RebootFlag}; ${Silent}
 ;       Built-in NSIS other tests:
@@ -248,6 +252,44 @@
 
   !macro _L<= _a _b _t _f
     !insertmacro _L> `${_a}` `${_b}` `${_f}` `${_t}`
+  !macroend
+
+  ; ptrdiff_t & size_t tests
+  !macro _P= _a _b _t _f
+    !insertmacro _= `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _P<> _a _b _t _f
+    !insertmacro _<> `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _P< _a _b _t _f
+    !insertmacro _< `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _P>= _a _b _t _f
+    !insertmacro _>= `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _P> _a _b _t _f
+    !insertmacro _> `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _P<= _a _b _t _f
+    !insertmacro _<= `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _Z= _a _b _t _f
+    !insertmacro _= `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _Z<> _a _b _t _f
+    !insertmacro _<> `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _Z< _a _b _t _f
+    !insertmacro _U< `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _Z>= _a _b _t _f
+    !insertmacro _U>= `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _Z> _a _b _t _f
+    !insertmacro _U> `${_a}` `${_b}` `${_t}` `${_f}`
+  !macroend
+  !macro _Z<= _a _b _t _f
+    !insertmacro _U<= `${_a}` `${_b}` `${_t}` `${_f}`
   !macroend
 
   ; Flag tests

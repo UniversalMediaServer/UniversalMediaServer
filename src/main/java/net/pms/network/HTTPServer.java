@@ -23,6 +23,8 @@ import java.net.*;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -33,6 +35,8 @@ import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.util.ThreadNameDeterminer;
+import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,13 +108,14 @@ public class HTTPServer implements Runnable {
 			address = new InetSocketAddress(port);
 		}
 
-		LOGGER.info("Created socket: " + address);
+		LOGGER.info("Created socket: {}", address);
 
 		if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
-			group = new DefaultChannelGroup("myServer");
+			ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
+			group = new DefaultChannelGroup("HTTPServer");
 			factory = new NioServerSocketChannelFactory(
-				Executors.newCachedThreadPool(),
-				Executors.newCachedThreadPool()
+				Executors.newCachedThreadPool(new NettyBossThreadFactory()),
+				Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
 			);
 
 			ServerBootstrap bootstrap = new ServerBootstrap(factory);
@@ -152,7 +157,7 @@ public class HTTPServer implements Runnable {
 				hostname = InetAddress.getLocalHost().getHostAddress();
 			}
 
-			runnable = new Thread(this, "HTTP Server");
+			runnable = new Thread(this, "HTTPv1 Request Handler");
 			runnable.setDaemon(false);
 			runnable.start();
 		}
@@ -229,12 +234,10 @@ public class HTTPServer implements Runnable {
 				// basic IP filter: solntcev at gmail dot com
 				boolean ignore = false;
 
-				if (configuration.getIpFiltering().allowed(inetAddress)) {
-					LOGGER.trace("Receiving a request from: " + ip);
-				} else {
+				if (!configuration.getIpFiltering().allowed(inetAddress)) {
 					ignore = true;
 					socket.close();
-					LOGGER.trace("Ignoring request from: " + ip);
+					LOGGER.trace("Ignoring request from {}:{}" + ip, socket.getPort());
 				}
 
 				if (!ignore) {
@@ -245,7 +248,7 @@ public class HTTPServer implements Runnable {
 						count++;
 					}
 					RequestHandler request = new RequestHandler(socket);
-					Thread thread = new Thread(request, "Request Handler " + count);
+					Thread thread = new Thread(request, "HTTPv1 Request Worker " + count);
 					thread.start();
 				}
 			} catch (ClosedByInterruptException e) {
@@ -265,6 +268,56 @@ public class HTTPServer implements Runnable {
 					LOGGER.debug("Caught exception", e);
 				}
 			}
+		}
+	}
+
+	/**
+	 * A {@link ThreadFactory} that creates Netty worker threads.
+	 */
+	static class NettyWorkerThreadFactory implements ThreadFactory {
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		NettyWorkerThreadFactory() {
+			group = new ThreadGroup("Netty worker group");
+			group.setDaemon(false);
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(group, runnable, "HTTPv2 Request Worker " + threadNumber.getAndIncrement());
+			if (thread.isDaemon()) {
+				thread.setDaemon(false);
+			}
+			if (thread.getPriority() != Thread.NORM_PRIORITY) {
+				thread.setPriority(Thread.NORM_PRIORITY);
+			}
+			return thread;
+		}
+	}
+
+	/**
+	 * A {@link ThreadFactory} that creates Netty boss threads.
+	 */
+	static class NettyBossThreadFactory implements ThreadFactory {
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		NettyBossThreadFactory() {
+			group = new ThreadGroup("Netty boss group");
+			group.setDaemon(false);
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(group, runnable, "HTTPv2 Request Handler " + threadNumber.getAndIncrement());
+			if (thread.isDaemon()) {
+				thread.setDaemon(false);
+			}
+			if (thread.getPriority() != Thread.NORM_PRIORITY) {
+				thread.setPriority(Thread.NORM_PRIORITY);
+			}
+			return thread;
 		}
 	}
 }

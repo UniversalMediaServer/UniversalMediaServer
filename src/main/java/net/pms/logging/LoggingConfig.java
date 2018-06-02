@@ -31,7 +31,6 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.OutputStreamAppender;
 import ch.qos.logback.core.encoder.Encoder;
-import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
@@ -57,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * @author thomas@innot.de, expanded by Nadahar
  */
 public class LoggingConfig {
-	private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfig.class);
+	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfig.class);
 	private static Object filepathLock = new Object();
 	private static String filepath = null;
 	private static Object logFilePathsLock = new Object();
@@ -66,10 +65,14 @@ public class LoggingConfig {
 	private static Logger rootLogger;
 	private static SyslogAppender syslog;
 	private static boolean syslogDisabled = false;
-	private static enum ActionType {START, STOP, NONE};
+	private static enum ActionType { START, STOP, NONE };
 	private static Level consoleLevel = null;
 	private static Level tracesLevel = null;
 	private static LinkedList<Appender<ILoggingEvent>> syslogDetachedAppenders = new LinkedList<>();
+
+	/** Not to be instantiated. */
+	private LoggingConfig() {
+	}
 
 	/**
 	 * Gets the full path of a successfully loaded Logback configuration file.
@@ -83,9 +86,8 @@ public class LoggingConfig {
 		synchronized (filepathLock) {
 			if (filepath != null) {
 				return filepath;
-			} else {
-				return "internal defaults";
 			}
+			return "internal defaults";
 		}
 	}
 
@@ -94,7 +96,7 @@ public class LoggingConfig {
 			fileName = fileName.trim();
 			if (fileName.length() > 0) {
 				if (fileName.matches("\\[PROFILE_DIR\\].*")) {
-					String s = PMS.getConfiguration().getProfileDirectory().replace("\\","/");
+					String s = PMS.getConfiguration().getProfileDirectory().replace("\\", "/");
 					fileName = fileName.replaceAll("\\[PROFILE_DIR\\]", s);
 				}
 				File file = new File(fileName.trim());
@@ -232,8 +234,8 @@ public class LoggingConfig {
 		// syslogDetachedAppenders can't be populated at this stage, so no reason to iterate it.
 		// Iterate loggerContext even if CacheLogger is active as there could still be
 		// non-root appenders there.
-		for (Logger LOGGER : loggerContext.getLoggerList()) {
-			iterators.addIterator(LOGGER.iteratorForAppenders());
+		for (Logger logger : loggerContext.getLoggerList()) {
+			iterators.addIterator(logger.iteratorForAppenders());
 		}
 		// Iterate
 
@@ -286,7 +288,10 @@ public class LoggingConfig {
 
 			// Since Console- and FrameAppender will exist at root level and won't be detached by syslog,
 			// there's no reason to build an iterator as this should suffice.
-			Iterator<Appender<ILoggingEvent>> it = CacheLogger.isActive() ? CacheLogger.iteratorForAppenders() : rootLogger.iteratorForAppenders();
+			Iterator<Appender<ILoggingEvent>> it =
+				CacheLogger.isActive() ?
+					CacheLogger.iteratorForAppenders() :
+					rootLogger.iteratorForAppenders();
 			while (it.hasNext()) {
 				Appender<ILoggingEvent> appender = it.next();
 
@@ -393,7 +398,7 @@ public class LoggingConfig {
 			try {
 				InetAddress.getByName(configuration.getLoggingSyslogHost());
 			} catch (UnknownHostException e) {
-				LOGGER.error("Unknown syslog hostname {}, syslog configuration aborted",configuration.getLoggingSyslogHost());
+				LOGGER.error("Unknown syslog hostname {}, syslog configuration aborted", configuration.getLoggingSyslogHost());
 				return;
 			}
 			if (configuration.getLoggingSyslogPort() < 1 && configuration.getLoggingSyslogPort() > 65535) {
@@ -401,7 +406,9 @@ public class LoggingConfig {
 				configuration.setLoggingSyslogPortDefault();
 			}
 			if (!configuration.getLoggingSyslogFacility().toLowerCase().matches(
-				"auth|authpriv|daemon|cron|ftp|lpr|kern|mail|news|syslog|user|uucp|local0|local1|local2|local3|local4|local5|local6|local7")) {
+				"auth|authpriv|daemon|cron|ftp|lpr|kern|mail|news|syslog|user|" +
+				"uucp|local0|local1|local2|local3|local4|local5|local6|local7")
+			) {
 				LOGGER.error("Invalid syslog facility \"{}\", using default", configuration.getLoggingSyslogFacility());
 				configuration.setLoggingSyslogFacilityDefault();
 			}
@@ -425,7 +432,10 @@ public class LoggingConfig {
 		}
 		if (action == ActionType.START || action == ActionType.STOP) {
 
-			Iterator<Appender<ILoggingEvent>> it = CacheLogger.isActive() ? CacheLogger.iteratorForAppenders() : rootLogger.iteratorForAppenders();
+			Iterator<Appender<ILoggingEvent>> it =
+				CacheLogger.isActive() ?
+					CacheLogger.iteratorForAppenders() :
+					rootLogger.iteratorForAppenders();
 			while (it.hasNext()) {
 				Appender<ILoggingEvent> appender = it.next();
 
@@ -507,12 +517,8 @@ public class LoggingConfig {
 			Appender<ILoggingEvent> appender = it.next();
 
 			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
-				// Appender has Encoder property
-				Encoder<ILoggingEvent> encoder = ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
-				if (encoder instanceof LayoutWrappingEncoder) {
-					// Encoder has ImmediateFlush property
-					((LayoutWrappingEncoder<ILoggingEvent>) encoder).setImmediateFlush(!buffered);
-				}
+				// Appender has ImmediateFlush property
+				((OutputStreamAppender<ILoggingEvent>) appender).setImmediateFlush(!buffered);
 			}
 		}
 		LOGGER.info("Buffered logging turned {}", buffered ? "ON" : "OFF");
@@ -537,6 +543,8 @@ public class LoggingConfig {
 	* Gets the root logger level.
 	*
 	* Must be called after {@link #loadFile()}.
+	*
+	* @return the root logger {@link Level}.
 	*/
 	public static synchronized Level getRootLevel() {
 		if (loggerContext == null && !setContextAndRoot()) {
@@ -592,7 +600,7 @@ public class LoggingConfig {
 						}
 					} else {
 						if (logPattern.startsWith("%-5level")) {
-							logPattern = logPattern.substring(0,8) + " %d{" + timeStampFormat + "}" + logPattern.substring(8);
+							logPattern = logPattern.substring(0, 8) + " %d{" + timeStampFormat + "}" + logPattern.substring(8);
 						} else {
 							logPattern = "d%{" + timeStampFormat + "} " + logPattern;
 						}
@@ -611,7 +619,10 @@ public class LoggingConfig {
 						}
 					} else {
 						if (logPattern.contains("%msg")) {
-							logPattern = logPattern.substring(0,logPattern.indexOf("%msg")) + "%logger " + logPattern.substring(logPattern.indexOf("%msg"));
+							logPattern = logPattern.substring(
+								0,
+								logPattern.indexOf("%msg")) + "%logger " + logPattern.substring(logPattern.indexOf("%msg")
+							);
 						} else {
 							logPattern = "%logger " + logPattern;
 						}

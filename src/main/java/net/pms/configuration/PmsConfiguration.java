@@ -45,8 +45,12 @@ import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
+import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
+import net.pms.util.LogSystemInformationMode;
+import net.pms.util.PreventSleepMode;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
@@ -130,6 +134,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
+	protected static final String KEY_DISABLE_TRANSCODING = "disable_transcoding";
 	protected static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	protected static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
 	protected static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
@@ -164,13 +169,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
-	protected static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
-	protected static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
-	protected static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
-	protected static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
-	protected static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
-	protected static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
@@ -181,6 +180,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
+	protected static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
 	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
 	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
@@ -239,7 +239,15 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
+	/**
+	 * This key was used in older versions, only supports {@code true} or
+	 * {@code false}. Kept for backwards-compatibility for now.
+	 *
+	 * @deprecated Use {@link #KEY_PREVENT_SLEEP} instead.
+	 */
+	@Deprecated
 	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
+	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
 	protected static final String KEY_PROFILE_NAME = "name";
 	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
 	protected static final String KEY_RENDERER_DEFAULT = "renderer_default";
@@ -250,6 +258,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_RESUME_REWIND = "resume_rewind";
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
+	protected static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
 	protected static final String KEY_SCREEN_SIZE = "screen_size";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
@@ -264,7 +273,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
+	protected static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
+	protected static final String KEY_SHOW_MEDIA_LIBRARY_FOLDER = "show_media_library_folder";
+	protected static final String KEY_SHOW_NEW_MEDIA_FOLDER = "show_new_media_folder";
+	protected static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
+	protected static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
 	protected static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
+	protected static final String KEY_SHOW_TRANSCODE_FOLDER = "show_transcode_folder";
 	protected static final String KEY_SINGLE = "single_instance";
 	protected static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	protected static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
@@ -366,17 +381,14 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_AUDIO_THUMBNAILS_METHOD,
 			KEY_CHAPTER_SUPPORT,
 			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
+			KEY_DISABLE_TRANSCODING,
 			KEY_ENGINES,
 			KEY_FOLDERS,
 			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_HIDE_EMPTY_FOLDERS,
 			KEY_HIDE_ENGINENAMES,
 			KEY_HIDE_EXTENSIONS,
-			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
-			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
 			KEY_HIDE_SUBS_INFO,
-			KEY_HIDE_TRANSCODE_FOLDER,
-			KEY_HIDE_VIDEO_SETTINGS,
 			KEY_IGNORE_THE_WORD_A_AND_THE,
 			KEY_IP_FILTER,
 			KEY_NETWORK_INTERFACE,
@@ -388,6 +400,10 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_APERTURE_LIBRARY,
 			KEY_SHOW_IPHOTO_LIBRARY,
 			KEY_SHOW_ITUNES_LIBRARY,
+			KEY_SHOW_LIVE_SUBTITLES_FOLDER,
+			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
+			KEY_SHOW_SERVER_SETTINGS_FOLDER,
+			KEY_SHOW_TRANSCODE_FOLDER,
 			KEY_SORT_METHOD,
 			KEY_USE_CACHE
 		)
@@ -536,9 +552,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
-	 * @throws org.apache.commons.configuration.ConfigurationException
 	 */
-	public PmsConfiguration(boolean loadFile) throws ConfigurationException {
+	public PmsConfiguration(boolean loadFile) {
 		super(0);
 
 		if (loadFile) {
@@ -623,7 +638,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
-	private String verifyLogFolder(File folder, String fallbackTo) {
+	private static String verifyLogFolder(File folder, String fallbackTo) {
 		try {
 			FilePermissions permissions = FileUtil.getFilePermissions(folder);
 			if (LOGGER.isTraceEnabled()) {
@@ -713,9 +728,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		String s = getString(KEY_LOGGING_LOGFILE_NAME, "debug.log");
 		if (FileUtil.isValidFileName(s)) {
 			return s;
-		} else {
-			return "debug.log";
 		}
+		return "debug.log";
 	}
 
 	public String getDefaultLogFilePath() {
@@ -764,6 +778,13 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getInterFramePath() {
 		return programPaths.getInterFramePath();
+	}
+
+	public LogSystemInformationMode getLogSystemInformation() {
+		LogSystemInformationMode defaultValue = LogSystemInformationMode.TRACE_ONLY;
+		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
+		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
+		return result != null ? result : defaultValue;
 	}
 
 	/**
@@ -924,6 +945,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
 	 * @since 5.2.3
 	 */
+	@Deprecated
 	public String getLanguage() {
 		return getLanguageTag();
 	}
@@ -1686,19 +1708,35 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * @param value The comma-separated list of selected renderers.
+	 * @return {@code true} if this call changed the {@link Configuration},
+	 *         {@code false} otherwise.
 	 */
-	public void setSelectedRenderers(String value) {
+	public boolean setSelectedRenderers(String value) {
 		if (value.isEmpty()) {
 			value = "None";
 		}
-		configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {
+			configuration.setProperty(KEY_SELECTED_RENDERERS, value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
 	 * @param value a string list of renderers.
+	 * @return {@code true} if this call changed the {@link Configuration},
+	 *         {@code false} otherwise.
 	 */
-	public void setSelectedRenderers(List<String> value) {
-		setStringList(KEY_SELECTED_RENDERERS, value);
+	public boolean setSelectedRenderers(List<String> value) {
+		if (value == null) {
+			return setSelectedRenderers("");
+		}
+		List<String> currentValue = getStringList(KEY_SELECTED_RENDERERS, null);
+		if (currentValue == null || value.size() != currentValue.size() || !value.containsAll(currentValue)) {
+			setStringList(KEY_SELECTED_RENDERERS, value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -1892,23 +1930,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if PMS should hide the "# Videosettings #" folder on the
-	 * DLNA device. The default value is false: PMS will display the folder.
+	 * Whether to show the "Server Settings" folder on the renderer.
 	 *
-	 * @return True if PMS should hide the folder, false othewise.
+	 * @return whether the folder is shown
 	 */
-	public boolean getHideVideoSettings() {
-		return getBoolean(KEY_HIDE_VIDEO_SETTINGS, true);
+	public boolean isShowServerSettingsFolder() {
+		return getBoolean(KEY_SHOW_SERVER_SETTINGS_FOLDER, false);
 	}
 
 	/**
-	 * Set to true if PMS should hide the "# Videosettings #" folder on the
-	 * DLNA device, or set to false to make PMS display the folder.
+	 * Whether to show the "Server Settings" folder on the renderer.
 	 *
-	 * @param value True if PMS should hide the folder.
+	 * @param value whether the folder is shown
 	 */
-	public void setHideVideoSettings(boolean value) {
-		configuration.setProperty(KEY_HIDE_VIDEO_SETTINGS, value);
+	public void setShowServerSettingsFolder(boolean value) {
+		configuration.setProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, value);
 	}
 
 	/**
@@ -1917,16 +1953,16 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return What to do with a file after it has been fully played
 	 */
 	public FullyPlayedAction getFullyPlayedAction() {
-		return FullyPlayedAction.toFullyPlayedAction(getInt(KEY_FULLY_PLAYED_ACTION, 1));
+		return FullyPlayedAction.typeOf(getInt(KEY_FULLY_PLAYED_ACTION, FullyPlayedAction.MARK.getValue()), FullyPlayedAction.MARK);
 	}
 
 	/**
 	 * Sets the {@link FullyPlayedAction}.
 	 *
-	 * @param value what to do with a file after it has been fully played
+	 * @param action what to do with a file after it has been fully played
 	 */
 	public void setFullyPlayedAction(FullyPlayedAction action) {
-		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.toInt());
+		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.getValue());
 	}
 
 	/**
@@ -2266,7 +2302,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				"mencoderwebvideo",
 				"vlcaudio", // (VideoLanAudioStreaming) TODO (legacy web audio engine): remove
 				"ffmpegdvrmsremux",
-				"rawthumbs"
+				"dcraw"
 			},
 			","
 		);
@@ -2280,6 +2316,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 
 		engines = hackAvs(registry, engines);
+		// Backwards compatibility, can be removed when sufficient time has passed - 2017-01
+		int i = engines.indexOf("rawthumbs");
+		if (i >= 0) {
+			engines.set(i, "dcraw");
+		}
+
 		return engines;
 	}
 
@@ -2376,6 +2418,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setDisableTranscodeForExtensions(String value) {
 		configuration.setProperty(KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS, value);
+	}
+
+	public boolean isDisableTranscoding() {
+		return getBoolean(KEY_DISABLE_TRANSCODING, false);
 	}
 
 	public String getForceTranscodeForExtensions() {
@@ -2500,6 +2546,16 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 		}
 		return -1;
+	}
+
+	/**
+	 * @see #getSortMethod(java.io.File)
+	 * @deprecated
+	 * @return
+	 */
+	@Deprecated
+	public int mediaLibrarySort() {
+		return getSortMethod(null);
 	}
 
 	public int getSortMethod(File path) {
@@ -2690,12 +2746,26 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_IP_FILTER, value);
 	}
 
-	public void setPreventsSleep(boolean value) {
-		configuration.setProperty(KEY_PREVENTS_SLEEP, value);
+	public void setPreventSleep(PreventSleepMode value) {
+		if (value == null) {
+			throw new NullPointerException("value cannot be null");
+		}
+		configuration.setProperty(KEY_PREVENT_SLEEP, value.getValue());
+		PMS.get().getSleepManager().setMode(value);
 	}
 
-	public boolean isPreventsSleep() {
-		return getBoolean(KEY_PREVENTS_SLEEP, true);
+	public PreventSleepMode getPreventSleep() {
+		PreventSleepMode sleepMode = null;
+		String value = getString(KEY_PREVENT_SLEEP, null);
+		if (value == null && configuration.containsKey(KEY_PREVENTS_SLEEP)) {
+			// Backwards compatibility
+			sleepMode = getBoolean(KEY_PREVENTS_SLEEP, true) ? PreventSleepMode.PLAYBACK : PreventSleepMode.NEVER;
+			configuration.clearProperty(KEY_PREVENTS_SLEEP);
+			configuration.setProperty(KEY_PREVENT_SLEEP, sleepMode.getValue());
+		} else if (value != null) {
+			sleepMode = PreventSleepMode.typeOf(value);
+		}
+		return sleepMode != null ? sleepMode : PreventSleepMode.PLAYBACK; // Default
 	}
 
 	public void setHTTPEngineV2(boolean value) {
@@ -2750,28 +2820,44 @@ public class PmsConfiguration extends RendererConfiguration {
 		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, value);
 	}
 
-	public boolean isHideMediaLibraryFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, true);
+	/**
+	 * Whether to show the "Media Library" folder on the renderer.
+	 *
+	 * @return whether the folder is shown
+	 */
+	public boolean isShowMediaLibraryFolder() {
+		return getBoolean(PmsConfiguration.KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
 	}
 
-	public void setHideMediaLibraryFolder(final boolean value) {
-		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, value);
+	/**
+	 * Whether to show the "Media Library" folder on the renderer.
+	 *
+	 * @param value whether the folder is shown
+	 */
+	public void setShowMediaLibraryFolder(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_SHOW_MEDIA_LIBRARY_FOLDER, value);
 	}
 
-	// TODO (breaking change): rename to e.g. isTranscodeFolderEnabled
-	// (and return true by default)
-	public boolean getHideTranscodeEnabled() {
-		return getBoolean(KEY_HIDE_TRANSCODE_FOLDER, false);
+	/**
+	 * Whether to show the "#--TRANSCODE--#" folder on the renderer.
+	 *
+	 * @return whether the folder is shown
+	 */
+	public boolean isShowTranscodeFolder() {
+		return getBoolean(KEY_SHOW_TRANSCODE_FOLDER, true);
 	}
 
-	// TODO (breaking change): rename to e.g. setTranscodeFolderEnabled
-	// (and negate the value in the caller)
-	public void setHideTranscodeEnabled(boolean value) {
-		configuration.setProperty(KEY_HIDE_TRANSCODE_FOLDER, value);
+	/**
+	 * Whether to show the "#--TRANSCODE--#" folder on the renderer.
+	 *
+	 * @param value whether the folder is shown
+	 */
+	public void setShowTranscodeFolder(boolean value) {
+		configuration.setProperty(KEY_SHOW_TRANSCODE_FOLDER, value);
 	}
 
 	public boolean isDvdIsoThumbnails() {
-		return getBoolean(KEY_DVDISO_THUMBNAILS, false);
+		return getBoolean(KEY_DVDISO_THUMBNAILS, true);
 	}
 
 	public void setDvdIsoThumbnails(boolean value) {
@@ -2802,12 +2888,29 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_CHAPTER_INTERVAL, value);
 	}
 
-	public int getSubsColor() {
-		return getInt(KEY_SUBS_COLOR, 0xffffffff);
+	public SubtitleColor getSubsColor() {
+		String colorString = getString(KEY_SUBS_COLOR, null);
+		if (StringUtils.isNotBlank(colorString)) {
+			try {
+				return new SubtitleColor(colorString);
+			} catch (InvalidArgumentException e) {
+				LOGGER.error("Using default subtitle color: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		return new SubtitleColor(0xFF, 0xFF, 0xFF);
 	}
 
-	public void setSubsColor(int value) {
-		configuration.setProperty(KEY_SUBS_COLOR, value);
+	public void setSubsColor(Color color) {
+		setSubsColor(new SubtitleColor(color));
+	}
+
+	public void setSubsColor(SubtitleColor color) {
+		if (color.getAlpha() != 0xFF) {
+			configuration.setProperty(KEY_SUBS_COLOR, color.get0xRRGGBBAA());
+		} else {
+			configuration.setProperty(KEY_SUBS_COLOR, color.get0xRRGGBB());
+		}
 	}
 
 	public boolean isFix25FPSAvMismatch() {
@@ -2866,20 +2969,58 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RUN_WIZARD, value);
 	}
 
-	public boolean isHideNewMediaFolder() {
-		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
+	/**
+	 * Whether to scan shared folders on startup.
+	 *
+	 * @return whether to scan shared folders on startup
+	 */
+	public boolean isScanSharedFoldersOnStartup() {
+		return getBoolean(KEY_SCAN_SHARED_FOLDERS_ON_STARTUP, true);
 	}
 
-	public void setHideNewMediaFolder(final boolean value) {
-		this.configuration.setProperty(KEY_HIDE_NEW_MEDIA_FOLDER, value);
+	/**
+	 * Whether to scan shared folders on startup.
+	 *
+	 * @param value whether to scan shared folders on startup
+	 */
+	public void setScanSharedFoldersOnStartup(final boolean value) {
+		this.configuration.setProperty(KEY_SCAN_SHARED_FOLDERS_ON_STARTUP, value);
 	}
 
-	public boolean isHideRecentlyPlayedFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+	/**
+	 * Whether to show the "New Media" folder on the renderer.
+	 *
+	 * @return whether the folder is shown
+	 */
+	public boolean isShowNewMediaFolder() {
+		return getBoolean(KEY_SHOW_NEW_MEDIA_FOLDER, false);
 	}
 
-	public void setHideRecentlyPlayedFolder(final boolean value) {
-		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, value);
+	/**
+	 * Whether to show the "New Media" folder on the renderer.
+	 *
+	 * @param value whether the folder is shown
+	 */
+	public void setShowNewMediaFolder(final boolean value) {
+		this.configuration.setProperty(KEY_SHOW_NEW_MEDIA_FOLDER, value);
+	}
+
+	/**
+	 * Whether to show the "Recently Played" folder on the renderer.
+	 *
+	 * @return whether the folder is shown
+	 */
+	public boolean isShowRecentlyPlayedFolder() {
+		return getBoolean(PmsConfiguration.KEY_SHOW_RECENTLY_PLAYED_FOLDER, true);
+	}
+
+	/**
+	 * Whether to show the "Recently Played" folder on the renderer.
+	 *
+	 * @param value whether the folder is shown
+	 */
+	public void setShowRecentlyPlayedFolder(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_SHOW_RECENTLY_PLAYED_FOLDER, value);
 	}
 
 	/**
@@ -3180,6 +3321,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @deprecated Use {@link #getCredFile()} instead.
 	 */
+	@Deprecated
 	public String getCredPath() {
 		return getCredFile().getAbsolutePath();
 	}
@@ -3232,12 +3374,22 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_URL_RES_ORDER, "").split(",");
 	}
 
-	public boolean isHideLiveSubtitlesFolder() {
-		return getBoolean(KEY_HIDE_LIVE_SUBTITLES_FOLDER, true);
+	/**
+	 * Whether to show the "#--LIVE SUBTITLES--#" folder on the renderer.
+	 *
+	 * @return whether the folder is shown
+	 */
+	public boolean isShowLiveSubtitlesFolder() {
+		return getBoolean(KEY_SHOW_LIVE_SUBTITLES_FOLDER, false);
 	}
 
-	public void setHideLiveSubtitlesFolder(boolean value) {
-		configuration.setProperty(KEY_HIDE_LIVE_SUBTITLES_FOLDER, value);
+	/**
+	 * Whether to show the "#--LIVE SUBTITLES--#" folder on the renderer.
+	 *
+	 * @param value whether the folder is shown
+	 */
+	public void setShowLiveSubtitlesFolder(boolean value) {
+		configuration.setProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, value);
 	}
 
 	public int liveSubtitlesLimit() {
@@ -3645,10 +3797,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_AUTOMATIC_DISCOVER, false);
 	}
 
-	public int mediaLibrarySort() {
-		return getInt(KEY_MEDIA_LIB_SORT, UMSUtils.SORT_NO_SORT);
-	}
-
 	public boolean getWebAutoCont(Format f) {
 		String key = KEY_WEB_CONT_VIDEO;
 		boolean def = false;
@@ -3850,7 +3998,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isShowSplashScreen() {
-		return getBoolean(KEY_SHOW_SPLASH_SCREEN, false);
+		return getBoolean(KEY_SHOW_SPLASH_SCREEN, true);
 	}
 
 	public void setShowSplashScreen(boolean value) {

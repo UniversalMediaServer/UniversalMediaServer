@@ -34,12 +34,13 @@
 
 	<p>Universal Media Server (or UMS for short) is a program that
 		streams media like video, audio or images from your computer or the
-		web to a device like a console or a TV.</p>
+		web to a device called a "renderer" that can be anything that supports
+		DLNA like a game console, a TV, a computer software or a mobile phone.</p>
 
 	<p>This might sound simple, but it is in fact a complex matter.
 		There are dozens of media formats in the world, and your console or TV
 		only understands a couple of them. UMS allows you to browse media on
-		your favorite viewing device without having to worry about the details
+		your favorite renderer without having to worry about the details
 		of what you are viewing. UMS takes care of retrieving the media (from
 		file, network or web) and translating it to the best format that your
 		device understands.</p>
@@ -52,7 +53,7 @@
 			href="http://en.wikipedia.org/wiki/Digital_Living_Network_Alliance">DLNA</a>
 		compliant <a href="http://en.wikipedia.org/wiki/UPnP">UPnP</a> Media
 		Server. It was originally written to support the PlayStation 3.
-		However, other viewing devices support the same standards as the
+		However, other renderers support the same standards as the
 		PlayStation 3 and UMS has been expanded to support a range of them,
 		including Xbox 360 and various Samsung and Sony televisions.
 	</p>
@@ -61,7 +62,7 @@
 	<h2>Alternatives</h2>
 
 	<p>There are several streaming servers available which can be used
-		to communicate with a your viewing device. Here is a small selection:</p>
+		to communicate with your renderer. Here is a small selection:</p>
 	<ul>
 		<li><a
 			href="http://www.microsoft.com/windows/windowsmedia/player/11/default.aspx">Windows
@@ -120,21 +121,21 @@
 		for more information.
 	</p>
 
-	<p>The most stunning features of UMS are transcoding and muxing.</p>
+	<p>The most important features of UMS are transcoding and muxing.</p>
 
 
 	<h2>What are transcoding and muxing?</h2>
 
 	<p>
-		If the video codec is not supported UMS can convert the video stream
-		to a device compatible codec. For example the PS3 is compatible with
-		MPEG2. This procedure is called <a
+		If the video codec is not supported by your renderer, UMS can convert
+		the video stream to a device-compatible codec. For example, the PS3 is
+		compatible with MPEG2. This procedure is called <a
 			href="http://en.wikipedia.org/wiki/Transcoding">transcoding</a> and
 		it costs a lot of CPU power.
 	</p>
 
 	<p>
-		When you try to play a media file on your viewing device and the
+		When you try to play a media file on your renderer and the
 		format is not supported you get a "data corrupted" message. UMS is
 		able to help in this case. UMS is able to change the container format
 		on the fly if it is not supported by your device. UMS extracts the
@@ -143,7 +144,7 @@
 	</p>
 
 	<p>Together, transcoding and muxing make it possible for UMS to
-		stream almost every multimedia format to your viewing device. UMS
+		stream almost every multimedia format to your renderer. UMS
 		enables you to view media on TV that you could formerly only view on
 		your computer.</p>
 
@@ -152,19 +153,21 @@
 	<p>You can stream media files with quite old computers. If the
 		device does not recognize the video container format and UMS has to
 		remux you will need some additional CPU power. A 2 GHz CPU should be
-		sufficient. When transcoding a video on full HD resolution an up to
-		date dual core processor from Intel or AMD with at least 2,6 GHz is
+		sufficient. When transcoding a full HD resolution video, an up-to-date
+		dual core processor from Intel or AMD running at at least 2.6 GHz is
 		necessary.</p>
 
-	<p>It is also necessary to have enough network bandwidth available
-		when streaming HD videos. It is nearly impossible to stream a full HD
-		video via WLAN, even when restricting network bandwidth and setting
-		video quality very low.</p>
+	<p>You should also have enough network bandwidth available when streaming
+		HD or 4K videos. If you have a bandwidth restricted network like
+		wireless LAN, the stream quality might have to be restricted by
+		lowering the video quality. There are no easily defined rules for this,
+		as there are many types of wireless LANs and the bandwidth is heavily
+		dependent on the signal strength.</p>
 
 	<p>You should also have enough free RAM, which means about 512 MB.
-		There is also some space needed on your systems hard drive for
-		buffering videos. 500 MB free disk space is enough. If you want to
-		stream media files from an external hard drive please consider that an
+		There is also some space needed on your hard drive for
+		buffering videos. 500 MB of free disk space is enough. If you want to
+		stream media files from an external hard drive please consider that a
 		USB 1.1 connection is too slow for videos.</p>
 
 
