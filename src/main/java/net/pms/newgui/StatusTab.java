@@ -70,10 +70,10 @@ public class StatusTab {
 		public String name = " ";
 		private JPanel _panel = null;
 
-		public RendererItem(RendererConfiguration r) {
-			icon = addRendererIcon(r.getRendererIcon());
+		public RendererItem(RendererConfiguration renderer) {
+			icon = addRendererIcon(renderer.getRendererIcon());
 			icon.enableRollover();
-			label = new JLabel(r.getRendererName());
+			label = new JLabel(renderer.getRendererName());
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
 //			playingLabel = new GuiUtil.ScrollLabel(" ");
 			playingLabel.setForeground(Color.gray);
@@ -85,7 +85,9 @@ public class StatusTab {
 			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100, new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
 			rendererProgressBar.setStringPainted(true);
 			rendererProgressBar.setBorderPainted(false);
-			rendererProgressBar.setString(r.getAddress().getHostAddress());
+			if (renderer.getAddress() != null) {
+				rendererProgressBar.setString(renderer.getAddress().getHostAddress());
+			}
 			rendererProgressBar.setForeground(bufColor);
 		}
 

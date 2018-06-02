@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -37,7 +37,14 @@ import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
+import net.pms.formats.audio.MP3;
+import net.pms.formats.image.BMP;
+import net.pms.formats.image.GIF;
+import net.pms.formats.image.JPG;
+import net.pms.formats.image.PNG;
+import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
+import net.pms.network.HTTPResource;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
@@ -81,6 +88,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int XBOX1 = 6;
 	protected static final int OPERA = 7;
 	protected static final int EDGE = 8;
+	protected static final int CHROMIUM = 9;
+	protected static final int VIVALDI = 10;
 
 	private StartStopListenerDelegate startStop;
 
@@ -107,11 +116,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		// FIXME: These are just preliminary
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
-		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac m:video/flash");
+		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac-lc m:video/flash");
 		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
 		configuration.addProperty(SUPPORTED, "f:ogg v:theora m:video/ogg");
-		configuration.addProperty(SUPPORTED, "f:ogg a:vorbis|flac m:audio/ogg");
+		configuration.addProperty(SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
 		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
 		configuration.addProperty(SUPPORTED, "f:bmp m:image/bmp");
@@ -157,6 +166,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case XBOX1:   return "Xbox One";
 			case OPERA:   return "Opera";
 			case EDGE:    return "Edge";
+			case CHROMIUM:return "Chromium";
+			case VIVALDI: return "Vivaldi";
 			default:      return Messages.getString("PMS.142");
 		}
 	}
@@ -173,6 +184,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			ua.contains("playstation 4") ? PS4 :
 			ua.contains("xbox one")      ? XBOX1 :
 			ua.contains("opera")         ? OPERA :
+			ua.contains("chromium")      ? CHROMIUM :
+			ua.contains("vivaldi")       ? VIVALDI :
 			0;
 	}
 
@@ -222,6 +235,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case XBOX1:   return "xbox-one.png";
 			case OPERA:   return "opera.png";
 			case EDGE:    return "edge.png";
+			case CHROMIUM:return "chromium.png";
+			case VIVALDI: return "vivaldi.png";
 			default:      return super.getRendererIcon();
 		}
 	}
@@ -265,9 +280,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	public String getVideoMimeType() {
 		if (isChromeTrick()) {
-			return RemoteUtil.MIME_WEBM;
+			return HTTPResource.WEBM_TYPEMIME;
 		} else if (isFirefoxLinuxMp4()) {
-			return RemoteUtil.MIME_MP4;
+			return HTTPResource.MP4_TYPEMIME;
 		}
 		return defaultMime;
 	}
@@ -295,32 +310,33 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params) {
+	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Player player, OutputParams params) {
 		if (player instanceof FFMpegVideo) {
-			if (dlna.getFormat().isVideo()) {
-				DLNAMediaInfo media = dlna.getMedia();
+			if (resource.getFormat().isVideo()) {
+				DLNAMediaInfo media = resource.getMedia();
 				boolean flash = media != null && "video/flash".equals(media.getMimeType());
 				if (flash) {
-					fflashCmds(cmdList, media);
+					ffFlashCmds(cmdList, media);
 				} else {
-					String mime = getVideoMimeType();
-					switch (mime) {
-						case RemoteUtil.MIME_OGG:
-							ffoggCmd(cmdList);
+					String mimeType = getVideoMimeType();
+					switch (mimeType) {
+						case HTTPResource.OGG_TYPEMIME:
+							ffOggCmd(cmdList);
 							break;
-						case RemoteUtil.MIME_MP4:
-							ffmp4Cmd(cmdList);
+						case HTTPResource.MP4_TYPEMIME:
+							ffMp4Cmd(cmdList);
 							break;
-						case RemoteUtil.MIME_WEBM:
+						case HTTPResource.WEBM_TYPEMIME:
 							if (isChromeTrick()) {
-								chromeCmd(cmdList);
+								ffChromeCmd(cmdList);
 							} else {
 								// nothing here yet
-							}	break;
+							}
+							break;
 					}
 				}
 				if (isLowBitrate()) {
-					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, params));
+					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(resource, media, params));
 				}
 			} else {
 				// nothing here yet
@@ -332,7 +348,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	private void fflashCmds(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffFlashCmds(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
@@ -356,7 +372,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("flv");
 	}
 
-	private void ffoggCmd(List<String> cmdList) {
+	private static void ffOggCmd(List<String> cmdList) {
 		/*cmdList.add("-c:v");
 		cmdList.add("libtheora");*/
 		cmdList.add("-qscale:v");
@@ -373,7 +389,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("ogg");
 	}
 
-	private void ffmp4Cmd(List<String> cmdList) {
+	private static void ffMp4Cmd(List<String> cmdList) {
 		// see http://stackoverflow.com/questions/8616855/how-to-output-fragmented-mp4-with-ffmpeg
 		cmdList.add(1, "-re");
 		cmdList.add("-g");
@@ -409,7 +425,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("mp4");
 	}
 
-	private void chromeCmd(List<String> cmdList) {
+	private static void ffChromeCmd(List<String> cmdList) {
 		//-c:v libx264 -profile:v high -level 4.1 -map 0:a -c:a libmp3lame -ac 2 -preset ultrafast -b:v 35000k -bufsize 35000k -f matroska
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
@@ -430,7 +446,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@SuppressWarnings("unused")
-	private void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
@@ -454,6 +470,28 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("HLS");
 	}
 
+	public boolean isImageFormatSupported(ImageFormat format) {
+		if (format == null) {
+			return false;
+		}
+		if (format == ImageFormat.GIF || format == ImageFormat.JPEG || format == ImageFormat.PNG) {
+			return true;
+		}
+		switch (format) {
+			case BMP:
+				return
+					browser == FIREFOX || browser == CHROME ||
+					browser == CHROMIUM || browser == OPERA ||
+					browser == MSIE || browser == EDGE || browser == SAFARI;
+			case TIFF:
+				return browser == EDGE || browser == CHROMIUM || browser == SAFARI || browser == MSIE;
+			case WEBP:
+				return browser == CHROME || browser == CHROMIUM || browser == OPERA;
+			default:
+				return false;
+		}
+	}
+
 	public static boolean supportedFormat(Format f) {
 		for (Format f1 : supportedFormats) {
 			if (f.getIdentifier() == f1.getIdentifier() || f1.mimeType().equals(f.mimeType())) {
@@ -467,10 +505,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		if (dlna instanceof VirtualVideoAction) {
 			return true;
 		}
-		DLNAMediaInfo m = dlna.getMedia();
-		return (m != null && RemoteUtil.directmime(m.getMimeType())) ||
-			(supportedFormat(dlna.getFormat())) ||
-			(dlna.getPlayer() instanceof FFMpegVideo);
+		DLNAMediaInfo media = dlna.getMedia();
+		return
+			media != null && RemoteUtil.directmime(media.getMimeType()) ||
+			supportedFormat(dlna.getFormat()) ||
+			dlna.getPlayer() instanceof FFMpegVideo;
 	}
 
 	@Override

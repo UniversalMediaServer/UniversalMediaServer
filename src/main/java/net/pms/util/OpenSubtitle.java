@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -27,14 +27,26 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.util.CredMgr.Credential;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,36 +70,48 @@ public class OpenSubtitle {
 	private static String token = null;
 	private static long tokenAge;
 
-	public static String computeHash(File file) throws IOException {
-		long size = file.length();
-		FileInputStream fis = new FileInputStream(file);
-		return computeHash(fis, size);
+	private static final ThreadPoolExecutor backgroundExecutor = new ThreadPoolExecutor(
+		0, // Minimum number of threads in pool
+		5, // Maximum number of threads in pool
+		30, // Number of seconds before an idle thread is terminated
+		TimeUnit.SECONDS,
+		new LinkedBlockingQueue<Runnable>(), // The queue holding the tasks waiting to be processed
+		new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
+	);
+
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread("OpenSubtitles Executor Shutdown Hook") {
+			@Override
+			public void run() {
+				backgroundExecutor.shutdownNow();
+			}
+		});
 	}
 
-	public static String computeHash(InputStream stream, long length) throws IOException {
-		int chunkSizeForFile = (int) Math.min(HASH_CHUNK_SIZE, length);
+	// Do not instantiate
+	private OpenSubtitle() {
+	}
 
-		// Buffer that will contain the head and the tail chunk, chunks will overlap if length is smaller than two chunks
-		byte[] chunkBytes = new byte[(int) Math.min(2 * HASH_CHUNK_SIZE, length)];
-		long head;
-		long tail;
-		try (DataInputStream in = new DataInputStream(stream)) {
-			// First chunk
-			in.readFully(chunkBytes, 0, chunkSizeForFile);
+	/**
+	 * Hash code is based on Media Player Classic. In natural language it calculates: size + 64bit
+	 * checksum of the first and last 64k (even if they overlap because the file is smaller than
+	 * 128k).
+	 *
+	 * @see http://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes#Java
+	 * @param file the file to calculate the hash of
+	 * @return an OpenSubtitles/MPC-style hash of the file
+	 * @throws IOException 
+	 */
+	public static String computeHash(File file) throws IOException {
+		long size = file.length();
+		long chunkSizeForFile = Math.min(HASH_CHUNK_SIZE, size);
 
-			long position = chunkSizeForFile;
-			long tailChunkPosition = length - chunkSizeForFile;
+		try (FileChannel fileChannel = new FileInputStream(file).getChannel()) {
+			long head = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, 0, chunkSizeForFile));
+			long tail = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, Math.max(size - HASH_CHUNK_SIZE, 0), chunkSizeForFile));
 
-			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks
-			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
-
-			// Second chunk, or the rest of the data if length is smaller than two chunks
-			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
-
-			head = computeHashForChunk(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile));
-			tail = computeHashForChunk(ByteBuffer.wrap(chunkBytes, chunkBytes.length - chunkSizeForFile, chunkSizeForFile));
+			return String.format("%016x", size + head + tail);
 		}
-		return String.format("%016x", length + head + tail);
 	}
 
 	private static long computeHashForChunk(ByteBuffer buffer) {
@@ -108,6 +132,7 @@ public class OpenSubtitle {
 		connection.setDefaultUseCaches(false);
 		connection.setRequestProperty("Content-Type", "text/xml");
 		connection.setRequestProperty("Content-Length", "" + query.length());
+		connection.setRequestProperty("Accept-Encoding", "gzip");
 		((HttpURLConnection) connection).setRequestMethod("POST");
 		//LOGGER.debug("opensub query "+query);
 		// open up the output stream of the connection
@@ -119,7 +144,12 @@ public class OpenSubtitle {
 		}
 
 		StringBuilder page;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+		try (BufferedReader in = new BufferedReader(
+				new InputStreamReader((
+					"gzip".equals(connection.getContentEncoding()) ?
+						new GZIPInputStream(connection.getInputStream()) :
+						connection.getInputStream()
+					), StandardCharsets.UTF_8))) {
 			page = new StringBuilder();
 			String str;
 			while ((str = in.readLine()) != null) {
@@ -146,27 +176,38 @@ public class OpenSubtitle {
 				return true;
 			}
 			URL url = new URL(OPENSUBS_URL);
-			CredMgr.Cred cred = PMS.getCred("opensubtitles");
-			String pwd = "";
-			String usr = "";
-			if(cred != null) {
+			Credential credential = PMS.getCred("opensubtitles");
+			String password = "";
+			String user = "";
+			if(credential != null) {
 				// if we got credentials use them
-				if (!StringUtils.isEmpty(cred.password)) {
-					pwd = DigestUtils.md5Hex(cred.password);
+				if (!StringUtils.isEmpty(credential.password)) {
+					password = DigestUtils.md5Hex(credential.password);
 				}
-				usr = cred.username;
+				user = credential.username;
 			}
-			String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n"+
-					"<param>\n<value><string>"+usr+"</string></value>\n</param>\n" +
-					"<param>\n" +
-					"<value><string>"+pwd+"</string></value>\n</param>\n<param>\n<value><string/></value>\n" +
-					"</param>\n<param>\n<value><string>" + UA + "</string></value>\n</param>\n" +
+			String request =
+				"<methodCall>\n" +
+					"<methodName>LogIn</methodName>\n" +
+					"<params>\n"+
+						"<param>\n" +
+							"<value><string>" + user +"</string></value>\n" +
+						"</param>\n" +
+						"<param>\n" +
+							"<value><string>" + password + "</string></value>\n" +
+						"</param>\n" +
+						"<param>\n" +
+							"<value><string/></value>\n" +
+						"</param>\n" +
+						"<param>\n" +
+							"<value><string>" + UA + "</string></value>\n" +
+						"</param>\n" +
 					"</params>\n" +
-					"</methodCall>\n";
-			Pattern re = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);
-			Matcher m = re.matcher(postPage(url.openConnection(), req));
-			if (m.find()) {
-				token = m.group(1);
+				"</methodCall>\n";
+			Pattern pattern = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);
+			Matcher matcher = pattern.matcher(postPage(url.openConnection(), request));
+			if (matcher.find()) {
+				token = matcher.group(1);
 				tokenAge = System.currentTimeMillis();
 			}
 			return token != null;
@@ -180,13 +221,13 @@ public class OpenSubtitle {
 	}
 
 	public static String fetchImdbId(String hash) throws IOException {
-		LOGGER.debug("fetch imdbid for hash " + hash);
-		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
-		String info = checkMovieHash(hash);
-		LOGGER.debug("info is " + info);
-		Matcher m = re.matcher(info);
-		if (m.find()) {
-			return m.group(1);
+		LOGGER.trace("Fetching IMDB ID form OpenSubtitles for hash \"{}\"", hash);
+		Pattern pattern = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		String reply = checkMovieHash(hash);
+		LOGGER.trace("Reply from OpenSubtitles is:\n{}", reply);
+		Matcher matcher = pattern.matcher(reply);
+		if (matcher.find()) {
+			return matcher.group(1);
 		}
 		return "";
 	}
@@ -197,61 +238,66 @@ public class OpenSubtitle {
 		}
 		URL url = new URL(OPENSUBS_URL);
 		tokenLock.readLock().lock();
-		String req = null;
+		String request = null;
 		try {
-		req = "<methodCall>\n<methodName>CheckMovieHash</methodName>\n" +
-			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-			"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
-			"</data>\n</array>\n</value>\n</param>" +
-			"</params>\n</methodCall>\n";
+		request =
+			"<methodCall>\n" +
+				"<methodName>CheckMovieHash</methodName>\n" +
+				"<params>\n" +
+					"<param>\n" +
+						"<value><string>" + token + "</string></value>\n" +
+					"</param>\n" +
+					"<param>\n<value>\n" +
+						"<array>\n" +
+							"<data>\n" +
+								"<value><string>" + hash + "</string></value>\n" +
+							"</data>\n" +
+						"</array>\n</value>\n" +
+					"</param>" +
+				"</params>\n" +
+			"</methodCall>\n";
 		} finally {
 			tokenLock.readLock().unlock();
 		}
-		LOGGER.debug("req " + req);
-		return postPage(url.openConnection(), req);
+		LOGGER.trace("Sending request to \"{}\":\n{}", url, request);
+		return postPage(url.openConnection(), request);
 	}
 
-	public static String getMovieInfo(File f) throws IOException {
-		String info = checkMovieHash(getHash(f));
-		if (StringUtils.isEmpty(info)) {
-			return "";
-		}
-		@SuppressWarnings("unused")
-		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
-		LOGGER.debug("info is " + info);
-		return info;
-	}
-
-	public static String getHash(File f) throws IOException {
-		LOGGER.debug("get hash of " + f);
-		String hash = ImdbUtil.extractOSHash(f);
-		if (!StringUtils.isEmpty(hash)) {
+	public static String getHash(File file) throws IOException {
+		LOGGER.trace("Getting OpenSubtitles hash for \"{}\"", file);
+		String hash = ImdbUtil.extractOSHashFromFileName(file);
+		if (!StringUtils.isBlank(hash)) {
 			return hash;
 		}
-		return computeHash(f);
+		return computeHash(file);
 	}
 
-	public static Map<String, Object> findSubs(File f) throws IOException {
-		return findSubs(f, null);
+	public static Map<String, Object> findSubs(File file) throws IOException {
+		return findSubs(file, null);
 	}
 
-	public static Map<String, Object> findSubs(File f, RendererConfiguration r) throws IOException {
-		Map<String, Object> res = findSubs(getHash(f), f.length(), null, null, r);
-		if (res.isEmpty()) { // no good on hash! try imdb
-			String imdb = ImdbUtil.extractImdb(f);
-			if (StringUtils.isEmpty(imdb)) {
-				imdb = fetchImdbId(f);
+	public static Map<String, Object> findSubs(File file, RendererConfiguration renderer) throws IOException {
+		if (file == null) {
+			return null;
+		}
+
+		String fileHash = getHash(file);
+		Map<String, Object> result = findSubs(fileHash, file.length(), null, null, renderer);
+		if (result.isEmpty()) { // No match on file hash, try IMDB ID
+			String imdb = ImdbUtil.extractImdbIdFromFileName(file);
+			if (StringUtils.isBlank(imdb)) {
+				imdb = fetchImdbId(fileHash);
 			}
-			res = findSubs(null, 0, imdb, null, r);
+			result = findSubs(null, 0, imdb, null, renderer);
 		}
-		if (res.isEmpty()) { // final try, use the name
-			res = querySubs(f.getName(), r);
+		if (result.isEmpty()) { // final try, use the name
+			result = querySubs(file.getName(), renderer);
 		}
-		return res;
+		return result;
 	}
 
-	public static Map<String, Object> findSubs(String hash, long size) throws IOException {
-		return findSubs(hash, size, null, null, null);
+	public static Map<String, Object> findSubs(String fileHash, long size) throws IOException {
+		return findSubs(fileHash, size, null, null, null);
 	}
 
 	public static Map<String, Object> findSubs(String imdb) throws IOException {
@@ -266,106 +312,154 @@ public class OpenSubtitle {
 		return findSubs(null, 0, null, query, r);
 	}
 
-	public static Map<String, Object> findSubs(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
-		TreeMap<String, Object> res = new TreeMap<>();
+	public static Map<String, Object> findSubs(
+		String fileHash,
+		long size,
+		String imdb,
+		String query,
+		RendererConfiguration renderer
+	) throws IOException {
+		TreeMap<String, Object> result = new TreeMap<>();
 		if (!login()) {
-			return res;
+			return result;
 		}
-		String lang = UMSUtils.getLangList(r, true);
+		String languages = UMSUtils.getLangList(renderer, true);
 		URL url = new URL(OPENSUBS_URL);
-		String hashStr = "";
-		String imdbStr = "";
-		String qStr = "";
-		if (!StringUtils.isEmpty(hash)) {
-			hashStr = "<member><name>moviehash</name><value><string>" + hash + "</string></value></member>\n" +
-				"<member><name>moviebytesize</name><value><double>" + size + "</double></value></member>\n";
+		String hashRequest = "";
+		String imdbIdRequest = "";
+		String queryRequest = "";
+		if (!StringUtils.isEmpty(fileHash)) {
+			hashRequest =
+				"<member>" +
+					"<name>moviehash</name>" +
+					"<value><string>" + fileHash + "</string></value>" +
+				"</member>\n" +
+				"<member>" +
+					"<name>moviebytesize</name>" +
+					"<value><double>" + size + "</double></value>" +
+				"</member>\n";
 		} else if (!StringUtils.isEmpty(imdb)) {
-			imdbStr = "<member><name>imdbid</name><value><string>" + imdb + "</string></value></member>\n";
+			imdbIdRequest =
+				"<member>" +
+					"<name>imdbid</name>" +
+					"<value><string>" + imdb + "</string></value>" +
+				"</member>\n";
 		} else if (!StringUtils.isEmpty(query)) {
-			qStr = "<member><name>query</name><value><string>" + query + "</string></value></member>\n";
+			queryRequest =
+				"<member>" +
+					"<name>query</name>" +
+					"<value><string>" + query + "</string></value>" +
+				"</member>\n";
 		} else {
-			return res;
+			return result;
 		}
-		String req = null;
+		String request = null;
 		tokenLock.readLock().lock();
 		try {
-			req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
-				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-				"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
-				"</name><value><string>" + lang + "</string></value></member>" +
-				hashStr + imdbStr + qStr + "\n" +
-				"</struct></value></data>\n</array>\n</value>\n</param>" +
-				"</params>\n</methodCall>\n";
+			request =
+				"<methodCall>\n" +
+					"<methodName>SearchSubtitles</methodName>\n" +
+					"<params>\n" +
+						"<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+						"<param>\n<value>\n" +
+							"<array>\n" +
+								"<data>\n<value>" +
+									"<struct>" +
+										"<member>" +
+											"<name>sublanguageid</name>" +
+												"<value><string>" + languages + "</string></value>" +
+										"</member>" +
+										hashRequest +
+										imdbIdRequest +
+										queryRequest + "\n" +
+									"</struct></value>" +
+								"</data>\n" +
+							"</array>\n</value>\n" +
+						"</param>" +
+					"</params>\n" +
+				"</methodCall>\n";
 		} finally {
 			tokenLock.readLock().unlock();
 		}
-		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
-		String page = postPage(url.openConnection(), req);
-		Matcher m = re.matcher(page);
-		while (m.find()) {
-			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(3));
-			res.put(m.group(2) + ":" + m.group(1), m.group(3));
-			if (res.size() > PMS.getConfiguration().liveSubtitlesLimit()) {
+		Pattern pattern = Pattern.compile(
+			"SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>" +
+			"([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>",
+			Pattern.DOTALL
+		);
+		String page = postPage(url.openConnection(), request);
+		Matcher matcher = pattern.matcher(page);
+		while (matcher.find()) {
+			LOGGER.debug("Found subtitle {} named \"{}\" zip {}", matcher.group(2), matcher.group(1), matcher.group(3));
+			result.put(matcher.group(2) + ":" + matcher.group(1), matcher.group(3));
+			if (result.size() >= PMS.getConfiguration().liveSubtitlesLimit()) {
 				// limit the number of hits somewhat
 				break;
 			}
 		}
-		return res;
+		return result;
 	}
 
 	/**
 	 * Feeds the correct parameters to getInfo below.
 	 *
-	 * @see #getInfo(java.lang.String, long, java.lang.String, java.lang.String)
+	 * @see #getInfo(String, long, String, String, RendererConfiguration)
 	 *
-	 * @param f the file to lookup
+	 * @param file the file to lookup
 	 * @param formattedName the name to use in the name search
 	 *
 	 * @return
 	 * @throws IOException
 	 */
-	public static String[] getInfo(File f, String formattedName) throws IOException {
-		return getInfo(f, formattedName, null);
+	public static String[] getInfo(File file, String formattedName) throws IOException {
+		return getInfo(file, formattedName, null);
 	}
 
-	public static String[] getInfo(File f, String formattedName, RendererConfiguration r) throws IOException {
-		String[] res = getInfo(getHash(f), f.length(), null, null, r);
+	public static String[] getInfo(File file, String formattedName, RendererConfiguration renderer) throws IOException {
+		String[] res = getInfo(getHash(file), file.length(), null, null, renderer);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
-			String imdb = ImdbUtil.extractImdb(f);
+			String imdb = ImdbUtil.extractImdbIdFromFileName(file);
 			if (StringUtil.hasValue(imdb)) {
-				res = getInfo(null, 0, imdb, null, r);
+				res = getInfo(null, 0, imdb, null, renderer);
 			}
 		}
 		if (res == null || res.length == 0) { // final try, use the name
 			if (StringUtils.isNotEmpty(formattedName)) {
-				res = getInfo(null, 0, null, formattedName, r);
+				res = getInfo(null, 0, null, formattedName, renderer);
 			} else {
-				res = getInfo(null, 0, null, f.getName(), r);
+				res = getInfo(null, 0, null, file.getName(), renderer);
 			}
 		}
 		return res;
 	}
 
 	/**
-	 * Attempt to return information from IMDb about the file based on information
-	 * from the filename; either the hash, the IMDb ID or the filename itself.
+	 * Attempt to return information from OpenSubtitles about the file based
+	 * on information from the filename; either the hash, the IMDb ID or the
+	 * filename itself.
 	 *
 	 * @param hash  the video hash
 	 * @param size  the bytesize to be used with the hash
 	 * @param imdb  the IMDb ID
-	 * @param query the string to search IMDb for
+	 * @param query the string to search OpenSubtitles for
+	 * @param renderer the renderer to get subtitle languages from
 	 *
-	 * @return a string array including the IMDb ID, episode title, season number,
-	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it on IMDb.
+	 * @return a string array including the IMDb ID, episode title, season
+	 *         number, episode number relative to the season, and the show
+	 *         name, or {@code null} if we couldn't find it on OpenSubtitles.
 	 *
 	 * @throws IOException
 	 */
-	private static String[] getInfo(String hash, long size, String imdb, String query, RendererConfiguration r) throws IOException {
+	private static String[] getInfo(
+		String hash,
+		long size,
+		String imdb,
+		String query,
+		RendererConfiguration renderer
+	) throws IOException {
 		if (!login()) {
 			return null;
 		}
-		String lang = UMSUtils.getLangList(r, true);
+		String lang = UMSUtils.getLangList(renderer, true);
 		URL url = new URL(OPENSUBS_URL);
 		String hashStr = "";
 		String imdbStr = "";
@@ -383,28 +477,48 @@ public class OpenSubtitle {
 		String req = null;
 		tokenLock.readLock().lock();
 		try {
-			req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
-				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-				"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
-				"</name><value><string>" + lang + "</string></value></member>" +
-				hashStr + imdbStr + qStr + "\n" +
-				"</struct></value></data>\n</array>\n</value>\n</param>" +
-				"</params>\n</methodCall>\n";
+			req =
+				"<methodCall>\n" +
+					"<methodName>SearchSubtitles</methodName>\n" +
+					"<params>\n" +
+						"<param>\n" +
+							"<value><string>" + token + "</string></value>\n" +
+						"</param>\n" +
+						"<param>\n<value>\n" +
+							"<array>\n" +
+								"<data>\n" +
+									"<value><struct>" +
+										"<member>" +
+											"<name>sublanguageid</name>" +
+												"<value><string>" + lang + "</string></value>" +
+										"</member>" +
+										hashStr +
+										imdbStr +
+										qStr + "\n" +
+									"</struct></value>" +
+								"</data>\n" +
+							"</array>\n</value>\n" +
+						"</param>" +
+					"</params>\n" +
+				"</methodCall>\n";
 		} finally {
 			tokenLock.readLock().unlock();
 		}
 		Pattern re = Pattern.compile(
 				".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" + "" +
 				"MovieName</name>.*?<string>([^<]+)</string>.*?" +
+				"MovieYear</name>.*?<string>([^<]+)</string>.*?" +
 				"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
-				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?" +
-				"MovieYear</name>.*?<string>([^<]+)</string>.*?",
+				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?",
 				Pattern.DOTALL
 		);
 		String page = postPage(url.openConnection(), req);
+
+		// LOGGER.trace("opensubs page: " + page);
+
 		Matcher m = re.matcher(page);
 		if (m.find()) {
-			LOGGER.debug("match " + m.group(1) + "," + m.group(2) + "," + m.group(3) + "," + m.group(4) + "," + m.group(5));
+			LOGGER.debug("Matched OpenSubtitles entry: " + m.group(1) + "," + m.group(2) + "," + m.group(3) + "," + m.group(4) + "," + m.group(5));
 			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
 			String name = m.group(2);
 			Matcher m1 = re1.matcher(name);
@@ -414,32 +528,256 @@ public class OpenSubtitle {
 				name = m1.group(1).trim();
 			}
 
+			String imdbId = ImdbUtil.ensureTT(m.group(1).trim());
+
 			/**
- 			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
- 			 * something like "Episode #1.4", so discard that.
- 			 */
- 			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
- 			if (episodeName.startsWith("Episode #")) {
- 				episodeName = "";
- 			}
+			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
+			 * something like "Episode #1.4", so discard that.
+			 */
+			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
+			if (episodeName.startsWith("Episode #")) {
+				episodeName = "";
+			}
+
+			String movieOrShowName = StringEscapeUtils.unescapeHtml4(name);
 
 			return new String[]{
-				ImdbUtil.ensureTT(m.group(1).trim()),
+				imdbId,
 				episodeName,
-				StringEscapeUtils.unescapeHtml4(name),
-				m.group(3).trim(), // Season number
-				m.group(4).trim(), // Episode number
-				m.group(5).trim()  // Year
+				movieOrShowName,
+				m.group(4).trim(), // Season number
+				m.group(5).trim(), // Episode number
+				m.group(3).trim()  // Year
 			};
 		}
 		return null;
+	}
+
+	public static void backgroundLookupAndAdd(final File file, final DLNAMediaInfo media) {
+		if (!PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
+			final boolean overTheTopLogging = false;
+			String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
+
+			String titleFromFilename            = metadataFromFilename[0];
+			String yearFromFilename             = metadataFromFilename[1];
+			String extraInformationFromFilename = metadataFromFilename[2];
+			String tvSeasonFromFilename         = metadataFromFilename[3];
+			String tvEpisodeNumberFromFilename  = metadataFromFilename[4];
+			String tvEpisodeNameFromFilename    = metadataFromFilename[5];
+
+			String titleFromFilenameSimplified = PMS.get().getSimplifiedShowName(titleFromFilename);
+
+			media.setMovieOrShowName(titleFromFilename);
+			media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
+			String titleFromDatabase;
+			String titleFromDatabaseSimplified;
+
+			/**
+			 * Apply the metadata from the filename.
+			 */
+			if (StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
+				/**
+				 * Overwrite the title from the filename if it's very similar to one we
+				 * already have in our database. This is to avoid minor grammatical differences
+				 * like "Word and Word" vs. "Word & Word" from creating two virtual folders.
+				 */
+				titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+				titleFromDatabaseSimplified = PMS.get().getSimplifiedShowName(titleFromDatabase);
+				if (overTheTopLogging) {
+					LOGGER.info("titleFromDatabase: " + titleFromDatabase);
+					LOGGER.info("titleFromFilename: " + titleFromFilename);
+				}
+				if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
+					media.setMovieOrShowName(titleFromDatabase);
+				}
+
+				media.setTVSeason(tvSeasonFromFilename);
+				media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+				if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
+					media.setTVEpisodeName(tvEpisodeNameFromFilename);
+				}
+
+				if (overTheTopLogging) {
+					LOGGER.info("Setting is TV episode true for " + titleFromFilename + " " + tvEpisodeNumberFromFilename);
+				}
+
+				media.setIsTVEpisode(true);
+			}
+
+			if (yearFromFilename != null) {
+				media.setYear(yearFromFilename);
+			}
+			if (extraInformationFromFilename != null) {
+				media.setExtraInformation(extraInformationFromFilename);
+			}
+
+			try {
+				PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+			} catch (SQLException e) {
+				LOGGER.error(
+					"Could not update the database with information from OpenSubtitles for \"{}\": {}",
+					file.getAbsolutePath(),
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+
+			/**
+			 * Now that the information from the filename has been applied, we cue up
+			 * the request to OpenSubtitles which may update and supplement the data
+			 * we extracted.
+			 */
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					String[] metadataFromOpenSubtitles;
+					try {
+						if (overTheTopLogging) {
+							LOGGER.info("Looking up " + file.getName());
+						}
+
+						metadataFromOpenSubtitles = getInfo(file, file.getName());
+						String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
+
+						String titleFromFilename           = metadataFromFilename[0];
+						String yearFromFilename            = metadataFromFilename[1];
+						String editionFromFilename         = metadataFromFilename[2];
+						String tvSeasonFromFilename        = metadataFromFilename[3];
+						String tvEpisodeNumberFromFilename = metadataFromFilename[4];
+
+						String titleFromDatabase;
+						String titleFromDatabaseSimplified;
+						String titleFromFilenameSimplified = PMS.get().getSimplifiedShowName(titleFromFilename);
+						String titleFromOpenSubtitlesSimplified;
+
+						if (metadataFromOpenSubtitles != null) {
+							String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
+							titleFromOpenSubtitlesSimplified = PMS.get().getSimplifiedShowName(titleFromOpenSubtitles);
+							String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
+							String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
+							if (tvEpisodeNumberFromOpenSubtitles.length() == 1) {
+								tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
+							}
+
+							/**
+							 * We have data from OpenSubtitles, but before storing it in our database we
+							 * validate it against the data extracted from the filename.
+							 * This is because sometimes OpenSubtitles reports incorrect data.
+							 */
+							if (overTheTopLogging) {
+								LOGGER.info("Found " + file.getName() + " : " + titleFromOpenSubtitles);
+							}
+
+							// Proceed if the years match, or if there is no year then try the movie/show name.
+							if (
+								(
+									StringUtils.isNotBlank(yearFromFilename) &&
+									yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
+									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+								) || (
+									StringUtils.isBlank(yearFromFilename) &&
+									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+								)
+							) {
+								/**
+								 * If the name returned from OpenSubtitles is very similar to the one from the
+								 * filename, we regard it as a correct match.
+								 * This means we get proper case and special characters without worrying about
+								 * incorrect results being used.
+								 */
+								if (titleFromFilenameSimplified.equals(titleFromOpenSubtitlesSimplified)) {
+									/**
+									 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
+									 * number, so we validate those as well.
+									 * This check will pass if either we don't know what the season and episode
+									 * numbers are from the filename, or we do and they match with our results
+									 * from OpenSubtitles.
+									 */
+									if (
+										(
+											StringUtils.isNotBlank(tvSeasonFromFilename) &&
+											StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
+											tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) &&
+											StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
+											StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
+											tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)
+										) || (
+											StringUtils.isBlank(tvSeasonFromFilename) &&
+											StringUtils.isBlank(tvEpisodeNumberFromFilename)
+										)
+									) {
+										titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+										titleFromDatabaseSimplified = PMS.get().getSimplifiedShowName(titleFromDatabase);
+										if (overTheTopLogging) {
+											LOGGER.info("titleFromDatabase: " + titleFromDatabase);
+											LOGGER.info("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
+										}
+
+										/**
+										 * If there is a title from the database and it is not exactly the same as the
+										 * one from OpenSubtitles, continue to see if we want to change that to make
+										 * them all consistent.
+										 */
+										if (
+											!"".equals(titleFromDatabase) &&
+											!titleFromOpenSubtitles.equals(titleFromDatabase) &&
+											titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)
+										) {
+											// Replace our close-but-not-exact title in the database with the title from OpenSubtitles.
+											PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
+										}
+
+										media.setIMDbID(metadataFromOpenSubtitles[0]);
+										media.setMovieOrShowName(titleFromOpenSubtitles);
+										media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
+										media.setYear(metadataFromOpenSubtitles[5]);
+
+										// If the filename has indicated this is a TV episode
+										if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
+											media.setTVSeason(tvSeasonFromOpenSubtitles);
+											media.setTVEpisodeNumber(tvEpisodeNumberFromOpenSubtitles);
+											if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
+												media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
+											}
+
+											if (overTheTopLogging) {
+												LOGGER.info("Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
+											}
+
+											media.setIsTVEpisode(true);
+										}
+
+										try {
+											PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+										} catch (SQLException e) {
+											LOGGER.error(
+												"Could not update the database with information from OpenSubtitles for \"{}\": {}",
+												file.getAbsolutePath(),
+												e.getMessage()
+											);
+											LOGGER.trace("", e);
+										}
+									}
+								}
+							}
+						}
+					} catch (IOException ex) {
+						// This will happen regularly so just log it in trace mode
+						LOGGER.trace("Error in OpenSubtitles parsing:", ex);
+					}
+				}
+			};
+			backgroundExecutor.execute(r);
+		}
 	}
 
 	public static String subFile(String name) {
 		String dir = PMS.getConfiguration().getDataFile(SUB_DIR);
 		File path = new File(dir);
 		if (!path.exists()) {
-			path.mkdirs();
+			if (!path.mkdirs()) {
+				LOGGER.error("Failed to create subtitles folder {}", path.getAbsolutePath());
+			}
 		}
 		return path.getAbsolutePath() + File.separator + name + ".srt";
 	}
@@ -509,8 +847,33 @@ public class OpenSubtitle {
 			return;
 		}
 		File[] files = path.listFiles();
-		for (File file : files) {
-			PMS.get().addTempFile(file);
+		if (files != null) {
+			for (File file : files) {
+				PMS.get().addTempFile(file);
+			}
+		}
+	}
+
+	/**
+	 * A {@link ThreadFactory} that creates threads for the OpenSubtitles background workers
+	 */
+	static class OpenSubtitlesBackgroundWorkerThreadFactory implements ThreadFactory {
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		OpenSubtitlesBackgroundWorkerThreadFactory() {
+			group = new ThreadGroup("OpenSubtitles background workers group");
+			group.setDaemon(false);
+			group.setMaxPriority(Thread.NORM_PRIORITY - 1);
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(group, runnable, "OpenSubtitles background worker " + threadNumber.getAndIncrement());
+			if (thread.isDaemon()) {
+				thread.setDaemon(false);
+			}
+			return thread;
 		}
 	}
 }

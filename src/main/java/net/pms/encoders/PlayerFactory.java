@@ -21,6 +21,7 @@ package net.pms.encoders;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -62,13 +63,14 @@ public final class PlayerFactory {
 	 * registry is set by the constructor.
 	 */
 	private static SystemUtils utils;
-	
+
 	private static PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * This takes care of sorting the players by the given PMS configuration.
 	 */
-	private static class PlayerSort implements Comparator<Player> {
+	@SuppressWarnings("serial")
+	private static class PlayerSort implements Comparator<Player>, Serializable {
 
 		@Override
 		public int compare(Player player1, Player player2) {
@@ -138,7 +140,7 @@ public final class PlayerFactory {
 			registerPlayer(new FFmpegDVRMSRemux());
 		}
 
-		registerPlayer(new RAWThumbnailer());
+		registerPlayer(new DCRaw());
 
 		// Sort the players according to the configuration settings
 		Collections.sort(allPlayers, new PlayerSort());
@@ -148,7 +150,7 @@ public final class PlayerFactory {
 	/**
 	 * Adds a single {@link Player} to the list of Players. Before the player is
 	 * added to the list, it is verified to be okay.
-	 * 
+	 *
 	 * @param player Player to be added to the list.
 	 */
 	public static synchronized void registerPlayer(final Player player) {
@@ -205,7 +207,7 @@ public final class PlayerFactory {
 	/**
 	 * Returns the list of all players. This includes the ones not verified as
 	 * being okay.
-	 * 
+	 *
 	 * @return The list of players.
 	 */
 	public static ArrayList<Player> getAllPlayers() {
@@ -214,7 +216,7 @@ public final class PlayerFactory {
 
 	/**
 	 * Returns the list of players that have been verified as okay.
-	 * 
+	 *
 	 * @return The list of players.
 	 */
 	public static ArrayList<Player> getPlayers() {
@@ -222,10 +224,29 @@ public final class PlayerFactory {
 	}
 
 	/**
+	 * Returns the {@link Player} that matches the given class and format if it is
+	 * enabled. If no {@link Player} is found or the {@link Player} isn't
+	 * enabled, {@code null} is returned.
+	 *
+	 * @param profileClass
+	 *            The class to match.
+	 * @param ext
+	 *            The format to match.
+	 * @return The {@link Player} if found and enabled, otherwise {@code null}.
+	 */
+	public static Player getEnabledPlayer(final Class<? extends Player> profileClass, final Format ext) {
+		Player player = getPlayer(profileClass, ext);
+		if (player != null && configuration.getEnginesAsList(utils).contains(player.id())) {
+			return player;
+		}
+		return null;
+	}
+
+	/**
 	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead.
 	 *
 	 * Returns the player that matches the given class and format.
-	 * 
+	 *
 	 * @param profileClass
 	 *            The class to match.
 	 * @param ext
@@ -251,7 +272,7 @@ public final class PlayerFactory {
 	 * Returns the first {@link Player} that matches the given mediaInfo or
 	 * format. Each of the available players is passed the provided information
 	 * and the first that reports it is compatible will be returned.
-	 * 
+	 *
 	 * @param resource
 	 *            The {@link DLNAResource} to match
 	 * @return The player if a match could be found, <code>null</code>
@@ -262,30 +283,28 @@ public final class PlayerFactory {
 		if (resource == null) {
 			LOGGER.warn("Invalid resource (null): no player found");
 			return null;
-		} else if (resource.getMedia().isImage()) { // don't resolve player for image
-//			LOGGER.trace("Don't resolve player for resource \"{}\"", resource.getName());
-			return null;
-		} else {
-			LOGGER.trace("Getting player for resource \"{}\"", resource.getName());
 		}
+		LOGGER.trace("Getting player for resource \"{}\"", resource.getName());
+		boolean isImage = resource.getMedia() != null ? resource.getMedia().isImage() : false;
 
 		List<String> enabledEngines = configuration.getEnginesAsList(utils);
 
 		for (Player player : players) {
 			boolean enabled = enabledEngines.contains(player.id());
 
-			if (enabled) {
+			if (enabled && (!isImage || player instanceof ImagePlayer)) {
 				boolean compatible = player.isCompatible(resource);
 
 				if (compatible) {
 					// Player is enabled and compatible
 					LOGGER.trace("Returning compatible player \"{}\"", player.name());
 					return player;
-				} else {
-					LOGGER.trace("Player \"{}\" is incompatible", player.name());
 				}
+				LOGGER.trace("Player \"{}\" is incompatible", player.name());
 			} else {
-				LOGGER.trace("Player \"{}\" is disabled", player.name());
+				if (!isImage || player instanceof ImagePlayer) {
+					LOGGER.trace("Player \"{}\" is disabled", player.name());
+				}
 			}
 		}
 
@@ -295,10 +314,10 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead. 
+	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead.
 	 *
 	 * Returns the players matching the given classes and type.
-	 * 
+	 *
 	 * @param profileClasses
 	 *            The classes to match.
 	 * @param type

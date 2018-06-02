@@ -7,7 +7,7 @@ It was originally based on PS3 Media Server by shagrath, in order to ensure grea
 
 To see a comparison of popular media servers, [click here][2]
 
-Universal Media Server supports all major operating systems, with versions for Windows, Linux and Mac OS X.
+Universal Media Server supports all major operating systems, with versions for Windows, Linux and macOS.
 The program streams or transcodes many different media formats with little or no configuration.
 It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC, [OpenSubtitles.org][25] and more, which combine to offer support for a wide range of media formats.
 

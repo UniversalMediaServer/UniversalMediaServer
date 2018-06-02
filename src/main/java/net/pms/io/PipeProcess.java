@@ -71,7 +71,8 @@ public class PipeProcess {
 		try {
 			return PMS.getConfiguration().getTempFolder() + "/" + pipeName;
 		} catch (IOException e) {
-			LOGGER.error("Pipe may not be in temporary directory", e);
+			LOGGER.error("Pipe may not be in temporary directory: {}", e.getMessage());
+			LOGGER.trace("", e);
 			return pipeName;
 		}
 	}
@@ -127,7 +128,7 @@ public class PipeProcess {
 
 	public InputStream getInputStream() throws IOException {
 		if (!Platform.isWindows()) {
-			LOGGER.trace("Opening file " + linuxPipeName + " for reading...");
+			LOGGER.trace("Opening file {} for reading...", linuxPipeName);
 			RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "r");
 
 			return new FileInputStream(raf.getFD());
@@ -138,7 +139,7 @@ public class PipeProcess {
 
 	public OutputStream getOutputStream() throws IOException {
 		if (!Platform.isWindows()) {
-			LOGGER.trace("Opening file " + linuxPipeName + " for writing...");
+			LOGGER.trace("Opening file {} for writing...", linuxPipeName);
 			RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "rw");
 
 			return new FileOutputStream(raf.getFD());

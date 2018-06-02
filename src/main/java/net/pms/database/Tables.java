@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -69,6 +69,7 @@ public class Tables {
 
 					TableMusicBrainzReleases.checkTable(connection);
 					TableCoverArtArchive.checkTable(connection);
+					TableFilesStatus.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -250,27 +251,41 @@ public class Tables {
 	}
 
 	/**
-	 * Surrounds the argument with single quotes {@link String} and escapes any
-	 * existing single quotes.
+	 * Surrounds the argument with single quotes and escapes any existing single
+	 * quotes.
 	 *
-	 * @param s the {@link String} to quote.
-	 * @return The quoted {@link String}.
+	 * @see #sqlEscape(String)
+	 *
+	 * @param s the {@link String} to escape and quote.
+	 * @return The escaped and quoted {@code s}.
 	 */
 	public final static String sqlQuote(final String s) {
 		return s == null ? null : "'" + s.replace("'", "''") + "'";
 	}
 
 	/**
+	 * Escapes any existing single quotes in the argument but doesn't quote it.
+	 *
+	 * @see #sqlQuote(String)
+	 *
+	 * @param s the {@link String} to escape.
+	 * @return The escaped {@code s}.
+	 */
+	public static String sqlEscape(final String s) {
+		return s == null ? null : s.replace("'", "''");
+	}
+
+	/**
 	 * Escapes the argument with the default H2 escape character for the
 	 * escape character itself and the two wildcard characters <code>%</code>
-	 * and <code>_<code>. This escaping is only valid when using,
-	 *  <code>LIKE</code>, not when using <code>=</code>.
+	 * and <code>_</code>. This escaping is only valid when using,
+	 * <code>LIKE</code>, not when using <code>=</code>.
 	 *
 	 * TODO: Escaping should be generalized so that any escape character could
 	 *       be used and that the class would set the correct escape character
 	 *       when opening the database.
 	 *
-	 * @param the {@link String} to be SQL escaped.
+	 * @param s the {@link String} to be SQL escaped.
 	 * @return The escaped {@link String}.
 	 */
 	public final static String sqlLikeEscape(final String s) {

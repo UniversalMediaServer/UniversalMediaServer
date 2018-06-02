@@ -29,7 +29,9 @@ package net.pms.dlna;
 
 import com.sun.jna.*;
 import java.lang.reflect.Method;
-import static java.util.Collections.singletonMap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,30 +53,42 @@ public class MediaInfo {
 				// If we do not, the system will look for dependencies, but only in the library path.
 				NativeLibrary.getInstance("zen");
 			} catch (LinkageError e) {
-				LOGGER.warn("Error loading libzen: " + e.getMessage());
+				LOGGER.warn("Error loading libzen: {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
 	}
 
-	/**
-	 * XXX Note: none of JNA's 3 calling conventions
-	 * (ALT_CONVENTION, C_CONVENTION, STDCALL_CONVENTION)
-	 * work with MediaInfo.dll when JNA > 3.2.5.
-	 */
-
 	// Internal stuff
 	interface MediaInfoDLL_Internal extends Library {
+
+		/**
+		 * A {@link Map} of library options for use with {@link Native#loadLibrary}.
+		 */
+		Map<String, Object> options = Collections.unmodifiableMap(new HashMap<String, Object>() {
+			private static final long serialVersionUID = 1L;
+			{
+				put(OPTION_FUNCTION_MAPPER, new FunctionMapper() {
+
+					@Override
+					public String getFunctionName(NativeLibrary lib, Method method) {
+						// e.g. MediaInfo_New(), MediaInfo_Open() ...
+						return "MediaInfo_" + method.getName();
+					}
+				});
+				if (!Platform.isWindows()) {
+					put(OPTION_STRING_ENCODING, "UTF-8");
+				}
+			}
+		});
+
+
+		@SuppressWarnings("cast")
 		MediaInfoDLL_Internal INSTANCE = (MediaInfoDLL_Internal) Native.loadLibrary(
 			libraryName,
 			MediaInfoDLL_Internal.class,
-			singletonMap(OPTION_FUNCTION_MAPPER, new FunctionMapper() {
-
-			@Override
-			public String getFunctionName(NativeLibrary lib, Method method) {
-				// e.g. MediaInfo_New(), MediaInfo_Open() ...
-				return "MediaInfo_" + method.getName();
-			}
-		}));
+			options
+		);
 
 		// Constructor/Destructor
 		Pointer New();
@@ -203,9 +217,14 @@ public class MediaInfo {
 		try {
 			LOGGER.info("Loading MediaInfo library");
 			Handle = MediaInfoDLL_Internal.INSTANCE.New();
-			LOGGER.info("Loaded " + Option_Static("Info_Version"));
+			LOGGER.info("Loaded {}", Option_Static("Info_Version"));
+
+			LOGGER.debug("Setting MediaInfo library characterset to UTF-8");
+			if (!Platform.isWindows()) {
+				setUTF8();
+			}
 		} catch (Throwable e) {
-			LOGGER.error("Error loading MediaInfo library: " + e.getMessage());
+			LOGGER.error("Error loading MediaInfo library: {}", e.getMessage());
 			LOGGER.trace("", e);
 			if (!Platform.isWindows() && !Platform.isMac()) {
 				LOGGER.info("Make sure you have libmediainfo and libzen installed");
@@ -393,6 +412,14 @@ public class MediaInfo {
 	 */
 	public String Option(String Option, String Value) {
 		return MediaInfoDLL_Internal.INSTANCE.Option(Handle, new WString(Option), new WString(Value)).toString();
+	}
+
+	/**
+	 * Sets the MediaInfo library to expect UTF-8 input. This is necessary on
+	 * non-Windows platforms for Unicode support.
+	 */
+	public void setUTF8() {
+		MediaInfoDLL_Internal.INSTANCE.Option(Handle, new WString("setlocale_LC_CTYPE"), new WString("UTF-8"));
 	}
 
 	/**

@@ -176,6 +176,7 @@ ul#Media .thumb {
 	width: auto;
 	display: block;
 	margin: 0 auto;
+	object-fit: contain;
 }
 
 ul#Media .caption {

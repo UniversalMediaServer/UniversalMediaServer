@@ -18,6 +18,8 @@
  */
 package net.pms.network;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -25,13 +27,20 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -41,6 +50,7 @@ import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 import org.jboss.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlerV2.class);
@@ -75,16 +85,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	};
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
-		throws Exception {
+	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
 		RequestV2 request = null;
 		RendererConfiguration renderer = null;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
-		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) e.getMessage();
+		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) event.getMessage();
 
-		InetSocketAddress remoteAddress = (InetSocketAddress) e.getChannel().getRemoteAddress();
+		InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
 		// Is the request from our own Cling service, i.e. self-originating?
@@ -94,17 +103,14 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
-			e.getChannel().close();
-			LOGGER.trace(isSelf ?
-				("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort()) :
-				("Access denied for address " + ia + " based on IP filter"));
+			event.getChannel().close();
+			/*if (isSelf && LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Ignoring self-originating request from {}:{}", ia, remoteAddress.getPort());
+			}*/
 			return;
 		}
 
-		LOGGER.trace("Opened request handler on socket " + remoteAddress);
-		PMS.get().getRegistry().disableGoToSleep();
 		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
-		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().getText() + " : " + request.getMethod() + " : " + request.getArgument());
 
 		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
 			request.setHttp10(true);
@@ -136,10 +142,11 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		while (iterator.hasNext()) {
 			String name = iterator.next();
 			String headerLine = name + ": " + headers.get(name);
-			LOGGER.trace("Received on socket: " + headerLine);
 
 			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
 				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+			} else if (renderer != null && name.equals("X-PANASONIC-DMP-Profile")) {
+				PanasonicDmpProfiles.parsePanasonicDmpProfiles(headers.get(name), renderer);
 			}
 
 			try {
@@ -208,7 +215,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					}
 				}
 			} catch (Exception ee) {
-				LOGGER.error("Error parsing HTTP headers", ee);
+				LOGGER.error("Error parsing HTTP headers: {}", ee.getMessage());
+				LOGGER.trace("", ee);
 			}
 		}
 
@@ -221,14 +229,16 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			renderer = RendererConfiguration.resolve(ia, null);
 			request.setMediaRenderer(renderer);
 			if (renderer != null) {
-				LOGGER.trace("Using default media renderer: " + renderer.getConfName());
+				LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
 
 				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 					// We have found an unknown renderer
 					identifiers.add(0, "User-Agent: " + userAgentString);
 					renderer.setIdentifiers(identifiers);
-					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers:"
-						+ StringUtils.join(identifiers, ", "));
+					LOGGER.info(
+						"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
+						StringUtils.join(identifiers, "\n")
+					);
 					PMS.get().setRendererFound(renderer);
 				}
 			} else {
@@ -236,24 +246,100 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				// it means we know via upnp that it's not really a renderer.
 				return;
 			}
-		} else {
-			if (userAgentString != null) {
-				LOGGER.trace("HTTP User-Agent: " + userAgentString);
-			}
-
-			LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
+		} else if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
 		}
 
 		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
 			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
 			ChannelBuffer content = nettyRequest.getContent();
 			content.readBytes(data);
-			request.setTextContent(new String(data, "UTF-8"));
+			String textContent = new String(data, "UTF-8");
+			request.setTextContent(textContent);
+			if (LOGGER.isTraceEnabled()) {
+				logMessageReceived(event, textContent, renderer);
+			}
+		} else if (LOGGER.isTraceEnabled() ){
+			logMessageReceived(event, null, renderer);
 		}
 
-		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
+		writeResponse(ctx, event, request, ia);
+	}
 
-		writeResponse(ctx, e, request, ia);
+	private static void logMessageReceived(MessageEvent event, String content, RendererConfiguration renderer) {
+		StringBuilder header = new StringBuilder();
+		String soapAction = null;
+		if (event.getMessage() instanceof HttpRequest) {
+			header.append(((HttpRequest) event.getMessage()).getMethod());
+			header.append(" ").append(((HttpRequest) event.getMessage()).getUri());
+		}
+		if (event.getMessage() instanceof HttpMessage) {
+			if (header.length() > 0) {
+				header.append(" ");
+			}
+			header.append(((HttpMessage) event.getMessage()).getProtocolVersion().getText());
+			header.append("\n\n");
+			header.append("HEADER:\n");
+			for (Entry<String, String> entry : ((HttpMessage) event.getMessage()).headers().entries()) {
+				if (StringUtils.isNotBlank(entry.getKey())) {
+					header.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+					if ("SOAPACTION".equalsIgnoreCase(entry.getKey())) {
+						soapAction = entry.getValue().toUpperCase(Locale.ROOT);
+					}
+				}
+			}
+		} else {
+			header.append("Unknown class: ").append(event.getClass().getSimpleName()).append("\n");
+			header.append(event).append("\n");
+		}
+		String formattedContent = null;
+		if (StringUtils.isNotBlank(content)) {
+			try {
+				formattedContent = StringUtil.prettifyXML(content, 4);
+			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
+				LOGGER.trace("XML parsing failed with:\n{}", e);
+				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
+			}
+		}
+		String requestType = "";
+		// Map known requests to request type
+		if (soapAction != null) {
+			if (soapAction.contains("CONTENTDIRECTORY:1#BROWSE")) {
+				requestType = "browse ";
+			} else if (soapAction.contains("CONTENTDIRECTORY:1#SEARCH")) {
+				requestType = "search ";
+			}
+		}
+		String rendererName;
+		if (renderer != null) {
+			if (isNotBlank(renderer.getRendererName())) {
+				if (isBlank(renderer.getConfName()) || renderer.getRendererName().equals(renderer.getConfName())) {
+					rendererName = renderer.getRendererName();
+				} else {
+					rendererName = renderer.getRendererName() + " [" + renderer.getConfName() + "]";
+				}
+			} else if (isNotBlank(renderer.getConfName())) {
+				rendererName = renderer.getConfName();
+			} else {
+				rendererName = "Unnamed";
+			}
+		} else {
+			rendererName = "Unknown";
+		}
+		if (event.getChannel().getRemoteAddress() instanceof InetSocketAddress) {
+			rendererName +=
+				" (" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getAddress().getHostAddress() +
+				":" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getPort() + ")";
+		}
+
+		LOGGER.trace(
+			"Received a {}request from {}:\n\n{}{}",
+			requestType,
+			rendererName,
+			header,
+			StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+		);
 	}
 
 	/**
@@ -264,7 +350,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */
-	private boolean filterIp(InetAddress inetAddress) {
+	private static boolean filterIp(InetAddress inetAddress) {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
@@ -278,7 +364,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
-				HttpVersion.HTTP_1_1,
+				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
 				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
@@ -286,9 +372,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
-				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+				response = new DefaultHttpResponse(
+					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+					HttpResponseStatus.INTERNAL_SERVER_ERROR
+				);
 			} else {
-				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				response = new DefaultHttpResponse(
+					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+					HttpResponseStatus.OK
+				);
 			}
 		}
 
@@ -299,7 +391,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		try {
 			request.answer(response, e, close, startStopListenerDelegate);
 		} catch (IOException e1) {
-			LOGGER.trace("HTTP request V2 IO error: " + e1.getMessage());
+			LOGGER.debug("HTTP request V2 IO error: " + e1.getMessage());
+			LOGGER.trace("", e1);
 			// note: we don't call stop() here in a finally block as
 			// answer() is non-blocking. we only (may) need to call it
 			// here in the case of an exception. it's a no-op if it's
@@ -336,7 +429,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		ch.close();
 	}
 
-	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+	private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
 		HttpResponse response = new DefaultHttpResponse(
 			HttpVersion.HTTP_1_1, status);
 		response.headers().set(

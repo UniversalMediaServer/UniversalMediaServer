@@ -23,7 +23,7 @@ import com.ibm.icu.text.CharsetMatch;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import net.pms.PMS;
+import java.util.Locale;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
 import static net.pms.util.Constants.CHARSET_UTF_8;
@@ -169,8 +169,11 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Set external subs file, detect its Character Set and Language. When the {@code forcedLang} is not {@code null}, 
+	 * based on the language tag in the file name e.g {@code subsname.en.srt}, than it has priority over the detected language.
+	 * 
 	 * @param externalFile the externalFile to set
-	 * @param langForced 
+	 * @param forcedLang language forced by file name language tag
 	 */
 	public void setExternalFile(File externalFile, String forcedLang) throws FileNotFoundException {
 		if (externalFile == null) {
@@ -183,16 +186,31 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		setFileSubsCharacterSet(forcedLang);
 	}
 
+	/**
+	 * Detects and set Character Set and language of the subs file. When the {@code forcedLang} is not {@code null}
+	 * than it as priority over the detected language.
+	 * 
+	 * @param forcedLang forced language
+	 */
 	private void setFileSubsCharacterSet(String forcedLang) {
 		if (type.isPicture()) {
 			subsCharacterSet = null;
-		} else if (forcedLang == null) { // do not check subs charset or language when the language is specified in the filename
+		} else {
 			try {
 				CharsetMatch match = FileUtil.getFileCharsetMatch(externalFile);
 				if (match != null) {
-					subsCharacterSet = match.getName().toUpperCase(PMS.getLocale());
-					lang = match.getLanguage();
-					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", match.getName(), lang, externalFile.getAbsolutePath());
+					subsCharacterSet = match.getName().toUpperCase(Locale.ROOT);
+					// returned Charset can have additional info like ISO-8859-8-I but
+					// FFmpeg video filter knows only ISO-8859-8 so extract the additional "-I".
+					if (subsCharacterSet.split("-").length > 3) {
+						subsCharacterSet = subsCharacterSet.substring(0, subsCharacterSet.lastIndexOf("-"));
+					}
+
+					if (forcedLang == null) { // set the detected language when the language is not specified in the filename
+						lang = match.getLanguage();
+					}
+
+					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", subsCharacterSet, lang, externalFile.getAbsolutePath());
 				} else {
 					subsCharacterSet = null;
 					LOGGER.debug("No charset detected for {}", externalFile.getAbsolutePath());

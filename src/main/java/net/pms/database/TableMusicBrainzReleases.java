@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -19,6 +19,7 @@
  */
 package net.pms.database;
 
+import static org.apache.commons.lang3.StringUtils.left;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -60,7 +61,7 @@ public final class TableMusicBrainzReleases extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	// No instantiation
 	private TableMusicBrainzReleases() {
@@ -215,16 +216,16 @@ public final class TableMusicBrainzReleases extends Tables{
 							result.updateString("MBID", mBID);
 						}
 						if (StringUtil.hasValue(tagInfo.album)) {
-							result.updateString("ALBUM", tagInfo.album);
+							result.updateString("ALBUM", left(tagInfo.album, 1000));
 						}
 						if (StringUtil.hasValue(tagInfo.artist)) {
-							result.updateString("ARTIST", tagInfo.artist);
+							result.updateString("ARTIST", left(tagInfo.artist, 1000));
 						}
 						if (StringUtil.hasValue(tagInfo.title)) {
-							result.updateString("TITLE", tagInfo.title);
+							result.updateString("TITLE", left(tagInfo.title, 1000));
 						}
 						if (StringUtil.hasValue(tagInfo.year)) {
-							result.updateString("YEAR", tagInfo.year);
+							result.updateString("YEAR", left(tagInfo.year, 20));
 						}
 						if (StringUtil.hasValue(tagInfo.artistId)) {
 							result.updateString("ARTIST_ID", tagInfo.artistId);
@@ -339,14 +340,29 @@ public final class TableMusicBrainzReleases extends Tables{
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressWarnings("unused")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		tableLock.writeLock().lock();
 		try {
 			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
-					//case 1: Alter table to version 2
+					case 1:
+						// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
+						Statement statement = connection.createStatement();
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN YEAR VARCHAR(20)"
+						);
+						break;
 					default:
 						throw new IllegalStateException(
 							"Table \"" + TABLE_NAME + "is missing table upgrade commands from version " +
@@ -361,7 +377,7 @@ public final class TableMusicBrainzReleases extends Tables{
 	}
 
 	/**
-	 * Must be called in inside a table lock
+	 * Must be called from inside a table lock
 	 */
 	private static void createMusicBrainzReleasesTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
@@ -371,10 +387,10 @@ public final class TableMusicBrainzReleases extends Tables{
 					"ID IDENTITY PRIMARY KEY, " +
 					"MODIFIED DATETIME, " +
 					"MBID VARCHAR(36), " +
-					"ARTIST VARCHAR(100), " +
-					"ALBUM VARCHAR(100), " +
-					"TITLE VARCHAR(100), " +
-					"YEAR VARCHAR(4), " +
+					"ARTIST VARCHAR(1000), " +
+					"ALBUM VARCHAR(1000), " +
+					"TITLE VARCHAR(1000), " +
+					"YEAR VARCHAR(20), " +
 					"ARTIST_ID VARCHAR(36), " +
 					"TRACK_ID VARCHAR(36)" +
 				")");
