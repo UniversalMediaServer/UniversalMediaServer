@@ -1429,30 +1429,4 @@ public class FFMpegVideo extends Player {
 			}
 		}
 	}
-
-	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
-		String line;
-		boolean resolved = false;
-		while ((line = input.readLine()) != null) {
-			if (line.contains("[Script Info]")) {
-				while ((line = input.readLine()) != null) {
-					if (isNotBlank(line)) {
-						if (line.contains("PlayResX:")) {
-							subtitlesWidth = Integer.parseInt(line.substring(9).trim());
-						} else if (line.contains("PlayResY:")) {
-							subtitlesHeight = Integer.parseInt(line.substring(9).trim());
-						}
-					} else {
-						resolved = true;
-						break;
-					}
-				}
-			}
-			if (resolved) {
-				input.close();
-				break;
-			}
-		}
-	}
 }
