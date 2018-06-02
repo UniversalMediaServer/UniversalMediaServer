@@ -36,6 +36,7 @@ public class SubtitleTypeTest {
 		assertThat(valueOfFileExtension("ass")).isEqualTo(ASS);
 		assertThat(valueOfFileExtension("idx")).isEqualTo(VOBSUB);
 		assertThat(valueOfFileExtension("vtt")).isEqualTo(WEBVTT);
+		assertThat(valueOfFileExtension("sup")).isEqualTo(PGS);
 	}
 
 	@Test
@@ -92,6 +93,7 @@ public class SubtitleTypeTest {
 		assertThat(VOBSUB.getExtension()).isEqualTo("idx");
 		assertThat(UNSUPPORTED.getExtension()).isEqualTo("");
 		assertThat(WEBVTT.getExtension()).isEqualTo("vtt");
+		assertThat(PGS.getExtension()).isEqualTo("sup");
 	}
 
 	@Test
@@ -143,7 +145,7 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void getSupportedFileExtensions() {
-		Set<String> expectedExtensionsSet = new HashSet<>(Arrays.asList("srt", "txt", "sub", "smi", "ssa", "ass", "idx", "vtt"));
+		Set<String> expectedExtensionsSet = new HashSet<>(Arrays.asList("srt", "txt", "sub", "smi", "ssa", "ass", "idx", "vtt", "sup"));
 		assertThat(SubtitleType.getSupportedFileExtensions()).isEqualTo(expectedExtensionsSet);
 	}
 
